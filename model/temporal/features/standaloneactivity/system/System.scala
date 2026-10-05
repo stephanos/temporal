@@ -194,7 +194,7 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
 
   /**
    * What the protocol promises of its own: the settlement claims. The cross-entity claim of the
-   * activity and its worker is the composition's, and the system contract's are record/'s.
+   * activity and its worker is the composition's, and the system contract's are Record.scala's.
    */
   object properties extends Section:
     val completes =

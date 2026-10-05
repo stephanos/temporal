@@ -99,7 +99,7 @@ val committedThenLost = choice
 val failedThenLost = choice
 
 // ### The corrected design. A design alone takes a delivery whenever one could arrive: what holds of
-// it holds over every queue, and what fails of it is confirmed over a queue (withTaskQueue/).
+// it holds over every queue, and what fails of it is confirmed over a queue (WithTaskQueue.scala).
 
 /** The corrected design, whose status sets a composition reads through `activity`. */
 object CurrentAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:

@@ -156,7 +156,7 @@
         "control-terminate",
         "control-unpause"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (record/Record.scala, Admission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unproduced",
@@ -165,7 +165,7 @@
         "fact statusTimedOut-startToClose",
         "outcome notFound"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (record/Record.scala, Admission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unrealized-find",
@@ -225,7 +225,7 @@
         "control-terminate",
         "control-unpause"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (record/Record.scala, Admission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unproduced",
@@ -234,7 +234,7 @@
         "fact statusTimedOut-startToClose",
         "outcome notFound"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (record/Record.scala, Admission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "silent-rejection",
@@ -440,7 +440,7 @@
         "control-terminate",
         "control-unpause"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (record/Record.scala, Admission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unproduced",
@@ -450,7 +450,7 @@
         "fact statusTimedOut-startToClose",
         "outcome notFound"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (record/Record.scala, Admission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unrealized-find",
@@ -502,7 +502,7 @@
         "control-terminate",
         "control-unpause"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (record/Record.scala, Admission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unproduced",
@@ -512,7 +512,7 @@
         "fact statusTimedOut-startToClose",
         "outcome notFound"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (record/Record.scala, Admission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "silent-rejection",

@@ -77,7 +77,7 @@ object CurrentOverQueue
     /**
      * Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
      * steps after the record closes, so a composed step moves the state; the record's own
-     * declaration (record/) holds the record to the law.
+     * declaration (Record.scala) holds the record to the law.
      */
     val queueStepsOn =
       "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"

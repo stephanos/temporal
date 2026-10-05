@@ -145,8 +145,8 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	require.NoError(t, err)
 	lifted := map[string]bool{}
 	for _, m := range []*umpirespb.Model{activityModel(t), system} {
-		// The system contract's claims declared elsewhere, in record/, withTaskQueue/ and the task
-		// queue, are not this file's.
+		// The system contract's claims declared elsewhere, in system/Record.scala,
+		// system/WithTaskQueue.scala and the task queue, are not these files'.
 		here := func(p *umpirespb.Position) bool { return m != system || at[p.GetFile()] }
 		for _, p := range m.GetProperties() {
 			if here(p.GetPosition()) {

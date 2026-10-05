@@ -5,7 +5,9 @@ package model
 // model/temporal/features and model/temporal/shared. The folders they replaced must not come back:
 // neither as a directory with sources nor as a path, package or target a live file names. Nor may
 // the per-kind files fn-126 folded into one feature file per folder: no Model folder holds one, and
-// no live file names one.
+// no live file names one. Nor may the zoom-in folders fn-126 flattened into a feature's level
+// folders (decisions 16 and 22): record/ and withTaskQueue/ are files of standaloneactivity/system/,
+// closepolicy/ one of nexuscaller/system/.
 
 import (
 	"fmt"
@@ -27,20 +29,31 @@ var retiredModelDirectories = []string{
 	"model/lifter", "model/gate", "model/metrics",
 	"model/temporal/standaloneactivity", "model/temporal/nexuscaller", "model/temporal/nexusoperation",
 	"model/temporal/taskqueue", "model/temporal/worker",
+	"model/temporal/features/standaloneactivity/record", "model/temporal/features/standaloneactivity/withTaskQueue",
+	"model/temporal/features/nexuscaller/closepolicy",
 }
 
 // retiredModelNames matches a retired folder's path from the repository's root, a retired Scala
-// package of the tools, and a retired Make target. A Definition ID or IR type name keeps its old
-// package by design (each Model's DefinitionScope pin), so a qualified name in a string is no match.
+// package of the tools or of a flattened zoom-in, and a retired Make target. A Definition ID or IR
+// type name keeps its old package by design (each Model's DefinitionScope pin, such as
+// `temporal.nexuscaller.closepolicy.Model$package$`), so a pinned name in a string is no match; a
+// function symbol, which names the package the function is in, is.
 var retiredModelNames = regexp.MustCompile(strings.Join([]string{
 	`model/(?:lifter|gate|metrics|gen)\b`,
 	`model/temporal/(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)\b`,
+	`model/temporal/features/(?:standaloneactivity/(?:record|withTaskQueue)|nexuscaller/closepolicy)\b`,
+	`\bfeatures\.(?:standaloneactivity\.(?:record|withTaskQueue)|nexuscaller\.closepolicy)\b`,
 	`\bumpire\.(?:lift|gate)\b`,
 	`\blint-model-(?:lifter|lifts|gate|metrics)\b`,
 	// The same paths joined from their parts, as a Go test reads a file.
 	`"model", "(?:lifter|gate|metrics|gen)"`,
 	`"model", "temporal", "(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)"`,
+	`"standaloneactivity", "(?:record|withTaskQueue)"|"nexuscaller", "closepolicy"`,
 }, "|"))
+
+// retiredZoomInFolders matches a flattened zoom-in folder named from its feature's folder, as prose
+// names it: `record/`, `withTaskQueue/` or `closepolicy/`, not as the tail of a longer path.
+var retiredZoomInFolders = regexp.MustCompile(`(?:^|[^\w/.-])(?:record|withTaskQueue|closepolicy)/`)
 
 // retiredModelRelatives matches, inside model/, a moved folder named from model/: temporal/taskqueue.
 // Outside model/ the same words name other trees, such as Testpilot's temporal/worker package.
@@ -48,9 +61,12 @@ var retiredModelRelatives = regexp.MustCompile(
 	`(?:^|[^\w/.-])temporal/(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)\b`)
 
 // retiredScalaPackages matches, in a Scala source, a package clause or import of a moved Temporal
-// package: `package taskqueue` after `package temporal`, or `import temporal.worker.*`.
+// package: `package taskqueue` after `package temporal`, or `import temporal.worker.*`; or of a
+// flattened zoom-in, `package record` after `package features.standaloneactivity`, or `import
+// closepolicy.*`.
 var retiredScalaPackages = regexp.MustCompile(
-	`^\s*(?:package (?:temporal\.)?|import (?:temporal\.)?)(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)\b`)
+	`^\s*(?:package (?:temporal\.)?|import (?:temporal\.)?)(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)\b|` +
+		`^\s*(?:package|import) (?:(?:temporal\.)?features\.(?:standaloneactivity|nexuscaller)\.)?(?:record|withTaskQueue|closepolicy)\b`)
 
 // retiredFeatureFileNames are the per-kind files a Model folder held before fn-126 laid each folder
 // out as one feature file named after it (model/README.md, "The reading order and its lint").
@@ -61,9 +77,10 @@ var retiredFeatureFileNames = []string{"Model.scala", "Properties.scala", "Queri
 var modelFolderRoots = []string{"model/temporal/features", "model/temporal/shared"}
 
 // retiredFeatureFilePaths matches a retired per-kind file of a Model folder named by its path: from
-// features/ or shared/, from a Model folder's name (`worker/Model.scala`), or joined from its parts.
+// features/ or shared/, from a Model folder's name (`worker/Model.scala`) or a level folder's
+// (`system/Model.scala`), or joined from its parts.
 var retiredFeatureFilePaths = regexp.MustCompile(strings.Join([]string{
-	`\b(?:features|shared|standaloneactivity|record|withTaskQueue|admission|compositions|nexuscaller|closepolicy|nexusoperation|taskqueue|worker)/(?:[\w-]+/)*(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala\b`,
+	`\b(?:features|shared|standaloneactivity|record|withTaskQueue|admission|compositions|nexuscaller|closepolicy|nexusoperation|taskqueue|worker|product|system)/(?:[\w-]+/)*(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala\b`,
 	`"(?:features|shared)"(?:, "[\w-]+")*, "(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala"`,
 }, "|"))
 
@@ -131,6 +148,7 @@ func retiredModelMentions(path, content string) []string {
 	scala, inModel := strings.HasSuffix(path, ".scala"), strings.HasPrefix(path, modelRoot+"/")
 	for i, line := range strings.Split(content, "\n") {
 		if retiredModelNames.MatchString(line) || inModel && retiredModelRelatives.MatchString(line) ||
+			retiredZoomInFolders.MatchString(line) ||
 			scala && retiredScalaPackages.MatchString(line) || retiredFeatureFilePaths.MatchString(line) ||
 			retiredFeatureFileProseIn(path, line) {
 			found = append(found, fmt.Sprintf("%s:%d", path, i+1))
@@ -213,7 +231,7 @@ func TestRetiredModelPathsStayRetired(t *testing.T) {
 	require.NoError(t, modelFiles(collect))
 	require.NoError(t, liveLayoutFiles(collect))
 	require.Greater(t, scanned, 500, "the walk reaches the model, the tools, the build and the documents")
-	require.Empty(t, mentions, "name the folders, packages and targets fn-114.9 renamed by their new names")
+	require.Empty(t, mentions, "name the folders, packages and targets fn-114.9 and fn-126 renamed by their new names")
 }
 
 func TestRetiredModelMentionsAreFound(t *testing.T) {
@@ -221,46 +239,61 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		content string
 		found   bool
 	}{
-		"the IR generator's old folder":        {"see model/lifter/Lift.scala", true},
-		"the check's old folder":               {"run model/gate", true},
-		"the metrics project":                  {"scala-cli run model/metrics --", true},
-		"the old build cache":                  {"model/gen/ir-scalapb.jar", true},
-		"a moved feature":                      {"model/temporal/nexuscaller/Model.scala:12", true},
-		"a moved shared part":                  {"(temporal/taskqueue)", true},
-		"a tool package":                       {"import umpire.lift.Syntax", true},
-		"the check's old package":              {"package umpire.gate", true},
-		"a moved package clause":               {"package standaloneactivity", true},
-		"an import of a moved package":         {"import temporal.worker.*", true},
-		"a retired target":                     {"make lint-model-lifts", true},
-		"a path joined from its parts":         {`filepath.Join("..", "model", "temporal", "worker")`, true},
-		"the new folders":                      {"model/irgen, model/check, model/build, model/temporal/features/nexuscaller", false},
-		"a shared part's new folder":           {"model/temporal/shared/taskqueue", false},
-		"the new packages":                     {"package umpire.irgen\nimport temporal.features.standaloneactivity.*", false},
-		"a pinned Definition ID":               {`DefinitionScope("temporal.standaloneactivity.System$package$")`, false},
-		"Testpilot's worker":                   {"common/testing/testpilot/temporal/worker/interpreter.go", false},
-		"a word that starts like a stem":       {"model/generated, model/gates, lint-model-irgen-lifts", false},
-		"the IR generator's lifted files":      {"umpire.lifted", false},
-		"a relative import of a moved package": {"import worker.Phase as WorkerPhase", true},
-		"a retired Model.scala":                {"model/temporal/features/nexuscaller/Model.scala:424", true},
-		"a retired Properties.scala":           {"see `nexuscaller/Properties.scala`, line 22", true},
-		"a retired Queries.scala":              {"model/temporal/shared/taskqueue/Queries.scala", true},
-		"a retired Capabilities.scala":         {"its folder's features/nexusoperation/Capabilities.scala", true},
-		"a retired IrFiles.scala":              {"closepolicy/IrFiles.scala", true},
-		"a retired file from its folder":       {"from worker/Model.scala", true},
-		"a retired file joined from its parts": {`filepath.Join("model", "temporal", "features", "nexuscaller", "Queries.scala")`, true},
-		"a feature file":                       {"model/temporal/features/nexuscaller/NexusCaller.scala:424", false},
-		"the kit's capabilities":               {"model/temporal/capabilities/Capabilities.scala", false},
-		"the framework's capabilities":         {"model/umpire/Capabilities.scala", false},
-		"a fixture named like a retired file":  {"model/irgen/testdata/lifts/Capabilities.scala, irFileRefusals/IrFiles.scala", false},
-		"a folder's file named bare":           {"in its Model folder's Capabilities.scala", true},
-		"a feature's file named bare":          {"the feature's `IrFiles.scala`", true},
-		"a Model's own file named bare":        {"its own `Capabilities.scala`", true},
-		"a file read off by name":              {"The claims are read off Properties.scala", true},
-		"a file named after a preposition":     {"declared in `Queries.scala`, beside Model.scala", true},
-		"the framework's Capabilities.scala":   {"`cited` in `Capabilities.scala` (model/umpire)", false},
-		"the kit's Capabilities.scala":         {"the kinds in temporal/capabilities, in Capabilities.scala", false},
-		"a retired file beside the kit's":      {"model/umpire keeps Capabilities.scala; see Queries.scala", true},
-		"a file named by its kind alone":       {"no file named by kind (`Model.scala`, `Properties.scala`)", false},
+		"the IR generator's old folder":         {"see model/lifter/Lift.scala", true},
+		"the check's old folder":                {"run model/gate", true},
+		"the metrics project":                   {"scala-cli run model/metrics --", true},
+		"the old build cache":                   {"model/gen/ir-scalapb.jar", true},
+		"a moved feature":                       {"model/temporal/nexuscaller/Model.scala:12", true},
+		"a moved shared part":                   {"(temporal/taskqueue)", true},
+		"a tool package":                        {"import umpire.lift.Syntax", true},
+		"the check's old package":               {"package umpire.gate", true},
+		"a moved package clause":                {"package standaloneactivity", true},
+		"an import of a moved package":          {"import temporal.worker.*", true},
+		"a retired target":                      {"make lint-model-lifts", true},
+		"a path joined from its parts":          {`filepath.Join("..", "model", "temporal", "worker")`, true},
+		"the new folders":                       {"model/irgen, model/check, model/build, model/temporal/features/nexuscaller", false},
+		"a shared part's new folder":            {"model/temporal/shared/taskqueue", false},
+		"the new packages":                      {"package umpire.irgen\nimport temporal.features.standaloneactivity.*", false},
+		"a pinned Definition ID":                {`DefinitionScope("temporal.standaloneactivity.System$package$")`, false},
+		"Testpilot's worker":                    {"common/testing/testpilot/temporal/worker/interpreter.go", false},
+		"a word that starts like a stem":        {"model/generated, model/gates, lint-model-irgen-lifts", false},
+		"the IR generator's lifted files":       {"umpire.lifted", false},
+		"a relative import of a moved package":  {"import worker.Phase as WorkerPhase", true},
+		"a retired Model.scala":                 {"model/temporal/features/nexuscaller/Model.scala:424", true},
+		"a retired Properties.scala":            {"see `nexuscaller/Properties.scala`, line 22", true},
+		"a retired Queries.scala":               {"model/temporal/shared/taskqueue/Queries.scala", true},
+		"a retired Capabilities.scala":          {"its folder's features/nexusoperation/Capabilities.scala", true},
+		"a retired IrFiles.scala":               {"closepolicy/IrFiles.scala", true},
+		"a retired file from its folder":        {"from worker/Model.scala", true},
+		"a retired file joined from its parts":  {`filepath.Join("model", "temporal", "features", "nexuscaller", "Queries.scala")`, true},
+		"a retired file of a level folder":      {"model/temporal/features/nexuscaller/system/Model.scala", true},
+		"a retired file of a product folder":    {"the queue's product/Properties.scala", true},
+		"a flattened record folder":             {"model/temporal/features/standaloneactivity/record/Record.scala", true},
+		"a flattened composition folder":        {"its withTaskQueue/ composes the record", true},
+		"a flattened close policy folder":       {"model/temporal/features/nexuscaller/closepolicy", true},
+		"a zoom-in folder named bare":           {"read off record/ (heldAdmission)", true},
+		"a zoom-in folder joined from parts":    {`filepath.Join("model", "temporal", "features", "nexuscaller", "closepolicy", "*.scala")`, true},
+		"a flattened package clause":            {"package closepolicy", true},
+		"an import of a flattened package":      {"import record.*", true},
+		"a qualified flattened package":         {"features.nexuscaller.closepolicy.exports", true},
+		"a function of a flattened package":     {"temporal.features.standaloneactivity.withTaskQueue.CurrentOverQueue$.queries$.all", true},
+		"the level folders' files":              {"model/temporal/features/standaloneactivity/system/Record.scala, product/Product.scala", false},
+		"a level package":                       {"package system\nimport temporal.features.nexuscaller.system.ClosePolicyFamily", false},
+		"a pinned former owner":                 {`DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")`, false},
+		"a longer path ending in a folder name": {"common/testing/testpilot/record/run.go, x.record/y", false},
+		"a feature file":                        {"model/temporal/features/nexuscaller/NexusCaller.scala:424", false},
+		"the kit's capabilities":                {"model/temporal/capabilities/Capabilities.scala", false},
+		"the framework's capabilities":          {"model/umpire/Capabilities.scala", false},
+		"a fixture named like a retired file":   {"model/irgen/testdata/lifts/Capabilities.scala, irFileRefusals/IrFiles.scala", false},
+		"a folder's file named bare":            {"in its Model folder's Capabilities.scala", true},
+		"a feature's file named bare":           {"the feature's `IrFiles.scala`", true},
+		"a Model's own file named bare":         {"its own `Capabilities.scala`", true},
+		"a file read off by name":               {"The claims are read off Properties.scala", true},
+		"a file named after a preposition":      {"declared in `Queries.scala`, beside Model.scala", true},
+		"the framework's Capabilities.scala":    {"`cited` in `Capabilities.scala` (model/umpire)", false},
+		"the kit's Capabilities.scala":          {"the kinds in temporal/capabilities, in Capabilities.scala", false},
+		"a retired file beside the kit's":       {"model/umpire keeps Capabilities.scala; see Queries.scala", true},
+		"a file named by its kind alone":        {"no file named by kind (`Model.scala`, `Properties.scala`)", false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, test.found, len(retiredModelMentions("model/temporal/A.scala", test.content)) > 0, test.content)
@@ -282,7 +315,7 @@ func TestRetiredFeatureFilesAreFound(t *testing.T) {
 			root := t.TempDir()
 			files := []string{
 				"model/temporal/features/nexuscaller/NexusCaller.scala",
-				"model/temporal/features/nexuscaller/closepolicy/" + name,
+				"model/temporal/features/nexuscaller/system/" + name,
 				"model/temporal/capabilities/" + name,
 				"model/irgen/testdata/lifts/" + name,
 			}
@@ -292,7 +325,7 @@ func TestRetiredFeatureFilesAreFound(t *testing.T) {
 			}
 			found, err := retiredFeatureFiles(root)
 			require.NoError(t, err)
-			require.Equal(t, []string{"model/temporal/features/nexuscaller/closepolicy/" + name}, found)
+			require.Equal(t, []string{"model/temporal/features/nexuscaller/system/" + name}, found)
 		})
 	}
 	found, err := retiredFeatureFiles(t.TempDir())
