@@ -1,0 +1,1463 @@
+{
+  "receipt": "final-pure-host.json",
+  "exit": 1,
+  "elapsed_seconds": 159.45236825942993,
+  "json_events": 4932,
+  "source_changes": [],
+  "packages": {
+    "go.temporal.io/server/tools/gomad3/choice": "pass",
+    "go.temporal.io/server/tools/gomad3/choice/internal/wire": "pass",
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap": "pass",
+    "go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary": "pass",
+    "go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol": "pass",
+    "go.temporal.io/server/tools/gomad3/record": "pass",
+    "go.temporal.io/server/tools/gomad3/artifact": "pass",
+    "go.temporal.io/server/tools/gomad3/deterministicio": "fail",
+    "go.temporal.io/server/tools/gomad3/deterministicio/internal/wire": "pass",
+    "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount": "pass",
+    "go.temporal.io/server/tools/gomad3/world": "pass",
+    "go.temporal.io/server/tools/gomad3/world/mailbox": "pass",
+    "go.temporal.io/server/tools/gomad3/world/process": "pass",
+    "go.temporal.io/server/tools/gomad3/toolchain/version": "pass",
+    "go.temporal.io/server/tools/gomad3/toolchain/installation": "pass",
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": "pass",
+    "go.temporal.io/server/tools/gomad3/internal/canonicaljson": "pass",
+    "go.temporal.io/server/tools/gomad3/internal/sourceinventory": "pass",
+    "go.temporal.io/server/tools/gomad3": "pass"
+  },
+  "test_event_counts": {
+    "pass": 972,
+    "fail": 106,
+    "skip": 13
+  },
+  "top_level_counts": {
+    "pass": 320,
+    "fail": 58,
+    "skip": 13
+  },
+  "unfinished_tests": [],
+  "failures_and_skips": {
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainProjectsOnlyReachableForbiddenImport": {
+      "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+      "test": "TestPinnedToolchainProjectsOnlyReachableForbiddenImport",
+      "output": [
+        "=== RUN   TestPinnedToolchainProjectsOnlyReachableForbiddenImport\n",
+        "    toolchain_test.go:16: live capability records are supported only on darwin/arm64\n",
+        "--- SKIP: TestPinnedToolchainProjectsOnlyReachableForbiddenImport (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:00.36202127Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainGuardsReachableForbiddenImport": {
+      "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+      "test": "TestPinnedToolchainGuardsReachableForbiddenImport",
+      "output": [
+        "=== RUN   TestPinnedToolchainGuardsReachableForbiddenImport\n",
+        "    toolchain_test.go:57: live capability records are supported only on darwin/arm64\n",
+        "--- SKIP: TestPinnedToolchainGuardsReachableForbiddenImport (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:00.362895228Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainAllowsPureForbiddenPackageInitializationHelper": {
+      "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+      "test": "TestPinnedToolchainAllowsPureForbiddenPackageInitializationHelper",
+      "output": [
+        "=== RUN   TestPinnedToolchainAllowsPureForbiddenPackageInitializationHelper\n",
+        "    toolchain_test.go:102: live capability records are supported only on darwin/arm64\n",
+        "--- SKIP: TestPinnedToolchainAllowsPureForbiddenPackageInitializationHelper (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:00.364327145Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainAllowsPureSyscallErrorHelpers": {
+      "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+      "test": "TestPinnedToolchainAllowsPureSyscallErrorHelpers",
+      "output": [
+        "=== RUN   TestPinnedToolchainAllowsPureSyscallErrorHelpers\n",
+        "    toolchain_test.go:147: live capability records are supported only on darwin/arm64\n",
+        "--- SKIP: TestPinnedToolchainAllowsPureSyscallErrorHelpers (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:00.366537895Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainUsesDeterministicEnvironment": {
+      "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+      "test": "TestPinnedToolchainUsesDeterministicEnvironment",
+      "output": [
+        "=== RUN   TestPinnedToolchainUsesDeterministicEnvironment\n",
+        "    toolchain_test.go:173: live capability records are supported only on darwin/arm64\n",
+        "--- SKIP: TestPinnedToolchainUsesDeterministicEnvironment (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:00.367449478Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainGuardsReachableDeniedBoundary": {
+      "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+      "test": "TestPinnedToolchainGuardsReachableDeniedBoundary",
+      "output": [
+        "=== RUN   TestPinnedToolchainGuardsReachableDeniedBoundary\n",
+        "    toolchain_test.go:205: live capability records are supported only on darwin/arm64\n",
+        "--- SKIP: TestPinnedToolchainGuardsReachableDeniedBoundary (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:00.368492103Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainDoesNotGuardModeledUnsupportedBoundary": {
+      "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+      "test": "TestPinnedToolchainDoesNotGuardModeledUnsupportedBoundary",
+      "output": [
+        "=== RUN   TestPinnedToolchainDoesNotGuardModeledUnsupportedBoundary\n",
+        "    toolchain_test.go:239: live capability records are supported only on darwin/arm64\n",
+        "--- SKIP: TestPinnedToolchainDoesNotGuardModeledUnsupportedBoundary (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:00.368994937Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainGuardsForbiddenPackageExceptModeledBoundary": {
+      "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+      "test": "TestPinnedToolchainGuardsForbiddenPackageExceptModeledBoundary",
+      "output": [
+        "=== RUN   TestPinnedToolchainGuardsForbiddenPackageExceptModeledBoundary\n",
+        "    toolchain_test.go:264: live capability records are supported only on darwin/arm64\n",
+        "--- SKIP: TestPinnedToolchainGuardsForbiddenPackageExceptModeledBoundary (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:00.373649728Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestAdapterPreparedSourceSetPinsReproduceOnEveryHost": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterPreparedSourceSetPinsReproduceOnEveryHost",
+      "output": [
+        "=== RUN   TestAdapterPreparedSourceSetPinsReproduceOnEveryHost\n",
+        "    adapter_regenerate_test.go:41: pinned toolchain is unavailable: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- SKIP: TestAdapterPreparedSourceSetPinsReproduceOnEveryHost (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.163335691Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource",
+      "output": [
+        "=== RUN   TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource\n",
+        "    adapter_regenerate_test.go:149: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.165984149Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRegenerateAdapterRederivesBaseRewrites": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterRederivesBaseRewrites",
+      "output": [
+        "=== RUN   TestRegenerateAdapterRederivesBaseRewrites\n",
+        "    adapter_regenerate_test.go:186: download google.golang.org/grpc@v1.83.2: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRegenerateAdapterRederivesBaseRewrites (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.168110691Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce",
+      "output": [
+        "=== RUN   TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce\n",
+        "--- FAIL: TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.178623941Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/moved": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/moved",
+      "output": [
+        "=== RUN   TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/moved\n",
+        "    adapter_regenerate_test.go:219: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/moved (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.182115899Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/twice": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/twice",
+      "output": [
+        "=== RUN   TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/twice\n",
+        "    adapter_regenerate_test.go:219: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/twice (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.182368358Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream",
+      "output": [
+        "=== RUN   TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream\n",
+        "    adapter_regenerate_test.go:239: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.203215649Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin",
+      "output": [
+        "=== RUN   TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin\n",
+        "    adapter_regenerate_test.go:252: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.203407733Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRegenerateAdapterRefusesCustomPreparation": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterRefusesCustomPreparation",
+      "output": [
+        "=== RUN   TestRegenerateAdapterRefusesCustomPreparation\n",
+        "    adapter_regenerate_test.go:263: libc regeneration error = libc regeneration request is incomplete\n",
+        "--- FAIL: TestRegenerateAdapterRefusesCustomPreparation (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.214414316Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestAdapterSourceEditsReplaceEveryAnchor": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterSourceEditsReplaceEveryAnchor",
+      "output": [
+        "=== RUN   TestAdapterSourceEditsReplaceEveryAnchor\n",
+        "    adapter_regenerate_test.go:274: download github.com/hashicorp/memberlist@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestAdapterSourceEditsReplaceEveryAnchor (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.214594399Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral",
+      "output": [
+        "=== RUN   TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral\n",
+        "    adapter_regenerate_test.go:332: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.225896733Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestVerifyRegisteredAdapterChecksEveryPin": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterChecksEveryPin",
+      "output": [
+        "=== RUN   TestVerifyRegisteredAdapterChecksEveryPin\n",
+        "    adapter_regenerate_test.go:354: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestVerifyRegisteredAdapterChecksEveryPin (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.226145774Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration",
+      "output": [
+        "=== RUN   TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration\n",
+        "    adapter_registry_test.go:77: PrepareBuildAdapters() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.311868066Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileVerifiesSelectedAdapterIdentities": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileVerifiesSelectedAdapterIdentities",
+      "output": [
+        "=== RUN   TestProfileVerifiesSelectedAdapterIdentities\n",
+        "    adapter_registry_test.go:152: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestProfileVerifiesSelectedAdapterIdentities (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.321221691Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading",
+      "output": [
+        "=== RUN   TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading\n",
+        "    adapter_registry_test.go:193: PrepareTargetBuildAdapters() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.325163066Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleInventoriesMatchPinnedModules": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleInventoriesMatchPinnedModules",
+      "output": [
+        "=== RUN   TestRewrittenModuleInventoriesMatchPinnedModules\n",
+        "    adapter_rewrite_test.go:169: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleInventoriesMatchPinnedModules (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.328083899Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectChangedIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectChangedIdentity",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectChangedIdentity\n",
+        "    adapter_rewrite_test.go:228: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulesRejectChangedIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.331272274Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteAdapterSourceRejectsDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteAdapterSourceRejectsDrift",
+      "output": [
+        "=== RUN   TestRewriteAdapterSourceRejectsDrift\n",
+        "    adapter_rewrite_test.go:248: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteAdapterSourceRejectsDrift (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.337362066Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulePreparedPackageSourceSetIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulePreparedPackageSourceSetIdentity",
+      "output": [
+        "=== RUN   TestRewrittenModulePreparedPackageSourceSetIdentity\n",
+        "    adapter_rewrite_test.go:302: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulePreparedPackageSourceSetIdentity (0.01s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.339358274Z",
+      "result": "fail",
+      "elapsed": 0.01
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity",
+      "output": [
+        "=== RUN   TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity\n",
+        "    adapter_rewrite_test.go:325: the address-library adapter is pinned for darwin/arm64 only\n",
+        "--- SKIP: TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.343088233Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileSelectsSentryAdapter": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsSentryAdapter",
+      "output": [
+        "=== RUN   TestProfileSelectsSentryAdapter\n",
+        "    adapter_rewrite_test.go:380: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestProfileSelectsSentryAdapter (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.346797066Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift (0.01s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.347651941Z",
+      "result": "fail",
+      "elapsed": 0.01
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/sentry/version": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/version",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/sentry/version\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want unsupported github.com/getsentry/sentry-go version\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/version (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.348255274Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/sentry/replacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/replacement",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/sentry/replacement\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/getsentry/sentry-go\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/replacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.360543858Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/sentry/version-replacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/version-replacement",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/sentry/version-replacement\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/getsentry/sentry-go\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/version-replacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.362878483Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/sentry/replacement-block": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/replacement-block",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/sentry/replacement-block\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/getsentry/sentry-go\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/replacement-block (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.365682524Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/sentry/sum": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/sum",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/sentry/sum\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/sum (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.367116399Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/sentry/missing-sum": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/missing-sum",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/sentry/missing-sum\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/missing-sum (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.369866983Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/sentry/build-modfile": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/build-modfile",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/sentry/build-modfile\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want existing build modfile\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/sentry/build-modfile (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.374922566Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want unsupported github.com/hashicorp/go-metrics version\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.375583149Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/hashicorp/go-metrics\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.378273566Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version-replacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version-replacement",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version-replacement\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/hashicorp/go-metrics\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version-replacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.378631691Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement-block": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement-block",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement-block\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces github.com/hashicorp/go-metrics\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement-block (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.383794816Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/sum": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/sum",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/sum\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/sum (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.384210649Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/missing-sum": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/missing-sum",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/missing-sum\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/missing-sum (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.384978858Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/build-modfile": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/build-modfile",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/build-modfile\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want existing build modfile\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/build-modfile (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.385932358Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/grpc/version": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/version",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/grpc/version\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want unsupported google.golang.org/grpc version\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/version (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.386146066Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/grpc/replacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/replacement",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/grpc/replacement\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces google.golang.org/grpc\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/replacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.386344608Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/grpc/version-replacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/version-replacement",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/grpc/version-replacement\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces google.golang.org/grpc\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/version-replacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.397455566Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/grpc/replacement-block": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/replacement-block",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/grpc/replacement-block\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want already replaces google.golang.org/grpc\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/replacement-block (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.397636524Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/grpc/sum": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/sum",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/grpc/sum\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/sum (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.418173358Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/grpc/missing-sum": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/missing-sum",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/grpc/missing-sum\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want module sum\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/missing-sum (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.438963524Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsAdapterConfigurationDrift/grpc/build-modfile": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/build-modfile",
+      "output": [
+        "=== RUN   TestProfileRejectsAdapterConfigurationDrift/grpc/build-modfile\n",
+        "    adapter_rewrite_test.go:458: prepare configuration: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want existing build modfile\n",
+        "--- FAIL: TestProfileRejectsAdapterConfigurationDrift/grpc/build-modfile (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.439381524Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift",
+      "output": [
+        "=== RUN   TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift\n",
+        "--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift (0.01s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.439878566Z",
+      "result": "fail",
+      "elapsed": 0.01
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sprig": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sprig",
+      "output": [
+        "=== RUN   TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sprig\n",
+        "    adapter_rewrite_test.go:476: download github.com/Masterminds/sprig/v3@v3.3.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sprig (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.440162358Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/validator": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/validator",
+      "output": [
+        "=== RUN   TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/validator\n",
+        "    adapter_rewrite_test.go:476: download github.com/go-playground/validator/v10@v10.30.1: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/validator (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.440467816Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/pebble": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/pebble",
+      "output": [
+        "=== RUN   TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/pebble\n",
+        "    adapter_rewrite_test.go:476: download github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/pebble (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.440864524Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/cactusstatsd": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/cactusstatsd",
+      "output": [
+        "=== RUN   TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/cactusstatsd\n",
+        "    adapter_rewrite_test.go:476: download github.com/cactus/go-statsd-client/v5@v5.1.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/cactusstatsd (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.441204691Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/memberlist": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/memberlist",
+      "output": [
+        "=== RUN   TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/memberlist\n",
+        "    adapter_rewrite_test.go:476: download github.com/hashicorp/memberlist@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/memberlist (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.451549983Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sentry": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sentry",
+      "output": [
+        "=== RUN   TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sentry\n",
+        "    adapter_rewrite_test.go:476: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sentry (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.471935274Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/hashicorp-metrics": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/hashicorp-metrics",
+      "output": [
+        "=== RUN   TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/hashicorp-metrics\n",
+        "    adapter_rewrite_test.go:476: download github.com/hashicorp/go-metrics@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/hashicorp-metrics (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.472356108Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectUnrewrittenInventoryDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectUnrewrittenInventoryDrift\n",
+        "--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.472588233Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectUnrewrittenInventoryDrift/sprig": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/sprig",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectUnrewrittenInventoryDrift/sprig\n",
+        "    adapter_rewrite_test.go:546: download github.com/Masterminds/sprig/v3@v3.3.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/sprig (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.472637191Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectUnrewrittenInventoryDrift/validator": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/validator",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectUnrewrittenInventoryDrift/validator\n",
+        "    adapter_rewrite_test.go:546: download github.com/go-playground/validator/v10@v10.30.1: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/validator (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.472830941Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectUnrewrittenInventoryDrift/pebble": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/pebble",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectUnrewrittenInventoryDrift/pebble\n",
+        "    adapter_rewrite_test.go:546: download github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/pebble (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.472957524Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectUnrewrittenInventoryDrift/cactusstatsd": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/cactusstatsd",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectUnrewrittenInventoryDrift/cactusstatsd\n",
+        "    adapter_rewrite_test.go:546: download github.com/cactus/go-statsd-client/v5@v5.1.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/cactusstatsd (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.473108691Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectUnrewrittenInventoryDrift/memberlist": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/memberlist",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectUnrewrittenInventoryDrift/memberlist\n",
+        "    adapter_rewrite_test.go:546: download github.com/hashicorp/memberlist@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/memberlist (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.473308316Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectUnrewrittenInventoryDrift/sentry": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/sentry",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectUnrewrittenInventoryDrift/sentry\n",
+        "    adapter_rewrite_test.go:546: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/sentry (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.484645358Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModulesRejectUnrewrittenInventoryDrift/hashicorp-metrics": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/hashicorp-metrics",
+      "output": [
+        "=== RUN   TestRewrittenModulesRejectUnrewrittenInventoryDrift/hashicorp-metrics\n",
+        "    adapter_rewrite_test.go:546: download github.com/hashicorp/go-metrics@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModulesRejectUnrewrittenInventoryDrift/hashicorp-metrics (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.485377774Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleConsumers": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers",
+      "output": [
+        "=== RUN   TestRewrittenModuleConsumers\n",
+        "--- FAIL: TestRewrittenModuleConsumers (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.487404274Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleConsumers/sprig": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/sprig",
+      "output": [
+        "=== RUN   TestRewrittenModuleConsumers/sprig\n",
+        "    adapter_rewrite_test.go:609: download github.com/Masterminds/sprig/v3@v3.3.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleConsumers/sprig (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.487493983Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleConsumers/validator": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/validator",
+      "output": [
+        "=== RUN   TestRewrittenModuleConsumers/validator\n",
+        "    adapter_rewrite_test.go:609: download github.com/go-playground/validator/v10@v10.30.1: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleConsumers/validator (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.487685024Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleConsumers/pebble": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/pebble",
+      "output": [
+        "=== RUN   TestRewrittenModuleConsumers/pebble\n",
+        "    adapter_rewrite_test.go:609: download github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleConsumers/pebble (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.498103024Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleConsumers/cactusstatsd": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/cactusstatsd",
+      "output": [
+        "=== RUN   TestRewrittenModuleConsumers/cactusstatsd\n",
+        "    adapter_rewrite_test.go:609: download github.com/cactus/go-statsd-client/v5@v5.1.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleConsumers/cactusstatsd (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.498303816Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleConsumers/memberlist": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/memberlist",
+      "output": [
+        "=== RUN   TestRewrittenModuleConsumers/memberlist\n",
+        "    adapter_rewrite_test.go:609: download github.com/hashicorp/memberlist@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleConsumers/memberlist (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.498435316Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewrittenModuleConsumers/sentry": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/sentry",
+      "output": [
+        "=== RUN   TestRewrittenModuleConsumers/sentry\n",
+        "    adapter_rewrite_test.go:609: download github.com/getsentry/sentry-go@v0.46.0: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewrittenModuleConsumers/sentry (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.509184649Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestToolchainLeavesFD5ForProcessesWithoutIOProfile": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestToolchainLeavesFD5ForProcessesWithoutIOProfile",
+      "output": [
+        "=== RUN   TestToolchainLeavesFD5ForProcessesWithoutIOProfile\n",
+        "    bootstrap_toolchain_test.go:24: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n",
+        "--- FAIL: TestToolchainLeavesFD5ForProcessesWithoutIOProfile (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.517585733Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileSelectsDownstreamAdapters": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters",
+      "output": [
+        "=== RUN   TestProfileSelectsDownstreamAdapters\n",
+        "--- FAIL: TestProfileSelectsDownstreamAdapters (0.03s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.527997191Z",
+      "result": "fail",
+      "elapsed": 0.03
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileSelectsDownstreamAdapters/sprig": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/sprig",
+      "output": [
+        "=== RUN   TestProfileSelectsDownstreamAdapters/sprig\n",
+        "    downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestProfileSelectsDownstreamAdapters/sprig (0.01s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.529671649Z",
+      "result": "fail",
+      "elapsed": 0.01
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileSelectsDownstreamAdapters/validator": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/validator",
+      "output": [
+        "=== RUN   TestProfileSelectsDownstreamAdapters/validator\n",
+        "    downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestProfileSelectsDownstreamAdapters/validator (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.532320524Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileSelectsDownstreamAdapters/pebble": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/pebble",
+      "output": [
+        "=== RUN   TestProfileSelectsDownstreamAdapters/pebble\n",
+        "    downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestProfileSelectsDownstreamAdapters/pebble (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.532950608Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileSelectsDownstreamAdapters/cactusstatsd": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/cactusstatsd",
+      "output": [
+        "=== RUN   TestProfileSelectsDownstreamAdapters/cactusstatsd\n",
+        "    downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestProfileSelectsDownstreamAdapters/cactusstatsd (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.554247066Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileSelectsDownstreamAdapters/memberlist": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/memberlist",
+      "output": [
+        "=== RUN   TestProfileSelectsDownstreamAdapters/memberlist\n",
+        "    downstream_adapter_registry_test.go:48: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestProfileSelectsDownstreamAdapters/memberlist (0.02s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.564903774Z",
+      "result": "fail",
+      "elapsed": 0.02
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPinnedAdapterModuleInventories": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPinnedAdapterModuleInventories",
+      "output": [
+        "=== RUN   TestPinnedAdapterModuleInventories\n",
+        "    grpc_adapter_test.go:18: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestPinnedAdapterModuleInventories (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.568825691Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+      "output": [
+        "=== RUN   TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl\n",
+        "    grpc_adapter_test.go:35: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.569112358Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+      "output": [
+        "=== RUN   TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations\n",
+        "    grpc_adapter_test.go:62: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.592124983Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+      "output": [
+        "=== RUN   TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift\n",
+        "    grpc_adapter_test.go:90: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.604355608Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+      "output": [
+        "=== RUN   TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor\n",
+        "    grpc_adapter_test.go:97: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.614985024Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+      "output": [
+        "=== RUN   TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor\n",
+        "    grpc_adapter_test.go:104: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.616924233Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareGRPCRecordsExactPrivateReplacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareGRPCRecordsExactPrivateReplacement",
+      "output": [
+        "=== RUN   TestPrepareGRPCRecordsExactPrivateReplacement\n",
+        "    grpc_adapter_test.go:113: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestPrepareGRPCRecordsExactPrivateReplacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.617494858Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareGRPCRejectsChangedIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareGRPCRejectsChangedIdentity",
+      "output": [
+        "=== RUN   TestPrepareGRPCRejectsChangedIdentity\n",
+        "    grpc_adapter_test.go:140: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestPrepareGRPCRejectsChangedIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.629748983Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestGRPCDNSRewrite": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestGRPCDNSRewrite",
+      "output": [
+        "=== RUN   TestGRPCDNSRewrite\n",
+        "    grpc_dns_test.go:17: download google.golang.org/grpc@v1.83.2: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestGRPCDNSRewrite (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.644986399Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestGRPCDNSConsumer": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestGRPCDNSConsumer",
+      "output": [
+        "=== RUN   TestGRPCDNSConsumer\n",
+        "    grpc_dns_test.go:69: download google.golang.org/grpc@v1.83.2: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestGRPCDNSConsumer (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.645209899Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestHashicorpMetricsAdapterConsumer": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestHashicorpMetricsAdapterConsumer",
+      "output": [
+        "=== RUN   TestHashicorpMetricsAdapterConsumer\n",
+        "    hashicorpmetrics_adapter_test.go:14: download github.com/hashicorp/go-metrics@v0.5.4: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestHashicorpMetricsAdapterConsumer (0.01s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.645478024Z",
+      "result": "fail",
+      "elapsed": 0.01
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfilePreparesPinnedModerncLibcAdapter": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfilePreparesPinnedModerncLibcAdapter",
+      "output": [
+        "=== RUN   TestProfilePreparesPinnedModerncLibcAdapter\n",
+        "    libc_adapter_test.go:33: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestProfilePreparesPinnedModerncLibcAdapter (0.01s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.646681524Z",
+      "result": "fail",
+      "elapsed": 0.01
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileRejectsUnsupportedModerncLibcVersion": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsUnsupportedModerncLibcVersion",
+      "output": [
+        "=== RUN   TestProfileRejectsUnsupportedModerncLibcVersion\n",
+        "    libc_adapter_test.go:117: PrepareBuildOverlay() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestProfileRejectsUnsupportedModerncLibcVersion (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.647141608Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestProfileWithoutModerncLibcNeedsNoAdapter": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileWithoutModerncLibcNeedsNoAdapter",
+      "output": [
+        "=== RUN   TestProfileWithoutModerncLibcNeedsNoAdapter\n",
+        "    libc_adapter_test.go:129: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestProfileWithoutModerncLibcNeedsNoAdapter (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.647437274Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestMemberlistSuppliedTCPConsumer": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestMemberlistSuppliedTCPConsumer",
+      "output": [
+        "=== RUN   TestMemberlistSuppliedTCPConsumer\n",
+        "    memberlist_adapter_test.go:23: set GOMAD_MEMBERLIST_TCP_CONSUMER_DIR to a consumer checkout for its real TCP membership lifecycle\n",
+        "--- SKIP: TestMemberlistSuppliedTCPConsumer (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.648202191Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+      "output": [
+        "=== RUN   TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings\n",
+        "    memory_adapter_test.go:15: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.648614233Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteModerncMemoryRejectsSourceIdentityDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+      "output": [
+        "=== RUN   TestRewriteModerncMemoryRejectsSourceIdentityDrift\n",
+        "    memory_adapter_test.go:36: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteModerncMemoryRejectsSourceIdentityDrift (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.648802774Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestModerncMemoryRewriteRejectsAnchorDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestModerncMemoryRewriteRejectsAnchorDrift",
+      "output": [
+        "=== RUN   TestModerncMemoryRewriteRejectsAnchorDrift\n",
+        "    memory_adapter_test.go:42: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestModerncMemoryRewriteRejectsAnchorDrift (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.649088941Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareModerncMemoryRejectsModuleDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareModerncMemoryRejectsModuleDrift",
+      "output": [
+        "=== RUN   TestPrepareModerncMemoryRejectsModuleDrift\n",
+        "    memory_adapter_test.go:64: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestPrepareModerncMemoryRejectsModuleDrift (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.649426441Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestModerncMemoryRejectsChangedReplacementInventory": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestModerncMemoryRejectsChangedReplacementInventory",
+      "output": [
+        "=== RUN   TestModerncMemoryRejectsChangedReplacementInventory\n",
+        "    memory_adapter_test.go:119: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestModerncMemoryRejectsChangedReplacementInventory (0.01s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.650380608Z",
+      "result": "fail",
+      "elapsed": 0.01
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareModerncMemoryRecordsExactPrivateReplacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+      "output": [
+        "=== RUN   TestPrepareModerncMemoryRecordsExactPrivateReplacement\n",
+        "    memory_adapter_test.go:127: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestPrepareModerncMemoryRecordsExactPrivateReplacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.650914024Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareModerncMemoryRejectsChangedIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareModerncMemoryRejectsChangedIdentity",
+      "output": [
+        "=== RUN   TestPrepareModerncMemoryRejectsChangedIdentity\n",
+        "    memory_adapter_test.go:155: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestPrepareModerncMemoryRejectsChangedIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.662690858Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestModerncMemoryPreparedPackageSourceSetIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestModerncMemoryPreparedPackageSourceSetIdentity",
+      "output": [
+        "=== RUN   TestModerncMemoryPreparedPackageSourceSetIdentity\n",
+        "    memory_adapter_test.go:181: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestModerncMemoryPreparedPackageSourceSetIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.675264524Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestDeterministicProfileCompatibilityGolden": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDeterministicProfileCompatibilityGolden",
+      "output": [
+        "=== RUN   TestDeterministicProfileCompatibilityGolden\n",
+        "    profile_test.go:59: no profile golden for linux/arm64\n",
+        "--- SKIP: TestDeterministicProfileCompatibilityGolden (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.678588233Z",
+      "result": "skip",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestDeterministicProfileAcceptsArbitraryTargetArguments": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDeterministicProfileAcceptsArbitraryTargetArguments",
+      "output": [
+        "=== RUN   TestDeterministicProfileAcceptsArbitraryTargetArguments\n",
+        "    profile_test.go:148: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestDeterministicProfileAcceptsArbitraryTargetArguments (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.706482149Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestBootstrapFrameBindsLaunchIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestBootstrapFrameBindsLaunchIdentity",
+      "output": [
+        "=== RUN   TestBootstrapFrameBindsLaunchIdentity\n",
+        "    profile_test.go:189: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestBootstrapFrameBindsLaunchIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.747448149Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRequirementsProjectsKnownInventoryDomainsConservatively": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRequirementsProjectsKnownInventoryDomainsConservatively",
+      "output": [
+        "=== RUN   TestRequirementsProjectsKnownInventoryDomainsConservatively\n",
+        "    requirements_test.go:24: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestRequirementsProjectsKnownInventoryDomainsConservatively (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.747770358Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRequirementsRejectsUnselectedAdapterIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRequirementsRejectsUnselectedAdapterIdentity",
+      "output": [
+        "=== RUN   TestRequirementsRejectsUnselectedAdapterIdentity\n",
+        "    requirements_test.go:37: Requirements() error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestRequirementsRejectsUnselectedAdapterIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.748103441Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure",
+      "output": [
+        "=== RUN   TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure\n",
+        "    requirements_test.go:47: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64\n",
+        "--- FAIL: TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.749120399Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestSockaddrBoundaryConsumer": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSockaddrBoundaryConsumer",
+      "output": [
+        "=== RUN   TestSockaddrBoundaryConsumer\n",
+        "    sockaddr_boundary_test.go:24: download github.com/hashicorp/go-sockaddr@v1.0.7: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestSockaddrBoundaryConsumer (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.822319566Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestSockaddrBoundaryRewritesRejectDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSockaddrBoundaryRewritesRejectDrift",
+      "output": [
+        "=== RUN   TestSockaddrBoundaryRewritesRejectDrift\n",
+        "    sockaddr_boundary_test.go:98: download github.com/hashicorp/go-sockaddr@v1.0.7: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestSockaddrBoundaryRewritesRejectDrift (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.82255965Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestSockaddrBoundaryPreservesOriginalComments": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSockaddrBoundaryPreservesOriginalComments",
+      "output": [
+        "=== RUN   TestSockaddrBoundaryPreservesOriginalComments\n",
+        "    sockaddr_boundary_test.go:130: download github.com/hashicorp/go-sockaddr@v1.0.7: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestSockaddrBoundaryPreservesOriginalComments (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.822842608Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteXNetSocketDeniesRawSocketOptions": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteXNetSocketDeniesRawSocketOptions",
+      "output": [
+        "=== RUN   TestRewriteXNetSocketDeniesRawSocketOptions\n",
+        "    xnet_adapter_test.go:15: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteXNetSocketDeniesRawSocketOptions (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.823016233Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestRewriteXNetSocketRejectsSourceIdentityDrift": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+      "output": [
+        "=== RUN   TestRewriteXNetSocketRejectsSourceIdentityDrift\n",
+        "    xnet_adapter_test.go:53: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestRewriteXNetSocketRejectsSourceIdentityDrift (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.823223275Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareXNetRecordsExactPrivateReplacement": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareXNetRecordsExactPrivateReplacement",
+      "output": [
+        "=== RUN   TestPrepareXNetRecordsExactPrivateReplacement\n",
+        "    xnet_adapter_test.go:64: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestPrepareXNetRecordsExactPrivateReplacement (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.833518066Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestPrepareXNetRejectsChangedIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareXNetRejectsChangedIdentity",
+      "output": [
+        "=== RUN   TestPrepareXNetRejectsChangedIdentity\n",
+        "    xnet_adapter_test.go:88: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestPrepareXNetRejectsChangedIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.833794608Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/deterministicio:TestXNetPreparedPackageSourceSetIdentity": {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestXNetPreparedPackageSourceSetIdentity",
+      "output": [
+        "=== RUN   TestXNetPreparedPackageSourceSetIdentity\n",
+        "    xnet_adapter_test.go:113: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n",
+        "--- FAIL: TestXNetPreparedPackageSourceSetIdentity (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:09.834058941Z",
+      "result": "fail",
+      "elapsed": 0
+    },
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack:TestHostPacksBindCurrentProfile": {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestHostPacksBindCurrentProfile",
+      "output": [
+        "=== RUN   TestHostPacksBindCurrentProfile\n",
+        "    profile_binding_test.go:50: no deterministic profile for linux/arm64\n",
+        "--- SKIP: TestHostPacksBindCurrentProfile (0.00s)\n"
+      ],
+      "started": "2026-10-05T22:57:13.570292651Z",
+      "result": "skip",
+      "elapsed": 0
+    }
+  }
+}

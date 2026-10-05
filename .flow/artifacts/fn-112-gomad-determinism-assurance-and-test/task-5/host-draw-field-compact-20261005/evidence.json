@@ -1,0 +1,69 @@
+{
+  "task_id": "fn-112.5",
+  "status": "in_progress",
+  "checkpoint": "bounded_source_ready_for_root_progress_review",
+  "base_commit": "1147416b2e6465de7b631e1e4b695eba33ebf000",
+  "commits": [],
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "report": "checkpoint-report.json",
+  "source_preservation": "preservation.json",
+  "tests": [
+    "baseline-focused.json: exit0; 17 top-level/33 pass events",
+    "baseline-red-inventory.json: intended exit1; 36 avoidable alignment edits; both inventories pass",
+    "baseline-host-developmental.json: exit124 after600.082s; INCONCLUSIVE; not repeated",
+    "final-patch-regenerate.json: exit0",
+    "final-generate-validate.json: exit0; exactly4 admitted mirrors changed",
+    "final-green-inventory.json: exit0; alignment0; genuineU1/U3; both inventories",
+    "final-focused.json: exit0; 17 top-level/33 pass events, no skips",
+    "final-materialize.json and final-preservation.json: exit0; actual final patch tree and21-file preservation",
+    "final-pure-host.json: exit1; 972pass/106fail/13skip events; all1091 verdicts and raw106 failure errors match baseline",
+    "final-diagnostic-controls.json: exit1;3 native controls fail before assertions/1 native identity guard skips; exact baseline pairs/errors",
+    "final-vet.json: exit0; literal coverage in receipt",
+    "final-lint-fast.json: exit2; cached tool execution-format failure; retained",
+    "final-lint-fast-native-tools.json: exit0;55hostpackages/0newissues;317existing issues diff-filtered, not full lint pass",
+    "final-diff-check.json and final-rename-sweep.json: exit0",
+    "final-evidence-closure.json: exit0; final source/tool/user/fixture and environment closure",
+    "identity-audit/post-publication-frozen.json and post-publication-emitted.json: pureNode independent derivation, not native proof"
+  ],
+  "measurements": {
+    "baseline": {
+      "U1_bytes": 29015,
+      "U1_lines": 778,
+      "U3_bytes": 38362,
+      "U3_lines": 1112
+    },
+    "final": {
+      "U1_bytes": 24894,
+      "U1_lines": 706,
+      "U3_bytes": 34148,
+      "U3_lines": 1040
+    },
+    "alignment_edits": {
+      "baseline": 36,
+      "final": 0
+    },
+    "historical_R8_U3_target": 32652,
+    "historical_R8_remaining_bytes": 1496
+  },
+  "native_proof": false,
+  "full_host_gate": "inconclusive",
+  "full_lint": "unresolved317existingissues",
+  "remaining_gates": [
+    "nativeDarwinruntime/diagnostic/full/affected",
+    "independentformalreview",
+    "originaltaskAcceptanceanddependency"
+  ],
+  "golden_published": true,
+  "golden_derivation": "6retainedselfchecks/exact7identitypointers/exact13271canonicalbytes;baselinefixturealready_stale",
+  "active_handles": [],
+  "final_environment_key_audit": {
+    "json_files_observed": 54,
+    "environment_objects": 37,
+    "environment_keys": 592,
+    "whitelist_key_count": 16,
+    "unexpected_key_count": 0
+  },
+  "stage_impl_review": "skipped:rootownsformalreview",
+  "stage_plan_sync": "skipped:disabledbydispatch",
+  "prs": []
+}

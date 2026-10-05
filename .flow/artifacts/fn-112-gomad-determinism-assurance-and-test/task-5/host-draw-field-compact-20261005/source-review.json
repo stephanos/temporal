@@ -1,0 +1,19 @@
+{
+  "base_commit": "1147416b2e6465de7b631e1e4b695eba33ebf000",
+  "scope": "bounded working-tree source checkpoint",
+  "verdict": "SOURCE_PROGRESS_COMMIT_APPROVED",
+  "introduced_critical": 0,
+  "introduced_important": 0,
+  "introduced_minor": 0,
+  "report": "source-review.md",
+  "requested_reviewer_model": "gpt-6.1-sol",
+  "requested_reviewer_effort": "high",
+  "requested_writer_model": "gpt-6.1-sol",
+  "same_family_requested": true,
+  "actual_reviewer_model": null,
+  "actual_writer_model": null,
+  "fresh_context": true,
+  "native_qualification": false,
+  "formal_implementation_acceptance": false,
+  "reviewer_product_writes": 0
+}

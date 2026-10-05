@@ -1,0 +1,793 @@
+# Worker anchor bundle - fn-112-gomad-determinism-assurance-and-test.5 (spec fn-112-gomad-determinism-assurance-and-test)
+
+Each section is the verbatim output of the command it is labeled with, in fixed order, untruncated. The bundle is a floor, not a ceiling - memory keyword-search and every further read remain available.
+
+===== [1/11] task_show: `flowctl show fn-112-gomad-determinism-assurance-and-test.5 --json` =====
+{
+  "success": true,
+  "assignee": "stephanos@users.noreply.github.com",
+  "claim_note": "Producer-owned compact private host-draw field source checkpoint from reviewed 1147416b2e. Prior workers terminal; shared source/cache lane free. MILESTONES permits reviewed integrated source progress; dependency .3, original acceptance and Darwin/full/formal gates remain open. Root owns lifecycle/commit; no gate or scope waiver.",
+  "claimed_at": "2026-10-05T22:29:44.040565Z",
+  "created_at": "2026-10-02T03:43:38.436067Z",
+  "depends_on": [
+    "fn-112-gomad-determinism-assurance-and-test.3"
+  ],
+  "id": "fn-112-gomad-determinism-assurance-and-test.5",
+  "priority": null,
+  "spec": "fn-112-gomad-determinism-assurance-and-test",
+  "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md",
+  "status": "in_progress",
+  "title": "Inventory seeded-stream draw sites and check host-timed paths at runtime",
+  "updated_at": "2026-10-05T22:29:44.040544Z",
+  "blocked_reason": "Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Draw inventory/collector-contract reconciliation, current-source Darwin runtime/core/smoke and full/review gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.",
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
+}
+
+===== [2/11] task_md: `flowctl cat fn-112-gomad-determinism-assurance-and-test.5` =====
+---
+satisfies: [R3, R5]
+---
+# fn-112-gomad-determinism-assurance-and-test.5 Inventory seeded-stream draw sites and check host-timed paths at runtime
+
+## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Draw inventory/collector-contract reconciliation, current-source Darwin runtime/core/smoke and full/review gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
+Stream isolation (R5): a checked-in, classified inventory of every seeded draw site, rerouting of any host-timed site still on the seeded stream, and a diagnostic-mode runtime check.
+
+**Size:** M
+**Files:** new `tools/gomad3/toolchain/draw_inventory_test.go`, `tools/gomad3/toolchain/runtime/go1.27.1.patch`, `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go`, a new toolchain test and fixture directory, generated protocol consumers, seeded conformance helpers, and the nested/root Makefile seeded launchers
+**Touches:** [tools/gomad3/toolchain/draw_inventory_test.go, tools/gomad3/toolchain/runtime/go1.27.1.patch, tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go, tools/gomad3/runner/internal/execution/draw_check_toolchain_test.go, tools/gomad3/internal/gomadtool/conformance/testdata/draw_check/**, tools/gomad3/internal/gomadtool/conformance/runtime*.go, tools/gomad3/choice/internal/wire/wire_generated.go, tools/gomad3/target/internal/livecap/protocol_generated.go, tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go, tools/gomad3/Makefile, Makefile, tools/gomad3/runner/testdata/diagnostic-identity-choices.json, .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/**]
+
+### Approach
+- First step (R3): re-anchor assessment findings Q2 and Q3 against the current patch.
+- Mirror the clock inventory test: enumerate references to the runtime rand helpers in the patched source, require each to carry a reviewed classification (target-ordered or host-timed), and fail on an unclassified reference.
+- Known host-timed sites already on the M-local stream: lock-profile sample, anti-starvation wake, steal order, symtab cache. Known seeded sites: runnext flip, run-queue shuffle and pick, select, timer rand.
+- Reroute any host-timed site still on the seeded stream. A site inside a collector file is not edited; record it and raise spec Open Question 3.
+- Runtime check, diagnostics only: fail the process when a path classified host-timed draws from the seeded stream. Trigger it with the task 3 fault switch in a negative fixture run through the toolchain-test launcher in `runner/internal/execution`.
+- Regenerate the patch with the governed `patch-regenerate` command; do not hand-edit hunks.
+
+### Investigation targets
+**Required** (read before coding):
+- `tools/gomad3/toolchain/clock_inventory_test.go:86-212` — inventory pattern to mirror
+- `tools/gomad3/toolchain/runtime/go1.27.1.patch:89-99`, `:274-275`, `:745-746` — host-timed reroutes
+- `tools/gomad3/toolchain/runtime/go1.27.1.patch:556-594`, `:693-694`, `:780-806` — seeded sites
+- `tools/gomad3/toolchain/runtime/go1.27.1.patch:614-644` — rand helpers
+
+**Optional** (reference as needed):
+- `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:369-477` — overlay rand helpers
+- `tools/gomad3/toolchain/runtime/go1.27.1.patch:121-127` — the one-shot syscall wait in `suspendG` (Q3, owned by fn-128.2 (transferred D12))
+
+### Key context
+- Rerouting a draw shifts every seed's schedule. Seed-specific expectations (seeds 11 and 17 in the manifests, D16 seed lists) must be requalified, so batch this with the other runtime edits named in spec Open Questions 2.
+- fn-105 D26 moves forward-clock draws; if it has landed, the inventory reflects it.
+
+### Re-anchor (2026-10-02)
+Q2 is changed: purpose streams already exist, but runqputbatch still routes target/global admission and host netpoll/no-P admission through the same seeded shuffle helper. Preserve target-purpose diversification and route only host-timed batches to the M-local stream. Q3's one-shot wait remains confirmed by source and belongs to fn-128.2 (transferred D12); this task does not change suspendG.
+
+Go 1.27.1 enables Green Tea by default. Runner preparation explicitly selects the qualified classic collector, while the current raw seeded conformance builders and Make launchers omit that compile profile. Inventory classification must reflect the qualified profile; seeded Green Tea activation is refused outside it without editing collector files. Seeded harness/helper builds and the supported seeded launchers must establish the classic profile themselves. Keep a raw Green Tea rejection and unseeded control; a one-off environment override is not qualification evidence. These launcher and generated-protocol updates are directly implied by the runtime acceptance boundary.
+
+Extend the existing trusted diagnostic fault switch with an explicit host:<ordinal> mode for the host-path negative control. The numeric ordinal mode continues to perturb a target draw and must retain task 3's successful diagnostic localization. Per-M host-path scope must be checked before seeded counters or state change.
+
+### Source-progress revival (2026-10-05). Compact private host-draw field
+
+Shorten the private per-M diagnostic field from gomadHostDrawScope to gomadHostDraw at its producer. Preserve its bool type and exact struct position, every read/write/check, previousHostDrawScope, fault modes, counters, existing comments and runtime behavior. The current long field name makes gofmt realign 36 unrelated m fields in the upstream patch. This bounded correction contributes to fn-110.2's still-open R8 size gap without moving protected scheduler machinery or removing diagnostics.
+
+Use the verified cached Go1.27.1 archive, materialize the current canonical patch into unique gitignored scratch, edit only runtime2.go's field and proc.go's three references with apply_patch, then regenerate through patch-regenerate. Update the three overlay references with apply_patch. Neither generated patch hunks nor protocol identities may be hand-edited. Run make generate validate only after recording the generator input/output closure; root admits any additional derived output paths before publication. Keep both exact allowlists unchanged.
+
+Baseline and rerun both platform draw inventories, canonical/pinned U1/U3 regeneration and zero-fuzz materialization controls, and the existing diagnostic numeric perturbation/host-timed refusal tests where executable. Retain frozen source, literal command/exit/test receipts, actual patch/overlay measurements and alpha-renaming/layout/comment preservation. A test-first measurement of real canonical output must expose the avoidable alignment overhead before production edits; use retained task-local evidence rather than a brittle permanent private-name assertion. Preserve diagnostics and actual pinned-rejection tests.
+
+The pre-implementation scout estimates U3 38,362 to 34,148 bytes and U1 29,015 to 24,894 bytes. These are estimates until governed regeneration proves them. The original baseline U3 32,652 bytes and R8 requirement remain unchanged, so a predicted 1,496-byte residual still prevents size acceptance. No native Darwin runtime/core/smoke/full/affected or formal qualification is claimed from developmental linux/arm64 checks. Linux execution stays transferred and nonblocking under fn-128.
+
+This source checkpoint resumes the reviewed integrated predecessor candidate while keeping dependency .3 and every original Acceptance item open where unproved. Root owns Flow lifecycle, review, staging and commit. One worker owns source, canonical generators and Go/cache execution; parallel agents are read-only. Preserve unrelated user files, historic reports and workload dispositions. No push, stash, worktree, history rewrite, network download, collector edit, feature deletion or host impersonation is authorized.
+
+### Source-derived diagnostic fixture refresh
+
+The retained choices fixture was already stale at BASE 1147416b2e. Its supplied fake BuildKey and unchanged Darwin metadata yield an implementation identity different from the retained golden even before this rename. Root admits only tools/gomad3/runner/testdata/diagnostic-identity-choices.json for a source-derived refresh after baseline and RED checks terminate and generation freezes. The task-local independent Node/schema calculator must first reproduce the retained canonical bytes, trace/tape digests, failure signature, record hash and portable-plan hash, and verify the current fake preparer/executor contracts. Its final derivation changes exactly seven JSON pointers: three choice implementation identities, tape digest, failure signature, record hash and portable-plan digest. Publish its emitted canonical bytes through apply_patch. Preserve every other field, supplied BuildKey, Darwin metadata, trace bytes, schemas, counts and the plain fixture. Keep diagnostic_identity_test.go, its native host guard and complete-byte assertion unchanged. This source calculation supplies no native test or replay pass; all original Darwin/full gates remain required.
+## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
+- [ ] Findings Q2 and Q3 re-anchored and marked confirmed, changed, or refuted
+- [ ] The inventory test lists every seeded-stream reference with a classification and fails on an unclassified one; a deliberate unclassified reference demonstrates the failure
+- [ ] Every host-timed site draws from the M-local stream, or is recorded as blocked by the collector prohibition
+- [ ] The diagnostic-mode check stops the process in the negative fixture
+- [ ] If any site was rerouted: core and smoke qualification sets pass on the new toolchain identity
+- [ ] The inventory's location and the reroutes made are in the done summary for task 10 to document
+- [ ] `make -C tools/gomad3 validate test-toolchain test-runtime` pass on darwin/arm64; linux status recorded
+## Done summary
+Delivered R3/R5 on Darwin runtime key `2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457`. Q2 changed: purpose streams already existed, but target admission and host netpoll/no-P batch admission shared a seeded shuffle. Explicit batch origins retain target seeded diversification and route host batches to M-local entropy; the Linux CPU-profiler timer sample is also rerouted. Q3 confirmed: suspendG still performs its one-shot syscall wait before its retry loop; D12 owns that correction.
+
+The checked-in inventory is `tools/gomad3/toolchain/draw_inventory_test.go`: 269 platform references, 135 classified rows, both qualified platforms, declarations/calls/function values and package-scoped linkname aliases. Unclassified references, count drift, and disappeared references fail closed. Scratch controls demonstrated an unclassified direct draw and alias uses in another file; the cross-file control failed before the fix and passes afterwards. The classic collector's `runtime/mgcpacer.go:enlistWorker` remains an explicitly recorded host-timed seeded draw blocked by the collector-file prohibition. No collector file was edited. Green Tea's worker draw is outside the qualified profile: seeded activation is rejected before user code, with a passing unseeded control.
+
+Diagnostics use a per-M host scope and check each seeded entry before counters or state change. Existing numeric perturbation still localizes ordinal 5; `host:5` fails with the host-timed seeded-draw diagnostic. Seeded raw builders and supported Make launchers own `GOEXPERIMENT=nogreenteagc`. The full gate exposed another simulation integration builder, fixed at its compile boundary without changing any assertion or simulation selection. Additional existing test owners used instead of the initially proposed new fixture file: diagnostics_toolchain_test.go, simulation_root_integration_test.go, and target/internal/livecap/toolchain_test.go; generated protocol/descriptor consumers follow the changed runtime identity. Parent diagnostics choices golden changed in seven identity-derived fields only; the plain golden and complete byte comparison remain.
+
+Verification: required validate/test-toolchain/test-runtime passed. The final census fix passed its focused and full toolchain suites and scoped vet; the parent retained a final patched-driver toolchain run. All components of the nested full test gate passed on stable inputs, with already green components reused after the integration-only helper correction; `fn-114/qualification/darwin-2ecdbd33/combined-gates.md` lists each component and log. Host gate: 45 packages. Core: 7/7 qualified and replayed. Smoke: 4/4 qualified and replayed. Scoped vet, integration-tagged execution vet, gofmt, diff check, and 16/16 source-hash verification passed. Linux/amd64 classic runtime cross-build passed, but native Linux qualification remains unavailable. The existing root lint cannot analyse nested-module paths; its prior environment-failure log is retained, rather than reporting lint green.
+
+Independent working-tree implementation review: SHIP, codex gpt-6-sol at high, same-family reviewer with fresh context, no introduced findings. The reviewer inspected the uncommitted patch, 16 bound sources, generated/test changes, and gate evidence. `working-tree-review.json` is the acceptance receipt. The earlier task-scoped empty HEAD..HEAD review explicitly excluded uncommitted work; its receipt is preserved as `review-empty-committed-scope.json` and is not acceptance evidence. The recorded collector blocker and a possible census extraction were nonblocking; no speculative refactor was added.
+
+Task-10 documentation facts: inventory path/counts; host batch and Linux profiler reroutes; diagnostic host mode; classic-only seeded activation and raw disabled control; remaining classic collector blocker; Q3/D12 ownership. Shared candidate qualification stays with fn-114.14. Its first representative run stopped at the unchanged 2 GiB space bound after 1/28; caches were cleared and the unchanged manifest retry is running. Representative and native Linux acceptance remain unproven. No disposition was weakened; no staging, commit, or push was performed.
+
+Evidence: task-5/handover.md, source-hashes.txt, working-tree-review.json, and the shared fn-114 qualification/darwin-2ecdbd33 directory. HEAD is d635e23f00d926a43b942f25a9d05bd0ccb72025 with uncommitted sources.
+
+stage: wave-dispatch - ran (model: gpt-6-sol at high)
+stage: impl-review - ran (model: gpt-6-sol at high)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (bridge inactive)
+## Evidence
+- Commits:
+- Tests: make -C tools/gomad3 validate test-toolchain test-runtime (Darwin, exit 0; required-gates.log), Final cross-file alias census: focused and full toolchain tests, stock Go1.27.1, -tags test_dep -count=1, exit0; scoped toolchain vet exit0, make -C tools/gomad3 -o toolchain test-toolchain (candidate patched driver, -tags test_dep -count=1; census-final.log), Focused numeric diagnostic perturb, host:5 rejection, GreenTea seeded rejection/unseeded control, collector-profile unit control: exit0, make -C tools/gomad3 -o test-toolchain -o test-runtime test: harness/interception/45-package host/nine-overlay packages passed; simulation integration exposed a raw builder collector-profile gap, make -C tools/gomad3 -o test-harness -o test-toolchain -o intercept-test -o test-host -o overlay-test -o test-runtime test: exit0, 252.304s; simulation/World race/builder/live capability/upstream passed; unchanged green components reused explicitly, make -C tools/gomad3 core-qualification: exit0,192.040s,7/7 qualified and replayed on2ecdbd33, make gomad3-smoke-qualification: exit0,402.453s,4/4 qualified and replayed on2ecdbd33, Patched Go vet -tags test_dep ./toolchain ./internal/gomadtool/conformance ./runner/internal/execution ./runner ./target/internal/livecap: exit0, Patched Go vet -tags test_dep,integration ./runner/internal/execution: exit0, GOOS=linux GOARCH=amd64 GOEXPERIMENT=nogreenteagc CGO_ENABLED=0 patched Go build runtime: exit0; cross-compilation only, Pinned gofmt: no output; git diff --check: exit0; 16/16 source SHA256 bindings match, flowctl codex impl-review standalone working tree --base HEAD --spec codex:gpt-6-sol:high: SHIP; working-tree-review.json, NOT VERIFIED: native linux/amd64; representative qualification is still running under fn114.14, ROOT LINT UNAVAILABLE: root module cannot load nested module paths; reuse fn114/task-13/integrated-root-lint.log environment failure
+- PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Draw inventory/collector-contract reconciliation, current-source Darwin runtime/core/smoke and full/review gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
+
+===== [3/11] spec_show: `flowctl show fn-112-gomad-determinism-assurance-and-test --json` =====
+{
+  "success": true,
+  "branch_name": "fn-112-gomad-determinism-assurance-and-test",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-02T03:18:17.258887Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-112-gomad-determinism-assurance-and-test",
+  "impl_review_rounds": {
+    "fn-112-gomad-determinism-assurance-and-test.1": 0,
+    "fn-112-gomad-determinism-assurance-and-test.10": 0,
+    "fn-112-gomad-determinism-assurance-and-test.11": 0,
+    "fn-112-gomad-determinism-assurance-and-test.12": 0,
+    "fn-112-gomad-determinism-assurance-and-test.13": 0,
+    "fn-112-gomad-determinism-assurance-and-test.14": 0,
+    "fn-112-gomad-determinism-assurance-and-test.15": 0,
+    "fn-112-gomad-determinism-assurance-and-test.2": 0,
+    "fn-112-gomad-determinism-assurance-and-test.4": 0,
+    "fn-112-gomad-determinism-assurance-and-test.5": 0,
+    "fn-112-gomad-determinism-assurance-and-test.6": 0,
+    "fn-112-gomad-determinism-assurance-and-test.7": 0,
+    "fn-112-gomad-determinism-assurance-and-test.8": 0,
+    "fn-112-gomad-determinism-assurance-and-test.9": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-02T03:55:17.096073Z",
+  "review_hash_epoch": {
+    "impl:fn-112-gomad-determinism-assurance-and-test.1": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.10": 2,
+    "impl:fn-112-gomad-determinism-assurance-and-test.11": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.12": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.13": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.14": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.15": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.2": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.4": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.5": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.6": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.7": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.8": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.9": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-112-gomad-determinism-assurance-and-test.1": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.10": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.11": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.12": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.13": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.14": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.15": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.2": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.4": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.5": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.6": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.7": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.8": 0,
+    "impl:fn-112-gomad-determinism-assurance-and-test.9": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-112-gomad-determinism-assurance-and-test.md",
+  "status": "open",
+  "title": "Gomad determinism assurance and test strategy",
+  "updated_at": "2026-10-05T05:47:29.352977Z",
+  "tasks": [
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.1",
+      "title": "Reproduce and fix the failing gomad3 workflow jobs",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.2",
+      "title": "Run the orphaned simulation, overlay, and choice-replay tests in a gate",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.1"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.3",
+      "title": "Record a runtime-state digest at each choice point in a diagnostic trace",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.4",
+      "title": "Plumb diagnostics through the Runner and add the trace differ",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.3"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.5",
+      "title": "Inventory seeded-stream draw sites and check host-timed paths at runtime",
+      "status": "in_progress",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.3"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.6",
+      "title": "Add conformance fixtures for unverified channels and state the closure-mode limit",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.2"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.7",
+      "title": "Compare the filesystem and TCP models with the host OS on generated sequences",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.8",
+      "title": "Drive explore, replay, and kill-then-resume through the built CLI",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.1"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.9",
+      "title": "Consolidate the change-detector tests with a retained mapping",
+      "status": "blocked",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.2"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.10",
+      "title": "Add the scheduled determinism soak gate and update the docs to the delivered state",
+      "status": "blocked",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.4",
+        "fn-112-gomad-determinism-assurance-and-test.5",
+        "fn-112-gomad-determinism-assurance-and-test.6",
+        "fn-112-gomad-determinism-assurance-and-test.7",
+        "fn-112-gomad-determinism-assurance-and-test.15",
+        "fn-112-gomad-determinism-assurance-and-test.16"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.11",
+      "title": "Preserve watchdog classification when a killed target has no I/O terminal",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.8"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.12",
+      "title": "Resolve the native model compiler from the standard host-test entrypoint",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": 1,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.8"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.13",
+      "title": "Execute watchdog diagnostic replay without requiring an exact I/O transcript",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": 1,
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.11"
+      ]
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.14",
+      "title": "Preserve parent cancellation classification when an exploration round finishes",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.15",
+      "title": "Make TestWatchdogDiagnosticReplayUsesCapturedInputs reliable",
+      "status": "done",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.16",
+      "title": "Keep two retained successes with one outcome signature as distinct artifacts",
+      "status": "blocked",
+      "status_source": "flow-state",
+      "implicit_owner": false,
+      "priority": null,
+      "depends_on": []
+    }
+  ],
+  "ready": false,
+  "no_plan": false
+}
+
+===== [4/11] spec_md: `flowctl cat fn-112-gomad-determinism-assurance-and-test` =====
+# Gomad: determinism assurance and test strategy
+
+## Linux ownership amendment (2026-10-04)
+
+The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
+
+Linux owners: [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.5](../tasks/fn-128-gomad-deferred-linux-qualification-and.5.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). The [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md) maps each affected task and requirement to its owner. Native execution clauses below apply to Darwin within this spec; references to both platforms retain static/API behavior and historical scope, with outstanding Linux execution owned by fn-128. This explicit owner decision supersedes older no-renewed-deferral and unavailable-Linux completion rules only for the transferred obligations.
+
+
+**Plan date:** 2026-10-01
+
+## Goal & Context
+
+Give Gomad a checkable basis for its determinism claim and a test suite shaped
+around that claim. Today a same-seed divergence is found only after a workload
+emits it, and nothing reports where two runs first differed. Linux D12 has been
+open on that basis: about one tier-3 seed-run in 26 diverges at choice ordinals
+from 8 to about 85k, far from its cause.
+
+The [2026-10-01 quality assessment](../../MILESTONES.md#quality-assessment-2026-10-01)
+records the findings this spec owns. Its runtime findings came from source
+reading and were not executed, so each one is re-anchored against the code
+before work starts. The assessment's identifiers Q1, Q2, Q6, Q7, and Q8 are
+used below.
+
+"Never fails" is not provable while the collector, the allocator, and real
+threads stay inside the determinism boundary. The claim this spec establishes
+is a runtime invariant that is checked, plus a measured bound from repeated
+fresh runs under host load.
+
+### Relationship to existing work
+
+- fn-128.2 owns the transferred linux/amd64 D12 fix and its original acceptance.
+  This spec supplies the localiser D12 needs. The two D12 candidates from the
+  assessment (the one-shot syscall wait in `suspendG`, and uncontrolled linux
+  ASLR and `runtime.NumCPU`) are recorded on the D12 task.
+- fn-105 D26 owns the forward-clock correction (assessment Q5).
+- fn-109 owns interface changes. Where this spec reshapes tests around an
+  interface fn-109 migrates, the test change follows the verified migration.
+- fn-110 owns patch relocation. Runtime edits here coordinate source-set and
+  descriptor changes with it.
+- fn-114 corrects search-path defects and edits the runtime choice hooks
+  (goroutine identity, select-poll records, system goroutines). Its runtime
+  and choice-wire edits and this spec's are batched into as few toolchain
+  identities as the work allows.
+- Removing or freezing features without a caller (`tools/gomad3sim`, campaign
+  plans and shards, guidance, choice exploration, `minimize`,
+  `compare-support`) needs an owner decision and is outside this spec.
+
+## Architecture & Data Models
+
+### Divergence localiser (Q1)
+
+An opt-in diagnostic trace records a runtime-state digest at every choice
+point. The digest covers the seeded stream draw counters, the allocation count,
+the GC cycle and phase, the virtual time, and the run-queue length. A differ
+takes two diagnostic traces of fresh same-seed runs and reports the first
+ordinal whose digest differs, the fields that differ, and the preceding
+agreeing record.
+
+The diagnostic trace is a separate record kind with its own identity. The v2
+Choice Trace, the Decision Tape, and evidence digests keep their bytes when
+diagnostics are off. Recording must not allocate on the Go heap or draw from
+the seeded stream, because either would move the state it measures.
+
+### Stream isolation (Q2)
+
+Audit every draw site of the process-wide seeded stream and classify it as
+target-ordered or host-timed. Host-timed sites draw from the M-local stream, as
+the four already rerouted do. A runtime check, active in the diagnostic mode,
+fails the process when a path marked host-timed draws from the seeded stream.
+The classified inventory is checked in beside the clock inventory and fails on
+an unclassified draw site after a Go upgrade.
+
+### Determinism soak (Q6)
+
+A scheduled gate runs N fresh repetitions per seed of a named workload
+selection under bounded unrelated CPU load, with choice tracing and the
+diagnostic trace on. It accepts zero divergences. The report states
+repetitions, seeds, load, platform, and toolchain identity, so the bound it
+establishes can be quoted. On a divergence the gate retains both diagnostic
+traces and the differ output.
+
+### Conformance fixtures (Q7, Q8)
+
+Each uncontrolled or unverified channel gets one seeded black-box fixture with
+a positive control, in the existing conformance campaign: netpoll readiness,
+SIGPROF, block and mutex profile sampling on linux, `runtime.NumCPU`, timer-tie
+draws, and run-queue shuffle draws. A channel that stays outside the contract
+gets a fixture that proves it fails closed or a contract sentence that names
+it. Closure mode's lack of compiled guards is stated in the contract, and the
+soak selection includes one guarded-mode workload.
+
+### Test suite shape
+
+Four layers hold the suite. New tests belong to one of them.
+
+1. Runtime conformance fixtures, one per channel, each with a positive control.
+2. The determinism soak.
+3. Model conformance: generated operation sequences run against the in-memory
+   filesystem and loopback TCP models and against the host OS, comparing
+   results and errors within each model's declared differences.
+4. End-to-end CLI: `explore`, `replay`, and kill-then-resume through real
+   processes, comparing a resumed Campaign with an uninterrupted one.
+
+Tests that assert forwarded fields on injected fakes, repeated rejection
+tables, and templated adapter tests are consolidated into table-driven or
+generated form. Consolidation keeps every asserted behavior and removes
+duplicated scaffolding.
+
+### CLI-discovered corrections
+
+The built-CLI layer exposed three existing defects, tracked as tasks 11–13.
+Task 12 repairs native compiler selection in the standard host-test entrypoint.
+Task 11 preserves a verified watchdog or cancellation when no I/O terminal was
+written, while corrupt or ordinary incomplete results still fail. Task 13
+repairs diagnostic replay of valid watchdog artifacts without claiming exact
+replay or substituting live host inputs. Their retained reproductions and
+acceptance criteria belong to the task records. These corrections advance R3
+and R9 (and the host/compiler gate advances R2 and R8).
+
+## API Contracts
+
+CLI grammar and defaults, recorded formats, canonical bytes for fixed
+identities, error classifications, and replay compatibility are unchanged when
+diagnostics are off. The diagnostic trace is opt-in, carries its own versioned
+schema, and is part of execution identity when enabled, like `--choices`.
+
+A runtime edit changes the toolchain build key. Retained artifacts keep their
+original identity, and qualification of the candidate records fresh artifacts.
+
+## Edge Cases & Constraints
+
+- The [milestone constraints](../../MILESTONES.md#constraints)
+  apply, including the collector patch prohibition. A digest field that needs
+  a prohibited file is dropped or goes to the patch-policy owner.
+- The diagnostic mode must not perturb the run. A workload that qualifies with
+  diagnostics off and diverges with them on is a defect in the diagnostics.
+- Diagnostic traces are byte-bounded. Overflow is a Runner failure and cannot
+  support a localisation claim.
+- The soak selection and N are chosen so one platform's run fits a scheduled
+  job. The bound it reports is per platform.
+- Model conformance compares only operations the model declares it supports.
+  Declared differences from host behavior are listed in one place and each has
+  a test.
+- Test consolidation cannot lower the count of distinct asserted behaviors.
+  Each removed test maps to the table row or generated case that replaces it.
+- Remaining linux/amd64 evidence belongs to fn-128. A missing Linux host leaves only those transferred Linux obligations incomplete.
+
+## Acceptance Criteria
+
+- **R1:** `gomad3.yml` and the smoke workflow pass on both platforms at the
+  spec's starting commit, beginning with `make -C tools/gomad3 validate`.
+  Errors: a failing or skipped job is recorded with its cause; the open D12
+  allowances stay as they are until fn-128.2 removes them after native qualification.
+
+- **R2:** Existing tests that no target runs are executed by a gate: the tagged
+  `tools/gomad3sim/*_toolchain_test.go` files, the overlay packages
+  `internal/gomadio`, `internal/gomadsim`, `internal/gomadmodelwire`, `os`, and
+  `cmd/internal/gomadcap`, and the `choice_replay` fixture. `./toolchain` runs
+  in one tier per toolchain kind. Errors: a test that fails once it runs is
+  fixed or recorded as a finding; deleting it needs a stated reason.
+
+- **R3:** Every assessment finding this spec owns is re-anchored to current
+  file and line, and marked confirmed, changed, or refuted, before its work
+  starts. Errors: a refuted finding closes with its evidence.
+
+- **R4:** A diagnostic trace records the runtime-state digest at every choice
+  point, and a differ reports the first diverging ordinal and fields for two
+  fresh same-seed runs. A fixture with a deliberate host-timed draw
+  demonstrates localisation at the injected site. Errors: diagnostics that
+  allocate on the Go heap, draw from the seeded stream, or change a workload's
+  behavior with diagnostics off fail this criterion.
+
+- **R5:** The seeded-stream draw-site inventory is complete and classified,
+  host-timed sites use the M-local stream, and a diagnostic-mode check fails
+  the process on a violation. A negative fixture triggers the check. Errors:
+  an unclassified site fails the toolchain tier.
+
+- **R6:** A scheduled soak gate on Darwin reports zero divergences over
+  a stated N fresh repetitions per seed under load, and retains both traces
+  and the differ output on a divergence. Errors: on linux/amd64 the gate stays
+  informational until fn-128.2 fulfills the transferred D12 acceptance, and says so in its report.
+
+- **R7:** Each channel named under conformance fixtures has a seeded fixture
+  with a positive control or a contract sentence that places it outside the
+  contract. README and SPEC state that closure mode compiles no guards.
+
+- **R8:** Generated-sequence model conformance tests compare the filesystem
+  and loopback TCP models with the Darwin host OS, with every
+  declared difference listed and tested. Errors: an undeclared difference is
+  a defect in the model or a new declared difference with a reason.
+
+- **R9:** End-to-end tests drive `explore` and `replay` through the built CLI,
+  and kill a real coordinator mid-campaign, resume it, and compare the result
+  with an uninterrupted run of the same plan.
+
+- **R10:** The change-detector tests named in the assessment are consolidated,
+  with a retained mapping from each removed test to its replacement and no
+  loss of asserted behavior. Test code lines and test count are reported
+  before and after.
+
+- **R11:** The milestones' quality-assessment section, README, and SPEC are
+  updated to the delivered state, including the measured soak bound.
+
+## Boundaries
+
+- The D12 fix belongs to fn-128.2. The D16 clock correction, patch relocation and interface migrations keep their fn-105, fn-110 and fn-109 owners.
+- No feature is removed. Deterministic GC, multi-P scheduling, and rr-style
+  machine recording remain research items.
+- No capability is widened and no test in `./tests` is rewritten for Gomad.
+- Pin-repair tooling, including one-command adapter regeneration, belongs to
+  fn-113.
+
+## Decision Context
+
+The localiser comes first because D12 and each earlier darwin divergence took
+a bisect or a per-event logging campaign to find, and the same search would
+repeat for the next channel. A digest per choice point reuses the existing
+choice-record path and gives a first-difference ordinal directly.
+
+A soak with a stated N replaces two-repetition qualification as the source of
+the determinism claim because a defect at D12's rate passes most
+two-repetition checks, and exact replay forces run-queue and select choices
+that would otherwise expose a divergence between fresh runs.
+
+Suite reshaping is in the same spec because the assessment found the
+assurance gaps and the test-mass imbalance together: the layers that are
+missing are the ones that test the product claim.
+
+## Planning decisions (2026-10-01)
+
+Task breakdown settled the points below. Each is a default the owner can
+change before the task that uses it starts.
+
+- **R1 includes repair.** A failing job is reproduced and fixed on a committed
+  tree. A failure whose cause stays unknown is recorded as a finding with its
+  log and keeps R1 open.
+- **R2 gates.** The `gomad3_toolchain` tests get their own Make target inside
+  `test`. `./toolchain` runs once with the patched toolchain and once with
+  stock Go, and leaves the host tier.
+- **R3 has no task of its own.** Each task re-anchors the findings it uses as
+  its first step and records confirmed, changed, or refuted.
+- **R4 transport.** The diagnostic trace uses its own inherited descriptor and
+  byte bound, separate from the 64 MiB Choice Trace. A `--diagnostics` flag on
+  `explore` and `qualify` enables it. The differ is a `gomadtool` subcommand.
+- **R4 off-mode comparison.** A runtime edit changes the toolchain build key
+  and the choice implementation digest, which are part of evidence. Comparison
+  across toolchain builds therefore uses a behavioral projection (output
+  hashes, transcript, World identity, outcome, virtual time, peak goroutines,
+  decision content) with those identities as the allowed differences.
+  Byte-identity is required only within one toolchain identity.
+- **Docs are written once.** Tasks 2 and 4 to 7 record names and contract
+  sentences in their done summaries, and task 10 writes all documentation.
+- **R4 digest fields** are limited to state the overlay can read without
+  editing a collector file. Draw counters are included so a divergence on an
+  untaped draw (timer ties, run-queue shuffle) shows as a counter delta at the
+  next choice point.
+- **R4 and R5 fixtures** inject their fault through an overlay-only,
+  diagnostics-only environment switch. No test-only hunk enters the patch.
+- **R5 seeded stream** means every draw that reaches the `GOMADSEED`-derived
+  state through the patch's runtime rand helpers. The inventory test counts
+  references in the patched source, as the clock inventory does.
+- **R6 size.** The soak loops `qualify` at its 32-repetition bound. The first
+  step measures per-run cost and picks the largest N that fits one scheduled
+  job. Each `qualify` batch compares only against its own first execution, so
+  the soak also compares the baseline across batches within one cohort
+  (workload, seed, platform, execution identity). The report carries a
+  cumulative count per cohort across scheduled runs, and the quotable bound is
+  that per-cohort count. A new toolchain identity starts a new cohort.
+- **R8 generator** uses the standard library's seeded random source with fixed
+  seeds and bounded sequence lengths. Declared differences are per platform.
+- **R9 kill point.** The test sends SIGKILL to the coordinator after a fixed
+  number of journaled executions and compares decoded execution records and
+  semantic summary counts with an uninterrupted run. Campaign IDs and artifact
+  references are normalized. Wall-time fields, journal segmentation, and
+  journal hashes are excluded, because recovery legitimately changes them, and
+  each Campaign's storage integrity is validated separately.
+- **R10 follows fn-109 task 6**, which rewrites the executor-injection tests.
+  A behavior is one named subtest or table row. The mapping is retained under
+  `.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/`.
+
+## Open Questions
+
+1. What cumulative soak count is the target bound, and may the soak use
+   runners other than the GitHub-hosted ones?
+2. fn-110 tasks 2 to 4, fn-109 task 13, fn-114 C2/E3/E4, and fn-105 D26 edit
+   the same patch hunks and `runtime/gomad.go`. Which lands first, and who owns
+   the batched toolchain identity? R5 rerouting shifts every seed's schedule,
+   so it should share one identity bump with them. No task dependency is
+   recorded, because the localiser is the prerequisite for D12.
+3. If a digest field or a draw site turns out to need a collector file, who
+   gives patch-policy approval, and is dropping the field acceptable?
+4. R2 and R9 invest in `tools/gomad3sim` tests and `resume`. Both are on the
+   list of features with no caller whose fate is undecided.
+
+## Quick commands
+
+```bash
+make -C tools/gomad3 validate
+make -C tools/gomad3 test
+gh run list --repo stephanos/temporal --workflow gomad3.yml -L 5
+```
+
+## Early proof point
+
+Task fn-112-gomad-determinism-assurance-and-test.3 validates the core approach:
+a runtime-state digest recorded at each choice point without allocating or
+drawing, with evidence unchanged when diagnostics are off. If recording
+perturbs the run, re-evaluate the digest fields and the transport before
+tasks 4, 5, and 10.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | Workflows green on both platforms | .1 | — |
+| R2 | Orphaned tests run in a gate | .2 | — |
+| R3 | Findings re-anchored before work | .3, .5, .6 | First step of each task that uses an assessment finding |
+| R4 | Diagnostic trace and differ | .3, .4 | — |
+| R5 | Draw-site inventory and runtime check | .5 | — |
+| R6 | Scheduled soak gate | .10 | — |
+| R7 | Channel fixtures and closure-mode contract | .6, .10 | Task 6 drafts the contract sentences; task 10 writes them into README and SPEC |
+| R8 | Model conformance against the host OS | .7 | — |
+| R9 | End-to-end CLI and kill-then-resume | .8 | — |
+| R10 | Change-detector tests consolidated | .9 | — |
+| R11 | Docs updated to delivered state | .10 | — |
+
+===== [5/11] git_status: `git status --short --branch` =====
+## gomad...origin/gomad [ahead 7]
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.json
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/
+?? .turbo/plans/gomad3-glossary-update.md
+?? .turbo/technical-debt.md
+
+===== [6/11] git_log: `git log -5 --oneline` =====
+1147416b2e gomad: document current v3 choice trace replay
+d108c313dc gomad: restore selected v041 compatibility fixture
+b1054ecc09 gomad: make compatibility refresh status handling exhaustive
+765547c32d gomad: simplify adapter inventory hash formatting
+4695a9ad18 gomad: bound adapter source-listing command output
+
+===== [7/11] git_branch: `git rev-parse --abbrev-ref HEAD` =====
+gomad
+
+===== [8/11] memory_enabled: `flowctl config get memory.enabled --json` =====
+{
+  "success": true,
+  "key": "memory.enabled",
+  "value": true
+}
+
+===== [9/11] glossary: `flowctl glossary list --json --match "<task title + description>"` =====
+(no glossary entry matches the task title or description - skipped)
+
+===== [10/11] memory_index: `flowctl memory list` =====
+bug/integration/
+  go-mod-download-inside-a-target-module-2026-09-28 — "go mod download inside a target module rewrites its go.sum and bypasses sum chec" (module: tools/gomad3/target)
+  shard-merge-and-prepared-target-cache-2026-09-29 — "Shard merge and prepared-target cache must bind source identity, not go.mod" (module: tools/gomad3/qualification/set)
+  profile-adapter-changes-leave-libc-2026-10-01 — "Profile adapter changes leave libc-bound compatibility packs stale" (module: tools/gomad3/internal/compatibilitypack)
+  engine-summary-fields-need-the-runner-2026-10-03 — "Engine summary fields need the runner projection and both CLI exploration lines" (module: tools/gomad3/runner/runner.go)
+
+bug/runtime-errors/
+  gobuild-cross-platform-matchfile-keeps-2026-09-28 — "go/build cross-platform MatchFile keeps host arch feature ToolTags" (module: tools/gomad3/qualification/set/manifestgen)
+
+===== [11/11] dependencies: ids, titles, statuses, done summaries =====
+- fn-112-gomad-determinism-assurance-and-test.3 [done] - Record a runtime-state digest at each choice point in a diagnostic trace
+    The overlay runtime now writes a runtime-state digest for every choice record into an opt-in diagnostic trace on its own inherited descriptor, and the choice wire schema defines that trace's header and record. Nothing changes when the trace is not requested: the seven core workloads match the pre-change toolchain on the behavioral projection.
+    
+    **Q1 (R3): confirmed.** At the base snapshot `gomadChoiceRecordValue` (`toolchain/runtime/overlay/src/runtime/gomad.go:313-323`) carried ordinal, kind, flags, alternatives, selected, data, site offset, and two identities, with no stream position, allocation count, or GC cycle. Replay reports a diverging ordinal (`gomad.go:693-743`). Two fresh runs report only a field name (`qualification/qualification.go:394`, `firstDivergence`).
+    
+    **Contract for tasks 4, 5, and 10**
+    - Enable with `GOMAD3_DIAGNOSTIC_TRACE_FD` and `GOMAD3_DIAGNOSTIC_TRACE_BYTES`. A choice trace is required. The backing starts with `EncodeDiagnosticHeader(capacity)`; the bound is 160 bytes to 64 MiB (`DiagnosticMaximumBytes`), separate from the choice trace's.
+    - Profile `gomad3-diagnostic-trace/v1`, magic `GOMADDG\x01`, 64-byte header, 96-byte records. Record N is the digest taken when choice record N was appended, so the two traces pair by ordinal.
+    - Fields: virtual time, allocation count, GC cycle, GC phase, local run-queue length (with `runnext`), and seven draw counts since process start: run-queue, scheduler (runnext and shuffle), select, runtime rand, runtime cheaprand, timer tie, clock tick.
+    - Header byte 12 is the state: 0 as written by the Runner, 1 complete, 2 overflow. State 2 means the trace holds fewer digests than the run had choice points, for either cause: the diagnostic trace filled (the target stops, below), or the choice trace filled and digests stopped with it (the target runs on and the trace is closed as overflowed at exit). The two are told apart by the choice terminal frame, which is absent in the first case and reports `overflow` in the second, so no third state was added.
+    - Overflow sets state 2, prints `runtime: Gomad diagnostic trace overflow`, and exits 125 without a choice terminal frame. Invalid configuration exits 2 with a message starting `runtime: invalid Gomad diagnostic trace`.
+    - `GOMAD3_DIAGNOSTIC_PERTURB_DRAW=N` takes one extra draw from the process-wide cheaprand stream before the digest of choice record N. It is rejected without a diagnostic trace. No patch hunk was added.
+    - Host codec: `choice/internal/wire` `EncodeDiagnosticHeader`, `DecodeDiagnosticHeader`, `EncodeDiagnosticRecord`, `DecodeDiagnosticRecord`.
+    
+    **Fields dropped or narrowed**
+    - No listed field needed a collector file. The allocation count is read from `memstats.heapStats` and the P's `mcache`, without edits to either.
+    - Run-queue length covers the P's local queue only. The global queue and `gomadArrivals` change at host-timed moments (an M returning from a Runner syscall), so including them would make the digest differ between runs that agree.
+    
+    **Acceptance**
+    - Every choice point emits a digest: `TestDiagnosticTrace/digests_every_choice_point` (190 digests for 190 choice records; two same-seed runs record identical digests). Passed 40 consecutive repetitions.
+    - Diagnostics off matches the pre-change toolchain: 7 of 7 core workloads, build key `4412b5b2…` against `1c34ea07…`. Stdout and stderr hashes, I/O transcript hash, World digests, outcome, virtual time, peak goroutines, semantic coverage, and choice decision content are equal. The new build key and choice implementation digest are recorded as expected in all seven. Evidence is in `.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-3/`.
+    - Decision content is compared with identities renamed by first appearance. Raw choice bytes differ across builds because the runtime's text grew by 2928 bytes, which moves every select site offset and every identity hashed from one, and so re-sorts selected ranks.
+    - Same toolchain, off versus on: `TestDiagnosticTrace/recording_leaves_the_run_unchanged` requires equal stdout, stderr, choice record bytes, and choice terminal frame.
+    - Qualifies with diagnostics on: shown by direct launch only. The core `./basic/concurrency` test binary gave equal output and choice bytes across 10 runs off and 10 runs on. The other six core workloads need the Runner's I/O profile, so their check waits for task 4.
+    - No heap allocation, no seeded draw: the same subtest. The fixture prints `runtime.MemStats.Mallocs`, select and run-queue order, and map iteration order, and all are equal off and on.
+    - Overflow: `TestDiagnosticTrace/overflow_stops_the_target`.
+    - Review finding (P2, fixed): a choice-trace overflow left a truncated diagnostic trace marked complete. `gomadDiagnosticClose` now closes it as overflowed. `TestDiagnosticTrace/choice_trace_overflow_leaves_the_diagnostic_trace_marked_truncated` gives the choice trace room for two records and the diagnostic trace 1 MiB; it failed with state 1 before the fix and passes with state 2.
+    - I read "flag absent versus never requested" as the control variables being absent; the Runner flag is task 4.
+    
+    **Gates on darwin/arm64** (all exit 0): `make -C tools/gomad3 validate`, `test-toolchain`, `overlay-test`, `test-runtime` (710 s), and the remaining `test` tiers run one target at a time: `test-harness`, `intercept-test`, `test-host`, `world-test`, `test-builder`, `test-live-capability`, `test-upstream`. Baseline before the first edit was green for `validate`, `test-toolchain`, `overlay-test`, and `test-runtime`. `make lint-code-fast` was not run; `gofmt -l` and `go vet` on the changed packages are clean.
+    
+    **After the review fix** (build key `f292ea6a…`, all exit 0): `make -C tools/gomad3 validate`, `test-toolchain`, `overlay-test`, and `TestDiagnosticTrace` 20 consecutive repetitions, which includes the diagnostics-off subtest `recording_leaves_the_run_unchanged`. The diagnostic tests live in `overlay-test`; `test-runtime` has no diagnostic case, so it was not rerun. `test-runtime`, the other `test` tiers, and the core projection were last run on `1c34ea07…` and not on `f292ea6a…`; the fix changes only the state byte written at exit when a diagnostic trace is mapped.
+    
+    **linux/amd64 was not run.** Commands a linux run needs: `make -C tools/gomad3 validate test-toolchain test-runtime overlay-test`, then `make -C tools/gomad3 runner` and `.bin/gomad qualify-set --manifest=$PWD/qualification/core.json --working-dir=$PWD/qualification/corpus --artifacts=DIR --output=DIR/report.json` at the base and at the head, each followed by `project.py DIR/artifacts OUT.json`, then `compare.py BASE.json HEAD.json BUILD_KEY SOURCE_SHA256_HEX OUT.json` (scripts in the artifact directory).
+    
+    **For the conductor**
+    - Snapshots: first pass base `6ea20042910b8505fb58725f8a1bf8e59219b5c0`, head `bf31fe284ed8e25a30ab9ae7dc9e128497568b5b`; review fix base `6dbcb0d4549b659beb669aa4871ba32f6a482ad7`, head `3063078dc0504fe344b546d60a52888baccc22fa`. The review fix is uncommitted on top of `8789deab0`.
+    - The toolchain build key moved from `4412b5b2…` to `1c34ea07…` and, with the review fix, to `f292ea6ac88dbffe5657d0a7dd4e7abe3c72e6b091b1494cfe315bdede03b088`; intermediate `0e1a9041…` and `113ec00b…` builds exist from the two red runs. Artifacts retained under the old key no longer match the active toolchain.
+    - Files outside Touches: the new test `toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go` is inside Touches, but two generated files are not: `target/internal/livecap/protocol_generated.go` and `toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go`. `make generate` rewrites both because their digest covers `runtime/gomad.go`.
+    - Files that changed while I ran and that I did not change: `MILESTONES.md`, the fn-114 spec and task files, and at 22:05 four `internal/compatibilitypack` files for `modernc-libc-xsys-v047-linux-amd64`. `make validate` passes with them. At 22:10 a `wip` commit `8789deab0` by the owner took the working tree, including this task's code. The head snapshot therefore also holds those foreign changes.
+    - The host needs Go 1.27.1 first on `PATH` for the make targets; Homebrew's 1.26.5 fails `toolchain-build` under `GOTOOLCHAIN=local`. I used the module-cache toolchain `golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64`.
+    - The Runner does not yet reserve the `GOMAD3_DIAGNOSTIC_*` names in its environment allowlist (`runner/runner.go:1356`); task 4 owns that.
+    
+    stage: impl-review - skipped(policy: host-deferred - conductor owns the gate)
+    
+    Review: cross-family codex review over the snapshot range `6ea20042..bf31fe28` returned SHIP with one P2 (truncated diagnostic trace marked complete after a choice-trace overflow), fixed in `6dbcb0d4..3063078d` with a regression subtest. Review output is retained at `.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-3/review-r1.md`. Open for task 4: qualification with diagnostics on through the Runner for the six core workloads that need the I/O profile. No commit was made by the worker; the owner's `wip` commit `8789deab0` holds the pre-fix state.
+    
+    stage: plan-sync - skipped(config: planSync.enabled != true)
+

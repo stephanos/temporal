@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "/usr/bin/node",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/derive.mjs",
+    "--source-ref=worktree",
+    "--expected-source=2acd63cceb126f37c179bf0dd47c188c60894bc63ddbd0deb06a7a056a1f025a",
+    "--emit"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "node_version": "v22.22.1",
+  "started_utc": "2026-10-05T22:56:27.019Z",
+  "ended_utc": "2026-10-05T22:56:28.293Z",
+  "elapsed_ms": 1274,
+  "exit_code": 0,
+  "signal": null,
+  "error": null,
+  "stdout_sha256": "1356bc8358d2d71a4586a1d4b2cd8107ee572960c859651da40c261b19335011",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sources_before_sha256": "d9c4f5fd806c07ac8bd135cda78e3b2406a90791920f1196b71522e77fc70870",
+  "sources_after_sha256": "d9c4f5fd806c07ac8bd135cda78e3b2406a90791920f1196b71522e77fc70870",
+  "source_changes": [],
+  "source_count": 994,
+  "derive_helper_sha256": "4c24da7606148ffbb033ea4914d35ce0c6c24bdff4838867797a4516da70bd12",
+  "capture_helper_sha256": "1a90525857455d51643e36142750cde4f23c930dacc6b42c486c74e2c50f3012"
+}

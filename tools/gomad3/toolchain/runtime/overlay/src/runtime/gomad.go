@@ -80,7 +80,7 @@ const (
 
 //go:nosplit
 func gomadDiagnosticCheckSeededDraw(mp *m) {
-	if gomadDiagnosticEnabled && mp.gomadHostDrawScope {
+	if gomadDiagnosticEnabled && mp.gomadHostDraw {
 		print("runtime: Gomad host-timed seeded draw\n")
 		exit(2)
 	}
@@ -410,10 +410,10 @@ func gomadDiagnosticAppend(ordinal uint64) {
 			gomadDiagnosticHostFault.Store(1)
 		} else {
 			if gomadDiagnosticPerturbHost {
-				getg().m.gomadHostDrawScope = true
+				getg().m.gomadHostDraw = true
 			}
 			gomadRuntimeCheapRand()
-			getg().m.gomadHostDrawScope = false
+			getg().m.gomadHostDraw = false
 		}
 	}
 	bytes := unsafe.Slice((*byte)(gomadDiagnosticMapping), int(gomadDiagnosticMappingBytes))

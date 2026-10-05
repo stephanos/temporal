@@ -1,0 +1,37 @@
+{
+  "argv": [
+    "node",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/derive.mjs",
+    "--source-ref=worktree",
+    "--expected-source=2acd63cceb126f37c179bf0dd47c188c60894bc63ddbd0deb06a7a056a1f025a"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOEXPERIMENT": null,
+    "GOROOT": null,
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null,
+    "GOMAD3_SEED": null,
+    "GOCACHE": null,
+    "GOMODCACHE": null
+  },
+  "exit": 0,
+  "started_unix": 1791241073.1369689,
+  "ended_unix": 1791241088.1023703,
+  "elapsed_seconds": 14.965401411056519,
+  "sources_before_sha256": "c607eff924e25cb49e1b5603a392a9f5b9bec1b8d6c2369f4e351a3a3b11d55c",
+  "sources_after_sha256": "c607eff924e25cb49e1b5603a392a9f5b9bec1b8d6c2369f4e351a3a3b11d55c",
+  "source_count": 5076,
+  "source_changes": [],
+  "stdout_sha256": "9032cf65f6a504d13c6abe4217ea5dd23d5aacb4cfc52402719a8d1fc4c64d4b",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

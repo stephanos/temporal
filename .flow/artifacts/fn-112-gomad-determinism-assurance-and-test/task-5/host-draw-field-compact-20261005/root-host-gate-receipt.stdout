@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "honored": false,
+  "gate_id": "gomad3-host",
+  "reason": "worktree dirty: tools/gomad3/choice/internal/wire/wire_generated.go",
+  "sha8": "1147416b"
+}

@@ -1,0 +1,8 @@
+alpha-rename + pinned gofmt equality: 21 files; renamed sites: 7
+changed tracked product files: tools/gomad3/choice/internal/wire/wire_generated.go
+tools/gomad3/runner/testdata/diagnostic-identity-choices.json
+tools/gomad3/target/internal/livecap/protocol_generated.go
+tools/gomad3/toolchain/runtime/go1.27.1.patch
+tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go
+tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go

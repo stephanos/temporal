@@ -1,0 +1,484 @@
+{
+  "base_commit": "1147416b2e6465de7b631e1e4b695eba33ebf000",
+  "product_source_count": 5076,
+  "product_changes": [
+    "tools/gomad3/choice/internal/wire/wire_generated.go",
+    "tools/gomad3/runner/testdata/diagnostic-identity-choices.json",
+    "tools/gomad3/target/internal/livecap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go"
+  ],
+  "product_stable_during_audit": true,
+  "user_files_preserved": true,
+  "tools_preserved": true,
+  "allowlists": {
+    "patch": 20,
+    "overlay": 79
+  },
+  "environment_objects": 33,
+  "unexpected_environment_keys": 0,
+  "golden_bytes": 13271,
+  "golden_matches_independent_emit": true,
+  "patches": {
+    "baseline-U1.patch": {
+      "bytes": 29015,
+      "lines": 778,
+      "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+    },
+    "baseline-U3.patch": {
+      "bytes": 38362,
+      "lines": 1112,
+      "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+    },
+    "final-U1.patch": {
+      "bytes": 24894,
+      "lines": 706,
+      "sha256": "fbb0a515333c06f77ce213c62a43bed8cb2ca2c65f080208694533ea8e1ccc38"
+    },
+    "final-U3.patch": {
+      "bytes": 34148,
+      "lines": 1040,
+      "sha256": "69cfff368aab259ef3053ea457ed53a4112c1c272fb3e4cb5e44a0048444c607"
+    }
+  },
+  "original_R8_U3_baseline": 32652,
+  "R8_remaining_bytes": 1496,
+  "go_observations": [
+    {
+      "label": "baseline-host-developmental",
+      "counts": {
+        "pass": 3144,
+        "fail": 443,
+        "skip": 32
+      },
+      "top_level_counts": {
+        "pass": 1081,
+        "fail": 233,
+        "skip": 32
+      },
+      "package_results": {
+        "go.temporal.io/server/tools/gomad3/cmd/gomad": "fail",
+        "go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli": "fail",
+        "go.temporal.io/server/tools/gomad3/cmd/gomadtool": "pass",
+        "go.temporal.io/server/tools/gomad3": "pass",
+        "go.temporal.io/server/tools/gomad3/runner/internal/campaign": "pass",
+        "go.temporal.io/server/tools/gomad3/runner/internal/corpus": "pass",
+        "go.temporal.io/server/tools/gomad3/runner/internal/execution": "fail",
+        "go.temporal.io/server/tools/gomad3/runner/internal/exploration": "pass",
+        "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice": "pass",
+        "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation": "pass",
+        "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord": "pass",
+        "go.temporal.io/server/tools/gomad3/runner/internal/minimizer": "pass",
+        "go.temporal.io/server/tools/gomad3/qualification": "pass",
+        "go.temporal.io/server/tools/gomad3/qualification/analysis": "fail",
+        "go.temporal.io/server/tools/gomad3/qualification/comparison": "pass",
+        "go.temporal.io/server/tools/gomad3/qualification/set": "pass",
+        "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen": "pass",
+        "go.temporal.io/server/tools/gomad3/qualification/soak": "pass",
+        "go.temporal.io/server/tools/gomad3/qualification/workload": "pass",
+        "go.temporal.io/server/tools/gomad3/target": "fail",
+        "go.temporal.io/server/tools/gomad3/target/internal/build": "pass",
+        "go.temporal.io/server/tools/gomad3/target/internal/capabilitypolicy": "pass",
+        "go.temporal.io/server/tools/gomad3/target/internal/capabilityreview": "pass",
+        "go.temporal.io/server/tools/gomad3/target/internal/gocommand": "pass",
+        "go.temporal.io/server/tools/gomad3/target/internal/livecap": "pass",
+        "go.temporal.io/server/tools/gomad3/target/internal/provenance": "pass",
+        "go.temporal.io/server/tools/gomad3/record": "pass",
+        "go.temporal.io/server/tools/gomad3/artifact": "pass",
+        "go.temporal.io/server/tools/gomad3/choice": "pass",
+        "go.temporal.io/server/tools/gomad3/choice/internal/wire": "pass",
+        "go.temporal.io/server/tools/gomad3/deterministicio": "fail",
+        "go.temporal.io/server/tools/gomad3/deterministicio/internal/wire": "pass",
+        "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount": "pass",
+        "go.temporal.io/server/tools/gomad3/world": "pass",
+        "go.temporal.io/server/tools/gomad3/world/mailbox": "pass",
+        "go.temporal.io/server/tools/gomad3/world/process": "pass",
+        "go.temporal.io/server/tools/gomad3/toolchain/version": "pass",
+        "go.temporal.io/server/tools/gomad3/toolchain/installation": "pass",
+        "go.temporal.io/server/tools/gomad3/upgrade": "pass",
+        "go.temporal.io/server/tools/gomad3/upgrade/adapterregen": "pass",
+        "go.temporal.io/server/tools/gomad3/upgrade/pinimpact": "fail",
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance": "fail",
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/validation": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/hostexec": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/hostfs": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/preparation": "fail",
+        "go.temporal.io/server/tools/gomad3/internal/sourceinventory": "pass"
+      },
+      "unfinished": [
+        "go.temporal.io/server/tools/gomad3/runner:TestRunReportsPeriodicProgressWhileTargetIsRunning"
+      ]
+    },
+    {
+      "label": "final-pure-host",
+      "counts": {
+        "pass": 972,
+        "fail": 106,
+        "skip": 13
+      },
+      "top_level_counts": {
+        "pass": 320,
+        "fail": 58,
+        "skip": 13
+      },
+      "package_results": {
+        "go.temporal.io/server/tools/gomad3/choice": "pass",
+        "go.temporal.io/server/tools/gomad3/choice/internal/wire": "pass",
+        "go.temporal.io/server/tools/gomad3/target/internal/livecap": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol": "pass",
+        "go.temporal.io/server/tools/gomad3/record": "pass",
+        "go.temporal.io/server/tools/gomad3/artifact": "pass",
+        "go.temporal.io/server/tools/gomad3/deterministicio": "fail",
+        "go.temporal.io/server/tools/gomad3/deterministicio/internal/wire": "pass",
+        "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount": "pass",
+        "go.temporal.io/server/tools/gomad3/world": "pass",
+        "go.temporal.io/server/tools/gomad3/world/mailbox": "pass",
+        "go.temporal.io/server/tools/gomad3/world/process": "pass",
+        "go.temporal.io/server/tools/gomad3/toolchain/version": "pass",
+        "go.temporal.io/server/tools/gomad3/toolchain/installation": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": "pass",
+        "go.temporal.io/server/tools/gomad3/internal/sourceinventory": "pass",
+        "go.temporal.io/server/tools/gomad3": "pass"
+      },
+      "unfinished": []
+    },
+    {
+      "label": "final-diagnostic-controls",
+      "counts": {
+        "pass": 0,
+        "fail": 3,
+        "skip": 1
+      },
+      "top_level_counts": {
+        "pass": 0,
+        "fail": 3,
+        "skip": 1
+      },
+      "package_results": {
+        "go.temporal.io/server/tools/gomad3/runner": "pass",
+        "go.temporal.io/server/tools/gomad3/runner/internal/execution": "fail"
+      },
+      "unfinished": []
+    }
+  ],
+  "failures_without_matching_baseline_failure": [],
+  "final_verdicts_different_from_baseline": [],
+  "final_raw_errors_different_from_baseline": [],
+  "receipts": [
+    {
+      "name": "baseline-anchor.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 60273,
+      "stderr_bytes": 364
+    },
+    {
+      "name": "baseline-extract.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 0,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "baseline-focused.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 4762,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "baseline-host-developmental.json",
+      "exit": 124,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 4459076,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "baseline-materialize.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 26,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "baseline-red-inventory.json",
+      "exit": 1,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 696,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "baseline-save-source.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 55,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "baseline-validate.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 2162,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-diagnostic-controls.json",
+      "exit": 1,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 6980,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-diff-check.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 0,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-evidence-closure.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 516,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-extract.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 0,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-focused.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 4761,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-generate-validate.json",
+      "exit": 0,
+      "stable": false,
+      "source_changes": [
+        "tools/gomad3/target/internal/livecap/protocol_generated.go",
+        "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+        "tools/gomad3/choice/internal/wire/wire_generated.go",
+        "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"
+      ],
+      "stdout_bytes": 3570,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-golden-format.json",
+      "exit": 0,
+      "stable": false,
+      "source_changes": [
+        "tools/gomad3/runner/testdata/diagnostic-identity-choices.json"
+      ],
+      "stdout_bytes": 75,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-green-inventory.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 599,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-identity-emit.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 13271,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-identity-report.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 9545,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-lint-fast-native-tools.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 671,
+      "stderr_bytes": 5732
+    },
+    {
+      "name": "final-lint-fast.json",
+      "exit": 2,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 661,
+      "stderr_bytes": 261
+    },
+    {
+      "name": "final-lint-scope.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 1397,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-materialize.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 26,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-patch-regenerate.json",
+      "exit": 0,
+      "stable": false,
+      "source_changes": [
+        "tools/gomad3/toolchain/runtime/go1.27.1.patch"
+      ],
+      "stdout_bytes": 25,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-preservation.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 548,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-pure-host.json",
+      "exit": 1,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 1504856,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-rename-sweep.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 648,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-source-freeze.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 131,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "final-vet.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 0,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "identity-audit/baseline-complete-rune-parser.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 9547,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "identity-audit/baseline-final-helper.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 9547,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "identity-audit/baseline-fixed-parser.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 9547,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "identity-audit/baseline.json",
+      "exit": 1,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 0,
+      "stderr_bytes": 956
+    },
+    {
+      "name": "identity-audit/post-publication-emitted.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 13271,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "identity-audit/post-publication-frozen.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 9544,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "root-gate-classification.json",
+      "exit": 1,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 33364,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "root-host-gate-receipt.json",
+      "exit": 1,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 175,
+      "stderr_bytes": 0
+    },
+    {
+      "name": "root-independent-identity.json",
+      "exit": 0,
+      "stable": true,
+      "source_changes": [],
+      "stdout_bytes": 9544,
+      "stderr_bytes": 0
+    }
+  ]
+}

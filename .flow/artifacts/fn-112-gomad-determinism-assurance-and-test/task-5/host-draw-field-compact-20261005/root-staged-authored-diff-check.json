@@ -1,0 +1,36 @@
+{
+  "argv": [
+    "node",
+    "-e",
+    "const cp=require(\"node:child_process\"),prefix=\".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/\";const names=cp.execFileSync(\"git\",[\"diff\",\"--cached\",\"--name-only\",\"-z\"],{encoding:\"utf8\"}).split(\"\\0\").filter(Boolean);const files=names.filter(n=>!(n.startsWith(prefix)&&(/\\.(stdout|stderr|patch)$/.test(n))));const r=cp.spawnSync(\"git\",[\"diff\",\"--cached\",\"--check\",\"--\",...files],{encoding:\"utf8\"});process.stdout.write(JSON.stringify({checked_files:files.length,retained_raw_excluded:names.length-files.length,excluded:names.filter(n=>!files.includes(n)),exit:r.status})+\"\\n\"+r.stdout);process.stderr.write(r.stderr);process.exitCode=r.status;"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOEXPERIMENT": null,
+    "GOROOT": null,
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null,
+    "GOMAD3_SEED": null,
+    "GOCACHE": null,
+    "GOMODCACHE": null
+  },
+  "exit": 0,
+  "started_unix": 1791242117.2900581,
+  "ended_unix": 1791242117.5164726,
+  "elapsed_seconds": 0.22641444206237793,
+  "sources_before_sha256": "c607eff924e25cb49e1b5603a392a9f5b9bec1b8d6c2369f4e351a3a3b11d55c",
+  "sources_after_sha256": "c607eff924e25cb49e1b5603a392a9f5b9bec1b8d6c2369f4e351a3a3b11d55c",
+  "source_count": 5076,
+  "source_changes": [],
+  "stdout_sha256": "ea7b85574ad57a807804359216d51cb3bb8c24aae5048a4071accb1cf9e07c63",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

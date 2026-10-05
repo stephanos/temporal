@@ -1,0 +1,7 @@
+tools/gomad3/toolchain/runtime/go1.27.1.patch:369:+		previousHostDrawScope := mp.gomadHostDraw
+tools/gomad3/toolchain/runtime/go1.27.1.patch:371:+			mp.gomadHostDraw = true
+tools/gomad3/toolchain/runtime/go1.27.1.patch:383:+		mp.gomadHostDraw = previousHostDrawScope
+tools/gomad3/toolchain/runtime/go1.27.1.patch:462:+	gomadHostDraw   bool
+tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:83:	if gomadDiagnosticEnabled && mp.gomadHostDraw {
+tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:413:				getg().m.gomadHostDraw = true
+tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:416:			getg().m.gomadHostDraw = false

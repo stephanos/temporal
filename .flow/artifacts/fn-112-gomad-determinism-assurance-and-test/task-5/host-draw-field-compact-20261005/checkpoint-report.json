@@ -1,0 +1,873 @@
+{
+  "base_commit": "1147416b2e6465de7b631e1e4b695eba33ebf000",
+  "measurements": {
+    "baseline": {
+      "U1": {
+        "bytes": 29015,
+        "lines": 778,
+        "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+      },
+      "U3": {
+        "bytes": 38362,
+        "lines": 1112,
+        "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+      }
+    },
+    "final": {
+      "U1": {
+        "bytes": 24894,
+        "lines": 706,
+        "sha256": "fbb0a515333c06f77ce213c62a43bed8cb2ca2c65f080208694533ea8e1ccc38"
+      },
+      "U3": {
+        "bytes": 34148,
+        "lines": 1040,
+        "sha256": "69cfff368aab259ef3053ea457ed53a4112c1c272fb3e4cb5e44a0048444c607"
+      }
+    }
+  },
+  "U1_saved_bytes": 4121,
+  "U3_saved_bytes": 4214,
+  "historical_R8_U3_bytes": 32652,
+  "historical_R8_remaining_bytes": 1496,
+  "final_U1_equals_checked_patch": true,
+  "final_sources_equal_freeze": true,
+  "source_count": 5076,
+  "changed_product_paths": [
+    "tools/gomad3/choice/internal/wire/wire_generated.go",
+    "tools/gomad3/runner/testdata/diagnostic-identity-choices.json",
+    "tools/gomad3/target/internal/livecap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go"
+  ],
+  "user_and_pinned_tool_hashes_preserved": true,
+  "verbose_test_counts": {
+    "baseline-focused": {
+      "pass": 33,
+      "fail": 0,
+      "skip": 0,
+      "top_level_pass": 17
+    },
+    "final-focused": {
+      "pass": 33,
+      "fail": 0,
+      "skip": 0,
+      "top_level_pass": 17
+    },
+    "baseline-red-inventory": {
+      "pass": 1,
+      "fail": 1,
+      "skip": 0,
+      "top_level_pass": 1
+    },
+    "final-green-inventory": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0,
+      "top_level_pass": 2
+    }
+  },
+  "preservation_receipt": "preservation.json",
+  "fixture_sha256": "1356bc8358d2d71a4586a1d4b2cd8107ee572960c859651da40c261b19335011",
+  "fixture_equals_retained_emit": true,
+  "environment_audit": {
+    "json_files": 48,
+    "objects": [
+      {
+        "file": "baseline-anchor.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "baseline-extract.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "baseline-focused.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "baseline-host-developmental.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "baseline-materialize.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "baseline-red-inventory.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "baseline-save-source.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "baseline-validate.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-diagnostic-controls.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-diff-check.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-extract.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-focused.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-freeze.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-generate-validate.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-golden-format.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-green-inventory.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-identity-emit.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-identity-report.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-lint-fast-native-tools.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-lint-fast.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-lint-scope.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-materialize.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-patch-regenerate.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-preservation.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-pure-host.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-rename-sweep.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-source-freeze.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "final-vet.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "freeze.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "root-gate-classification.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "root-host-gate-receipt.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      },
+      {
+        "file": "root-independent-identity.json",
+        "pointer": "/environment",
+        "key_count": 16,
+        "unexpected_key_count": 0
+      }
+    ],
+    "allowed_key_names": [
+      "GOCACHE",
+      "GOENV",
+      "GOEXPERIMENT",
+      "GOFLAGS",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED",
+      "GOMAD3_STOCK_GO",
+      "GOMADSEED",
+      "GOMAXPROCS",
+      "GOMODCACHE",
+      "GOPROXY",
+      "GOROOT",
+      "GOSUMDB",
+      "GOTOOLCHAIN",
+      "GOWORK",
+      "PATH"
+    ],
+    "unexpected_key_count": 0,
+    "credential_assignment_log_hits": 0
+  },
+  "tool_helpers": {
+    "capture.py": "8f541391b7d79717f4d9ea5bbdd5e2780c5b1a9e41649f662454fea6c3761875",
+    "compact_checkpoint_test.go": "1c2e1f847ea04fde7f29f58f5ee9bc56a832c69618630dc1fa1dbbf472e7cd91",
+    "test-overlay.json": "41abe918bfc4178f77efcfee23f1d07d42d9ba148358ee7303f20aab71ea1064",
+    "preservation.py": "4018a28f2772d63b5d9b5badcb5bd32448807c35b7f1a86a18fc093884edce3d",
+    "observations.py": "f79fa4816330b9446cfba1a7fb0fac5ae34d59236b6af903688f536e2850524f",
+    "compare_receipts.py": "8cee70e93606c30eabc2751bc876f1912fa6d2775759c1e5da28435aa0e39769",
+    "final_freeze.py": "65f1968a08d23112de79f792b6f7cb1c31eb4a500101ea90849ed3a6bc371966",
+    "identity-audit/derive.mjs": "4c24da7606148ffbb033ea4914d35ce0c6c24bdff4838867797a4516da70bd12"
+  },
+  "lint_tools": {
+    ".bin/golangci-lint-v2.13.0": "61f380f1d4c0c57b6cc0a4df3b72183f067c860818943a258aa76171456761e8",
+    ".bin/errortype": "596f26c58a961dd92d3269e1f7f6a625a7f1c93b93e7c0ac2633c8a9ef59d118",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "receipts": {
+    "baseline-anchor": {
+      "receipt": "baseline-anchor.json",
+      "sha256": "f2613d6acae2a29f73a3754b9e936e2998fcef3c0c6be6e95a52cf2a3648f122",
+      "exit": 0,
+      "elapsed_seconds": 5.061381578445435,
+      "source_changes": [],
+      "argv": [
+        "/home/agent/.codex/scripts/flowctl",
+        "anchor",
+        "fn-112.5",
+        "--md"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "baseline-extract": {
+      "receipt": "baseline-extract.json",
+      "sha256": "27e77b5f4126e528a730ba88e1135c28ffa9d1cf486869f18048accc55840622",
+      "exit": 0,
+      "elapsed_seconds": 52.46725034713745,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "tar",
+        "-xzf",
+        "tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz",
+        "-C",
+        "tools/gomad3/.toolchain/fn-110/host-draw-compact-20261005.fqsrOf"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "baseline-focused": {
+      "receipt": "baseline-focused.json",
+      "sha256": "7d4c89762ab470ddbe965ebe818c1cbb92429175076c7eb0f2216abdf9d7ccae",
+      "exit": 0,
+      "elapsed_seconds": 285.65071082115173,
+      "source_changes": [],
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-run",
+        "TestRegenerate|TestMaterialize|TestValidate|TestPinned|TestDrawInventoryRejects|TestSeededDrawInventoryRejects",
+        "-v",
+        "./toolchain"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+    },
+    "baseline-host-developmental": {
+      "receipt": "baseline-host-developmental.json",
+      "sha256": "2849306f168466491729c6ec2fe0ba1811fddd27157675d26ef3e4015f2f6bf8",
+      "exit": 124,
+      "elapsed_seconds": 600.0816175937653,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "env",
+        "GOEXPERIMENT=nogreenteagc",
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        ".",
+        "./cmd/...",
+        "./runner/...",
+        "./qualification/...",
+        "./target/...",
+        "./record/...",
+        "./artifact/...",
+        "./choice/...",
+        "./deterministicio/...",
+        "./world/...",
+        "./toolchain/version",
+        "./toolchain/installation",
+        "./upgrade/...",
+        "./internal/..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+    },
+    "baseline-materialize": {
+      "receipt": "baseline-materialize.json",
+      "sha256": "ab7446fadef0e87ff8b29088240f6e72fa936215a082eea0926b103013072341",
+      "exit": 0,
+      "elapsed_seconds": 2.126818895339966,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "go",
+        "-C",
+        "tools/gomad3",
+        "run",
+        "./cmd/gomadtool",
+        "patch-materialize",
+        "--root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "--source-root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/fn-110/host-draw-compact-20261005.fqsrOf/go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "baseline-red-inventory": {
+      "receipt": "baseline-red-inventory.json",
+      "sha256": "ecbd0264344b3eb67e86d9e18ed0a060d662a8702b493a47dab0001a0c130c23",
+      "exit": 1,
+      "elapsed_seconds": 97.23897504806519,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "env",
+        "COMPACT_PHASE=baseline",
+        "COMPACT_CAPTURE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005",
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/test-overlay.json",
+        "-run",
+        "^TestCompactCheckpoint",
+        "-v",
+        "./toolchain"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+    },
+    "baseline-save-source": {
+      "receipt": "baseline-save-source.json",
+      "sha256": "b3082fb28b70f13aeef1c0aff7bf1b32e284d4fe33b1acdf019e67c4d2300647",
+      "exit": 0,
+      "elapsed_seconds": 0.08583950996398926,
+      "source_changes": [],
+      "argv": [
+        "python3",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/preservation.py",
+        "save"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "baseline-validate": {
+      "receipt": "baseline-validate.json",
+      "sha256": "ec14c641e5be9d4a909bec503af371e3e309b36e88f953405af7ca03e9dfe0bc",
+      "exit": 0,
+      "elapsed_seconds": 16.32208514213562,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-diagnostic-controls": {
+      "receipt": "final-diagnostic-controls.json",
+      "sha256": "4545682fb0ac81dcdbf4f9cb619492747b385dfe623cd6b8c763803b1f210f86",
+      "exit": 1,
+      "elapsed_seconds": 5.3590803146362305,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "env",
+        "GOEXPERIMENT=nogreenteagc",
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestDiagnosticsOffPreservesExistingCanonicalIdentities|TestDiagnosticLauncherLocalizesInjectedDraw|TestDiagnosticLauncherRejectsHostTimedSeededDraw|TestDiagnosticDrawCheckStopsHostTimedSeededDraw)$",
+        "./runner",
+        "./runner/internal/execution"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+    },
+    "final-diff-check": {
+      "receipt": "final-diff-check.json",
+      "sha256": "3a9fc32f43bfc13d0f8058d9f2141cc3f081ed98060d862f9eb03b7f566cbc7f",
+      "exit": 0,
+      "elapsed_seconds": 0.038903236389160156,
+      "source_changes": [],
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "tools/gomad3"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-extract": {
+      "receipt": "final-extract.json",
+      "sha256": "e072b6a2a50deec43edd855a9f98940b848abb27f9b27794ccb8c2c1d80f195d",
+      "exit": 0,
+      "elapsed_seconds": 100.8039162158966,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "tar",
+        "-xzf",
+        "tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz",
+        "-C",
+        "tools/gomad3/.toolchain/fn-110/host-draw-compact-20261005.fqsrOf/final"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-focused": {
+      "receipt": "final-focused.json",
+      "sha256": "1e5476d8ad43ac82d5df2e67f1865d78074b5fedf5f33ad1182dd8e163036ad9",
+      "exit": 0,
+      "elapsed_seconds": 233.42306852340698,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-run",
+        "TestRegenerate|TestMaterialize|TestValidate|TestPinned|TestDrawInventoryRejects|TestSeededDrawInventoryRejects",
+        "-v",
+        "./toolchain"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+    },
+    "final-generate-validate": {
+      "receipt": "final-generate-validate.json",
+      "sha256": "95a45ab9d0f2fecf3341e981ea58124519b73937a6ca36bba7ff7bd73f94eca9",
+      "exit": 0,
+      "elapsed_seconds": 31.42527723312378,
+      "source_changes": [
+        "tools/gomad3/target/internal/livecap/protocol_generated.go",
+        "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+        "tools/gomad3/choice/internal/wire/wire_generated.go",
+        "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"
+      ],
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "-C",
+        "tools/gomad3",
+        "generate",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-golden-format": {
+      "receipt": "final-golden-format.json",
+      "sha256": "953754be0867aa646c80d9ae942fc0e12a7c99bcdba22663d8e7c7b8a48dfd0c",
+      "exit": 0,
+      "elapsed_seconds": 0.29804158210754395,
+      "source_changes": [
+        "tools/gomad3/runner/testdata/diagnostic-identity-choices.json"
+      ],
+      "argv": [
+        "node",
+        "-e",
+        "const fs=require(\"fs\"); const p=\"tools/gomad3/runner/testdata/diagnostic-identity-choices.json\"; const emitted=fs.readFileSync(\".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-identity-emit.stdout\"); const current=fs.readFileSync(p); if(!current.equals(Buffer.concat([emitted,Buffer.from(\"\\n\")])))throw Error(\"not exactly emitted bytes plus apply_patch LF\"); fs.truncateSync(p,current.length-1); if(!fs.readFileSync(p).equals(emitted))throw Error(\"canonical byte mismatch\"); console.log(\"removed only apply_patch-added LF; exact retained emit byte equality\",emitted.length);"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-green-inventory": {
+      "receipt": "final-green-inventory.json",
+      "sha256": "9f7027026cb02fc390a26e033c6c96f7c510632fdf24a6445a6a4825c859825c",
+      "exit": 0,
+      "elapsed_seconds": 176.22782492637634,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "env",
+        "COMPACT_PHASE=final",
+        "COMPACT_CAPTURE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005",
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/test-overlay.json",
+        "-run",
+        "^TestCompactCheckpoint",
+        "-v",
+        "./toolchain"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+    },
+    "final-identity-emit": {
+      "receipt": "final-identity-emit.json",
+      "sha256": "e07b2c7c62ab7d243096fac4b5d2f71403044b4aebbb1776d7239c421e348dbf",
+      "exit": 0,
+      "elapsed_seconds": 4.097378253936768,
+      "source_changes": [],
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/derive.mjs",
+        "--source-ref=worktree",
+        "--emit"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-identity-report": {
+      "receipt": "final-identity-report.json",
+      "sha256": "72cc2d56a1301c79abdfb59c375190413a97979f4688d6dad17817bb6b23bd03",
+      "exit": 0,
+      "elapsed_seconds": 1.541553258895874,
+      "source_changes": [],
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/derive.mjs",
+        "--source-ref=worktree"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-lint-fast-native-tools": {
+      "receipt": "final-lint-fast-native-tools.json",
+      "sha256": "028d3a93af554e30fec82ddb575654fe3f596c5214cf32e2f91b9214c187af18",
+      "exit": 0,
+      "elapsed_seconds": 159.1081326007843,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_BASE_REV=1147416b2e6465de7b631e1e4b695eba33ebf000",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-lint-fast": {
+      "receipt": "final-lint-fast.json",
+      "sha256": "1e69bdb0d56cc880abbf73faa505a937cebf246b1829c6fb631d26b29e151556",
+      "exit": 2,
+      "elapsed_seconds": 117.85519456863403,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_BASE_REV=1147416b2e6465de7b631e1e4b695eba33ebf000",
+        "GOLANGCI_LINT_FIX=false"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-lint-scope": {
+      "receipt": "final-lint-scope.json",
+      "sha256": "27e90bc9a138ab9888e987b6eab33410e5f594fd8f1f4348711581a130c33100",
+      "exit": 0,
+      "elapsed_seconds": 0.724888801574707,
+      "source_changes": [],
+      "argv": [
+        "python3",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/lint_scope.py"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-materialize": {
+      "receipt": "final-materialize.json",
+      "sha256": "e9b3a7df0eb1d1aab75eb14cf18ef2d6770c5876becf266c055478792cd0453e",
+      "exit": 0,
+      "elapsed_seconds": 2.733745574951172,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "go",
+        "-C",
+        "tools/gomad3",
+        "run",
+        "./cmd/gomadtool",
+        "patch-materialize",
+        "--root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "--source-root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/fn-110/host-draw-compact-20261005.fqsrOf/final/go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-patch-regenerate": {
+      "receipt": "final-patch-regenerate.json",
+      "sha256": "e7c51f0e74c8c249c7eb246c694e95aee40f0b0f6b1b9a23180f1081e7cce3da",
+      "exit": 0,
+      "elapsed_seconds": 57.20724964141846,
+      "source_changes": [
+        "tools/gomad3/toolchain/runtime/go1.27.1.patch"
+      ],
+      "argv": [
+        "timeout",
+        "600",
+        "go",
+        "-C",
+        "tools/gomad3",
+        "run",
+        "./cmd/gomadtool",
+        "patch-regenerate",
+        "--root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "--candidate-root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/fn-110/host-draw-compact-20261005.fqsrOf/go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-preservation": {
+      "receipt": "final-preservation.json",
+      "sha256": "b84be5ad9c2a0ccd33090dc35c9093cdfebad33fae2bd4e6640290280c7d03fb",
+      "exit": 0,
+      "elapsed_seconds": 3.059049367904663,
+      "source_changes": [],
+      "argv": [
+        "python3",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/preservation.py",
+        "check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-pure-host": {
+      "receipt": "final-pure-host.json",
+      "sha256": "cfcf3d3677040c30c07c7fe751c5b39ba19b4dbc5e3de2c664b510fcf2ff40d0",
+      "exit": 1,
+      "elapsed_seconds": 159.45236825942993,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "env",
+        "GOEXPERIMENT=nogreenteagc",
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        ".",
+        "./choice/...",
+        "./target/internal/livecap",
+        "./internal/gomadtool/generation/...",
+        "./record/...",
+        "./artifact/...",
+        "./deterministicio/...",
+        "./world/...",
+        "./toolchain/version",
+        "./toolchain/installation",
+        "./internal/compatibilitypack",
+        "./internal/canonicaljson",
+        "./internal/sourceinventory"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+    },
+    "final-rename-sweep": {
+      "receipt": "final-rename-sweep.json",
+      "sha256": "3fc92638ce498f8be4796b567b74273da6c6175d99be60dd36f206c32b1f90f3",
+      "exit": 0,
+      "elapsed_seconds": 0.01202249526977539,
+      "source_changes": [],
+      "argv": [
+        "rg",
+        "-n",
+        "gomadHostDrawScope|gomadHostDraw|previousHostDrawScope",
+        "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+        "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-source-freeze": {
+      "receipt": "final-source-freeze.json",
+      "sha256": "a268a18dc08de79cced79cabb4f4cf11d20a01392a69695db52fc5d6500423bf",
+      "exit": 0,
+      "elapsed_seconds": 1.6663661003112793,
+      "source_changes": [],
+      "argv": [
+        "python3",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final_freeze.py"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "final-vet": {
+      "receipt": "final-vet.json",
+      "sha256": "b511da835b610559f35ed03623ac0365230e6dba7f2f8d79dc25e67038118a2a",
+      "exit": 0,
+      "elapsed_seconds": 6.205477714538574,
+      "source_changes": [],
+      "argv": [
+        "timeout",
+        "600",
+        "go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./choice/...",
+        "./target/internal/livecap",
+        "./runner/...",
+        "./internal/gomadtool/generation/...",
+        "./toolchain",
+        "./record/...",
+        "./artifact/...",
+        "./deterministicio/...",
+        "./world/...",
+        "./toolchain/version",
+        "./toolchain/installation",
+        "./internal/compatibilitypack",
+        "./internal/canonicaljson",
+        "./internal/sourceinventory"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3"
+    },
+    "root-gate-classification": {
+      "receipt": "root-gate-classification.json",
+      "sha256": "27b05805be5b90d99be17485fabbd537e4ac8fbe68aa2243f0cdd066ca3cdcdc",
+      "exit": 1,
+      "elapsed_seconds": 1.6205666065216064,
+      "source_changes": [],
+      "argv": [
+        "/home/agent/.codex/scripts/flowctl",
+        "gate",
+        "classify",
+        "--base",
+        "1147416b2e6465de7b631e1e4b695eba33ebf000",
+        "--json"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "root-host-gate-receipt": {
+      "receipt": "root-host-gate-receipt.json",
+      "sha256": "62d945c803d87eb4757ea6f3372211857b3dd9ebf80173d22b7b57562dd22345",
+      "exit": 1,
+      "elapsed_seconds": 1.6627488136291504,
+      "source_changes": [],
+      "argv": [
+        "/home/agent/.codex/scripts/flowctl",
+        "gate",
+        "check",
+        "--gate",
+        "gomad3-host",
+        "--command",
+        "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+        "--json"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    },
+    "root-independent-identity": {
+      "receipt": "root-independent-identity.json",
+      "sha256": "756d8799701eb52c33b7ac48496a57b0b7332c43f3b8502f9a42b97c0d0dc0a7",
+      "exit": 0,
+      "elapsed_seconds": 14.965401411056519,
+      "source_changes": [],
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/derive.mjs",
+        "--source-ref=worktree",
+        "--expected-source=2acd63cceb126f37c179bf0dd47c188c60894bc63ddbd0deb06a7a056a1f025a"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+    }
+  }
+}

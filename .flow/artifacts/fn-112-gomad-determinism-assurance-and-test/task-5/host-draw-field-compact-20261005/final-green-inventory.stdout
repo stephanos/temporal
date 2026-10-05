@@ -1,0 +1,10 @@
+=== RUN   TestCompactCheckpointAlignment
+    compact_checkpoint_test.go:39: canonical U1 bytes=24894 lines=706
+    compact_checkpoint_test.go:39: canonical U3 bytes=34148 lines=1040
+    compact_checkpoint_test.go:54: unchanged m fields with avoidable alignment edits=0
+--- PASS: TestCompactCheckpointAlignment (166.65s)
+=== RUN   TestCompactCheckpointDrawInventories
+    compact_checkpoint_test.go:80: draw inventory rows=273, seeded rows=86; platforms=[darwin/arm64 linux/amd64]
+--- PASS: TestCompactCheckpointDrawInventories (7.47s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	174.132s

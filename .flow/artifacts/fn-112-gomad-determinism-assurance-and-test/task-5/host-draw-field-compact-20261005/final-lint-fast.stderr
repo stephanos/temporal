@@ -1,0 +1,5 @@
+/bin/sh: 1: /Users/stephan/Workspace/skunkworks/gomad/temporal/.bin/golangci-lint-v2.13.0: Exec format error
+make[1]: *** [Makefile:505: lint-code] Error 126
+lint module tools/gomad3: exit status 2
+exit status 1
+make: *** [Makefile:495: lint-code-fast] Error 1

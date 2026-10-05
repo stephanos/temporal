@@ -1,0 +1,18 @@
+{
+  "baseline": "baseline-host-developmental.json",
+  "final": "final-diagnostic-controls.json",
+  "compared_test_events": 4,
+  "unmatched_final_test_events": [],
+  "changed_verdicts": {},
+  "changed_raw_error_outputs": {},
+  "final_failures": [
+    "go.temporal.io/server/tools/gomad3/runner/internal/execution:TestDiagnosticDrawCheckStopsHostTimedSeededDraw",
+    "go.temporal.io/server/tools/gomad3/runner/internal/execution:TestDiagnosticLauncherLocalizesInjectedDraw",
+    "go.temporal.io/server/tools/gomad3/runner/internal/execution:TestDiagnosticLauncherRejectsHostTimedSeededDraw"
+  ],
+  "final_skips": [
+    "go.temporal.io/server/tools/gomad3/runner:TestDiagnosticsOffPreservesExistingCanonicalIdentities"
+  ],
+  "exact_fail_skip_pairs_match_baseline": true,
+  "all_final_failure_error_outputs_match_baseline": true
+}

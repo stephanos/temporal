@@ -1,0 +1,38 @@
+{
+  "argv": [
+    "node",
+    "-e",
+    "const fs=require(\"fs\"); const p=\"tools/gomad3/runner/testdata/diagnostic-identity-choices.json\"; const emitted=fs.readFileSync(\".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-identity-emit.stdout\"); const current=fs.readFileSync(p); if(!current.equals(Buffer.concat([emitted,Buffer.from(\"\\n\")])))throw Error(\"not exactly emitted bytes plus apply_patch LF\"); fs.truncateSync(p,current.length-1); if(!fs.readFileSync(p).equals(emitted))throw Error(\"canonical byte mismatch\"); console.log(\"removed only apply_patch-added LF; exact retained emit byte equality\",emitted.length);"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOEXPERIMENT": null,
+    "GOROOT": null,
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null,
+    "GOMAD3_SEED": null,
+    "GOCACHE": null,
+    "GOMODCACHE": null
+  },
+  "exit": 0,
+  "started_unix": 1791240938.1090736,
+  "ended_unix": 1791240938.4071152,
+  "elapsed_seconds": 0.29804158210754395,
+  "sources_before_sha256": "2df98bc591421de3865f963844bc0aa4e028f3ea4339b153d8703ca4faf4f7f4",
+  "sources_after_sha256": "c607eff924e25cb49e1b5603a392a9f5b9bec1b8d6c2369f4e351a3a3b11d55c",
+  "source_count": 5076,
+  "source_changes": [
+    "tools/gomad3/runner/testdata/diagnostic-identity-choices.json"
+  ],
+  "stdout_sha256": "f36a94be71468beb6c541fc8967c5761dde739c6cce4d953f8f76996aa290849",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

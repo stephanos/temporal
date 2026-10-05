@@ -1,0 +1,35 @@
+{
+  "base": "1147416b2e6465de7b631e1e4b695eba33ebf000",
+  "results": [
+    {
+      "id": "fn-112-gomad-determinism-assurance-and-test.5",
+      "acceptance_byte_equal": true,
+      "historical_summary_byte_equal": true,
+      "historical_evidence_byte_equal": true,
+      "status": "blocked",
+      "depends_on": [
+        "fn-112-gomad-determinism-assurance-and-test.3"
+      ]
+    },
+    {
+      "id": "fn-110-gomad-minimize-the-runtime-patch.2",
+      "acceptance_byte_equal": true,
+      "historical_summary_byte_equal": true,
+      "historical_evidence_byte_equal": true,
+      "status": "blocked",
+      "depends_on": [
+        "fn-110-gomad-minimize-the-runtime-patch.1"
+      ]
+    },
+    {
+      "id": "fn-110-gomad-minimize-the-runtime-patch.4",
+      "acceptance_byte_equal": true,
+      "historical_summary_byte_equal": true,
+      "historical_evidence_byte_equal": true,
+      "status": "blocked",
+      "depends_on": [
+        "fn-110-gomad-minimize-the-runtime-patch.3"
+      ]
+    }
+  ]
+}

@@ -71,6 +71,14 @@ wc -c -l tools/gomad3/toolchain/runtime/go1.27.1.patch
 5. `make -C tools/gomad3 generate validate`, then `make -C tools/gomad3 toolchain` (the build runs the archive-based overlay collision check at `toolchain/build.go:176`).
 
 The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the checked trees exactly (`toolchain/version/descriptor.go:114-160`), so a task that adds an overlay file or empties a patched file updates `version.json` and regenerates in the same task.
+
+### Current-source measurement after fn-112.5 host-draw compaction (2026-10-05)
+
+The producer-owned fn-112.5 checkpoint removes the alignment overhead of its private per-M diagnostic field while preserving diagnostics and scheduler behavior. Governed canonical output measures U1 24,894 bytes / 706 lines and U3 34,148 bytes / 1,040 lines. Against the immediate pre-edit candidate, U1 saves 4,121 bytes and U3 saves 4,214 bytes. Against the original task-1 U3 baseline of 32,652 bytes, the candidate remains 1,496 bytes larger. R8 is still unmet; the comparator, scope and acceptance are unchanged.
+
+The checkpoint's task-local RED exposed 36 unchanged m fields realigned by the long name; GREEN measures zero alignment edits. Both supported source-set inventories pass. The original descriptor-pinned regeneration, checksum/rejection and U1/U3 zero-fuzz equivalence checks pass. Fresh materialization and alpha-renaming plus pinned gofmt prove preservation across all 20 patched files and the overlay. The descriptor's 20 patched / 79 overlay allowlists are unchanged. Evidence lives under `.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/`.
+
+These source measurements supersede earlier current-candidate size statements without altering historic receipts. Native Darwin runtime/full/affected and formal qualification remain open. Transferred native Linux execution remains nonblocking under fn-128. U1 representation savings do not satisfy the separate R8 U3 reduction.
 ## Acceptance
 
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
@@ -117,6 +125,9 @@ Outstanding gates: native toolchain builds on darwin/arm64 and linux/amd64;
 runtime, upstream, live-capability and process-simulation checks; full baseline/
 candidate fixture comparisons and exact replay; and the original extraction-size
 acceptance, which is presently unmet rather than merely unmeasured.
+
+Blocked:
+Native Linux execution stays transferred to fn-128 and does not block this source task. Current-source Darwin build/runtime/upstream/live-capability/process-simulation, baseline/candidate fixture comparisons, full/affected and formal review gates remain incomplete. R8 is independently unmet. Canonical U3 now measures 34,148 bytes after fn-112.5 private host-draw field compaction, against the unchanged original task-1 U3 baseline of 32,652 bytes, a 1,496-byte increase. U1 measures 24,894 bytes and its representation savings do not satisfy R8. Source preservation, pinned regeneration/checksum/rejection and both-source-set inventory receipts are in the fn-112.5 host-draw-field-compact-20261005 checkpoint. Historical larger candidate measurements retain their original source scope.
 ## Evidence
 - Commits:
 - Tests:

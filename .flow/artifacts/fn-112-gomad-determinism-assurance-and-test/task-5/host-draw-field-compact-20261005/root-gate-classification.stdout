@@ -1,0 +1,723 @@
+{
+  "success": true,
+  "tier": "full",
+  "base": "1147416b2e6465de7b631e1e4b695eba33ebf000",
+  "paths": [
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/__pycache__/capture.cpython-314.pyc",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-U1.patch",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-U3.patch",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-anchor.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-anchor.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-anchor.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-extract.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-extract.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-extract.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-focused.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-focused.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-focused.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-host-developmental-observations.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-host-developmental.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-host-developmental.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-host-developmental.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-materialize.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-materialize.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-materialize.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-red-inventory.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-red-inventory.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-red-inventory.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-save-source.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-save-source.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-save-source.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-validate.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-validate.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/baseline-validate.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/capture.py",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/checkpoint_report.py",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/compact_checkpoint_test.go",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/compare_receipts.py",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/evidence.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-U1.patch",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-U3.patch",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diagnostic-controls-baseline-comparison.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diagnostic-controls-observations.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diagnostic-controls.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diagnostic-controls.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diagnostic-controls.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diff-check.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diff-check.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diff-check.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-extract.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-extract.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-extract.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-focused.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-focused.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-focused.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-freeze.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-generate-validate.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-generate-validate.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-generate-validate.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-golden-format.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-golden-format.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-golden-format.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-green-inventory.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-green-inventory.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-green-inventory.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-identity-emit.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-identity-emit.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-identity-emit.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-identity-report.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-identity-report.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-identity-report.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-lint-fast.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-lint-fast.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-lint-fast.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-materialize.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-materialize.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-materialize.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-patch-regenerate.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-patch-regenerate.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-patch-regenerate.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-preservation.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-preservation.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-preservation.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-pure-host-baseline-comparison.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-pure-host-observations.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-pure-host.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-pure-host.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-pure-host.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-rename-sweep.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-rename-sweep.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-rename-sweep.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-source-freeze.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-source-freeze.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-source-freeze.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-sources.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-vet.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-vet.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-vet.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final_freeze.py",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/freeze.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/handover.md",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/README.md",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-complete-rune-parser.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-complete-rune-parser.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-complete-rune-parser.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-final-helper.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-final-helper.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-final-helper.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-fixed-parser.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-fixed-parser.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline-fixed-parser.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/baseline.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/capture.mjs",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/derive.mjs",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/post-publication-emitted.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/post-publication-emitted.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/post-publication-emitted.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/post-publication-frozen.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/post-publication-frozen.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/identity-audit/post-publication-frozen.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/newline-probe.txt",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/observations.py",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/preservation.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/preservation.py",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/root-gate-classification.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/root-gate-classification.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/root-independent-identity.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/root-independent-identity.stderr",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/root-independent-identity.stdout",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/root-verify.mjs",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/source-admission.md",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/test-overlay.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.json",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md",
+      "class": "safe",
+      "reason": "safe prefix .flow/ (non-executable state)"
+    },
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "class": "full",
+      "reason": "unmatched"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "class": "full",
+      "reason": "unmatched"
+    },
+    {
+      "path": "tools/gomad3/choice/internal/wire/wire_generated.go",
+      "class": "force-full",
+      "reason": "code/config extension .go"
+    },
+    {
+      "path": "tools/gomad3/runner/testdata/diagnostic-identity-choices.json",
+      "class": "force-full",
+      "reason": "code/config extension .json"
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/protocol_generated.go",
+      "class": "force-full",
+      "reason": "code/config extension .go"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+      "class": "full",
+      "reason": "unmatched"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+      "class": "force-full",
+      "reason": "code/config extension .go"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+      "class": "force-full",
+      "reason": "code/config extension .go"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "class": "force-full",
+      "reason": "code/config extension .go"
+    }
+  ],
+  "changed_file_count": 143
+}
