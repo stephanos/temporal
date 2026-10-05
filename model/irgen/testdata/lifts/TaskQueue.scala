@@ -6,8 +6,6 @@
 package fixture.taskqueue
 
 import temporal.shared.taskqueue.*
-import temporal.shared.taskqueue.DispatchQueue.dispatchQueue
-import temporal.shared.taskqueue.MatchingQueue.{forgetfulQueue, matchingQueue}
 import umpire.*
 
 given Family = Family("fixture.taskqueue")
@@ -57,7 +55,7 @@ val job = machine[Job, JobOutcome, Nothing] {
 final case class OverQueue(job: Job, queue: QueueView)
 
 val jobOverQueue: Composition[OverQueue] =
-  compose[OverQueue](_.job -> job, _.queue -> dispatchQueue)
+  compose[OverQueue](_.job -> job, _.queue -> DispatchQueue)
     .sync(_.job -> send, _.queue -> queue.enqueue)
     .sync(_.job -> start, _.queue -> queue.deliver)
     .sync(_.job -> settle, _.queue -> queue.acknowledge)
@@ -89,16 +87,16 @@ val queueAny = jobOverQueue.scenario("any").free
 final case class OverMatching(job: Job, queue: QueueDetail)
 
 val jobOverMatching: Composition[OverMatching] =
-  compose[OverMatching](_.job -> job, _.queue -> matchingQueue)
+  compose[OverMatching](_.job -> job, _.queue -> MatchingQueue)
     .sync(_.job -> send, _.queue -> queue.enqueue)
     .sync(_.job -> start, _.queue -> queue.deliver)
     .sync(_.job -> settle, _.queue -> queue.acknowledge)
-    .replaces(_.queue, dispatchQueue)
+    .replaces(_.queue, DispatchQueue)
     .ends(s => s.job.phase == JobPhase.settled)
 
 /** The negative control: the replacement is what must fail. */
 val jobOverForgetful: Composition[OverMatching] =
-  jobOverMatching.withMember(_.queue -> forgetfulQueue)
+  jobOverMatching.withMember(_.queue -> ForgetfulQueue)
 
 def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
   val settles = c.property.whenAction(c.synced(_.job -> settle)) holds

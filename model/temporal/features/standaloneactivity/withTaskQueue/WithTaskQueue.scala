@@ -21,13 +21,6 @@ import umpire.*
 import temporal.capabilities.{given, *}
 import shared.Bounds.three
 import shared.taskqueue.*
-import shared.taskqueue.DispatchQueue.dispatchQueue
-import shared.taskqueue.MatchingQueue.{
-  forgetfulQueue,
-  lossyMatchingQueue,
-  matchingQueue,
-  volatileQueue
-}
 import record.*
 import SystemFamily.given
 
@@ -68,7 +61,7 @@ object StaleRecord extends Derived(StaleAdmission.unmonitored)
 // are three points a fault can fall between.
 
 object CurrentOverQueue
-    extends Composition[OverQueue](_.activity -> CurrentRecord, _.queue -> dispatchQueue):
+    extends Composition[OverQueue](_.activity -> CurrentRecord, _.queue -> DispatchQueue):
   def end(s: State) = CurrentAdmission.end(s.activity)
 
   /** What the designs over a queue answer and waive. */
@@ -164,7 +157,9 @@ object CurrentOverQueue
 
     val currentOverQueueQueries = overQueueQueries(CurrentOverQueue)
 
-object StaleOverQueue extends Composition(CurrentOverQueue.withMember(_.activity -> StaleRecord)):
+object StaleOverQueue
+    extends Composition(CurrentOverQueue.withMember(_.activity -> StaleRecord)),
+      NegativeControl:
   object queries extends Section:
     val staleOverQueueQueries = CurrentOverQueue.queries.overQueueQueries(StaleOverQueue)
 
@@ -173,14 +168,14 @@ object StaleOverQueue extends Composition(CurrentOverQueue.withMember(_.activity
 // that provider. Each later design swaps one member of the first for a provider of its interface.
 
 object CurrentOverMatching
-    extends Composition[OverMatching](_.activity -> CurrentRecord, _.queue -> matchingQueue):
+    extends Composition[OverMatching](_.activity -> CurrentRecord, _.queue -> MatchingQueue):
   def end(s: State) = CurrentAdmission.end(s.activity)
 
   object syncs extends Syncs:
     sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
     sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
     sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
-    replaces(_.queue, dispatchQueue)
+    replaces(_.queue, DispatchQueue)
 
   object properties extends Section:
     def overMatchingClaims(c: Composition[State]) =
@@ -269,7 +264,8 @@ object CurrentOverMatching
     val currentOverMatchingQueries = overMatchingQueries(CurrentOverMatching, anyTotal = 233280)
 
 object StaleOverMatching
-    extends Composition(CurrentOverMatching.withMember(_.activity -> StaleRecord)):
+    extends Composition(CurrentOverMatching.withMember(_.activity -> StaleRecord)),
+      NegativeControl:
   object queries extends Section:
     val staleOverMatchingQueries =
       CurrentOverMatching.queries.overMatchingQueries(StaleOverMatching, anyTotal = 233280)
@@ -277,14 +273,14 @@ object StaleOverMatching
 // ### The corrected design over each violating provider: the replacement is what must fail.
 
 object CurrentOverForgetful
-    extends Composition(CurrentOverMatching.withMember(_.queue -> forgetfulQueue))
+    extends Composition(CurrentOverMatching.withMember(_.queue -> ForgetfulQueue))
 
 object CurrentOverVolatile
-    extends Composition(CurrentOverMatching.withMember(_.queue -> volatileQueue))
+    extends Composition(CurrentOverMatching.withMember(_.queue -> VolatileQueue))
 
 /** The corrected design where storage loss is assumed, over the interface that allows it. */
 object CurrentOverLossyMatching
-    extends Composition(CurrentOverMatching.withMember(_.queue -> lossyMatchingQueue)):
+    extends Composition(CurrentOverMatching.withMember(_.queue -> LossyMatchingQueue)):
   object queries extends Section:
     val currentOverLossyMatchingQueries =
       CurrentOverMatching.queries.overMatchingQueries(CurrentOverLossyMatching, anyTotal = 246240)
