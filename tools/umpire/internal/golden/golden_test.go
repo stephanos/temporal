@@ -262,9 +262,9 @@ func TestProjectionIsClosed(t *testing.T) {
 	require.ErrorContains(t, cfg.FunctionsRenamed(map[string]*umpirespb.Model{"job": original}), "job.unknown")
 
 	// A substitution's new name must be a Function of the current IR.
-	listed := cfg.Projection.Functions
+	cfg.Projection.Functions = []Substitution{{Old: "job.finishes", New: "job.completes"}}
 	require.NoError(t, cfg.FunctionsCurrent(map[string]*umpirespb.Model{"job": current}))
-	cfg.Projection.Functions = append(slices.Clone(listed), Substitution{Old: "job.finishes", New: "job.gone"})
+	cfg.Projection.Functions = append(cfg.Projection.Functions, Substitution{Old: "job.finishes", New: "job.gone"})
 	require.ErrorContains(t, cfg.FunctionsCurrent(map[string]*umpirespb.Model{"job": current}), `to "job.gone"`)
 
 	cfg.Projection.Functions = []Substitution{{Old: "job.finishes", New: "job.evidence"}}
