@@ -291,16 +291,53 @@ final private[irgen] class Order(index: Index):
       case PackageClause(_, stats) => stats.flatMap(in)
       case c: ClassDef if c.symbol.flags.is(Flags.Module) && c.name.endsWith("$package$") =>
         members(c)
-      // An object that is a type's companion is read as part of the type.
+      // An object that is a type's companion is read as part of the type, by `companions`.
       case c: ClassDef if c.symbol.flags.is(Flags.Module) && c.symbol.companionClass.exists => Nil
       case v: ValDef if v.symbol.flags.is(Flags.Module)                                     => Nil
       case d: Definition => List(d)
       case _             => Nil
     trees.flatMap(in).sortBy(d => scala.util.Try(d.pos.start).getOrElse(0))
 
+  /** The objects at the top level of a source that are a type's companions. */
+  private def companions(trees: List[Tree]): List[ClassDef] =
+    def in(t: Tree): List[ClassDef] = t match
+      case PackageClause(_, stats) => stats.flatMap(in)
+      case c: ClassDef
+          if c.symbol.flags.is(Flags.Module) && c.symbol.companionClass.exists &&
+            !c.name.endsWith("$package$") =>
+        List(c)
+      case _ => Nil
+    trees.flatMap(in)
+
   private def holdsModel(c: ClassDef): Boolean = members(c).exists { m =>
     kindOf(m).nonEmpty || objectOf(m).exists(o => sections.contains(plain(o.name)))
   }
+
+  /** Whether an object holds a Model declaration, or a section, at any depth. */
+  private def holdsModelWithin(c: ClassDef): Boolean =
+    holdsModel(c) || members(c).flatMap(objectOf).exists(holdsModelWithin)
+
+  /**
+   * Refuses each Model declaration an object holds where none may be: in a type's companion, in an
+   * object of the signature, or in an object nested in a machine object or a section that is not a
+   * section of its own. A nested object that holds them is refused at its line, once.
+   */
+  private def noModelIn(c: ClassDef, where: String): Unit =
+    for m <- members(c) do
+      objectOf(m) match
+        case Some(o) if holdsModelWithin(o) =>
+          refuse(
+            o,
+            s"${plain(o.name)} holds a Model declaration inside $where: a machine object sits at " +
+              "the top level of a feature file, and its sections directly in it"
+          )
+        case Some(_) => ()
+        case None    =>
+          for k <- kindOf(m) do
+            refuse(
+              m,
+              s"${m.name} is ${k.written}, declared inside $where: it belongs in ${k.belongs}"
+            )
 
   private def typed(d: Definition, names: Set[String]): Boolean = d match
     case v: ValDef => names(v.tpt.tpe.widen.dealias.typeSymbol.fullName)
@@ -313,7 +350,9 @@ final private[irgen] class Order(index: Index):
     val folder = path.take(path.lastIndexOf('/') + 1)
     def inFolder(other: String) =
       other.startsWith(folder) && !other.drop(folder.length).contains('/')
-    if featureFile(path, trees) then featureLayout(topLevel(trees))
+    if featureFile(path, trees) then
+      featureLayout(topLevel(trees))
+      for c <- companions(trees) do noModelIn(c, s"${plain(c.name)}, the companion of a type")
     else
       // Beside a feature file, a file declares no Model of its own: the feature file holds them.
       val beside = sources
@@ -361,10 +400,8 @@ final private[irgen] class Order(index: Index):
           for m <- members(c) if !kindOf(m).contains(Kind.File) do
             refuse(m, s"${m.name} is declared in Files, which holds the feature's IR files alone")
         case Some(c) if holdsModel(c) => machineObject(c)
-        case Some(c)                  =>
-          for m <- members(c); k <- kindOf(m) do
-            refuse(m, s"${m.name} is ${k.written}, and belongs in ${k.belongs}")
-        case None =>
+        case Some(c) => noModelIn(c, s"${plain(c.name)}, an object of the signature")
+        case None    =>
           for k <- kindOf(d) do
             refuse(
               d,
@@ -396,8 +433,14 @@ final private[irgen] class Order(index: Index):
     for m <- members(c) do
       objectOf(m) match
         case Some(s) if sections.contains(plain(s.name)) => section(c, s)
-        case Some(_)                                     => ()
-        case None                                        =>
+        case Some(o)                                     =>
+          if holdsModelWithin(o) then
+            refuse(
+              o,
+              s"${plain(o.name)} holds a Model declaration in $owner, and is none of its sections, " +
+                s"${sections.mkString(", ")}: its declarations belong in them"
+            )
+        case None =>
           kindOf(m) match
             case Some(Kind.Watch | Kind.Machine) | None => ()
             case Some(k)                                =>
@@ -417,6 +460,7 @@ final private[irgen] class Order(index: Index):
         case Some(Kind.Query)    => 1
         case _                   => -1
       ordered(members(s), rank, Seq("its Scenarios", "its Queries"), s"$owner.queries")
+    for o <- members(s).flatMap(objectOf) do noModelIn(o, s"$owner.$name.${plain(o.name)}")
     for m <- members(s); k <- kindOf(m) do
       if !allowed(k) then
         refuse(

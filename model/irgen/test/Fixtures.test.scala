@@ -746,22 +746,30 @@ class Fixtures extends munit.FunSuite:
         // (a)
         forward(7),
         forward(17),
+        // (d): a machine in a type's companion and in an object of the signature
+        s"lift: $feature:23: bulb is a machine or composition, declared inside Bulb, the " +
+          "companion of a type: it belongs in an object of its own",
+        s"lift: $feature:30: Inner holds a Model declaration inside Holder, an object of the " +
+          "signature: a machine object sits at the top level of a feature file, and its " +
+          "sections directly in it",
         // (b)
-        s"lift: $feature:37: an initialization cycle: Switch.laws -> SwitchRealization -> " +
+        s"lift: $feature:50: an initialization cycle: Switch.laws -> SwitchRealization -> " +
           "Switch.laws, each read while the one before it initializes, so one of them is read " +
           "half made: read it in a def, a lambda or a lazy val, or move what is read into an " +
           "object of its own",
         // (c)
-        s"lift: $feature:52: properties belongs before queries at $feature:49: object Backwards " +
+        s"lift: $feature:65: properties belongs before queries at $feature:62: object Backwards " +
           "reads its vocabulary, then effects, then its monitors, then its machine, then " +
           "properties, then laws, then queries",
-        s"lift: $feature:55: Late belongs before Backwards at $feature:43: a feature file reads " +
+        s"lift: $feature:68: Late belongs before Backwards at $feature:56: a feature file reads " +
           "its header, then its types, then its signature, then its machine and composition " +
           "objects, then object Files",
         // (d)
-        s"lift: $feature:63: lit is a Property, and belongs in the `properties` object of its " +
+        s"lift: $feature:71: extras holds a Model declaration in Misplaced, and is none of its " +
+          "sections, effects, properties, laws, queries: its declarations belong in them",
+        s"lift: $feature:79: lit is a Property, and belongs in the `properties` object of its " +
           "machine's object, not in Misplaced",
-        s"lift: $feature:66: switchLit is declared over switch, which Switch declares: it " +
+        s"lift: $feature:82: switchLit is declared over switch, which Switch declares: it " +
           "belongs in Switch.properties"
       )
     )

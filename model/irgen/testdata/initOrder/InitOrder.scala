@@ -1,8 +1,10 @@
 // The feature file of a fixture feature (fn-126 R2, R3), lifted with the files beside it. Its
-// Switch reads as a feature file is read; Backwards and Misplaced do not, at the lines the lint
-// refuses: (c) a type after a machine object and a section out of its order, and (d) a Property
-// written in its machine's object rather than its `properties`, and one over another object's
-// machine. (b): Switch's `laws` reads the realization (Realization.scala), which reads it back.
+// Switch reads as a feature file is read; the other objects do not, at the lines the lint refuses:
+// (c) a type after a machine object and a section out of its order; (d) a Property in its machine's
+// object rather than its `properties`, one over another object's machine, a machine in a type's
+// companion or in an object of the signature, and a Property in an object of a machine object that
+// is none of its sections. (b): Switch's `laws` reads the realization (Realization.scala), which
+// reads it back.
 package fixture.features.initorder
 
 import umpire.*
@@ -14,8 +16,19 @@ final case class Lamp(lit: Boolean) derives Finite
 enum Outcome derives Finite:
   case accepted
 
+final case class Bulb(lit: Boolean)
+
+// A type's companion is no machine object.
+object Bulb:
+  val bulb = machine[Lamp, Outcome, Nothing] { starts(Lamp(true)); ends(_ => true) }
+
 val flip = action(Party("fixture"))
 val one = Limits(steps = 1, actions = 1, search = 8)
+
+// An object of the signature holds no machine object.
+object Holder:
+  object Inner:
+    val dim = machine[Lamp, Outcome, Nothing] { starts(Lamp(false)); ends(_ => true) }
 
 object Switch:
   def lit(s: Lamp) = s.lit
@@ -55,6 +68,9 @@ object Backwards:
 final case class Late(lit: Boolean)
 
 object Misplaced:
+  object extras:
+    val dark = lamp.property holds (after => !after.state.lit)
+
   val lamp = machine[Lamp, Outcome, Nothing] {
     starts(Lamp(true))
     ends(_ => true)
