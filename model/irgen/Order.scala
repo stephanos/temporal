@@ -374,18 +374,19 @@ final private[irgen] class Order(index: Index):
               )
             )
             objectOf(d).foreach(c => members(c).foreach(misplaced))
-          topLevel(trees).foreach(misplaced)
+          // A type's companion is read apart from the top level, and holds no Model either.
+          (topLevel(trees) ++ companions(trees)).foreach(misplaced)
         // A Model folder with no feature file: its declarations would be held to no reading order.
         case None if modelPackage(trees) =>
-          val named = folder.split('/').lastOption.fold("")(f => f.head.toUpper +: f.tail)
-          val home = s"$folder$named.scala"
-          for d <- topLevel(trees) do
+          val home = "a Model folder declares its Models in its feature file, the file named " +
+            s"after the folder, in $folder"
+          for d <- topLevel(trees) ++ companions(trees) do
             objectOf(d) match
               case Some(c) if holdsModelWithin(c) =>
                 refuse(
                   c,
                   s"${plain(c.name)} holds a Model declaration in a file not named after its " +
-                    s"folder: a Model folder declares its Models in its feature file, $home"
+                    s"folder: $home"
                 )
               case Some(_) => ()
               case None    =>
@@ -393,7 +394,7 @@ final private[irgen] class Order(index: Index):
                   refuse(
                     d,
                     s"${d.name} is ${k.written}, declared in a file not named after its folder: " +
-                      s"a Model folder declares its Models in its feature file, $home"
+                      home
                   )
                 )
         case None => ()

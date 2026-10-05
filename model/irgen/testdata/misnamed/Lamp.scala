@@ -1,7 +1,7 @@
 // A Model folder whose file is not named after it (fn-126 R1, R10): misnamed/ has no feature file,
-// misnamed/Misnamed.scala, so its machine object and its top-level Property would be held to no
-// reading order. (d) refuses both, each at its line; the types and the signature are no Model
-// declarations and stay.
+// misnamed/Misnamed.scala, so its machine object, its top-level Property and its type's companion
+// would be held to no reading order. (d) refuses each at its line; the types and the signature are
+// no Model declarations and stay.
 package fixture.features.misnamed
 
 import umpire.*
@@ -27,3 +27,9 @@ object Switch:
   }
 
 def loose: Property[Lamp] = Switch.switch.property holds (after => after.state.lit)
+
+final case class Spare(lit: Boolean)
+
+// A type's companion holds no Model in such a file either.
+object Spare:
+  val spare = machine[Lamp, Outcome, Nothing] { starts(Lamp(true)); ends(_ => true) }
