@@ -51,7 +51,13 @@ val flipTwice = lamp.scenario.actions(flip, flip)
 val infixTotal = query find litOnce in flipTwice limits two total 4
 val dottedTotal = (query find litOnce in flipTwice limits two).total(4)
 
-val run = realize.RunExpectation(realize.Conformance.conformant, realize.PropertyOutcome.satisfied)
+val run = realize.RunExpectation(
+  realize.Conformance.conformant,
+  realize.PropertyOutcome.satisfied,
+  realize.PropertyOutcome.satisfied,
+  realize.Disposition.completed,
+  realize.Cleanup.succeeded
+)
 val totalThenExpect = (query find litOnce in flipTwice limits two total 4).expect(run)
 val expectThenTotal = (query find litOnce in flipTwice limits two).expect(run).total(4)
 

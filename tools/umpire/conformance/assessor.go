@@ -198,7 +198,8 @@ func (a *assessor) admit(seen *observation) (*instance, error) {
 func (a *assessor) established(of *instance) testpilot.Established {
 	var established testpilot.Established
 	if conformance, why := conformanceConclusion(of.open.candidates, of.open.holes, false); conformance == testpilot.ConformanceNonconformant && a.nonconformance == nil {
-		a.nonconformance = &testpilot.ConformanceAssessment{Status: conformance, SupportingEventSequences: of.support(), Detail: a.detail(of, why)}
+		said := a.because(of, why)
+		a.nonconformance = &testpilot.ConformanceAssessment{Status: conformance, SupportingEventSequences: of.support(), Reason: said.id(), Detail: said.detail}
 		established.Nonconformance = a.nonconformance
 	}
 	for i, c := range a.plan.claims {
@@ -206,19 +207,21 @@ func (a *assessor) established(of *instance) testpilot.Established {
 		if conclusion != testpilot.PropertyViolated || slices.ContainsFunc(a.violations, func(v testpilot.PropertyAssessment) bool { return v.ID == c.id }) {
 			continue
 		}
+		said := a.because(of, why)
 		violation := testpilot.PropertyAssessment{ID: c.id, Status: conclusion, SupportingEventSequences: of.support(),
-			Detail: a.detail(of, why)}
+			Reason: said.id(), Detail: said.detail}
 		a.violations = append(a.violations, violation)
 		established.Violations = append(established.Violations, violation)
 	}
 	return established
 }
 
-func (a *assessor) detail(of *instance, why string) string {
-	if why == "" {
-		return ""
+// because is why as it is said of the instance of: the reason, after the machine and the instance.
+func (a *assessor) because(of *instance, why reason) because {
+	if why == none {
+		return because{}
 	}
-	return fmt.Sprintf("%s, %s: %s", a.plan.machine, of.name, why)
+	return because{reason: why, detail: fmt.Sprintf("%s, %s: %s", a.plan.machine, of.name, wording[why])}
 }
 
 // Close implements testpilot.Assessor. A Run that closed complete is read once more as a whole, so
@@ -232,8 +235,8 @@ func (a *assessor) Close(ctx context.Context, closure testpilot.AssessmentClosur
 	}
 	positive := a.failure == nil && !a.frozen && closure.Disposition == testpilotspb.RUN_DISPOSITION_COMPLETED && closure.EvaluationFailureSequence == 0
 
-	conformances, reasons := make([]testpilot.ConformanceStatus, 0, len(a.instances)), make([]string, 0, len(a.instances))
-	claims, claimReasons := make([][]testpilot.PropertyStatus, len(a.plan.claims)), make([][]string, len(a.plan.claims))
+	conformances, reasons := make([]testpilot.ConformanceStatus, 0, len(a.instances)), make([]because, 0, len(a.instances))
+	claims, claimReasons := make([][]testpilot.PropertyStatus, len(a.plan.claims)), make([][]because, len(a.plan.claims))
 	var support []int64
 	closed := a.closed(positive)
 	for _, of := range a.instances {
@@ -257,10 +260,10 @@ func (a *assessor) Close(ctx context.Context, closure testpilot.AssessmentClosur
 			}
 		}
 		conformance, why := conformanceConclusion(read.candidates, read.holes, positive)
-		conformances, reasons = append(conformances, conformance), append(reasons, a.detail(of, why))
+		conformances, reasons = append(conformances, conformance), append(reasons, a.because(of, why))
 		for i := range a.plan.claims {
 			conclusion, why := claimConclusion(read.tallies[i], positive)
-			claims[i], claimReasons[i] = append(claims[i], conclusion), append(claimReasons[i], a.detail(of, why))
+			claims[i], claimReasons[i] = append(claims[i], conclusion), append(claimReasons[i], a.because(of, why))
 		}
 	}
 	slices.Sort(support)
@@ -272,9 +275,9 @@ func (a *assessor) Close(ctx context.Context, closure testpilot.AssessmentClosur
 	case a.nonconformance != nil:
 		outcome.Conformance = *a.nonconformance
 	case status == testpilot.ConformanceInconclusive:
-		outcome.Conformance = testpilot.ConformanceAssessment{Status: status, Detail: why}
+		outcome.Conformance = testpilot.ConformanceAssessment{Status: status, Reason: why.id(), Detail: why.detail}
 	default:
-		outcome.Conformance = testpilot.ConformanceAssessment{Status: status, SupportingEventSequences: support, Detail: why}
+		outcome.Conformance = testpilot.ConformanceAssessment{Status: status, SupportingEventSequences: support, Reason: why.id(), Detail: why.detail}
 	}
 	for i, c := range a.plan.claims {
 		if at := slices.IndexFunc(a.violations, func(v testpilot.PropertyAssessment) bool { return v.ID == c.id }); at >= 0 {
@@ -282,7 +285,7 @@ func (a *assessor) Close(ctx context.Context, closure testpilot.AssessmentClosur
 			continue
 		}
 		status, why := over(claims[i], claimReasons[i], testpilot.PropertyViolated, testpilot.PropertySatisfied, testpilot.PropertyInconclusive)
-		assessed := testpilot.PropertyAssessment{ID: c.id, Status: status, Detail: why}
+		assessed := testpilot.PropertyAssessment{ID: c.id, Status: status, Reason: why.id(), Detail: why.detail}
 		if status != testpilot.PropertyInconclusive {
 			assessed.SupportingEventSequences = support
 		}

@@ -5,7 +5,9 @@ package temporal
 package features.standaloneactivity
 
 import umpire.*
+import umpire.realize.Reason
 import temporal.capabilities.{given, *}
+import temporal.realize.inconclusive
 import shared.worker.workerStop
 import Product.{phase, terminal}
 
@@ -38,13 +40,13 @@ val protocolCapabilities = capabilities(activityProtocol, limits = three)(
     terminate = control(Control.terminate),
     settled = ProtocolFact.statusTerminated,
     reach = Seq(start(), workerStop),
-    expect = inconclusive(explanationsDisagree)
+    expect = inconclusive(Reason.explanationsDisagree)
   ),
   Cancelable(
     requestCancel = control(Control.requestCancel),
     requested = ProtocolFact.statusCancelRequested,
     reach = Seq(start(), workerStop),
-    expect = inconclusive(explanationsDisagree)
+    expect = inconclusive(Reason.explanationsDisagree)
   ),
   Describable(status = ActivityRealization.activityStatus)
 )

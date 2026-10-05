@@ -63,8 +63,9 @@ The path a `find` Query returns is its witness. `limits two` bounds the search t
 `total 384` is the author's count of the Query's static combinations, which the reader checks; see
 [Counting a Query's total](#counting-a-querys-total).
 `.expect(...)` states what a real run of this path should be judged as, here `satisfied`, the
-Model's `RunExpectation(Conformance.conformant, PropertyOutcome.satisfied)`; see
-[Following the example to a Verdict](#following-the-example-to-a-verdict).
+Temporal kit's expectation (`model/temporal/realize/Kit.scala`) of a Run that completes, cleans up
+and satisfies its Contract, and that the model assessment finds conformant with the Property
+satisfied; see [Following the example to a Verdict](#following-the-example-to-a-verdict).
 
 A **realization** says how to act a path out on a real server: which API calls perform each
 action, and which recorded events are evidence of each fact. The Nexus caller's realization is
@@ -231,7 +232,10 @@ entry there, without the `exploration` field:
   },
   "expectedRun": {
     "property": "OUTCOME_SATISFIED",
-    "conformance": "CONFORMANCE_CONFORMANT"
+    "conformance": "CONFORMANCE_CONFORMANT",
+    "contract": "OUTCOME_SATISFIED",
+    "disposition": "DISPOSITION_COMPLETED",
+    "cleanup": "CLEANUP_SUCCEEDED"
   }
 }
 ```
@@ -301,16 +305,18 @@ The *model assessment* is the second judgment. It asks whether some execution th
 explains all the evidence in the Run (conformance: `conformant`, `nonconformant` or
 `inconclusive`), and what the Query's Property is on every execution that does (`satisfied`,
 `violated` or `inconclusive`). The assessment is not stored in the Run. For `syncCompletion` the
-declared expectation is `conformant` and `satisfied`, and `TestTestpilotGeneratedCases`
-requires exactly that of a live Run and of its replay.
+declared expectation is a completed Run with a succeeded cleanup and a satisfied Contract, assessed
+`conformant` and `satisfied`, and `TestTestpilotGeneratedCases` requires exactly that of a live
+Run and of its replay, each value by equality (`lower.ExpectedRun.Check`).
 
 **What is not supported.** These limits are current and recorded, not hidden:
 
 - `syncCompletion` is the only one of the Nexus caller's seven `find` Queries whose Property the
   assessment settles. The other six Cases run and satisfy their Contracts, but their Property stays
   `inconclusive`, because the Model also allows another execution that explains the same evidence
-  and on which the Property fails or is never evaluated. Each Query's `.expect(...)` states the
-  reason.
+  and on which the Property fails or is never evaluated. Each Query's `.expect(...)` names the
+  reason by the judge's id (`Reason.explanationsDisagree`, `Reason.neverEvaluated`), whose wording
+  is the judge's own (`tools/umpire/conformance/conclude.go`).
 - Of the 264 Queries in the checked-in IR, 16 lower to a Case. 150 are `verify` Queries, which have
   nothing to run. 95 belong to machines that declare no realization yet. 3 standalone activity
   Queries are `unsupported`: their path needs something a Case cannot do or record in order yet,

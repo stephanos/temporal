@@ -584,13 +584,21 @@ object ProtoValue:
   )
   def named(value: Name): TypedProtoValue[String] = new TypedProtoValue(Named(value))
 
-/** The assessment a completed live Run must support, independently of the model-search answer. */
+/**
+ * The assessment a completed live Run must support, independently of the model-search answer: the
+ * model assessment's conformance and the Property's outcome, the Contract's Verdict, how the Run
+ * ends and how its cleanup ends. Each is declared, none defaulted, so a generated Case's check
+ * compares what the Model says and infers nothing. An outcome short of satisfied names its `reason`,
+ * the judge's own; a satisfied one names none.
+ */
 final case class RunExpectation(
     conformance: Conformance,
     property: PropertyOutcome,
-    reason: String = "",
-    monitors: Vector[MonitorExpectation] = Vector.empty,
-    contract: PropertyOutcome = PropertyOutcome.satisfied
+    contract: PropertyOutcome,
+    disposition: Disposition,
+    cleanup: Cleanup,
+    reason: Option[Reason] = None,
+    monitors: Vector[MonitorExpectation] = Vector.empty
 )
 
 enum Conformance:
@@ -599,12 +607,32 @@ enum Conformance:
 enum PropertyOutcome:
   case satisfied, violated, inconclusive
 
+/** How a Run ends: it completes, its Contract's monitor stops it, or it does not close complete. */
+enum Disposition:
+  case completed, stoppedByMonitor, incomplete
+
+/** How a Run's cleanup ends. */
+enum Cleanup:
+  case succeeded, failed, timedOut
+
+/**
+ * Why the model assessment leaves an outcome short of satisfied, by the judge's id: no evidence of
+ * the machine, a Run that did not close complete, a hole of the Model in reach, evidence no modeled
+ * execution explains, explaining executions that disagree on the claim, one that never reaches the
+ * claim's evaluation point, one the claim cannot be read on, or every one violating it. The judge
+ * owns each reason's wording (tools/umpire/conformance/conclude.go).
+ */
+enum Reason:
+  case noEvidence, incomplete, hole, unexplained, explanationsDisagree, neverEvaluated, unreadable,
+    everyExplanationViolates
+
 /**
  * The verdict a completed live Run must support for one monitor of the Query's machine, named by
- * value, `MonitorExpectation(terminalFinality, PropertyOutcome.satisfied)`, or by its name.
+ * value, `MonitorExpectation(terminalFinality, PropertyOutcome.satisfied)`, or by its name, with
+ * its reason when it is not satisfied.
  */
 final case class MonitorExpectation(
     name: String | Monitor[?, ?, ?, ?],
     outcome: PropertyOutcome,
-    reason: String = ""
+    reason: Option[Reason] = None
 )

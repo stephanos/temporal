@@ -4904,7 +4904,7 @@
     "name": "inspectedFailure",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 81
+      "line": 74
     },
     "start": {
       "position": {
@@ -5012,7 +5012,7 @@
     "name": "forgedCompletion",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 165
+      "line": 158
     },
     "form": "FORM_FIND",
     "property": {
@@ -5031,15 +5031,17 @@
     },
     "expectedRun": {
       "property": "OUTCOME_VIOLATED",
-      "reason": "every modeled execution that explains the evidence violates it",
+      "reason": "REASON_EVERY_EXPLANATION_VIOLATES",
       "conformance": "CONFORMANCE_INCONCLUSIVE",
-      "contract": "OUTCOME_VIOLATED"
+      "contract": "OUTCOME_VIOLATED",
+      "disposition": "DISPOSITION_STOPPED_BY_MONITOR",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "exploration": {
       "name": "nexusControl",
       "position": {
         "file": "model/temporal/features/nexuscaller/Queries.scala",
-        "line": 175
+        "line": 170
       },
       "variations": [ {
         "index": 1,
@@ -5053,7 +5055,7 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 181
+            "line": 176
           }
         }, {
           "name": "once",
@@ -5063,18 +5065,18 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 182
+            "line": 177
           }
         }, {
           "name": "none",
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 183
+            "line": 178
           }
         } ],
         "position": {
           "file": "model/temporal/features/nexuscaller/Queries.scala",
-          "line": 178
+          "line": 173
         }
       } ],
       "runs": 1,

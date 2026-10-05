@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -139,17 +140,78 @@ func TestBuildRejectsAStepOutsideTheDomain(t *testing.T) {
 }
 
 func TestValidateRejectsInvalidRunExpectations(t *testing.T) {
+	declared := func(change func(*umpirespb.RunExpectation)) *umpirespb.RunExpectation {
+		expected := &umpirespb.RunExpectation{Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT, Property: umpirespb.RunExpectation_OUTCOME_SATISFIED,
+			Contract: umpirespb.RunExpectation_OUTCOME_SATISFIED, Disposition: umpirespb.RunExpectation_DISPOSITION_COMPLETED, Cleanup: umpirespb.RunExpectation_CLEANUP_SUCCEEDED}
+		change(expected)
+		return expected
+	}
 	for name, expected := range map[string]*umpirespb.RunExpectation{
-		"missing conformance":         {Property: umpirespb.RunExpectation_OUTCOME_SATISFIED},
-		"missing property":            {Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT},
-		"inconclusive without reason": {Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT, Property: umpirespb.RunExpectation_OUTCOME_INCONCLUSIVE},
-		"satisfied with reason":       {Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT, Property: umpirespb.RunExpectation_OUTCOME_SATISFIED, Reason: "unknown"},
-		"unknown monitor":             {Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT, Property: umpirespb.RunExpectation_OUTCOME_SATISFIED, Monitors: []*umpirespb.MonitorExpectation{{Name: "missing", Outcome: umpirespb.RunExpectation_OUTCOME_SATISFIED}}},
+		"missing conformance":         declared(func(e *umpirespb.RunExpectation) { e.Conformance = 0 }),
+		"missing property":            declared(func(e *umpirespb.RunExpectation) { e.Property = 0 }),
+		"missing contract":            declared(func(e *umpirespb.RunExpectation) { e.Contract = 0 }),
+		"inconclusive contract":       declared(func(e *umpirespb.RunExpectation) { e.Contract = umpirespb.RunExpectation_OUTCOME_INCONCLUSIVE }),
+		"missing disposition":         declared(func(e *umpirespb.RunExpectation) { e.Disposition = 0 }),
+		"unknown disposition":         declared(func(e *umpirespb.RunExpectation) { e.Disposition = 9 }),
+		"missing cleanup":             declared(func(e *umpirespb.RunExpectation) { e.Cleanup = 0 }),
+		"unknown cleanup":             declared(func(e *umpirespb.RunExpectation) { e.Cleanup = 9 }),
+		"inconclusive without reason": declared(func(e *umpirespb.RunExpectation) { e.Property = umpirespb.RunExpectation_OUTCOME_INCONCLUSIVE }),
+		"violated without reason":     declared(func(e *umpirespb.RunExpectation) { e.Property = umpirespb.RunExpectation_OUTCOME_VIOLATED }),
+		"unknown reason": declared(func(e *umpirespb.RunExpectation) {
+			e.Property, e.Reason = umpirespb.RunExpectation_OUTCOME_INCONCLUSIVE, 99
+		}),
+		"satisfied with reason": declared(func(e *umpirespb.RunExpectation) { e.Reason = umpirespb.RunExpectation_REASON_HOLE }),
+		"unknown monitor": declared(func(e *umpirespb.RunExpectation) {
+			e.Monitors = []*umpirespb.MonitorExpectation{{Name: "missing", Outcome: umpirespb.RunExpectation_OUTCOME_SATISFIED}}
+		}),
 	} {
 		t.Run(name, func(t *testing.T) {
 			m := load(t)
-			m.Queries[0].ExpectedRun = expected
-			require.ErrorContains(t, Validate(m), "expected Run")
+			q := m.Queries[0]
+			q.ExpectedRun = expected
+			// Refused at the Query's own line.
+			require.ErrorContains(t, Validate(m), fmt.Sprintf("%s:%d: query %s expected Run", q.GetPosition().GetFile(), q.GetPosition().GetLine(), q.GetName()))
 		})
 	}
+	m := load(t)
+	m.Queries[0].ExpectedRun = declared(func(e *umpirespb.RunExpectation) {
+		e.Property, e.Reason = umpirespb.RunExpectation_OUTCOME_INCONCLUSIVE, umpirespb.RunExpectation_REASON_EXPLANATIONS_DISAGREE
+	})
+	require.NoError(t, Validate(m))
+}
+
+// A monitor's outcome is held to the reason rule as the Property's is, on a Query whose machine
+// watches the monitors it names (heldAdmission.staleDelivery).
+func TestValidateRejectsAMonitorExpectationWithAnInvalidReason(t *testing.T) {
+	for name, change := range map[string]func(*umpirespb.MonitorExpectation){
+		"inconclusive without reason": func(m *umpirespb.MonitorExpectation) { m.Reason = 0 },
+		"satisfied with reason": func(m *umpirespb.MonitorExpectation) {
+			m.Outcome, m.Reason = umpirespb.RunExpectation_OUTCOME_SATISFIED, umpirespb.RunExpectation_REASON_NEVER_EVALUATED
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			m, err := Load("../../../model/ir/activity-race.json")
+			require.NoError(t, err)
+			at := slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "heldAdmission.staleDelivery" })
+			require.GreaterOrEqual(t, at, 0)
+			q := m.GetQueries()[at]
+			require.NoError(t, Validate(m))
+			monitor := q.GetExpectedRun().GetMonitors()[0]
+			require.Equal(t, umpirespb.RunExpectation_OUTCOME_INCONCLUSIVE, monitor.GetOutcome())
+			change(monitor)
+			require.ErrorContains(t, Validate(m), fmt.Sprintf("%s:%d: query %s expected Run has an invalid outcome or reason",
+				q.GetPosition().GetFile(), q.GetPosition().GetLine(), q.GetName()))
+		})
+	}
+}
+
+func TestExpectationIDNamesAValueWithoutItsEnumPrefix(t *testing.T) {
+	require.Equal(t, "explanations_disagree", ExpectationID(umpirespb.RunExpectation_REASON_EXPLANATIONS_DISAGREE))
+	require.Equal(t, "stopped_by_monitor", ExpectationID(umpirespb.RunExpectation_DISPOSITION_STOPPED_BY_MONITOR))
+	require.Equal(t, "timed_out", ExpectationID(umpirespb.RunExpectation_CLEANUP_TIMED_OUT))
+	require.Equal(t, "nonconformant", ExpectationID(umpirespb.RunExpectation_CONFORMANCE_NONCONFORMANT))
+	require.Equal(t, "violated", ExpectationID(umpirespb.RunExpectation_OUTCOME_VIOLATED))
+	require.Empty(t, ExpectationID(umpirespb.RunExpectation_REASON_UNSPECIFIED))
+	// A number the enum does not name, as bytes from a newer schema may hold, is named, not a panic.
+	require.Equal(t, "unknown(42)", ExpectationID(umpirespb.RunExpectation_Reason(42)))
 }

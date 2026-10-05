@@ -398,8 +398,9 @@ func TestCasesWithoutAnAssessorKeepTheContractPath(t *testing.T) {
 func TestAssessmentFailureIsReportedAndKeepsEstablishedViolations(t *testing.T) {
 	inconclusive := testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive}
 	conformant := testpilot.ConformanceAssessment{Status: testpilot.ConformanceConformant}
-	nonconformant := testpilot.ConformanceAssessment{Status: testpilot.ConformanceNonconformant, SupportingEventSequences: []int64{1}, Detail: "unexplained"}
-	violated := testpilot.PropertyAssessment{ID: "early", Status: testpilot.PropertyViolated, SupportingEventSequences: []int64{1}, Detail: "admitted twice"}
+	// A conclusion's reason id is carried as the Assessor gave it, wherever the conclusion stands.
+	nonconformant := testpilot.ConformanceAssessment{Status: testpilot.ConformanceNonconformant, SupportingEventSequences: []int64{1}, Reason: "unexplained", Detail: "unexplained"}
+	violated := testpilot.PropertyAssessment{ID: "early", Status: testpilot.PropertyViolated, SupportingEventSequences: []int64{1}, Reason: "violates", Detail: "admitted twice"}
 	satisfied := testpilot.PropertyAssessment{ID: "late", Status: testpilot.PropertySatisfied, SupportingEventSequences: []int64{1, 2}}
 	undecided := testpilot.PropertyAssessment{ID: "late", Status: testpilot.PropertyInconclusive}
 	outcome := func(conformance testpilot.ConformanceAssessment, properties ...testpilot.PropertyAssessment) func(context.Context, testpilot.AssessmentClosure) (*testpilot.AssessmentOutcome, error) {
@@ -529,6 +530,25 @@ func TestAssessmentFailureIsReportedAndKeepsEstablishedViolations(t *testing.T) 
 			want: invalid("property 0 has an invalid id"),
 		},
 		"repeated property": {close: outcome(conformant, violated, violated), seen: all, want: invalid(`property "early" is reported twice`)},
+		"conformance reason is no id": {
+			close: outcome(testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive, Reason: strings.Repeat("r", 257)}), seen: all,
+			want: invalid("conformance reason is not an id"),
+		},
+		"property reason is no id": {
+			close: outcome(conformant, testpilot.PropertyAssessment{ID: "early", Status: testpilot.PropertyInconclusive, Reason: "\xff"}), seen: all,
+			want: invalid(`property "early" reason is not an id`),
+		},
+		"established nonconformance reason is no id": {
+			establish: testpilot.Established{Nonconformance: &testpilot.ConformanceAssessment{Status: testpilot.ConformanceNonconformant, SupportingEventSequences: []int64{1},
+				Reason: strings.Repeat("r", 257)}},
+			close: outcome(conformant), seen: 1,
+			want: discarded(testpilot.AssessmentOutcomeInvalid, "conformance reason is not an id", 1),
+		},
+		"established reason is no id": {
+			establish: testpilot.Established{Violations: []testpilot.PropertyAssessment{{ID: "early", Status: testpilot.PropertyViolated, Reason: "\xff"}}},
+			close:     outcome(conformant), seen: 1,
+			want: discarded(testpilot.AssessmentOutcomeInvalid, `property "early" reason is not an id`, 1),
+		},
 		"unknown property status": {
 			close: outcome(conformant, testpilot.PropertyAssessment{ID: "early"}), seen: all,
 			want: invalid(`property "early" status is not a conclusion`),

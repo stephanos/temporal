@@ -824,12 +824,17 @@ Two narrowings came from the specimens' evidence:
 ## Generated Case expectations
 
 A Query's optional `expected_run` is test metadata, not a transition, search assumption, refinement,
-or evidence filter. Every Query that generates a live Case must supply it. It declares the expected
-trace conformance and selected Property outcome; each monitor attached to the Scenario's machine
-must be named exactly once. Unknown statuses, missing monitor names, duplicate names, and missing
-reasons for inconclusive/violated outcomes are admission errors. Satisfied outcomes carry no reason.
-The live checker retains its own independent semantics; an expectation cannot change its result.
-Reasons compare after the assessment's machine/instance prefix, whose concrete identities vary.
+or evidence filter. Every Query that generates a live Case must supply it. It declares the Contract's
+Verdict (`contract`: satisfied or violated), how the Run ends (`disposition`, as Testpilot's
+RunDisposition names it) and how its cleanup ends (`cleanup`), the expected trace conformance and
+the selected Property's outcome; each monitor attached to the Scenario's machine must be named exactly
+once. Each is declared and none is inferred: an unset contract, disposition or cleanup is an
+admission error, as are unknown statuses, missing monitor names and duplicate names. An
+inconclusive or violated outcome names its reason, a satisfied one none; a reason is the judge's id
+(`RunExpectation.Reason`), whose wording only the judge has. Lowering refuses a contract and
+disposition `testpilot.ConcludeVerdict` cannot conclude together, at the Query's position. The live
+checker retains its own independent semantics; an expectation cannot change its result. A live Run
+is compared with it value by value, the reason by id, never by the assessment's prose.
 
 The version-1 Case manifest lists every Query and its lowering standing, names the canonical Case
 file of each lowered Query, and carries its declared expected assessment. Readers reject unknown
@@ -867,6 +872,6 @@ its embedded model, target and descending edit recipe must regenerate the exact 
 Case identity and Case bytes on read. This is bounded local minimization, with no global-minimality
 claim. No candidate from discovery alone is promoted.
 
-`RunExpectation.contract` defaults to satisfied; an explicitly violated expectation denotes a
-negative control whose live Run must stop at the Contract monitor. This changes test expectations,
-not machine transitions, evidence interpretation or runtime policy.
+An expectation whose `contract` is violated denotes a negative control, and declares that its live
+Run stops at the Contract monitor (`disposition` stopped by monitor). This changes test
+expectations, not machine transitions, evidence interpretation or runtime policy.

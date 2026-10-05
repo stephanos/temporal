@@ -287,7 +287,7 @@
         "left": {
           "position": {
             "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-            "line": 37
+            "line": 41
           },
           "literal": {
             "enum": {
@@ -444,7 +444,7 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-                        "line": 27
+                        "line": 31
                       },
                       "literal": {
                         "enum": {
@@ -701,7 +701,7 @@
         "left": {
           "position": {
             "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-            "line": 31
+            "line": 35
           },
           "literal": {
             "enum": {
@@ -2682,7 +2682,7 @@
     "name": "nexusOperation.cancelIsRequested",
     "position": {
       "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 35
+      "line": 39
     },
     "start": {
       "position": {
@@ -2723,7 +2723,7 @@
     "name": "nexusOperation.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 24
+      "line": 28
     },
     "start": {
       "position": {
@@ -2760,7 +2760,7 @@
     "name": "nexusOperation.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 24
+      "line": 28
     },
     "start": {
       "position": {
@@ -2797,7 +2797,7 @@
     "name": "nexusOperation.terminateSettles",
     "position": {
       "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 29
+      "line": 33
     },
     "start": {
       "position": {
@@ -2838,7 +2838,7 @@
     "name": "nexusOperation.cancelIsRequested",
     "position": {
       "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 35
+      "line": 39
     },
     "form": "FORM_FIND",
     "property": {
@@ -2857,15 +2857,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "28"
   }, {
     "name": "nexusOperation.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 24
+      "line": 28
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2887,7 +2890,7 @@
     "name": "nexusOperation.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 24
+      "line": 28
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2909,7 +2912,7 @@
     "name": "nexusOperation.terminateSettles",
     "position": {
       "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 29
+      "line": 33
     },
     "form": "FORM_FIND",
     "property": {
@@ -2928,8 +2931,11 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "28"
   } ],

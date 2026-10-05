@@ -13,7 +13,7 @@
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:19"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:21"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -29,7 +29,7 @@
       "running": "temporal.features.standaloneactivity.Product$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:20"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:22"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -41,7 +41,7 @@
       "terminal": "temporal.features.standaloneactivity.Product$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:19"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:21"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.cancelIsRequested",
@@ -55,7 +55,7 @@
       "requested": "temporal.features.standaloneactivity.ProtocolFact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:43"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:45"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.terminateSettles",
@@ -69,7 +69,7 @@
       "settled": "temporal.features.standaloneactivity.ProtocolFact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:37"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:39"
   } ],
   "waivers": [ ],
   "catalog": [ {

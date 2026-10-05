@@ -115,18 +115,23 @@ const (
 )
 
 // ConformanceAssessment says whether the model explains the trace. SupportingEventSequences are the
-// Run Events that decided it, ascending; Detail is bounded human-readable text and no stable API.
+// Run Events that decided it, ascending. Reason is the Assessor's stable id for why the conclusion is
+// what it is, empty when it gives none, and what an expectation compares; Detail is bounded
+// human-readable text and no stable API.
 type ConformanceAssessment struct {
 	Status                   ConformanceStatus
 	SupportingEventSequences []int64
+	Reason                   string
 	Detail                   string
 }
 
-// PropertyAssessment is one property's conclusion, apart from conformance.
+// PropertyAssessment is one property's conclusion, apart from conformance, with its Reason and
+// Detail as a ConformanceAssessment has them.
 type PropertyAssessment struct {
 	ID                       string
 	Status                   PropertyStatus
 	SupportingEventSequences []int64
+	Reason                   string
 	Detail                   string
 }
 
@@ -704,6 +709,9 @@ func outcomeProblem(outcome *AssessmentOutcome, events int64) string {
 	if !supportedBy(outcome.Conformance.SupportingEventSequences, events) {
 		return "conformance support names no ascending Run Events"
 	}
+	if !validReason(outcome.Conformance.Reason) {
+		return "conformance reason is not an id"
+	}
 	seen := make(map[string]struct{}, len(outcome.Properties))
 	for index, property := range outcome.Properties {
 		if !validAssessmentIdentity(property.ID) {
@@ -721,6 +729,9 @@ func outcomeProblem(outcome *AssessmentOutcome, events int64) string {
 		if !supportedBy(property.SupportingEventSequences, events) {
 			return fmt.Sprintf("property %q support names no ascending Run Events", property.ID)
 		}
+		if !validReason(property.Reason) {
+			return fmt.Sprintf("property %q reason is not an id", property.ID)
+		}
 	}
 	return ""
 }
@@ -734,6 +745,9 @@ func establishedProblem(established Established, accepted int64) string {
 		}
 		if !supportedBy(nonconformance.SupportingEventSequences, accepted) {
 			return "conformance support names no ascending Run Events"
+		}
+		if !validReason(nonconformance.Reason) {
+			return "conformance reason is not an id"
 		}
 	}
 	seen := make(map[string]struct{}, len(established.Violations))
@@ -751,8 +765,16 @@ func establishedProblem(established Established, accepted int64) string {
 		if !supportedBy(property.SupportingEventSequences, accepted) {
 			return fmt.Sprintf("property %q support names no ascending Run Events", property.ID)
 		}
+		if !validReason(property.Reason) {
+			return fmt.Sprintf("property %q reason is not an id", property.ID)
+		}
 	}
 	return ""
+}
+
+// validReason reports whether a reason is none, or an id an Assessment can carry.
+func validReason(reason string) bool {
+	return reason == "" || validAssessmentIdentity(reason)
 }
 
 func supportedBy(sequences []int64, events int64) bool {
@@ -767,11 +789,11 @@ func supportedBy(sequences []int64, events int64) bool {
 }
 
 func boundedConformance(source ConformanceAssessment) ConformanceAssessment {
-	return ConformanceAssessment{Status: source.Status, SupportingEventSequences: slices.Clone(source.SupportingEventSequences), Detail: boundedAssessmentText(source.Detail)}
+	return ConformanceAssessment{Status: source.Status, SupportingEventSequences: slices.Clone(source.SupportingEventSequences), Reason: source.Reason, Detail: boundedAssessmentText(source.Detail)}
 }
 
 func boundedProperty(source PropertyAssessment) PropertyAssessment {
-	return PropertyAssessment{ID: source.ID, Status: source.Status, SupportingEventSequences: slices.Clone(source.SupportingEventSequences), Detail: boundedAssessmentText(source.Detail)}
+	return PropertyAssessment{ID: source.ID, Status: source.Status, SupportingEventSequences: slices.Clone(source.SupportingEventSequences), Reason: source.Reason, Detail: boundedAssessmentText(source.Detail)}
 }
 
 func boundedAssessmentText(value string) string {

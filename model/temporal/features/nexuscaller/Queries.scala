@@ -6,18 +6,11 @@ package temporal
 package features.nexuscaller
 
 import umpire.*
-import umpire.realize.{Alternative, Conformance, Exploration, RunExpectation, Variation}
-import umpire.realize.PropertyOutcome
+import umpire.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
+import umpire.realize.{PropertyOutcome, RunExpectation, Variation}
+import temporal.realize.{inconclusive, satisfied}
 import shared.worker.workerStop
 import Control.inspect, Timeout.expires
-
-// What a live Run is expected to show.
-val satisfied = RunExpectation(Conformance.conformant, PropertyOutcome.satisfied)
-def inconclusive(reason: String) =
-  RunExpectation(Conformance.conformant, PropertyOutcome.inconclusive, reason)
-val explanationsDisagree = "the executions that explain the evidence disagree"
-val neverEvaluated =
-  "an execution that explains the evidence never reaches the claim's evaluation point"
 
 // ### The paths the Queries run
 //
@@ -129,19 +122,19 @@ val syncCompletion = (query find syncSucceeds in syncReplied limits two total 38
   )
 val asyncCompletion =
   (query find completionSucceeds in asyncThenSucceeded limits three total 576)
-    .expect(inconclusive(explanationsDisagree))
+    .expect(inconclusive(Reason.explanationsDisagree))
 val asyncFailure = (query find completionFails in asyncThenFailed limits three total 576)
-  .expect(inconclusive(explanationsDisagree))
+  .expect(inconclusive(Reason.explanationsDisagree))
 val handlerError = (query find handlerErrorFails in nonRetryableError limits two total 384)
-  .expect(inconclusive(neverEvaluated))
+  .expect(inconclusive(Reason.neverEvaluated))
 val retry = (query find retrySucceeds in retriedThenSucceeded limits four total 768)
-  .expect(inconclusive(explanationsDisagree))
+  .expect(inconclusive(Reason.explanationsDisagree))
 val scheduleToStartTimeout =
   (query find scheduleToStartFires in scheduleToStartExpires limits three total 576)
-    .expect(inconclusive(neverEvaluated))
+    .expect(inconclusive(Reason.neverEvaluated))
 val startToCloseTimeout =
   (query find startToCloseFires in startToCloseExpires limits three total 576)
-    .expect(inconclusive(neverEvaluated))
+    .expect(inconclusive(Reason.neverEvaluated))
 
 /** A product claim on a protocol path, read through the refinement the protocol machine declares. */
 val terminalHolds = query verify terminalIsFinal in asyncThenSucceeded limits three total 576
@@ -167,8 +160,10 @@ val forgedCompletion = (query find forgedSuccess in inspectedFailure limits cont
     RunExpectation(
       Conformance.inconclusive,
       PropertyOutcome.violated,
-      "every modeled execution that explains the evidence violates it",
-      contract = PropertyOutcome.violated
+      contract = PropertyOutcome.violated,
+      disposition = Disposition.stoppedByMonitor,
+      cleanup = Cleanup.succeeded,
+      reason = Some(Reason.everyExplanationViolates)
     )
   )
   .explore(

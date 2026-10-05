@@ -145,7 +145,7 @@ func nexusInstance(query string) string { return `run="nexusCallerTests-` + quer
 type nexusWitness struct {
 	query, property string
 	kinds           []string
-	why             string
+	why             reason
 }
 
 // Each expectation is read off model/temporal/features/nexuscaller (Claims.scala and the
@@ -198,7 +198,7 @@ func TestAWitnessRunConformsWhileItsPropertyStaysOpen(t *testing.T) {
 			require.Equal(t, &testpilot.Assessment{Model: binding.Model, Query: binding.Query,
 				Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceConformant, SupportingEventSequences: support},
 				Properties: []testpilot.PropertyAssessment{{ID: test.property, Status: testpilot.PropertyInconclusive,
-					Detail: nexusMachine + ", " + nexusInstance(test.query) + ": " + test.why}},
+					Reason: umpiremodel.ExpectationID(test.why), Detail: nexusMachine + ", " + nexusInstance(test.query) + ": " + wording[test.why]}},
 			}, evaluation.Assessment)
 		})
 	}
@@ -237,7 +237,7 @@ func TestAClosedHistorySettlesSyncCompletionAndLeavesTheOtherSixOpen(t *testing.
 				support = append(support, int64(i)+3)
 			}
 			property := testpilot.PropertyAssessment{ID: test.property, Status: testpilot.PropertyInconclusive,
-				Detail: nexusMachine + ", " + nexusInstance(test.query) + ": " + test.why}
+				Reason: umpiremodel.ExpectationID(test.why), Detail: nexusMachine + ", " + nexusInstance(test.query) + ": " + wording[test.why]}
 			if test.query == "syncCompletion" {
 				property = testpilot.PropertyAssessment{ID: test.property, Status: testpilot.PropertySatisfied, SupportingEventSequences: support}
 			}
@@ -389,7 +389,7 @@ func TestSyncCompletionConcludesOnItsWitnessRunLiveAndReplayed(t *testing.T) {
 			[]string{"scheduled", "started", "completed"},
 			func([]int64) testpilot.PropertyAssessment {
 				return testpilot.PropertyAssessment{ID: "syncSucceeds", Status: testpilot.PropertyInconclusive,
-					Detail: nexusMachine + ", " + nexusInstance("syncCompletion") + ": " + whyNeverRead}
+					Reason: "never_evaluated", Detail: nexusMachine + ", " + nexusInstance("syncCompletion") + ": " + wording[whyNeverRead]}
 			}},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -438,10 +438,10 @@ func TestAMismatchTheContractFailsOnIsANonconformance(t *testing.T) {
 	require.NoError(t, err)
 	protorequire.ProtoEqual(t, plainVerdict, verdict)
 	binding := b.factory.Binding()
-	why := nexusMachine + ", " + nexusInstance("syncCompletion") + ": " + whyUnexplained
+	why := nexusMachine + ", " + nexusInstance("syncCompletion") + ": " + wording[whyUnexplained]
 	require.Equal(t, &testpilot.Assessment{Model: binding.Model, Query: binding.Query,
-		Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceNonconformant, SupportingEventSequences: []int64{2, 3, 4}, Detail: why},
-		Properties:  []testpilot.PropertyAssessment{{ID: "syncSucceeds", Status: testpilot.PropertyInconclusive, Detail: why}},
+		Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceNonconformant, SupportingEventSequences: []int64{2, 3, 4}, Reason: "unexplained", Detail: why},
+		Properties:  []testpilot.PropertyAssessment{{ID: "syncSucceeds", Status: testpilot.PropertyInconclusive, Reason: "unexplained", Detail: why}},
 	}, evaluation.Assessment)
 }
 

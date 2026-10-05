@@ -5550,7 +5550,7 @@
     "name": "oneLostResponse",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 67
+      "line": 72
     },
     "start": {
       "position": {
@@ -5622,7 +5622,7 @@
     "name": "heldStaleDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 50
+      "line": 52
     },
     "start": {
       "position": {
@@ -5685,7 +5685,7 @@
     "name": "admissionResponseLoss.committed",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 69
+      "line": 74
     },
     "form": "FORM_FIND",
     "property": {
@@ -5704,14 +5704,17 @@
     },
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "144"
   }, {
     "name": "heldAdmission.staleDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 50
+      "line": 52
     },
     "form": "FORM_FIND",
     "property": {
@@ -5734,11 +5737,14 @@
       "monitors": [ {
         "name": "atMostOneActiveAttempt",
         "outcome": "OUTCOME_INCONCLUSIVE",
-        "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+        "reason": "REASON_NEVER_EVALUATED"
       }, {
         "name": "terminalFinality",
         "outcome": "OUTCOME_SATISFIED"
-      } ]
+      } ],
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "108"
   } ],

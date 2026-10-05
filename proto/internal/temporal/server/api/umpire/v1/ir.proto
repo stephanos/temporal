@@ -609,17 +609,59 @@ message RunExpectation {
     OUTCOME_VIOLATED = 2;
     OUTCOME_INCONCLUSIVE = 3;
   }
+  // How the Run ends, as Testpilot's RunDisposition names it.
+  enum Disposition {
+    DISPOSITION_UNSPECIFIED = 0;
+    DISPOSITION_COMPLETED = 1;
+    DISPOSITION_STOPPED_BY_MONITOR = 2;
+    DISPOSITION_INCOMPLETE = 3;
+  }
+  // How the Run's cleanup ends, as Testpilot's CleanupStatus names it.
+  enum Cleanup {
+    CLEANUP_UNSPECIFIED = 0;
+    CLEANUP_SUCCEEDED = 1;
+    CLEANUP_FAILED = 2;
+    CLEANUP_TIMED_OUT = 3;
+  }
+  // Why the model assessment leaves an outcome short of satisfied: the judge's own reasons, by id.
+  // The assessment reports the id beside its prose (tools/umpire/conformance/conclude.go).
+  enum Reason {
+    REASON_UNSPECIFIED = 0;
+    // The Run recorded no evidence of the machine.
+    REASON_NO_EVIDENCE = 1;
+    // The Run did not close complete.
+    REASON_INCOMPLETE = 2;
+    // A hole of the Model is in reach.
+    REASON_HOLE = 3;
+    // No modeled execution explains the evidence.
+    REASON_UNEXPLAINED = 4;
+    // The explaining executions disagree on the claim.
+    REASON_EXPLANATIONS_DISAGREE = 5;
+    // An explaining execution never reaches the claim's evaluation point.
+    REASON_NEVER_EVALUATED = 6;
+    // The claim cannot be read on an explaining execution.
+    REASON_UNREADABLE = 7;
+    // Every explaining execution violates the claim.
+    REASON_EVERY_EXPLANATION_VIOLATES = 8;
+  }
+  reserved 2;
+  // The selected Property's outcome, and its reason when it is not satisfied.
   Outcome property = 1;
-  string reason = 2;
+  Reason reason = 8;
   Conformance conformance = 3;
   repeated MonitorExpectation monitors = 4;
+  // The Contract's Verdict.
   Outcome contract = 5;
+  Disposition disposition = 6;
+  Cleanup cleanup = 7;
 }
 
 message MonitorExpectation {
+  reserved 3;
   string name = 1;
   RunExpectation.Outcome outcome = 2;
-  string reason = 3;
+  // Set exactly when the outcome is not satisfied.
+  RunExpectation.Reason reason = 4;
 }
 
 message Limits {

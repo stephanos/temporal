@@ -11,12 +11,15 @@
       "standing": "lowered",
       "file": "nexus-caller-asyncCompletion-case.json",
       "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
         "conformance": "conformant",
         "properties": [
           {
             "id": "completionSucceeds",
             "status": "inconclusive",
-            "reason": "the executions that explain the evidence disagree"
+            "reason": "explanations_disagree"
           }
         ]
       }
@@ -31,12 +34,15 @@
       "standing": "lowered",
       "file": "nexus-caller-asyncFailure-case.json",
       "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
         "conformance": "conformant",
         "properties": [
           {
             "id": "completionFails",
             "status": "inconclusive",
-            "reason": "the executions that explain the evidence disagree"
+            "reason": "explanations_disagree"
           }
         ]
       }
@@ -51,12 +57,15 @@
       "standing": "lowered",
       "file": "nexus-caller-handlerError-case.json",
       "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
         "conformance": "conformant",
         "properties": [
           {
             "id": "handlerErrorFails",
             "status": "inconclusive",
-            "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+            "reason": "never_evaluated"
           }
         ]
       }
@@ -71,12 +80,15 @@
       "standing": "lowered",
       "file": "nexus-caller-retry-case.json",
       "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
         "conformance": "conformant",
         "properties": [
           {
             "id": "retrySucceeds",
             "status": "inconclusive",
-            "reason": "the executions that explain the evidence disagree"
+            "reason": "explanations_disagree"
           }
         ]
       }
@@ -91,12 +103,15 @@
       "standing": "lowered",
       "file": "nexus-caller-scheduleToStartTimeout-case.json",
       "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
         "conformance": "conformant",
         "properties": [
           {
             "id": "scheduleToStartFires",
             "status": "inconclusive",
-            "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+            "reason": "never_evaluated"
           }
         ]
       }
@@ -111,12 +126,15 @@
       "standing": "lowered",
       "file": "nexus-caller-startToCloseTimeout-case.json",
       "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
         "conformance": "conformant",
         "properties": [
           {
             "id": "startToCloseFires",
             "status": "inconclusive",
-            "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+            "reason": "never_evaluated"
           }
         ]
       }
@@ -131,6 +149,9 @@
       "standing": "lowered",
       "file": "nexus-caller-syncCompletion-case.json",
       "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
         "conformance": "conformant",
         "properties": [
           {
@@ -151,12 +172,14 @@
       "file": "nexus-control-forgedCompletion-case.json",
       "expected": {
         "contract": "violated",
+        "disposition": "stopped_by_monitor",
+        "cleanup": "succeeded",
         "conformance": "inconclusive",
         "properties": [
           {
             "id": "forgedSuccess",
             "status": "violated",
-            "reason": "every modeled execution that explains the evidence violates it"
+            "reason": "every_explanation_violates"
           }
         ]
       }

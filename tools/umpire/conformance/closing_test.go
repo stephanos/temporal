@@ -52,8 +52,8 @@ func TestOnlyARunThatClosedCompleteIsConcludedPositively(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			_, outcome := assessDirectly(t, factory, test.closure, stored)
 			want := &testpilot.AssessmentOutcome{
-				Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive, Detail: store + ", " + defaultInstance + ": " + whyIncomplete},
-				Properties:  []testpilot.PropertyAssessment{{ID: "putStores", Status: testpilot.PropertyInconclusive, Detail: store + ", " + defaultInstance + ": " + whyIncomplete}}}
+				Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive, Reason: "incomplete", Detail: store + ", " + defaultInstance + ": " + wording[whyIncomplete]},
+				Properties:  []testpilot.PropertyAssessment{{ID: "putStores", Status: testpilot.PropertyInconclusive, Reason: "incomplete", Detail: store + ", " + defaultInstance + ": " + wording[whyIncomplete]}}}
 			if test.positive {
 				want = &testpilot.AssessmentOutcome{
 					Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceConformant, SupportingEventSequences: []int64{2}},

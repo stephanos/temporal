@@ -414,5 +414,12 @@
     "program.instructionDefaults",
     "program.runOrderIsCausal",
     "program.entrypoints[*].activity.attemptNumbering"
-  ]
+  ],
+  "declared_run_expectations": {
+    "reasons": {
+      "an execution that explains the evidence never reaches the claim's evaluation point": "REASON_NEVER_EVALUATED",
+      "every modeled execution that explains the evidence violates it": "REASON_EVERY_EXPLANATION_VIOLATES",
+      "the executions that explain the evidence disagree": "REASON_EXPLANATIONS_DISAGREE"
+    }
+  }
 }
