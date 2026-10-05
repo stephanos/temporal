@@ -493,13 +493,20 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 ### Verification and claim concepts
 
 - **Claim Assessment.** Deciding, offline, what one closed Run of one canonical Case supports under
-  one Evaluation Profile: a declared, Temporal-free policy of a claim, an asserted trust basis, the
-  Known Gap kinds that block acceptance and an ordered reason table, each reason forcing `rejected`
-  or `incomplete`; with no reason holding, the subject is `accepted`. The subject is admitted
-  strictly and never prepared, run or replayed. The decision is an Evaluation Receipt: canonical bytes
-  named by their SHA-256, binding the Profile, the Case and recorded Run identities, the recorded
-  Driver identity, the Verdict with its evidence links, the decision and every reason, the Known Gaps
-  and the admission caps. A receipt is not self-authenticating and authorizes nothing.
+  one Evaluation Profile, and under the Model's assessment of the same Run when the caller supplies
+  one. A Profile is a declared, Temporal-free deployment policy: a claim, an asserted trust basis,
+  the Known Gap kinds that block acceptance, and whether an unsupported rule rejects or leaves the
+  subject incomplete. It carries no reason table: the decision is one fixed precedence. A violated
+  Verdict (as the one verdict aggregation concludes it), a nonconformant Run or a violated property
+  rejects. An inconclusive Verdict, a cleanup that did not succeed, a blocking Known Gap, an
+  unsupported rule, or a Model assessment that failed or left anything inconclusive leaves the
+  subject `incomplete`. Otherwise it is `accepted`. The subject is admitted strictly and never run.
+  A Model assessment replays its recorded events offline, as the live test that ran it does. The
+  decision is an Evaluation Receipt: canonical bytes named by their SHA-256, binding the Profile, the
+  Case and recorded Run identities, the recorded Driver identity, the Verdict with its evidence links,
+  the Model assessment by its Model and Query identities, statuses and reason ids, the decision and
+  every reason by its fixed id, the Known Gaps and the admission caps. A receipt is not
+  self-authenticating and authorizes nothing.
 
 ### CLI, environment, and claim rules
 

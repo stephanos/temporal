@@ -8,11 +8,21 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
 	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	"go.temporal.io/server/common/testing/testpilot/publish"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
+	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/conformance"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/lower"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"google.golang.org/protobuf/proto"
 )
 
 // Exit codes: the decision, or 3 for everything that is not one.
@@ -44,6 +54,11 @@ const (
 	statusPublicationFailed     = "publication-failed"
 	statusInterrupted           = "interrupted"
 	statusPublicationUnreported = "publication-unreported"
+	// With --model: the model directory does not assess the subject's Case, or cannot be read.
+	statusModelUnassessable = "model-unassessable"
+	// With --model: the Case does not prepare offline, or its recorded Run does not evaluate to the
+	// recorded Verdict, so no assessment of it can be trusted to be of that Run.
+	statusAssessmentUnreproducible = "assessment-unreproducible"
 )
 
 // config is what the caller names: the subject's files, the Profile's exact name and where the
@@ -53,6 +68,9 @@ type config struct {
 	Run         string
 	Profile     *evaluation.Profile
 	ReceiptRoot string
+	// Model, when named, is the model directory (its `cases/` and `ir/`) whose Model assesses the
+	// recorded Run beside its Verdict; empty assesses nothing.
+	Model string
 }
 
 // environment is what the command reads beyond its arguments: the tree's catalog fingerprint, the
@@ -114,7 +132,14 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 		}
 		return report(stdout, stderr, summary{Status: statusRejectedSubject, Rejection: rejection.Reason, Detail: rejection.Detail}, exitFailed)
 	}
-	decision := evaluation.Assess(subject, *configuration.Profile, nil)
+	var assessment *testpilot.Assessment
+	if configuration.Model != "" {
+		var status string
+		if assessment, status, err = assessRecorded(configuration.Model, caseBytes, runBytes); err != nil {
+			return failed(status, "--model: %s", err)
+		}
+	}
+	decision := evaluation.Assess(subject, *configuration.Profile, assessment)
 	rendered, err := evaluation.Render(subject, *configuration.Profile, decision)
 	var oversized *evaluation.ReceiptOversizedError
 	if errors.As(err, &oversized) {
@@ -149,6 +174,86 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 		Status: decision.Outcome, Reasons: reasons, Receipt: identity,
 		Publication: publication.Status, Path: publication.Path,
 	}, exitCode(decision.Outcome))
+}
+
+// assessRecorded is the Model's assessment of an admitted recorded Run: the Case is found among the
+// model directory's lowered Cases by the identity an assessment is bound to, prepared offline, and
+// its recorded events are driven through its Query's assessment under the shared ceilings, as the
+// live test that ran it replays them. The offline reading must give the recorded Verdict. A failure
+// says which status it is.
+func assessRecorded(root string, caseBytes, runBytes []byte) (*testpilot.Assessment, string, error) {
+	canonical, err := casefile.Canonical(caseBytes)
+	if err != nil {
+		return nil, statusInternalError, err
+	}
+	source, err := testpilot.DecodeCaseProtoJSON(canonical)
+	if err != nil {
+		return nil, statusInternalError, err
+	}
+	decoded, err := recordedrun.Decode(runBytes)
+	if err != nil {
+		return nil, statusInternalError, err
+	}
+	entry, err := lower.FindGeneratedCase(filepath.Join(root, "cases"), source)
+	if err != nil {
+		return nil, statusModelUnassessable, err
+	}
+	model, err := umpiremodel.Load(filepath.Join(root, "ir", entry.Model))
+	if err != nil {
+		return nil, statusModelUnassessable, err
+	}
+	factory, err := conformance.Prepare(model, entry.Query, source, conformance.DefaultLimits())
+	if err != nil {
+		return nil, statusModelUnassessable, err
+	}
+	prepared, err := prepareOffline(source, decoded.Driver.Profile)
+	if err != nil {
+		return nil, statusAssessmentUnreproducible, err
+	}
+	assessed, err := prepared.WithAssessment(factory)
+	if err != nil {
+		return nil, statusModelUnassessable, err
+	}
+	verdict, evaluated, err := assessed.Evaluate(context.Background(), decoded.Run, nil)
+	if err != nil {
+		return nil, statusAssessmentUnreproducible, err
+	}
+	if !proto.Equal(verdict, decoded.Run.GetVerdict()) {
+		return nil, statusAssessmentUnreproducible, fmt.Errorf("the recorded Run evaluates to %s, its recorded Verdict is %s",
+			verdict.GetStatus(), decoded.Run.GetVerdict().GetStatus())
+	}
+	return evaluated.Assessment, "", nil
+}
+
+// offlineNames are the deployment names a Case is prepared offline under. The Contract and the
+// assessment read the recorded events, never a deployment name, so any names serve.
+const offlineNames = "umpire-assess"
+
+// prepareOffline prepares the Case to read a recorded Run of it, under the Profile name the Run was
+// recorded with. The Run was recorded in an environment that supplied what its Case requires, or the
+// Case would not have prepared there, so it is prepared here with exactly that: every setting the
+// Program requires, and delivery control. Nothing is driven, so neither is exercised.
+func prepareOffline(source *testpilotspb.Case, identity string) (*testpilot.PreparedCase, error) {
+	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
+	if err != nil {
+		return nil, err
+	}
+	settings := map[string]string{}
+	for _, setting := range source.GetProgram().GetRequiredSettings() {
+		settings[setting.GetKey()] = setting.GetValue()
+	}
+	handlerQueue := ""
+	if testpilotdriver.HandlerTaskQueueBindingID(source.GetProgram()) != "" {
+		handlerQueue = offlineNames + "-handler"
+	}
+	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
+		Identity: identity, Namespace: offlineNames, TaskQueue: offlineNames, HandlerTaskQueue: handlerQueue,
+		NexusEndpoint: offlineNames, DeliveryControl: true, DynamicConfig: settings,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return testpilot.Prepare(source, profile)
 }
 
 func (env environment) context() (context.Context, context.CancelFunc) {
@@ -229,7 +334,7 @@ func readCapped(path string, limit int) ([]byte, error) {
 }
 
 func parseConfig(arguments []string, stderr io.Writer) (config, error) {
-	usage := "usage: umpire-assess run --case <case.json> --run <recorded-run.json> --profile <name> --receipt-root <dir> [--model-root <dir>]"
+	usage := "usage: umpire-assess run --case <case.json> --run <recorded-run.json> --profile <name> --receipt-root <dir> [--model <dir>] [--model-root <dir>]"
 	if len(arguments) == 0 || arguments[0] != "run" {
 		cli.WriteLine(stderr, "%s", usage)
 		return config{}, errors.New("the subcommand is run")
@@ -243,6 +348,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	flags.StringVar(&profile, "profile", "", "the exact name of an Evaluation Profile the model declares")
 	flags.StringVar(&receiptRoot, "receipt-root", "", "an existing directory outside the model to publish the receipt under")
 	flags.StringVar(&modelRoot, "model-root", defaultModelRoot, "the model package, which never receives a receipt")
+	flags.StringVar(&configuration.Model, "model", "", "assess the recorded Run against the Model of the generated Case in this model directory (its cases/ and ir/), beside its Verdict")
 	if err := flags.Parse(arguments[1:]); err != nil {
 		return config{}, err
 	}

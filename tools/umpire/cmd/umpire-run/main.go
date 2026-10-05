@@ -2,7 +2,9 @@
 //
 // It is the black-box consumer of the Case bytes: it reads a fixture, derives the Profile the Case
 // implies, binds it to the namespace, task queue and Nexus endpoint the caller names, runs once,
-// and reports the Verdict. It links the Driver and the SDK, never the test cluster.
+// and reports the Verdict. With --model it also runs the Model's assessment of a generated Case
+// beside the Contract and reports it, and whether the Run is the one its Query expects. It links the
+// Driver and the SDK, never the test cluster.
 package main
 
 import (

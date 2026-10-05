@@ -8,17 +8,22 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/common/testing/testpilot/temporal/binding"
+	"go.temporal.io/server/tools/umpire/conformance"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/lower"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 // Exit codes. 3 is deliberately separate from 2 so a caller can tell an unreachable server or a
-// Case that could not be prepared from a Run that really was inconclusive.
+// Case that could not be prepared from a Run that really was inconclusive. With a Model assessment
+// the exit code is the worse of the Verdict and the assessment (assessedExitCode).
 const (
 	exitSatisfied    = 0
 	exitViolated     = 1
@@ -38,13 +43,18 @@ type config struct {
 	// RecordPath, when named, receives the closed Run with the identity it was prepared under,
 	// the recorded Run a replay reads; empty records nothing.
 	RecordPath string
-	Timeout    time.Duration
+	// ModelRoot, when named, is the model directory (its `cases/` and `ir/`) whose Model assesses
+	// the Run beside its Contract; empty assesses nothing.
+	ModelRoot string
+	Timeout   time.Duration
 }
 
 // session is one bound Case: how to run it once, and how to release everything the binding opened.
 type session struct {
 	// run executes the prepared Case against the Driver the binding opened.
 	run func(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error)
+	// assessed is run with a Model assessment beside the Contract.
+	assessed func(ctx context.Context, factory testpilot.AssessmentFactory) (*testpilotspb.Run, *testpilotspb.Verdict, *testpilot.Assessment, error)
 	// identity is the Profile identity the Case was prepared under, recorded beside its Run.
 	identity testpilot.DriverIdentity
 	// release is best-effort teardown, run whatever the Run did. It names every resource it could
@@ -79,7 +89,8 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		}
 	}
 
-	if _, err := binding.Prepare(configuration.Deployment, binding.HandlerQueueFor(configuration.Deployment, source.GetProgram()), "umpire-run."+configuration.Deployment.Namespace, source); err != nil {
+	prepared, err := binding.Prepare(configuration.Deployment, binding.HandlerQueueFor(configuration.Deployment, source.GetProgram()), "umpire-run."+configuration.Deployment.Namespace, source)
+	if err != nil {
 		var rejection *testpilot.PreparationError
 		if errors.As(err, &rejection) && rejection.Category == testpilot.PreparationUnsupported {
 			cli.WriteLine(stderr, "skipped: %s", describeFailure(err))
@@ -87,6 +98,18 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 			cli.WriteLine(stderr, "%s", describeFailure(err))
 		}
 		return exitFailed
+	}
+	var assessment *modelAssessment
+	if configuration.ModelRoot != "" {
+		// The Model, the Query and the assessment's binding to this Case are settled before anything
+		// is opened, so a Case the Model does not assess creates no Run.
+		if assessment, err = prepareAssessment(configuration.ModelRoot, source); err == nil {
+			_, err = prepared.Case.WithAssessment(assessment.factory)
+		}
+		if err != nil {
+			cli.WriteLine(stderr, "--model: %s", describeFailure(err))
+			return exitFailed
+		}
 	}
 
 	ctx, cancel := cli.Interruptible(context.Background(), configuration.Timeout)
@@ -99,13 +122,28 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 	}
 	defer releaseSession(bound, stderr)
 
-	run, verdict, err := bound.run(ctx)
+	var (
+		run      *testpilotspb.Run
+		verdict  *testpilotspb.Verdict
+		assessed *testpilot.Assessment
+	)
+	switch {
+	case assessment == nil:
+		run, verdict, err = bound.run(ctx)
+	case bound.assessed == nil:
+		err = errors.New("the binding cannot run a Model assessment")
+	default:
+		run, verdict, assessed, err = bound.assessed(ctx, assessment.factory)
+	}
 	if err != nil {
 		cli.WriteLine(stderr, "run Case %q: %v", source.GetCaseId(), err)
 		return exitFailed
 	}
 
 	report(stdout, run, verdict)
+	if assessment != nil {
+		reportAssessment(stdout, assessed, assessment.expected.Check(run, verdict, assessed))
+	}
 	if configuration.RecordPath != "" {
 		// The Run is reported and its Verdict decides the exit code whatever happens to its
 		// record; a record that could not be written after all is said on stderr, since the path
@@ -114,7 +152,36 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 			cli.WriteLine(stderr, "%s", err)
 		}
 	}
+	if assessment != nil {
+		return assessedExitCode(verdict, assessed)
+	}
 	return exitCode(verdict)
+}
+
+// modelAssessment is the Model assessment of one generated Case: its factory, and the Run its Query
+// expects.
+type modelAssessment struct {
+	factory  testpilot.AssessmentFactory
+	expected *lower.ExpectedRun
+}
+
+// prepareAssessment finds the Case among the lowered Cases of the model directory, by the identity
+// an assessment is bound to, and prepares its Query's assessment under the shared ceilings, as the
+// live tests do.
+func prepareAssessment(root string, source *testpilotspb.Case) (*modelAssessment, error) {
+	entry, err := lower.FindGeneratedCase(filepath.Join(root, "cases"), source)
+	if err != nil {
+		return nil, err
+	}
+	model, err := umpiremodel.Load(filepath.Join(root, "ir", entry.Model))
+	if err != nil {
+		return nil, err
+	}
+	factory, err := conformance.Prepare(model, entry.Query, source, conformance.DefaultLimits())
+	if err != nil {
+		return nil, err
+	}
+	return &modelAssessment{factory: factory, expected: entry.Expected}, nil
 }
 
 func parseConfig(arguments []string, stderr io.Writer) (config, error) {
@@ -125,6 +192,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	binding.RegisterFlags(flags, &configuration.Deployment, "the Case")
 	flags.DurationVar(&configuration.Timeout, "timeout", defaultTimeout, "bound on the whole Run")
 	flags.StringVar(&configuration.RecordPath, "record", "", "write the closed Run with the identity it was prepared under to this file, which must not exist yet in a directory that does")
+	flags.StringVar(&configuration.ModelRoot, "model", "", "assess the Run against the Model of the generated Case in this model directory (its cases/ and ir/), beside the Contract")
 	if err := flags.Parse(arguments); err != nil {
 		return config{}, err
 	}
@@ -215,6 +283,51 @@ func report(stdout io.Writer, run *testpilotspb.Run, verdict *testpilotspb.Verdi
 	}
 }
 
+// reportAssessment prints the Model assessment after the Run's lines: the conformance and each
+// property by status and reason id, never its prose, the failure when it failed, and whether the Run
+// is the one its Query expects, as lower.ExpectedRun.Check words each difference on a line of its
+// own.
+func reportAssessment(stdout io.Writer, assessment *testpilot.Assessment, expected error) {
+	cli.WriteLine(stdout, "%s", strings.TrimSpace("conformance "+string(assessment.Conformance.Status)+" "+assessment.Conformance.Reason))
+	for _, property := range assessment.Properties {
+		cli.WriteLine(stdout, "%s", strings.TrimSpace("property "+property.ID+" "+string(property.Status)+" "+property.Reason))
+	}
+	if failure := assessment.Failure; failure != nil {
+		cli.WriteLine(stdout, "assessment failed %s at event %d", failure.Code, failure.EventSequence)
+	}
+	if expected == nil {
+		cli.WriteLine(stdout, "expected match")
+		return
+	}
+	for _, difference := range cli.Flatten(expected) {
+		cli.WriteLine(stdout, "expected differs: %s", difference)
+	}
+}
+
+// assessedExitCode is the worse of the Verdict and the Model assessment: 1 when either found a
+// violation (a violated Verdict, a nonconformant Run or a violated property, one the assessment
+// established before failing included), else 3 when the assessment failed, else 2 when anything is
+// inconclusive, else 0.
+func assessedExitCode(verdict *testpilotspb.Verdict, assessment *testpilot.Assessment) int {
+	conformance := assessment.Conformance.Status
+	violated := verdict.GetStatus() == testpilotspb.VERDICT_STATUS_VIOLATED || conformance == testpilot.ConformanceNonconformant
+	open := verdict.GetStatus() != testpilotspb.VERDICT_STATUS_SATISFIED || conformance != testpilot.ConformanceConformant
+	for _, property := range assessment.Properties {
+		violated = violated || property.Status == testpilot.PropertyViolated
+		open = open || property.Status != testpilot.PropertySatisfied
+	}
+	switch {
+	case violated:
+		return exitViolated
+	case assessment.Failure != nil:
+		return exitFailed
+	case open:
+		return exitInconclusive
+	default:
+		return exitSatisfied
+	}
+}
+
 func exitCode(verdict *testpilotspb.Verdict) int {
 	switch verdict.GetStatus() {
 	case testpilotspb.VERDICT_STATUS_SATISFIED:
@@ -244,6 +357,7 @@ func openSession(ctx context.Context, configuration config, source *testpilotspb
 	}
 	return &session{
 		run:      bound.Run,
+		assessed: bound.RunAssessed,
 		identity: bound.Identity(),
 		release: func(ctx context.Context) error {
 			return errors.Join(bound.Release(ctx), campaign.Close(ctx))

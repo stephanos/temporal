@@ -546,3 +546,166 @@ func TestRunSkipsMissingDeliveryCapabilityBeforeOpening(t *testing.T) {
 	require.Equal(t, exitFailed, code)
 	require.Contains(t, stderr.String(), "skipped: prepare Case: unsupported at controller.hold-dispatch")
 }
+
+const (
+	modelRoot              = "../../../../model"
+	activityCompletionCase = "../../../../model/cases/activity-completion-case.json"
+)
+
+// modelFlags run the generated activity completion Case, which expects a satisfied Contract and a
+// conformant Run with its `completes` property satisfied, with its Model's assessment.
+func modelFlags() []string {
+	return []string{
+		"--case", activityCompletionCase, "--model", modelRoot,
+		"--grpc", "127.0.0.1:7233", "--http", "127.0.0.1:7243",
+		"--namespace", "umpire-run-namespace", "--task-queue", "umpire-run-queue",
+	}
+}
+
+func satisfiedAssessment() *testpilot.Assessment {
+	return &testpilot.Assessment{
+		Model: "model", Query: "query",
+		Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceConformant},
+		Properties:  []testpilot.PropertyAssessment{{ID: "completes", Status: testpilot.PropertySatisfied}},
+	}
+}
+
+// assessedSession is one bound Case whose Run and Model assessment are already decided. It records
+// the factory the command bound, which must be the Model's assessment of this very Case.
+func assessedSession(t *testing.T, status testpilotspb.VerdictStatus, assessment *testpilot.Assessment) opener {
+	return func(_ context.Context, _ config, source *testpilotspb.Case) (*session, error) {
+		return &session{
+			run: func(context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+				t.Fatal("a Run with --model runs with its assessment")
+				return nil, nil, nil
+			},
+			assessed: func(_ context.Context, factory testpilot.AssessmentFactory) (*testpilotspb.Run, *testpilotspb.Verdict, *testpilot.Assessment, error) {
+				fingerprint, err := testpilot.CaseFingerprint(source)
+				require.NoError(t, err)
+				require.Equal(t, fingerprint, factory.Binding().Case)
+				require.Contains(t, factory.Binding().Query, "temporal.activity.standalone/activityProtocol/completion#")
+				disposition := testpilotspb.RUN_DISPOSITION_COMPLETED
+				if status == testpilotspb.VERDICT_STATUS_VIOLATED {
+					disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
+				}
+				return &testpilotspb.Run{Disposition: disposition, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}},
+					&testpilotspb.Verdict{Status: status}, assessment, nil
+			},
+		}, nil
+	}
+}
+
+// With --model the report adds the conformance and every property with its reason id after the
+// Run's lines, then whether the Run is the one the Query expects; the exit code is the worse of the
+// Verdict and the assessment, one test per code.
+func TestRunWithAModelReportsTheAssessmentAndExitsByTheWorse(t *testing.T) {
+	for name, probe := range map[string]struct {
+		verdict    testpilotspb.VerdictStatus
+		assessment func(*testpilot.Assessment)
+		code       int
+		lines      []string
+	}{
+		"satisfied": {testpilotspb.VERDICT_STATUS_SATISFIED, nil, exitSatisfied, []string{
+			"conformance conformant", "property completes satisfied", "expected match",
+		}},
+		"a violated property under a satisfied Verdict": {testpilotspb.VERDICT_STATUS_SATISFIED, func(a *testpilot.Assessment) {
+			a.Properties[0].Status, a.Properties[0].Reason = testpilot.PropertyViolated, "every_explanation_violates"
+		}, exitViolated, []string{
+			"conformance conformant", "property completes violated every_explanation_violates",
+			"expected differs: completes's status is violated, expected satisfied",
+			"expected differs: completes's reason is every_explanation_violates, expected none",
+		}},
+		"nonconformant": {testpilotspb.VERDICT_STATUS_SATISFIED, func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceNonconformant, Reason: "unexplained"}
+			a.Properties[0].Status, a.Properties[0].Reason = testpilot.PropertyInconclusive, "unexplained"
+		}, exitViolated, []string{
+			"conformance nonconformant unexplained", "property completes inconclusive unexplained",
+			"expected differs: the conformance is nonconformant, expected conformant",
+			"expected differs: completes's status is inconclusive, expected satisfied",
+			"expected differs: completes's reason is unexplained, expected none",
+		}},
+		"inconclusive": {testpilotspb.VERDICT_STATUS_SATISFIED, func(a *testpilot.Assessment) {
+			a.Properties[0].Status, a.Properties[0].Reason = testpilot.PropertyInconclusive, "never_evaluated"
+		}, exitInconclusive, []string{
+			"conformance conformant", "property completes inconclusive never_evaluated",
+			"expected differs: completes's status is inconclusive, expected satisfied",
+			"expected differs: completes's reason is never_evaluated, expected none",
+		}},
+		"an inconclusive Verdict": {testpilotspb.VERDICT_STATUS_INCONCLUSIVE, nil, exitInconclusive, []string{
+			"conformance conformant", "property completes satisfied",
+			"expected differs: the Contract's Verdict is inconclusive, expected satisfied",
+		}},
+		"a violated Verdict": {testpilotspb.VERDICT_STATUS_VIOLATED, nil, exitViolated, []string{
+			"conformance conformant", "property completes satisfied",
+			"expected differs: the disposition is stopped_by_monitor, expected completed",
+			"expected differs: the Contract's Verdict is violated, expected satisfied",
+		}},
+		"an assessment failure": {testpilotspb.VERDICT_STATUS_SATISFIED, func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive}
+			a.Properties = nil
+			a.Failure = &testpilot.AssessmentFailure{Code: testpilot.AssessmentLimitExceeded, Detail: "work ceiling", EventSequence: 7}
+		}, exitFailed, []string{
+			"conformance inconclusive", "assessment failed limit_exceeded at event 7",
+			"expected differs: the assessment failed: limit_exceeded work ceiling",
+			"expected differs: the conformance is inconclusive, expected conformant",
+			"expected differs: the assessment concludes 0 claims, expected 1",
+			"expected differs: the assessment omits completes",
+		}},
+		"a violation established before the assessment failed": {testpilotspb.VERDICT_STATUS_SATISFIED, func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive}
+			a.Properties[0].Status = testpilot.PropertyViolated
+			a.Failure = &testpilot.AssessmentFailure{Code: testpilot.AssessmentObserveFailed, EventSequence: 3}
+		}, exitViolated, nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assessment := satisfiedAssessment()
+			if probe.assessment != nil {
+				probe.assessment(assessment)
+			}
+			var stdout, stderr bytes.Buffer
+			code := Run(modelFlags(), &stdout, &stderr, assessedSession(t, probe.verdict, assessment))
+			require.Equal(t, probe.code, code, stderr.String())
+			require.Empty(t, stderr.String())
+			lines := strings.Split(strings.TrimSpace(stdout.String()), "\n")
+			require.Equal(t, "verdict "+probe.verdict.String(), lines[2])
+			if probe.lines != nil {
+				require.Equal(t, probe.lines, lines[3:])
+			}
+		})
+	}
+}
+
+// A Case the model directory does not lower, or a model directory that cannot be read, is refused
+// with exit 3 before any binding is opened.
+func TestRunWithAModelRefusesACaseItDoesNotAssessBeforeOpening(t *testing.T) {
+	for name, probe := range map[string]struct {
+		arguments []string
+		message   string
+	}{
+		"a hand-written Case": {append(requiredFlags(t, "nexusPairTests-bothComplete-case.json"), "--model", modelRoot), "not a generated Case"},
+		"no model directory":  {append(requiredFlags(t, asyncCompletionFixture), "--model", t.TempDir()), "manifest.json"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			opened := false
+			var stdout, stderr bytes.Buffer
+			code := Run(probe.arguments, &stdout, &stderr, func(context.Context, config, *testpilotspb.Case) (*session, error) {
+				opened = true
+				return nil, errors.New("not opened")
+			})
+			require.Equal(t, exitFailed, code)
+			require.False(t, opened, "nothing is opened for a Case the Model does not assess")
+			require.Empty(t, stdout.String())
+			require.Contains(t, stderr.String(), "--model: ")
+			require.Contains(t, stderr.String(), probe.message)
+		})
+	}
+}
+
+// A binding that cannot run an assessment fails the Run rather than running it unassessed.
+func TestRunWithAModelNeedsABindingThatAssesses(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run(modelFlags(), &stdout, &stderr, verdictSession(testpilotspb.VERDICT_STATUS_SATISFIED))
+	require.Equal(t, exitFailed, code)
+	require.Empty(t, stdout.String())
+	require.Contains(t, stderr.String(), "cannot run a Model assessment")
+}

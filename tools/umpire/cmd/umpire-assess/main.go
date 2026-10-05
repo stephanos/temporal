@@ -3,8 +3,10 @@
 // `umpire-assess run` names the subject -- a canonical Case and the Run recorded against it -- an
 // Evaluation Profile by its exact name, and a receipt root outside the model. It admits the
 // subject strictly, assesses the recorded Verdict under the Profile, renders the canonical
-// receipt and publishes it under its identity, exclusively. It prepares, runs and replays
-// nothing, and takes no Driver, deployment, endpoint, credential, checker, policy or retry flag.
+// receipt and publishes it under its identity, exclusively. With --model it also assesses the
+// recorded Run of a generated Case against the Model, offline, and decides it beside the Verdict.
+// It runs nothing, and takes no Driver, deployment, endpoint, credential, checker, policy or retry
+// flag.
 // One JSON summary goes to stdout; stderr carries one line saying what happened.
 package main
 
