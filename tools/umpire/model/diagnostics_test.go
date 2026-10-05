@@ -77,7 +77,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 			walk(x, func(x *umpirespb.Expr) {
 				if c := x.GetCall(); c != nil && (strings.HasSuffix(c.GetFunction(), "Protocol$.saturatingSucc") ||
 					strings.HasSuffix(c.GetFunction(), "Protocol$.validAttempts")) {
-					c.Function = "temporal.nexuscaller.Protocol$.move"
+					c.Function = "temporal.features.nexuscaller.Protocol$.move"
 				}
 			})
 		}
@@ -87,7 +87,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	lines := strings.Split(err.Error(), "\n")
 	require.GreaterOrEqual(t, len(lines), 5, "every renamed call is reported, not only the first")
 	for _, l := range lines {
-		require.Regexp(t, `^model/temporal/features/nexuscaller/Model\.scala:\d+: no function temporal\.nexuscaller\.Protocol\$\.move$`, l)
+		require.Regexp(t, `^model/temporal/features/nexuscaller/Model\.scala:\d+: no function temporal\.features\.nexuscaller\.Protocol\$\.move$`, l)
 	}
 }
 
@@ -100,7 +100,7 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/Model.scala:424: temporal.nexuscaller.Protocol$.backoffStep "+
+	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/Model.scala:424: temporal.features.nexuscaller.Protocol$.backoffStep "+
 		"steps handlerReply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 

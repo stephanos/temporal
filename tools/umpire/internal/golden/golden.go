@@ -254,6 +254,20 @@ func Root() (string, error) {
 	}
 }
 
+// movedTo checks the moves, and that each path move names a directory the checkout under root has.
+// That the old one is gone is TestRetiredModelPathsStayRetired's.
+func (c Config) movedTo(root string) error {
+	if err := c.movesApply(); err != nil {
+		return err
+	}
+	for _, m := range c.PathMoves {
+		if _, err := os.Stat(filepath.Join(root, m.New)); err != nil {
+			return fmt.Errorf("source path move to %s: %w", m.New, err)
+		}
+	}
+	return nil
+}
+
 // moved gives the inventory paths of underBase under the directories PathMoves moved them to.
 func (c Config) moved(paths map[string]string) map[string]string {
 	out := make(map[string]string, len(paths))
@@ -419,10 +433,7 @@ func (c Config) inventoried() error {
 }
 
 func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
-	if err := c.inventoried(); err != nil {
-		return nil, err
-	}
-	if err := c.movesApply(); err != nil {
+	if err := errors.Join(c.inventoried(), c.movedTo(root)); err != nil {
 		return nil, err
 	}
 	base := "model/scalav2"
@@ -430,12 +441,6 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 		base = "model"
 	} else if err != nil {
 		return nil, err
-	}
-	// Each move names a directory the checkout has. That the old one is gone is TestRetiredModelPaths's.
-	for _, m := range c.PathMoves {
-		if _, err := os.Stat(filepath.Join(root, m.New)); err != nil {
-			return nil, fmt.Errorf("source path move to %s: %w", m.New, err)
-		}
 	}
 	expected, later := c.moved(underBase(c.Inventory, base)), c.moved(underBase(c.Later, base))
 	found := map[string]bool{}
