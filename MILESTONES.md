@@ -70,24 +70,6 @@ The planned work below continues that direction: the Scala layer first, then the
 Listed in delivery order. Flow records dependencies only within a spec, so each spec names the
 cross-spec gates the conductor holds.
 
-### fn-114: State every Scala Model declaration once
-
-Gate: task 9 runs after fn-118.2 and fn-120.3 have merged (both done); task 8 closes the spec.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-114.1 | ✅ done | IR-file roots declared in Scala, one lifter run |
-| fn-114.2 | ✅ done | Nexus caller Model restated (captured names, derivation, four files) |
-| fn-114.3 | ✅ done | Nexus caller realization by value with the shared kit |
-| fn-114.4 | ✅ done | Close-policy declarations in the final DSL (`sticky`) |
-| fn-114.5 | ✅ done | Close-policy Model split into the four-file layout |
-| fn-114.6 | ✅ done | Worker Model and lifter fixtures restated |
-| fn-114.7 | ✅ done | String-named declaration forms retired |
-| fn-114.10 | ✅ done | Lifter fixtures reduced to fixture-local Models |
-| fn-114.11 | ✅ done | Redundant type annotations dropped |
-| fn-114.12 | ✅ done | `model/umpire` Temporal-agnostic, guarded by a test |
-| fn-114.9 | ✅ done | Rename tool folders (`irgen`, `check`, `build`); group `model/temporal` into `features/` and `shared/` |
-| fn-114.8 | ⬜ todo | Close: counts and full gates |
 
 ### fn-118: Declare how Temporal APIs behave once
 
@@ -102,18 +84,6 @@ Gate: started before fn-114 closed (its remaining tasks are cleanup).
 | fn-118.5 | 🔄 in progress | Realizations migrated to derived waits; close |
 
 
-### fn-122: Capabilities and their laws
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-122.1 | ✅ done | Law bodies and catalog with server citations |
-| fn-122.2 | ✅ done | `capabilities` declaration, `except`/`overriding`, lifting |
-| fn-122.3 | ✅ done | Activity capabilities; authored twins retired |
-| fn-122.4 | ✅ done | Standalone Nexus operation Model; required settings |
-| fn-122.8 | ✅ done | Capability vocabulary moved to `model/temporal/capabilities` |
-| fn-122.5 | ✅ done | Law lint kinds; waiver reasons in the accepted-findings file |
-| fn-122.6 | ⬜ todo | Docs, authored vs generated counts; close |
-| fn-122.7 | ⏸️ deferred | Pausable on fn-119's example |
 
 ### fn-127: Simplify the DSL's words
 
@@ -159,7 +129,7 @@ Deferred by the owner on 2026-10-04 as not needed for the code deliverable (the 
 fn-119 (Go SDK workflow showcase; tasks 1-2 done, 3-6 blocked), fn-122.7, fn-123 (faults as environment
 actions, not planned). Deferred on 2026-10-05: fn-125 (dynamic configuration in the Models; task 1, the
 HSM/CHASM switch fixes, is done; evidence in `.plans/DYNAMIC_CONFIG.md`). The IR explorer (fn-120.4) was removed. Also deferred: `make umpire-check-backends` in CI (it runs
-locally after `make umpire-install-backends`). fn-112, fn-120 and fn-121 are closed.
+locally after `make umpire-install-backends`). fn-112, fn-114, fn-120, fn-121 and fn-122 are closed.
 
 ## Open for the owner
 
