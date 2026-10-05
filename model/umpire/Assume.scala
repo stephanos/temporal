@@ -17,9 +17,6 @@ def assume(name: String): Assumption = Assumption(name, Nil)
 /** Declares an assumption named after the `val` that declares it. */
 def assume: Assumption = assume("")
 
-/** The assumptions every result of a check of this machine names. */
-def assumes(as: Assumption*)(using m: MachineScope[?, ?, ?]): Unit = m.assumptions ++= as
-
 /**
  * A declared hole: behavior the Model leaves unknown on purpose. A step that reaches it is neither
  * disabled, as an empty list of steps is, nor an error: a result that depends on it is incomplete

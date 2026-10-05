@@ -62,7 +62,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:487: LoopFirst is derived from it
 lift: model/irgen/testdata/lifts/Rejects.scala:751: LoopPair is derived from itself, through LoopPair, LoopPairBack: a composition derives from a composition declared without it
 lift: model/irgen/testdata/lifts/Rejects.scala:1262: toProduct is a member of looseRefinement's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
 lift: model/irgen/testdata/lifts/Rejects.scala:558: right of memberIncompatible holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
-lift: model/irgen/testdata/lifts/Rejects.scala:547: compose names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
+lift: model/irgen/testdata/lifts/Rejects.scala:547: memberNoField names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
 lift: model/irgen/testdata/lifts/Rejects.scala:152: middle replaces first, and no member fills middle
 lift: model/irgen/testdata/lifts/MovedRejects.scala:13: fixture.rejects.moved.Gauge and fixture.rejects.Gauge would both be named fixture.rejects.Gauge in the IR: a type moved under a DefinitionScope keeps a name no other type of the Model has
 lift: model/irgen/testdata/lifts/Rejects.scala:1284: brighten is an effect and gives no step here: an effect says what an action does, never whether, so it returns no `disabled` or `Nil`; the rules say where it fires
@@ -74,7 +74,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:439: rebindPush rebinds push, whi
 lift: model/irgen/testdata/lifts/Rejects.scala:1235: rebindSeveral rebinds squeeze, which ruled binds by 2 rules with different effects, to one effect: rebind its rules with `when(...) { ... }`, which replace them
 lift: model/irgen/testdata/lifts/Rejects.scala:1239: rebindUnbound rebinds twist, which ruled does not bind: extend binds an action the source does not
 lift: model/irgen/testdata/lifts/Rejects.scala:448: reboundTwice rebinds flip twice: a machine binds an action once
-lift: model/irgen/testdata/lifts/Rejects.scala:465: refinedNothing replaces the refinement of oneStart, which declares none: declare it with `refines` in the machine
+lift: model/irgen/testdata/lifts/Rejects.scala:465: refinedNothing replaces the refinement of oneStart, which declares none: declare it in the machine's `object refinement extends Refinement(product)`
 lift: model/irgen/testdata/lifts/Rejects.scala:483: refinedOtherwise refines glance of fixture.rejects.Glimpse, fixture.rejects.Seen, Nothing in place of first of fixture.rejects.Flag, fixture.rejects.Outcome, Nothing: a replacement refines a machine of the same state, outcome and fact types, whose facts and outcomes the kept refinement names
 lift: model/irgen/testdata/lifts/Rejects.scala:346: Query asked is declared twice, and both would share one Definition ID
 lift: model/irgen/testdata/lifts/Rejects.scala:735: own names the action dim, which takes inputs, and a Scenario lists classes: name one with `dim(...)`

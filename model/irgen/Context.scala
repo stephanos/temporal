@@ -348,18 +348,11 @@ final private[irgen] class Context(val index: Index):
 
   /**
    * Whether `owner` is a machine's object: an object at a file's top level that is a machine or a
-   * composition (`object M extends Machine[...]`, `Derived(...)` or `Composition(...)`), or, in a
-   * Model the builder declares, one holding a machine.
+   * composition (`object M extends Machine[...]`, `Derived(...)` or `Composition(...)`).
    */
   private def machineObject(owner: Symbol): Boolean =
     owner.isClassDef && owner.flags.is(Flags.Module) && owner.maybeOwner.isPackageDef &&
-      !isSection(owner) && (objectForm(owner) || defs.values.exists {
-        case v: ValDef =>
-          v.symbol.maybeOwner == owner &&
-          Seq("umpire.Machine", "umpire.Composition")
-            .contains(v.tpt.tpe.widen.dealias.typeSymbol.fullName)
-        case _ => false
-      })
+      !isSection(owner) && objectForm(owner)
 
   // ### Object forms: an object that is a machine or a composition (umpire.Machine, umpire.Derived,
   // umpire.Composition), and the sections it reads
@@ -374,7 +367,7 @@ final private[irgen] class Context(val index: Index):
   lazy val syncsClass: Symbol = Symbol.requiredClass("umpire.Syncs")
   lazy val refinementClass: Symbol = Symbol.requiredClass("umpire.Refinement")
 
-  /** Whether a value of this type is a machine: one the builder declared, or a machine object. */
+  /** Whether a value of this type is a machine: a machine object, or a derivation of one. */
   def isMachine(t: TypeRepr): Boolean = t.widen.dealias.derivesFrom(machineClass)
 
   /** Whether a value of this type is a composition. */

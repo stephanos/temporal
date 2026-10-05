@@ -165,103 +165,6 @@ extension [A, B, C](a: Action[(A, B, C)])
     StepBinding(a.decl, f)
 
 /**
- * The machine-declaration scope. Inside `machine(...) { ... }` the entry points below are bare
- * calls that resolve against the scope in context: there is no builder to thread.
- */
-final class MachineScope[S, O, F] private[umpire] ():
-  private[umpire] var entity: Option[Entity] = None // scalafix:ok DisableSyntax.var
-  private[umpire] var starts: List[S] = Nil // scalafix:ok DisableSyntax.var
-  private[umpire] var ends: S => Boolean = _ => false // scalafix:ok DisableSyntax.var
-  private[umpire] var evidence: Option[F => String] = None // scalafix:ok DisableSyntax.var
-  private[umpire] val unobservable = mutable.LinkedHashSet.empty[String]
-  private[umpire] val bindings = mutable.ArrayBuffer.empty[StepBinding[S, O, F]]
-  private[umpire] var refinement: Option[RefinementDecl[S]] = None // scalafix:ok DisableSyntax.var
-  private[umpire] var visible: Option[F => Boolean] = None // scalafix:ok DisableSyntax.var
-  private[umpire] var visibleOutcomes: Option[O => Boolean] = None // scalafix:ok DisableSyntax.var
-  private[umpire] val monitors = mutable.ArrayBuffer.empty[Monitor[S, O, F, ?]]
-  private[umpire] val assumptions = mutable.ArrayBuffer.empty[Assumption]
-
-/**
- * Declares a machine: a transition relation over the finite state type `S` with outcomes `O` and
- * facts `F`, one step function per action, the states it starts in, the states it may end in and
- * the evidence that confirms each fact.
- */
-def machine[S, O, F](family: Family, name: String)(body: MachineScope[S, O, F] ?=> Unit)(using
-    Finite[S],
-    Finite[O],
-    Finite[F]
-): Machine[S, O, F] = declare(family, name, body)
-
-/**
- * Declares a machine named after the `val` that declares it, in the `given Family`. Its three types
- * are stated once, here or as the `val`'s type: `val m = machine[S, O, F] { ... }`.
- */
-def machine[S, O, F](body: MachineScope[S, O, F] ?=> Unit)(using
-    family: Family,
-    fs: Finite[S],
-    fo: Finite[O],
-    ff: Finite[F]
-): Machine[S, O, F] = declare(family, "", body)
-
-private def declare[S, O, F](family: Family, name: String, body: MachineScope[S, O, F] ?=> Unit)(
-    using
-    Finite[S],
-    Finite[O],
-    Finite[F]
-): Machine[S, O, F] =
-  val scope = MachineScope[S, O, F]()
-  body(using scope)
-  Built(
-    name,
-    scope.starts,
-    scope.ends,
-    scope.bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function)),
-    Nil
-  )(using family)
-
-/** Names the entity the machine keeps state for. */
-def forEntity(e: Entity)(using m: MachineScope[?, ?, ?]): Unit = m.entity = Some(e)
-
-/** The states the machine starts in. */
-def starts[S](using m: MachineScope[S, ?, ?])(states: S*): Unit = m.starts = states.toList
-
-/** Which states the machine may end in. */
-def ends[S](using m: MachineScope[S, ?, ?])(end: S => Boolean): Unit = m.ends = end
-
-/** Timers whose step records nothing a Run can read. */
-def unobservable(timers: Action[EmptyTuple]*)(using m: MachineScope[?, ?, ?]): Unit =
-  m.unobservable ++= timers.map(_.name)
-
-/**
- * `evidence:` as a total function from facts to the recorded event or observation that confirms
- * them, such as a named function over every fact.
- */
-def evidence[F](using m: MachineScope[?, ?, F])(lines: F => String): Unit = m.evidence = Some(lines)
-
-/**
- * `evidence { case ... }` lists only the facts confirmed by something other than evidence of their
- * own name. A fact no line names, and every fact of a machine that declares no evidence, is
- * confirmed by the evidence named after it; a fact with fields needs a line of its own, which the
- * lifter refuses to leave out.
- */
-def evidence[F](using m: MachineScope[?, ?, F])(exceptions: PartialFunction[F, String]): Unit =
-  m.evidence = Some(exceptions)
-
-/** The step functions, one per action. */
-def steps[S, O, F](using m: MachineScope[S, O, F])(bindings: StepBinding[S, O, F]*): Unit =
-  m.bindings ++= bindings
-
-/**
- * The facts the refined machine sees. A step that reads as a stutter of it records none of them,
- * and a step it carries records only the ones its carrying step records.
- */
-def visible[F](using m: MachineScope[?, ?, F])(sees: F => Boolean): Unit = m.visible = Some(sees)
-
-/** The outcomes the refined machine sees. A step that reads as a stutter of it answers none of them. */
-def visibleOutcomes[O](using m: MachineScope[?, O, ?])(sees: O => Boolean): Unit =
-  m.visibleOutcomes = Some(sees)
-
-/**
  * The owner of a machine's sections, which its `rules` read the machine's types from:
  * `object rules extends Rules(_.phase)` in `object OrderProduct extends Machine[...]`.
  */
@@ -270,7 +173,7 @@ final class Owner[S, O, F] private[umpire] (val machine: Machine[S, O, F])
 /**
  * What a machine binds each action to, in the order the first binding of each names it: a step
  * function, rules, or nothing. A machine's `rules` (model/umpire/Syntax.scala) is the one a Model
- * writes; the machines the builder declares or a derivation makes keep theirs as built.
+ * writes; a derivation keeps what it makes as built, and the core `Bindings` binds step functions.
  */
 abstract class RuleBook[S, O, F] extends Section:
   private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])]
@@ -556,8 +459,8 @@ abstract class Derived[S, O, F](derivation: Machine[S, O, F])
   final override private[umpire] def reaches: Seq[Model] = Seq(derivation)
 
 /**
- * A machine declared by the `machine[S, O, F] { ... }` builder, or derived from another: its name, its
- * starts and ends and what it binds each action to. What else it declares only the lifter reads.
+ * A machine a derivation makes from another: its name, its starts and ends, what it binds each
+ * action to and the machines it is made from. What else it declares only the lifter reads.
  */
 final private[umpire] class Built[S, O, F](
     override val name: String,

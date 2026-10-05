@@ -129,8 +129,7 @@ private[irgen] trait Markers:
         refuse(m.position, s"${m.name} is marked a failure model and a negative control: it is one")
       if negative then negativeControl(m.name, m.position, cls)
       if failure then failureModel(m.name, m.position, faultsOf(m))
-      // A machine the builder declares has no object to mark; the builder is being retired.
-      if cls.nonEmpty && !failure && !negative && faultsOf(m).nonEmpty then
+      if !failure && !negative && faultsOf(m).nonEmpty then
         refuse(
           m.position,
           s"${m.name} binds the fault ${faultsOf(m).map(actions(_).name).mkString(", ")} and is " +
