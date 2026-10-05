@@ -787,6 +787,27 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
+  // A Model folder must name its feature file after itself (misnamed/Lamp.scala): a file of another
+  // name in a folder with no feature file would otherwise be held to no reading order.
+  concurrently("the declaration-order lint refuses a Model in a folder with no feature file"):
+    val jar = packaged("misnamed", materialize("misnamed"))
+    val out = scratch.resolve("misnamed-out")
+    val at = stored("misnamed")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    val home = "a Model folder declares its Models in its feature file, " +
+      s"${at}Misnamed.scala"
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: ${at}Lamp.scala:18: Switch holds a Model declaration in a file not named after " +
+          s"its folder: $home",
+        s"lift: ${at}Lamp.scala:29: loose is a Property, declared in a file not named after its " +
+          s"folder: $home"
+      )
+    )
+
   concurrently("the lifter refuses a mapped read ending at a singular message"):
     val out = lifted("typedMapped")
     val result = lift(
