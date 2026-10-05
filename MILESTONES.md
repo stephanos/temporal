@@ -74,7 +74,7 @@ cross-spec gates the conductor holds.
 
 ### fn-126: Read each feature top to bottom: one object per machine
 
-Gate: never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes.
+Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after fn-124.7.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -87,7 +87,7 @@ Gate: never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 7 after fn-126 closes (fn-114, fn-120 and fn-122 are closed); task 8 last, never alongside fn-126.
+Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reader projection, not the harness); task 8 last, never alongside fn-126.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -97,7 +97,7 @@ Gates: task 7 after fn-126 closes (fn-114, fn-120 and fn-122 are closed); task 8
 | fn-124.4 | ✅ done | Verdict aggregation defined once; judge rules documented |
 | fn-124.5 | ✅ done | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ✅ done | Model assessment as the command-line judge; Evaluation Profile derived or retired |
-| fn-124.7 | ⬜ todo | Migration harness and frozen snapshots retired |
+| fn-124.7 | 🔄 in progress | Migration harness and frozen snapshots retired |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
 
