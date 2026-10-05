@@ -8,9 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-
 	"go.temporal.io/server/tools/gomad3/choice"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 )

@@ -18,7 +18,11 @@ Revive this task for its remaining qualification-package gci finding from integr
 
 Reproduce the single finding with the actual pinned unfiltered package lint before editing, then run the same command without fix/filter/suppression to verify zero findings. Run all ordinary qualification tests, TestPackageArchitecture, errortype and gofmt on frozen source; preserve diagnostic-off digests and storage controls. Import formatting needs no new source-text test and is outside generator input lists. Per MILESTONES' small-fix rerun rule, historical consumer/boundary results remain historical; this correction's fresh package and architecture checks do not fulfill unproved original full/affected gates. Retain separate admission, commands/results and byte-preservation evidence under task-37/import-order-2026-10-05; do not rewrite the earlier evidence or verifier, which binds the previously protected fixture. Root owns admission/review/Flow/Git, admits one fresh worker and commits independently reviewed source progress before another writer. Original six acceptance bullets remain in force except the explicitly superseded import protection/residual-gci instruction; full/native/formal, original preservation and matched-baseline requirements remain open without proof. Linux stays with fn-128.
 
-### Cause and preservation
+### Current import-only source progress (2026-10-05)
+
+The admitted diagnostic import layout is corrected. Same pinned unfiltered package lint reproduced one gci before the edit and reports zero findings in both worker and fresh root runs. Current-source qualification passes 23 top-level tests (66 with subtests), architecture passes one test, and errortype/gofmt/diff checks pass. Independent fresh source review found zero actionable introduced defects. Root verified exact diagnostic body/import identities, protected source/tool/config bindings and immutable earlier artifacts. The [current progress and raw command evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/import-order-2026-10-05/progress.md) is distinct from historical cleanup proof and formal SHIP. Original full/native/formal/dependency/matched-baseline/affected-consumer acceptance remains open; Linux stays with fn-128.
+
+### Original cleanup cause and preservation
 WriteQualificationReport currently discards its staging-name Remove and three early Chmod/Write/Sync failure-path Close results. OpenQualificationReport discards its single deferred Close. Preserve their exact lifetimes and operation order. Close the staging descriptor exactly once at the original early/success point. On nil Close retain the original contextual primary error and its concrete identity; only join a nonnil cleanup error after the primary. Keep the existing success Close context verbatim and leave directory Sync/Close precedence unchanged.
 
 Retain staging Remove at function return with a named error result, after all descriptor/directory operations. os.ErrNotExist is the expected consumed staging name after rename and is not an error. Return any other Remove error directly when sole, otherwise join after the existing primary; preserve the existing returned path even after publication. Never remove or retry the published destination. The reader retains its one deferred Close spanning Stat, regular-file/16 MiB validation, bounded read, one-newline trimming and canonical/semantic decode. Nil Close preserves results/errors; nonnil Close clears the report and returns sole cleanup directly or primary-first joined errors. This newly observed cleanup failure is an infrastructure failure, explicitly bounded and disclosed.
@@ -82,10 +86,12 @@ primary/cleanup, Remove and post-Rename directory fault execution is unproved.
 Worker handover lifecycle text is its immutable prior in-progress snapshot, not
 a claim about the later root-owned blocked state.
 
+Blocked:
+ORIGINAL_QUALIFICATION_OPEN: qualification cleanup and the separately admitted diagnostic import-order correction have reviewed source progress; current unfiltered package lint is clean and scoped package/architecture/errortype/gofmt checks pass. Original full/root-fast/native Darwin/formal/predecessor/shared-fn108/matched-first-baseline/affected-consumer/native-default acceptance is still unproved. Genuine cleanup-fault execution remains unproved. Do not substitute focused developmental linux/arm64 evidence or historical receipts for those gates. Linux execution belongs to fn-128 and does not block this task. See task-37/import-order-2026-10-05/progress.md. Commit verified progress while retaining blocked status; revive only for an admitted source correction or a changed original-gate prerequisite.
 ## Evidence
-- Commits: Root creates the separate reviewed source-progress checkpoint; see Git history.
-- Tests: python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/verify.py; frozen command receipts linked above.
-- PRs: None; push/publication not authorized.
+- Commits:
+- Tests:
+- PRs:
 
 ## Linux ownership blocker (2026-10-04)
 

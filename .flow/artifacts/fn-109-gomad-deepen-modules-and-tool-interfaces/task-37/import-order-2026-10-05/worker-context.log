@@ -1,0 +1,46 @@
+/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3
+69e08f631f4891574db413df3a701f800384cb0e
+gomad
+Linux aarch64
+go version go1.27.1 linux/arm64
+golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: "h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=") on (unknown)
+/tmp/fn109-lint-tools.ZdNe1t50/errortype: go1.27.1
+	path	fillmore-labs.com/errortype
+	mod	fillmore-labs.com/errortype	v0.0.7	h1:adjCDsTl3H9LKwHIzZFFaUmyzePkMU3iy04neTIIWao=
+	dep	github.com/goccy/go-yaml	v1.18.0	h1:8W7wMFS12Pcas7KU+VVkaiCng+kG8QiFeFwzFb+rwuw=
+	dep	golang.org/x/exp	v0.0.0-20251009144603-d2f985daa21b	h1:18qgiDvlvH7kk8Ioa8Ov+K6xCi0GMvmGfGW0sgd/SYA=
+	dep	golang.org/x/mod	v0.29.0	h1:HV8lRxZC4l2cr3Zq1LvtOsi/ThTgWnUk/y64QSs8GwA=
+	dep	golang.org/x/sync	v0.17.0	h1:l60nONMj9l5drqw6jlhIELNv9I0A4OFgRsG9k2oT9Ug=
+	dep	golang.org/x/tools	v0.38.0	h1:Hx2Xv8hISq8Lm16jvBZ2VQf+RLmbd7wVUsALibYI/IQ=
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	DefaultGODEBUG=containermaxprocs=0,cryptocustomrand=1,decoratemappings=0,tlssecpmlkem=0,tlssha1=1,tracebacklabels=0,updatemaxprocs=0,urlstrictcolons=0,x509sha256skid=0,x509sslcertoverrideplatform=0
+	build	CGO_ENABLED=1
+	build	CGO_CFLAGS=
+	build	CGO_CPPFLAGS=
+	build	CGO_CXXFLAGS=
+	build	CGO_LDFLAGS=
+	build	GOARCH=arm64
+	build	GOOS=linux
+	build	GOARM64=v8.0
+linux
+arm64
+
+off
+local
+off
+off
+
+
+1
+
+/home/agent/.cache/go-build
+/home/agent/go/pkg/mod
+GOFLAGS=
+GOSUMDB=off
+GOENV=off
+GOPROXY=off
+GOMAXPROCS=2
+GOTOOLCHAIN=local
+GOWORK=off
+PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin
