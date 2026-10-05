@@ -8,11 +8,11 @@ import umpire.*
 enum Outcome derives Finite:
   case accepted
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 final case class Lamp(lit: Boolean) derives Finite
 
 val committed = choice
 
 // One alternative.
-def lightStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = choose(committed -> accept(Lamp(true)))
+def lightStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = choose(committed -> enter(Lamp(true)))

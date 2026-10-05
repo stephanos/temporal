@@ -19,14 +19,14 @@ enum Dim derives Finite:
 enum Outcome derives Finite:
   case accepted
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 val flip = action(Party("user"))
 val dim = action(Party("user")).input[Dim]("level")
 
-def flipStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = accept(Lamp(!l.lit))
+def flipStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = enter(Lamp(!l.lit))
 def dimStep(l: Lamp, level: Dim): List[Step[Lamp, Outcome, Nothing]] =
-  if l.lit then accept(l) else disabled
+  if l.lit then enter(l) else disabled
 
 // 2 states; its action classes are flip and dim's two levels, 3 in all.
 val lamp = machine[Lamp, Outcome, Nothing] {
@@ -51,7 +51,7 @@ val flipTwice = lamp.scenario.actions(flip, flip)
 val infixTotal = query find litOnce in flipTwice limits two total 4
 val dottedTotal = (query find litOnce in flipTwice limits two).total(4)
 
-val run = realize.RunExpectation(realize.Conformance.conformant, realize.Outcome.satisfied)
+val run = realize.RunExpectation(realize.Conformance.conformant, realize.PropertyOutcome.satisfied)
 val totalThenExpect = (query find litOnce in flipTwice limits two total 4).expect(run)
 val expectThenTotal = (query find litOnce in flipTwice limits two).expect(run).total(4)
 

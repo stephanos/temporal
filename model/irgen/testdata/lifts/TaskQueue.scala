@@ -20,7 +20,7 @@ final case class Job(phase: JobPhase) derives Finite
 enum JobOutcome derives Finite:
   case accepted
 
-given Accepted[JobOutcome] = Accepted(JobOutcome.accepted)
+given Ok[JobOutcome] = Ok(JobOutcome.accepted)
 
 type JobStep = Step[Job, JobOutcome, Nothing]
 
@@ -33,16 +33,16 @@ val settle = internal
  * enqueue of a second message while one is outstanding.
  */
 def sendStep(j: Job): List[JobStep] =
-  if j.phase.in(JobPhase.idle, JobPhase.sent) then accept(Job(JobPhase.sent)) else disabled
+  if j.phase.in(JobPhase.idle, JobPhase.sent) then enter(Job(JobPhase.sent)) else disabled
 
 /** The queue may deliver a message twice, and the second delivery finds the job started. */
 def startStep(j: Job): List[JobStep] = j.phase match
-  case JobPhase.sent                    => accept(Job(JobPhase.started))
+  case JobPhase.sent                    => enter(Job(JobPhase.started))
   case JobPhase.started                 => stay(j)
   case JobPhase.idle | JobPhase.settled => disabled
 
 def settleStep(j: Job): List[JobStep] =
-  if j.phase == JobPhase.started then accept(Job(JobPhase.settled)) else disabled
+  if j.phase == JobPhase.started then enter(Job(JobPhase.settled)) else disabled
 
 val job = machine[Job, JobOutcome, Nothing] {
   starts(Job(JobPhase.idle))

@@ -91,7 +91,7 @@ val attemptCount = Observation(on = activity, read = "attempt")
 enum Outcome derives Finite:
   case accepted, notFound
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 // ### The product machine: what DescribeActivityExecution shows, with no account of how. A retry
 // reads as scheduled again, a pause of a running attempt as started until the worker yields.
@@ -131,7 +131,7 @@ object Product:
   def pausable(s: ProductState) = s.phase.in(scheduled, started)
 
   def attemptStart(s: ProductState) =
-    if s.phase != scheduled then disabled else accept(ProductState(started), statusStarted)
+    if s.phase != scheduled then disabled else enter(ProductState(started), statusStarted)
 
   /**
    * Unlike the Nexus caller, a retryable failure reads SCHEDULED again with a higher attempt count
@@ -142,13 +142,13 @@ object Product:
     if !held(s) then disabled
     else
       result match
-        case AttemptResult.completed         => accept(ProductState(completed), statusCompleted)
+        case AttemptResult.completed         => enter(ProductState(completed), statusCompleted)
         case AttemptResult.failed(retryable) =>
-          if !retryable then accept(ProductState(failed), statusFailed)
-          else if s.phase == cancelRequested then accept(ProductState(canceled), statusCanceled)
-          else accept(ProductState(scheduled), statusScheduled)
+          if !retryable then enter(ProductState(failed), statusFailed)
+          else if s.phase == cancelRequested then enter(ProductState(canceled), statusCanceled)
+          else enter(ProductState(scheduled), statusScheduled)
         case AttemptResult.canceled =>
-          if s.phase == cancelRequested then accept(ProductState(canceled), statusCanceled)
+          if s.phase == cancelRequested then enter(ProductState(canceled), statusCanceled)
           else disabled
 
   /**
@@ -160,18 +160,18 @@ object Product:
     else
       c match
         case Control.pause =>
-          if pausable(s) then accept(ProductState(ProductPhase.paused), statusPaused) else disabled
+          if pausable(s) then enter(ProductState(ProductPhase.paused), statusPaused) else disabled
         case Control.unpause =>
-          if paused(s) then accept(ProductState(scheduled), statusScheduled) else disabled
-        case Control.requestCancel => accept(ProductState(cancelRequested), statusCancelRequested)
-        case Control.terminate     => accept(ProductState(terminated), statusTerminated)
+          if paused(s) then enter(ProductState(scheduled), statusScheduled) else disabled
+        case Control.requestCancel => enter(ProductState(cancelRequested), statusCancelRequested)
+        case Control.terminate     => enter(ProductState(terminated), statusTerminated)
 
   /** The worker stopping is a fault the Run records and the activity does not feel. */
   def workerStop(@unused s: ProductState): List[ProductStep] = disabled
 
   /** One of the activity's deadlines firing. Which deadline is the protocol's account of how. */
   def timeout(s: ProductState) =
-    if terminal(s.phase) then disabled else accept(ProductState(timedOut), statusTimedOut)
+    if terminal(s.phase) then disabled else enter(ProductState(timedOut), statusTimedOut)
 
 val timeout = timer
 
@@ -247,7 +247,7 @@ object Protocol:
   ) =
     if s.phase != Phase.unstarted then disabled
     else
-      accept(
+      enter(
         ProtocolState(scheduled, UpTo(0), scheduleToClose, scheduleToStart, startToClose),
         statusScheduled
       )
@@ -256,7 +256,7 @@ object Protocol:
   def attemptStart(s: ProtocolState) =
     if s.phase != scheduled then disabled
     else
-      accept(
+      enter(
         s.copy(phase = started, attempts = saturatingSucc(s.attempts)),
         statusStarted,
         ProtocolFact.attemptCount
@@ -271,16 +271,16 @@ object Protocol:
     if !held(s.phase) then disabled
     else
       result match
-        case AttemptResult.completed         => accept(s.copy(phase = completed), statusCompleted)
+        case AttemptResult.completed         => enter(s.copy(phase = completed), statusCompleted)
         case AttemptResult.failed(retryable) =>
-          if !retryable then accept(s.copy(phase = failed), statusFailed)
-          else if s.phase == cancelRequested then accept(s.copy(phase = canceled), statusCanceled)
-          else if s.phase == pauseRequested then accept(s.copy(phase = paused), statusPaused)
+          if !retryable then enter(s.copy(phase = failed), statusFailed)
+          else if s.phase == cancelRequested then enter(s.copy(phase = canceled), statusCanceled)
+          else if s.phase == pauseRequested then enter(s.copy(phase = paused), statusPaused)
           else
-            accept(s.copy(phase = backingOff), statusScheduled, ProtocolFact.attemptCount)
+            enter(s.copy(phase = backingOff), statusScheduled, ProtocolFact.attemptCount)
               .because("a retryable failure backs off; the caller reads scheduled again")
         case AttemptResult.canceled =>
-          if s.phase == cancelRequested then accept(s.copy(phase = canceled), statusCanceled)
+          if s.phase == cancelRequested then enter(s.copy(phase = canceled), statusCanceled)
           else disabled
 
   /**
@@ -297,9 +297,9 @@ object Protocol:
       c match
         case Control.pause =>
           s.phase match
-            case Phase.scheduled | Phase.backingOff => accept(s.copy(phase = paused), statusPaused)
+            case Phase.scheduled | Phase.backingOff => enter(s.copy(phase = paused), statusPaused)
             case Phase.started                      =>
-              accept(s.copy(phase = pauseRequested), statusPaused)
+              enter(s.copy(phase = pauseRequested), statusPaused)
                 .because("the worker learns of the pause on its next heartbeat")
             case Phase.paused | Phase.pauseRequested => disabled // already paused, or asked to be
             case Phase.cancelRequested               => disabled // a cancel request is not pausable
@@ -309,8 +309,8 @@ object Protocol:
               disabled
         case Control.unpause =>
           s.phase match
-            case Phase.paused         => accept(s.copy(phase = scheduled), statusScheduled)
-            case Phase.pauseRequested => accept(s.copy(phase = started), statusStarted)
+            case Phase.paused         => enter(s.copy(phase = scheduled), statusScheduled)
+            case Phase.pauseRequested => enter(s.copy(phase = started), statusStarted)
             case Phase.scheduled | Phase.backingOff | Phase.started => disabled // not paused
             case Phase.cancelRequested                              => disabled // not paused
             // Answered above: an activity over is not found, an unstarted one has no control.
@@ -318,29 +318,29 @@ object Protocol:
                 Phase.terminated | Phase.timedOut =>
               disabled
         case Control.requestCancel =>
-          accept(s.copy(phase = cancelRequested), statusCancelRequested)
-        case Control.terminate => accept(s.copy(phase = terminated), statusTerminated)
+          enter(s.copy(phase = cancelRequested), statusCancelRequested)
+        case Control.terminate => enter(s.copy(phase = terminated), statusTerminated)
 
   /** Keeps the state and records nothing; the next step's evidence confirms it, a Known Gap. */
   def workerStop(s: ProtocolState): List[ProtocolStep] = stay(s)
 
   /** The backoff timer. A retry writes nothing the caller can read. */
   def backoff(s: ProtocolState): List[ProtocolStep] =
-    if s.phase != backingOff then disabled else accept(s.copy(phase = scheduled))
+    if s.phase != backingOff then disabled else enter(s.copy(phase = scheduled))
 
   def scheduleToClose(s: ProtocolState) =
     if live(s.phase) && s.scheduleToClose == Timeout.expires then
-      accept(s.copy(phase = timedOut), statusTimedOut(TimeoutType.scheduleToClose))
+      enter(s.copy(phase = timedOut), statusTimedOut(TimeoutType.scheduleToClose))
     else disabled
 
   def scheduleToStart(s: ProtocolState) =
     if waiting(s.phase) && s.scheduleToStart == Timeout.expires then
-      accept(s.copy(phase = timedOut), statusTimedOut(TimeoutType.scheduleToStart))
+      enter(s.copy(phase = timedOut), statusTimedOut(TimeoutType.scheduleToStart))
     else disabled
 
   def startToClose(s: ProtocolState) =
     if held(s.phase) && s.startToClose == Timeout.expires then
-      accept(s.copy(phase = timedOut), statusTimedOut(TimeoutType.startToClose))
+      enter(s.copy(phase = timedOut), statusTimedOut(TimeoutType.startToClose))
     else disabled
 
   /**

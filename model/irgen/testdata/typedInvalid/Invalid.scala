@@ -60,7 +60,7 @@ val evidence = Evidence.read(
   Field[WorkflowExecutionInfo, String](_.getExecution.workflowId),
   Commitment.reported
 )
-val wrongPollRequest = Instruction.poll(evidence, "endpoint")(
+val wrongPollRequest = Instruction.readUntil(evidence, "endpoint")(
   Vector(
     Assignment.typed(
       Field[StartActivityExecutionResponse, String](_.runId),
@@ -71,7 +71,7 @@ val wrongPollRequest = Instruction.poll(evidence, "endpoint")(
     Field[WorkflowExecutionInfo, String](_.getExecution.workflowId)
   )
 )
-val wrongPollProjection = Instruction.poll(evidence, "endpoint")(
+val wrongPollProjection = Instruction.readUntil(evidence, "endpoint")(
   Vector(
     Assignment.typed(
       Field[ListWorkflowExecutionsRequest, String](_.namespace),

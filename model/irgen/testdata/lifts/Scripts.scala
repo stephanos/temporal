@@ -3,7 +3,7 @@
 //
 // `helpers` writes a realization with the helpers and the kit: commands named after their vals,
 // declarations referred to by value, a fact by its case, a status read from a table, a call extended
-// with `setting`, a read written with the kit's `await`, and a command written out under its own id
+// with `withFields`, a read written with the kit's `await`, and a command written out under its id
 // around a call. `records` writes the same realization as core records, every id written out.
 // `sugaredRequest` and `coredRequest` declare one request both ways: `field(_.name) := operand`
 // (model/temporal/realize/Syntax.scala) and its core form `Assignment.typed(Field[Req, V](_.name),
@@ -90,7 +90,7 @@ val helpers: Realization = temporalRealization(
     controller(
       perform(control(Control.pause) -> pauseActivity),
       onPath(control(Control.pause))(awaitPaused),
-      always(startActivity.setting {
+      everyCase(startActivity.withFields {
         field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
       }),
       perform(attemptStart -> releaseDispatch, control(Control.terminate) -> stopWorker),
@@ -184,7 +184,7 @@ val records: Realization = Realization(
           command = Some(
             Command(
               "await-paused",
-              Instruction.poll(describedCore, "temporal.workflow-service")(
+              Instruction.readUntil(describedCore, "temporal.workflow-service")(
                 Vector(
                   Assignment.typed(
                     Field[DescribeActivityExecutionRequest, String](_.namespace),
@@ -313,7 +313,7 @@ private def oneRequest(start: Instruction) = temporalRealization(
   machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService),
-  scripts = Vector(controller(always(start))),
+  scripts = Vector(controller(everyCase(start))),
   evidence = Vector.empty
 )
 

@@ -26,7 +26,7 @@ final class Choice private[umpire] ()
 def choice: Choice = Choice()
 
 /**
- * `choose(committed -> accept(...), redelivered -> stay(s))`: the results of a step that can go more
+ * `choose(committed -> enter(...), redelivered -> stay(s))`: the results of a step that can go more
  * than one way, in the order written, each named by its token. The names are metadata no check reads
  * (model/SEMANTICS.md, Named choices), so the results are the ones the same steps give written as an
  * unnamed list. Each alternative is one step written out, or a call of a function that gives at most

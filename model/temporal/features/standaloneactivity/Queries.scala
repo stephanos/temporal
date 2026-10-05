@@ -5,14 +5,14 @@ package temporal
 package features.standaloneactivity
 
 import umpire.*
-import umpire.realize.{Conformance, Outcome, RunExpectation}
+import umpire.realize.{Conformance, PropertyOutcome, RunExpectation}
 import shared.worker.{workerStop, Phase as WorkerPhase, State as WorkerState}
 import Timeout.expires
 
 // What a live Run is expected to show, shared with the system contract's Queries.
-val satisfied = RunExpectation(Conformance.conformant, Outcome.satisfied)
+val satisfied = RunExpectation(Conformance.conformant, PropertyOutcome.satisfied)
 def inconclusive(reason: String) =
-  RunExpectation(Conformance.conformant, Outcome.inconclusive, reason)
+  RunExpectation(Conformance.conformant, PropertyOutcome.inconclusive, reason)
 val explanationsDisagree = "the executions that explain the evidence disagree"
 val neverEvaluated =
   "an execution that explains the evidence never reaches the claim's evaluation point"

@@ -17,7 +17,7 @@ final case class Job(phase: Phase, retried: Boolean) derives Finite
 enum Outcome derives Finite:
   case accepted, refused
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 enum Fact derives Finite:
   case started, paused, finished
@@ -34,18 +34,18 @@ val retryUnknown = hole
 
 type JobStep = Step[Job, Outcome, Fact]
 
-// accept: one step with the accepted outcome, its facts listed.
+// enter: one step with the ok outcome, its facts listed.
 def startSugar(j: Job): List[JobStep] =
-  if j.phase == Phase.idle then accept(j.copy(phase = Phase.running), Fact.started) else disabled
+  if j.phase == Phase.idle then enter(j.copy(phase = Phase.running), Fact.started) else disabled
 def startCore(j: Job): List[JobStep] =
   if j.phase == Phase.idle then
     List(Step(Outcome.accepted, j.copy(phase = Phase.running), List(Fact.started)))
   else Nil
 
-// accept(...).because(...): the step's explanation.
+// enter(...).because(...): the step's explanation.
 def pauseSugar(j: Job): List[JobStep] = j.phase match
   case Phase.running =>
-    accept(j.copy(phase = Phase.paused), Fact.paused).because("a running job pauses")
+    enter(j.copy(phase = Phase.paused), Fact.paused).because("a running job pauses")
   case _ => disabled
 def pauseCore(j: Job): List[JobStep] = j.phase match
   case Phase.running =>
@@ -61,16 +61,16 @@ def pauseCore(j: Job): List[JobStep] = j.phase match
 
 // in: membership in a finite set of cases, the default arm a wildcard.
 def resumeSugar(j: Job): List[JobStep] = j.phase match
-  case p if p.in(Phase.paused, Phase.idle) => accept(j.copy(phase = Phase.running))
+  case p if p.in(Phase.paused, Phase.idle) => enter(j.copy(phase = Phase.running))
   case _                                   => disabled
 def resumeCore(j: Job): List[JobStep] = j.phase match
   case p if List(Phase.paused, Phase.idle).contains(p) =>
     List(Step(Outcome.accepted, j.copy(phase = Phase.running)))
   case _ => Nil
 
-// in with one member, and accept with several facts.
+// in with one member, and enter with several facts.
 def finishSugar(j: Job): List[JobStep] =
-  if j.phase.in(Phase.running) then accept(j.copy(phase = Phase.done), Fact.finished, Fact.started)
+  if j.phase.in(Phase.running) then enter(j.copy(phase = Phase.done), Fact.finished, Fact.started)
   else disabled
 def finishCore(j: Job): List[JobStep] =
   if List(Phase.running).contains(j.phase) then

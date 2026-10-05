@@ -6,7 +6,7 @@ class Choices extends munit.FunSuite:
   enum Outcome:
     case accepted, refused
 
-  given Accepted[Outcome] = Accepted(Outcome.accepted)
+  given Ok[Outcome] = Ok(Outcome.accepted)
 
   type LampStep = Step[Boolean, Outcome, String]
 
@@ -16,7 +16,7 @@ class Choices extends munit.FunSuite:
 
   test("choose gives its alternatives' steps in the order written, as the unnamed list does"):
     val named: List[LampStep] = choose(
-      committed -> accept(true, "lit"),
+      committed -> enter(true, "lit"),
       redelivered -> stay(false),
       held -> List(Step(Outcome.refused, true)).because("held")
     )
@@ -34,7 +34,7 @@ class Choices extends munit.FunSuite:
     assertEquals(committed, committed)
 
   test("an alternative whose function gives no step is not taken"):
-    def lit(on: Boolean): List[LampStep] = if on then accept(true, "lit") else disabled
+    def lit(on: Boolean): List[LampStep] = if on then enter(true, "lit") else disabled
     assertEquals(
       choose[Boolean, Outcome, String](committed -> lit(false), redelivered -> stay(true)),
       List(Step(Outcome.accepted, true))

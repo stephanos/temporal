@@ -63,7 +63,7 @@ The path a `find` Query returns is its witness. `limits two` bounds the search t
 `total 384` is the author's count of the Query's static combinations, which the reader checks; see
 [Counting a Query's total](#counting-a-querys-total).
 `.expect(...)` states what a real run of this path should be judged as, here `satisfied`, the
-Model's `RunExpectation(Conformance.conformant, Outcome.satisfied)`; see
+Model's `RunExpectation(Conformance.conformant, PropertyOutcome.satisfied)`; see
 [Following the example to a Verdict](#following-the-example-to-a-verdict).
 
 A **realization** says how to act a path out on a real server: which API calls perform each
@@ -416,33 +416,34 @@ The IR generator reads what an author wrote, as written:
   functions; `Step(…)` and `steps.because("…")` on steps written out, and named choices,
   `choose(committed -> …, redelivered -> …)` over tokens `val committed = choice`. `require`
   becomes the function's precondition; `ensuring` is not lifted. Only a step function, and a
-  function it calls that gives steps, makes a step: the IR generator refuses `Step(…)`, `accept`, `stay`
+  function it calls that gives steps, makes a step: the IR generator refuses `Step(…)`, `enter`, `stay`
   or a call of a step function at its line in a start, an `ends`, evidence, a refinement, a
   monitor, a Property, a progress claim or a Scenario's start (model/SEMANTICS.md, "Levels").
 - **Realization script helpers** (core, `umpire/realize/Scripts.scala`): `script(id, activation)`
-  of `always(command)`, `onPath(classes*)(command)` and `perform(step -> command, …)` items;
-  `command(instruction, …)`; `rpc(role, method) { … }`, `poll(…) { … }` and `call.setting { … }`,
-  which appends assignments and keeps the call's name; `statusTable(fact -> value, …)`. A command
-  is named after its `val` in kebab case (`val pauseActivity` is `pause-activity`) unless written
-  out as `Command(id, …)`. A declaration referred to by value is written as its id, a monitor as
-  its name (`MonitorExpectation(terminalFinality, …)` in a Query's expected Run), and a fact as
+  of `everyCase(command)`, `onPath(classes*)(command)` and `perform(step -> command, …)` items;
+  `command(instruction, …)`; `rpc(role, method) { … }`, `readUntil(…) { … }` and
+  `call.withFields { … }`, which appends assignments and keeps the call's name;
+  `statusTable(fact -> value, …)`. A command is named after its `val` in kebab case
+  (`val pauseActivity` is `pause-activity`) unless written out as `Command(id, …)`. A declaration
+  referred to by value is written as its id, a monitor as its name
+  (`MonitorExpectation(terminalFinality, …)` in a Query's expected Run), and a fact as
   its enum case, or the companion of a case with fields. A lookup `table(fact)` is resolved when
   the IR generator lifts. The IR generator refuses a command no `val` declares, a `perform` or `onPath` with no
   class, a lookup of a fact its table lists twice or not at all, a request-scope line of an `rpc`
-  or a `poll` that is neither `field(_.x) := v` nor `Assignment.typed(…)`, and evidence that
+  or a `readUntil` that is neither `field(_.x) := v` nor `Assignment.typed(…)`, and evidence that
   records a case of another enum than the facts its machine records.
-- **Sugar** (`umpire/Syntax.scala`, lifted by `irgen/Syntax.scala`): `accept(state, facts*)`,
+- **Sugar** (`umpire/Syntax.scala`, lifted by `irgen/Syntax.scala`): `enter(state, facts*)`,
   `stay(s)`, `disabled`, `x.in(a, b, …)`, `a implies b` and `after.records(fact)`. Each is lifted to
   the IR its core form lifts to, and nothing else: `List(Step(accepted, state, List(facts*)))`,
   `List(Step(accepted, s))`, `Nil`, `List(a, b, …).contains(x)`, `!a || b` and
-  `after.facts.contains(fact)`. `accept` and `stay` answer the outcome one
-  `given Accepted[Outcome] = Accepted(Outcome.accepted)` names; `in` is written dotted and takes at
+  `after.facts.contains(fact)`. `enter` and `stay` answer the outcome one
+  `given Ok[Outcome] = Ok(Outcome.accepted)` names; `in` is written dotted and takes at
   least one member; `implies` reads its right side only where its left side holds. A composition's
   `after.records(_.member, fact)` lifts as `after.facts.contains("member_fact")`, the composed key
   it records. A named call `start(scheduleToStart := expires)` lifts as the positional
   `start(unset, expires, unset)`. The kit's `field(_.name) := operand`, in
   `temporal/realize/Syntax.scala`, lifts as `Assignment.typed(Field[Req, V](_.name), operand)`,
-  where `Req` is the request type of the scope the enclosing `rpc` or `poll` opened.
+  where `Req` is the request type of the scope the enclosing `rpc` or `readUntil` opened.
 - **Claim patterns** (sugar, the same files): `once(over).keeps(_.x)`, `never(to)`,
   `never(to).from(before)`, `stays(p)` and `stays(p).unless(release)` on a Property builder, each
   lifted to the Property its lambda declares: `holdsAcross((before, after) => !over(before) ||
@@ -644,9 +645,9 @@ and its classes (`start()` among them), `input`, `UpTo`, `steps` and `~>`, `Step
 with `sync` (named or after its first member's action), `synced`, `own` and `withMember`,
 `scenario`, `query` (named or after its Scenario and Property), `Limits`, `.total`,
 `DefinitionScope`, `choose`, `irFile`, and the realization declarations, among them the script helpers `rpc`,
-`poll`, `perform`, `onPath`, `always`, `script`, `command` and `statusTable`, `Actuator`,
+`readUntil`, `withFields`, `perform`, `onPath`, `everyCase`, `script`, `command` and `statusTable`, `Actuator`,
 `MonitorExpectation` and the kit's roles and bindings. Sugar is a form whose meaning a core form
-already says: `implies`, `in`, `records`, `accept`, `stay`, `disabled`, the claim patterns (`once`,
+already says: `implies`, `in`, `records`, `enter`, `stay`, `disabled`, the claim patterns (`once`,
 `keeps`, `never`, `from`, `stays`, `unless`), the monitor pattern (`sticky`, `stickyAcross`) and
 both spellings of `:=`, named inputs and request
 fields. It lives in the `Syntax.scala` files of the DSL (`umpire/Syntax.scala`), the kit
@@ -676,15 +677,15 @@ val committed = choice
 val redelivered = choice
 
 def admitted(s: AdmissionState): List[AdmissionStep] = choose(
-  committed -> accept(s.copy(message = Message.empty), AdmissionFact.statusStarted),
-  redelivered -> accept(s.copy(message = Message.redelivery), AdmissionFact.statusStarted)
+  committed -> enter(s.copy(message = Message.empty), AdmissionFact.statusStarted),
+  redelivered -> enter(s.copy(message = Message.redelivery), AdmissionFact.statusStarted)
     .because("the channel may deliver the message again")
 )
 ```
 
 A name is inert metadata (model/SEMANTICS.md, Named choices): the rows, fingerprints, Query
 answers and Cases are the ones the same steps give written as an unnamed list. Each alternative is
-one step written out, `accept(…)`, `stay(s)`, `List(Step(…))` or one of those with
+one step written out, `enter(…)`, `stay(s)`, `List(Step(…))` or one of those with
 `.because("…")`, or a call of a function that gives at most one step in each branch, such as a step
 another action shares (`forged -> Protocol.completeStep(s, Resolution.succeeded)`); where that
 function gives no step, the alternative is not taken. The IR calls a copy of the function,
@@ -1007,7 +1008,7 @@ type. It stands for the record the IR generator writes, whose core form
 still lifts to the same IR.
 
 `Recorded.read` and `Recorded.single` keep the method's request type and the selected response
-message type in an `Evidence.read` reference. `poll`, the kit's `await` and `Instruction.poll` take
+message type in an `Evidence.read` reference. `readUntil`, the kit's `await` and `Instruction.readUntil` take
 that reference, so their assignments use the method's request type and their condition selects
 fields of the projected message. `Field[Root, Value]` also names evidence fields, operation keys,
 response reads and Run Event guards. Select an optional nested message with a generated `get...`

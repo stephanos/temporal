@@ -16,10 +16,11 @@ final class RequestField[Req, V] private[realize] (val target: Field[Req, V])
     extends Slot[TypedOperand[V]]
 
 /**
- * `field(_.namespace) := operand`, written inside `rpc(…) { … }` or `poll(…) { … }`: the field of the
- * call's request the selector names receives the operand. The request type is the scope's, so the
- * selector is typed against it and no line repeats it; `:=` is the named slot's one operator, as for
- * an action's input. Core form: `Assignment.typed(Field[Req, V](_.namespace), operand)`.
+ * `field(_.namespace) := operand`, written inside `rpc(…) { … }` or `readUntil(…) { … }`: the
+ * field of the call's request the selector names receives the operand. The request type is the
+ * scope's, so the selector is typed against it and no line repeats it; `:=` is the named slot's one
+ * operator, as for an action's input. Core form:
+ * `Assignment.typed(Field[Req, V](_.namespace), operand)`.
  */
 def field[Req, V](using RequestScope[Req])(select: Req => V) =
   RequestField(Field(select))

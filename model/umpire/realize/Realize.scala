@@ -477,7 +477,7 @@ object Instruction:
       reads: Vector[TypedResponseRead[Rsp, ?]]
   ): Instruction = TypedRpc(role, method, assign, reads)
 
-  def poll[Req, Projected](evidence: EvidenceRef[Req, Projected], role: String | Addressee)(
+  def readUntil[Req, Projected](evidence: EvidenceRef[Req, Projected], role: String | Addressee)(
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
       intervalMs: Long = 0
@@ -587,24 +587,24 @@ object ProtoValue:
 /** The assessment a completed live Run must support, independently of the model-search answer. */
 final case class RunExpectation(
     conformance: Conformance,
-    property: Outcome,
+    property: PropertyOutcome,
     reason: String = "",
     monitors: Vector[MonitorExpectation] = Vector.empty,
-    contract: Outcome = Outcome.satisfied
+    contract: PropertyOutcome = PropertyOutcome.satisfied
 )
 
 enum Conformance:
   case conformant, nonconformant, inconclusive
 
-enum Outcome:
+enum PropertyOutcome:
   case satisfied, violated, inconclusive
 
 /**
  * The verdict a completed live Run must support for one monitor of the Query's machine, named by
- * value, `MonitorExpectation(terminalFinality, Outcome.satisfied)`, or by its name.
+ * value, `MonitorExpectation(terminalFinality, PropertyOutcome.satisfied)`, or by its name.
  */
 final case class MonitorExpectation(
     name: String | Monitor[?, ?, ?, ?],
-    outcome: Outcome,
+    outcome: PropertyOutcome,
     reason: String = ""
 )

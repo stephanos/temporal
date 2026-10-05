@@ -37,7 +37,7 @@ final case class State(phase: Phase) derives Finite
 enum Outcome derives Finite:
   case accepted
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 /**
  * A worker records nothing of its own. Its stop and resume are faults the Run records against no
@@ -66,11 +66,11 @@ val serve = action(party) on entity
 
 /** A polling worker stops; a stopped one has nothing to stop. */
 def stopStep(s: State) =
-  if s.phase != Phase.polling then disabled else accept(State(Phase.stopped))
+  if s.phase != Phase.polling then disabled else enter(State(Phase.stopped))
 
 /** A stopped worker resumes polling; a polling one has nothing to resume. */
 def resumeStep(s: State) =
-  if s.phase != Phase.stopped then disabled else accept(State(Phase.polling))
+  if s.phase != Phase.stopped then disabled else enter(State(Phase.polling))
 
 /** A polling worker serves and keeps polling; a stopped one serves nothing. */
 def serveStep(s: State) =

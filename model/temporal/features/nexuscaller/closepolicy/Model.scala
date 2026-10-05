@@ -102,7 +102,7 @@ final case class CloseResetState(
 enum Answer derives Finite:
   case accepted, retained, rejectedTransient, rejectedPermanent
 
-given Accepted[Answer] = Accepted(Answer.accepted)
+given Ok[Answer] = Ok(Answer.accepted)
 
 /**
  * What a step records. The history events carry the baseline's names; the rest is what a design
@@ -185,7 +185,7 @@ val opened = CloseResetState(
 
 def closeStep(s: CloseResetState) =
   if s.caller != Caller.open then disabled
-  else accept(s.copy(caller = Caller.closed), Fact.workflowClosed)
+  else enter(s.copy(caller = Caller.closed), Fact.workflowClosed)
 
 /**
  * One cancellation, while the handler has neither finished nor been asked, by a run still open.
@@ -193,14 +193,14 @@ def closeStep(s: CloseResetState) =
 def cancelStep(s: CloseResetState, p: Principal) =
   if s.intent != Intent.none || s.caller == Caller.closed || s.handler != Handler.running then
     disabled
-  else accept(s.copy(intent = Intent.requested(p)), Fact.cancelRequested(p))
+  else enter(s.copy(intent = Intent.requested(p)), Fact.cancelRequested(p))
 
 /**
  * The request in flight reaches a handler still working. A closed run's request is still delivered.
  */
 def cancelDeliveryStep(s: CloseResetState) =
   if s.intent == Intent.none || s.handler != Handler.running then disabled
-  else accept(s.copy(handler = Handler.cancelReceived), Fact.cancelReceived)
+  else enter(s.copy(handler = Handler.cancelReceived), Fact.cancelReceived)
 
 def working(h: Handler) = h.in(Handler.running, Handler.cancelReceived)
 
@@ -212,7 +212,7 @@ def finishStep(s: CloseResetState, r: Resolution) =
   if !working(s.handler) then disabled
   else if r == Resolution.canceled && s.handler != Handler.cancelReceived then disabled
   else
-    accept(
+    enter(
       s.copy(handler = Handler.done(r), channel = Completion.inFlight(r)),
       Fact.handlerFinished(r)
     )
@@ -260,12 +260,12 @@ def committed(
 ) =
   if redelivers(d, s.channel, r) then
     choose(
-      taken -> accept(s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)*),
+      taken -> enter(s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)*),
       rejectedForNow -> List(Step(Answer.rejectedTransient, s.copy(channel = again(d, r)))),
-      ackLost -> accept(s.copy(known = k, channel = again(d, r)), recordedOnce(s, k, r)*)
+      ackLost -> enter(s.copy(known = k, channel = again(d, r)), recordedOnce(s, k, r)*)
         .because("the acknowledgment is lost")
     )
-  else accept(s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)*)
+  else enter(s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)*)
 
 def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution) =
   if redelivers(d, s.channel, r) then
@@ -324,7 +324,7 @@ def deliverStep(p: Policy, d: Redelivery, s: CloseResetState, r: Resolution) =
         if p == Policy.rejectAfterClose then rejectedByClosed(d, s, r) else keptAtOperation(d, s, r)
       case Caller.resetOpen =>
         if p == Policy.ackByOriginal then
-          accept(s.copy(channel = Completion.none)).because("the original run acknowledges it")
+          enter(s.copy(channel = Completion.none)).because("the original run acknowledges it")
         else committed(d, s, Knowledge.successor(r), r)
 
 def fromRetention(x: Retained) = x match
@@ -354,7 +354,7 @@ def resetFacts(k: Knowledge) = k match
 def resetStep(rule: Reset, s: CloseResetState) =
   if s.caller == Caller.resetOpen then disabled
   else
-    accept(
+    enter(
       s.copy(
         caller = Caller.resetOpen,
         intent = carried(rule, s.intent),
@@ -370,7 +370,7 @@ def resetStep(rule: Reset, s: CloseResetState) =
  */
 def expireStep(s: CloseResetState) =
   if s.caller == Caller.closed || s.known != Knowledge.none then disabled
-  else accept(s.copy(known = Knowledge.expired), Fact.nexusOperationTimedOut)
+  else enter(s.copy(known = Knowledge.expired), Fact.nexusOperationTimedOut)
 
 // ### Promises
 

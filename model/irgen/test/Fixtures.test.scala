@@ -358,7 +358,7 @@ class Fixtures extends munit.FunSuite:
     defaultRejects ++ levelRejects).map(
     "fixture.rejects.Rejects$package$." + _
   ) ++ Seq(
-    // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
+    // DefinitionScope pins, a name the compiler made up and a computed ok outcome, refused in
     // objects of their own.
     "PinnedTwice$.pinnedTwice",
     "PinsOuter$.pinnedNested",
@@ -366,7 +366,7 @@ class Fixtures extends munit.FunSuite:
     "Computed$.pinnedComputed",
     "ComputedFamily$.familyComputed",
     "Anonymous$.anonymous",
-    "ComputedAccepted$.computedAccept"
+    "ComputedOk$.computedOk"
   ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
@@ -465,7 +465,7 @@ class Fixtures extends munit.FunSuite:
         "OneChoice.scala:18:62",
         "Sugar.scala:10:27",
         "Sugar.scala:13:76",
-        "Sugar.scala:16:73",
+        "Sugar.scala:16:71",
         "Sugar.scala:19:68",
         "Sugar.scala:23:69"
       )
@@ -510,7 +510,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       refusals("referenceInvalid").sorted,
       Seq(
-        "Invalid.scala:36:29",
+        "Invalid.scala:36:32",
         "Invalid.scala:38:44",
         "Invalid.scala:40:38",
         "Invalid.scala:42:41",
@@ -869,7 +869,7 @@ class Fixtures extends munit.FunSuite:
 
   // Each sugar form beside its core spelling (lifts/Sugar.scala).
   concurrently(
-    "accept, stay, disabled, because, in, implies, records and sticky lift as their core forms do"
+    "enter, stay, disabled, because, in, implies, records and sticky lift as their core forms do"
   ):
     val (model, machine, property) =
       declarations("sugar", Seq("sugared", "cored", "claims", "watched"))

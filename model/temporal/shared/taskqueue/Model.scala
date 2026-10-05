@@ -58,8 +58,8 @@ enum QueueOutcome derives Finite:
 object QueueOutcome:
   // A provider's step behind the interface is the one that answers `internal`. Kept in the
   // companion, where only a step known to answer a QueueOutcome finds it, so a `choose` of a feature's
-  // own steps still finds its own `Accepted` alone.
-  given Accepted[QueueOutcome] = Accepted(QueueOutcome.internal)
+  // own steps still finds its own `Ok` alone.
+  given Ok[QueueOutcome] = Ok(QueueOutcome.internal)
 
 /** The interface's events, and what a provider records of the steps behind them. */
 enum QueueFact derives Finite:
@@ -193,15 +193,15 @@ def enqueueDetail(d: QueueDetail) =
 /** An invocation implies no receiver effect: nothing durable changes until matching persists. */
 def invokeDetail(d: QueueDetail): List[QueueDetailStep] =
   if d.custody != Custody.history then disabled
-  else accept(d.copy(custody = Custody.invoked), QueueFact.addInvoked)
+  else enter(d.copy(custody = Custody.invoked), QueueFact.addInvoked)
 
 def persistDetail(d: QueueDetail): List[QueueDetailStep] =
   if d.custody != Custody.invoked then disabled
-  else accept(d.copy(custody = Custody.persisted), QueueFact.taskPersisted)
+  else enter(d.copy(custody = Custody.persisted), QueueFact.taskPersisted)
 
 def reserveDetail(d: QueueDetail): List[QueueDetailStep] =
   if d.custody != Custody.invoked then disabled
-  else accept(d.copy(custody = Custody.reserved), QueueFact.matchReserved)
+  else enter(d.copy(custody = Custody.reserved), QueueFact.matchReserved)
 
 def oneMoreDelivery(d: Delivered) = d match
   case Delivered.never => Delivered.once
@@ -234,8 +234,8 @@ def acknowledgeDetail(d: QueueDetail) =
 def ackLossDetail(d: QueueDetail): List[QueueDetailStep] =
   if !d.polled then disabled
   else if d.custody == Custody.reserved then
-    accept(d.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
-  else accept(d.copy(polled = false), QueueFact.ackLost)
+    enter(d.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
+  else enter(d.copy(polled = false), QueueFact.ackLost)
 
 /**
  * An ordinary crash loses what is only in memory, the poll, the invocation and a sync match, and
@@ -244,9 +244,9 @@ def ackLossDetail(d: QueueDetail): List[QueueDetailStep] =
  */
 def crashDetail(d: QueueDetail): List[QueueDetailStep] = d.custody match
   case Custody.invoked | Custody.reserved =>
-    accept(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
+    enter(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
   case Custody.nowhere | Custody.history | Custody.persisted =>
-    accept(d.copy(polled = false), QueueFact.crashed)
+    enter(d.copy(polled = false), QueueFact.crashed)
 
 def storageLossDetail(d: QueueDetail) =
   if d.custody == Custody.nowhere then disabled
@@ -304,17 +304,17 @@ val lossyMatchingQueue = matchingQueue
  * anything, so a crash there leaves no custodian for a message the interface still calls committed.
  */
 def forgetfulCrash(d: QueueDetail): List[QueueDetailStep] = d.custody match
-  case Custody.invoked | Custody.reserved                    => accept(idleQueue, QueueFact.crashed)
+  case Custody.invoked | Custody.reserved                    => enter(idleQueue, QueueFact.crashed)
   case Custody.nowhere | Custody.history | Custody.persisted =>
-    accept(d.copy(polled = false), QueueFact.crashed)
+    enter(d.copy(polled = false), QueueFact.crashed)
 
 val forgetfulQueue = matchingQueue.rebind(crash ~> forgetfulCrash)
 
 /** A crash wipes the tasks matching persisted, which history no longer backs. */
 def volatileCrash(d: QueueDetail): List[QueueDetailStep] = d.custody match
-  case Custody.persisted                  => accept(idleQueue, QueueFact.crashed)
+  case Custody.persisted                  => enter(idleQueue, QueueFact.crashed)
   case Custody.invoked | Custody.reserved =>
-    accept(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
-  case Custody.nowhere | Custody.history => accept(d.copy(polled = false), QueueFact.crashed)
+    enter(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
+  case Custody.nowhere | Custody.history => enter(d.copy(polled = false), QueueFact.crashed)
 
 val volatileQueue = matchingQueue.rebind(crash ~> volatileCrash)

@@ -5,7 +5,7 @@ package temporal
 package features.nexusoperation
 
 import umpire.*
-import umpire.realize.{Conformance, Outcome as RunOutcome, RunExpectation}
+import umpire.realize.{Conformance, PropertyOutcome, RunExpectation}
 
 val three = Limits(steps = 3, actions = 3, search = 4096)
 
@@ -15,4 +15,4 @@ val three = Limits(steps = 3, actions = 3, search = 4096)
  */
 val explanationsDisagree = "the executions that explain the evidence disagree"
 def inconclusive(reason: String): RunExpectation =
-  RunExpectation(Conformance.conformant, RunOutcome.inconclusive, reason)
+  RunExpectation(Conformance.conformant, PropertyOutcome.inconclusive, reason)

@@ -32,7 +32,7 @@ private def realizing(items: Item*) = temporalRealization(
 private val stopWorker = Fault(taskQueue, FaultKind.workerStop)
 
 /** A command no val declares has no name. */
-val unnamedCommand: Realization = realizing(always(Fault(taskQueue, FaultKind.workerStop)))
+val unnamedCommand: Realization = realizing(everyCase(Fault(taskQueue, FaultKind.workerStop)))
 
 /** A `perform` that binds no class lands nowhere. */
 val performsNothing: Realization = realizing(perform())
@@ -77,12 +77,12 @@ private def awaitStatus(table: StatusTable[ActivityExecutionStatus], fact: Fact)
 private val awaitCompleted = awaitStatus(listed, ProtocolFact.statusCompleted)
 
 /** A status the table lists no value for. */
-val unlistedStatus: Realization = realizing(always(awaitCompleted))
+val unlistedStatus: Realization = realizing(everyCase(awaitCompleted))
 
 private val awaitPaused = awaitStatus(twice, ProtocolFact.statusPaused)
 
 /** A table that lists one fact twice. */
-val statusTwice: Realization = realizing(always(awaitPaused))
+val statusTwice: Realization = realizing(everyCase(awaitPaused))
 
 private val inputInScope = rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION) {
   Inputs.scheduleToStart := Timeout.expires
@@ -100,14 +100,14 @@ private val inputInPoll = await(described, workflowService)(
   Inputs.scheduleToStart := Timeout.expires
 }
 
-/** A line of a poll's request scope that assigns no field of the request. */
-val notAPolledField: Realization = realizing(always(inputInPoll))
+/** A line of a `readUntil`'s request scope that assigns no field of the request. */
+val notAPolledField: Realization = realizing(everyCase(inputInPoll))
 
 /** Evidence of a case of another enum than the facts the machine records. */
 val foreignFact: Realization = temporalRealization(
   machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
-  scripts = Vector(controller(always(stopWorker))),
+  scripts = Vector(controller(everyCase(stopWorker))),
   evidence = Vector(answered(Control.pause, stopWorker))
 )
