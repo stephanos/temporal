@@ -70,6 +70,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:400: evidence covers only some va
 lift: model/irgen/testdata/lifts/Rejects.scala:647: a Party takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `Party("...")`
 lift: model/irgen/testdata/lifts/Rejects.scala:237: fixture.rejects.PinnedTwice$ pins its Definition IDs twice, at model/irgen/testdata/lifts/Rejects.scala:236 and here: an owner has one DefinitionScope
 lift: model/irgen/testdata/lifts/Rejects.scala:248: fixture.rejects.PinsOuter$.PinsInner$ pins its Definition IDs inside fixture.rejects.PinsOuter$, which pins its own: a DefinitionScope pins the declarations of one owner, not of the owners nested in it
+lift: model/irgen/testdata/lifts/Rejects.scala:1315: rebindOneClass rebinds turn, which classRuled binds by 2 rules of the class bright with different effects, to one effect: rebind its rules with `when(...) { ... }`, which replace them
 lift: model/irgen/testdata/lifts/Rejects.scala:439: rebindPush rebinds push, which oneStart does not bind: extend binds an action the source does not
 lift: model/irgen/testdata/lifts/Rejects.scala:1235: rebindSeveral rebinds squeeze, which ruled binds by 2 rules with different effects, to one effect: rebind its rules with `when(...) { ... }`, which replace them
 lift: model/irgen/testdata/lifts/Rejects.scala:1239: rebindUnbound rebinds twist, which ruled does not bind: extend binds an action the source does not

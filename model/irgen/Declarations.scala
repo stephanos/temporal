@@ -707,15 +707,23 @@ private[irgen] trait Declarations:
             val id = action(a)
             rulesOf.get(src.name).flatMap(_.get(id)) match
               case Some(kept) if op == "rebind" =>
-                val effects = kept.map(r => forwardedDef(r.effect).fold(r.effect.show)(_.fullName))
-                // Rules that each fire one class may differ in effect: the new effect reads the
-                // class's inputs, so each rule keeps its guard and class and takes it, and nothing
-                // two whole-action rules told apart is merged.
-                if effects.distinct.size > 1 && !kept.forall(_.cls.nonEmpty) then
+                def effectOf(r: LiftedRule) =
+                  forwardedDef(r.effect).fold(r.effect.show)(_.fullName)
+                // Rules that each fire another class may differ in effect: the new effect reads the
+                // class's inputs, so each rule keeps its guard and class and takes it. Rules of one
+                // class, or of the whole action, that differ are told apart by their effects, which
+                // one effect would merge.
+                val merged =
+                  if kept.forall(_.cls.nonEmpty) then
+                    kept.groupBy(_.cls).values.find(_.map(effectOf).distinct.size > 1)
+                  else Option.when(kept.map(effectOf).distinct.size > 1)(kept)
+                for rules <- merged do
+                  val what =
+                    rules.head.cls.fold("")(c => s" of the class ${c.map(valueKey).mkString("-")}")
                   fail(
                     b,
-                    s"$name rebinds ${actions(id).name}, which ${src.name} binds by ${kept.size} " +
-                      "rules with different effects, to one effect: rebind its rules with " +
+                    s"$name rebinds ${actions(id).name}, which ${src.name} binds by ${rules.size} " +
+                      s"rules$what with different effects, to one effect: rebind its rules with " +
                       "`when(...) { ... }`, which replace them"
                   )
                 val rules = kept.map(_.copy(effect = effect, at = b))

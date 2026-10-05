@@ -1295,3 +1295,21 @@ object WatchesElsewhere extends Machine[Lamp, Outcome, Nothing]:
   object monitors extends Section:
     val elsewhere = flagWatch
   object rules extends Bindings(flip ~> lampStep)
+
+val turnTo = input[Glow]
+
+object dialHand extends Actor:
+  val turn = action(this).input(turnTo)
+
+/** Two rules of one class of `turn`, each with an effect of its own. */
+object ClassRuled extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object effects extends Section:
+    def set(s: Bulb, g: Glow) = enter[Bulb, Outcome, Nothing](s.copy(glow = g))
+  object rules extends Rules(_.glow):
+    in(Glow.dim)(dialHand.turn(Glow.bright) ~> Ruled.effects.brighten)
+    in(Glow.bright)(dialHand.turn(Glow.bright) ~> Ruled.effects.darken)
+
+/** One effect in place of the different effects of two rules of one class. */
+object RebindOneClass extends Derived(ClassRuled.rebind(dialHand.turn ~> ClassRuled.effects.set))

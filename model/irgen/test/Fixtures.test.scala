@@ -161,7 +161,17 @@ class Fixtures extends munit.FunSuite:
     "sections" -> Seq("fixture.sections.Switch"),
     // fn-126 R15, R16: a machine object, its core twin, derivations and a composition object
     // (lifts/Rules.scala); tools/umpire/model holds the twins' tables equal.
-    "rules" -> (Seq("Switch", "Mirror", "Steady", "Loose", "Dimming", "Twins", "Unequal")
+    "rules" -> (Seq(
+      "Switch",
+      "Mirror",
+      "Steady",
+      "Loose",
+      "Dimming",
+      "Twins",
+      "Unequal",
+      "Dial",
+      "Turned"
+    )
       .map("fixture.rules." + _) ++ Seq(
       "fixture.rules.CoreSwitch",
       "fixture.rules.Switch$.queries$.pressing",
@@ -421,7 +431,8 @@ class Fixtures extends munit.FunSuite:
     "LooseRefinement",
     "LookalikePair",
     "NilEffect",
-    "WatchesElsewhere"
+    "WatchesElsewhere",
+    "RebindOneClass"
   ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ hintRejects ++
     markerRejects
 

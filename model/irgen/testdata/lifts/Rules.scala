@@ -2,9 +2,9 @@
 // machine, its rules say when each action fires and its effects what it does. `Switch` and its twin
 // `CoreSwitch`, written in the core with step functions bound by hand, lift to the same tables
 // (tools/umpire/model's TestRulesLowerToTheCoreTables). Then a bare binding that keeps the rules'
-// guards, rules a derivation binds in their source's place, rules a derivation adds, and a
-// composition object with its derived twin. The lifter's tests lift the roots `rules` lists and
-// compare the IR with expected/rules.json.
+// guards, rules a derivation binds in their source's place, rules a derivation adds, a composition
+// object with its derived twin, and one effect a rebind gives the rules of two classes. The
+// lifter's tests lift the roots `rules` lists and compare the IR with expected/rules.json.
 package fixture.rules
 
 import umpire.*
@@ -169,3 +169,16 @@ object Unbending extends Derived(Steady.unmonitored)
 
 /** The twins, the right one steady. */
 object Unequal extends Composition(Twins.withMember(_.right -> Unbending))
+
+/** A knob whose two classes fire with effects of their own. */
+object Dial extends Machine[Lamp, Outcome, Fact]:
+  val init = Lamp(Light.off, UpTo(0))
+  def end(s: State) = Switch.states.broken(s)
+  object rules extends Rules(_.light):
+    in(Light.off, Light.on) {
+      hand.turn(Knob.up) ~> Switch.effects.light
+      hand.turn(Knob.down) ~> Switch.effects.dark
+    }
+
+/** One effect, which reads the class, in place of the two classes' effects, each keeping its guard. */
+object Turned extends Derived(Dial.rebind(hand.turn ~> Switch.effects.turned))

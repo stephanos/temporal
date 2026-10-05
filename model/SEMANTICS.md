@@ -190,7 +190,10 @@ disjoint, their order changes no row: it fixes only the order of the arms of the
 
 A derivation rebinds rules in its source's place: `rebind(a ~> e)` keeps the guards (and classes) of
 `a`'s rules and gives each the effect `e`; `rebind(when(g) { a ~> e })` replaces them; `extend` adds
-rules for actions its source does not bind. A machine of the IR generator's core fixtures may bind
+rules for actions its source does not bind. `rebind(a ~> e)` is refused where it would merge rules
+the source tells apart by their effects: two rules of the whole action, or two rules of one class,
+with different effects. Rules that each fire another class may differ, since `e` reads the class's
+inputs. A machine of the IR generator's core fixtures may bind
 its step functions by hand, `object rules extends Bindings(a ~> f, …)`, which is what rules lower to.
 
 ### Modalities
