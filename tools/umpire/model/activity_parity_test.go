@@ -31,12 +31,18 @@ func TestActivityDisabledBehaviorIsTheBaselines(t *testing.T) {
 		sideOf(product.Table).Rows[rowIndex(t, product.Table, "completed-control-terminate")].Results)
 }
 
+// Each machine's evidence lines are its fact type's cases in the order the IR declares them, each
+// confirmed by the recorded kind of its own name.
 func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
-	machines := built(t, activityModel(t))
-	for _, subject := range frozenReaderMeaning(t, "activity").Subjects {
-		if subject.Name == "activityProtocol" || subject.Name == "activityProduct" {
-			require.Equal(t, subject.Table.Evidence, machines[subject.Name].Table.Evidence)
+	m := activityModel(t)
+	machines := built(t, m)
+	for _, name := range []string{"activityProtocol", "activityProduct"} {
+		var catalog [][2]string
+		for _, c := range admType(m, machines[name].Decl.GetFactType()).GetEnum().GetCases() {
+			catalog = append(catalog, [2]string{c.GetName(), c.GetName()})
 		}
+		require.NotEmpty(t, catalog, name)
+		require.Equal(t, catalog, machines[name].Table.Evidence, name)
 	}
 }
 

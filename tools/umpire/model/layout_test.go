@@ -119,8 +119,7 @@ func retiredFeatureFiles(root string) ([]string, error) {
 }
 
 // liveLayoutRoots are the live files and trees outside model/ that name model paths: the tools that
-// read the model, the build, CI, and the documents that describe the layout. The golden package and
-// the migration goldens record the old paths on purpose, as the moves they map back.
+// read the model, the build, CI, and the documents that describe the layout.
 var liveLayoutRoots = []string{
 	"tools/umpire", "tools/canary", "common/testing/testpilot", "tests/testcore/testpilot",
 	"api/umpire", "proto/internal/temporal/server/api/umpire",
@@ -140,7 +139,7 @@ func retiredModelMentions(path, content string) []string {
 	return found
 }
 
-// liveLayoutFiles visits every file under liveLayoutRoots but the records of the moves.
+// liveLayoutFiles visits every file under liveLayoutRoots but this one.
 func liveLayoutFiles(visit func(rel, content string)) error {
 	self := filepath.ToSlash(filepath.Join("tools", "umpire", "model", "layout_test.go"))
 	for _, root := range liveLayoutRoots {
@@ -154,9 +153,7 @@ func liveLayoutFiles(visit func(rel, content string)) error {
 			}
 			rel = filepath.ToSlash(rel)
 			if d.IsDir() {
-				switch {
-				case rel == "tools/umpire/internal/golden", strings.HasSuffix(rel, "/testdata/migration"),
-					d.Name() == ".scala-build", d.Name() == "vendor":
+				if d.Name() == ".scala-build" || d.Name() == "vendor" {
 					return filepath.SkipDir
 				}
 				return nil

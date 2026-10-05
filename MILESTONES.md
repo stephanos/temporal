@@ -34,19 +34,17 @@ Apply these instructions when implementing the milestones:
   output in the task's `.flow/tmp/` directory. Use test completion events to identify slow tests;
   package times overlap and must not be summed as wall time. Record elapsed wall time separately.
   Keep a running process running; add instrumentation to the next run instead of restarting it.
-- Optimize measured bottlenecks, starting with duplicated model construction or golden decoding
-  if the timings implicate them. Preserve independent assertions and immutable fixtures; shared
+- Optimize measured bottlenecks, starting with duplicated model construction if the timings
+  implicate it. Preserve independent assertions and immutable fixtures; shared
   test setup must not leak mutable state. Compare timings on equivalent inputs before claiming a
   speedup. Do not add a profiling or caching framework without evidence it is needed.
 - Commands that hold: run the full Go tooling suite with `-tags test_dep -p 2 -timeout 30m` (the
-  lower, model and export test binaries take 3.5-5 GB each, so never more than two at once, and
-  `-p 1` doubles wall time); run the model gate with `MODEL_GATE_ARGS=--skip-go-checks` when the Go
+  lower, model and export test binaries take up to about 6.5 GB each (export), so never more than
+  two at once, and `-p 1` doubles wall time); run the model gate with `MODEL_GATE_ARGS=--skip-go-checks` when the Go
   suite runs separately, since its Go phase repeats it. Agents sharing one machine serialize heavy
-  suites with one `flock` lock file. After any Model or lifter change, run `make umpire-gen-model` and
-  the original-baseline check from fn-112.1: `go test -tags test_dep -count=1 -p 2 -run
-  OriginalBaseline ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower`. Its
-  allowed differences are listed in `tools/umpire/internal/golden/original.json`, which only the
-  task introducing a difference extends.
+  suites with one `flock` lock file. After any Model or lifter change, run `make umpire-gen-model`,
+  review the diff of `model/ir` and `model/cases`, and run `make umpire-check-cases`: the reader's
+  tests over `model/ir` pin what a Model means, and the managed Case trees what its Cases contain.
 - Keep handovers concise and link existing evidence. Add audits, inventories or verification gates
   only for an explicit requirement or a concrete uncovered risk. Move to the next implementation
   task once the required checks and review pass.

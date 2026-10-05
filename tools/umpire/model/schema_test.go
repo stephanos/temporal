@@ -1,7 +1,12 @@
 package model
 
 import (
+	"compress/gzip"
+	"crypto/sha256"
+	"io"
+	"io/fs"
 	"maps"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -10,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
-	"go.temporal.io/server/tools/umpire/internal/golden"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
@@ -20,12 +24,12 @@ import (
 )
 
 // The IR schema was renamed once, from the package below to umpire/v1. testdata/schema/before-rename
-// holds what the schema generated before that: its file descriptor, and the wire bytes of every
-// frozen migration input and of schemaSupplement. Nothing regenerates it.
+// holds what the schema generated before that: its file descriptor, and the wire bytes of the Models
+// lifted then and of schemaSupplement. Nothing regenerates it.
 const (
 	schemaPackageBefore = "temporal.server.api.modelir.v1"
 	schemaPackage       = "temporal.server.api.umpire.v1"
-	// The fields no frozen migration input sets.
+	// The fields none of the Models lifted at the capture sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
 	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","conformanceReason":"REASON_INCOMPLETE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
@@ -136,9 +140,8 @@ var (
 		// Why an expected Run's conformance is not conformant, by the judge's id (fn-124.6).
 		{message: "RunExpectation", field: schemaFieldOf("conformance_reason", 9, schemaOptional, schemaEnum, "RunExpectation.Reason", "conformanceReason")},
 	}
-	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5. The frozen
-	// migration inputs were declared in the new schema then (golden.DeclaredRuns), so the captured wire
-	// bytes no longer encode their expected Runs; TestSchemaRenameKeepsTheWireBytes reads both without.
+	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5, so the
+	// captured wire bytes no longer encode their expected Runs as the schema now reads them.
 	schemaReplacedFields = []schemaReplacedField{
 		{message: "RunExpectation", replaced: "reason", replacement: schemaFieldOf("reason", 8, schemaOptional, schemaEnum, "RunExpectation.Reason", "reason")},
 		{message: "MonitorExpectation", replaced: "reason", replacement: schemaFieldOf("reason", 4, schemaOptional, schemaEnum, "RunExpectation.Reason", "reason")},
@@ -216,10 +219,30 @@ var (
 	}
 )
 
+// schemaBeforeRename is every file under testdata/schema/before-rename, gunzipped, by its path there
+// without the .gz.
 func schemaBeforeRename(t *testing.T) map[string][]byte {
 	t.Helper()
-	captured, err := golden.Read(filepath.Join("testdata", "schema", "before-rename"))
-	require.NoError(t, err)
+	dir := filepath.Join("testdata", "schema", "before-rename")
+	captured := map[string][]byte{}
+	require.NoError(t, filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		require.True(t, d.Type().IsRegular() && strings.HasSuffix(path, ".gz"), "unexpected capture file %s", path)
+		file, err := os.Open(path)
+		require.NoError(t, err)
+		defer func() { require.NoError(t, file.Close()) }()
+		reader, err := gzip.NewReader(file)
+		require.NoError(t, err)
+		data, err := io.ReadAll(reader)
+		require.NoError(t, err)
+		require.NoError(t, reader.Close())
+		rel, err := filepath.Rel(dir, path)
+		require.NoError(t, err)
+		captured[filepath.ToSlash(strings.TrimSuffix(rel, ".gz"))] = data
+		return nil
+	}))
 	return captured
 }
 
@@ -322,44 +345,39 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 	}
 }
 
-// The captured wire bytes still decode to what their sources say and re-encode byte for byte, and set
-// every field the schema had at the capture: every field but those added since. schemaAddedSupplement
-// sets those, and round-trips through wire bytes too, so together they set every field of the schema.
+// The captured wire bytes still decode under the renamed schema, re-encode byte for byte, and set
+// every field the schema had at the capture: every field but those added since. The supplement decodes
+// to what its source says. schemaAddedSupplement sets the fields added since, and round-trips through
+// wire bytes too, so together they set every field of the schema.
 func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
-	inputs, err := golden.Read(filepath.Join("testdata", "migration", "inputs"))
-	require.NoError(t, err)
-	sources := map[string][]byte{"wire/supplement.binpb": []byte(schemaSupplement)}
-	for name, encoded := range inputs {
-		sources["wire/"+strings.TrimSuffix(name, ".json")+".binpb"] = encoded
-	}
 	captured := schemaBeforeRename(t)
 	delete(captured, "descriptor.binpb")
-	require.Equal(t, slices.Sorted(maps.Keys(sources)), slices.Sorted(maps.Keys(captured)))
-
-	// Each side is read without its expected Runs (schemaReplacedFields), and the captured side then
-	// re-encodes byte for byte to the source's encoding.
-	withoutExpectedRuns := func(m *umpirespb.Model) []byte {
-		bare := proto.CloneOf(m)
-		for _, q := range bare.GetQueries() {
-			q.ExpectedRun = nil
-		}
-		encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(bare)
-		require.NoError(t, err)
-		return encoded
-	}
+	const lifts = "wire/lifter/testdata/lifts/expected/"
+	require.ElementsMatch(t, []string{
+		"wire/supplement.binpb",
+		"wire/ir/activity.binpb", "wire/ir/activity-race.binpb", "wire/ir/activity-system.binpb",
+		"wire/ir/nexus-caller.binpb", "wire/ir/nexus-close.binpb", "wire/ir/nexus-control.binpb",
+		lifts + "admission.binpb", lifts + "channels.binpb", lifts + "closereset.binpb",
+		lifts + "declarations.binpb", lifts + "presence.binpb", lifts + "realizations.binpb",
+	}, slices.Collect(maps.Keys(captured)))
 	historical := map[protoreflect.FullName]bool{}
 	for name, wire := range captured {
-		expected := new(umpirespb.Model)
-		require.NoError(t, protojson.Unmarshal(sources[name], expected), name)
 		decoded := new(umpirespb.Model)
 		require.NoError(t, proto.Unmarshal(wire, decoded), name)
-		if !slices.ContainsFunc(expected.GetQueries(), func(q *umpirespb.Query) bool { return q.GetExpectedRun() != nil }) {
+		// Only the reasons an expected Run once wrote as text are no field of the schema now.
+		require.Empty(t, schemaUnknownOutside(decoded.ProtoReflect(), "RunExpectation", "MonitorExpectation"), name)
+		if name == "wire/supplement.binpb" {
+			expected := new(umpirespb.Model)
+			require.NoError(t, protojson.Unmarshal([]byte(schemaSupplement), expected))
 			protorequire.ProtoEqual(t, expected, decoded)
-			encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(expected)
-			require.NoError(t, err, name)
-			require.Equal(t, golden.Digest(wire), golden.Digest(encoded), name)
 		}
-		require.Equal(t, golden.Digest(withoutExpectedRuns(expected)), golden.Digest(withoutExpectedRuns(decoded)), name)
+		// An expected Run's reasons were captured as text, a field since replaced (schemaReplacedFields),
+		// so a capture with expected Runs no longer re-encodes as it was written.
+		if !slices.ContainsFunc(decoded.GetQueries(), func(q *umpirespb.Query) bool { return q.GetExpectedRun() != nil }) {
+			encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(decoded)
+			require.NoError(t, err, name)
+			require.Equal(t, sha256.Sum256(wire), sha256.Sum256(encoded), name)
+		}
 		schemaFieldsSet(decoded.ProtoReflect(), historical)
 	}
 	var added []protoreflect.FullName
@@ -394,6 +412,28 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 
 	maps.Copy(current, historical)
 	require.Empty(t, schemaFieldsUnset(current), "the captured wire bytes and schemaAddedSupplement set every field of the schema")
+}
+
+// schemaUnknownOutside is every message of m, by its full name, that carries bytes no field of the
+// schema reads, but those named allowed.
+func schemaUnknownOutside(m protoreflect.Message, allowed ...protoreflect.Name) []protoreflect.FullName {
+	var out []protoreflect.FullName
+	if len(m.GetUnknown()) > 0 && !slices.Contains(allowed, m.Descriptor().Name()) {
+		out = append(out, m.Descriptor().FullName())
+	}
+	m.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
+		switch {
+		case field.Message() == nil, field.IsMap():
+		case field.IsList():
+			for i := range value.List().Len() {
+				out = append(out, schemaUnknownOutside(value.List().Get(i).Message(), allowed...)...)
+			}
+		default:
+			out = append(out, schemaUnknownOutside(value.Message(), allowed...)...)
+		}
+		return true
+	})
+	return out
 }
 
 // schemaFieldsUnset is every field of the schema not in set.

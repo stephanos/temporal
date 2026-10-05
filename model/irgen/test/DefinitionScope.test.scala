@@ -15,8 +15,7 @@ import umpire.check.{Ran, Tools}
  * The lifted fixtures that declare every symbol-based kind (actions, monitors, assumptions and holes;
  * channels and the actions they derive; realizations) are moved both ways, given one pin of the owner
  * they left, and lifted again. The functions they declare carry the new owner, so the move took; the
- * IDs must be exactly those of testdata/lifts/expected and of fn-112.1's owner map,
- * tools/umpire/internal/golden/testdata/original/owners.json.
+ * IDs must be exactly those of testdata/lifts/expected.
  *
  * A type declared at the top level of a file is its package's, so the pin of the file's former owner
  * `<package>.<File>$package$` also keeps the name it had there: moved into another package, the
@@ -151,14 +150,6 @@ class DefinitionScope extends munit.FunSuite:
       assert(!ran.failed, s"the $name $fixture probe did not lift:\n${ran.diagnostics}")
       (fixture, s"$pkg.$stem$$package$$", owner, Files.readString(out))
 
-  // fn-112.1's map of every symbol-based ID: former owner, then kind, then captured names.
-  private lazy val owners =
-    mapper.readTree(
-      Files.readString(
-        root.resolve("tools/umpire/internal/golden/testdata/original/owners.json")
-      )
-    )
-
   // A fixture's types without their positions, which the move shifts.
   private def types(ir: String): String =
     val all = mapper.readTree(ir).path("types").deepCopy[com.fasterxml.jackson.databind.JsonNode]()
@@ -194,9 +185,6 @@ class DefinitionScope extends munit.FunSuite:
           expected(kind),
           s"$fixture $kind under the pin of $former in $owner"
         )
-        val names = now(kind).filter(_.startsWith(former + ".")).map(_.drop(former.length + 1))
-        val recorded = owners.path(former).path(kind.stripSuffix("s")).elements().asScala
-        assertEquals(names, recorded.map(_.asText()).toVector.sorted, s"$fixture $kind of $former")
 
   test("a declaration moved under an object keeps its ID under one pin of its former owner"):
     pinned(
