@@ -79,6 +79,11 @@ Tasks 38 and 39 own the eight target digest/import findings and nine target clea
 ### Adapter command correction evidence owner, 2026-10-05
 
 Task40 supplies the bounded shared-command compatibility mechanism and actual BASE process controls for task9's omitted adapter listing. Task9 retains helper integration and its task8/task40 dependencies; task21 consumes both evidence sets through the existing chain. Preserve original predecessor and qualification requirements. The 29-case stock-Go BASE probe establishes ordinary error/cancellation/cwd observations only; overflow, descendants, nonempty platform source selection, pin reproduction and all original native/full/formal/matched-first-baseline gates remain required where unproved. Historical task9 checked acceptance is not current complete R10 coverage.
+
+### R18 cross-owner contract audit, 2026-10-05
+
+The [recorded-format and selected-workload audit](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-contract-conflict-20261005.md) distinguishes intentional v2 wire refusal under fn114.11, recorded-controller resume/refusal under fn114.12, and the genuinely selected v041 fixture retired under fn113.3. Reconcile their explicit owner contracts before commissioning contradictory restoration or counting these migrations as unconditional R18 preservation. This task still implements nothing; existing owners retain any correction. No requirement, test expectation, approval, qualification disposition or preservation waiver changes. Task20 retains the stale complete-v2 replay guidance correction. Linux remains transferred and nonblocking under fn128.
+
 ## Acceptance
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
 
