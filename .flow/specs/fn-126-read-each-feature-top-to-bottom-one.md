@@ -202,7 +202,9 @@ The feature section is an object, not top-level code, for initialization order. 
 4. **The feature section is an object, and capabilities that read the realization go there.** The realization reads the module objects, so a module object that read the realization would form a cycle.
 5. **The lint covers more than order inside an object:** it also checks cycles between owners and placement.
 
-## Open questions (owner)
+## Owner decisions
+
+Decided 2026-10-05: all five recommendations below are adopted. Renames the DSL-simplification study proposes and the owner approves (e.g. `accept`, `attemptStart`, the `admission`/`compositions` names) are folded into this spec so files and names change once.
 
 1. **Do Properties form their own section after the machine, or sit next to the step they constrain?** Recommendation: their own section. A Property reads the machine's val, so placing it next to a step means placing it above the machine, where it is `null` at initialization unless it becomes a `def` or a lazy val. A separate section also keeps fn-112's "read on its own" and keeps R4 simple. The step-to-claim distance is already one object.
 2. **For a folder with one machine family (nexusoperation, worker, closepolicy), a module object or top-level declarations?** Recommendation: a module object everywhere. One rule for the lint and the README, and a second machine adds an object without moving the first. The cost is one indentation level and call sites such as `Worker.polling`.
