@@ -2,6 +2,7 @@ package temporal
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
 	"strings"
 
@@ -237,6 +238,9 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 			usage.reservable[kind]++
 		case testpilot.ActivityEntrypoint:
 			activity := entrypoint.GetActivity()
+			if err := implementsNumbering(entrypoint.GetEntrypointId(), activity.GetAttemptNumbering()); err != nil {
+				return nil, err
+			}
 			if scheduled[scheduledActivity{activityType: activity.GetActivityType(), queueRole: activity.GetTaskQueueRoleId()}] {
 				usage.scheduledAttempts += int64(len(entrypoint.GetInstructions()))
 			} else {
@@ -262,6 +266,21 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 		}
 	}
 	return usage, nil
+}
+
+// implementedNumbering is how the Driver's delivery ledger numbers an activity's attempts: the Nth
+// reservation is the attempt the server numbers N, and every attempt names the run of the first.
+var implementedNumbering = &testpilotspb.AttemptNumbering{First: 1, OneRun: true}
+
+// implementsNumbering refuses an activity entrypoint whose declared attempt numbering is not the one
+// the Driver implements, naming the declaration: the Case says how the server numbers attempts, and
+// the Driver can only route attempts it numbers the same way.
+func implementsNumbering(entrypointID string, declared *testpilotspb.AttemptNumbering) error {
+	if declared.GetFirst() == implementedNumbering.GetFirst() && declared.GetOneRun() == implementedNumbering.GetOneRun() {
+		return nil
+	}
+	return fmt.Errorf("%w: activity entrypoint %s declares attempts numbered from %d, one run %t; the Temporal Driver routes attempts numbered from %d, one run %t",
+		ErrInvalid, entrypointID, declared.GetFirst(), declared.GetOneRun(), implementedNumbering.GetFirst(), implementedNumbering.GetOneRun())
 }
 
 // scheduledActivity names an activity a workflow's schedule command reaches: its type on its

@@ -93,7 +93,7 @@ Gates: task 5 lands before fn-126.1 starts; task 7 after fn-126 closes (fn-114, 
 | --- | --- | --- |
 | fn-124.1 | ✅ done | `tools/umpire0`, `model0` and the empty command deleted |
 | fn-124.2 | ✅ done | Duplicate refinement and test-only APIs removed |
-| fn-124.3 | 🔄 in progress | Temporal facts the judge hard-codes declared in the realization |
+| fn-124.3 | ✅ done | Temporal facts the judge hard-codes declared in the realization |
 | fn-124.4 | ✅ done | Verdict aggregation defined once; judge rules documented |
 | fn-124.5 | 🔄 in progress | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ⬜ todo | Model assessment as the command-line judge; Evaluation Profile derived or retired |

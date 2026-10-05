@@ -129,6 +129,25 @@ func TestPrepareAdmitsAnActivityScript(t *testing.T) {
 	require.True(t, proto.Equal(textValue("done"), result))
 }
 
+// An activity entrypoint's attempts are judged by how the Case declares the server numbers them, so
+// one that declares no numbering, or a first attempt number below 1, is refused at the entrypoint.
+func TestPrepareRejectsAnActivityEntrypointThatNumbersNoAttempts(t *testing.T) {
+	for name, numbering := range map[string]*testpilotspb.AttemptNumbering{
+		"no numbering":    nil,
+		"numbered from 0": {OneRun: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			source, catalog, policy := activityFixture(t)
+			source.Program.Entrypoints[1].GetActivity().AttemptNumbering = numbering
+			_, err := Prepare(source, catalog, policy)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, ir.Error{Category: ir.Malformed, Path: "activity",
+				Detail: "an activity entrypoint requires the numbering of its attempts, from a positive first"}, *diagnostic)
+		})
+	}
+}
+
 // The script declares the activity's attempts, one per instruction, and the carrier reserves an
 // activation for each, within what the Profile's carrier admits.
 func TestPrepareReservesOneActivationPerDeclaredAttempt(t *testing.T) {

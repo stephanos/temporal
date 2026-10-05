@@ -132,7 +132,7 @@ func validateDeliveryAdmission(n *node, outcome *testpilotspb.InstructionOutcome
 		return ir.Invalid(ir.Malformed, "outcome", "a delivery admission is the outcome of a successful delivery release alone")
 	}
 	decision := admission.GetDecision()
-	if lost && (decision != testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED || admission.GetAttempt() < 1 || admission.GetActivityRunId() == "") {
+	if lost && (decision != testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED || admission.GetAttempt() <= 0 || admission.GetActivityRunId() == "") {
 		return ir.Invalid(ir.Malformed, "outcome", "a lost admission response requires its committed attempt and activity run")
 	}
 	if admission.GetActivityId() == "" || admission.GetDeliveryId() == "" ||

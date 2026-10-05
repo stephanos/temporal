@@ -219,7 +219,7 @@ func programInstructionDefaults(profile contract.InstructionDefaults, declared *
 	if declared.GetAttempts() != nil {
 		defaults.MaxAttempts = declared.GetMaxAttempts()
 	}
-	if defaults.TimeoutMilliseconds > max(limits.MaxTotalDurationMilliseconds, limits.MaxCleanupDurationMilliseconds) || defaults.MaxAttempts > limits.MaxAttempts {
+	if err := checkInstructionDefaults(defaults, limits); err != nil {
 		return contract.InstructionDefaults{}, ir.Invalid(ir.LimitExceeded, "program.instruction_defaults", "a declared instruction default exceeds the Profile ceiling")
 	}
 	return defaults, nil

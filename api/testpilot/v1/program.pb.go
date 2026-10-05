@@ -426,8 +426,9 @@ func (*EvidenceDeclaration_RunEvent) isEvidenceDeclaration_Source() {}
 
 func (*EvidenceDeclaration_Read) isEvidenceDeclaration_Source() {}
 
-// HistoryEventSource is one recorded history event kind: the attributes arm of
-// temporal.api.history.v1.HistoryEvent that a history read lifts, guarded by the arm's presence.
+// HistoryEventSource is one recorded history event kind: a member of a oneof of the event the
+// Program's history read yields, the read whose lift rule names the declaration, guarded by the
+// member's presence.
 type HistoryEventSource struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	AttributesField string                 `protobuf:"bytes,1,opt,name=attributes_field,json=attributesField,proto3" json:"attributes_field,omitempty"`

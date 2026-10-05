@@ -375,6 +375,34 @@ func TestPrepareRejectsAnActivityScriptUnderAProfileWithoutItsCarrier(t *testing
 	require.Equal(t, "activity", diagnostic.Path)
 }
 
+// The Driver routes an activity's attempts numbered from 1, every one of the run the first named, so a
+// Case whose activity entrypoint declares another numbering, or none, is refused when its Profile is
+// derived, naming the entrypoint and what it declares.
+func TestDeriveProfileRefusesAnAttemptNumberingTheDriverDoesNotImplement(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	environment := temporal.Environment{Identity: "activity", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "endpoint"}
+	_, err = temporal.DeriveProfile(activityCase(), catalog, environment)
+	require.NoError(t, err)
+	for name, test := range map[string]struct {
+		numbering *testpilotspb.AttemptNumbering
+		want      string
+	}{
+		"numbered from 2":       {&testpilotspb.AttemptNumbering{First: 2, OneRun: true}, "activity entrypoint activity declares attempts numbered from 2, one run true"},
+		"attempts of many runs": {&testpilotspb.AttemptNumbering{First: 1}, "activity entrypoint activity declares attempts numbered from 1, one run false"},
+		"no numbering":          {nil, "activity entrypoint activity declares attempts numbered from 0, one run false"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			source := activityCase()
+			source.Program.Entrypoints[3].GetActivity().AttemptNumbering = test.numbering
+			_, err := temporal.DeriveProfile(source, catalog, environment)
+			require.ErrorIs(t, err, temporal.ErrInvalid)
+			require.ErrorContains(t, err, test.want)
+			require.ErrorContains(t, err, "the Temporal Driver routes attempts numbered from 1, one run true")
+		})
+	}
+}
+
 // A workflow start carries the attempts of the activity its workflow schedules, routed by the
 // schedule command, and a script that withholds an attempt's answer is authorized that
 // instruction alone; a Profile without it rejects the Case naming it.
