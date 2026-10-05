@@ -110,7 +110,7 @@ object queue extends Section:
   val persistTask = internal on taskQueueEntity
   val syncMatch = internal on taskQueueEntity
 
-/** The faults the providers suffer, which name no entity, as the worker's stop and resume do not. */
+/** The faults the providers suffer. Like the worker's stop and resume, they name no entity. */
 object faults extends Section:
   /**
    * Committed storage may be lost. It is a fault of its own, apart from a crash, and only a machine

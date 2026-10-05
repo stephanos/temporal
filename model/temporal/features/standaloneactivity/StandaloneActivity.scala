@@ -140,8 +140,8 @@ object caller extends Actor:
 /**
  * The shared worker party's actions on this activity: its poll receives the task for the current
  * attempt, and its answer settles it. The worker's stop is the party's own action,
- * `process.workerStop`: nothing it records names the activity, so the activity's machines keep their
- * state.
+ * `process.workerStop`: nothing it records names the activity, so the activity's machines keep
+ * their state.
  */
 object worker extends Section:
   val attemptStart = action(process).on(activity).schema[PollActivityTaskQueueResponse]

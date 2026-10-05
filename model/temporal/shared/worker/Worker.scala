@@ -56,8 +56,8 @@ given Ok[Outcome] = Ok(Outcome.accepted)
  *
  * The actions keep the names they had as the file's top-level vals: an action's Definition ID is
  * its val's owner and name, an actor object is transparent to it, and every Case that stops a
- * worker carries these IDs. fn-126 R18 renames them. A feature that has actions of its own taken by this
- * party imports it under another name (`import shared.worker.{worker as process}`).
+ * worker carries these IDs; fn-126 R18 renames them. A feature with actions of its own that this
+ * party takes imports it under another name (`import shared.worker.{worker as process}`).
  */
 object worker extends Actor:
   val workerStop = action(this)
