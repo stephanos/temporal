@@ -1,0 +1,16 @@
+{"Time":"2026-10-05T11:15:00.405029114Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen"}
+{"Time":"2026-10-05T11:15:00.406644864Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestStalePacksNameBindingsOfThePreviousIdentity"}
+{"Time":"2026-10-05T11:15:00.406676281Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestStalePacksNameBindingsOfThePreviousIdentity","Output":"=== RUN   TestStalePacksNameBindingsOfThePreviousIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:15:00.418605239Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestStalePacksNameBindingsOfThePreviousIdentity","Output":"--- PASS: TestStalePacksNameBindingsOfThePreviousIdentity (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:15:00.418626281Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestStalePacksNameBindingsOfThePreviousIdentity","Elapsed":0.01}
+{"Time":"2026-10-05T11:15:00.418635822Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps"}
+{"Time":"2026-10-05T11:15:00.418637406Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps","Output":"=== RUN   TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:15:00.418744822Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps","Output":"--- PASS: TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:15:00.418751114Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps","Elapsed":0}
+{"Time":"2026-10-05T11:15:00.418754822Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestUnifiedDiff"}
+{"Time":"2026-10-05T11:15:00.418756239Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestUnifiedDiff","Output":"=== RUN   TestUnifiedDiff\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:15:00.418759281Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestUnifiedDiff","Output":"--- PASS: TestUnifiedDiff (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:15:00.418769989Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestUnifiedDiff","Elapsed":0}
+{"Time":"2026-10-05T11:15:00.418772281Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:15:00.418939531Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Output":"ok  \tgo.temporal.io/server/tools/gomad3/upgrade/adapterregen\t0.014s\n"}
+{"Time":"2026-10-05T11:15:00.418963989Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Elapsed":0.014}

@@ -1,0 +1,8 @@
+{"Time":"2026-10-05T11:12:42.541014676Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand"}
+{"Time":"2026-10-05T11:12:42.542186218Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCompatibilityInfrastructureFailurePreservesBoundedStderr"}
+{"Time":"2026-10-05T11:12:42.542220343Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCompatibilityInfrastructureFailurePreservesBoundedStderr","Output":"=== RUN   TestCompatibilityInfrastructureFailurePreservesBoundedStderr\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:12:42.542245343Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCompatibilityInfrastructureFailurePreservesBoundedStderr","Output":"--- PASS: TestCompatibilityInfrastructureFailurePreservesBoundedStderr (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:12:42.542247176Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Test":"TestCompatibilityInfrastructureFailurePreservesBoundedStderr","Elapsed":0}
+{"Time":"2026-10-05T11:12:42.542250551Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-05T11:12:42.542350676Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Output":"ok  \tgo.temporal.io/server/tools/gomad3/target/internal/gocommand\t0.001s\n"}
+{"Time":"2026-10-05T11:12:42.542360759Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/target/internal/gocommand","Elapsed":0.001}

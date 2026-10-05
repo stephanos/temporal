@@ -20,7 +20,7 @@ type captureResult struct {
 	err  error
 }
 
-func Run(ctx context.Context, request Request) (Result, error) {
+func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	if err := validateRequest(request); err != nil {
 		return Result{}, err
 	}
@@ -44,14 +44,46 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if err != nil {
 		return Result{}, fmt.Errorf("create stdout pipe: %w", err)
 	}
-	defer stdoutRead.Close()
-	defer stdoutWrite.Close()
+	defer func() {
+		if closeErr := stdoutRead.Close(); closeErr != nil {
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
+	defer func() {
+		if closeErr := stdoutWrite.Close(); closeErr != nil && !errors.Is(closeErr, os.ErrClosed) {
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	stderrRead, stderrWrite, err := os.Pipe()
 	if err != nil {
 		return Result{}, fmt.Errorf("create stderr pipe: %w", err)
 	}
-	defer stderrRead.Close()
-	defer stderrWrite.Close()
+	defer func() {
+		if closeErr := stderrRead.Close(); closeErr != nil {
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
+	defer func() {
+		if closeErr := stderrWrite.Close(); closeErr != nil && !errors.Is(closeErr, os.ErrClosed) {
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 
 	name := ""
 	var arguments []string
@@ -109,7 +141,7 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	defer timer.Stop()
 	leaderReaped := false
 	var waitErr error
-	result := Result{PID: pid, PGID: pgid}
+	result = Result{PID: pid, PGID: pgid}
 	select {
 	case waitErr = <-waits:
 		leaderReaped = true

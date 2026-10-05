@@ -205,12 +205,21 @@ func testRequest(script string) Request {
 func requireProcessGone(t *testing.T, pid int) {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
+	timer := time.NewTimer(time.Until(deadline))
+	defer timer.Stop()
+	ticker := time.NewTicker(10 * time.Millisecond)
+	defer ticker.Stop()
+poll:
 	for time.Now().Before(deadline) {
 		err := syscall.Kill(pid, 0)
 		if errors.Is(err, syscall.ESRCH) {
 			return
 		}
-		time.Sleep(10 * time.Millisecond)
+		select {
+		case <-ticker.C:
+		case <-timer.C:
+			break poll
+		}
 	}
 	t.Fatalf("process %d remains after command cleanup", pid)
 }

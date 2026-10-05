@@ -23,6 +23,24 @@ type failingStdin struct{ err error }
 
 func (reader failingStdin) Read([]byte) (int, error) { return 0, reader.err }
 
+func TestCompatibilityInfrastructureFailurePreservesBoundedStderr(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	failure := errors.New("command cleanup failed")
+	commandErr := errors.New("raw command outcome")
+	runner := New(func(context.Context, hostexec.Request) (hostexec.Result, error) {
+		return hostexec.Result{
+			Cancelled: true, WatchdogTimeout: true, CommandError: commandErr,
+			Stdout: hostexec.Output{Truncated: true},
+			Stderr: hostexec.Output{RawBytes: []byte("diagnostic")},
+		}, failure
+	})
+	result, err := runner.Compatibility(ctx, Request{Command: []string{"go"}, OutputLimit: 16})
+	if err != failure || len(result.Stdout) != 0 || string(result.Stderr) != "diagnostic" {
+		t.Fatalf("infrastructure result = %#v, %v; want original failure and bounded stderr", result, err)
+	}
+}
+
 func TestCompatibilityStdinFailureWinsOverRealOverflow(t *testing.T) {
 	for _, failure := range []error{errors.New("stdin read failed"), context.Canceled} {
 		t.Run(failure.Error(), func(t *testing.T) {

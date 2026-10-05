@@ -1,0 +1,358 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.40",
+  "status": "blocked",
+  "outcome": "reviewed-inherited-lint-source-progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "base_commit": "c5ff6108a4c0ab1697869313dd7ad1b36a157918",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "go test -json -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+    "go test -json -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+    "go test -json -race -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand -run '^(TestRun(PreservesCommandErrorOnlyWhenRequested|TimesOutAndRemovesTermIgnoringDescendant|ClassifiesContextCancellation|SupportsConcurrentCommands)|TestCompatibility(InfrastructureFailure|StdinFailure|CompletedExit|CallerLifetime|KeepsCompletedOutcome))'",
+    "make validate",
+    "go test -json -count=1 -tags test_dep ./toolchain -run '^(TestBuild|TestValidate|TestMaterialize)'",
+    "go test -json -count=1 -tags test_dep ./internal/gomadtool/conformance -run '^(TestRun(Upstream|Builder|LiveCapability|Accepts|Rejects|Reports|Interception)|TestResolve|TestRequireStockCompatibilitySelectsPinnedToolchain$)'",
+    "go test -json -count=1 -tags test_dep ./qualification/set ./qualification/soak",
+    "go test -json -count=1 -tags test_dep ./upgrade -run '^TestRun(Publishes|KeepsPriorDossier|ReplacesExistingDossier)'",
+    "go test -json -count=1 -tags test_dep ./upgrade/pinimpact -run '^TestGoResolver'",
+    "go test -json -count=1 -tags test_dep ./upgrade/adapterregen -run '^(TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps|TestUnifiedDiff|TestStalePacksNameBindingsOfThePreviousIdentity)$'",
+    "gofmt -l internal/hostexec/command.go internal/hostexec/command_unix.go internal/hostexec/command_unix_test.go target/internal/gocommand/command.go target/internal/gocommand/command_test.go",
+    "git diff --check"
+  ],
+  "checks": [
+    {
+      "name": "final-focused",
+      "command": "go test -json -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+      "log": "final-focused.log",
+      "exit_code": 0,
+      "elapsed_seconds": 4,
+      "start_epoch": 1791198879,
+      "end_epoch": 1791198883
+    },
+    {
+      "name": "final-architecture",
+      "command": "go test -json -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+      "log": "final-architecture.log",
+      "exit_code": 0,
+      "elapsed_seconds": 2,
+      "start_epoch": 1791198883,
+      "end_epoch": 1791198885
+    },
+    {
+      "name": "final-lint",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+      "log": "final-lint.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "start_epoch": 1791198885,
+      "end_epoch": 1791198885
+    },
+    {
+      "name": "final-errortype",
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+      "log": "final-errortype.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "start_epoch": 1791198885,
+      "end_epoch": 1791198885
+    },
+    {
+      "name": "final-race",
+      "command": "go test -json -race -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand -run '^(TestRun(PreservesCommandErrorOnlyWhenRequested|TimesOutAndRemovesTermIgnoringDescendant|ClassifiesContextCancellation|SupportsConcurrentCommands)|TestCompatibility(InfrastructureFailure|StdinFailure|CompletedExit|CallerLifetime|KeepsCompletedOutcome))'",
+      "log": "final-race.log",
+      "exit_code": 0,
+      "elapsed_seconds": 6,
+      "start_epoch": 1791198885,
+      "end_epoch": 1791198891
+    },
+    {
+      "name": "final-validation",
+      "command": "make validate",
+      "log": "final-validation.log",
+      "exit_code": 0,
+      "elapsed_seconds": 5,
+      "start_epoch": 1791198891,
+      "end_epoch": 1791198896
+    },
+    {
+      "name": "consumer-toolchain",
+      "command": "go test -json -count=1 -tags test_dep ./toolchain -run '^(TestBuild|TestValidate|TestMaterialize)'",
+      "log": "consumer-toolchain.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "start_epoch": 1791198896,
+      "end_epoch": 1791198897
+    },
+    {
+      "name": "consumer-conformance",
+      "command": "go test -json -count=1 -tags test_dep ./internal/gomadtool/conformance -run '^(TestRun(Upstream|Builder|LiveCapability|Accepts|Rejects|Reports|Interception)|TestResolve|TestRequireStockCompatibilitySelectsPinnedToolchain$)'",
+      "log": "consumer-conformance.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "start_epoch": 1791198897,
+      "end_epoch": 1791198898
+    },
+    {
+      "name": "consumer-set-soak",
+      "command": "go test -json -count=1 -tags test_dep ./qualification/set ./qualification/soak",
+      "log": "consumer-set-soak.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "start_epoch": 1791198898,
+      "end_epoch": 1791198899
+    },
+    {
+      "name": "consumer-upgrade",
+      "command": "go test -json -count=1 -tags test_dep ./upgrade -run '^TestRun(Publishes|KeepsPriorDossier|ReplacesExistingDossier)'",
+      "log": "consumer-upgrade.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "start_epoch": 1791198899,
+      "end_epoch": 1791198899
+    },
+    {
+      "name": "consumer-pinimpact",
+      "command": "go test -json -count=1 -tags test_dep ./upgrade/pinimpact -run '^TestGoResolver'",
+      "log": "consumer-pinimpact.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "start_epoch": 1791198899,
+      "end_epoch": 1791198900
+    },
+    {
+      "name": "consumer-adapterregen",
+      "command": "go test -json -count=1 -tags test_dep ./upgrade/adapterregen -run '^(TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps|TestUnifiedDiff|TestStalePacksNameBindingsOfThePreviousIdentity)$'",
+      "log": "consumer-adapterregen.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "start_epoch": 1791198900,
+      "end_epoch": 1791198900
+    },
+    {
+      "name": "final-format",
+      "command": "gofmt -l internal/hostexec/command.go internal/hostexec/command_unix.go internal/hostexec/command_unix_test.go target/internal/gocommand/command.go target/internal/gocommand/command_test.go",
+      "log": "final-format.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "start_epoch": 1791198900,
+      "end_epoch": 1791198900
+    },
+    {
+      "name": "final-diff-check",
+      "command": "git diff --check",
+      "log": "final-diff-check.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "start_epoch": 1791198900,
+      "end_epoch": 1791198900
+    }
+  ],
+  "baseline": {
+    "source_matches": "d5e97b51d987861e4d216c485ac5e3890f8f7a1f; subsequent admission commit changes only .flow paths",
+    "focused": {
+      "command": "go test -json -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": "baseline-focused.log",
+      "pass": 56,
+      "fail": 0,
+      "skip": 0,
+      "terminal_exit_provenance": "root conductor supplied terminal exit; worker reread all package pass records and matching source identities"
+    },
+    "lint": {
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+      "exit_code": 1,
+      "elapsed_seconds": null,
+      "log": "baseline-lint.log",
+      "errcheck": 4,
+      "forbidigo": 1,
+      "terminal_exit_provenance": "root conductor supplied terminal exit; worker reread actual unfiltered five-diagnostic log"
+    },
+    "meaningful_red": "Actual pinned analyzer reports four unchecked deferred Close results and test-helper time.Sleep; prepassing controls are not behavioral RED.",
+    "source_sha256": {
+      "internal/hostexec/command_unix.go": "f20091271f18fdda53e85d5538b32f93b79db5430ab43f36ab0ccce3b2491aa5",
+      "internal/hostexec/command_unix_test.go": "8dfa993f87d698f5310501f68860bf492a7d761dadcbf72f7be33c2c0026f3dd",
+      "target/internal/gocommand/command_test.go": "1303336b9bf3987e2bc3a4dbfa00bda7be0f02a80c2750ec1d54cfd69598ce0d"
+    }
+  },
+  "prepassing_control": {
+    "command": "go test -json -count=1 -tags test_dep ./target/internal/gocommand -run '^TestCompatibilityInfrastructureFailurePreservesBoundedStderr$'",
+    "exit_code": 0,
+    "elapsed_seconds": 0,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "log": "prepassing-seam-control.log",
+    "scope": "Existing gocommand.New injection seam only; proves complete bounded stderr and direct original infrastructure error ahead of context/watchdog/stdout overflow/raw outcome; no real OS cleanup fault"
+  },
+  "counts": {
+    "final-focused": {
+      "pass": 57,
+      "fail": 0,
+      "skip": 0
+    },
+    "final-architecture": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "final-race": {
+      "pass": 16,
+      "fail": 0,
+      "skip": 0
+    },
+    "consumer-toolchain": {
+      "pass": 31,
+      "fail": 0,
+      "skip": 0
+    },
+    "consumer-conformance": {
+      "pass": 20,
+      "fail": 0,
+      "skip": 0
+    },
+    "consumer-set-soak": {
+      "pass": 104,
+      "fail": 0,
+      "skip": 0
+    },
+    "consumer-upgrade": {
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "consumer-pinimpact": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "consumer-adapterregen": {
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "lint_change": {
+    "baseline_issues": 5,
+    "final_issues": 0,
+    "introduced_issues": 0,
+    "final_log": "final-lint.log"
+  },
+  "source_freeze": "source-freeze.sha256",
+  "tool_config_freeze": "tool-config.sha256",
+  "environment": {
+    "path_first": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "unset": [
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED"
+    ]
+  },
+  "preservation": {
+    "complete_original_hostexec_test_prefix_before_requireProcessGone_cmp_exit": 0,
+    "complete_original_gocommand_test_suffix_from_TestCompatibilityStdinFailure_cmp_exit": 0,
+    "format_output_empty": true,
+    "source_and_tool_freeze_recheck_exit": 0,
+    "source_write_scope": [
+      "tools/gomad3/internal/hostexec/command_unix.go",
+      "tools/gomad3/internal/hostexec/command_unix_test.go",
+      "tools/gomad3/target/internal/gocommand/command_test.go"
+    ],
+    "protected_paths_unchanged": [
+      "internal/hostexec/command.go",
+      "target/internal/gocommand/command.go",
+      "target/adapter_source_set.go",
+      "go.mod",
+      "go.sum",
+      ".github/.golangci.yml"
+    ],
+    "preexisting_user_state_preserved": [
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.json",
+      ".turbo/plans/gomad3-glossary-update.md",
+      ".turbo/technical-debt.md"
+    ]
+  },
+  "generator_review": "Makefile VERSION_INPUTS, BOUNDARY_INPUTS, COMPATIBILITY_INPUTS reviewed before make validate. Protocol implementation-input lists subsequently checked; command files are absent. Validation was check-only; no generator source/pin edits.",
+  "original_progress": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/command-compatibility-2026-10-05/progress.md",
+  "review": "source-progress only; independent correctness and standards each zero introduced findings; reviews.md",
+  "required_unproved": [
+    "genuine deferred OS-close failure and simultaneous cleanup-failure paths",
+    "predecessor/matched-first-baseline",
+    "complete original patched/full/default/functional/smoke/affected-native gates",
+    "native Darwin qualification",
+    "static full both-source-set and exact-input adapter regeneration obligations",
+    "formal implementation review and task completion"
+  ],
+  "linux_scope": "Developmental linux/arm64 stock Go observations only; transferred native Linux execution remains fn128-owned and nonblocking.",
+  "command_ownership": "Worker and conductor commands terminal; no active source/cache writer.",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "root_verification": {
+    "receipts": [
+      {
+        "name": "root-focused",
+        "command": "go test -json -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+        "chunk_id": "2b425d",
+        "wall_time_seconds": 1.001396418,
+        "session_id": 44593,
+        "original_token_count": 0,
+        "output": "",
+        "terminal": {
+          "chunk_id": "2cd8c4",
+          "wall_time_seconds": 2.88668271,
+          "exit_code": 0,
+          "original_token_count": 0,
+          "output": ""
+        }
+      },
+      {
+        "name": "root-lint",
+        "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+        "chunk_id": "50b2a4",
+        "wall_time_seconds": 0.14711925,
+        "exit_code": 0,
+        "original_token_count": 0,
+        "output": ""
+      }
+    ],
+    "focused_counts": {
+      "pass": 57,
+      "fail": 0,
+      "skip": 0
+    },
+    "lint": {
+      "exit_code": 0,
+      "issues": 0
+    },
+    "preservation": {
+      "base_commit": "c5ff6108a4c0ab1697869313dd7ad1b36a157918",
+      "hostexec_original_fixture_prefix_unchanged_except_admitted_poll_helper": true,
+      "gocommand_original_entire_test_file_unchanged_except_one_added_control": true
+    },
+    "source_and_tool_freeze_exit_code": 0,
+    "initial_freeze_invocation": {
+      "exit_code": 1,
+      "reason": "Module-relative manifest incorrectly invoked from repository root; rerun from tools/gomad3 passed with every checksum matching."
+    }
+  },
+  "reviewer_request": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "family": "same-family independent fresh contexts",
+    "actual_execution_metadata": "not exposed by host"
+  },
+  "log_verification": {
+    "all_worker_test_counts_parsed": true,
+    "worker_check_count": 14,
+    "all_exit_codes": 0
+  },
+  "tracker_sync": "n/a (bridge inactive)"
+}
