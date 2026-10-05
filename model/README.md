@@ -140,7 +140,8 @@ make umpire-check-model
 
 It is a Scala program, `model/check`. In order, it checks that the files under `model/` keep to the
 model's own vocabulary, compiles and tests the DSL and the Models, runs the IR generator's own tests,
-lifts every IR file the Models declare in one IR generator run, requires every file of `model/ir` and
+lifts every IR file the Models declare in one IR generator run (which first holds every Model to its
+declaration order, [below](#the-reading-order-and-its-lint)), requires every file of `model/ir` and
 `model/cases` to equal what it just produced, lints every IR file, and runs `go vet` and `go test` over `./tools/umpire/...`. It stops at the first failure
 and changes no checked-in file. scala-cli, the JDK, protoc and Go come from the repository's
 `mise.toml`.
@@ -174,8 +175,9 @@ The waivers' reasons have one source, the sidecar: `make umpire-gen-model` rewri
 `waived-law` acceptance from it, after the acceptances an author wrote, and a check fails on a
 `<file>.lint.json` that does not carry them, and on a forwarded acceptance whose waiver is gone.
 
-Each file of `model/ir` is declared once, in Scala, beside the Models it holds (the folder's
-`IrFiles.scala`): its name and its roots, named by value.
+Each file of `model/ir` is declared once, in Scala, beside the Models it holds (the feature file's
+`object Files`, or the folder's `IrFiles.scala` in a Model not yet laid out as one feature file): its
+name and its roots, named by value.
 
 ```scala
 val nexusControlFile =
@@ -508,36 +510,53 @@ channels or realizations, Limits of one name with different bounds, and two acti
 binds. A monitor a Query's expected Run names by value is refused where no `val` declares it or the
 Query's machine does not watch it, and a `given Family` whose root is not a string literal.
 
-A feature's files are split by kind, and its larger subjects into folders that repeat the same
-file names. The standalone activity is the example:
+A feature reads top to bottom in one feature file per folder, named after the folder, beside its
+`Realization.scala` and its tests; its larger subjects are subfolders laid out the same way. The
+standalone activity is the example (fn-126; the Nexus Models and `shared/` still split their files
+by kind, `Model.scala`, `Properties.scala`, `Queries.scala`, until fn-126 lays them out alike):
 
 ```text
 standaloneactivity/
-  Model.scala         vocabulary, the product and protocol machines, their composition with the worker
-  Properties.scala    what those machines promise, and the promises the folders below declare
-  Queries.scala       the Scenarios (`Paths`), Limits and Queries that ask about them
-  Realization.scala   the realization
-  admission/          Model.scala, Properties.scala, Queries.scala: the record and its designs
-  compositions/       Model.scala, Properties.scala, Queries.scala: the designs over the task queue
+  StandaloneActivity.scala   types, signature; Product, Protocol, ActivityWorker, StandaloneActivity; Files
+  Realization.scala          the realization
+  record/
+    Record.scala             the record and its designs: Admission, StaleAdmission, HeldAdmission, ResponseLoss
+  withTaskQueue/
+    WithTaskQueue.scala      the designs over the task queue: CurrentRecord, StaleRecord, CurrentOverQueue, …
 ```
 
-`Model.scala` holds domains, actions, step functions, machines, compositions and monitors, since a
-machine names its monitors and the two files would otherwise initialize each other in a cycle.
-`Properties.scala` holds what the machines promise, the specification a reviewer reads on its own;
-`Queries.scala` holds Scenarios, Limits and Queries, since a Scenario means nothing except as the
-path of a Query. A folder is a subpackage (`package standaloneactivity; package admission`), so it
-reads its parent's vocabulary without imports and its `Model.scala` does not collide with the
-parent's. Each machine's vocabulary is an object of its own (`Product`, `Protocol`, `Admission`):
-its status sets, which steps and promises read by name (`Product.terminal`, `Protocol.held`), and
-its step functions, named after the actions they answer (`attemptStart ~> Protocol.attemptStart`).
-A file that declares Properties over a machine argument returns them as a bundle (below), so its
-Queries read them by field rather than declaring them.
+A feature file reads in this order:
+
+1. a header comment naming its objects in order, the imports, the file's `DefinitionScope` pin and
+   its family;
+2. its types: every enum, state case class and type alias, at the top level, so each keeps its
+   `pkg.Type` IR name;
+3. its signature: entities, inputs, actions, observations, choices, timers, bounds and the top-level
+   `given`s;
+4. one object per machine or composition, in dependency order: a refined machine before the one that
+   refines it, a base machine before those derived from it, the members of a composition before it;
+5. `object Files`, its `irFile` roots.
+
+Inside a machine object come its vocabulary (status sets and constants), then `object effects` (its
+step functions), its monitors, its machine `val`, then `object properties`, `object laws` (its
+capabilities) and `object queries` (its Scenarios, then its Queries). A machine object is today's
+vocabulary object (`Product`, `Protocol`, `Admission`), so its status sets keep their names
+(`Product.terminal`, `Protocol.held`), and its machine `val` keeps the machine's name
+(`Product.activityProduct`). Step functions sit in `effects` so they do not shadow the actions they
+answer (`attemptStart ~> effects.attemptStart`). A machine object that holds a monitor, assumption,
+hole or channel pins its former owner, as `record/`'s `Admission` pins `…System$package$` beside its
+file's own pin of the same owner. A section object is initialized on first use: a `laws` that reads
+the realization, as the protocol's `Describable` does, leaves the machine object free for the
+realization to read. A folder is a subpackage (`package standaloneactivity; package record`), so it
+reads its parent's vocabulary without imports. A section that declares Properties over a machine
+argument returns them as a bundle (below), so its Queries read them by field rather than declaring
+them.
 
 Two families in one package cannot both be package-level givens, since each file would see both.
 Each then lives in an object of its own, `object SystemFamily: given family: Family = …`, and each
 file imports the one its declarations take (`import SystemFamily.given`), as the standalone
-activity's files do: its Model.scala declares `ActivityFamily` and `SystemFamily`, and the files of
-its `admission/` and `compositions/` import `SystemFamily.given`.
+activity's files do: its feature file declares `ActivityFamily` and `SystemFamily`, and the files of
+its `record/` and `withTaskQueue/` import `SystemFamily.given`.
 
 An action, monitor, assumption, hole, channel with the actions it derives, or realization takes its
 Definition ID from its `val`'s owner and name. Declarations moved to a new owner keep their IDs
@@ -611,7 +630,7 @@ atMostOneActive(c)(through(_.activity, Admission.twoActive))
 
 The IR generator lifts each `through` as one function of the composed state,
 `<state>.through.<path>.<def>` (here
-`temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused`),
+`temporal.features.standaloneactivity.withTaskQueue.OverQueue.through.activity.temporal.features.standaloneactivity.record.Admission$.paused`),
 which the law calls as it calls a def. `select` is a field path, `_.activity` or `_.left.phase`, and
 `read` a def of the lifted sources; each other selector and a lambda for `read` are refused at their
 line, as a lambda is, and a `read` over another type than the member's does not compile. Its two
@@ -625,7 +644,7 @@ with `enqueue`, `deliver` and `acknowledge`, and that imports nothing of any fea
 opaque contract `dispatchQueue`, the providers that refine it (`matchingQueue`, the lossy one and
 the violating controls), the laws `queueLaws` every provider is held to, and the provider Queries.
 A feature keeps its own syncs and its cross-entity claims, as the standalone activity's
-`compositions/` does. The queue is a bounded abstraction, not a general queue: one message at a
+`withTaskQueue/` does. The queue is a bounded abstraction, not a general queue: one message at a
 time, delivered at most twice before its acknowledgment. The detailed provider's table, and a
 design composed with it, has depth ten, so its free Queries run within `twelve`. Its declarations
 keep the family, Definition IDs and type names they had in the standalone activity's system
@@ -746,6 +765,38 @@ the exceptions. A fact case with fields needs a line that covers all its values.
 `query … in s` takes no given. A Property of the machine the Scenario's machine `refines` is read
 through that refinement; a Property of an unrelated machine is refused at the Query's line.
 
+### The reading order and its lint
+
+A Scala object initializes its `val`s in the order they are written, and an object read while
+another initializes is initialized then. A feature file read top to bottom is therefore held to its
+order by a lint, which the IR generator runs over every source it reads before it lifts anything, in
+the gate and in each of its own fixture tests (`model/irgen/Order.scala`). It refuses, each at its
+line, as `lift: <file>:<line>: …`:
+
+| Kind | Refused | Fix |
+| --- | --- | --- |
+| (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
+| (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the protocol's `laws` is |
+| (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's members and sections, or a Scenario after a Query in `queries` | move it |
+| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, a Property outside `properties`, capabilities outside `laws`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `Files`, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; and beside a feature file, a Model declaration in another file | move it to the place the message names |
+
+A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an object declared but never
+read while another initializes, initializes nothing and is not refused; a context function the DSL
+applies at once, `machine[S, O, F] { … }`, is read where it is written. The lint follows no call: a
+`def` called during initialization that reads a later `val` is not caught. A feature file is a
+source named after its folder in a package under `features` or `shared`; the other Models' files
+answer to (a) and (b) only. The lifter's refusal specimens (`*Rejects.scala` among its fixtures),
+which read a `val` before it is declared on purpose, are left to the refusals they are specimens of. Each
+kind has its refusal fixture, `model/irgen/testdata/initOrder/`.
+
+The lint is the IR generator's own because neither of Scala's checkers serves (fn-126): `-Wsafe-init`
+checks classes and not objects, as of Scala 3.9, and every owner here is an object or a file's top
+level; `-Ysafe-init-global`, which checks objects, stops the compiler on a read of a ScalaPB gRPC
+method descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization makes, through Scala
+3.10.0-RC3. The first run found two reads of a citation before its declaration, `notFoundCode` in the
+standalone activity and `jobsCode` in a lifter fixture; each was `null` at run time, where only the
+lifter, which reads the trees, had read it.
+
 ### Capabilities and their laws
 
 A capability is what an entity can do, declared on its machine as a binding of a protocol's
@@ -770,8 +821,9 @@ citations and the one `given Catalog` live in `model/temporal/capabilities`:
 | `Pausable` with `Pollable` | `pause`, `unpause`, `paused`; `dispatch`, `running` | `pausedIsNotDispatched`, the law of the pair |
 | `Describable` | `status`, the realization's fact-to-status table | none of its own: the generated finds' awaits read its table |
 
-**The worked example.** The standalone activity declares its capabilities in two declarations,
-`model/temporal/features/standaloneactivity/Capabilities.scala`:
+**The worked example.** The standalone activity declares its capabilities in two declarations, the
+`laws` objects of its `Product` and `Protocol` in
+`model/temporal/features/standaloneactivity/StandaloneActivity.scala`:
 
 ```scala
 import temporal.capabilities.{given, *}
@@ -834,8 +886,8 @@ forwards each waiver's reason into `<file>.lint.json` and reports a binding left
 
 **How a new entity gets its laws.**
 
-1. Give its Model folder a `Capabilities.scala` that imports `temporal.capabilities.{given, *}` and
-   declares `capabilities(m, limits)(…)` with the capabilities the machine has, each field a def or
+1. Give its machine object a `laws` object (in a Model not yet one feature file, its folder a
+   `Capabilities.scala`) whose file imports `temporal.capabilities.{given, *}` and that declares `capabilities(m, limits)(…)` with the capabilities the machine has, each field a def or
    an action class of the Model, and each parameter its law lists under `parameters` written with
    `cited`.
 2. Name the declaration as a root of the folder's `irFile`, as `nexusOperationFile` names
@@ -884,13 +936,13 @@ adds, removes or rewrites a row:
 
 ```text
 laws model/ir/activity.json activityProduct
-  activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/Capabilities.scala:20
+  activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/StandaloneActivity.scala:274
     promises: while an entity is paused no work is handed to a worker: no step from paused lands in running
     does not promise: what a pause of held work does (…), what a second pause or an unpause of a live entity answers, …
     attemptStart (Pollable.dispatch)    paused  MUST NOT  cell: ? s.phase != scheduled
     control-pause (Pausable.pause)      paused  MUST NOT  cell: ? !pausable(s)
     control-unpause (Pausable.unpause)  paused  MUST NOT of its results  cell: MAY accepted -> scheduled [statusScheduled]
-  activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/Capabilities.scala:19
+  activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/StandaloneActivity.scala:269
     …
     every class  completed, failed, canceled, terminated, timedOut  MUST NOT
   no law pins
