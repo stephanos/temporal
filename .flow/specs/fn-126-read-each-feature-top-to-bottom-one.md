@@ -258,6 +258,12 @@ The cost:
 
 - **R19 Product and System.** The two levels of a feature are named the Product (what a caller reads) and the System (how the server gets there). The docs of R9 use these words. "Protocol machine" and "protocol" for this level are retired from live prose. "System contract" becomes "history record". The reserved party `system`, the server, is consistent with the System level and stays. Errors: R10's retired-name check covers the identifiers. A prose grep of the R9 files for "protocol machine" and "system contract" is empty.
 
+- **R20 Structure lint (owner request 2026-10-05, task 6).** The layout and level names of decisions 11-17 are enforced for every feature, in the TASTy lint the model gate runs (`model/irgen/Order.scala` or a sibling pass), each refusal at `<file>:<line>`:
+  - (a) a feature under `features/` with a Product has `product/Product.scala` and `system/System.scala`; its root feature file holds types, signature and `object exports` and no machine; zoomed-in Models sit only in subfolders of `product/` or `system/`, each with its own feature file;
+  - (b) the machine in `product/` is `<Prefix>Product` and refines nothing; the System machine in `system/` is `<Prefix>System`, with the same prefix, and its `object refinement` refines that Product;
+  - (c) section names form a closed set (`states`, `effects`, `monitors`, `rules`, `properties`, `implements`, `queries`, `refinement`, `syncs`, the signature's actor and section objects); any other `Section` is refused; a feature has exactly one `object exports`, in its root feature file.
+  - `shared/` is exempt from (a) and (b): a shared Model's abstract machine is a contract, not a Product. A positive fixture, `model/irgen/testdata/layout/` (a small two-level feature, the template for new features), passes; one refusal fixture per rule. `model/README.md` "Writing a Model" states the layout and points to the fixture. The Go layout test (R10) keeps the repo-wide prose and path checks.
+
 ## API sketch
 
 The final shape, after task 6. Before task 6, the same objects carry today's names (`ActivityProtocol`, `worker.attemptStart`).
@@ -553,4 +559,4 @@ Regenerate with the gate's `--update`, then `make umpire-gen-cases umpire-gen-fi
 | .3 actor objects, transparent sections | R6, R14, R5 | after .2 |
 | .4 machine objects, effects, rules and sections: framework, lifter, standalone activity | R15, R16, R17, R13 (inlining, activity), R4 (e), R5 | after .3; before fn-124.7 |
 | .5 remaining Models as machine objects; builder forms retired; docs | R15-R17, R13, R9 | after .4 |
-| .6 rename batch, Product and System, history record; close | R18, R19, R10 (names), R11, R9 | after .5; before fn-124.7 |
+| .6 rename batch, Product and System, history record; close | R18, R19, R20, R10 (names), R11, R9 | after .5; before fn-124.7 |
