@@ -5,17 +5,10 @@ package temporal
 package features.standaloneactivity
 
 import umpire.*
-import umpire.realize.{Conformance, PropertyOutcome, RunExpectation}
+import umpire.realize.Reason
+import temporal.realize.{inconclusive, satisfied}
 import shared.worker.{workerStop, Phase as WorkerPhase, State as WorkerState}
 import Timeout.expires
-
-// What a live Run is expected to show, shared with the system contract's Queries.
-val satisfied = RunExpectation(Conformance.conformant, PropertyOutcome.satisfied)
-def inconclusive(reason: String) =
-  RunExpectation(Conformance.conformant, PropertyOutcome.inconclusive, reason)
-val explanationsDisagree = "the executions that explain the evidence disagree"
-val neverEvaluated =
-  "an execution that explains the evidence never reaches the claim's evaluation point"
 
 /**
  * The paths, kept apart from the Properties and Queries named after the same outcomes. Each starts
@@ -103,16 +96,16 @@ object Functional:
   val nonRetryableFailure =
     (query find nonRetryableFails in Paths.nonRetryable limits three total 864).expect(satisfied)
   val retry = (query find retryCompletes in Paths.retriedThenCompleted limits six total 1728)
-    .expect(inconclusive(explanationsDisagree))
+    .expect(inconclusive(Reason.explanationsDisagree))
   val cancel =
     query find canceledByWorker in Paths.cancelRequestedThenCanceled limits four total 1152
   val terminate = (query find terminated in Paths.terminatedWhileScheduled limits three total 864)
-    .expect(inconclusive(explanationsDisagree))
+    .expect(inconclusive(Reason.explanationsDisagree))
   val pauseResume =
     (query find completes in Paths.pausedThenCompleted limits six total 1440).expect(satisfied)
   val scheduleToStartTimeout =
     (query find scheduleToStartFires in Paths.scheduleToStartExpires limits three total 864)
-      .expect(inconclusive(neverEvaluated))
+      .expect(inconclusive(Reason.neverEvaluated))
   val startToCloseTimeout =
     query find startToCloseFires in Paths.startToCloseExpires limits three total 864
 

@@ -602,6 +602,236 @@ func (RunExpectation_Outcome) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{56, 1}
 }
 
+// How the Run ends, as Testpilot's RunDisposition names it.
+type RunExpectation_Disposition int32
+
+const (
+	RunExpectation_DISPOSITION_UNSPECIFIED        RunExpectation_Disposition = 0
+	RunExpectation_DISPOSITION_COMPLETED          RunExpectation_Disposition = 1
+	RunExpectation_DISPOSITION_STOPPED_BY_MONITOR RunExpectation_Disposition = 2
+	RunExpectation_DISPOSITION_INCOMPLETE         RunExpectation_Disposition = 3
+)
+
+// Enum value maps for RunExpectation_Disposition.
+var (
+	RunExpectation_Disposition_name = map[int32]string{
+		0: "DISPOSITION_UNSPECIFIED",
+		1: "DISPOSITION_COMPLETED",
+		2: "DISPOSITION_STOPPED_BY_MONITOR",
+		3: "DISPOSITION_INCOMPLETE",
+	}
+	RunExpectation_Disposition_value = map[string]int32{
+		"DISPOSITION_UNSPECIFIED":        0,
+		"DISPOSITION_COMPLETED":          1,
+		"DISPOSITION_STOPPED_BY_MONITOR": 2,
+		"DISPOSITION_INCOMPLETE":         3,
+	}
+)
+
+func (x RunExpectation_Disposition) Enum() *RunExpectation_Disposition {
+	p := new(RunExpectation_Disposition)
+	*p = x
+	return p
+}
+
+func (x RunExpectation_Disposition) String() string {
+	switch x {
+	case RunExpectation_DISPOSITION_UNSPECIFIED:
+		return "RunExpectationDispositionUnspecified"
+	case RunExpectation_DISPOSITION_COMPLETED:
+		return "RunExpectationDispositionCompleted"
+	case RunExpectation_DISPOSITION_STOPPED_BY_MONITOR:
+		return "RunExpectationDispositionStoppedByMonitor"
+	case RunExpectation_DISPOSITION_INCOMPLETE:
+		return "RunExpectationDispositionIncomplete"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (RunExpectation_Disposition) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[8].Descriptor()
+}
+
+func (RunExpectation_Disposition) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[8]
+}
+
+func (x RunExpectation_Disposition) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RunExpectation_Disposition.Descriptor instead.
+func (RunExpectation_Disposition) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{56, 2}
+}
+
+// How the Run's cleanup ends, as Testpilot's CleanupStatus names it.
+type RunExpectation_Cleanup int32
+
+const (
+	RunExpectation_CLEANUP_UNSPECIFIED RunExpectation_Cleanup = 0
+	RunExpectation_CLEANUP_SUCCEEDED   RunExpectation_Cleanup = 1
+	RunExpectation_CLEANUP_FAILED      RunExpectation_Cleanup = 2
+	RunExpectation_CLEANUP_TIMED_OUT   RunExpectation_Cleanup = 3
+)
+
+// Enum value maps for RunExpectation_Cleanup.
+var (
+	RunExpectation_Cleanup_name = map[int32]string{
+		0: "CLEANUP_UNSPECIFIED",
+		1: "CLEANUP_SUCCEEDED",
+		2: "CLEANUP_FAILED",
+		3: "CLEANUP_TIMED_OUT",
+	}
+	RunExpectation_Cleanup_value = map[string]int32{
+		"CLEANUP_UNSPECIFIED": 0,
+		"CLEANUP_SUCCEEDED":   1,
+		"CLEANUP_FAILED":      2,
+		"CLEANUP_TIMED_OUT":   3,
+	}
+)
+
+func (x RunExpectation_Cleanup) Enum() *RunExpectation_Cleanup {
+	p := new(RunExpectation_Cleanup)
+	*p = x
+	return p
+}
+
+func (x RunExpectation_Cleanup) String() string {
+	switch x {
+	case RunExpectation_CLEANUP_UNSPECIFIED:
+		return "RunExpectationCleanupUnspecified"
+	case RunExpectation_CLEANUP_SUCCEEDED:
+		return "RunExpectationCleanupSucceeded"
+	case RunExpectation_CLEANUP_FAILED:
+		return "RunExpectationCleanupFailed"
+	case RunExpectation_CLEANUP_TIMED_OUT:
+		return "RunExpectationCleanupTimedOut"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (RunExpectation_Cleanup) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[9].Descriptor()
+}
+
+func (RunExpectation_Cleanup) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[9]
+}
+
+func (x RunExpectation_Cleanup) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RunExpectation_Cleanup.Descriptor instead.
+func (RunExpectation_Cleanup) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{56, 3}
+}
+
+// Why the model assessment leaves an outcome short of satisfied: the judge's own reasons, by id.
+// The assessment reports the id beside its prose (tools/umpire/conformance/conclude.go).
+type RunExpectation_Reason int32
+
+const (
+	RunExpectation_REASON_UNSPECIFIED RunExpectation_Reason = 0
+	RunExpectation_REASON_NO_EVIDENCE RunExpectation_Reason = // The Run recorded no evidence of the machine.
+	1
+	RunExpectation_REASON_INCOMPLETE RunExpectation_Reason = // The Run did not close complete.
+	2
+	RunExpectation_REASON_HOLE RunExpectation_Reason = // A hole of the Model is in reach.
+	3
+	RunExpectation_REASON_UNEXPLAINED RunExpectation_Reason = // No modeled execution explains the evidence.
+	4
+	RunExpectation_REASON_EXPLANATIONS_DISAGREE RunExpectation_Reason = // The explaining executions disagree on the claim.
+	5
+	RunExpectation_REASON_NEVER_EVALUATED RunExpectation_Reason = // An explaining execution never reaches the claim's evaluation point.
+	6
+	RunExpectation_REASON_UNREADABLE RunExpectation_Reason = // The claim cannot be read on an explaining execution.
+	7
+	RunExpectation_REASON_EVERY_EXPLANATION_VIOLATES RunExpectation_Reason = // Every explaining execution violates the claim.
+	8
+)
+
+// Enum value maps for RunExpectation_Reason.
+var (
+	RunExpectation_Reason_name = map[int32]string{
+		0: "REASON_UNSPECIFIED",
+		1: "REASON_NO_EVIDENCE",
+		2: "REASON_INCOMPLETE",
+		3: "REASON_HOLE",
+		4: "REASON_UNEXPLAINED",
+		5: "REASON_EXPLANATIONS_DISAGREE",
+		6: "REASON_NEVER_EVALUATED",
+		7: "REASON_UNREADABLE",
+		8: "REASON_EVERY_EXPLANATION_VIOLATES",
+	}
+	RunExpectation_Reason_value = map[string]int32{
+		"REASON_UNSPECIFIED":                0,
+		"REASON_NO_EVIDENCE":                1,
+		"REASON_INCOMPLETE":                 2,
+		"REASON_HOLE":                       3,
+		"REASON_UNEXPLAINED":                4,
+		"REASON_EXPLANATIONS_DISAGREE":      5,
+		"REASON_NEVER_EVALUATED":            6,
+		"REASON_UNREADABLE":                 7,
+		"REASON_EVERY_EXPLANATION_VIOLATES": 8,
+	}
+)
+
+func (x RunExpectation_Reason) Enum() *RunExpectation_Reason {
+	p := new(RunExpectation_Reason)
+	*p = x
+	return p
+}
+
+func (x RunExpectation_Reason) String() string {
+	switch x {
+	case RunExpectation_REASON_UNSPECIFIED:
+		return "RunExpectationReasonUnspecified"
+	case RunExpectation_REASON_NO_EVIDENCE:
+		return "RunExpectationReasonNoEvidence"
+	case RunExpectation_REASON_INCOMPLETE:
+		return "RunExpectationReasonIncomplete"
+	case RunExpectation_REASON_HOLE:
+		return "RunExpectationReasonHole"
+	case RunExpectation_REASON_UNEXPLAINED:
+		return "RunExpectationReasonUnexplained"
+	case RunExpectation_REASON_EXPLANATIONS_DISAGREE:
+		return "RunExpectationReasonExplanationsDisagree"
+
+		// Deprecated: Use RunExpectation_Reason.Descriptor instead.
+	case RunExpectation_REASON_NEVER_EVALUATED:
+		return "RunExpectationReasonNeverEvaluated"
+	case RunExpectation_REASON_UNREADABLE:
+		return "RunExpectationReasonUnreadable"
+	case RunExpectation_REASON_EVERY_EXPLANATION_VIOLATES:
+		return "RunExpectationReasonEveryExplanationViolates"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (RunExpectation_Reason) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[10].Descriptor()
+}
+
+func (RunExpectation_Reason) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[10]
+}
+
+func (x RunExpectation_Reason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+func (RunExpectation_Reason) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{56, 4}
+}
+
 type Role_Kind int32
 
 const (
@@ -655,11 +885,11 @@ func (x Role_Kind) String() string {
 }
 
 func (Role_Kind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[8].Descriptor()
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[11].Descriptor()
 }
 
 func (Role_Kind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[8]
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[11]
 }
 
 func (x Role_Kind) Number() protoreflect.EnumNumber {
@@ -715,11 +945,11 @@ func (x Learned_Kind) String() string {
 }
 
 func (Learned_Kind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[9].Descriptor()
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[12].Descriptor()
 }
 
 func (Learned_Kind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[9]
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[12]
 }
 
 func (x Learned_Kind) Number() protoreflect.EnumNumber {
@@ -776,11 +1006,11 @@ func (x Evidence_Commitment) String() string {
 }
 
 func (Evidence_Commitment) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[10].Descriptor()
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[13].Descriptor()
 }
 
 func (Evidence_Commitment) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[10]
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[13]
 }
 
 func (x Evidence_Commitment) Number() protoreflect.EnumNumber {
@@ -844,11 +1074,11 @@ func (x EvidenceField_Role) String() string {
 }
 
 func (EvidenceField_Role) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[11].Descriptor()
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[14].Descriptor()
 }
 
 func (EvidenceField_Role) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[11]
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[14]
 }
 
 func (x EvidenceField_Role) Number() protoreflect.EnumNumber {
@@ -910,11 +1140,11 @@ func (x RunEventSource_Kind) String() string {
 }
 
 func (RunEventSource_Kind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[12].Descriptor()
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[15].Descriptor()
 }
 
 func (RunEventSource_Kind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[12]
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[15]
 }
 
 func (x RunEventSource_Kind) Number() protoreflect.EnumNumber {
@@ -970,11 +1200,11 @@ func (x ResponseRead_Cardinality) String() string {
 }
 
 func (ResponseRead_Cardinality) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[13].Descriptor()
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[16].Descriptor()
 }
 
 func (ResponseRead_Cardinality) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[13]
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[16]
 }
 
 func (x ResponseRead_Cardinality) Number() protoreflect.EnumNumber {
@@ -1034,11 +1264,11 @@ func (x Fault_Kind) String() string {
 }
 
 func (Fault_Kind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[14].Descriptor()
+	return file_temporal_server_api_umpire_v1_ir_proto_enumTypes[17].Descriptor()
 }
 
 func (Fault_Kind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[14]
+	return &file_temporal_server_api_umpire_v1_ir_proto_enumTypes[17]
 }
 
 func (x Fault_Kind) Number() protoreflect.EnumNumber {
@@ -5487,12 +5717,16 @@ func (x *Alternative) GetPosition() *Position {
 
 // Expected assessment of a completed live Run, separate from the Query's model-search answer.
 type RunExpectation struct {
-	state         protoimpl.MessageState     `protogen:"open.v1"`
-	Property      RunExpectation_Outcome     `protobuf:"varint,1,opt,name=property,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Outcome" json:"property,omitempty"`
-	Reason        string                     `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
-	Conformance   RunExpectation_Conformance `protobuf:"varint,3,opt,name=conformance,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Conformance" json:"conformance,omitempty"`
-	Monitors      []*MonitorExpectation      `protobuf:"bytes,4,rep,name=monitors,proto3" json:"monitors,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The selected Property's outcome, and its reason when it is not satisfied.
+	Property    RunExpectation_Outcome     `protobuf:"varint,1,opt,name=property,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Outcome" json:"property,omitempty"`
+	Reason      RunExpectation_Reason      `protobuf:"varint,8,opt,name=reason,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Reason" json:"reason,omitempty"`
+	Conformance RunExpectation_Conformance `protobuf:"varint,3,opt,name=conformance,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Conformance" json:"conformance,omitempty"`
+	Monitors    []*MonitorExpectation      `protobuf:"bytes,4,rep,name=monitors,proto3" json:"monitors,omitempty"`
+	// The Contract's Verdict.
 	Contract      RunExpectation_Outcome     `protobuf:"varint,5,opt,name=contract,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Outcome" json:"contract,omitempty"`
+	Disposition   RunExpectation_Disposition `protobuf:"varint,6,opt,name=disposition,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Disposition" json:"disposition,omitempty"`
+	Cleanup       RunExpectation_Cleanup     `protobuf:"varint,7,opt,name=cleanup,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Cleanup" json:"cleanup,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5534,11 +5768,11 @@ func (x *RunExpectation) GetProperty() RunExpectation_Outcome {
 	return RunExpectation_OUTCOME_UNSPECIFIED
 }
 
-func (x *RunExpectation) GetReason() string {
+func (x *RunExpectation) GetReason() RunExpectation_Reason {
 	if x != nil {
 		return x.Reason
 	}
-	return ""
+	return RunExpectation_REASON_UNSPECIFIED
 }
 
 func (x *RunExpectation) GetConformance() RunExpectation_Conformance {
@@ -5562,11 +5796,26 @@ func (x *RunExpectation) GetContract() RunExpectation_Outcome {
 	return RunExpectation_OUTCOME_UNSPECIFIED
 }
 
+func (x *RunExpectation) GetDisposition() RunExpectation_Disposition {
+	if x != nil {
+		return x.Disposition
+	}
+	return RunExpectation_DISPOSITION_UNSPECIFIED
+}
+
+func (x *RunExpectation) GetCleanup() RunExpectation_Cleanup {
+	if x != nil {
+		return x.Cleanup
+	}
+	return RunExpectation_CLEANUP_UNSPECIFIED
+}
+
 type MonitorExpectation struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Outcome       RunExpectation_Outcome `protobuf:"varint,2,opt,name=outcome,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Outcome" json:"outcome,omitempty"`
-	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Name    string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Outcome RunExpectation_Outcome `protobuf:"varint,2,opt,name=outcome,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Outcome" json:"outcome,omitempty"`
+	// Set exactly when the outcome is not satisfied.
+	Reason        RunExpectation_Reason `protobuf:"varint,4,opt,name=reason,proto3,enum=temporal.server.api.umpire.v1.RunExpectation_Reason" json:"reason,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5615,11 +5864,11 @@ func (x *MonitorExpectation) GetOutcome() RunExpectation_Outcome {
 	return RunExpectation_OUTCOME_UNSPECIFIED
 }
 
-func (x *MonitorExpectation) GetReason() string {
+func (x *MonitorExpectation) GetReason() RunExpectation_Reason {
 	if x != nil {
 		return x.Reason
 	}
-	return ""
+	return RunExpectation_REASON_UNSPECIFIED
 }
 
 type Limits struct {
@@ -10466,13 +10715,16 @@ const file_temporal_server_api_umpire_v1_ir_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bpriority\x18\x02 \x01(\x05R\bpriority\x12D\n" +
 	"\aactions\x18\x03 \x03(\v2*.temporal.server.api.umpire.v1.ActionClassR\aactions\x12C\n" +
-	"\bposition\x18\x04 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\"\xeb\x04\n" +
+	"\bposition\x18\x04 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\"\xba\n" +
+	"\n" +
 	"\x0eRunExpectation\x12Q\n" +
-	"\bproperty\x18\x01 \x01(\x0e25.temporal.server.api.umpire.v1.RunExpectation.OutcomeR\bproperty\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\x12[\n" +
+	"\bproperty\x18\x01 \x01(\x0e25.temporal.server.api.umpire.v1.RunExpectation.OutcomeR\bproperty\x12L\n" +
+	"\x06reason\x18\b \x01(\x0e24.temporal.server.api.umpire.v1.RunExpectation.ReasonR\x06reason\x12[\n" +
 	"\vconformance\x18\x03 \x01(\x0e29.temporal.server.api.umpire.v1.RunExpectation.ConformanceR\vconformance\x12M\n" +
 	"\bmonitors\x18\x04 \x03(\v21.temporal.server.api.umpire.v1.MonitorExpectationR\bmonitors\x12Q\n" +
-	"\bcontract\x18\x05 \x01(\x0e25.temporal.server.api.umpire.v1.RunExpectation.OutcomeR\bcontract\"\x83\x01\n" +
+	"\bcontract\x18\x05 \x01(\x0e25.temporal.server.api.umpire.v1.RunExpectation.OutcomeR\bcontract\x12[\n" +
+	"\vdisposition\x18\x06 \x01(\x0e29.temporal.server.api.umpire.v1.RunExpectation.DispositionR\vdisposition\x12O\n" +
+	"\acleanup\x18\a \x01(\x0e25.temporal.server.api.umpire.v1.RunExpectation.CleanupR\acleanup\"\x83\x01\n" +
 	"\vConformance\x12\x1b\n" +
 	"\x17CONFORMANCE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16CONFORMANCE_CONFORMANT\x10\x01\x12\x1d\n" +
@@ -10482,11 +10734,31 @@ const file_temporal_server_api_umpire_v1_ir_proto_rawDesc = "" +
 	"\x13OUTCOME_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11OUTCOME_SATISFIED\x10\x01\x12\x14\n" +
 	"\x10OUTCOME_VIOLATED\x10\x02\x12\x18\n" +
-	"\x14OUTCOME_INCONCLUSIVE\x10\x03\"\x91\x01\n" +
+	"\x14OUTCOME_INCONCLUSIVE\x10\x03\"\x85\x01\n" +
+	"\vDisposition\x12\x1b\n" +
+	"\x17DISPOSITION_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15DISPOSITION_COMPLETED\x10\x01\x12\"\n" +
+	"\x1eDISPOSITION_STOPPED_BY_MONITOR\x10\x02\x12\x1a\n" +
+	"\x16DISPOSITION_INCOMPLETE\x10\x03\"d\n" +
+	"\aCleanup\x12\x17\n" +
+	"\x13CLEANUP_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11CLEANUP_SUCCEEDED\x10\x01\x12\x12\n" +
+	"\x0eCLEANUP_FAILED\x10\x02\x12\x15\n" +
+	"\x11CLEANUP_TIMED_OUT\x10\x03\"\xf4\x01\n" +
+	"\x06Reason\x12\x16\n" +
+	"\x12REASON_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12REASON_NO_EVIDENCE\x10\x01\x12\x15\n" +
+	"\x11REASON_INCOMPLETE\x10\x02\x12\x0f\n" +
+	"\vREASON_HOLE\x10\x03\x12\x16\n" +
+	"\x12REASON_UNEXPLAINED\x10\x04\x12 \n" +
+	"\x1cREASON_EXPLANATIONS_DISAGREE\x10\x05\x12\x1a\n" +
+	"\x16REASON_NEVER_EVALUATED\x10\x06\x12\x15\n" +
+	"\x11REASON_UNREADABLE\x10\a\x12%\n" +
+	"!REASON_EVERY_EXPLANATION_VIOLATES\x10\bJ\x04\b\x02\x10\x03\"\xcd\x01\n" +
 	"\x12MonitorExpectation\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12O\n" +
-	"\aoutcome\x18\x02 \x01(\x0e25.temporal.server.api.umpire.v1.RunExpectation.OutcomeR\aoutcome\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason\"d\n" +
+	"\aoutcome\x18\x02 \x01(\x0e25.temporal.server.api.umpire.v1.RunExpectation.OutcomeR\aoutcome\x12L\n" +
+	"\x06reason\x18\x04 \x01(\x0e24.temporal.server.api.umpire.v1.RunExpectation.ReasonR\x06reasonJ\x04\b\x03\x10\x04\"d\n" +
 	"\x06Limits\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05steps\x18\x02 \x01(\x05R\x05steps\x12\x18\n" +
@@ -10875,7 +11147,7 @@ func file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_umpire_v1_ir_proto_rawDescData
 }
 
-var file_temporal_server_api_umpire_v1_ir_proto_enumTypes = make([]protoimpl.EnumInfo, 15)
+var file_temporal_server_api_umpire_v1_ir_proto_enumTypes = make([]protoimpl.EnumInfo, 18)
 var file_temporal_server_api_umpire_v1_ir_proto_msgTypes = make([]protoimpl.MessageInfo, 113)
 var file_temporal_server_api_umpire_v1_ir_proto_goTypes = []any{
 	(CauseKind)(0),                  // 0: temporal.server.api.umpire.v1.CauseKind
@@ -10886,389 +11158,396 @@ var file_temporal_server_api_umpire_v1_ir_proto_goTypes = []any{
 	(Query_Form)(0),                 // 5: temporal.server.api.umpire.v1.Query.Form
 	(RunExpectation_Conformance)(0), // 6: temporal.server.api.umpire.v1.RunExpectation.Conformance
 	(RunExpectation_Outcome)(0),     // 7: temporal.server.api.umpire.v1.RunExpectation.Outcome
-	(Role_Kind)(0),                  // 8: temporal.server.api.umpire.v1.Role.Kind
-	(Learned_Kind)(0),               // 9: temporal.server.api.umpire.v1.Learned.Kind
-	(Evidence_Commitment)(0),        // 10: temporal.server.api.umpire.v1.Evidence.Commitment
-	(EvidenceField_Role)(0),         // 11: temporal.server.api.umpire.v1.EvidenceField.Role
-	(RunEventSource_Kind)(0),        // 12: temporal.server.api.umpire.v1.RunEventSource.Kind
-	(ResponseRead_Cardinality)(0),   // 13: temporal.server.api.umpire.v1.ResponseRead.Cardinality
-	(Fault_Kind)(0),                 // 14: temporal.server.api.umpire.v1.Fault.Kind
-	(*Model)(nil),                   // 15: temporal.server.api.umpire.v1.Model
-	(*Position)(nil),                // 16: temporal.server.api.umpire.v1.Position
-	(*Type)(nil),                    // 17: temporal.server.api.umpire.v1.Type
-	(*Enum)(nil),                    // 18: temporal.server.api.umpire.v1.Enum
-	(*Case)(nil),                    // 19: temporal.server.api.umpire.v1.Case
-	(*Record)(nil),                  // 20: temporal.server.api.umpire.v1.Record
-	(*Field)(nil),                   // 21: temporal.server.api.umpire.v1.Field
-	(*TypeRef)(nil),                 // 22: temporal.server.api.umpire.v1.TypeRef
-	(*IntRange)(nil),                // 23: temporal.server.api.umpire.v1.IntRange
-	(*Empty)(nil),                   // 24: temporal.server.api.umpire.v1.Empty
-	(*Function)(nil),                // 25: temporal.server.api.umpire.v1.Function
-	(*Param)(nil),                   // 26: temporal.server.api.umpire.v1.Param
-	(*Expr)(nil),                    // 27: temporal.server.api.umpire.v1.Expr
-	(*FieldAccess)(nil),             // 28: temporal.server.api.umpire.v1.FieldAccess
-	(*Call)(nil),                    // 29: temporal.server.api.umpire.v1.Call
-	(*Construct)(nil),               // 30: temporal.server.api.umpire.v1.Construct
-	(*Copy)(nil),                    // 31: temporal.server.api.umpire.v1.Copy
-	(*NamedExpr)(nil),               // 32: temporal.server.api.umpire.v1.NamedExpr
-	(*Unary)(nil),                   // 33: temporal.server.api.umpire.v1.Unary
-	(*Binary)(nil),                  // 34: temporal.server.api.umpire.v1.Binary
-	(*If)(nil),                      // 35: temporal.server.api.umpire.v1.If
-	(*Match)(nil),                   // 36: temporal.server.api.umpire.v1.Match
-	(*MatchCase)(nil),               // 37: temporal.server.api.umpire.v1.MatchCase
-	(*Pattern)(nil),                 // 38: temporal.server.api.umpire.v1.Pattern
-	(*Bind)(nil),                    // 39: temporal.server.api.umpire.v1.Bind
-	(*CasePattern)(nil),             // 40: temporal.server.api.umpire.v1.CasePattern
-	(*Alternatives)(nil),            // 41: temporal.server.api.umpire.v1.Alternatives
-	(*Let)(nil),                     // 42: temporal.server.api.umpire.v1.Let
-	(*ListOf)(nil),                  // 43: temporal.server.api.umpire.v1.ListOf
-	(*Inbox)(nil),                   // 44: temporal.server.api.umpire.v1.Inbox
-	(*Lambda)(nil),                  // 45: temporal.server.api.umpire.v1.Lambda
-	(*Value)(nil),                   // 46: temporal.server.api.umpire.v1.Value
-	(*EnumValue)(nil),               // 47: temporal.server.api.umpire.v1.EnumValue
-	(*RecordValue)(nil),             // 48: temporal.server.api.umpire.v1.RecordValue
-	(*ListValue)(nil),               // 49: temporal.server.api.umpire.v1.ListValue
-	(*Action)(nil),                  // 50: temporal.server.api.umpire.v1.Action
-	(*Example)(nil),                 // 51: temporal.server.api.umpire.v1.Example
-	(*Machine)(nil),                 // 52: temporal.server.api.umpire.v1.Machine
-	(*StepBinding)(nil),             // 53: temporal.server.api.umpire.v1.StepBinding
-	(*Refinement)(nil),              // 54: temporal.server.api.umpire.v1.Refinement
-	(*Channel)(nil),                 // 55: temporal.server.api.umpire.v1.Channel
-	(*Monitor)(nil),                 // 56: temporal.server.api.umpire.v1.Monitor
-	(*Assumption)(nil),              // 57: temporal.server.api.umpire.v1.Assumption
-	(*Hole)(nil),                    // 58: temporal.server.api.umpire.v1.Hole
-	(*Composition)(nil),             // 59: temporal.server.api.umpire.v1.Composition
-	(*Member)(nil),                  // 60: temporal.server.api.umpire.v1.Member
-	(*Sync)(nil),                    // 61: temporal.server.api.umpire.v1.Sync
-	(*SyncMove)(nil),                // 62: temporal.server.api.umpire.v1.SyncMove
-	(*ActionClass)(nil),             // 63: temporal.server.api.umpire.v1.ActionClass
-	(*Property)(nil),                // 64: temporal.server.api.umpire.v1.Property
-	(*Scenario)(nil),                // 65: temporal.server.api.umpire.v1.Scenario
-	(*ClaimRef)(nil),                // 66: temporal.server.api.umpire.v1.ClaimRef
-	(*Query)(nil),                   // 67: temporal.server.api.umpire.v1.Query
-	(*Exploration)(nil),             // 68: temporal.server.api.umpire.v1.Exploration
-	(*Variation)(nil),               // 69: temporal.server.api.umpire.v1.Variation
-	(*Alternative)(nil),             // 70: temporal.server.api.umpire.v1.Alternative
-	(*RunExpectation)(nil),          // 71: temporal.server.api.umpire.v1.RunExpectation
-	(*MonitorExpectation)(nil),      // 72: temporal.server.api.umpire.v1.MonitorExpectation
-	(*Limits)(nil),                  // 73: temporal.server.api.umpire.v1.Limits
-	(*Progress)(nil),                // 74: temporal.server.api.umpire.v1.Progress
-	(*Realization)(nil),             // 75: temporal.server.api.umpire.v1.Realization
-	(*RequiredSetting)(nil),         // 76: temporal.server.api.umpire.v1.RequiredSetting
-	(*ApiBehavior)(nil),             // 77: temporal.server.api.umpire.v1.ApiBehavior
-	(*AttemptNumbering)(nil),        // 78: temporal.server.api.umpire.v1.AttemptNumbering
-	(*InstructionLimit)(nil),        // 79: temporal.server.api.umpire.v1.InstructionLimit
-	(*Visibility)(nil),              // 80: temporal.server.api.umpire.v1.Visibility
-	(*WaitBound)(nil),               // 81: temporal.server.api.umpire.v1.WaitBound
-	(*CauseBound)(nil),              // 82: temporal.server.api.umpire.v1.CauseBound
-	(*ServerStep)(nil),              // 83: temporal.server.api.umpire.v1.ServerStep
-	(*Role)(nil),                    // 84: temporal.server.api.umpire.v1.Role
-	(*Learned)(nil),                 // 85: temporal.server.api.umpire.v1.Learned
-	(*Observed)(nil),                // 86: temporal.server.api.umpire.v1.Observed
-	(*Evidence)(nil),                // 87: temporal.server.api.umpire.v1.Evidence
-	(*Taking)(nil),                  // 88: temporal.server.api.umpire.v1.Taking
-	(*EvidenceField)(nil),           // 89: temporal.server.api.umpire.v1.EvidenceField
-	(*RunEventSource)(nil),          // 90: temporal.server.api.umpire.v1.RunEventSource
-	(*AttemptOf)(nil),               // 91: temporal.server.api.umpire.v1.AttemptOf
-	(*ReadSource)(nil),              // 92: temporal.server.api.umpire.v1.ReadSource
-	(*Correlation)(nil),             // 93: temporal.server.api.umpire.v1.Correlation
-	(*Control)(nil),                 // 94: temporal.server.api.umpire.v1.Control
-	(*HoldDispatched)(nil),          // 95: temporal.server.api.umpire.v1.HoldDispatched
-	(*Script)(nil),                  // 96: temporal.server.api.umpire.v1.Script
-	(*WorkflowActivation)(nil),      // 97: temporal.server.api.umpire.v1.WorkflowActivation
-	(*NexusHandlerActivation)(nil),  // 98: temporal.server.api.umpire.v1.NexusHandlerActivation
-	(*ActivityActivation)(nil),      // 99: temporal.server.api.umpire.v1.ActivityActivation
-	(*Name)(nil),                    // 100: temporal.server.api.umpire.v1.Name
-	(*Item)(nil),                    // 101: temporal.server.api.umpire.v1.Item
-	(*Performance)(nil),             // 102: temporal.server.api.umpire.v1.Performance
-	(*Command)(nil),                 // 103: temporal.server.api.umpire.v1.Command
-	(*After)(nil),                   // 104: temporal.server.api.umpire.v1.After
-	(*Rpc)(nil),                     // 105: temporal.server.api.umpire.v1.Rpc
-	(*Assignment)(nil),              // 106: temporal.server.api.umpire.v1.Assignment
-	(*ResponseRead)(nil),            // 107: temporal.server.api.umpire.v1.ResponseRead
-	(*Target)(nil),                  // 108: temporal.server.api.umpire.v1.Target
-	(*Poll)(nil),                    // 109: temporal.server.api.umpire.v1.Poll
-	(*Finish)(nil),                  // 110: temporal.server.api.umpire.v1.Finish
-	(*AttemptFailure)(nil),          // 111: temporal.server.api.umpire.v1.AttemptFailure
-	(*Fault)(nil),                   // 112: temporal.server.api.umpire.v1.Fault
-	(*WorkflowCommand)(nil),         // 113: temporal.server.api.umpire.v1.WorkflowCommand
-	(*NexusReply)(nil),              // 114: temporal.server.api.umpire.v1.NexusReply
-	(*NexusCompletion)(nil),         // 115: temporal.server.api.umpire.v1.NexusCompletion
-	(*Operand)(nil),                 // 116: temporal.server.api.umpire.v1.Operand
-	(*PathOf)(nil),                  // 117: temporal.server.api.umpire.v1.PathOf
-	(*Present)(nil),                 // 118: temporal.server.api.umpire.v1.Present
-	(*Equal)(nil),                   // 119: temporal.server.api.umpire.v1.Equal
-	(*All)(nil),                     // 120: temporal.server.api.umpire.v1.All
-	(*Greater)(nil),                 // 121: temporal.server.api.umpire.v1.Greater
-	(*Not)(nil),                     // 122: temporal.server.api.umpire.v1.Not
-	(*Proto)(nil),                   // 123: temporal.server.api.umpire.v1.Proto
-	(*ProtoField)(nil),              // 124: temporal.server.api.umpire.v1.ProtoField
-	(*ProtoValue)(nil),              // 125: temporal.server.api.umpire.v1.ProtoValue
-	(*ProtoMap)(nil),                // 126: temporal.server.api.umpire.v1.ProtoMap
-	(*ProtoEntry)(nil),              // 127: temporal.server.api.umpire.v1.ProtoEntry
-	(*wrapperspb.Int64Value)(nil),   // 128: google.protobuf.Int64Value
+	(RunExpectation_Disposition)(0), // 8: temporal.server.api.umpire.v1.RunExpectation.Disposition
+	(RunExpectation_Cleanup)(0),     // 9: temporal.server.api.umpire.v1.RunExpectation.Cleanup
+	(RunExpectation_Reason)(0),      // 10: temporal.server.api.umpire.v1.RunExpectation.Reason
+	(Role_Kind)(0),                  // 11: temporal.server.api.umpire.v1.Role.Kind
+	(Learned_Kind)(0),               // 12: temporal.server.api.umpire.v1.Learned.Kind
+	(Evidence_Commitment)(0),        // 13: temporal.server.api.umpire.v1.Evidence.Commitment
+	(EvidenceField_Role)(0),         // 14: temporal.server.api.umpire.v1.EvidenceField.Role
+	(RunEventSource_Kind)(0),        // 15: temporal.server.api.umpire.v1.RunEventSource.Kind
+	(ResponseRead_Cardinality)(0),   // 16: temporal.server.api.umpire.v1.ResponseRead.Cardinality
+	(Fault_Kind)(0),                 // 17: temporal.server.api.umpire.v1.Fault.Kind
+	(*Model)(nil),                   // 18: temporal.server.api.umpire.v1.Model
+	(*Position)(nil),                // 19: temporal.server.api.umpire.v1.Position
+	(*Type)(nil),                    // 20: temporal.server.api.umpire.v1.Type
+	(*Enum)(nil),                    // 21: temporal.server.api.umpire.v1.Enum
+	(*Case)(nil),                    // 22: temporal.server.api.umpire.v1.Case
+	(*Record)(nil),                  // 23: temporal.server.api.umpire.v1.Record
+	(*Field)(nil),                   // 24: temporal.server.api.umpire.v1.Field
+	(*TypeRef)(nil),                 // 25: temporal.server.api.umpire.v1.TypeRef
+	(*IntRange)(nil),                // 26: temporal.server.api.umpire.v1.IntRange
+	(*Empty)(nil),                   // 27: temporal.server.api.umpire.v1.Empty
+	(*Function)(nil),                // 28: temporal.server.api.umpire.v1.Function
+	(*Param)(nil),                   // 29: temporal.server.api.umpire.v1.Param
+	(*Expr)(nil),                    // 30: temporal.server.api.umpire.v1.Expr
+	(*FieldAccess)(nil),             // 31: temporal.server.api.umpire.v1.FieldAccess
+	(*Call)(nil),                    // 32: temporal.server.api.umpire.v1.Call
+	(*Construct)(nil),               // 33: temporal.server.api.umpire.v1.Construct
+	(*Copy)(nil),                    // 34: temporal.server.api.umpire.v1.Copy
+	(*NamedExpr)(nil),               // 35: temporal.server.api.umpire.v1.NamedExpr
+	(*Unary)(nil),                   // 36: temporal.server.api.umpire.v1.Unary
+	(*Binary)(nil),                  // 37: temporal.server.api.umpire.v1.Binary
+	(*If)(nil),                      // 38: temporal.server.api.umpire.v1.If
+	(*Match)(nil),                   // 39: temporal.server.api.umpire.v1.Match
+	(*MatchCase)(nil),               // 40: temporal.server.api.umpire.v1.MatchCase
+	(*Pattern)(nil),                 // 41: temporal.server.api.umpire.v1.Pattern
+	(*Bind)(nil),                    // 42: temporal.server.api.umpire.v1.Bind
+	(*CasePattern)(nil),             // 43: temporal.server.api.umpire.v1.CasePattern
+	(*Alternatives)(nil),            // 44: temporal.server.api.umpire.v1.Alternatives
+	(*Let)(nil),                     // 45: temporal.server.api.umpire.v1.Let
+	(*ListOf)(nil),                  // 46: temporal.server.api.umpire.v1.ListOf
+	(*Inbox)(nil),                   // 47: temporal.server.api.umpire.v1.Inbox
+	(*Lambda)(nil),                  // 48: temporal.server.api.umpire.v1.Lambda
+	(*Value)(nil),                   // 49: temporal.server.api.umpire.v1.Value
+	(*EnumValue)(nil),               // 50: temporal.server.api.umpire.v1.EnumValue
+	(*RecordValue)(nil),             // 51: temporal.server.api.umpire.v1.RecordValue
+	(*ListValue)(nil),               // 52: temporal.server.api.umpire.v1.ListValue
+	(*Action)(nil),                  // 53: temporal.server.api.umpire.v1.Action
+	(*Example)(nil),                 // 54: temporal.server.api.umpire.v1.Example
+	(*Machine)(nil),                 // 55: temporal.server.api.umpire.v1.Machine
+	(*StepBinding)(nil),             // 56: temporal.server.api.umpire.v1.StepBinding
+	(*Refinement)(nil),              // 57: temporal.server.api.umpire.v1.Refinement
+	(*Channel)(nil),                 // 58: temporal.server.api.umpire.v1.Channel
+	(*Monitor)(nil),                 // 59: temporal.server.api.umpire.v1.Monitor
+	(*Assumption)(nil),              // 60: temporal.server.api.umpire.v1.Assumption
+	(*Hole)(nil),                    // 61: temporal.server.api.umpire.v1.Hole
+	(*Composition)(nil),             // 62: temporal.server.api.umpire.v1.Composition
+	(*Member)(nil),                  // 63: temporal.server.api.umpire.v1.Member
+	(*Sync)(nil),                    // 64: temporal.server.api.umpire.v1.Sync
+	(*SyncMove)(nil),                // 65: temporal.server.api.umpire.v1.SyncMove
+	(*ActionClass)(nil),             // 66: temporal.server.api.umpire.v1.ActionClass
+	(*Property)(nil),                // 67: temporal.server.api.umpire.v1.Property
+	(*Scenario)(nil),                // 68: temporal.server.api.umpire.v1.Scenario
+	(*ClaimRef)(nil),                // 69: temporal.server.api.umpire.v1.ClaimRef
+	(*Query)(nil),                   // 70: temporal.server.api.umpire.v1.Query
+	(*Exploration)(nil),             // 71: temporal.server.api.umpire.v1.Exploration
+	(*Variation)(nil),               // 72: temporal.server.api.umpire.v1.Variation
+	(*Alternative)(nil),             // 73: temporal.server.api.umpire.v1.Alternative
+	(*RunExpectation)(nil),          // 74: temporal.server.api.umpire.v1.RunExpectation
+	(*MonitorExpectation)(nil),      // 75: temporal.server.api.umpire.v1.MonitorExpectation
+	(*Limits)(nil),                  // 76: temporal.server.api.umpire.v1.Limits
+	(*Progress)(nil),                // 77: temporal.server.api.umpire.v1.Progress
+	(*Realization)(nil),             // 78: temporal.server.api.umpire.v1.Realization
+	(*RequiredSetting)(nil),         // 79: temporal.server.api.umpire.v1.RequiredSetting
+	(*ApiBehavior)(nil),             // 80: temporal.server.api.umpire.v1.ApiBehavior
+	(*AttemptNumbering)(nil),        // 81: temporal.server.api.umpire.v1.AttemptNumbering
+	(*InstructionLimit)(nil),        // 82: temporal.server.api.umpire.v1.InstructionLimit
+	(*Visibility)(nil),              // 83: temporal.server.api.umpire.v1.Visibility
+	(*WaitBound)(nil),               // 84: temporal.server.api.umpire.v1.WaitBound
+	(*CauseBound)(nil),              // 85: temporal.server.api.umpire.v1.CauseBound
+	(*ServerStep)(nil),              // 86: temporal.server.api.umpire.v1.ServerStep
+	(*Role)(nil),                    // 87: temporal.server.api.umpire.v1.Role
+	(*Learned)(nil),                 // 88: temporal.server.api.umpire.v1.Learned
+	(*Observed)(nil),                // 89: temporal.server.api.umpire.v1.Observed
+	(*Evidence)(nil),                // 90: temporal.server.api.umpire.v1.Evidence
+	(*Taking)(nil),                  // 91: temporal.server.api.umpire.v1.Taking
+	(*EvidenceField)(nil),           // 92: temporal.server.api.umpire.v1.EvidenceField
+	(*RunEventSource)(nil),          // 93: temporal.server.api.umpire.v1.RunEventSource
+	(*AttemptOf)(nil),               // 94: temporal.server.api.umpire.v1.AttemptOf
+	(*ReadSource)(nil),              // 95: temporal.server.api.umpire.v1.ReadSource
+	(*Correlation)(nil),             // 96: temporal.server.api.umpire.v1.Correlation
+	(*Control)(nil),                 // 97: temporal.server.api.umpire.v1.Control
+	(*HoldDispatched)(nil),          // 98: temporal.server.api.umpire.v1.HoldDispatched
+	(*Script)(nil),                  // 99: temporal.server.api.umpire.v1.Script
+	(*WorkflowActivation)(nil),      // 100: temporal.server.api.umpire.v1.WorkflowActivation
+	(*NexusHandlerActivation)(nil),  // 101: temporal.server.api.umpire.v1.NexusHandlerActivation
+	(*ActivityActivation)(nil),      // 102: temporal.server.api.umpire.v1.ActivityActivation
+	(*Name)(nil),                    // 103: temporal.server.api.umpire.v1.Name
+	(*Item)(nil),                    // 104: temporal.server.api.umpire.v1.Item
+	(*Performance)(nil),             // 105: temporal.server.api.umpire.v1.Performance
+	(*Command)(nil),                 // 106: temporal.server.api.umpire.v1.Command
+	(*After)(nil),                   // 107: temporal.server.api.umpire.v1.After
+	(*Rpc)(nil),                     // 108: temporal.server.api.umpire.v1.Rpc
+	(*Assignment)(nil),              // 109: temporal.server.api.umpire.v1.Assignment
+	(*ResponseRead)(nil),            // 110: temporal.server.api.umpire.v1.ResponseRead
+	(*Target)(nil),                  // 111: temporal.server.api.umpire.v1.Target
+	(*Poll)(nil),                    // 112: temporal.server.api.umpire.v1.Poll
+	(*Finish)(nil),                  // 113: temporal.server.api.umpire.v1.Finish
+	(*AttemptFailure)(nil),          // 114: temporal.server.api.umpire.v1.AttemptFailure
+	(*Fault)(nil),                   // 115: temporal.server.api.umpire.v1.Fault
+	(*WorkflowCommand)(nil),         // 116: temporal.server.api.umpire.v1.WorkflowCommand
+	(*NexusReply)(nil),              // 117: temporal.server.api.umpire.v1.NexusReply
+	(*NexusCompletion)(nil),         // 118: temporal.server.api.umpire.v1.NexusCompletion
+	(*Operand)(nil),                 // 119: temporal.server.api.umpire.v1.Operand
+	(*PathOf)(nil),                  // 120: temporal.server.api.umpire.v1.PathOf
+	(*Present)(nil),                 // 121: temporal.server.api.umpire.v1.Present
+	(*Equal)(nil),                   // 122: temporal.server.api.umpire.v1.Equal
+	(*All)(nil),                     // 123: temporal.server.api.umpire.v1.All
+	(*Greater)(nil),                 // 124: temporal.server.api.umpire.v1.Greater
+	(*Not)(nil),                     // 125: temporal.server.api.umpire.v1.Not
+	(*Proto)(nil),                   // 126: temporal.server.api.umpire.v1.Proto
+	(*ProtoField)(nil),              // 127: temporal.server.api.umpire.v1.ProtoField
+	(*ProtoValue)(nil),              // 128: temporal.server.api.umpire.v1.ProtoValue
+	(*ProtoMap)(nil),                // 129: temporal.server.api.umpire.v1.ProtoMap
+	(*ProtoEntry)(nil),              // 130: temporal.server.api.umpire.v1.ProtoEntry
+	(*wrapperspb.Int64Value)(nil),   // 131: google.protobuf.Int64Value
 }
 var file_temporal_server_api_umpire_v1_ir_proto_depIdxs = []int32{
-	17,  // 0: temporal.server.api.umpire.v1.Model.types:type_name -> temporal.server.api.umpire.v1.Type
-	25,  // 1: temporal.server.api.umpire.v1.Model.functions:type_name -> temporal.server.api.umpire.v1.Function
-	50,  // 2: temporal.server.api.umpire.v1.Model.actions:type_name -> temporal.server.api.umpire.v1.Action
-	52,  // 3: temporal.server.api.umpire.v1.Model.machines:type_name -> temporal.server.api.umpire.v1.Machine
-	55,  // 4: temporal.server.api.umpire.v1.Model.channels:type_name -> temporal.server.api.umpire.v1.Channel
-	56,  // 5: temporal.server.api.umpire.v1.Model.monitors:type_name -> temporal.server.api.umpire.v1.Monitor
-	57,  // 6: temporal.server.api.umpire.v1.Model.assumptions:type_name -> temporal.server.api.umpire.v1.Assumption
-	58,  // 7: temporal.server.api.umpire.v1.Model.holes:type_name -> temporal.server.api.umpire.v1.Hole
-	59,  // 8: temporal.server.api.umpire.v1.Model.compositions:type_name -> temporal.server.api.umpire.v1.Composition
-	64,  // 9: temporal.server.api.umpire.v1.Model.properties:type_name -> temporal.server.api.umpire.v1.Property
-	65,  // 10: temporal.server.api.umpire.v1.Model.scenarios:type_name -> temporal.server.api.umpire.v1.Scenario
-	67,  // 11: temporal.server.api.umpire.v1.Model.queries:type_name -> temporal.server.api.umpire.v1.Query
-	74,  // 12: temporal.server.api.umpire.v1.Model.progress:type_name -> temporal.server.api.umpire.v1.Progress
-	75,  // 13: temporal.server.api.umpire.v1.Model.realizations:type_name -> temporal.server.api.umpire.v1.Realization
-	16,  // 14: temporal.server.api.umpire.v1.Type.position:type_name -> temporal.server.api.umpire.v1.Position
-	18,  // 15: temporal.server.api.umpire.v1.Type.enum:type_name -> temporal.server.api.umpire.v1.Enum
-	20,  // 16: temporal.server.api.umpire.v1.Type.record:type_name -> temporal.server.api.umpire.v1.Record
-	19,  // 17: temporal.server.api.umpire.v1.Enum.cases:type_name -> temporal.server.api.umpire.v1.Case
-	21,  // 18: temporal.server.api.umpire.v1.Case.fields:type_name -> temporal.server.api.umpire.v1.Field
-	21,  // 19: temporal.server.api.umpire.v1.Record.fields:type_name -> temporal.server.api.umpire.v1.Field
-	22,  // 20: temporal.server.api.umpire.v1.Field.type:type_name -> temporal.server.api.umpire.v1.TypeRef
-	24,  // 21: temporal.server.api.umpire.v1.TypeRef.bool:type_name -> temporal.server.api.umpire.v1.Empty
-	23,  // 22: temporal.server.api.umpire.v1.TypeRef.int_range:type_name -> temporal.server.api.umpire.v1.IntRange
-	22,  // 23: temporal.server.api.umpire.v1.TypeRef.list:type_name -> temporal.server.api.umpire.v1.TypeRef
-	24,  // 24: temporal.server.api.umpire.v1.TypeRef.int:type_name -> temporal.server.api.umpire.v1.Empty
-	16,  // 25: temporal.server.api.umpire.v1.Function.position:type_name -> temporal.server.api.umpire.v1.Position
-	26,  // 26: temporal.server.api.umpire.v1.Function.params:type_name -> temporal.server.api.umpire.v1.Param
-	27,  // 27: temporal.server.api.umpire.v1.Function.body:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 28: temporal.server.api.umpire.v1.Function.requires:type_name -> temporal.server.api.umpire.v1.Expr
-	22,  // 29: temporal.server.api.umpire.v1.Param.type:type_name -> temporal.server.api.umpire.v1.TypeRef
-	16,  // 30: temporal.server.api.umpire.v1.Expr.position:type_name -> temporal.server.api.umpire.v1.Position
-	46,  // 31: temporal.server.api.umpire.v1.Expr.literal:type_name -> temporal.server.api.umpire.v1.Value
-	28,  // 32: temporal.server.api.umpire.v1.Expr.field:type_name -> temporal.server.api.umpire.v1.FieldAccess
-	29,  // 33: temporal.server.api.umpire.v1.Expr.call:type_name -> temporal.server.api.umpire.v1.Call
-	30,  // 34: temporal.server.api.umpire.v1.Expr.construct:type_name -> temporal.server.api.umpire.v1.Construct
-	31,  // 35: temporal.server.api.umpire.v1.Expr.copy:type_name -> temporal.server.api.umpire.v1.Copy
-	33,  // 36: temporal.server.api.umpire.v1.Expr.unary:type_name -> temporal.server.api.umpire.v1.Unary
-	34,  // 37: temporal.server.api.umpire.v1.Expr.binary:type_name -> temporal.server.api.umpire.v1.Binary
-	35,  // 38: temporal.server.api.umpire.v1.Expr.if:type_name -> temporal.server.api.umpire.v1.If
-	36,  // 39: temporal.server.api.umpire.v1.Expr.match:type_name -> temporal.server.api.umpire.v1.Match
-	42,  // 40: temporal.server.api.umpire.v1.Expr.let:type_name -> temporal.server.api.umpire.v1.Let
-	43,  // 41: temporal.server.api.umpire.v1.Expr.list:type_name -> temporal.server.api.umpire.v1.ListOf
-	45,  // 42: temporal.server.api.umpire.v1.Expr.lambda:type_name -> temporal.server.api.umpire.v1.Lambda
-	44,  // 43: temporal.server.api.umpire.v1.Expr.inbox:type_name -> temporal.server.api.umpire.v1.Inbox
-	27,  // 44: temporal.server.api.umpire.v1.FieldAccess.base:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 45: temporal.server.api.umpire.v1.Call.args:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 46: temporal.server.api.umpire.v1.Construct.args:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 47: temporal.server.api.umpire.v1.Copy.base:type_name -> temporal.server.api.umpire.v1.Expr
-	32,  // 48: temporal.server.api.umpire.v1.Copy.updates:type_name -> temporal.server.api.umpire.v1.NamedExpr
-	27,  // 49: temporal.server.api.umpire.v1.NamedExpr.value:type_name -> temporal.server.api.umpire.v1.Expr
+	20,  // 0: temporal.server.api.umpire.v1.Model.types:type_name -> temporal.server.api.umpire.v1.Type
+	28,  // 1: temporal.server.api.umpire.v1.Model.functions:type_name -> temporal.server.api.umpire.v1.Function
+	53,  // 2: temporal.server.api.umpire.v1.Model.actions:type_name -> temporal.server.api.umpire.v1.Action
+	55,  // 3: temporal.server.api.umpire.v1.Model.machines:type_name -> temporal.server.api.umpire.v1.Machine
+	58,  // 4: temporal.server.api.umpire.v1.Model.channels:type_name -> temporal.server.api.umpire.v1.Channel
+	59,  // 5: temporal.server.api.umpire.v1.Model.monitors:type_name -> temporal.server.api.umpire.v1.Monitor
+	60,  // 6: temporal.server.api.umpire.v1.Model.assumptions:type_name -> temporal.server.api.umpire.v1.Assumption
+	61,  // 7: temporal.server.api.umpire.v1.Model.holes:type_name -> temporal.server.api.umpire.v1.Hole
+	62,  // 8: temporal.server.api.umpire.v1.Model.compositions:type_name -> temporal.server.api.umpire.v1.Composition
+	67,  // 9: temporal.server.api.umpire.v1.Model.properties:type_name -> temporal.server.api.umpire.v1.Property
+	68,  // 10: temporal.server.api.umpire.v1.Model.scenarios:type_name -> temporal.server.api.umpire.v1.Scenario
+	70,  // 11: temporal.server.api.umpire.v1.Model.queries:type_name -> temporal.server.api.umpire.v1.Query
+	77,  // 12: temporal.server.api.umpire.v1.Model.progress:type_name -> temporal.server.api.umpire.v1.Progress
+	78,  // 13: temporal.server.api.umpire.v1.Model.realizations:type_name -> temporal.server.api.umpire.v1.Realization
+	19,  // 14: temporal.server.api.umpire.v1.Type.position:type_name -> temporal.server.api.umpire.v1.Position
+	21,  // 15: temporal.server.api.umpire.v1.Type.enum:type_name -> temporal.server.api.umpire.v1.Enum
+	23,  // 16: temporal.server.api.umpire.v1.Type.record:type_name -> temporal.server.api.umpire.v1.Record
+	22,  // 17: temporal.server.api.umpire.v1.Enum.cases:type_name -> temporal.server.api.umpire.v1.Case
+	24,  // 18: temporal.server.api.umpire.v1.Case.fields:type_name -> temporal.server.api.umpire.v1.Field
+	24,  // 19: temporal.server.api.umpire.v1.Record.fields:type_name -> temporal.server.api.umpire.v1.Field
+	25,  // 20: temporal.server.api.umpire.v1.Field.type:type_name -> temporal.server.api.umpire.v1.TypeRef
+	27,  // 21: temporal.server.api.umpire.v1.TypeRef.bool:type_name -> temporal.server.api.umpire.v1.Empty
+	26,  // 22: temporal.server.api.umpire.v1.TypeRef.int_range:type_name -> temporal.server.api.umpire.v1.IntRange
+	25,  // 23: temporal.server.api.umpire.v1.TypeRef.list:type_name -> temporal.server.api.umpire.v1.TypeRef
+	27,  // 24: temporal.server.api.umpire.v1.TypeRef.int:type_name -> temporal.server.api.umpire.v1.Empty
+	19,  // 25: temporal.server.api.umpire.v1.Function.position:type_name -> temporal.server.api.umpire.v1.Position
+	29,  // 26: temporal.server.api.umpire.v1.Function.params:type_name -> temporal.server.api.umpire.v1.Param
+	30,  // 27: temporal.server.api.umpire.v1.Function.body:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 28: temporal.server.api.umpire.v1.Function.requires:type_name -> temporal.server.api.umpire.v1.Expr
+	25,  // 29: temporal.server.api.umpire.v1.Param.type:type_name -> temporal.server.api.umpire.v1.TypeRef
+	19,  // 30: temporal.server.api.umpire.v1.Expr.position:type_name -> temporal.server.api.umpire.v1.Position
+	49,  // 31: temporal.server.api.umpire.v1.Expr.literal:type_name -> temporal.server.api.umpire.v1.Value
+	31,  // 32: temporal.server.api.umpire.v1.Expr.field:type_name -> temporal.server.api.umpire.v1.FieldAccess
+	32,  // 33: temporal.server.api.umpire.v1.Expr.call:type_name -> temporal.server.api.umpire.v1.Call
+	33,  // 34: temporal.server.api.umpire.v1.Expr.construct:type_name -> temporal.server.api.umpire.v1.Construct
+	34,  // 35: temporal.server.api.umpire.v1.Expr.copy:type_name -> temporal.server.api.umpire.v1.Copy
+	36,  // 36: temporal.server.api.umpire.v1.Expr.unary:type_name -> temporal.server.api.umpire.v1.Unary
+	37,  // 37: temporal.server.api.umpire.v1.Expr.binary:type_name -> temporal.server.api.umpire.v1.Binary
+	38,  // 38: temporal.server.api.umpire.v1.Expr.if:type_name -> temporal.server.api.umpire.v1.If
+	39,  // 39: temporal.server.api.umpire.v1.Expr.match:type_name -> temporal.server.api.umpire.v1.Match
+	45,  // 40: temporal.server.api.umpire.v1.Expr.let:type_name -> temporal.server.api.umpire.v1.Let
+	46,  // 41: temporal.server.api.umpire.v1.Expr.list:type_name -> temporal.server.api.umpire.v1.ListOf
+	48,  // 42: temporal.server.api.umpire.v1.Expr.lambda:type_name -> temporal.server.api.umpire.v1.Lambda
+	47,  // 43: temporal.server.api.umpire.v1.Expr.inbox:type_name -> temporal.server.api.umpire.v1.Inbox
+	30,  // 44: temporal.server.api.umpire.v1.FieldAccess.base:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 45: temporal.server.api.umpire.v1.Call.args:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 46: temporal.server.api.umpire.v1.Construct.args:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 47: temporal.server.api.umpire.v1.Copy.base:type_name -> temporal.server.api.umpire.v1.Expr
+	35,  // 48: temporal.server.api.umpire.v1.Copy.updates:type_name -> temporal.server.api.umpire.v1.NamedExpr
+	30,  // 49: temporal.server.api.umpire.v1.NamedExpr.value:type_name -> temporal.server.api.umpire.v1.Expr
 	1,   // 50: temporal.server.api.umpire.v1.Unary.op:type_name -> temporal.server.api.umpire.v1.Unary.Op
-	27,  // 51: temporal.server.api.umpire.v1.Unary.operand:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 51: temporal.server.api.umpire.v1.Unary.operand:type_name -> temporal.server.api.umpire.v1.Expr
 	2,   // 52: temporal.server.api.umpire.v1.Binary.op:type_name -> temporal.server.api.umpire.v1.Binary.Op
-	27,  // 53: temporal.server.api.umpire.v1.Binary.left:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 54: temporal.server.api.umpire.v1.Binary.right:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 55: temporal.server.api.umpire.v1.If.condition:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 56: temporal.server.api.umpire.v1.If.then:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 57: temporal.server.api.umpire.v1.If.else:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 58: temporal.server.api.umpire.v1.Match.scrutinee:type_name -> temporal.server.api.umpire.v1.Expr
-	37,  // 59: temporal.server.api.umpire.v1.Match.cases:type_name -> temporal.server.api.umpire.v1.MatchCase
-	38,  // 60: temporal.server.api.umpire.v1.MatchCase.pattern:type_name -> temporal.server.api.umpire.v1.Pattern
-	27,  // 61: temporal.server.api.umpire.v1.MatchCase.guard:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 62: temporal.server.api.umpire.v1.MatchCase.body:type_name -> temporal.server.api.umpire.v1.Expr
-	24,  // 63: temporal.server.api.umpire.v1.Pattern.wildcard:type_name -> temporal.server.api.umpire.v1.Empty
-	39,  // 64: temporal.server.api.umpire.v1.Pattern.bind:type_name -> temporal.server.api.umpire.v1.Bind
-	46,  // 65: temporal.server.api.umpire.v1.Pattern.literal:type_name -> temporal.server.api.umpire.v1.Value
-	40,  // 66: temporal.server.api.umpire.v1.Pattern.case:type_name -> temporal.server.api.umpire.v1.CasePattern
-	41,  // 67: temporal.server.api.umpire.v1.Pattern.alternatives:type_name -> temporal.server.api.umpire.v1.Alternatives
-	38,  // 68: temporal.server.api.umpire.v1.Bind.pattern:type_name -> temporal.server.api.umpire.v1.Pattern
-	38,  // 69: temporal.server.api.umpire.v1.CasePattern.fields:type_name -> temporal.server.api.umpire.v1.Pattern
-	38,  // 70: temporal.server.api.umpire.v1.Alternatives.patterns:type_name -> temporal.server.api.umpire.v1.Pattern
-	27,  // 71: temporal.server.api.umpire.v1.Let.value:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 72: temporal.server.api.umpire.v1.Let.body:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 73: temporal.server.api.umpire.v1.ListOf.items:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 53: temporal.server.api.umpire.v1.Binary.left:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 54: temporal.server.api.umpire.v1.Binary.right:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 55: temporal.server.api.umpire.v1.If.condition:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 56: temporal.server.api.umpire.v1.If.then:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 57: temporal.server.api.umpire.v1.If.else:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 58: temporal.server.api.umpire.v1.Match.scrutinee:type_name -> temporal.server.api.umpire.v1.Expr
+	40,  // 59: temporal.server.api.umpire.v1.Match.cases:type_name -> temporal.server.api.umpire.v1.MatchCase
+	41,  // 60: temporal.server.api.umpire.v1.MatchCase.pattern:type_name -> temporal.server.api.umpire.v1.Pattern
+	30,  // 61: temporal.server.api.umpire.v1.MatchCase.guard:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 62: temporal.server.api.umpire.v1.MatchCase.body:type_name -> temporal.server.api.umpire.v1.Expr
+	27,  // 63: temporal.server.api.umpire.v1.Pattern.wildcard:type_name -> temporal.server.api.umpire.v1.Empty
+	42,  // 64: temporal.server.api.umpire.v1.Pattern.bind:type_name -> temporal.server.api.umpire.v1.Bind
+	49,  // 65: temporal.server.api.umpire.v1.Pattern.literal:type_name -> temporal.server.api.umpire.v1.Value
+	43,  // 66: temporal.server.api.umpire.v1.Pattern.case:type_name -> temporal.server.api.umpire.v1.CasePattern
+	44,  // 67: temporal.server.api.umpire.v1.Pattern.alternatives:type_name -> temporal.server.api.umpire.v1.Alternatives
+	41,  // 68: temporal.server.api.umpire.v1.Bind.pattern:type_name -> temporal.server.api.umpire.v1.Pattern
+	41,  // 69: temporal.server.api.umpire.v1.CasePattern.fields:type_name -> temporal.server.api.umpire.v1.Pattern
+	41,  // 70: temporal.server.api.umpire.v1.Alternatives.patterns:type_name -> temporal.server.api.umpire.v1.Pattern
+	30,  // 71: temporal.server.api.umpire.v1.Let.value:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 72: temporal.server.api.umpire.v1.Let.body:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 73: temporal.server.api.umpire.v1.ListOf.items:type_name -> temporal.server.api.umpire.v1.Expr
 	3,   // 74: temporal.server.api.umpire.v1.Inbox.op:type_name -> temporal.server.api.umpire.v1.Inbox.Op
-	27,  // 75: temporal.server.api.umpire.v1.Inbox.contents:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 76: temporal.server.api.umpire.v1.Inbox.message:type_name -> temporal.server.api.umpire.v1.Expr
-	26,  // 77: temporal.server.api.umpire.v1.Lambda.params:type_name -> temporal.server.api.umpire.v1.Param
-	27,  // 78: temporal.server.api.umpire.v1.Lambda.body:type_name -> temporal.server.api.umpire.v1.Expr
-	47,  // 79: temporal.server.api.umpire.v1.Value.enum:type_name -> temporal.server.api.umpire.v1.EnumValue
-	48,  // 80: temporal.server.api.umpire.v1.Value.record:type_name -> temporal.server.api.umpire.v1.RecordValue
-	49,  // 81: temporal.server.api.umpire.v1.Value.list:type_name -> temporal.server.api.umpire.v1.ListValue
-	46,  // 82: temporal.server.api.umpire.v1.EnumValue.fields:type_name -> temporal.server.api.umpire.v1.Value
-	46,  // 83: temporal.server.api.umpire.v1.RecordValue.fields:type_name -> temporal.server.api.umpire.v1.Value
-	46,  // 84: temporal.server.api.umpire.v1.ListValue.items:type_name -> temporal.server.api.umpire.v1.Value
-	16,  // 85: temporal.server.api.umpire.v1.Action.position:type_name -> temporal.server.api.umpire.v1.Position
-	26,  // 86: temporal.server.api.umpire.v1.Action.inputs:type_name -> temporal.server.api.umpire.v1.Param
-	51,  // 87: temporal.server.api.umpire.v1.Action.examples:type_name -> temporal.server.api.umpire.v1.Example
-	46,  // 88: temporal.server.api.umpire.v1.Example.value:type_name -> temporal.server.api.umpire.v1.Value
-	16,  // 89: temporal.server.api.umpire.v1.Machine.position:type_name -> temporal.server.api.umpire.v1.Position
-	27,  // 90: temporal.server.api.umpire.v1.Machine.starts:type_name -> temporal.server.api.umpire.v1.Expr
-	27,  // 91: temporal.server.api.umpire.v1.Machine.ends:type_name -> temporal.server.api.umpire.v1.Expr
-	53,  // 92: temporal.server.api.umpire.v1.Machine.steps:type_name -> temporal.server.api.umpire.v1.StepBinding
-	54,  // 93: temporal.server.api.umpire.v1.Machine.refines:type_name -> temporal.server.api.umpire.v1.Refinement
-	16,  // 94: temporal.server.api.umpire.v1.StepBinding.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 95: temporal.server.api.umpire.v1.Channel.position:type_name -> temporal.server.api.umpire.v1.Position
-	22,  // 96: temporal.server.api.umpire.v1.Channel.message:type_name -> temporal.server.api.umpire.v1.TypeRef
+	30,  // 75: temporal.server.api.umpire.v1.Inbox.contents:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 76: temporal.server.api.umpire.v1.Inbox.message:type_name -> temporal.server.api.umpire.v1.Expr
+	29,  // 77: temporal.server.api.umpire.v1.Lambda.params:type_name -> temporal.server.api.umpire.v1.Param
+	30,  // 78: temporal.server.api.umpire.v1.Lambda.body:type_name -> temporal.server.api.umpire.v1.Expr
+	50,  // 79: temporal.server.api.umpire.v1.Value.enum:type_name -> temporal.server.api.umpire.v1.EnumValue
+	51,  // 80: temporal.server.api.umpire.v1.Value.record:type_name -> temporal.server.api.umpire.v1.RecordValue
+	52,  // 81: temporal.server.api.umpire.v1.Value.list:type_name -> temporal.server.api.umpire.v1.ListValue
+	49,  // 82: temporal.server.api.umpire.v1.EnumValue.fields:type_name -> temporal.server.api.umpire.v1.Value
+	49,  // 83: temporal.server.api.umpire.v1.RecordValue.fields:type_name -> temporal.server.api.umpire.v1.Value
+	49,  // 84: temporal.server.api.umpire.v1.ListValue.items:type_name -> temporal.server.api.umpire.v1.Value
+	19,  // 85: temporal.server.api.umpire.v1.Action.position:type_name -> temporal.server.api.umpire.v1.Position
+	29,  // 86: temporal.server.api.umpire.v1.Action.inputs:type_name -> temporal.server.api.umpire.v1.Param
+	54,  // 87: temporal.server.api.umpire.v1.Action.examples:type_name -> temporal.server.api.umpire.v1.Example
+	49,  // 88: temporal.server.api.umpire.v1.Example.value:type_name -> temporal.server.api.umpire.v1.Value
+	19,  // 89: temporal.server.api.umpire.v1.Machine.position:type_name -> temporal.server.api.umpire.v1.Position
+	30,  // 90: temporal.server.api.umpire.v1.Machine.starts:type_name -> temporal.server.api.umpire.v1.Expr
+	30,  // 91: temporal.server.api.umpire.v1.Machine.ends:type_name -> temporal.server.api.umpire.v1.Expr
+	56,  // 92: temporal.server.api.umpire.v1.Machine.steps:type_name -> temporal.server.api.umpire.v1.StepBinding
+	57,  // 93: temporal.server.api.umpire.v1.Machine.refines:type_name -> temporal.server.api.umpire.v1.Refinement
+	19,  // 94: temporal.server.api.umpire.v1.StepBinding.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 95: temporal.server.api.umpire.v1.Channel.position:type_name -> temporal.server.api.umpire.v1.Position
+	25,  // 96: temporal.server.api.umpire.v1.Channel.message:type_name -> temporal.server.api.umpire.v1.TypeRef
 	4,   // 97: temporal.server.api.umpire.v1.Channel.order:type_name -> temporal.server.api.umpire.v1.Channel.Order
-	16,  // 98: temporal.server.api.umpire.v1.Monitor.position:type_name -> temporal.server.api.umpire.v1.Position
-	22,  // 99: temporal.server.api.umpire.v1.Monitor.state:type_name -> temporal.server.api.umpire.v1.TypeRef
-	27,  // 100: temporal.server.api.umpire.v1.Monitor.initial:type_name -> temporal.server.api.umpire.v1.Expr
-	24,  // 101: temporal.server.api.umpire.v1.Monitor.every_step:type_name -> temporal.server.api.umpire.v1.Empty
-	24,  // 102: temporal.server.api.umpire.v1.Monitor.at_ends:type_name -> temporal.server.api.umpire.v1.Empty
-	16,  // 103: temporal.server.api.umpire.v1.Assumption.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 104: temporal.server.api.umpire.v1.Hole.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 105: temporal.server.api.umpire.v1.Composition.position:type_name -> temporal.server.api.umpire.v1.Position
-	60,  // 106: temporal.server.api.umpire.v1.Composition.members:type_name -> temporal.server.api.umpire.v1.Member
-	61,  // 107: temporal.server.api.umpire.v1.Composition.syncs:type_name -> temporal.server.api.umpire.v1.Sync
-	27,  // 108: temporal.server.api.umpire.v1.Composition.ends:type_name -> temporal.server.api.umpire.v1.Expr
-	62,  // 109: temporal.server.api.umpire.v1.Sync.first:type_name -> temporal.server.api.umpire.v1.SyncMove
-	62,  // 110: temporal.server.api.umpire.v1.Sync.second:type_name -> temporal.server.api.umpire.v1.SyncMove
-	46,  // 111: temporal.server.api.umpire.v1.ActionClass.inputs:type_name -> temporal.server.api.umpire.v1.Value
-	16,  // 112: temporal.server.api.umpire.v1.Property.position:type_name -> temporal.server.api.umpire.v1.Position
-	63,  // 113: temporal.server.api.umpire.v1.Property.when_class:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 114: temporal.server.api.umpire.v1.Scenario.position:type_name -> temporal.server.api.umpire.v1.Position
-	27,  // 115: temporal.server.api.umpire.v1.Scenario.start:type_name -> temporal.server.api.umpire.v1.Expr
-	63,  // 116: temporal.server.api.umpire.v1.Scenario.actions:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 117: temporal.server.api.umpire.v1.Query.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 98: temporal.server.api.umpire.v1.Monitor.position:type_name -> temporal.server.api.umpire.v1.Position
+	25,  // 99: temporal.server.api.umpire.v1.Monitor.state:type_name -> temporal.server.api.umpire.v1.TypeRef
+	30,  // 100: temporal.server.api.umpire.v1.Monitor.initial:type_name -> temporal.server.api.umpire.v1.Expr
+	27,  // 101: temporal.server.api.umpire.v1.Monitor.every_step:type_name -> temporal.server.api.umpire.v1.Empty
+	27,  // 102: temporal.server.api.umpire.v1.Monitor.at_ends:type_name -> temporal.server.api.umpire.v1.Empty
+	19,  // 103: temporal.server.api.umpire.v1.Assumption.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 104: temporal.server.api.umpire.v1.Hole.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 105: temporal.server.api.umpire.v1.Composition.position:type_name -> temporal.server.api.umpire.v1.Position
+	63,  // 106: temporal.server.api.umpire.v1.Composition.members:type_name -> temporal.server.api.umpire.v1.Member
+	64,  // 107: temporal.server.api.umpire.v1.Composition.syncs:type_name -> temporal.server.api.umpire.v1.Sync
+	30,  // 108: temporal.server.api.umpire.v1.Composition.ends:type_name -> temporal.server.api.umpire.v1.Expr
+	65,  // 109: temporal.server.api.umpire.v1.Sync.first:type_name -> temporal.server.api.umpire.v1.SyncMove
+	65,  // 110: temporal.server.api.umpire.v1.Sync.second:type_name -> temporal.server.api.umpire.v1.SyncMove
+	49,  // 111: temporal.server.api.umpire.v1.ActionClass.inputs:type_name -> temporal.server.api.umpire.v1.Value
+	19,  // 112: temporal.server.api.umpire.v1.Property.position:type_name -> temporal.server.api.umpire.v1.Position
+	66,  // 113: temporal.server.api.umpire.v1.Property.when_class:type_name -> temporal.server.api.umpire.v1.ActionClass
+	19,  // 114: temporal.server.api.umpire.v1.Scenario.position:type_name -> temporal.server.api.umpire.v1.Position
+	30,  // 115: temporal.server.api.umpire.v1.Scenario.start:type_name -> temporal.server.api.umpire.v1.Expr
+	66,  // 116: temporal.server.api.umpire.v1.Scenario.actions:type_name -> temporal.server.api.umpire.v1.ActionClass
+	19,  // 117: temporal.server.api.umpire.v1.Query.position:type_name -> temporal.server.api.umpire.v1.Position
 	5,   // 118: temporal.server.api.umpire.v1.Query.form:type_name -> temporal.server.api.umpire.v1.Query.Form
-	66,  // 119: temporal.server.api.umpire.v1.Query.property:type_name -> temporal.server.api.umpire.v1.ClaimRef
-	66,  // 120: temporal.server.api.umpire.v1.Query.scenario:type_name -> temporal.server.api.umpire.v1.ClaimRef
-	73,  // 121: temporal.server.api.umpire.v1.Query.limits:type_name -> temporal.server.api.umpire.v1.Limits
-	71,  // 122: temporal.server.api.umpire.v1.Query.expected_run:type_name -> temporal.server.api.umpire.v1.RunExpectation
-	68,  // 123: temporal.server.api.umpire.v1.Query.exploration:type_name -> temporal.server.api.umpire.v1.Exploration
-	128, // 124: temporal.server.api.umpire.v1.Query.total:type_name -> google.protobuf.Int64Value
-	16,  // 125: temporal.server.api.umpire.v1.Exploration.position:type_name -> temporal.server.api.umpire.v1.Position
-	69,  // 126: temporal.server.api.umpire.v1.Exploration.variations:type_name -> temporal.server.api.umpire.v1.Variation
-	70,  // 127: temporal.server.api.umpire.v1.Variation.choices:type_name -> temporal.server.api.umpire.v1.Alternative
-	16,  // 128: temporal.server.api.umpire.v1.Variation.position:type_name -> temporal.server.api.umpire.v1.Position
-	63,  // 129: temporal.server.api.umpire.v1.Alternative.actions:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 130: temporal.server.api.umpire.v1.Alternative.position:type_name -> temporal.server.api.umpire.v1.Position
+	69,  // 119: temporal.server.api.umpire.v1.Query.property:type_name -> temporal.server.api.umpire.v1.ClaimRef
+	69,  // 120: temporal.server.api.umpire.v1.Query.scenario:type_name -> temporal.server.api.umpire.v1.ClaimRef
+	76,  // 121: temporal.server.api.umpire.v1.Query.limits:type_name -> temporal.server.api.umpire.v1.Limits
+	74,  // 122: temporal.server.api.umpire.v1.Query.expected_run:type_name -> temporal.server.api.umpire.v1.RunExpectation
+	71,  // 123: temporal.server.api.umpire.v1.Query.exploration:type_name -> temporal.server.api.umpire.v1.Exploration
+	131, // 124: temporal.server.api.umpire.v1.Query.total:type_name -> google.protobuf.Int64Value
+	19,  // 125: temporal.server.api.umpire.v1.Exploration.position:type_name -> temporal.server.api.umpire.v1.Position
+	72,  // 126: temporal.server.api.umpire.v1.Exploration.variations:type_name -> temporal.server.api.umpire.v1.Variation
+	73,  // 127: temporal.server.api.umpire.v1.Variation.choices:type_name -> temporal.server.api.umpire.v1.Alternative
+	19,  // 128: temporal.server.api.umpire.v1.Variation.position:type_name -> temporal.server.api.umpire.v1.Position
+	66,  // 129: temporal.server.api.umpire.v1.Alternative.actions:type_name -> temporal.server.api.umpire.v1.ActionClass
+	19,  // 130: temporal.server.api.umpire.v1.Alternative.position:type_name -> temporal.server.api.umpire.v1.Position
 	7,   // 131: temporal.server.api.umpire.v1.RunExpectation.property:type_name -> temporal.server.api.umpire.v1.RunExpectation.Outcome
-	6,   // 132: temporal.server.api.umpire.v1.RunExpectation.conformance:type_name -> temporal.server.api.umpire.v1.RunExpectation.Conformance
-	72,  // 133: temporal.server.api.umpire.v1.RunExpectation.monitors:type_name -> temporal.server.api.umpire.v1.MonitorExpectation
-	7,   // 134: temporal.server.api.umpire.v1.RunExpectation.contract:type_name -> temporal.server.api.umpire.v1.RunExpectation.Outcome
-	7,   // 135: temporal.server.api.umpire.v1.MonitorExpectation.outcome:type_name -> temporal.server.api.umpire.v1.RunExpectation.Outcome
-	16,  // 136: temporal.server.api.umpire.v1.Progress.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 137: temporal.server.api.umpire.v1.Realization.position:type_name -> temporal.server.api.umpire.v1.Position
-	84,  // 138: temporal.server.api.umpire.v1.Realization.roles:type_name -> temporal.server.api.umpire.v1.Role
-	85,  // 139: temporal.server.api.umpire.v1.Realization.learned:type_name -> temporal.server.api.umpire.v1.Learned
-	86,  // 140: temporal.server.api.umpire.v1.Realization.observations:type_name -> temporal.server.api.umpire.v1.Observed
-	87,  // 141: temporal.server.api.umpire.v1.Realization.evidence:type_name -> temporal.server.api.umpire.v1.Evidence
-	93,  // 142: temporal.server.api.umpire.v1.Realization.correlation:type_name -> temporal.server.api.umpire.v1.Correlation
-	94,  // 143: temporal.server.api.umpire.v1.Realization.controls:type_name -> temporal.server.api.umpire.v1.Control
-	96,  // 144: temporal.server.api.umpire.v1.Realization.scripts:type_name -> temporal.server.api.umpire.v1.Script
-	76,  // 145: temporal.server.api.umpire.v1.Realization.required_settings:type_name -> temporal.server.api.umpire.v1.RequiredSetting
-	77,  // 146: temporal.server.api.umpire.v1.Realization.behavior:type_name -> temporal.server.api.umpire.v1.ApiBehavior
-	83,  // 147: temporal.server.api.umpire.v1.Realization.server_steps:type_name -> temporal.server.api.umpire.v1.ServerStep
-	80,  // 148: temporal.server.api.umpire.v1.ApiBehavior.visibility:type_name -> temporal.server.api.umpire.v1.Visibility
-	82,  // 149: temporal.server.api.umpire.v1.ApiBehavior.causes:type_name -> temporal.server.api.umpire.v1.CauseBound
-	78,  // 150: temporal.server.api.umpire.v1.ApiBehavior.attempt_numbering:type_name -> temporal.server.api.umpire.v1.AttemptNumbering
-	79,  // 151: temporal.server.api.umpire.v1.ApiBehavior.instruction_defaults:type_name -> temporal.server.api.umpire.v1.InstructionLimit
-	16,  // 152: temporal.server.api.umpire.v1.AttemptNumbering.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 153: temporal.server.api.umpire.v1.InstructionLimit.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 154: temporal.server.api.umpire.v1.Visibility.position:type_name -> temporal.server.api.umpire.v1.Position
-	0,   // 155: temporal.server.api.umpire.v1.Visibility.cause:type_name -> temporal.server.api.umpire.v1.CauseKind
-	81,  // 156: temporal.server.api.umpire.v1.Visibility.eventually_within:type_name -> temporal.server.api.umpire.v1.WaitBound
-	16,  // 157: temporal.server.api.umpire.v1.WaitBound.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 158: temporal.server.api.umpire.v1.CauseBound.position:type_name -> temporal.server.api.umpire.v1.Position
-	0,   // 159: temporal.server.api.umpire.v1.CauseBound.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
-	81,  // 160: temporal.server.api.umpire.v1.CauseBound.bound:type_name -> temporal.server.api.umpire.v1.WaitBound
-	16,  // 161: temporal.server.api.umpire.v1.ServerStep.position:type_name -> temporal.server.api.umpire.v1.Position
-	63,  // 162: temporal.server.api.umpire.v1.ServerStep.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	0,   // 163: temporal.server.api.umpire.v1.ServerStep.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
-	16,  // 164: temporal.server.api.umpire.v1.Role.position:type_name -> temporal.server.api.umpire.v1.Position
-	8,   // 165: temporal.server.api.umpire.v1.Role.kind:type_name -> temporal.server.api.umpire.v1.Role.Kind
-	16,  // 166: temporal.server.api.umpire.v1.Learned.position:type_name -> temporal.server.api.umpire.v1.Position
-	9,   // 167: temporal.server.api.umpire.v1.Learned.kind:type_name -> temporal.server.api.umpire.v1.Learned.Kind
-	16,  // 168: temporal.server.api.umpire.v1.Observed.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 169: temporal.server.api.umpire.v1.Evidence.position:type_name -> temporal.server.api.umpire.v1.Position
-	92,  // 170: temporal.server.api.umpire.v1.Evidence.read:type_name -> temporal.server.api.umpire.v1.ReadSource
-	92,  // 171: temporal.server.api.umpire.v1.Evidence.single:type_name -> temporal.server.api.umpire.v1.ReadSource
-	90,  // 172: temporal.server.api.umpire.v1.Evidence.run_event:type_name -> temporal.server.api.umpire.v1.RunEventSource
-	10,  // 173: temporal.server.api.umpire.v1.Evidence.commitment:type_name -> temporal.server.api.umpire.v1.Evidence.Commitment
-	89,  // 174: temporal.server.api.umpire.v1.Evidence.fields:type_name -> temporal.server.api.umpire.v1.EvidenceField
-	88,  // 175: temporal.server.api.umpire.v1.Evidence.confirms:type_name -> temporal.server.api.umpire.v1.Taking
-	16,  // 176: temporal.server.api.umpire.v1.Taking.position:type_name -> temporal.server.api.umpire.v1.Position
-	63,  // 177: temporal.server.api.umpire.v1.Taking.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 178: temporal.server.api.umpire.v1.EvidenceField.position:type_name -> temporal.server.api.umpire.v1.Position
-	11,  // 179: temporal.server.api.umpire.v1.EvidenceField.role:type_name -> temporal.server.api.umpire.v1.EvidenceField.Role
-	12,  // 180: temporal.server.api.umpire.v1.RunEventSource.kind:type_name -> temporal.server.api.umpire.v1.RunEventSource.Kind
-	116, // 181: temporal.server.api.umpire.v1.RunEventSource.key:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 182: temporal.server.api.umpire.v1.RunEventSource.guard:type_name -> temporal.server.api.umpire.v1.Operand
-	91,  // 183: temporal.server.api.umpire.v1.RunEventSource.attempt:type_name -> temporal.server.api.umpire.v1.AttemptOf
-	16,  // 184: temporal.server.api.umpire.v1.AttemptOf.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 185: temporal.server.api.umpire.v1.Correlation.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 186: temporal.server.api.umpire.v1.Control.position:type_name -> temporal.server.api.umpire.v1.Position
-	95,  // 187: temporal.server.api.umpire.v1.Control.hold_dispatched:type_name -> temporal.server.api.umpire.v1.HoldDispatched
-	63,  // 188: temporal.server.api.umpire.v1.HoldDispatched.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 189: temporal.server.api.umpire.v1.Script.position:type_name -> temporal.server.api.umpire.v1.Position
-	24,  // 190: temporal.server.api.umpire.v1.Script.controller:type_name -> temporal.server.api.umpire.v1.Empty
-	97,  // 191: temporal.server.api.umpire.v1.Script.workflow:type_name -> temporal.server.api.umpire.v1.WorkflowActivation
-	98,  // 192: temporal.server.api.umpire.v1.Script.nexus_handler:type_name -> temporal.server.api.umpire.v1.NexusHandlerActivation
-	99,  // 193: temporal.server.api.umpire.v1.Script.activity:type_name -> temporal.server.api.umpire.v1.ActivityActivation
-	101, // 194: temporal.server.api.umpire.v1.Script.items:type_name -> temporal.server.api.umpire.v1.Item
-	100, // 195: temporal.server.api.umpire.v1.WorkflowActivation.workflow_type:type_name -> temporal.server.api.umpire.v1.Name
-	100, // 196: temporal.server.api.umpire.v1.ActivityActivation.activity_type:type_name -> temporal.server.api.umpire.v1.Name
-	63,  // 197: temporal.server.api.umpire.v1.ActivityActivation.starts:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 198: temporal.server.api.umpire.v1.Item.position:type_name -> temporal.server.api.umpire.v1.Position
-	103, // 199: temporal.server.api.umpire.v1.Item.command:type_name -> temporal.server.api.umpire.v1.Command
-	63,  // 200: temporal.server.api.umpire.v1.Item.when:type_name -> temporal.server.api.umpire.v1.ActionClass
-	102, // 201: temporal.server.api.umpire.v1.Item.performs:type_name -> temporal.server.api.umpire.v1.Performance
-	16,  // 202: temporal.server.api.umpire.v1.Performance.position:type_name -> temporal.server.api.umpire.v1.Position
-	63,  // 203: temporal.server.api.umpire.v1.Performance.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	103, // 204: temporal.server.api.umpire.v1.Performance.command:type_name -> temporal.server.api.umpire.v1.Command
-	16,  // 205: temporal.server.api.umpire.v1.Command.position:type_name -> temporal.server.api.umpire.v1.Position
-	104, // 206: temporal.server.api.umpire.v1.Command.after:type_name -> temporal.server.api.umpire.v1.After
-	105, // 207: temporal.server.api.umpire.v1.Command.rpc:type_name -> temporal.server.api.umpire.v1.Rpc
-	109, // 208: temporal.server.api.umpire.v1.Command.poll:type_name -> temporal.server.api.umpire.v1.Poll
-	110, // 209: temporal.server.api.umpire.v1.Command.finish:type_name -> temporal.server.api.umpire.v1.Finish
-	112, // 210: temporal.server.api.umpire.v1.Command.fault:type_name -> temporal.server.api.umpire.v1.Fault
-	113, // 211: temporal.server.api.umpire.v1.Command.workflow_command:type_name -> temporal.server.api.umpire.v1.WorkflowCommand
-	114, // 212: temporal.server.api.umpire.v1.Command.nexus_reply:type_name -> temporal.server.api.umpire.v1.NexusReply
-	115, // 213: temporal.server.api.umpire.v1.Command.nexus_completion:type_name -> temporal.server.api.umpire.v1.NexusCompletion
-	111, // 214: temporal.server.api.umpire.v1.Command.attempt_failure:type_name -> temporal.server.api.umpire.v1.AttemptFailure
-	24,  // 215: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> temporal.server.api.umpire.v1.Empty
-	106, // 216: temporal.server.api.umpire.v1.Rpc.assign:type_name -> temporal.server.api.umpire.v1.Assignment
-	107, // 217: temporal.server.api.umpire.v1.Rpc.reads:type_name -> temporal.server.api.umpire.v1.ResponseRead
-	116, // 218: temporal.server.api.umpire.v1.Assignment.value:type_name -> temporal.server.api.umpire.v1.Operand
-	13,  // 219: temporal.server.api.umpire.v1.ResponseRead.cardinality:type_name -> temporal.server.api.umpire.v1.ResponseRead.Cardinality
-	108, // 220: temporal.server.api.umpire.v1.ResponseRead.targets:type_name -> temporal.server.api.umpire.v1.Target
-	106, // 221: temporal.server.api.umpire.v1.Poll.assign:type_name -> temporal.server.api.umpire.v1.Assignment
-	116, // 222: temporal.server.api.umpire.v1.Poll.until:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 223: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.Operand
-	123, // 224: temporal.server.api.umpire.v1.AttemptFailure.failure:type_name -> temporal.server.api.umpire.v1.Proto
-	14,  // 225: temporal.server.api.umpire.v1.Fault.kind:type_name -> temporal.server.api.umpire.v1.Fault.Kind
-	123, // 226: temporal.server.api.umpire.v1.WorkflowCommand.command:type_name -> temporal.server.api.umpire.v1.Proto
-	123, // 227: temporal.server.api.umpire.v1.NexusReply.reply:type_name -> temporal.server.api.umpire.v1.Proto
-	123, // 228: temporal.server.api.umpire.v1.NexusCompletion.result:type_name -> temporal.server.api.umpire.v1.Proto
-	16,  // 229: temporal.server.api.umpire.v1.Operand.position:type_name -> temporal.server.api.umpire.v1.Position
-	125, // 230: temporal.server.api.umpire.v1.Operand.literal:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	24,  // 231: temporal.server.api.umpire.v1.Operand.run:type_name -> temporal.server.api.umpire.v1.Empty
-	24,  // 232: temporal.server.api.umpire.v1.Operand.projected:type_name -> temporal.server.api.umpire.v1.Empty
-	117, // 233: temporal.server.api.umpire.v1.Operand.path:type_name -> temporal.server.api.umpire.v1.PathOf
-	118, // 234: temporal.server.api.umpire.v1.Operand.present:type_name -> temporal.server.api.umpire.v1.Present
-	119, // 235: temporal.server.api.umpire.v1.Operand.equal:type_name -> temporal.server.api.umpire.v1.Equal
-	120, // 236: temporal.server.api.umpire.v1.Operand.all:type_name -> temporal.server.api.umpire.v1.All
-	121, // 237: temporal.server.api.umpire.v1.Operand.greater:type_name -> temporal.server.api.umpire.v1.Greater
-	122, // 238: temporal.server.api.umpire.v1.Operand.not:type_name -> temporal.server.api.umpire.v1.Not
-	116, // 239: temporal.server.api.umpire.v1.PathOf.of:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 240: temporal.server.api.umpire.v1.Present.of:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 241: temporal.server.api.umpire.v1.Equal.left:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 242: temporal.server.api.umpire.v1.Equal.right:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 243: temporal.server.api.umpire.v1.All.operands:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 244: temporal.server.api.umpire.v1.Greater.left:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 245: temporal.server.api.umpire.v1.Greater.right:type_name -> temporal.server.api.umpire.v1.Operand
-	116, // 246: temporal.server.api.umpire.v1.Not.of:type_name -> temporal.server.api.umpire.v1.Operand
-	16,  // 247: temporal.server.api.umpire.v1.Proto.position:type_name -> temporal.server.api.umpire.v1.Position
-	124, // 248: temporal.server.api.umpire.v1.Proto.fields:type_name -> temporal.server.api.umpire.v1.ProtoField
-	125, // 249: temporal.server.api.umpire.v1.ProtoField.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	123, // 250: temporal.server.api.umpire.v1.ProtoValue.message:type_name -> temporal.server.api.umpire.v1.Proto
-	126, // 251: temporal.server.api.umpire.v1.ProtoValue.mapping:type_name -> temporal.server.api.umpire.v1.ProtoMap
-	100, // 252: temporal.server.api.umpire.v1.ProtoValue.named:type_name -> temporal.server.api.umpire.v1.Name
-	127, // 253: temporal.server.api.umpire.v1.ProtoMap.entries:type_name -> temporal.server.api.umpire.v1.ProtoEntry
-	125, // 254: temporal.server.api.umpire.v1.ProtoEntry.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	255, // [255:255] is the sub-list for method output_type
-	255, // [255:255] is the sub-list for method input_type
-	255, // [255:255] is the sub-list for extension type_name
-	255, // [255:255] is the sub-list for extension extendee
-	0,   // [0:255] is the sub-list for field type_name
+	10,  // 132: temporal.server.api.umpire.v1.RunExpectation.reason:type_name -> temporal.server.api.umpire.v1.RunExpectation.Reason
+	6,   // 133: temporal.server.api.umpire.v1.RunExpectation.conformance:type_name -> temporal.server.api.umpire.v1.RunExpectation.Conformance
+	75,  // 134: temporal.server.api.umpire.v1.RunExpectation.monitors:type_name -> temporal.server.api.umpire.v1.MonitorExpectation
+	7,   // 135: temporal.server.api.umpire.v1.RunExpectation.contract:type_name -> temporal.server.api.umpire.v1.RunExpectation.Outcome
+	8,   // 136: temporal.server.api.umpire.v1.RunExpectation.disposition:type_name -> temporal.server.api.umpire.v1.RunExpectation.Disposition
+	9,   // 137: temporal.server.api.umpire.v1.RunExpectation.cleanup:type_name -> temporal.server.api.umpire.v1.RunExpectation.Cleanup
+	7,   // 138: temporal.server.api.umpire.v1.MonitorExpectation.outcome:type_name -> temporal.server.api.umpire.v1.RunExpectation.Outcome
+	10,  // 139: temporal.server.api.umpire.v1.MonitorExpectation.reason:type_name -> temporal.server.api.umpire.v1.RunExpectation.Reason
+	19,  // 140: temporal.server.api.umpire.v1.Progress.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 141: temporal.server.api.umpire.v1.Realization.position:type_name -> temporal.server.api.umpire.v1.Position
+	87,  // 142: temporal.server.api.umpire.v1.Realization.roles:type_name -> temporal.server.api.umpire.v1.Role
+	88,  // 143: temporal.server.api.umpire.v1.Realization.learned:type_name -> temporal.server.api.umpire.v1.Learned
+	89,  // 144: temporal.server.api.umpire.v1.Realization.observations:type_name -> temporal.server.api.umpire.v1.Observed
+	90,  // 145: temporal.server.api.umpire.v1.Realization.evidence:type_name -> temporal.server.api.umpire.v1.Evidence
+	96,  // 146: temporal.server.api.umpire.v1.Realization.correlation:type_name -> temporal.server.api.umpire.v1.Correlation
+	97,  // 147: temporal.server.api.umpire.v1.Realization.controls:type_name -> temporal.server.api.umpire.v1.Control
+	99,  // 148: temporal.server.api.umpire.v1.Realization.scripts:type_name -> temporal.server.api.umpire.v1.Script
+	79,  // 149: temporal.server.api.umpire.v1.Realization.required_settings:type_name -> temporal.server.api.umpire.v1.RequiredSetting
+	80,  // 150: temporal.server.api.umpire.v1.Realization.behavior:type_name -> temporal.server.api.umpire.v1.ApiBehavior
+	86,  // 151: temporal.server.api.umpire.v1.Realization.server_steps:type_name -> temporal.server.api.umpire.v1.ServerStep
+	83,  // 152: temporal.server.api.umpire.v1.ApiBehavior.visibility:type_name -> temporal.server.api.umpire.v1.Visibility
+	85,  // 153: temporal.server.api.umpire.v1.ApiBehavior.causes:type_name -> temporal.server.api.umpire.v1.CauseBound
+	81,  // 154: temporal.server.api.umpire.v1.ApiBehavior.attempt_numbering:type_name -> temporal.server.api.umpire.v1.AttemptNumbering
+	82,  // 155: temporal.server.api.umpire.v1.ApiBehavior.instruction_defaults:type_name -> temporal.server.api.umpire.v1.InstructionLimit
+	19,  // 156: temporal.server.api.umpire.v1.AttemptNumbering.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 157: temporal.server.api.umpire.v1.InstructionLimit.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 158: temporal.server.api.umpire.v1.Visibility.position:type_name -> temporal.server.api.umpire.v1.Position
+	0,   // 159: temporal.server.api.umpire.v1.Visibility.cause:type_name -> temporal.server.api.umpire.v1.CauseKind
+	84,  // 160: temporal.server.api.umpire.v1.Visibility.eventually_within:type_name -> temporal.server.api.umpire.v1.WaitBound
+	19,  // 161: temporal.server.api.umpire.v1.WaitBound.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 162: temporal.server.api.umpire.v1.CauseBound.position:type_name -> temporal.server.api.umpire.v1.Position
+	0,   // 163: temporal.server.api.umpire.v1.CauseBound.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
+	84,  // 164: temporal.server.api.umpire.v1.CauseBound.bound:type_name -> temporal.server.api.umpire.v1.WaitBound
+	19,  // 165: temporal.server.api.umpire.v1.ServerStep.position:type_name -> temporal.server.api.umpire.v1.Position
+	66,  // 166: temporal.server.api.umpire.v1.ServerStep.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	0,   // 167: temporal.server.api.umpire.v1.ServerStep.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
+	19,  // 168: temporal.server.api.umpire.v1.Role.position:type_name -> temporal.server.api.umpire.v1.Position
+	11,  // 169: temporal.server.api.umpire.v1.Role.kind:type_name -> temporal.server.api.umpire.v1.Role.Kind
+	19,  // 170: temporal.server.api.umpire.v1.Learned.position:type_name -> temporal.server.api.umpire.v1.Position
+	12,  // 171: temporal.server.api.umpire.v1.Learned.kind:type_name -> temporal.server.api.umpire.v1.Learned.Kind
+	19,  // 172: temporal.server.api.umpire.v1.Observed.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 173: temporal.server.api.umpire.v1.Evidence.position:type_name -> temporal.server.api.umpire.v1.Position
+	95,  // 174: temporal.server.api.umpire.v1.Evidence.read:type_name -> temporal.server.api.umpire.v1.ReadSource
+	95,  // 175: temporal.server.api.umpire.v1.Evidence.single:type_name -> temporal.server.api.umpire.v1.ReadSource
+	93,  // 176: temporal.server.api.umpire.v1.Evidence.run_event:type_name -> temporal.server.api.umpire.v1.RunEventSource
+	13,  // 177: temporal.server.api.umpire.v1.Evidence.commitment:type_name -> temporal.server.api.umpire.v1.Evidence.Commitment
+	92,  // 178: temporal.server.api.umpire.v1.Evidence.fields:type_name -> temporal.server.api.umpire.v1.EvidenceField
+	91,  // 179: temporal.server.api.umpire.v1.Evidence.confirms:type_name -> temporal.server.api.umpire.v1.Taking
+	19,  // 180: temporal.server.api.umpire.v1.Taking.position:type_name -> temporal.server.api.umpire.v1.Position
+	66,  // 181: temporal.server.api.umpire.v1.Taking.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	19,  // 182: temporal.server.api.umpire.v1.EvidenceField.position:type_name -> temporal.server.api.umpire.v1.Position
+	14,  // 183: temporal.server.api.umpire.v1.EvidenceField.role:type_name -> temporal.server.api.umpire.v1.EvidenceField.Role
+	15,  // 184: temporal.server.api.umpire.v1.RunEventSource.kind:type_name -> temporal.server.api.umpire.v1.RunEventSource.Kind
+	119, // 185: temporal.server.api.umpire.v1.RunEventSource.key:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 186: temporal.server.api.umpire.v1.RunEventSource.guard:type_name -> temporal.server.api.umpire.v1.Operand
+	94,  // 187: temporal.server.api.umpire.v1.RunEventSource.attempt:type_name -> temporal.server.api.umpire.v1.AttemptOf
+	19,  // 188: temporal.server.api.umpire.v1.AttemptOf.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 189: temporal.server.api.umpire.v1.Correlation.position:type_name -> temporal.server.api.umpire.v1.Position
+	19,  // 190: temporal.server.api.umpire.v1.Control.position:type_name -> temporal.server.api.umpire.v1.Position
+	98,  // 191: temporal.server.api.umpire.v1.Control.hold_dispatched:type_name -> temporal.server.api.umpire.v1.HoldDispatched
+	66,  // 192: temporal.server.api.umpire.v1.HoldDispatched.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	19,  // 193: temporal.server.api.umpire.v1.Script.position:type_name -> temporal.server.api.umpire.v1.Position
+	27,  // 194: temporal.server.api.umpire.v1.Script.controller:type_name -> temporal.server.api.umpire.v1.Empty
+	100, // 195: temporal.server.api.umpire.v1.Script.workflow:type_name -> temporal.server.api.umpire.v1.WorkflowActivation
+	101, // 196: temporal.server.api.umpire.v1.Script.nexus_handler:type_name -> temporal.server.api.umpire.v1.NexusHandlerActivation
+	102, // 197: temporal.server.api.umpire.v1.Script.activity:type_name -> temporal.server.api.umpire.v1.ActivityActivation
+	104, // 198: temporal.server.api.umpire.v1.Script.items:type_name -> temporal.server.api.umpire.v1.Item
+	103, // 199: temporal.server.api.umpire.v1.WorkflowActivation.workflow_type:type_name -> temporal.server.api.umpire.v1.Name
+	103, // 200: temporal.server.api.umpire.v1.ActivityActivation.activity_type:type_name -> temporal.server.api.umpire.v1.Name
+	66,  // 201: temporal.server.api.umpire.v1.ActivityActivation.starts:type_name -> temporal.server.api.umpire.v1.ActionClass
+	19,  // 202: temporal.server.api.umpire.v1.Item.position:type_name -> temporal.server.api.umpire.v1.Position
+	106, // 203: temporal.server.api.umpire.v1.Item.command:type_name -> temporal.server.api.umpire.v1.Command
+	66,  // 204: temporal.server.api.umpire.v1.Item.when:type_name -> temporal.server.api.umpire.v1.ActionClass
+	105, // 205: temporal.server.api.umpire.v1.Item.performs:type_name -> temporal.server.api.umpire.v1.Performance
+	19,  // 206: temporal.server.api.umpire.v1.Performance.position:type_name -> temporal.server.api.umpire.v1.Position
+	66,  // 207: temporal.server.api.umpire.v1.Performance.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	106, // 208: temporal.server.api.umpire.v1.Performance.command:type_name -> temporal.server.api.umpire.v1.Command
+	19,  // 209: temporal.server.api.umpire.v1.Command.position:type_name -> temporal.server.api.umpire.v1.Position
+	107, // 210: temporal.server.api.umpire.v1.Command.after:type_name -> temporal.server.api.umpire.v1.After
+	108, // 211: temporal.server.api.umpire.v1.Command.rpc:type_name -> temporal.server.api.umpire.v1.Rpc
+	112, // 212: temporal.server.api.umpire.v1.Command.poll:type_name -> temporal.server.api.umpire.v1.Poll
+	113, // 213: temporal.server.api.umpire.v1.Command.finish:type_name -> temporal.server.api.umpire.v1.Finish
+	115, // 214: temporal.server.api.umpire.v1.Command.fault:type_name -> temporal.server.api.umpire.v1.Fault
+	116, // 215: temporal.server.api.umpire.v1.Command.workflow_command:type_name -> temporal.server.api.umpire.v1.WorkflowCommand
+	117, // 216: temporal.server.api.umpire.v1.Command.nexus_reply:type_name -> temporal.server.api.umpire.v1.NexusReply
+	118, // 217: temporal.server.api.umpire.v1.Command.nexus_completion:type_name -> temporal.server.api.umpire.v1.NexusCompletion
+	114, // 218: temporal.server.api.umpire.v1.Command.attempt_failure:type_name -> temporal.server.api.umpire.v1.AttemptFailure
+	27,  // 219: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> temporal.server.api.umpire.v1.Empty
+	109, // 220: temporal.server.api.umpire.v1.Rpc.assign:type_name -> temporal.server.api.umpire.v1.Assignment
+	110, // 221: temporal.server.api.umpire.v1.Rpc.reads:type_name -> temporal.server.api.umpire.v1.ResponseRead
+	119, // 222: temporal.server.api.umpire.v1.Assignment.value:type_name -> temporal.server.api.umpire.v1.Operand
+	16,  // 223: temporal.server.api.umpire.v1.ResponseRead.cardinality:type_name -> temporal.server.api.umpire.v1.ResponseRead.Cardinality
+	111, // 224: temporal.server.api.umpire.v1.ResponseRead.targets:type_name -> temporal.server.api.umpire.v1.Target
+	109, // 225: temporal.server.api.umpire.v1.Poll.assign:type_name -> temporal.server.api.umpire.v1.Assignment
+	119, // 226: temporal.server.api.umpire.v1.Poll.until:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 227: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.Operand
+	126, // 228: temporal.server.api.umpire.v1.AttemptFailure.failure:type_name -> temporal.server.api.umpire.v1.Proto
+	17,  // 229: temporal.server.api.umpire.v1.Fault.kind:type_name -> temporal.server.api.umpire.v1.Fault.Kind
+	126, // 230: temporal.server.api.umpire.v1.WorkflowCommand.command:type_name -> temporal.server.api.umpire.v1.Proto
+	126, // 231: temporal.server.api.umpire.v1.NexusReply.reply:type_name -> temporal.server.api.umpire.v1.Proto
+	126, // 232: temporal.server.api.umpire.v1.NexusCompletion.result:type_name -> temporal.server.api.umpire.v1.Proto
+	19,  // 233: temporal.server.api.umpire.v1.Operand.position:type_name -> temporal.server.api.umpire.v1.Position
+	128, // 234: temporal.server.api.umpire.v1.Operand.literal:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	27,  // 235: temporal.server.api.umpire.v1.Operand.run:type_name -> temporal.server.api.umpire.v1.Empty
+	27,  // 236: temporal.server.api.umpire.v1.Operand.projected:type_name -> temporal.server.api.umpire.v1.Empty
+	120, // 237: temporal.server.api.umpire.v1.Operand.path:type_name -> temporal.server.api.umpire.v1.PathOf
+	121, // 238: temporal.server.api.umpire.v1.Operand.present:type_name -> temporal.server.api.umpire.v1.Present
+	122, // 239: temporal.server.api.umpire.v1.Operand.equal:type_name -> temporal.server.api.umpire.v1.Equal
+	123, // 240: temporal.server.api.umpire.v1.Operand.all:type_name -> temporal.server.api.umpire.v1.All
+	124, // 241: temporal.server.api.umpire.v1.Operand.greater:type_name -> temporal.server.api.umpire.v1.Greater
+	125, // 242: temporal.server.api.umpire.v1.Operand.not:type_name -> temporal.server.api.umpire.v1.Not
+	119, // 243: temporal.server.api.umpire.v1.PathOf.of:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 244: temporal.server.api.umpire.v1.Present.of:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 245: temporal.server.api.umpire.v1.Equal.left:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 246: temporal.server.api.umpire.v1.Equal.right:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 247: temporal.server.api.umpire.v1.All.operands:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 248: temporal.server.api.umpire.v1.Greater.left:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 249: temporal.server.api.umpire.v1.Greater.right:type_name -> temporal.server.api.umpire.v1.Operand
+	119, // 250: temporal.server.api.umpire.v1.Not.of:type_name -> temporal.server.api.umpire.v1.Operand
+	19,  // 251: temporal.server.api.umpire.v1.Proto.position:type_name -> temporal.server.api.umpire.v1.Position
+	127, // 252: temporal.server.api.umpire.v1.Proto.fields:type_name -> temporal.server.api.umpire.v1.ProtoField
+	128, // 253: temporal.server.api.umpire.v1.ProtoField.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	126, // 254: temporal.server.api.umpire.v1.ProtoValue.message:type_name -> temporal.server.api.umpire.v1.Proto
+	129, // 255: temporal.server.api.umpire.v1.ProtoValue.mapping:type_name -> temporal.server.api.umpire.v1.ProtoMap
+	103, // 256: temporal.server.api.umpire.v1.ProtoValue.named:type_name -> temporal.server.api.umpire.v1.Name
+	130, // 257: temporal.server.api.umpire.v1.ProtoMap.entries:type_name -> temporal.server.api.umpire.v1.ProtoEntry
+	128, // 258: temporal.server.api.umpire.v1.ProtoEntry.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	259, // [259:259] is the sub-list for method output_type
+	259, // [259:259] is the sub-list for method input_type
+	259, // [259:259] is the sub-list for extension type_name
+	259, // [259:259] is the sub-list for extension extendee
+	0,   // [0:259] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_ir_proto_init() }
@@ -11398,7 +11677,7 @@ func file_temporal_server_api_umpire_v1_ir_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_ir_proto_rawDesc), len(file_temporal_server_api_umpire_v1_ir_proto_rawDesc)),
-			NumEnums:      15,
+			NumEnums:      18,
 			NumMessages:   113,
 			NumExtensions: 0,
 			NumServices:   0,

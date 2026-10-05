@@ -622,7 +622,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-                    "line": 19
+                    "line": 21
                   },
                   "literal": {
                     "enum": {
@@ -1091,7 +1091,7 @@
         "left": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-            "line": 45
+            "line": 47
           },
           "literal": {
             "enum": {
@@ -1140,7 +1140,7 @@
         "left": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-            "line": 39
+            "line": 41
           },
           "literal": {
             "enum": {
@@ -8893,7 +8893,7 @@
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 19
+      "line": 21
     },
     "start": {
       "position": {
@@ -8922,7 +8922,7 @@
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 20
+      "line": 22
     },
     "start": {
       "position": {
@@ -8951,7 +8951,7 @@
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 19
+      "line": 21
     },
     "start": {
       "position": {
@@ -8980,7 +8980,7 @@
     "name": "activityProtocol.cancelIsRequested",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 43
+      "line": 45
     },
     "start": {
       "position": {
@@ -9078,7 +9078,7 @@
     "name": "activityProtocol.terminateSettles",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 37
+      "line": 39
     },
     "start": {
       "position": {
@@ -9176,7 +9176,7 @@
     "name": "cancelRequestedThenCanceled",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 40
+      "line": 33
     },
     "start": {
       "position": {
@@ -9282,7 +9282,7 @@
     "name": "completed",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 25
+      "line": 18
     },
     "start": {
       "position": {
@@ -9380,7 +9380,7 @@
     "name": "nonRetryable",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 28
+      "line": 21
     },
     "start": {
       "position": {
@@ -9481,7 +9481,7 @@
     "name": "pausedThenCompleted",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 51
+      "line": 44
     },
     "start": {
       "position": {
@@ -9595,7 +9595,7 @@
     "name": "retriedThenCompleted",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 31
+      "line": 24
     },
     "start": {
       "position": {
@@ -9708,7 +9708,7 @@
     "name": "scheduleToStartExpires",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 59
+      "line": 52
     },
     "start": {
       "position": {
@@ -9800,7 +9800,7 @@
     "name": "startToCloseExpires",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 62
+      "line": 55
     },
     "start": {
       "position": {
@@ -9892,7 +9892,7 @@
     "name": "terminatedWhileScheduled",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 48
+      "line": 41
     },
     "start": {
       "position": {
@@ -9990,12 +9990,12 @@
     "name": "stoppedBeforeRetry",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 81
+      "line": 74
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/Queries.scala",
-        "line": 82
+        "line": 75
       },
       "construct": {
         "type": "temporal.standaloneactivity.StandaloneActivityState",
@@ -10063,14 +10063,14 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/Queries.scala",
-            "line": 82
+            "line": 75
           },
           "construct": {
             "type": "temporal.worker.State",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/Queries.scala",
-                "line": 82
+                "line": 75
               },
               "literal": {
                 "enum": {
@@ -10089,7 +10089,7 @@
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 19
+      "line": 21
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -10111,7 +10111,7 @@
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 20
+      "line": 22
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -10133,7 +10133,7 @@
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 19
+      "line": 21
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -10155,7 +10155,7 @@
     "name": "activityProtocol.cancelIsRequested",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 43
+      "line": 45
     },
     "form": "FORM_FIND",
     "property": {
@@ -10174,15 +10174,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "864"
   }, {
     "name": "activityProtocol.terminateSettles",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 37
+      "line": 39
     },
     "form": "FORM_FIND",
     "property": {
@@ -10201,15 +10204,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "864"
   }, {
     "name": "cancel",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 108
+      "line": 101
     },
     "form": "FORM_FIND",
     "property": {
@@ -10231,7 +10237,7 @@
     "name": "cancelRequest",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 134
+      "line": 127
     },
     "form": "FORM_FIND",
     "property": {
@@ -10253,7 +10259,7 @@
     "name": "completion",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 102
+      "line": 95
     },
     "form": "FORM_FIND",
     "property": {
@@ -10272,14 +10278,17 @@
     },
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "864"
   }, {
     "name": "nonRetryableFailure",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 104
+      "line": 97
     },
     "form": "FORM_FIND",
     "property": {
@@ -10298,14 +10307,17 @@
     },
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "864"
   }, {
     "name": "pauseResume",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 112
+      "line": 105
     },
     "form": "FORM_FIND",
     "property": {
@@ -10324,14 +10336,17 @@
     },
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "1440"
   }, {
     "name": "retry",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 105
+      "line": 98
     },
     "form": "FORM_FIND",
     "property": {
@@ -10350,15 +10365,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "1728"
   }, {
     "name": "scheduleToStartTimeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 114
+      "line": 107
     },
     "form": "FORM_FIND",
     "property": {
@@ -10377,15 +10395,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "an execution that explains the evidence never reaches the claim's evaluation point",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_NEVER_EVALUATED",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "864"
   }, {
     "name": "startToCloseTimeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 117
+      "line": 110
     },
     "form": "FORM_FIND",
     "property": {
@@ -10407,7 +10428,7 @@
     "name": "stoppedWorkerStartsNothing",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 146
+      "line": 139
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -10429,7 +10450,7 @@
     "name": "terminate",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 109
+      "line": 102
     },
     "form": "FORM_FIND",
     "property": {
@@ -10448,8 +10469,11 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "864"
   } ],

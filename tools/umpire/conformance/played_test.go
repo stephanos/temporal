@@ -23,6 +23,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -271,10 +272,10 @@ func TestALoweredActivityCaseRunsLiveAndReplaysAlike(t *testing.T) {
 			return testpilot.PropertyAssessment{ID: id, Status: testpilot.PropertySatisfied, SupportingEventSequences: support}
 		}
 	}
-	open := func(query, id, why string) assessed {
+	open := func(query, id string, why reason) assessed {
 		return func(_ []int64, runID string) testpilot.PropertyAssessment {
-			return testpilot.PropertyAssessment{ID: id, Status: testpilot.PropertyInconclusive,
-				Detail: activityMachine + `, run="standaloneActivityTests-` + query + `";` + runID + ": " + why}
+			return testpilot.PropertyAssessment{ID: id, Status: testpilot.PropertyInconclusive, Reason: umpiremodel.ExpectationID(why),
+				Detail: activityMachine + `, run="standaloneActivityTests-` + query + `";` + runID + ": " + wording[why]}
 		}
 	}
 	for query, test := range map[string]struct {

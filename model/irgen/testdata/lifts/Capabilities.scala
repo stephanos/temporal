@@ -13,7 +13,8 @@ package fixture.capabilities
 
 import umpire.*
 import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
-import umpire.realize.{statusTable, Conformance, PropertyOutcome, RunExpectation}
+import umpire.realize.{statusTable, Cleanup, Conformance, Disposition, PropertyOutcome}
+import umpire.realize.RunExpectation
 import temporal.capabilities.{given, *}
 
 given Family = Family("fixture.capabilities")
@@ -108,7 +109,13 @@ val three = Limits(steps = 3, actions = 3, search = 512)
 val jobStatus = statusTable(Note.started -> "RUNNING", Note.killedNote -> "TERMINATED")
 
 /** The Run a server is expected to give the job's functional laws. */
-val settles = RunExpectation(Conformance.conformant, PropertyOutcome.satisfied)
+val settles = RunExpectation(
+  Conformance.conformant,
+  PropertyOutcome.satisfied,
+  PropertyOutcome.satisfied,
+  Disposition.completed,
+  Cleanup.succeeded
+)
 
 // Free verify Queries: 5 states x 6 classes x 3 steps = 90; finds: 5 states x min(3, 2) = 10.
 val jobCapabilities = capabilities(job, limits = three)(

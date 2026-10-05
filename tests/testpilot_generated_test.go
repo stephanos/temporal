@@ -7,7 +7,6 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"testing"
 
@@ -77,34 +76,9 @@ func requireGeneratedAssessment(t *testing.T, fixture *testpilotcore.ModelCase, 
 	require.NoError(t, result.err)
 	require.NotNil(t, result.run)
 	require.NotNil(t, fixture.Expected)
-	disposition, status := testpilotspb.RUN_DISPOSITION_COMPLETED, testpilotspb.VERDICT_STATUS_SATISFIED
-	if fixture.Expected.Contract == "violated" {
-		disposition, status = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, testpilotspb.VERDICT_STATUS_VIOLATED
-	}
-	require.Equal(t, disposition, result.run.GetDisposition(), "%v", result.run.GetDiagnostics())
-	require.Equal(t, testpilotspb.CLEANUP_STATUS_SUCCEEDED, result.run.GetCleanup().GetStatus())
-	require.Equal(t, status, result.verdict.GetStatus(), "%v", result.run.GetDiagnostics())
-	require.NotNil(t, result.assessment)
-	require.Nil(t, result.assessment.Failure)
-	require.NotNil(t, fixture.Expected)
-	require.Equal(t, fixture.Expected.Conformance, string(result.assessment.Conformance.Status), result.assessment.Conformance.Detail)
-	require.Len(t, result.assessment.Properties, len(fixture.Expected.Properties))
-	for _, expected := range fixture.Expected.Properties {
-		var found bool
-		for _, actual := range result.assessment.Properties {
-			if actual.ID != expected.ID {
-				continue
-			}
-			found = true
-			require.Equal(t, expected.Status, string(actual.Status), "%s: %s", expected.ID, actual.Detail)
-			if expected.Reason == "" {
-				require.Empty(t, actual.Detail)
-			} else {
-				require.True(t, strings.HasSuffix(actual.Detail, ": "+expected.Reason), actual.Detail)
-			}
-		}
-		require.True(t, found, "assessment omitted %s", expected.ID)
-	}
+	// What the Query's expected Run declares, each compared by equality: the disposition, the cleanup,
+	// the Contract's Verdict, the conformance, and every claim's status and reason id.
+	require.NoError(t, fixture.Expected.Check(result.run, result.verdict, result.assessment))
 	// Every fault the Case declares was realized, and each is on the Run's record.
 	var declared, realized []testpilotspb.FaultKind
 	for _, entrypoint := range fixture.Source.GetProgram().GetEntrypoints() {

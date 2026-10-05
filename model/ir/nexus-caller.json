@@ -6835,12 +6835,12 @@
     "name": "repliedThenStopped",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 71
+      "line": 64
     },
     "start": {
       "position": {
         "file": "model/temporal/features/nexuscaller/Queries.scala",
-        "line": 72
+        "line": 65
       },
       "construct": {
         "type": "temporal.nexuscaller.NexusCallerState",
@@ -6934,7 +6934,7 @@
     "name": "asyncThenFailed",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 33
+      "line": 26
     },
     "start": {
       "position": {
@@ -7038,7 +7038,7 @@
     "name": "asyncThenSucceeded",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 30
+      "line": 23
     },
     "start": {
       "position": {
@@ -7142,7 +7142,7 @@
     "name": "nonRetryableError",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 37
+      "line": 30
     },
     "start": {
       "position": {
@@ -7241,7 +7241,7 @@
     "name": "retriedThenSucceeded",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 43
+      "line": 36
     },
     "start": {
       "position": {
@@ -7350,7 +7350,7 @@
     "name": "scheduleToStartExpires",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 56
+      "line": 49
     },
     "start": {
       "position": {
@@ -7442,7 +7442,7 @@
     "name": "startToCloseExpires",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 63
+      "line": 56
     },
     "start": {
       "position": {
@@ -7540,7 +7540,7 @@
     "name": "syncReplied",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 28
+      "line": 21
     },
     "start": {
       "position": {
@@ -7636,7 +7636,7 @@
     "name": "asyncCompletion",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 131
+      "line": 124
     },
     "form": "FORM_FIND",
     "property": {
@@ -7655,15 +7655,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "576"
   }, {
     "name": "asyncFailure",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 133
+      "line": 126
     },
     "form": "FORM_FIND",
     "property": {
@@ -7682,15 +7685,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "576"
   }, {
     "name": "handlerError",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 135
+      "line": 128
     },
     "form": "FORM_FIND",
     "property": {
@@ -7709,15 +7715,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "an execution that explains the evidence never reaches the claim's evaluation point",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_NEVER_EVALUATED",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "384"
   }, {
     "name": "retry",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 137
+      "line": 130
     },
     "form": "FORM_FIND",
     "property": {
@@ -7736,15 +7745,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "the executions that explain the evidence disagree",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_EXPLANATIONS_DISAGREE",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "768"
   }, {
     "name": "scheduleToStartTimeout",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 140
+      "line": 133
     },
     "form": "FORM_FIND",
     "property": {
@@ -7763,15 +7775,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "an execution that explains the evidence never reaches the claim's evaluation point",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_NEVER_EVALUATED",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "576"
   }, {
     "name": "startToCloseTimeout",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 143
+      "line": 136
     },
     "form": "FORM_FIND",
     "property": {
@@ -7790,15 +7805,18 @@
     },
     "expectedRun": {
       "property": "OUTCOME_INCONCLUSIVE",
-      "reason": "an execution that explains the evidence never reaches the claim's evaluation point",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "reason": "REASON_NEVER_EVALUATED",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "total": "576"
   }, {
     "name": "stoppedWorkerRepliesNothing",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 162
+      "line": 155
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -7820,7 +7838,7 @@
     "name": "syncCompletion",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 106
+      "line": 99
     },
     "form": "FORM_FIND",
     "property": {
@@ -7839,13 +7857,16 @@
     },
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
-      "conformance": "CONFORMANCE_CONFORMANT"
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "contract": "OUTCOME_SATISFIED",
+      "disposition": "DISPOSITION_COMPLETED",
+      "cleanup": "CLEANUP_SUCCEEDED"
     },
     "exploration": {
       "name": "nexusDeadlines",
       "position": {
         "file": "model/temporal/features/nexuscaller/Queries.scala",
-        "line": 109
+        "line": 102
       },
       "variations": [ {
         "choices": [ {
@@ -7872,7 +7893,7 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 115
+            "line": 108
           }
         }, {
           "name": "scheduleDeadline",
@@ -7898,7 +7919,7 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 116
+            "line": 109
           }
         }, {
           "name": "unbounded",
@@ -7924,12 +7945,12 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 121
+            "line": 114
           }
         } ],
         "position": {
           "file": "model/temporal/features/nexuscaller/Queries.scala",
-          "line": 112
+          "line": 105
         }
       } ],
       "runs": 1,
@@ -7941,7 +7962,7 @@
     "name": "terminalHolds",
     "position": {
       "file": "model/temporal/features/nexuscaller/Queries.scala",
-      "line": 147
+      "line": 140
     },
     "form": "FORM_VERIFY",
     "property": {

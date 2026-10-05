@@ -3,7 +3,9 @@ package features.standaloneactivity
 package admission
 
 import umpire.*
-import umpire.realize.{Conformance, MonitorExpectation, PropertyOutcome, RunExpectation}
+import umpire.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
+import umpire.realize.{Reason, RunExpectation}
+import temporal.realize.satisfied
 import temporal.capabilities.pausedIsNotDispatched
 
 /** Every claim and path, declared on the design `m`, since each belongs to one machine. */
@@ -53,11 +55,14 @@ val heldStaleDelivery =
     RunExpectation(
       Conformance.conformant,
       PropertyOutcome.satisfied,
+      contract = PropertyOutcome.satisfied,
+      disposition = Disposition.completed,
+      cleanup = Cleanup.succeeded,
       monitors = Vector(
         MonitorExpectation(
           atMostOneActiveAttempt,
           PropertyOutcome.inconclusive,
-          neverEvaluated
+          Some(Reason.neverEvaluated)
         ),
         MonitorExpectation(terminalFinality, PropertyOutcome.satisfied)
       )

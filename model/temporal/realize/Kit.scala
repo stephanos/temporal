@@ -285,3 +285,24 @@ def activityRunField(path: Field[InstructionOutcome, String]) =
 
 /** The name of the Nexus endpoint the run creates for the Case, as a start request names it. */
 val nexusEndpointName: TypedOperand[String] = Operand.environment(nexusEndpointBinding)
+
+// ### What a Run of a generated Case is expected to show
+
+/**
+ * What a Temporal Query expects of a Run of its Case unless it says otherwise: the Run completes,
+ * its cleanup succeeds and its Contract holds, and the model assessment finds it conformant, with the
+ * Query's Property satisfied.
+ */
+val satisfied = expectedRun(PropertyOutcome.satisfied, None)
+
+/** Such a Run, on which the model assessment leaves the Property inconclusive for `reason`. */
+def inconclusive(reason: Reason) = expectedRun(PropertyOutcome.inconclusive, Some(reason))
+
+private def expectedRun(property: PropertyOutcome, reason: Option[Reason]) = RunExpectation(
+  Conformance.conformant,
+  property,
+  contract = PropertyOutcome.satisfied,
+  disposition = Disposition.completed,
+  cleanup = Cleanup.succeeded,
+  reason = reason
+)

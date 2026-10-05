@@ -683,6 +683,9 @@ val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
   umpire.realize.RunExpectation(
     umpire.realize.Conformance.conformant,
     umpire.realize.PropertyOutcome.satisfied,
+    umpire.realize.PropertyOutcome.satisfied,
+    umpire.realize.Disposition.completed,
+    umpire.realize.Cleanup.succeeded,
     monitors =
       Vector(umpire.realize.MonitorExpectation(flipWatch, umpire.realize.PropertyOutcome.satisfied))
   )
@@ -695,6 +698,9 @@ val watchUnwatched: Query = (query verify flips in secondFlips limits one).expec
   umpire.realize.RunExpectation(
     umpire.realize.Conformance.conformant,
     umpire.realize.PropertyOutcome.satisfied,
+    umpire.realize.PropertyOutcome.satisfied,
+    umpire.realize.Disposition.completed,
+    umpire.realize.Cleanup.succeeded,
     monitors =
       Vector(umpire.realize.MonitorExpectation(unwatched, umpire.realize.PropertyOutcome.satisfied))
   )
@@ -723,6 +729,9 @@ val watchElsewhere: Vector[Query] = Vector(
     umpire.realize.RunExpectation(
       umpire.realize.Conformance.conformant,
       umpire.realize.PropertyOutcome.satisfied,
+      umpire.realize.PropertyOutcome.satisfied,
+      umpire.realize.Disposition.completed,
+      umpire.realize.Cleanup.succeeded,
       monitors = Vector(
         umpire.realize.MonitorExpectation(elsewhereWatch, umpire.realize.PropertyOutcome.satisfied)
       )

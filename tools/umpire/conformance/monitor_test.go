@@ -55,7 +55,7 @@ func TestAMonitorStateIsItselfAtEveryIndexOfTheLargestCatalog(t *testing.T) {
 			require.NoError(t, err)
 			established, outcome := assessDirectly(t, factory, completed, proto.CloneOf(stored))
 			violation := testpilot.PropertyAssessment{ID: "counter", Status: testpilot.PropertyViolated, SupportingEventSequences: []int64{2},
-				Detail: store + ", " + defaultInstance + ": " + whyViolated}
+				Reason: "every_explanation_violates", Detail: store + ", " + defaultInstance + ": " + wording[whyViolated]}
 			require.Equal(t, testpilot.Established{Violations: []testpilot.PropertyAssessment{violation}}, established)
 			require.Equal(t, []testpilot.PropertyAssessment{{ID: "putStores", Status: testpilot.PropertySatisfied, SupportingEventSequences: []int64{2}}, violation},
 				outcome.Properties)

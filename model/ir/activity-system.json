@@ -863,7 +863,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-                    "line": 19
+                    "line": 21
                   },
                   "literal": {
                     "enum": {
@@ -21316,7 +21316,7 @@
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 19
+      "line": 21
     },
     "start": {
       "position": {
@@ -21345,7 +21345,7 @@
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 20
+      "line": 22
     },
     "start": {
       "position": {
@@ -21374,7 +21374,7 @@
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 19
+      "line": 21
     },
     "start": {
       "position": {
@@ -21403,7 +21403,7 @@
     "name": "bothDeadlinesCloseFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 71
+      "line": 64
     },
     "start": {
       "position": {
@@ -21493,7 +21493,7 @@
     "name": "bothDeadlinesStartFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 66
+      "line": 59
     },
     "start": {
       "position": {
@@ -21583,7 +21583,7 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 13
+      "line": 15
     },
     "start": {
       "position": {
@@ -21646,7 +21646,7 @@
     "name": "any",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 19
+      "line": 21
     },
     "start": {
       "position": {
@@ -21799,7 +21799,7 @@
     "name": "duplicateDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 14
+      "line": 16
     },
     "start": {
       "position": {
@@ -21856,7 +21856,7 @@
     "name": "scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 18
+      "line": 20
     },
     "start": {
       "position": {
@@ -21911,7 +21911,7 @@
     "name": "scheduleToStartFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 17
+      "line": 19
     },
     "start": {
       "position": {
@@ -21966,7 +21966,7 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 12
+      "line": 14
     },
     "start": {
       "position": {
@@ -22029,7 +22029,7 @@
     "name": "startedAfterCompletion",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 15
+      "line": 17
     },
     "start": {
       "position": {
@@ -25060,7 +25060,7 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 13
+      "line": 15
     },
     "start": {
       "position": {
@@ -25123,7 +25123,7 @@
     "name": "any",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 19
+      "line": 21
     },
     "start": {
       "position": {
@@ -25174,7 +25174,7 @@
     "name": "duplicateDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 14
+      "line": 16
     },
     "start": {
       "position": {
@@ -25231,7 +25231,7 @@
     "name": "scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 18
+      "line": 20
     },
     "start": {
       "position": {
@@ -25286,7 +25286,7 @@
     "name": "scheduleToStartFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 17
+      "line": 19
     },
     "start": {
       "position": {
@@ -25443,7 +25443,7 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 12
+      "line": 14
     },
     "start": {
       "position": {
@@ -25506,7 +25506,7 @@
     "name": "startedAfterCompletion",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 15
+      "line": 17
     },
     "start": {
       "position": {
@@ -27092,7 +27092,7 @@
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 19
+      "line": 21
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27114,7 +27114,7 @@
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 20
+      "line": 22
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27136,7 +27136,7 @@
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Capabilities.scala",
-      "line": 19
+      "line": 21
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27158,7 +27158,7 @@
     "name": "competingTimers.scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 140
+      "line": 133
     },
     "form": "FORM_FIND",
     "property": {
@@ -27180,7 +27180,7 @@
     "name": "competingTimers.scheduleToStartFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/Queries.scala",
-      "line": 138
+      "line": 131
     },
     "form": "FORM_FIND",
     "property": {
@@ -27202,7 +27202,7 @@
     "name": "currentAdmission.admittedBeforePause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 23
+      "line": 25
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27224,7 +27224,7 @@
     "name": "currentAdmission.any.atMostOneActive",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 32
+      "line": 34
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27246,7 +27246,7 @@
     "name": "currentAdmission.duplicateDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 25
+      "line": 27
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27268,7 +27268,7 @@
     "name": "currentAdmission.duplicateDelivery.monitored",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 28
+      "line": 30
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27312,7 +27312,7 @@
     "name": "currentAdmission.product.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 39
+      "line": 41
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27335,7 +27335,7 @@
     "name": "currentAdmission.scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 36
+      "line": 38
     },
     "form": "FORM_FIND",
     "property": {
@@ -27357,7 +27357,7 @@
     "name": "currentAdmission.scheduleToStartFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 34
+      "line": 36
     },
     "form": "FORM_FIND",
     "property": {
@@ -27379,7 +27379,7 @@
     "name": "currentAdmission.staleDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 21
+      "line": 23
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27401,7 +27401,7 @@
     "name": "currentAdmission.startedAfterCompletion.monitored",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 30
+      "line": 32
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28325,7 +28325,7 @@
     "name": "staleAdmission.admittedBeforePause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 23
+      "line": 25
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28347,7 +28347,7 @@
     "name": "staleAdmission.any.atMostOneActive",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 32
+      "line": 34
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28369,7 +28369,7 @@
     "name": "staleAdmission.duplicateDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 25
+      "line": 27
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28391,7 +28391,7 @@
     "name": "staleAdmission.duplicateDelivery.monitored",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 28
+      "line": 30
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28435,7 +28435,7 @@
     "name": "staleAdmission.product.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 39
+      "line": 41
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28458,7 +28458,7 @@
     "name": "staleAdmission.scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 36
+      "line": 38
     },
     "form": "FORM_FIND",
     "property": {
@@ -28480,7 +28480,7 @@
     "name": "staleAdmission.scheduleToStartFirst",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 34
+      "line": 36
     },
     "form": "FORM_FIND",
     "property": {
@@ -28502,7 +28502,7 @@
     "name": "staleAdmission.staleDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 21
+      "line": 23
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28524,7 +28524,7 @@
     "name": "staleAdmission.startedAfterCompletion.monitored",
     "position": {
       "file": "model/temporal/features/standaloneactivity/admission/Queries.scala",
-      "line": 30
+      "line": 32
     },
     "form": "FORM_VERIFY",
     "property": {

@@ -49,7 +49,8 @@ type expectation struct {
 }
 
 type concluded struct {
-	id, status, why string
+	id, status string
+	why        reason
 	// of is the instance the reason names, the script's default when empty.
 	of      string
 	support []string
@@ -58,7 +59,7 @@ type concluded struct {
 const defaultInstance = `run="run-1";activity-1`
 
 func (c concluded) detail(machine string) string {
-	if c.why == "" {
+	if c.why == none {
 		return ""
 	}
 	of := c.of
@@ -66,9 +67,9 @@ func (c concluded) detail(machine string) string {
 		of = defaultInstance
 	}
 	if c.why == whyNoEvidence {
-		return c.why
+		return wording[c.why]
 	}
-	return machine + ", " + of + ": " + c.why
+	return machine + ", " + of + ": " + wording[c.why]
 }
 
 func (e expectation) assessment(t testing.TB, b *bound, machine string, run *testpilotspb.Run, reads []read) *testpilot.Assessment {
@@ -81,10 +82,10 @@ func (e expectation) assessment(t testing.TB, b *bound, machine string, run *tes
 		return carrying(t, run, reads, names...)
 	}
 	out := &testpilot.Assessment{Model: binding.Model, Query: binding.Query, Conformance: testpilot.ConformanceAssessment{
-		Status: testpilot.ConformanceStatus(e.conformance.status), SupportingEventSequences: support(e.conformance.support), Detail: e.conformance.detail(machine)}}
+		Status: testpilot.ConformanceStatus(e.conformance.status), SupportingEventSequences: support(e.conformance.support), Reason: umpiremodel.ExpectationID(e.conformance.why), Detail: e.conformance.detail(machine)}}
 	for _, c := range e.claims {
 		out.Properties = append(out.Properties, testpilot.PropertyAssessment{ID: c.id, Status: testpilot.PropertyStatus(c.status),
-			SupportingEventSequences: support(c.support), Detail: c.detail(machine)})
+			SupportingEventSequences: support(c.support), Reason: umpiremodel.ExpectationID(c.why), Detail: c.detail(machine)})
 	}
 	if e.failed != "" {
 		at := carrying(t, run, reads, e.failed)[0]
@@ -102,7 +103,7 @@ const (
 	isViolated    = string(testpilot.PropertyViolated)
 )
 
-func open(id, why string) concluded { return concluded{id: id, status: inconclusive, why: why} }
+func open(id string, why reason) concluded { return concluded{id: id, status: inconclusive, why: why} }
 
 // The rows are the activity specimen's oracles (model/specimens/activity.md) read as
 // evidence. Each expectation is worked out from the specimen's two designs, in the comment beside it,

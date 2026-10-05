@@ -12,21 +12,30 @@ import (
 	"slices"
 	"strings"
 
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	runtime "go.temporal.io/server/common/testing/testpilot"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+// ExpectedClaim is one claim's expected conclusion: its status and, unless it is satisfied, the
+// judge's reason id.
 type ExpectedClaim struct {
 	ID     string `json:"id"`
 	Status string `json:"status"`
 	Reason string `json:"reason,omitempty"`
 }
 
+// ExpectedRun is what a Query's expected Run declares, each value the IR enum value's id
+// (umpiremodel.ExpectationID): the Contract's Verdict, the Run's disposition and cleanup, the model
+// assessment's conformance, and the selected Property's and each monitor's conclusion.
 type ExpectedRun struct {
-	Contract    string          `json:"contract,omitempty"`
+	Contract    string          `json:"contract"`
+	Disposition string          `json:"disposition"`
+	Cleanup     string          `json:"cleanup"`
 	Conformance string          `json:"conformance"`
 	Properties  []ExpectedClaim `json:"properties"`
 }
@@ -107,15 +116,19 @@ func generateCase(producer *Producer, model string, query *umpirespb.Query) (Gen
 		return GeneratedCase{}, nil, fmt.Errorf("%s:%d: lowerable Query %s declares no expected Run assessment", query.GetPosition().GetFile(), query.GetPosition().GetLine(), query.GetName())
 	}
 	entry.File = name
+	id := umpiremodel.ExpectationID
 	entry.Expected = &ExpectedRun{
-		Conformance: strings.ToLower(strings.TrimPrefix(string(expected.GetConformance().Descriptor().Values().ByNumber(expected.GetConformance().Number()).Name()), "CONFORMANCE_")),
-		Properties:  []ExpectedClaim{{ID: query.GetProperty().GetName(), Status: expectedOutcome(expected.GetProperty()), Reason: expected.GetReason()}},
-	}
-	if expected.GetContract() != umpirespb.RunExpectation_OUTCOME_UNSPECIFIED {
-		entry.Expected.Contract = expectedOutcome(expected.GetContract())
+		Contract:    id(expected.GetContract()),
+		Disposition: id(expected.GetDisposition()),
+		Cleanup:     id(expected.GetCleanup()),
+		Conformance: id(expected.GetConformance()),
+		Properties:  []ExpectedClaim{{ID: query.GetProperty().GetName(), Status: id(expected.GetProperty()), Reason: id(expected.GetReason())}},
 	}
 	for _, monitor := range expected.GetMonitors() {
-		entry.Expected.Properties = append(entry.Expected.Properties, ExpectedClaim{ID: monitor.GetName(), Status: expectedOutcome(monitor.GetOutcome()), Reason: monitor.GetReason()})
+		entry.Expected.Properties = append(entry.Expected.Properties, ExpectedClaim{ID: monitor.GetName(), Status: id(monitor.GetOutcome()), Reason: id(monitor.GetReason())})
+	}
+	if err := validateExpectedRun(entry.Expected, fmt.Sprintf("%s:%d: Query %s", query.GetPosition().GetFile(), query.GetPosition().GetLine(), query.GetName())); err != nil {
+		return GeneratedCase{}, nil, err
 	}
 	encoded, err := protojson.Marshal(lowered.Case)
 	if err != nil {
@@ -184,10 +197,6 @@ func SelectCases(files map[string][]byte, selected []Selected) (map[string][]byt
 	return result, nil
 }
 
-func expectedOutcome(outcome umpirespb.RunExpectation_Outcome) string {
-	return strings.ToLower(strings.TrimPrefix(string(outcome.Descriptor().Values().ByNumber(outcome.Number()).Name()), "OUTCOME_"))
-}
-
 type Manifest struct {
 	Version int             `json:"version"`
 	Queries []GeneratedCase `json:"queries"`
@@ -234,8 +243,19 @@ func DecodeManifest(encoded []byte) (*Manifest, error) {
 }
 
 func validateExpectedRun(expected *ExpectedRun, key string) error {
-	if expected.Contract != "" && expected.Contract != "satisfied" && expected.Contract != "violated" {
+	verdict, known := testpilotValue[testpilotspb.VerdictStatus](testpilotspb.VerdictStatus_value, "VERDICT_STATUS_", expected.Contract)
+	if !known || (verdict != testpilotspb.VERDICT_STATUS_SATISFIED && verdict != testpilotspb.VERDICT_STATUS_VIOLATED) {
 		return fmt.Errorf("invalid expected Contract for %s", key)
+	}
+	disposition, known := testpilotValue[testpilotspb.RunDisposition](testpilotspb.RunDisposition_value, "RUN_DISPOSITION_", expected.Disposition)
+	if !known {
+		return fmt.Errorf("invalid expected disposition for %s", key)
+	}
+	if !concludable(verdict, disposition) {
+		return fmt.Errorf("%s expects a %s Contract on a Run %s, which no Run's rules conclude", key, expected.Contract, expected.Disposition)
+	}
+	if _, known := testpilotValue[testpilotspb.CleanupStatus](testpilotspb.CleanupStatus_value, "CLEANUP_STATUS_", expected.Cleanup); !known {
+		return fmt.Errorf("invalid expected cleanup for %s", key)
 	}
 	if expected.Conformance != "conformant" && expected.Conformance != "nonconformant" && expected.Conformance != "inconclusive" {
 		return fmt.Errorf("invalid expected conformance for %s", key)
@@ -245,12 +265,79 @@ func validateExpectedRun(expected *ExpectedRun, key string) error {
 		return fmt.Errorf("missing expected claims for %s", key)
 	}
 	for _, claim := range expected.Properties {
-		if claim.ID == "" || claims[claim.ID] || (claim.Status != "satisfied" && claim.Status != "violated" && claim.Status != "inconclusive") || (claim.Status == "satisfied") != (claim.Reason == "") {
+		reason, named := umpirespb.RunExpectation_Reason_value["REASON_"+strings.ToUpper(claim.Reason)]
+		if claim.ID == "" || claims[claim.ID] || (claim.Status != "satisfied" && claim.Status != "violated" && claim.Status != "inconclusive") ||
+			(claim.Reason != "" && (!named || reason == 0)) || (claim.Status == "satisfied") != (claim.Reason == "") {
 			return fmt.Errorf("invalid expected claim for %s", key)
 		}
 		claims[claim.ID] = true
 	}
 	return nil
+}
+
+// testpilotValue is the Testpilot enum value an expected Run's id names, by the enum's prefix, and
+// whether it names one other than the unspecified.
+func testpilotValue[E ~int32](values map[string]int32, prefix, id string) (E, bool) {
+	n, ok := values[prefix+strings.ToUpper(id)]
+	return E(n), ok && n != 0 && id == strings.ToLower(id)
+}
+
+// concludable reports whether testpilot.ConcludeVerdict concludes verdict and leaves a Run in
+// disposition for some Run it closes and some rules, so an expectation is held to the judge's own
+// aggregation rather than to a copy of it.
+func concludable(verdict testpilotspb.VerdictStatus, disposition testpilotspb.RunDisposition) bool {
+	rules := [][]testpilotspb.RuleVerdictStatus{nil, {testpilotspb.RULE_VERDICT_STATUS_SATISFIED}, {testpilotspb.RULE_VERDICT_STATUS_VIOLATED}, {testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE}}
+	for closed := range testpilotspb.RunDisposition_name {
+		for _, statuses := range rules {
+			if v, d := runtime.ConcludeVerdict(testpilotspb.RunDisposition(closed), statuses); v == verdict && d == disposition {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// Check compares a closed Run, its Verdict and its Assessment with what the Query declared, each by
+// equality: the Run's disposition and cleanup, the Contract's Verdict, the conformance, and every
+// claim's status and reason id. The Assessment's prose is shown, never compared.
+func (e *ExpectedRun) Check(run *testpilotspb.Run, verdict *testpilotspb.Verdict, assessment *runtime.Assessment) error {
+	if run == nil || verdict == nil || assessment == nil {
+		return errors.New("a Run, its Verdict and its Assessment are required")
+	}
+	var problems []error
+	differs := func(what, want, got, detail string) {
+		if want != got {
+			problems = append(problems, fmt.Errorf("%s is %s, expected %s: %s", what, got, want, detail))
+		}
+	}
+	diagnostics := fmt.Sprint(run.GetDiagnostics())
+	differs("the disposition", e.Disposition, testpilotID(run.GetDisposition(), "RUN_DISPOSITION_"), diagnostics)
+	differs("the cleanup", e.Cleanup, testpilotID(run.GetCleanup().GetStatus(), "CLEANUP_STATUS_"), diagnostics)
+	differs("the Contract's Verdict", e.Contract, testpilotID(verdict.GetStatus(), "VERDICT_STATUS_"), diagnostics)
+	if failure := assessment.Failure; failure != nil {
+		problems = append(problems, fmt.Errorf("the assessment failed: %s %s", failure.Code, failure.Detail))
+	}
+	differs("the conformance", e.Conformance, string(assessment.Conformance.Status), assessment.Conformance.Detail)
+	if len(assessment.Properties) != len(e.Properties) {
+		problems = append(problems, fmt.Errorf("the assessment concludes %d claims, expected %d", len(assessment.Properties), len(e.Properties)))
+	}
+	for _, expected := range e.Properties {
+		at := slices.IndexFunc(assessment.Properties, func(actual runtime.PropertyAssessment) bool { return actual.ID == expected.ID })
+		if at < 0 {
+			problems = append(problems, fmt.Errorf("the assessment omits %s", expected.ID))
+			continue
+		}
+		actual := assessment.Properties[at]
+		differs(expected.ID+"'s status", expected.Status, string(actual.Status), actual.Detail)
+		differs(expected.ID+"'s reason", expected.Reason, actual.Reason, actual.Detail)
+	}
+	return errors.Join(problems...)
+}
+
+// testpilotID is a Testpilot enum value as an expected Run names it: its proto name, lower-cased,
+// without prefix.
+func testpilotID(value protoreflect.Enum, prefix string) string {
+	return strings.ToLower(strings.TrimPrefix(string(value.Descriptor().Values().ByNumber(value.Number()).Name()), prefix))
 }
 
 func bareJSON(name string) bool {

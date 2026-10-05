@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
@@ -45,7 +46,8 @@ func TestAClaimIsConcludedOnlyFromAgreement(t *testing.T) {
 				}
 				got, why := claimConclusion(counted, positive)
 				require.Equal(t, want, got, "mask %04b tainted %v positive %v", mask, tainted, positive)
-				require.Equal(t, got == testpilot.PropertySatisfied, why == "", "only satisfaction needs no reason")
+				require.Equal(t, got == testpilot.PropertySatisfied, why == none, "only satisfaction needs no reason")
+				require.True(t, why == none || wording[why] != "", "every reason is worded")
 			}
 		}
 	}
@@ -68,7 +70,7 @@ func TestConformanceIsConcludedFromWhatExplainsTheEvidence(t *testing.T) {
 	} {
 		got, why := conformanceConclusion(input.candidates, input.holes, input.positive)
 		require.Equal(t, want, got, "%+v", input)
-		require.Equal(t, got == testpilot.ConformanceConformant, why == "")
+		require.Equal(t, got == testpilot.ConformanceConformant, why == none)
 	}
 }
 
@@ -76,22 +78,36 @@ func TestConformanceIsConcludedFromWhatExplainsTheEvidence(t *testing.T) {
 // place; the good one only when all are; and otherwise the open one, for the first reason there is.
 func TestInstancesAreConcludedTogether(t *testing.T) {
 	const bad, good, unsettled = "bad", "good", "open"
+	first, second, third := because{whyHole, "first"}, because{whyUnexplained, "second"}, because{whyIncomplete, "third"}
 	for _, test := range []struct {
-		parts, reasons []string
-		want, why      string
+		parts   []string
+		reasons []because
+		want    string
+		why     because
 	}{
-		{nil, nil, unsettled, whyNoEvidence},
-		{[]string{good}, []string{""}, good, ""},
-		{[]string{good, good}, []string{"", ""}, good, ""},
-		{[]string{good, unsettled}, []string{"", "second"}, unsettled, "second"},
-		{[]string{unsettled, unsettled}, []string{"first", "second"}, unsettled, "first"},
-		{[]string{unsettled, bad}, []string{"first", "second"}, bad, "second"},
-		{[]string{bad, good}, []string{"first", ""}, bad, "first"},
-		{[]string{good, bad, unsettled}, []string{"", "second", "third"}, bad, "second"},
+		{nil, nil, unsettled, because{whyNoEvidence, wording[whyNoEvidence]}},
+		{[]string{good}, []because{{}}, good, because{}},
+		{[]string{good, good}, []because{{}, {}}, good, because{}},
+		{[]string{good, unsettled}, []because{{}, second}, unsettled, second},
+		{[]string{unsettled, unsettled}, []because{first, second}, unsettled, first},
+		{[]string{unsettled, bad}, []because{first, second}, bad, second},
+		{[]string{bad, good}, []because{first, {}}, bad, first},
+		{[]string{good, bad, unsettled}, []because{{}, second, third}, bad, second},
 	} {
 		got, why := over(test.parts, test.reasons, bad, good, unsettled)
-		require.Equal(t, []string{test.want, test.why}, []string{got, why}, "%v", test.parts)
+		require.Equal(t, test.want, got, "%v", test.parts)
+		require.Equal(t, test.why, why, "%v", test.parts)
 	}
+}
+
+// Every reason the judge concludes is worded once, and is a reason an expected Run can name.
+func TestEveryReasonIsWordedOnce(t *testing.T) {
+	for number, name := range umpirespb.RunExpectation_Reason_name {
+		if number != 0 {
+			require.NotEmpty(t, wording[reason(number)], name)
+		}
+	}
+	require.Len(t, wording, len(umpirespb.RunExpectation_Reason_name)-1)
 }
 
 // The store's whole exploration of one stored fact is three candidates and three units of work: the
@@ -164,7 +180,7 @@ func TestAViolationStandsWhenACeilingIsReachedAfterIt(t *testing.T) {
 		Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive},
 		Properties: []testpilot.PropertyAssessment{
 			{ID: finality, Status: testpilot.PropertyViolated, SupportingEventSequences: carrying(t, run, reads, "c0", "s0"),
-				Detail: stale + ", " + defaultInstance + ": " + whyViolated},
+				Reason: "every_explanation_violates", Detail: stale + ", " + defaultInstance + ": " + wording[whyViolated]},
 			{ID: notWhilePaused, Status: testpilot.PropertyInconclusive}, {ID: oneAttempt, Status: testpilot.PropertyInconclusive},
 		},
 		Failure: &testpilot.AssessmentFailure{Code: testpilot.AssessmentObserveFailed, EventSequence: at,

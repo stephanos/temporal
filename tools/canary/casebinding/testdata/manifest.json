@@ -11,6 +11,9 @@
       "standing": "lowered",
       "file": "nexus-caller-syncCompletion-case.json",
       "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
         "conformance": "conformant",
         "properties": [
           {

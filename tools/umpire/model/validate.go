@@ -8,6 +8,7 @@ import (
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // Validate checks that every name the Model uses is declared, with the arity it is used at, and that
@@ -1155,14 +1156,25 @@ func (v *validator) expectedRun(q *umpirespb.Query) {
 		return
 	}
 	at := q.GetPosition()
-	if expected.GetContract() != umpirespb.RunExpectation_OUTCOME_UNSPECIFIED && expected.GetContract() != umpirespb.RunExpectation_OUTCOME_SATISFIED && expected.GetContract() != umpirespb.RunExpectation_OUTCOME_VIOLATED {
+	// What the Run is expected to end as is declared, never inferred: its Contract verdict, its
+	// disposition and its cleanup.
+	if expected.GetContract() != umpirespb.RunExpectation_OUTCOME_SATISFIED && expected.GetContract() != umpirespb.RunExpectation_OUTCOME_VIOLATED {
 		v.report(at, "query %s expected Run has no supported Contract verdict", q.GetName())
+	}
+	if !known(umpirespb.RunExpectation_Disposition_name, int32(expected.GetDisposition())) {
+		v.report(at, "query %s expected Run declares no known disposition", q.GetName())
+	}
+	if !known(umpirespb.RunExpectation_Cleanup_name, int32(expected.GetCleanup())) {
+		v.report(at, "query %s expected Run declares no known cleanup", q.GetName())
 	}
 	if !known(umpirespb.RunExpectation_Conformance_name, int32(expected.GetConformance())) {
 		v.report(at, "query %s expected Run has no known conformance", q.GetName())
 	}
-	outcome := func(status umpirespb.RunExpectation_Outcome, reason string) {
-		if !known(umpirespb.RunExpectation_Outcome_name, int32(status)) || (status == umpirespb.RunExpectation_OUTCOME_SATISFIED) != (reason == "") {
+	// An outcome short of satisfied names the judge's reason; a satisfied one names none.
+	outcome := func(status umpirespb.RunExpectation_Outcome, reason umpirespb.RunExpectation_Reason) {
+		named := reason != umpirespb.RunExpectation_REASON_UNSPECIFIED
+		if !known(umpirespb.RunExpectation_Outcome_name, int32(status)) || (named && !known(umpirespb.RunExpectation_Reason_name, int32(reason))) ||
+			(status == umpirespb.RunExpectation_OUTCOME_SATISFIED) == named {
 			v.report(at, "query %s expected Run has an invalid outcome or reason", q.GetName())
 		}
 	}
@@ -1181,4 +1193,15 @@ func (v *validator) expectedRun(q *umpirespb.Query) {
 	if len(monitors) != 0 {
 		v.report(at, "query %s expected Run omits monitored claims", q.GetName())
 	}
+}
+
+// ExpectationID is the stable id of a value of one of an expected Run's enums, as the Case manifest
+// and an Assessment spell it: the value's name, lower-cased, without its enum's prefix, so
+// REASON_EXPLANATIONS_DISAGREE is explanations_disagree. An unspecified value has no id.
+func ExpectationID(value protoreflect.Enum) string {
+	if value.Number() == 0 {
+		return ""
+	}
+	name := string(value.Descriptor().Values().ByNumber(value.Number()).Name())
+	return strings.ToLower(strings.TrimPrefix(name, strings.ToUpper(string(value.Descriptor().Name()))+"_"))
 }

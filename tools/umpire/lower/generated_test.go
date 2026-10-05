@@ -2,12 +2,17 @@ package lower
 
 import (
 	"encoding/json"
+	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
+	runtime "go.temporal.io/server/common/testing/testpilot"
 )
 
 func generatedFiles(t *testing.T) map[string][]byte {
@@ -46,14 +51,26 @@ func TestManifestRejectsInvalidMetadata(t *testing.T) {
 				}
 			}
 		},
-		"unknown status": func(m *Manifest) {
-			for i := range m.Queries {
-				if m.Queries[i].Standing == Lowered {
-					m.Queries[i].Expected.Properties[0].Status = "maybe"
-					break
-				}
-			}
-		},
+		"unknown status":        expecting(func(e *ExpectedRun) { e.Properties[0].Status = "maybe" }),
+		"no contract":           expecting(func(e *ExpectedRun) { e.Contract = "" }),
+		"inconclusive contract": expecting(func(e *ExpectedRun) { e.Contract = "inconclusive" }),
+		"no disposition":        expecting(func(e *ExpectedRun) { e.Disposition = "" }),
+		"unknown disposition":   expecting(func(e *ExpectedRun) { e.Disposition = "abandoned" }),
+		"shouted disposition":   expecting(func(e *ExpectedRun) { e.Disposition = "COMPLETED" }),
+		"no cleanup":            expecting(func(e *ExpectedRun) { e.Cleanup = "" }),
+		"unknown cleanup":       expecting(func(e *ExpectedRun) { e.Cleanup = "skipped" }),
+		// ConcludeVerdict stops a Run its rules violate, and concludes no violation of a completed one.
+		"violated yet completed": expecting(func(e *ExpectedRun) { e.Contract, e.Disposition = "violated", "completed" }),
+		"satisfied yet stopped":  expecting(func(e *ExpectedRun) { e.Contract, e.Disposition = "satisfied", "stopped_by_monitor" }),
+		"satisfied with a reason": expecting(func(e *ExpectedRun) {
+			e.Properties[0].Status, e.Properties[0].Reason = "satisfied", "hole"
+		}),
+		"inconclusive without a reason": expecting(func(e *ExpectedRun) {
+			e.Properties[0].Status, e.Properties[0].Reason = "inconclusive", ""
+		}),
+		"an unknown reason": expecting(func(e *ExpectedRun) {
+			e.Properties[0].Status, e.Properties[0].Reason = "inconclusive", "Explanations Disagree"
+		}),
 	} {
 		t.Run(name, func(t *testing.T) {
 			m, err := DecodeManifest(encoded)
@@ -68,6 +85,90 @@ func TestManifestRejectsInvalidMetadata(t *testing.T) {
 	for _, invalid := range [][]byte{[]byte(`{"version":1,"unknown":true}`), append(append([]byte{}, encoded...), []byte("{}")...)} {
 		_, err := DecodeManifest(invalid)
 		require.Error(t, err)
+	}
+}
+
+// expecting changes the first lowered Query's expected Run.
+func expecting(change func(*ExpectedRun)) func(*Manifest) {
+	return func(m *Manifest) {
+		for i := range m.Queries {
+			if m.Queries[i].Standing == Lowered {
+				change(m.Queries[i].Expected)
+				return
+			}
+		}
+	}
+}
+
+// A Query whose expected Run pairs a Contract verdict with a disposition the judge's aggregation never
+// leaves a Run in is refused at the Query's line, before any Case is written for it.
+func TestGeneratingRefusesAnExpectationTheJudgeCannotConclude(t *testing.T) {
+	m := loaded(t, "nexus-control")
+	p, err := NewProducer(m)
+	require.NoError(t, err)
+	at := slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "forgedCompletion" })
+	require.GreaterOrEqual(t, at, 0)
+	query := m.GetQueries()[at]
+	_, _, err = generateCase(p, "nexus-control.json", query)
+	require.NoError(t, err)
+	query.GetExpectedRun().Disposition = umpirespb.RunExpectation_DISPOSITION_COMPLETED
+	_, _, err = generateCase(p, "nexus-control.json", query)
+	require.EqualError(t, err, fmt.Sprintf("%s:%d: Query forgedCompletion expects a violated Contract on a Run completed, which no Run's rules conclude",
+		query.GetPosition().GetFile(), query.GetPosition().GetLine()))
+}
+
+// Check holds a Run, its Verdict and its Assessment to the expectation by equality, and names each
+// thing that differs; prose is never compared.
+func TestExpectedRunChecksEachDeclaredValueByEquality(t *testing.T) {
+	expected := &ExpectedRun{Contract: "violated", Disposition: "stopped_by_monitor", Cleanup: "succeeded", Conformance: "inconclusive",
+		Properties: []ExpectedClaim{{ID: "forgedSuccess", Status: "violated", Reason: "every_explanation_violates"}, {ID: "watch", Status: "satisfied"}}}
+	run := func() *testpilotspb.Run {
+		return &testpilotspb.Run{Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
+			Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}}
+	}
+	verdict := func() *testpilotspb.Verdict {
+		return &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED}
+	}
+	assessment := func() *runtime.Assessment {
+		return &runtime.Assessment{Conformance: runtime.ConformanceAssessment{Status: runtime.ConformanceInconclusive, Reason: "incomplete", Detail: "any prose"},
+			Properties: []runtime.PropertyAssessment{{ID: "watch", Status: runtime.PropertySatisfied},
+				{ID: "forgedSuccess", Status: runtime.PropertyViolated, Reason: "every_explanation_violates", Detail: "other prose"}}}
+	}
+	require.NoError(t, expected.Check(run(), verdict(), assessment()))
+	for name, test := range map[string]struct {
+		change func(*testpilotspb.Run, *testpilotspb.Verdict, *runtime.Assessment)
+		says   string
+	}{
+		"disposition": {func(r *testpilotspb.Run, _ *testpilotspb.Verdict, _ *runtime.Assessment) {
+			r.Disposition = testpilotspb.RUN_DISPOSITION_COMPLETED
+		}, "the disposition is completed, expected stopped_by_monitor"},
+		"cleanup": {func(r *testpilotspb.Run, _ *testpilotspb.Verdict, _ *runtime.Assessment) {
+			r.Cleanup.Status = testpilotspb.CLEANUP_STATUS_TIMED_OUT
+		}, "the cleanup is timed_out, expected succeeded"},
+		"verdict": {func(_ *testpilotspb.Run, v *testpilotspb.Verdict, _ *runtime.Assessment) {
+			v.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
+		}, "the Contract's Verdict is inconclusive, expected violated"},
+		"conformance": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Conformance.Status = runtime.ConformanceConformant
+		}, "the conformance is conformant, expected inconclusive"},
+		"status": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Properties[1].Status = runtime.PropertyInconclusive
+		}, "forgedSuccess's status is inconclusive, expected violated: other prose"},
+		"reason": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Properties[1].Reason = "explanations_disagree"
+		}, "forgedSuccess's reason is explanations_disagree, expected every_explanation_violates"},
+		"omitted claim": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Properties = a.Properties[1:]
+		}, "the assessment omits watch"},
+		"failure": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Failure = &runtime.AssessmentFailure{Code: runtime.AssessmentCloseFailed, Detail: "broke"}
+		}, "the assessment failed: close_failed broke"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			r, v, a := run(), verdict(), assessment()
+			test.change(r, v, a)
+			require.ErrorContains(t, expected.Check(r, v, a), test.says)
+		})
 	}
 }
 

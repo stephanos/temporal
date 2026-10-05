@@ -6,7 +6,9 @@ package temporal
 package features.nexusoperation
 
 import umpire.*
+import umpire.realize.Reason
 import temporal.capabilities.{given, *}
+import temporal.realize.inconclusive
 
 /**
  * Why the operation overrides closedIsRejectedUniformly: the server answers a control that repeats
@@ -18,7 +20,9 @@ val repeatedRequestsAnswer =
 /**
  * The rejection is the operation's own: alreadyCompleted, a FailedPrecondition, where the activity
  * answers NotFound (operation.go ErrOperationAlreadyCompleted). Each functional law's find starts
- * the operation, which no handler answers, so it stays running, then takes the control.
+ * the operation, which no handler answers, so it stays running, then takes the control. A Run
+ * explains an unobserved control of a closed operation too, which records nothing, so a Run of a
+ * terminate or cancel find leaves the claim inconclusive: its explanations disagree.
  */
 val operationCapabilities = capabilities(nexusOperation, limits = three)(
   Closable(
@@ -30,13 +34,13 @@ val operationCapabilities = capabilities(nexusOperation, limits = three)(
     terminate = terminate,
     settled = OperationFact.statusTerminated,
     reach = Seq(start),
-    expect = inconclusive(explanationsDisagree)
+    expect = inconclusive(Reason.explanationsDisagree)
   ),
   Cancelable(
     requestCancel = requestCancel,
     requested = OperationFact.statusCancelRequested,
     reach = Seq(start),
-    expect = inconclusive(explanationsDisagree)
+    expect = inconclusive(Reason.explanationsDisagree)
   ),
   Describable(status = OperationRealization.operationStatus)
 ).overriding(closedIsRejectedUniformly -> closedRejectsOrRepeats, because = repeatedRequestsAnswer)

@@ -532,8 +532,11 @@ val heldByValue: Query =
     RunExpectation(
       Conformance.conformant,
       PropertyOutcome.satisfied,
+      PropertyOutcome.satisfied,
+      Disposition.completed,
+      Cleanup.succeeded,
       monitors = Vector(
-        MonitorExpectation(opensOnce, PropertyOutcome.inconclusive, "never evaluated"),
+        MonitorExpectation(opensOnce, PropertyOutcome.inconclusive, Some(Reason.neverEvaluated)),
         MonitorExpectation(staysOpen, PropertyOutcome.satisfied)
       )
     )
@@ -543,8 +546,11 @@ val heldByName: Query =
     RunExpectation(
       Conformance.conformant,
       property = PropertyOutcome.satisfied,
+      contract = PropertyOutcome.satisfied,
+      disposition = Disposition.completed,
+      cleanup = Cleanup.succeeded,
       monitors = Vector(
-        MonitorExpectation("opensOnce", PropertyOutcome.inconclusive, "never evaluated"),
+        MonitorExpectation("opensOnce", PropertyOutcome.inconclusive, Some(Reason.neverEvaluated)),
         MonitorExpectation("staysOpen", PropertyOutcome.satisfied)
       )
     )
