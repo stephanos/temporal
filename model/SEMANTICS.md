@@ -162,6 +162,40 @@ A machine's table is derived from its declaration:
 Reachability, stuck states, Definition IDs and the Behavior Fingerprint are then those of the
 reader's table (`tools/umpire/model`, `Table`) over the derived keys.
 
+### Rules
+
+The IR binds each action to one step function; a Model writes when it fires and what it does
+apart, and the IR generator lowers the two to that function (`model/umpire/Syntax.scala`, `Rules`).
+A machine object's `rules` lists rules under headings: `when(g)` fires while the guard `g` of the
+state holds, and `in(p1, …)` while the rules' phase projection, `Rules(_.phase)`, is one of the
+phases listed. A rule names a whole action, `a ~> e`, or one class of it, `a(v) ~> e`, and an effect
+`e` of the machine's `effects`, which says what happens and never whether: it gives at least one
+step. `disabled(a)` binds an action no state enables.
+
+The rules of one action lower, in the order written, to the step function
+`<machine>.rules.<action>`: `if g1(s) then e1(s, i) else if g2(s) then e2(s, i) else Nil`, where
+`gk` is the k-th rule's guard (for `in`, `List(p1, …).contains(projection(s))`). Where a rule fires
+one class, the function first matches the inputs, one case per class in catalog order, and tries
+there the rules that fire that class, so the state alone chooses among them. `disabled(a)` lowers to
+a function that gives `Nil` for every state. The table derived from the lowered function is the one
+Machines 3 gives; nothing else of the IR records the rules.
+
+Rules of one action class are disjoint: no state and class are fired by two of them. The framework
+checks it when the machine's rules are constructed, over every state of the state type's catalog
+and every class, and refuses the second rule of an overlap, naming the machine, the class, both
+rules by their place and heading, and a state where both hold; the model gate constructs every IR
+file's roots, so an overlap fails it. A step that can go more than one way is one effect that names
+each result with `choose` ([Named choices](#named-choices)), never two rules. Because the rules are
+disjoint, their order changes no row: it fixes only the order of the arms of the lowered function.
+
+A derivation rebinds rules in its source's place: `rebind(a ~> e)` keeps the guards (and classes) of
+`a`'s rules and gives each the effect `e`; `rebind(when(g) { a ~> e })` replaces them; `extend` adds
+rules for actions its source does not bind. `rebind(a ~> e)` is refused where it would merge rules
+the source tells apart by their effects: two rules of the whole action, or two rules of one class,
+with different effects. Rules that each fire another class may differ, since `e` reads the class's
+inputs. A machine of the IR generator's core fixtures may bind
+its step functions by hand, `object rules extends Bindings(a ~> f, …)`, which is what rules lower to.
+
 ### Modalities
 
 A machine's table says what may happen, and the claims about it what must. A row is permission with

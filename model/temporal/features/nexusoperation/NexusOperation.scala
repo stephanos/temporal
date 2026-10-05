@@ -7,12 +7,14 @@
  * does in Describe (RUNNING), and no Case sets a deadline it lives to see.
  *
  * Read top to bottom: the types; the signature (the caller, the handler, the operation and their
- * actions); then Operation, the operation's one machine, with its own reading of closed rejection
- * and the capabilities it declares; and last exports, its IR file. Realization.scala realizes it.
+ * actions); then NexusOperation, the operation's one machine, with its own reading of closed
+ * rejection and the capabilities it implements; and last exports, its IR file. Realization.scala
+ * realizes it.
  */
 package temporal
 package features.nexusoperation
 
+import scala.annotation.unused
 import umpire.*
 import umpire.realize.Reason
 import temporal.capabilities.{given, *}
@@ -89,86 +91,94 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 
 // ### The operation
 
-object Operation:
+object NexusOperation extends Machine[OperationState, Outcome, OperationFact]:
   import Phase.*
 
-  def phase(s: OperationState): Phase = s.phase
-  def terminal(p: Phase): Boolean = p.in(succeeded, failed, canceled, terminated)
-  def end(s: OperationState): Boolean = terminal(s.phase)
+  val entity = operation
+  val init = OperationState(unstarted, false)
+  def end(s: State) = states.over(s)
 
-  object effects:
+  /** The operation's status sets. */
+  object states extends Section:
+    def phase(s: State): Phase = s.phase
+
+    def terminal(p: Phase): Boolean = p.in(succeeded, failed, canceled, terminated)
+
+    /** A path ends where the operation is over: `end` reads this named predicate. */
+    def over(s: State): Boolean = terminal(s.phase)
+
+    /** Started and not over: the phases a control settles or records a request in. */
+    def live(p: Phase): Boolean = p.in(scheduled, started)
+
+    /** Every phase after the start, live or over: the phases a control is answered in. */
+    def created(p: Phase): Boolean = live(p) || terminal(p)
+
+  object effects extends Section:
     import OperationFact.*
 
-    private def closed(s: OperationState): List[OperationStep] =
-      List(Step(Outcome.alreadyCompleted, s))
-    private def repeated(s: OperationState): List[OperationStep] = List(Step(Outcome.accepted, s))
-
-    def start(s: OperationState): List[OperationStep] =
-      if s.phase != unstarted then disabled
-      else enter(OperationState(scheduled, false), statusScheduled)
+    def start(@unused s: State) = enter(OperationState(scheduled, false), statusScheduled)
 
     /**
      * TransitionStarted, or a synchronous completion straight from scheduled; a canceled answer
      * settles it canceled (operation.go invocationResultCancel, onCanceled).
      */
-    def handlerReply(s: OperationState, r: Reply): List[OperationStep] =
-      if s.phase != scheduled then disabled
-      else
-        r match
-          case Reply.syncSuccess  => enter(s.copy(phase = succeeded), statusSucceeded)
-          case Reply.syncFailure  => enter(s.copy(phase = failed), statusFailed)
-          case Reply.syncCanceled => enter(s.copy(phase = canceled), statusCanceled)
-          case Reply.async        => enter(s.copy(phase = started), statusStarted)
+    def handlerReply(s: State, r: Reply): List[OperationStep] =
+      r match
+        case Reply.syncSuccess  => enter(s.copy(phase = succeeded), statusSucceeded)
+        case Reply.syncFailure  => enter(s.copy(phase = failed), statusFailed)
+        case Reply.syncCanceled => enter(s.copy(phase = canceled), statusCanceled)
+        case Reply.async        => enter(s.copy(phase = started), statusStarted)
 
     /** An async operation's completion; a canceled failure settles it canceled. */
-    def complete(s: OperationState, r: Resolution): List[OperationStep] =
-      if s.phase != started then disabled
-      else
-        r match
-          case Resolution.succeeded => enter(s.copy(phase = succeeded), statusSucceeded)
-          case Resolution.failed    => enter(s.copy(phase = failed), statusFailed)
-          case Resolution.canceled  => enter(s.copy(phase = canceled), statusCanceled)
+    def complete(s: State, r: Resolution): List[OperationStep] =
+      r match
+        case Resolution.succeeded => enter(s.copy(phase = succeeded), statusSucceeded)
+        case Resolution.failed    => enter(s.copy(phase = failed), statusFailed)
+        case Resolution.canceled  => enter(s.copy(phase = canceled), statusCanceled)
 
     /**
      * RequestCancel records the request and leaves the operation live: it is sent to the handler
-     * only once started (operation.go RequestCancel). A repeated request is the same request; one of
-     * a closed operation is alreadyCompleted, unless it repeats one the operation took.
+     * only once started (operation.go RequestCancel).
      */
-    def requestCancel(s: OperationState): List[OperationStep] =
-      if s.phase == unstarted then disabled
-      else if s.cancelRequested then repeated(s)
-      else if terminal(s.phase) then closed(s)
-      else enter(s.copy(cancelRequested = true), statusCancelRequested)
+    def requestCancel(s: State) = enter(s.copy(cancelRequested = true), statusCancelRequested)
 
-    /**
-     * Terminate settles a live operation terminated (TransitionTerminated); a repeated terminate of
-     * a terminated one is the same request, answered OK; any other control of a closed one is
-     * alreadyCompleted (operation.go Terminate).
-     */
-    def terminate(s: OperationState): List[OperationStep] =
-      if s.phase == unstarted then disabled
-      else if s.phase == terminated then repeated(s)
-      else if terminal(s.phase) then closed(s)
-      else enter(s.copy(phase = terminated), statusTerminated)
+    /** Terminate settles a live operation terminated (TransitionTerminated). */
+    def terminate(s: State) = enter(s.copy(phase = terminated), statusTerminated)
 
-  val nexusOperation = machine[OperationState, Outcome, OperationFact] {
-    forEntity(operation)
-    starts(OperationState(Phase.unstarted, false))
-    ends(end)
-    steps(
-      caller.start ~> effects.start,
-      handler.handlerReply ~> effects.handlerReply,
-      handler.complete ~> effects.complete,
-      caller.requestCancel ~> effects.requestCancel,
-      caller.terminate ~> effects.terminate
+    /** A control of a closed operation is alreadyCompleted (operation.go). */
+    def closed(s: State): List[OperationStep] = List(Step(Outcome.alreadyCompleted, s))
+
+    /** A control that repeats a request the operation took is the same request, answered OK. */
+    def repeated(s: State): List[OperationStep] = List(Step(Outcome.accepted, s))
+
+  object rules extends Rules(_.phase):
+    in(unstarted)(caller.start ~> effects.start)
+    in(scheduled)(handler.handlerReply ~> effects.handlerReply)
+    in(started)(handler.complete ~> effects.complete)
+
+    // A repeated cancel request is the same request; one of a closed operation is alreadyCompleted,
+    // unless it repeats one the operation took (operation.go RequestCancel).
+    when(s => states.created(s.phase) && s.cancelRequested)(
+      caller.requestCancel ~> effects.repeated
     )
-  }
+    when(s => states.terminal(s.phase) && !s.cancelRequested)(
+      caller.requestCancel ~> effects.closed
+    )
+    when(s => states.live(s.phase) && !s.cancelRequested) {
+      caller.requestCancel ~> effects.requestCancel
+    }
+
+    // A repeated terminate of a terminated operation is the same request, answered OK; any other
+    // control of a closed one is alreadyCompleted (operation.go Terminate).
+    in(terminated)(caller.terminate ~> effects.repeated)
+    in(succeeded, failed, canceled)(caller.terminate ~> effects.closed)
+    in(scheduled, started)(caller.terminate ~> effects.terminate)
 
   /**
    * What the operation promises of its own: its reading of closed rejection, which its capabilities
    * put in place of the law's.
    */
-  object properties:
+  object properties extends Section:
     /**
      * A closed operation keeps its state, and answers a control alreadyCompleted, or OK where it
      * repeats a request the operation took, a recorded cancel or the terminate that closed it: the
@@ -189,9 +199,10 @@ object Operation:
    * What the operation is, as the laws of model/temporal/capabilities read it: it closes, a caller
    * terminates it and requests its cancel, and DescribeNexusOperationExecution reports its status.
    * It receives the laws without listing them, each named `nexusOperation.<law>`. It reads the
-   * realization, which reads this machine, so it waits in an object of its own until it is used.
+   * realization, which reads this machine, so it waits in a section, which initializes on its first
+   * use.
    */
-  object laws:
+  object implements extends Section:
     /**
      * Why the operation overrides closedIsRejectedUniformly: the server answers a control that
      * repeats a request id the operation took OK, after it closed too (operation.go RequestCancel,
@@ -207,10 +218,10 @@ object Operation:
      * control. A Run explains an unobserved control of a closed operation too, which records nothing,
      * so a Run of a terminate or cancel find leaves the claim inconclusive: its explanations disagree.
      */
-    val operationCapabilities = capabilities(nexusOperation, limits = three)(
+    val all = capabilities(limits = three)(
       Closable(
-        status = Operation.phase,
-        terminal = Operation.terminal,
+        status = states.phase,
+        terminal = states.terminal,
         rejected = cited(Outcome.alreadyCompleted, "chasm/lib/nexusoperation/operation.go")
       ),
       Terminable(
@@ -235,7 +246,7 @@ object Operation:
 
 object exports:
   val nexusOperation = irFile("nexus-operation")(
-    Operation.nexusOperation,
-    Operation.laws.operationCapabilities,
+    NexusOperation,
+    NexusOperation.implements.all,
     OperationRealization.standalone
   )

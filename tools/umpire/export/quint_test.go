@@ -573,7 +573,7 @@ func TestQuintStopsWhereTheModelHasNoValue(t *testing.T) {
 	found := needs(t, QuintTool)
 	reference := openNamed(t, "nexus-caller")
 	mutant := proto.Clone(reference.Model).(*umpirespb.Model)
-	function(mutant, "temporal.features.nexuscaller.Protocol$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
+	function(mutant, "temporal.features.nexuscaller.NexusProtocol$.states$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
 	_, err := RunQuint(t.Context(), found, exportedAsWritten(t, reference, mutant), workDir(t))
 	require.ErrorContains(t, err, "Runtime error")
 }

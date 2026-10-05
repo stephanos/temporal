@@ -6,8 +6,11 @@
 package fixture.inputs
 
 import umpire.*
+import InputsFamily.given
 
-given Family = Family("fixture.inputs")
+/** The family, in an object of its own: the machine objects read it while they initialize. */
+object InputsFamily:
+  given family: Family = Family("fixture.inputs")
 
 enum Outcome derives Finite:
   case accepted
@@ -47,8 +50,11 @@ val respond = action(Party("worker")).input(answer).input(urgent)
 // Reports results by name: the IR keeps the text, and no `Delivery` enum is declared.
 val steer = action(Party("caller")).input(control).results("Delivery")
 
-/** Five stages, a counter of 0 to 2 bounded by its type and three deadlines: 120 states. */
-final case class Counted(
+/**
+ * Five stages, a counter of 0 to 2 bounded by its type and three deadlines: 120 states. Named apart
+ * from the machine object `Counted`.
+ */
+final case class CountedState(
     phase: Stage,
     attempts: UpTo[2],
     closeBy: Deadline,
@@ -56,32 +62,37 @@ final case class Counted(
     runBy: Deadline
 ) derives Finite
 
-type CountedStep = Step[Counted, Outcome, Nothing]
+type CountedStep = Step[CountedState, Outcome, Nothing]
 
-def started(s: Counted, close: Deadline, toStart: Deadline, toClose: Deadline): List[CountedStep] =
+def started(
+    s: CountedState,
+    close: Deadline,
+    toStart: Deadline,
+    toClose: Deadline
+): List[CountedStep] =
   if s.phase != Stage.unstarted then disabled
-  else enter(Counted(Stage.scheduled, UpTo(0), close, toStart, toClose))
+  else enter(CountedState(Stage.scheduled, UpTo(0), close, toStart, toClose))
 
 // A retried answer counts one more attempt, saturating at the bound.
-def responded(s: Counted, a: Answer, u: Boolean): List[CountedStep] = a match
+def responded(s: CountedState, a: Answer, u: Boolean): List[CountedStep] = a match
   case Answer.failed(true) if s.phase == Stage.started || u =>
     enter(s.copy(phase = Stage.backingOff, attempts = UpTo((s.attempts + 1).min(2))))
   case _ => disabled
 
-def steered(s: Counted, c: Control): List[CountedStep] =
+def steered(s: CountedState, c: Control): List[CountedStep] =
   if c == Control.pause && s.attempts < 2 then stay(s) else disabled
 
-val counted = machine[Counted, Outcome, Nothing] {
-  starts(Counted(Stage.unstarted, UpTo(0), Deadline.unset, Deadline.unset, Deadline.unset))
-  ends(_ => true)
-  steps(start ~> started, respond ~> responded, steer ~> steered)
-}
+object Counted extends Machine[CountedState, Outcome, Nothing]:
+  val init = CountedState(Stage.unstarted, UpTo(0), Deadline.unset, Deadline.unset, Deadline.unset)
+  def end(counted: State) = true
 
-val scheduled = counted.property holds (after => after.state.phase != Stage.completed)
+  object rules extends Bindings(start ~> started, respond ~> responded, steer ~> steered)
+
+val scheduled = Counted.property holds (after => after.state.phase != Stage.completed)
 
 // Partial and reordered calls by name, a default of an enum with fields and of a Boolean, and a
 // token of a one-input action.
-val byName = counted.scenario.actions(
+val byName = Counted.scenario.actions(
   start(startBy := Deadline.expires),
   start(runBy := Deadline.expires, closeBy := Deadline.expires),
   start(
@@ -93,7 +104,7 @@ val byName = counted.scenario.actions(
   respond(answer := Answer.failed(true)),
   steer(control := Control.unpause)
 )
-val byPosition = counted.scenario.actions(
+val byPosition = Counted.scenario.actions(
   start(Deadline.unset, Deadline.expires, Deadline.unset),
   start(Deadline.expires, Deadline.unset, Deadline.expires),
   start(Deadline.unset, Deadline.unset, Deadline.expires),
@@ -103,17 +114,17 @@ val byPosition = counted.scenario.actions(
 )
 
 // Every input omitted, `start()`: each at its domain's first value, beside its positional twin.
-val omitted = counted.scenario.actions(start(), respond(), steer())
-val omittedByPosition = counted.scenario.actions(
+val omitted = Counted.scenario.actions(start(), respond(), steer())
+val omittedByPosition = Counted.scenario.actions(
   start(Deadline.unset, Deadline.unset, Deadline.unset),
   respond(Answer.completed, false),
   steer(Control.pause)
 )
 
 // A Property restricted to a class named by name, beside its positional twin.
-val urgentByName = counted.property.when(respond(urgent := true)) holds
+val urgentByName = Counted.property.when(respond(urgent := true)) holds
   (after => after.state.attempts <= 2)
-val urgentByPosition = counted.property.when(respond(Answer.completed, true)) holds
+val urgentByPosition = Counted.property.when(respond(Answer.completed, true)) holds
   (after => after.state.attempts <= 2)
 
 val six = Limits(steps = 6, actions = 6, search = 64)

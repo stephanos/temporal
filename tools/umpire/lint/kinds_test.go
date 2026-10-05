@@ -158,7 +158,7 @@ func TestUntakenChoices(t *testing.T) {
 	// reachable state takes it.
 	r = run(t, read(t, nexusControlIR, func(ir *umpirespb.Model) {
 		for _, f := range ir.GetFunctions() {
-			if f.GetName() != "temporal.features.nexuscaller.Control$.effects$.forgedComplete" {
+			if f.GetName() != "temporal.features.nexuscaller.ForgedCompletion$.effects$.forgedComplete" {
 				continue
 			}
 			join := f.GetBody().GetIf().GetThen().GetBinary()

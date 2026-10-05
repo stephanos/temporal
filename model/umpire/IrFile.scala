@@ -21,18 +21,22 @@ import umpire.realize.Realization
 final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot]):
   /**
    * Constructs every root and what it reaches, as the gate does for every IR file (a Model test
-   * beside the Models): each machine's rules, so an overlap of two of them is refused
-   * here, the members of each composition, and the machines each Query, capability declaration,
-   * progress claim and realization names.
+   * beside the Models): each machine's rules, so an overlap of two of them is refused here, the
+   * members of each composition, the machine each machine refines, the source of each derivation,
+   * and the machines each Query, capability declaration, progress claim and realization names. It
+   * gives the names of the machines and compositions constructed, which the gate's test holds to
+   * every machine the file's IR lifts, so no lifted machine escapes the check of its rules.
    */
-  def construct(): Unit =
-    val seen = mutable.Set.empty[AnyRef]
+  def construct(): Set[String] =
+    val seen = mutable.LinkedHashSet.empty[Model]
     def model(m: Model): Unit =
       if seen.add(m) then
         m match
-          case machine: Machine[?, ?, ?] => machine.bindings: Unit
-          case c: Composition[?]         => c.members.foreach(model)
-          case _                         => ()
+          case machine: Machine[?, ?, ?] =>
+            machine.bindings: Unit
+            machine.reaches.foreach(model)
+          case c: Composition[?] => c.members.foreach(model)
+          case _                 => ()
     roots.foreach:
       case m: Machine[?, ?, ?] => model(m)
       case c: Composition[?]   => model(c)
@@ -44,6 +48,7 @@ final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot]):
       case p: Progress[?]     => model(p.machine)
       case r: Realization     => model(r.machine)
       case c: Capabilities[?] => model(c.model)
+    seen.map(_.name).toSet
 
 object IrFile:
   private[umpire] val made = mutable.ArrayBuffer.empty[IrFile]

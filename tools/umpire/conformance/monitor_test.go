@@ -18,7 +18,7 @@ func counted(t testing.TB, initial, target int) *umpirespb.Model {
 	t.Helper()
 	m := realized(t, lifted(t, "declarations"), store, []kindOf{{"stored", false}})
 	for name, body := range map[string]string{
-		"test.counter.next": `{"params":[{"name":"m","type":{"int":{}}},{"name":"before","type":{"named":"fixture.declarations.Store"}},{"name":"after","type":{"named":"umpire.Step"}}],
+		"test.counter.next": `{"params":[{"name":"m","type":{"int":{}}},{"name":"before","type":{"named":"fixture.declarations.StoreState"}},{"name":"after","type":{"named":"umpire.Step"}}],
 			"body":{"if":{"condition":{"binary":{"op":"OP_LT","left":{"var":"m"},"right":{"literal":{"int":"65535"}}}},
 			"then":{"binary":{"op":"OP_ADD","left":{"var":"m"},"right":{"literal":{"int":"1"}}}},"else":{"var":"m"}}}}`,
 		"test.counter.violated": fmt.Sprintf(`{"params":[{"name":"m","type":{"int":{}}}],

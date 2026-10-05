@@ -46,7 +46,7 @@ abstract class Composition[S <: Product] private (
   def this(derivation: Composition[S]) =
     this(Composition.Shape.Of(derivation), derivation.family, derivation.mirror)
 
-  /** The object's name with its first letter lowered, or the builder's. */
+  /** The object's name with its first letter lowered. */
   def name: String = objectName(this)
 
   /** The owner its `syncs` read the composed state type from. */
@@ -59,45 +59,11 @@ abstract class Composition[S <: Product] private (
     case Composition.Shape.With(base, member) =>
       base.members :+ Composition.selected(member, mirror)
 
-  private def chained: Composition[S] =
-    new Composition[S](Composition.Shape.Of(this), family, mirror) {}
-
   /**
-   * Pairs two members' actions into one step named `name`, each member by its field, in the
-   * builder's chain: `.sync("dispatch", _.order -> dispatch, _.queue -> enqueue)`. A composition
-   * object writes its syncs in `object syncs extends Syncs`.
-   */
-  def sync(
-      @unused name: String,
-      @unused first: S => (Any, Action[?]),
-      @unused second: S => (Any, Action[?])
-  ): Composition[S] = chained
-
-  /**
-   * Pairs two members' actions into one step named after the first member's action, each member by
-   * its field, in the builder's chain: `.sync(_.order -> dispatch, _.queue -> enqueue)`.
-   */
-  def sync(
-      @unused first: S => (Any, Action[?]),
-      @unused second: S => (Any, Action[?])
-  ): Composition[S] =
-    chained
-
-  /** Which composed states the composition may end in, in the builder's chain. */
-  def ends(@unused end: S => Boolean): Composition[S] = chained
-
-  /**
-   * Says the member a field selector names, `_.queue`, stands in for `opaque` within this
-   * composition, in the builder's chain: a detailed provider in place of an opaque one. The member
-   * must declare a refinement of `opaque` that holds, which is what makes the replacement scoped to
-   * this composition.
-   */
-  def replaces(@unused field: S => Any, @unused opaque: Model): Composition[S] = chained
-
-  /**
-   * This composition with one member replaced, `currentOverQueue.withMember(_.order ->
-   * staleRecord)`: the same syncs, ends and member order, named after the object or val that
-   * declares it in the `given Family`. A member that stands in for another machine here stands in
+   * This composition with one member replaced, `OrderOverQueue.withMember(_.order ->
+   * LateRecord)`: the same syncs, ends and member order, named after the object that declares it,
+   * `object LateOverQueue extends Composition(OrderOverQueue.withMember(...))`, in the `given
+   * Family`. A member that stands in for another machine here stands in
    * for the one its new machine declares it refines; the lifter refuses a new machine of another
    * state type, one that binds no action a sync of the member pairs, and one that refines nothing
    * where the member replaces a machine.
@@ -182,14 +148,3 @@ final class Composed private[umpire] (val composition: Model, val selected: Any)
  * share one parameter list so that the composed state is inferred from where it is passed.
  */
 def through[S, M, A](select: S => M, read: M => A): S => A = s => read(select(s))
-
-/**
- * Starts a composition named after the `val` that declares it, in the `given Family`, over members
- * each named by a selector of the field it fills: `compose[OverQueue](_.order -> currentRecord,
- * _.queue -> dispatchQueue)`.
- */
-def compose[S <: Product](members: (S => (Any, Model))*)(using
-    m: Mirror.ProductOf[S],
-    family: Family
-): Composition[S] =
-  new Composition[S](members*) {}

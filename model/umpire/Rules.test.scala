@@ -187,7 +187,7 @@ class RulesTest extends munit.FunSuite:
     assertEquals(Odd.name, "odd")
     assertEquals(Odd.members, Vector(Switch, Unfelt, Stuck))
     // Built directly, so the IR files the gate holds model/ir to stay the Models' own.
-    IrFile("rules-test", Seq(Odd, Switch)).construct()
+    IrFile("rules-test", Seq(Odd, Switch)).construct(): Unit
   }
 
   test("a rule names its action as written") {

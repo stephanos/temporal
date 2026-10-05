@@ -8,15 +8,24 @@
 package fixture.specimens.admission
 
 import umpire.*
+import AdmissionFamily.given
+import Entities.activity
 
 // ### The product: what a caller reads of the activity, as far as the designs' refinement reads it
 
-/** The product's own family, so its claims stay apart from the designs'. */
-val productFamily: Family = Family("fixture.specimens.admission.product")
+/**
+ * The product's own family, so its claims stay apart from the designs'. The families sit in objects
+ * of their own, which the machine objects read while they initialize.
+ */
+object ProductFamily:
+  val family: Family = Family("fixture.specimens.admission.product")
 
 val caller = Party()
 val worker = Party()
-val activity = Entity(key = "activityId")
+
+/** The entity, in an object of its own, which the machine objects read while they initialize. */
+object Entities:
+  val activity = Entity(key = "activityId")
 
 enum Outcome derives Finite:
   case accepted, notFound
@@ -69,24 +78,32 @@ object Product:
     else disabled
 
 /** No unpause is in scope, so a path may end paused, as the designs' paths may. */
-val activityProduct =
-  machine[ProductState, Outcome, ProductFact](productFamily, "activityProduct") {
-    forEntity(activity)
-    starts(ProductState(ProductPhase.scheduled))
-    ends(s => s.phase == ProductPhase.completed || s.phase == ProductPhase.paused)
-    steps(
-      attemptStart ~> Product.attemptStart,
-      attemptResult ~> Product.attemptResult,
-      control ~> Product.control
-    )
-  }
+object ActivityProduct
+    extends Machine[ProductState, Outcome, ProductFact](using
+      ProductFamily.family,
+      summon,
+      summon,
+      summon
+    ):
+  val entity = activity
+  val init = ProductState(ProductPhase.scheduled)
+  def end(s: State) = s.phase == ProductPhase.completed || s.phase == ProductPhase.paused
+
+  object rules
+      extends Bindings(
+        attemptStart ~> Product.attemptStart,
+        attemptResult ~> Product.attemptResult,
+        control ~> Product.control
+      )
 
 /** The product's promise the designs are read against: no step from paused lands in started. */
-val pausedIsNotDispatched = activityProduct.property
+val pausedIsNotDispatched = ActivityProduct.property
   .never(_.state.phase == ProductPhase.started)
   .from(_.phase == ProductPhase.paused)
 
-given Family = Family("temporal.activity.standalone.admission")
+/** The designs' family. */
+object AdmissionFamily:
+  given family: Family = Family("temporal.activity.standalone.admission")
 
 // ### System vocabulary: one logical activity, one dispatch message, the attempts admission committed
 
@@ -290,37 +307,47 @@ val terminalFinality: Monitor[AdmissionState, Outcome, AdmissionFact, Finality] 
 
 // ### The two designs
 
-val currentAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine {
-    forEntity(activity)
-    monitors(atMostOneActiveAttempt, terminalFinality)
-    refines(activityProduct)(productOfAdmission)
-    starts(scheduledEmpty)
-    ends(admissionEnds)
-    evidence(admissionEvidence)
-    steps(
-      dispatch ~> dispatchStep,
-      control ~> pauseStep,
-      attemptStart ~> admitCurrent,
-      attemptResult ~> resultStep
-    )
-  }
+object CurrentAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
+  val entity = activity
+  def init = scheduledEmpty
+  def end(s: State) = admissionEnds(s)
+  val evidence: AdmissionFact => String = admissionEvidence
 
-val staleAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine {
-    forEntity(activity)
-    monitors(atMostOneActiveAttempt, terminalFinality)
-    refines(activityProduct)(productOfAdmission)
-    starts(scheduledEmpty)
-    ends(admissionEnds)
-    evidence(admissionEvidence)
-    steps(
-      dispatch ~> dispatchStep,
-      control ~> pauseStep,
-      attemptStart ~> admitStale,
-      attemptResult ~> resultStep
-    )
-  }
+  object refinement extends Refinement(ActivityProduct):
+    def toProduct(s: AdmissionState) = productOfAdmission(s)
+
+  object monitors extends Section:
+    val oneActive = atMostOneActiveAttempt
+    val finality = terminalFinality
+
+  object rules
+      extends Bindings(
+        dispatch ~> dispatchStep,
+        control ~> pauseStep,
+        attemptStart ~> admitCurrent,
+        attemptResult ~> resultStep
+      )
+
+object StaleAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
+  val entity = activity
+  def init = scheduledEmpty
+  def end(s: State) = admissionEnds(s)
+  val evidence: AdmissionFact => String = admissionEvidence
+
+  object refinement extends Refinement(ActivityProduct):
+    def toProduct(s: AdmissionState) = productOfAdmission(s)
+
+  object monitors extends Section:
+    val oneActive = atMostOneActiveAttempt
+    val finality = terminalFinality
+
+  object rules
+      extends Bindings(
+        dispatch ~> dispatchStep,
+        control ~> pauseStep,
+        attemptStart ~> admitStale,
+        attemptResult ~> resultStep
+      )
 
 // ### Promises, written once and declared on each design
 
@@ -366,5 +393,5 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
       .in(stale) limits three total 135
   )
 
-val currentQueries: Vector[Query] = admissionQueries(currentAdmission)
-val staleQueries: Vector[Query] = admissionQueries(staleAdmission)
+val currentQueries: Vector[Query] = admissionQueries(CurrentAdmission)
+val staleQueries: Vector[Query] = admissionQueries(StaleAdmission)

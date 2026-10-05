@@ -13,6 +13,8 @@
 package fixture.realizations
 
 import umpire.*
+import DoorEntity.door
+import ErrandEntity.errand
 import umpire.realize.*, temporal.realize.{Role, RoleKind, WorkerActivation, WorkflowHistory}
 import umpire.realize.Instruction.*, temporal.realize.WorkerInstruction.*
 import umpire.realize.Operand.*
@@ -53,9 +55,17 @@ enum DoorFact derives Finite:
 
 type DoorStep = Step[DoorState, DoorOutcome, DoorFact]
 
-val doorFamily: umpire.Family = umpire.Family("fixture.realizations.door")
+/**
+ * The doors' family and entity, in objects of their own, which the machine objects read while they
+ * initialize.
+ */
+object DoorFamily:
+  val family: umpire.Family = umpire.Family("fixture.realizations.door")
+
+object DoorEntity:
+  val door: Entity = Entity(key = "doorId")
+
 val doorkeeper: Party = Party()
-val door: Entity = Entity(key = "doorId")
 val push = action(doorkeeper) on door
 
 /** A push opens a closed door, and says why; an open door takes no push. */
@@ -67,22 +77,27 @@ def pushStep(s: DoorState): List[DoorStep] = s match
 def doorEvidence(f: DoorFact): String = f match
   case DoorFact.doorOpened => "doorOpened"
 
-val doorMachine: Machine[DoorState, DoorOutcome, DoorFact] =
-  machine[DoorState, DoorOutcome, DoorFact](doorFamily, "door") {
-    forEntity(door)
-    starts(DoorState.closed)
-    ends(_ == DoorState.open)
-    evidence(doorEvidence)
-    steps(push ~> pushStep)
-  }
+object Door
+    extends Machine[DoorState, DoorOutcome, DoorFact](using
+      DoorFamily.family,
+      summon,
+      summon,
+      summon
+    ):
+  val entity = door
+  val init = DoorState.closed
+  def end(doorState: State) = doorState == DoorState.open
+  val evidence: DoorFact => String = doorEvidence
+
+  object rules extends Bindings(push ~> pushStep)
 
 /** The step's explanation is part of the step a Property reads, as its outcome and facts are. */
 private val opensBecauseTheLatchGives =
-  doorMachine.property when push holds { s =>
+  Door.property when push holds { s =>
     s.because == "the latch gives" && s.facts.contains(DoorFact.doorOpened)
   }
 
-private val pushed = doorMachine.scenario.starts(DoorState.closed).actions(push)
+private val pushed = Door.scenario.starts(DoorState.closed).actions(push)
 
 val doorOpens: Query =
   query("door.opens") find opensBecauseTheLatchGives in pushed limits Limits(
@@ -93,7 +108,7 @@ val doorOpens: Query =
   ) total 2
 
 val doorRealization: Realization = Realization(
-  machine = doorMachine,
+  machine = Door,
   producer = "fixture.realizations",
   producerVersion = "1",
   roles = roles,
@@ -209,18 +224,23 @@ private def doorCorrelation(scope: String) = Correlation(
 // ### A learned run id, read by two branches
 
 /** A door the start call opens. A machine runs under one realization, so it is a door of its own. */
-val runMachine: Machine[DoorState, DoorOutcome, DoorFact] =
-  machine[DoorState, DoorOutcome, DoorFact](doorFamily, "run") {
-    forEntity(door)
-    starts(DoorState.closed)
-    ends(_ == DoorState.open)
-    evidence(doorEvidence)
-    steps(push ~> pushStep)
-  }
+object Run
+    extends Machine[DoorState, DoorOutcome, DoorFact](using
+      DoorFamily.family,
+      summon,
+      summon,
+      summon
+    ):
+  val entity = door
+  val init = DoorState.closed
+  def end(doorState: State) = doorState == DoorState.open
+  val evidence: DoorFact => String = doorEvidence
 
-private val runOpened = runMachine.property when push holds (_.facts.contains(DoorFact.doorOpened))
+  object rules extends Bindings(push ~> pushStep)
 
-private val started = runMachine.scenario.starts(DoorState.closed).actions(push)
+private val runOpened = Run.property when push holds (_.facts.contains(DoorFact.doorOpened))
+
+private val started = Run.scenario.starts(DoorState.closed).actions(push)
 
 val runOpens: Query = query("run.opens") find runOpened in started limits onePush total 2
 
@@ -339,7 +359,7 @@ private val history = Command(
 )
 
 val learnedRun: Realization = Realization(
-  machine = runMachine,
+  machine = Run,
   producer = "fixture.realizations",
   producerVersion = "1",
   roles = roles,
@@ -376,19 +396,24 @@ val dispatchChannel: Channel[DoorFact] =
   )
 
 /** A door the race pushes while the dispatch is held. */
-val raceMachine: Machine[DoorState, DoorOutcome, DoorFact] =
-  machine[DoorState, DoorOutcome, DoorFact](doorFamily, "race") {
-    forEntity(door)
-    starts(DoorState.closed)
-    ends(_ == DoorState.open)
-    evidence(doorEvidence)
-    steps(push ~> pushStep)
-  }
+object Race
+    extends Machine[DoorState, DoorOutcome, DoorFact](using
+      DoorFamily.family,
+      summon,
+      summon,
+      summon
+    ):
+  val entity = door
+  val init = DoorState.closed
+  def end(doorState: State) = doorState == DoorState.open
+  val evidence: DoorFact => String = doorEvidence
+
+  object rules extends Bindings(push ~> pushStep)
 
 private val pushedWhileHeld =
-  raceMachine.property when push holds (_.facts.contains(DoorFact.doorOpened))
+  Race.property when push holds (_.facts.contains(DoorFact.doorOpened))
 
-private val heldRace = raceMachine.scenario.starts(DoorState.closed).actions(push)
+private val heldRace = Race.scenario.starts(DoorState.closed).actions(push)
 
 val pauseRaceQuery: Query =
   query("race.paused") find pushedWhileHeld in heldRace limits onePush total 2
@@ -410,7 +435,7 @@ private def raceEvidence(records: String, commitment: Commitment) =
   )
 
 val pauseRace: Realization = Realization(
-  machine = raceMachine,
+  machine = Race,
   producer = "fixture.realizations",
   producerVersion = "1",
   roles = roles,
@@ -510,20 +535,28 @@ val staysOpen: Monitor[DoorState, DoorOutcome, DoorFact, Seen] =
   monitor[DoorState, DoorOutcome, DoorFact, Seen](Seen.shut)(seen)(_ == Seen.reopened)
 
 /** A door with authored monitors, which no realization above runs. */
-val watchedMachine: Machine[DoorState, DoorOutcome, DoorFact] =
-  machine[DoorState, DoorOutcome, DoorFact](doorFamily, "watched") {
-    forEntity(door)
-    monitors(opensOnce, staysOpen)
-    starts(DoorState.closed)
-    ends(_ == DoorState.open)
-    evidence(doorEvidence)
-    steps(push ~> pushStep)
-  }
+object Watched
+    extends Machine[DoorState, DoorOutcome, DoorFact](using
+      DoorFamily.family,
+      summon,
+      summon,
+      summon
+    ):
+  val entity = door
+  val init = DoorState.closed
+  def end(doorState: State) = doorState == DoorState.open
+  val evidence: DoorFact => String = doorEvidence
+
+  object monitors extends Section:
+    val once = opensOnce
+    val open = staysOpen
+
+  object rules extends Bindings(push ~> pushStep)
 
 private val watchedOpens =
-  watchedMachine.property when push holds (_.facts.contains(DoorFact.doorOpened))
+  Watched.property when push holds (_.facts.contains(DoorFact.doorOpened))
 
-private val watched = watchedMachine.scenario.starts(DoorState.closed).actions(push)
+private val watched = Watched.scenario.starts(DoorState.closed).actions(push)
 
 // A Run's expected verdicts with each monitor named by value, beside the same verdicts with each
 // named by its name: one expected Run.
@@ -574,10 +607,15 @@ enum ErrandFact derives Finite:
 
 type ErrandStep = Step[ErrandState, ErrandOutcome, ErrandFact]
 
-val errandFamily: umpire.Family = umpire.Family("fixture.realizations.errand")
+/** The errand's family and entity, in objects of their own, as the doors' are. */
+object ErrandFamily:
+  val family: umpire.Family = umpire.Family("fixture.realizations.errand")
+
+object ErrandEntity:
+  val errand: Entity = Entity(key = "errandId")
+
 val requester: Party = Party()
 val runner: Party = Party()
-val errand: Entity = Entity(key = "errandId")
 val request = action(requester).creates(errand)
 val deliver = action(runner) on errand
 val answer = action(runner).on(errand).input[ErrandAnswer]("answer")
@@ -612,21 +650,27 @@ def errandEvidence(f: ErrandFact): String = f match
   case ErrandFact.errandClosed    => "errandClosed"
   case ErrandFact.errandWithdrawn => "errandWithdrawn"
 
-val errandMachine: Machine[ErrandState, ErrandOutcome, ErrandFact] =
-  machine[ErrandState, ErrandOutcome, ErrandFact](errandFamily, "errand") {
-    forEntity(errand)
-    starts(ErrandState.idle)
-    ends(s => s == ErrandState.done || s == ErrandState.withdrawn)
-    evidence(errandEvidence)
-    steps(request ~> requestStep, deliver ~> deliverStep, answer ~> answerStep)
-  }
+object Errand
+    extends Machine[ErrandState, ErrandOutcome, ErrandFact](using
+      ErrandFamily.family,
+      summon,
+      summon,
+      summon
+    ):
+  val entity = errand
+  val init = ErrandState.idle
+  def end(s: State) = s == ErrandState.done || s == ErrandState.withdrawn
+  val evidence: ErrandFact => String = errandEvidence
+
+  object rules
+      extends Bindings(request ~> requestStep, deliver ~> deliverStep, answer ~> answerStep)
 
 private val closesOnCompletion =
-  errandMachine.property when answer(ErrandAnswer.completed) holds { s =>
+  Errand.property when answer(ErrandAnswer.completed) holds { s =>
     s.state == ErrandState.done && s.facts.contains(ErrandFact.errandClosed)
   }
 
-private val retriedOnce = errandMachine.scenario
+private val retriedOnce = Errand.scenario
   .starts(ErrandState.idle)
   .actions(request, deliver, answer(ErrandAnswer.failed), deliver, answer(ErrandAnswer.completed))
 
@@ -641,11 +685,11 @@ val errandRetry: Query =
 // The one path that takes the worker's canceled answer, which Testpilot has no instruction for: its
 // Query is blocked by that command, and the retry above, whose path does not take it, is not.
 private val withdrawsOnCancel =
-  errandMachine.property when answer(ErrandAnswer.canceled) holds { s =>
+  Errand.property when answer(ErrandAnswer.canceled) holds { s =>
     s.state == ErrandState.withdrawn && s.facts.contains(ErrandFact.errandWithdrawn)
   }
 
-private val canceledOnce = errandMachine.scenario
+private val canceledOnce = Errand.scenario
   .starts(ErrandState.idle)
   .actions(request, deliver, answer(ErrandAnswer.canceled))
 
@@ -706,7 +750,7 @@ private def awaitListed(
   )
 
 val errandRealization: Realization = Realization(
-  machine = errandMachine,
+  machine = Errand,
   producer = "fixture.realizations",
   producerVersion = "1",
   roles = roles,
@@ -862,19 +906,24 @@ val errandRealization: Realization = Realization(
 // ### What no Case carries yet
 
 /** A second door, for a realization of its own: a machine runs under one. */
-val tallyMachine: Machine[DoorState, DoorOutcome, DoorFact] =
-  machine[DoorState, DoorOutcome, DoorFact](doorFamily, "tally") {
-    forEntity(door)
-    starts(DoorState.closed)
-    ends(_ == DoorState.open)
-    evidence(doorEvidence)
-    steps(push ~> pushStep)
-  }
+object Tally
+    extends Machine[DoorState, DoorOutcome, DoorFact](using
+      DoorFamily.family,
+      summon,
+      summon,
+      summon
+    ):
+  val entity = door
+  val init = DoorState.closed
+  def end(doorState: State) = doorState == DoorState.open
+  val evidence: DoorFact => String = doorEvidence
+
+  object rules extends Bindings(push ~> pushStep)
 
 private val tallyOpened =
-  tallyMachine.property when push holds (_.facts.contains(DoorFact.doorOpened))
+  Tally.property when push holds (_.facts.contains(DoorFact.doorOpened))
 
-private val tallied = tallyMachine.scenario.starts(DoorState.closed).actions(push)
+private val tallied = Tally.scenario.starts(DoorState.closed).actions(push)
 
 val tallyOpens: Query =
   query("tally.opens") find tallyOpened in tallied limits Limits(
@@ -916,7 +965,7 @@ private val tallyOpenedEvidence = Evidence.read(
 )
 
 val tallyRealization: Realization = Realization(
-  machine = tallyMachine,
+  machine = Tally,
   producer = "fixture.realizations",
   producerVersion = "1",
   roles = roles,

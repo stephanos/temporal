@@ -69,8 +69,9 @@ def forgetStep(s: State): List[Step[State, Outcome, Nothing]] = s.kept match
 def pollStep(s: State): List[Step[State, Outcome, Nothing]] =
   if s.polls == 0 then List(Step(Outcome.accepted, s.copy(polls = 1))) else Nil
 
-val presence = machine[State, Outcome, Nothing] {
-  starts(State(Report.unsent, None, Retries.none, 0))
-  ends(s => s.kept != None)
-  steps(send ~> sendStep, keep ~> keepStep, forget ~> forgetStep, poll ~> pollStep)
-}
+object Presence extends Machine[State, Outcome, Nothing]:
+  val init = State(Report.unsent, None, Retries.none, 0)
+  def end(s: State) = s.kept != None
+
+  object rules
+      extends Bindings(send ~> sendStep, keep ~> keepStep, forget ~> forgetStep, poll ~> pollStep)

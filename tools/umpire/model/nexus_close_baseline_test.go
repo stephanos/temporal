@@ -175,7 +175,7 @@ var closePromises = map[string]string{
 // closeDeclared finds each declaration of the sources by its kind: by the name it states, or by the
 // val it takes its name from. A pattern's first group that matched is the name.
 var closeDeclared = map[string]*regexp.Regexp{
-	"machine":    regexp.MustCompile(`(?m)^\s*val (\w+) =\s*(?:machine\[|\w+\s*\.(?:assuming|rebind|extend|restrict)\()`),
+	"machine":    regexp.MustCompile(`(?m)^object (\w+)\s+extends\s+(?:Machine\[|Derived\()`),
 	"monitor":    regexp.MustCompile(`(?m)^\s*val (\w+) =\s*(?:monitor\[|sticky\(|stickyAcross\()`),
 	"assumption": regexp.MustCompile(`assume\(\s*"([^"]+)"\s*\)`),
 	"progress":   regexp.MustCompile(`\.leadsTo\(\s*"([^"]+)"\s*\)`),
@@ -184,8 +184,9 @@ var closeDeclared = map[string]*regexp.Regexp{
 	"query":      regexp.MustCompile(`query\(\s*s"\$\{m\.name\}\.([^"]+)"\s*\)`),
 }
 
-// A Query that names itself neither, named after its Scenario and the Property its claims hold.
-var closeDefaultQuery = regexp.MustCompile(`query\s+(?:verify|find)\s+claims\.(\w+)\s+in\s+(\w+)`)
+// A Query that names itself neither, named after its Scenario, a val or one written in it by name,
+// and the Property its claims hold.
+var closeDefaultQuery = regexp.MustCompile(`query\s+(?:verify|find)\s+claims\.(\w+)\s+in\s+(?:m\s*\.scenario\(\s*"(\w+)"\s*\)|(\w+))`)
 
 // closeSource is every name the Scala sources of the designs declare, as "<kind> <name>".
 func closeSource(t *testing.T) []string {
@@ -201,6 +202,10 @@ func closeSource(t *testing.T) []string {
 			for _, match := range declares.FindAllStringSubmatch(string(source), -1) {
 				for _, name := range match[1:] {
 					if name != "" {
+						// A machine object is named after its object, the first letter lowered.
+						if kind == "machine" {
+							name = strings.ToLower(name[:1]) + name[1:]
+						}
 						found[kind+" "+name] = true
 						break
 					}
@@ -208,7 +213,7 @@ func closeSource(t *testing.T) []string {
 			}
 		}
 		for _, match := range closeDefaultQuery.FindAllStringSubmatch(string(source), -1) {
-			found["query "+match[2]+"."+match[1]] = true
+			found["query "+match[2]+match[3]+"."+match[1]] = true
 		}
 	}
 	return slices.Sorted(maps.Keys(found))
@@ -332,10 +337,10 @@ type closeClaim struct {
 func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	m := closeModel(t).model
 	// An action keeps the Definition ID of the package the Model was written in; a Function takes the
-	// compiler's name, in the package the Model moved to (fn-114.9) and the object that holds it
-	// (fn-126).
+	// compiler's name, in the package the Model moved to (fn-114.9) and the object and section that
+	// hold it (fn-126).
 	const model = "temporal.nexuscaller.closepolicy.Model$package$."
-	const functions, properties = "temporal.features.nexuscaller.closepolicy.RejectAfterClose$.", "temporal.features.nexuscaller.closepolicy.RejectAfterClose$.properties$."
+	const functions, properties = "temporal.features.nexuscaller.closepolicy.RejectAfterClose$.states$.", "temporal.features.nexuscaller.closepolicy.RejectAfterClose$.properties$."
 	names := map[string]string{}
 	fair := map[string][]string{}
 	for _, a := range m.GetAssumptions() {

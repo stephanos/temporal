@@ -13,17 +13,17 @@ object Forward:
     val held = late
   val constant = fixed + 1
   final val fixed = 2
-  // A context function is applied where it is written, as `machine[S, O, F] { ... }` is.
+  // A context function is applied where it is written, as a DSL block that takes one is.
   val inContext = applied(late)
   val late = 1
 
 def applied(body: Int ?=> Int): Int = body(using 0)
 
 // (d): a Model declaration beside the feature file.
-def stray = Switch.switch.scenario.actions(flip)
+def stray = Switch.scenario.actions(flip)
 
 // (d): a Model declaration in a type's companion beside the feature file.
 final case class Spare(lit: Boolean)
 
 object Spare:
-  def strayInCompanion = Switch.switch.scenario.actions(flip)
+  def strayInCompanion = Switch.scenario.actions(flip)

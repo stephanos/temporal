@@ -1677,7 +1677,7 @@
     "name": "admissionResponseLoss.evidence",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 445
+      "line": 446
     },
     "params": [ {
       "name": "admissionResponseFact",
@@ -1688,13 +1688,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 445
+        "line": 446
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 445
+            "line": 446
           },
           "var": "admissionResponseFact"
         },
@@ -1710,7 +1710,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 445
+              "line": 446
             },
             "literal": {
               "text": "dispatchSent"
@@ -1728,7 +1728,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 445
+              "line": 446
             },
             "literal": {
               "text": "attemptAdmitted"
@@ -1741,7 +1741,7 @@
     "name": "admissionResponseLoss.property.committedDespiteLostResponse",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 473
+      "line": 475
     },
     "params": [ {
       "name": "after",
@@ -1752,14 +1752,14 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 474
+        "line": 476
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 474
+            "line": 476
           },
           "literal": {
             "enum": {
@@ -1771,13 +1771,13 @@
         "right": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 474
+            "line": 476
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 474
+                "line": 476
               },
               "var": "after"
             },
@@ -1790,7 +1790,7 @@
     "name": "admissionResponseLoss.rules.ackLoss",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 467
+      "line": 469
     },
     "params": [ {
       "name": "s",
@@ -1801,19 +1801,19 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 467
+        "line": 469
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 465
+            "line": 467
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 465
+                "line": 467
               },
               "var": "s"
             },
@@ -1823,14 +1823,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 467
+            "line": 469
           },
           "call": {
             "function": "temporal.features.standaloneactivity.record.AdmissionResponseLoss$.effects$.loseResponse",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 467
+                "line": 469
               },
               "var": "s"
             } ]
@@ -1839,7 +1839,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 467
+            "line": 469
           },
           "list": { }
         }
@@ -1849,7 +1849,7 @@
     "name": "admissionResponseLoss.rules.dispatch",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 466
+      "line": 468
     },
     "params": [ {
       "name": "s",
@@ -1860,19 +1860,19 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 466
+        "line": 468
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 465
+            "line": 467
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 465
+                "line": 467
               },
               "var": "s"
             },
@@ -1882,14 +1882,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 466
+            "line": 468
           },
           "call": {
             "function": "temporal.features.standaloneactivity.record.AdmissionResponseLoss$.effects$.sendDispatch",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 466
+                "line": 468
               },
               "var": "s"
             } ]
@@ -1898,7 +1898,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 466
+            "line": 468
           },
           "list": { }
         }
@@ -1908,7 +1908,7 @@
     "name": "heldAdmission.evidence",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 369
+      "line": 370
     },
     "params": [ {
       "name": "admissionFact",
@@ -1919,13 +1919,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 369
+        "line": 370
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 369
+            "line": 370
           },
           "var": "admissionFact"
         },
@@ -1941,7 +1941,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 369
+              "line": 370
             },
             "literal": {
               "text": "statusStarted"
@@ -1959,7 +1959,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 369
+              "line": 370
             },
             "literal": {
               "text": "statusPaused"
@@ -1977,7 +1977,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 369
+              "line": 370
             },
             "literal": {
               "text": "statusCompleted"
@@ -1996,7 +1996,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 370
+              "line": 371
             },
             "literal": {
               "text": "statusTimedOut"
@@ -2014,7 +2014,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 369
+              "line": 370
             },
             "literal": {
               "text": "dispatchSent"
@@ -2032,7 +2032,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 369
+              "line": 370
             },
             "literal": {
               "text": "attemptAdmitted"
@@ -2050,7 +2050,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 369
+              "line": 370
             },
             "literal": {
               "text": "admissionRejected"
@@ -2068,7 +2068,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 369
+              "line": 370
             },
             "literal": {
               "text": "admissionCommitFailed"
@@ -2086,7 +2086,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 369
+              "line": 370
             },
             "literal": {
               "text": "deliveryAnswered"
@@ -2099,7 +2099,7 @@
     "name": "heldAdmission.property.staleDeliveryRejected",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 410
+      "line": 411
     },
     "params": [ {
       "name": "step",
@@ -2110,14 +2110,14 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 410
+        "line": 411
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 410
+            "line": 411
           },
           "literal": {
             "enum": {
@@ -2129,13 +2129,13 @@
         "right": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 410
+            "line": 411
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 410
+                "line": 411
               },
               "var": "step"
             },
@@ -2148,7 +2148,7 @@
     "name": "heldAdmission.rules.answerDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 403
+      "line": 404
     },
     "params": [ {
       "name": "s",
@@ -2159,26 +2159,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 403
+        "line": 404
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 402
+            "line": 403
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 402
+                "line": 403
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 402
+                    "line": 403
                   },
                   "var": "s"
                 },
@@ -2188,7 +2188,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 402
+                "line": 403
               },
               "literal": {
                 "enum": {
@@ -2202,14 +2202,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 403
+            "line": 404
           },
           "call": {
             "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.effects$.answerDelivery",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 403
+                "line": 404
               },
               "var": "s"
             } ]
@@ -2218,7 +2218,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 403
+            "line": 404
           },
           "list": { }
         }
@@ -2228,7 +2228,7 @@
     "name": "heldAdmission.rules.attemptStart",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 398
+      "line": 399
     },
     "params": [ {
       "name": "s",
@@ -2239,26 +2239,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 398
+        "line": 399
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 398
+            "line": 399
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 392
+                "line": 393
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 392
+                    "line": 393
                   },
                   "var": "s"
                 },
@@ -2268,13 +2268,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 398
+                "line": 399
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 398
+                    "line": 399
                   },
                   "literal": {
                     "enum": {
@@ -2290,14 +2290,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 398
+            "line": 399
           },
           "call": {
             "function": "temporal.features.standaloneactivity.record.HeldAdmission$.effects$.admitCommitted",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 398
+                "line": 399
               },
               "var": "s"
             } ]
@@ -2306,26 +2306,26 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 400
+            "line": 401
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 400
+                "line": 401
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 392
+                    "line": 393
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                        "line": 392
+                        "line": 393
                       },
                       "var": "s"
                     },
@@ -2335,13 +2335,13 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 400
+                    "line": 401
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                        "line": 399
+                        "line": 400
                       },
                       "literal": {
                         "enum": {
@@ -2352,7 +2352,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                        "line": 399
+                        "line": 400
                       },
                       "literal": {
                         "enum": {
@@ -2363,7 +2363,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                        "line": 399
+                        "line": 400
                       },
                       "literal": {
                         "enum": {
@@ -2374,7 +2374,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                        "line": 399
+                        "line": 400
                       },
                       "literal": {
                         "enum": {
@@ -2385,7 +2385,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                        "line": 399
+                        "line": 400
                       },
                       "literal": {
                         "enum": {
@@ -2401,14 +2401,14 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 400
+                "line": 401
               },
               "call": {
                 "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.effects$.reject",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 400
+                    "line": 401
                   },
                   "var": "s"
                 } ]
@@ -2417,7 +2417,7 @@
             "else": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 398
+                "line": 399
               },
               "list": { }
             }
@@ -2429,7 +2429,7 @@
     "name": "heldAdmission.rules.control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 396
+      "line": 397
     },
     "params": [ {
       "name": "s",
@@ -2445,13 +2445,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 396
+        "line": 397
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 396
+            "line": 397
           },
           "var": "control"
         },
@@ -2467,26 +2467,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 396
+              "line": 397
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                  "line": 396
+                  "line": 397
                 },
                 "binary": {
                   "op": "OP_CONTAINS",
                   "left": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                      "line": 392
+                      "line": 393
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                          "line": 392
+                          "line": 393
                         },
                         "var": "s"
                       },
@@ -2496,13 +2496,13 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                      "line": 396
+                      "line": 397
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                          "line": 396
+                          "line": 397
                         },
                         "literal": {
                           "enum": {
@@ -2518,14 +2518,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                  "line": 396
+                  "line": 397
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.effects$.pause",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                      "line": 396
+                      "line": 397
                     },
                     "var": "s"
                   } ]
@@ -2534,26 +2534,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                  "line": 397
+                  "line": 398
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                      "line": 397
+                      "line": 398
                     },
                     "binary": {
                       "op": "OP_CONTAINS",
                       "left": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                          "line": 392
+                          "line": 393
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                              "line": 392
+                              "line": 393
                             },
                             "var": "s"
                           },
@@ -2563,13 +2563,13 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                          "line": 397
+                          "line": 398
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                              "line": 397
+                              "line": 398
                             },
                             "literal": {
                               "enum": {
@@ -2585,14 +2585,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                      "line": 397
+                      "line": 398
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.effects$.pauseHeld",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                          "line": 397
+                          "line": 398
                         },
                         "var": "s"
                       } ]
@@ -2601,7 +2601,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                      "line": 396
+                      "line": 397
                     },
                     "list": { }
                   }
@@ -2621,7 +2621,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 396
+              "line": 397
             },
             "list": { }
           }
@@ -2637,7 +2637,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 396
+              "line": 397
             },
             "list": { }
           }
@@ -2653,7 +2653,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-              "line": 396
+              "line": 397
             },
             "list": { }
           }
@@ -2664,7 +2664,7 @@
     "name": "heldAdmission.rules.dispatch",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 395
+      "line": 396
     },
     "params": [ {
       "name": "s",
@@ -2675,26 +2675,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 395
+        "line": 396
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 395
+            "line": 396
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 392
+                "line": 393
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 392
+                    "line": 393
                   },
                   "var": "s"
                 },
@@ -2704,13 +2704,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 395
+                "line": 396
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 395
+                    "line": 396
                   },
                   "literal": {
                     "enum": {
@@ -2726,14 +2726,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 395
+            "line": 396
           },
           "call": {
             "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.effects$.sendDispatch",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 395
+                "line": 396
               },
               "var": "s"
             } ]
@@ -2742,7 +2742,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 395
+            "line": 396
           },
           "list": { }
         }
@@ -4097,6 +4097,177 @@
     "name": "temporal.features.standaloneactivity.record.AdmissionResponseLoss$.effects$.loseResponse",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+      "line": 456
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.standaloneactivity.AdmissionResponseState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+        "line": 456
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+            "line": 457
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+                "line": 179
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                "line": 458
+              },
+              "construct": {
+                "type": "temporal.standaloneactivity.AdmissionResponseState",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                    "line": 458
+                  },
+                  "call": {
+                    "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.states$.admitted",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                        "line": 458
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                            "line": 458
+                          },
+                          "var": "s"
+                        },
+                        "field": "record"
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                    "line": 458
+                  },
+                  "literal": {
+                    "bool": false
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                "line": 459
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                    "line": 459
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.AdmissionResponseFact",
+                      "case": "attemptAdmitted"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                "line": 457
+              },
+              "literal": {
+                "text": ""
+              }
+            } ],
+            "choice": "committedThenLost"
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+            "line": 461
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+                "line": 179
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                "line": 461
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                    "line": 461
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "lossAvailable",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                      "line": 461
+                    },
+                    "literal": {
+                      "bool": false
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                "line": 461
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
+                "line": 461
+              },
+              "literal": {
+                "text": "the durable update failed before its answer was lost"
+              }
+            } ],
+            "choice": "failedThenLost"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.record.AdmissionResponseLoss$.effects$.sendDispatch",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/record/Record.scala",
       "line": 454
     },
     "params": [ {
@@ -4114,7 +4285,7 @@
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 455
+            "line": 454
           },
           "construct": {
             "type": "umpire.Step",
@@ -4132,190 +4303,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 456
-              },
-              "construct": {
-                "type": "temporal.standaloneactivity.AdmissionResponseState",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 456
-                  },
-                  "call": {
-                    "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.states$.admitted",
-                    "args": [ {
-                      "position": {
-                        "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                        "line": 456
-                      },
-                      "field": {
-                        "base": {
-                          "position": {
-                            "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                            "line": 456
-                          },
-                          "var": "s"
-                        },
-                        "field": "record"
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 456
-                  },
-                  "literal": {
-                    "bool": false
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 457
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 457
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.standaloneactivity.AdmissionResponseFact",
-                      "case": "attemptAdmitted"
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 455
-              },
-              "literal": {
-                "text": ""
-              }
-            } ],
-            "choice": "committedThenLost"
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 459
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 179
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.standaloneactivity.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 459
-              },
-              "copy": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 459
-                  },
-                  "var": "s"
-                },
-                "updates": [ {
-                  "name": "lossAvailable",
-                  "value": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                      "line": 459
-                    },
-                    "literal": {
-                      "bool": false
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 459
-              },
-              "list": { }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 459
-              },
-              "literal": {
-                "text": "the durable update failed before its answer was lost"
-              }
-            } ],
-            "choice": "failedThenLost"
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.record.AdmissionResponseLoss$.effects$.sendDispatch",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 452
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.standaloneactivity.AdmissionResponseState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 452
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 452
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 179
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.standaloneactivity.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 452
+                "line": 454
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 452
+                "line": 454
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 452
+                    "line": 454
                   },
                   "literal": {
                     "enum": {
@@ -4328,7 +4328,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 452
+                "line": 454
               },
               "literal": {
                 "text": ""
@@ -5906,7 +5906,7 @@
     "name": "temporal.features.standaloneactivity.record.HeldAdmission$.effects$.admitCommitted",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 380
+      "line": 381
     },
     "params": [ {
       "name": "s",
@@ -5917,13 +5917,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 381
+        "line": 382
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 381
+            "line": 382
           },
           "construct": {
             "type": "umpire.Step",
@@ -5941,14 +5941,14 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 382
+                "line": 383
               },
               "call": {
                 "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.states$.admitted",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 382
+                    "line": 383
                   },
                   "var": "s"
                 } ]
@@ -5956,13 +5956,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 383
+                "line": 384
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 383
+                    "line": 384
                   },
                   "literal": {
                     "enum": {
@@ -5973,7 +5973,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 384
+                    "line": 385
                   },
                   "literal": {
                     "enum": {
@@ -5986,7 +5986,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 381
+                "line": 382
               },
               "literal": {
                 "text": ""
@@ -6000,7 +6000,7 @@
     "name": "temporal.features.standaloneactivity.record.HeldAdmission$.refinement$.toProduct",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 375
+      "line": 376
     },
     "params": [ {
       "name": "s",
@@ -6011,14 +6011,14 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 375
+        "line": 376
       },
       "call": {
         "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.refinement$.toProduct",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 375
+            "line": 376
           },
           "var": "s"
         } ]
@@ -6028,7 +6028,7 @@
     "name": "temporal.features.standaloneactivity.record.HeldAdmission$.refinement$.visible",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 376
+      "line": 377
     },
     "params": [ {
       "name": "f",
@@ -6039,14 +6039,14 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 376
+        "line": 377
       },
       "call": {
         "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.refinement$.visible",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 376
+            "line": 377
           },
           "var": "f"
         } ]
@@ -6350,7 +6350,7 @@
     "name": "ackLoss",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 122
+      "line": 126
     },
     "party": "fault"
   }, {
@@ -6376,7 +6376,7 @@
     "name": "workerStop",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 63
+      "line": 64
     },
     "party": "worker"
   } ],
@@ -6484,7 +6484,7 @@
     "name": "admissionResponseLoss",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 445
+      "line": 446
     },
     "entity": "activity",
     "stateType": "temporal.standaloneactivity.AdmissionResponseState",
@@ -6493,7 +6493,7 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 448
+        "line": 450
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionResponseState",
@@ -6542,7 +6542,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 448
+            "line": 450
           },
           "literal": {
             "bool": true
@@ -6553,7 +6553,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 449
+        "line": 451
       },
       "lambda": {
         "params": [ {
@@ -6565,20 +6565,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 449
+            "line": 451
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 449
+                "line": 451
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                    "line": 449
+                    "line": 451
                   },
                   "var": "s"
                 },
@@ -6594,14 +6594,14 @@
       "function": "admissionResponseLoss.rules.dispatch",
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 466
+        "line": 468
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.ackLoss",
       "function": "admissionResponseLoss.rules.ackLoss",
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 467
+        "line": 469
       }
     } ],
     "evidence": "admissionResponseLoss.evidence"
@@ -6610,7 +6610,7 @@
     "name": "heldAdmission",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 365
+      "line": 366
     },
     "entity": "activity",
     "stateType": "temporal.standaloneactivity.AdmissionState",
@@ -6662,7 +6662,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 368
+        "line": 369
       },
       "lambda": {
         "params": [ {
@@ -6674,14 +6674,14 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 368
+            "line": 369
           },
           "call": {
             "function": "temporal.features.standaloneactivity.record.CurrentAdmission$.end",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-                "line": 368
+                "line": 369
               },
               "var": "s"
             } ]
@@ -6694,28 +6694,28 @@
       "function": "heldAdmission.rules.dispatch",
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 395
+        "line": 396
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
       "function": "heldAdmission.rules.control",
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 396
+        "line": 397
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart",
       "function": "heldAdmission.rules.attemptStart",
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 398
+        "line": 399
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.answerDelivery",
       "function": "heldAdmission.rules.answerDelivery",
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 403
+        "line": 404
       }
     } ],
     "evidence": "heldAdmission.evidence",
@@ -6782,7 +6782,7 @@
     "name": "committedDespiteLostResponse",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 473
+      "line": 475
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.System$package$.ackLoss"
@@ -6793,7 +6793,7 @@
     "name": "staleDeliveryRejected",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 410
+      "line": 411
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
@@ -6805,12 +6805,12 @@
     "name": "oneLostResponse",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 481
+      "line": 483
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-        "line": 448
+        "line": 450
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionResponseState",
@@ -6859,7 +6859,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-            "line": 448
+            "line": 450
           },
           "literal": {
             "bool": true
@@ -6877,7 +6877,7 @@
     "name": "heldStaleDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 416
+      "line": 417
     },
     "start": {
       "position": {
@@ -6940,7 +6940,7 @@
     "name": "admissionResponseLoss.committed",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 480
+      "line": 482
     },
     "form": "FORM_FIND",
     "property": {
@@ -6969,7 +6969,7 @@
     "name": "heldAdmission.staleDelivery",
     "position": {
       "file": "model/temporal/features/standaloneactivity/record/Record.scala",
-      "line": 415
+      "line": 416
     },
     "form": "FORM_FIND",
     "property": {

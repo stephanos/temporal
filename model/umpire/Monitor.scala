@@ -48,7 +48,3 @@ def monitor[S, O, F, M](initial: M)(
     Finite[M]
 ): Monitor[S, O, F, M] =
   monitor[S, O, F, M]("", initial)(next)(violated)
-
-/** The monitors that watch the machine's steps. */
-def monitors[S, O, F](using m: MachineScope[S, O, F])(ms: Monitor[S, O, F, ?]*): Unit =
-  m.monitors ++= ms

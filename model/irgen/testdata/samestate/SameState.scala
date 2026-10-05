@@ -1,24 +1,26 @@
 package fixture.samestate
 
 import umpire.*
+import SameStateFamily.given
 
-given Family = Family("fixture.samestate")
+object SameStateFamily:
+  given family: Family = Family("fixture.samestate")
 
 final case class State(on: Boolean) derives Finite
 
 enum Outcome derives Finite:
   case accepted
 
-val first = machine[State, Outcome, Nothing] {
-  starts(State(false))
-  ends(_ => true)
-}
+object First extends Machine[State, Outcome, Nothing]:
+  val init = State(false)
+  def end(state: State) = true
+  object rules extends Bindings()
 
-val second = machine[State, Outcome, Nothing] {
-  starts(State(false))
-  ends(_ => true)
-}
+object Second extends Machine[State, Outcome, Nothing]:
+  val init = State(false)
+  def end(state: State) = true
+  object rules extends Bindings()
 
-val property: Property[State] = first.property holds (_ => true)
-val scenario: Scenario[State] = second.scenario.starts(State(false)).free
+val property: Property[State] = First.property holds (_ => true)
+val scenario: Scenario[State] = Second.scenario.starts(State(false)).free
 val wrongPair: Query = (query find property in scenario).limits(Limits("one", 1, 1, 1))

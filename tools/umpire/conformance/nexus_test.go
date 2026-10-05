@@ -148,16 +148,16 @@ type nexusWitness struct {
 	why             reason
 }
 
-// Each expectation is read off model/temporal/features/nexuscaller (Claims.scala and the
-// kernel's step functions), which the comment beside it cites.
+// Each expectation is read off model/temporal/features/nexuscaller/NexusCaller.scala (the protocol
+// machine's effects, rules and properties), which the comment beside it cites.
 var nexusWitnesses = []nexusWitness{
 	// A completed event is also what a completion of an operation the handler never answered
-	// synchronously records (completeStep). Such a completion records a started event too, which only a
+	// synchronously records (NexusProtocol.effects.complete). Such a completion records a started event too, which only a
 	// closed history shows to be absent: without the closing read, on that execution no synchronous
 	// reply is taken.
 	{"syncCompletion", "syncSucceeds", []string{"scheduled", "completed"}, whyNeverRead},
 	// A completion that arrives after the operation is over is not found and records nothing
-	// (completeStep, terminalPhase), so no evidence excludes one, and the claim, which is about every
+	// (NexusProtocol.rules, effects.notFound), so no evidence excludes one, and the claim, which is about every
 	// succeeded completion, fails on it.
 	{"asyncCompletion", "completionSucceeds", []string{"scheduled", "started", "completed"}, whyDisagreement},
 	{"asyncFailure", "completionFails", []string{"scheduled", "started", "failed"}, whyDisagreement},

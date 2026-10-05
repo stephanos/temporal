@@ -1,10 +1,10 @@
 // Machine objects with effects, rules and sections (fn-126 R15, R16): the machine object is the
 // machine, its rules say when each action fires and its effects what it does. `Switch` and its twin
-// `Core.coreSwitch`, written in the core with hand-written step functions, lift to the same tables
+// `CoreSwitch`, written in the core with step functions bound by hand, lift to the same tables
 // (tools/umpire/model's TestRulesLowerToTheCoreTables). Then a bare binding that keeps the rules'
-// guards, rules a derivation binds in their source's place, rules a derivation adds, and a
-// composition object with its derived twin. The lifter's tests lift the roots `rules` lists and
-// compare the IR with expected/rules.json.
+// guards, rules a derivation binds in their source's place, rules a derivation adds, a composition
+// object with its derived twin, and one effect a rebind gives the rules of two classes. The
+// lifter's tests lift the roots `rules` lists and compare the IR with expected/rules.json.
 package fixture.rules
 
 import umpire.*
@@ -90,7 +90,7 @@ object Switch extends Machine[Lamp, Outcome, Fact]:
       ) limits
         two total 18
 
-/** `Switch` in the core: one hand-written step function per action, as its rules lower. */
+/** `Switch`'s step functions in the core, hand-written, one per action, as its rules lower. */
 object Core:
   import Switch.effects.*
 
@@ -114,18 +114,22 @@ object Core:
 
   def restStep(s: Lamp): List[Step[Lamp, Outcome, Fact]] = Nil
 
-  val coreSwitch = machine[Lamp, Outcome, Fact] {
-    starts(Lamp(Light.off, UpTo(0)))
-    ends(s => s.light == Light.broken)
-    evidence { case Fact.worn => "wear" }
-    monitors(Switch.monitors.neverWorn)
-    steps(
-      hand.press ~> pressStep,
-      hand.turn ~> turnStep,
-      clock.tick ~> tickStep,
-      clock.rest ~> restStep
-    )
-  }
+/** `Switch` in the core: its rules are the step functions `Core` writes out, bound by hand. */
+object CoreSwitch extends Machine[Lamp, Outcome, Fact]:
+  val init = Lamp(Light.off, UpTo(0))
+  def end(s: State) = s.light == Light.broken
+  val evidence: PartialFunction[Fact, String] = { case Fact.worn => "wear" }
+
+  object monitors extends Section:
+    val neverWorn = Switch.monitors.neverWorn
+
+  object rules
+      extends Bindings(
+        hand.press ~> Core.pressStep,
+        hand.turn ~> Core.turnStep,
+        clock.tick ~> Core.tickStep,
+        clock.rest ~> Core.restStep
+      )
 
 /** A lamp that reads as the switch it refines, state for state, and whose rest is unobservable. */
 object Mirror extends Machine[Lamp, Outcome, Fact]:
@@ -165,3 +169,16 @@ object Unbending extends Derived(Steady.unmonitored)
 
 /** The twins, the right one steady. */
 object Unequal extends Composition(Twins.withMember(_.right -> Unbending))
+
+/** A knob whose two classes fire with effects of their own. */
+object Dial extends Machine[Lamp, Outcome, Fact]:
+  val init = Lamp(Light.off, UpTo(0))
+  def end(s: State) = Switch.states.broken(s)
+  object rules extends Rules(_.light):
+    in(Light.off, Light.on) {
+      hand.turn(Knob.up) ~> Switch.effects.light
+      hand.turn(Knob.down) ~> Switch.effects.dark
+    }
+
+/** One effect, which reads the class, in place of the two classes' effects, each keeping its guard. */
+object Turned extends Derived(Dial.rebind(hand.turn ~> Switch.effects.turned))

@@ -8,3 +8,5 @@
 //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
 //> using jar build/api-scalapb.jar
 //> using test.dep org.scalameta::munit:1.2.0
+// The Models' tests read the checked-in IR's JSON (temporal/IrFiles.test.scala).
+//> using test.dep org.json4s::json4s-jackson:4.0.7

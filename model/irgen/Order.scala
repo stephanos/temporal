@@ -23,16 +23,15 @@ import scala.collection.mutable
  *     implements, queries; a declaration in a section other than its kind's, vocabulary outside
  *     `states`, a refinement's member outside `refinement`, an effect outside `effects` and a
  *     monitor outside `monitors`; a step function bound by hand, `action ~> step`, outside a
- *     derivation's `rebind`; and a machine's section outside its object. A machine object the
- *     builder declares, `val m = machine[S, O, F] { ... }`, keeps the order it had, its monitors its
- *     own members and its capabilities in `laws`;
+ *     derivation's `rebind`; a machine's section outside its object; and an object that holds a
+ *     Model declaration and is no machine or composition object;
  *   - over every inspected file, not just what one IR file lifts: a section (umpire.Section) that
  *     sits anywhere but at the top level of a file or directly in a machine's object, and two
  *     actions, monitors, assumptions, holes or channels that would take one Definition ID.
  *
  * A read inside a def, a lambda, a by-name argument or a lazy val of the owner itself, and an object
- * declared but not read, initializes nothing. A context function the DSL applies at once, such as
- * `machine[S, O, F] { ... }`, is read as written, and so are a rule heading's rules and its guard,
+ * declared but not read, initializes nothing. A context function the DSL applies at once is read
+ * as written, and so are a rule heading's rules and its guard,
  * and the phase projection of `Rules(_.phase)`, which the rules' disjointness check calls while they
  * initialize. A def called while its owner initializes is not followed, so a val it reads is not
  * checked.
@@ -358,15 +357,10 @@ final private[irgen] class Order(index: Index):
 
   /**
    * Whether `owner` is a machine's object, as the lifter reads one (Context.machineObject): an
-   * object at a file's top level that is a machine or a composition, or that holds a machine the
-   * builder declares.
+   * object at a file's top level that is a machine or a composition.
    */
   private def machineObjectAt(owner: Symbol): Boolean =
-    isOwner(owner) && owner.maybeOwner.isPackageDef && !isSection(owner) &&
-      (objectForm(owner) || treeOf(owner).exists {
-        case c: ClassDef => members(c).exists(typed(_, Set("umpire.Machine", "umpire.Composition")))
-        case _           => false
-      })
+    isOwner(owner) && owner.maybeOwner.isPackageDef && !isSection(owner) && objectForm(owner)
 
   // The former owner each owner's `DefinitionScope` pins, read as the lifter reads it.
   private lazy val pins: Map[Symbol, String] = index.defs.values.toList.flatMap {
@@ -459,9 +453,6 @@ final private[irgen] class Order(index: Index):
     case Kind.Laws if inObjectForm  => "the `implements` object of its machine's object"
     case _                          => k.belongs
 
-  /** The sections of a machine object the builder declares, whose capabilities sit in `laws`. */
-  private val sections = Seq("effects", "properties", "laws", "queries")
-
   /**
    * The sections of a machine or composition object, in R2's order: its vocabulary, its refinement,
    * then its declarations by kind; a composition's `syncs` takes the place of `rules`.
@@ -537,7 +528,7 @@ final private[irgen] class Order(index: Index):
     trees.flatMap(in)
 
   private def holdsModel(c: ClassDef): Boolean = objectForm(c.symbol) || members(c).exists { m =>
-    kindOf(m).nonEmpty || objectOf(m).exists(o => sections.contains(plain(o.name)))
+    kindOf(m).nonEmpty || objectOf(m).exists(o => formSections.contains(plain(o.name)))
   }
 
   /** Whether an object holds a Model declaration, or a section, at any depth. */
@@ -666,52 +657,24 @@ final private[irgen] class Order(index: Index):
               "sections sit directly in its machine or composition object"
           )
         case Some(c) if objectForm(c.symbol) => formObject(c)
-        case Some(c) if holdsModel(c)        => machineObject(c)
+        case Some(c) if holdsModel(c)        =>
+          refuse(
+            c,
+            s"${plain(c.name)} holds a Model declaration and is no machine or composition object: " +
+              "a machine is `object M extends Machine[S, O, F]` or `Derived(...)`, a composition " +
+              "`object C extends Composition[S](...)`, and their declarations sit in their sections"
+          )
         case Some(c) => noModelIn(c, s"${plain(c.name)}, an object of the signature")
-        case None    =>
+        // An assumption no machine makes of its own, which a derivation adds with `assuming` or
+        // a progress claim names with `under`, is the feature's: it sits in the signature.
+        case None if typed(d, Set("umpire.Assumption")) => ()
+        case None                                       =>
           for k <- kindOf(d) do
             refuse(
               d,
               s"${d.name} is ${k.written}, declared at the top level of a feature file: it " +
                 s"belongs in ${k.belongs}"
             )
-
-  private val memberOrder =
-    Seq("its vocabulary", "effects", "its monitors", "its machine", "properties", "laws", "queries")
-
-  private def machineObject(c: ClassDef): Unit =
-    val owner = nameOf(c.symbol)
-    def rank(d: Definition): Int = objectOf(d) match
-      case Some(o) =>
-        sections.indexOf(plain(o.name)) match
-          case 0  => 1
-          case -1 => 0
-          case n  => n + 3
-      case None =>
-        kindOf(d) match
-          case Some(Kind.Step)                  => 1
-          case Some(Kind.Watch)                 => 2
-          case Some(Kind.Machine)               => 3
-          case Some(Kind.Claim)                 => 4
-          case Some(Kind.Laws)                  => 5
-          case Some(Kind.Scenario | Kind.Query) => 6
-          case Some(Kind.File) | None           => 0
-    ordered(members(c), rank, memberOrder, s"object $owner")
-    for m <- members(c) do
-      objectOf(m) match
-        case Some(s) if sections.contains(plain(s.name)) => section(c, s)
-        case Some(o)                                     =>
-          if holdsModelWithin(o) then
-            refuse(
-              o,
-              s"${plain(o.name)} holds a Model declaration in $owner, and is none of its sections, " +
-                s"${sections.mkString(", ")}: its declarations belong in them"
-            )
-        case None =>
-          kindOf(m) match
-            case Some(Kind.Watch | Kind.Machine) | None => ()
-            case Some(k)                                =>
-              refuse(m, s"${m.name} is ${k.written}, and belongs in ${k.belongs}, not in $owner")
 
   /**
    * A machine or composition object (R2, R15, R17): its header, then its sections in order, its
@@ -722,11 +685,17 @@ final private[irgen] class Order(index: Index):
     val owner = nameOf(c.symbol)
     val composed = c.symbol.typeRef.derivesFrom(compositionClass)
     val sectionNames = formSections.map(n => if n == "rules" && composed then "syncs" else n)
-    val header = Set("init", "end", "entity", "evidence")
+    // A machine that refines nothing names its unobservable timers among its header members; one
+    // that refines another names them in its `refinement`.
+    val refines = members(c).flatMap(objectOf).exists(o => plain(o.name) == "refinement")
+    val header = Set("init", "end", "entity", "evidence") ++ Option.when(!refines)("unobservable")
     // The object's pin (R6) heads it with the header members.
     def headed(d: Definition) =
       header(d.name) || typed(d, Set("umpire.DefinitionScope", "umpire.Family"))
-    val refinement = Set("refines", "visible", "visibleOutcomes", "unobservable", "toProduct")
+    val refinement =
+      Set("refines", "visible", "visibleOutcomes", "toProduct") ++ Option.when(refines)(
+        "unobservable"
+      )
     def rank(d: Definition): Int = objectOf(d) match
       case Some(o) => sectionNamed(o).fold(-1)(n => formSections.indexOf(n) + 1)
       // Any other member is refused below, at its place.
@@ -740,7 +709,7 @@ final private[irgen] class Order(index: Index):
       )
     for m <- members(c) do
       objectOf(m) match
-        case Some(s) if sectionNamed(s).nonEmpty => section(c, s, formed = true)
+        case Some(s) if sectionNamed(s).nonEmpty => section(c, s)
         // A section of its own, such as a machine's own timers, is refused if misplaced by
         // `placesAndIdentities`, and holds no Model declaration; any other object is vocabulary.
         case Some(o) =>
@@ -801,7 +770,7 @@ final private[irgen] class Order(index: Index):
         case _ => super.traverseTree(t)(o)
     bindings.traverseTree(c)(c.symbol)
 
-  private def section(machineObject: ClassDef, s: ClassDef, formed: Boolean = false): Unit =
+  private def section(machineObject: ClassDef, s: ClassDef): Unit =
     val name = sectionNamed(s).getOrElse(plain(s.name))
     val owner = nameOf(machineObject.symbol)
     val allowed: Set[Kind] = name match
@@ -809,7 +778,6 @@ final private[irgen] class Order(index: Index):
       case "monitors"              => Set(Kind.Watch)
       case "rules"                 => Set.empty // statements alone, or a composition's syncs
       case "properties"            => Set(Kind.Claim)
-      case "laws"                  => Set(Kind.Laws) // a builder-declared machine's
       case "implements"            => Set(Kind.Laws)
       case "states" | "refinement" => Set.empty // vocabulary, and the machine's refinement
       case _                       => Set(Kind.Scenario, Kind.Query)
@@ -835,12 +803,12 @@ final private[irgen] class Order(index: Index):
         refuse(
           m,
           s"${plain(m.name)} is ${k.written}, declared in $owner.$written: it belongs in " +
-            belongs(k, formed)
+            belongs(k, true)
         )
       else
         // A declaration over a machine sits with that machine's object, and a Query with its
         // Scenario.
-        for (named, home, where) <- over(m, machineObject.symbol, s.symbol, formed) do
+        for (named, home, where) <- over(m, machineObject.symbol, s.symbol) do
           val declaring =
             if objectForm(named) then s"${nameOf(named)}, a machine object"
             else s"${named.name}, which ${nameOf(named.maybeOwner)} declares"
@@ -853,8 +821,7 @@ final private[irgen] class Order(index: Index):
   private def over(
       d: Definition,
       machineObject: Symbol,
-      section: Symbol,
-      formed: Boolean
+      section: Symbol
   ): List[(Symbol, Symbol, String)] =
     val found = mutable.ArrayBuffer.empty[(Symbol, Symbol, String)]
     // A member of an object, not a parameter or a local of a declaring function.
@@ -873,7 +840,7 @@ final private[irgen] class Order(index: Index):
           case Select(m, "property") => machine(m, ".properties")
           case Select(m, "scenario") => machine(m, ".queries")
           case Apply(fn, (m: Ref) :: _) if fn.symbol.name == "capabilities" =>
-            machine(m, if formed then ".implements" else ".laws")
+            machine(m, ".implements")
           case r: Ref
               if kindOf(d).contains(Kind.Query) && declared(r, Kind.Scenario) &&
                 r.symbol.maybeOwner != section =>

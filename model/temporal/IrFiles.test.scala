@@ -1,6 +1,7 @@
 package temporal
 // Every IR file's roots, constructed as Scala: the model gate runs this, so a machine whose rules
-// overlap, which its `rules` object refuses as it is constructed, fails the gate (fn-126 R16).
+// overlap, which its `rules` object refuses as it is constructed, fails the gate (fn-126 R16). Every
+// machine an IR file lifts must be among those constructed, so none escapes that check.
 
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
@@ -31,9 +32,21 @@ class IrFilesTest extends munit.FunSuite:
         .toSet
     finally stream.close()
 
+  /** The names of the machines an IR file lifts: its `machines`, each by its `name`. */
+  def liftedMachines(file: String): Set[String] =
+    import org.json4s.*
+    val ir = org.json4s.jackson.JsonMethods.parse(Files.readString(Path.of(s"model/ir/$file.json")))
+    (ir \ "machines" \ "name").children.collect { case JString(n) => n }.toSet
+
   test("every IR file is declared by a feature's exports, and every root of each constructs") {
     assertEquals(declaring.size, 4)
     val declared = IrFile.declared
     assertEquals(declared.map(_.name).toSet, checkedIn)
-    declared.foreach(_.construct())
+    for file <- declared do
+      val unconstructed = liftedMachines(file.name) -- file.construct()
+      assert(
+        unconstructed.isEmpty,
+        s"${file.name}.json lifts ${unconstructed.toSeq.sorted.mkString(", ")}, which constructing " +
+          "its roots never reaches, so no rule overlap of theirs is checked"
+      )
   }

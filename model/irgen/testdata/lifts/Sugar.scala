@@ -1,13 +1,16 @@
-// Each sugar form of model/umpire/Syntax.scala beside its core form: `sugared` binds and claims with
-// the sugar, `cored` with the core spelling, action by action and Property by Property, and `watched`
+// Each sugar form of model/umpire/Syntax.scala beside its core form: `Sugared` binds and claims with
+// the sugar, `Cored` with the core spelling, action by action and Property by Property, and `Watched`
 // is watched by each sticky monitor and its `monitor` spelling. The lifter's tests lift both and
 // require one IR of the two, but for names, positions and the names of the functions the declarations
 // refer to.
 package fixture.sugar
 
 import umpire.*
+import SugarFamily.given
 
-given Family = Family("fixture.sugar")
+/** The family, in an object of its own: the machine objects read it while they initialize. */
+object SugarFamily:
+  given family: Family = Family("fixture.sugar")
 
 enum Phase derives Finite:
   case idle, running, paused, done
@@ -93,56 +96,58 @@ def retryCore(j: Job): List[JobStep] =
 def idleSugar(j: Job): List[JobStep] = disabled
 def idleCore(j: Job): List[JobStep] = Nil
 
-val sugared = machine[Job, Outcome, Fact] {
-  starts(Job(Phase.idle, false))
-  ends(j => j.phase.in(Phase.done, Phase.idle))
-  steps(
-    start ~> startSugar,
-    pause ~> pauseSugar,
-    resume ~> resumeSugar,
-    finish ~> finishSugar,
-    poke ~> pokeSugar,
-    retry ~> retrySugar,
-    idle ~> idleSugar
-  )
-}
+object Sugared extends Machine[Job, Outcome, Fact]:
+  val init = Job(Phase.idle, false)
+  def end(j: State) = j.phase.in(Phase.done, Phase.idle)
 
-val cored = machine[Job, Outcome, Fact] {
-  starts(Job(Phase.idle, false))
-  ends(j => List(Phase.done, Phase.idle).contains(j.phase))
-  steps(
-    start ~> startCore,
-    pause ~> pauseCore,
-    resume ~> resumeCore,
-    finish ~> finishCore,
-    poke ~> pokeCore,
-    retry ~> retryCore,
-    idle ~> idleCore
-  )
-}
+  object rules
+      extends Bindings(
+        start ~> startSugar,
+        pause ~> pauseSugar,
+        resume ~> resumeSugar,
+        finish ~> finishSugar,
+        poke ~> pokeSugar,
+        retry ~> retrySugar,
+        idle ~> idleSugar
+      )
+
+object Cored extends Machine[Job, Outcome, Fact]:
+  val init = Job(Phase.idle, false)
+  def end(j: State) = List(Phase.done, Phase.idle).contains(j.phase)
+
+  object rules
+      extends Bindings(
+        start ~> startCore,
+        pause ~> pauseCore,
+        resume ~> resumeCore,
+        finish ~> finishCore,
+        poke ~> pokeCore,
+        retry ~> retryCore,
+        idle ~> idleCore
+      )
 
 // records and implies in claims.
-val recordsSugar = sugared.property when start holds (after => after.records(Fact.started))
-val recordsCore = cored.property when start holds (after => after.facts.contains(Fact.started))
+val recordsSugar = Sugared.property when start holds (after => after.records(Fact.started))
+val recordsCore = Cored.property when start holds (after => after.facts.contains(Fact.started))
 
-val impliesSugar = sugared.property holds (after =>
+val impliesSugar = Sugared.property holds (after =>
   after.state.phase == Phase.done implies after.records(Fact.finished)
 )
-val impliesCore = cored.property holds (after =>
+val impliesCore = Cored.property holds (after =>
   !(after.state.phase == Phase.done) || after.facts.contains(Fact.finished)
 )
 
-val pausedSugar = sugared.property holdsAcross { (before, after) =>
+val pausedSugar = Sugared.property holdsAcross { (before, after) =>
   before.phase.in(Phase.paused) implies !after.records(Fact.paused)
 }
-val pausedCore = cored.property holdsAcross { (before, after) =>
+val pausedCore = Cored.property holdsAcross { (before, after) =>
   !List(Phase.paused).contains(before.phase) || !after.facts.contains(Fact.paused)
 }
 
 val run = Limits(steps = 2, actions = 2, search = 64)
 
-val sugaredStart = sugared.scenario.actions(start)
-val coredStart = cored.scenario.actions(start)
+val sugaredStart = Sugared.scenario.actions(start)
+val coredStart = Cored.scenario.actions(start)
 
 val claims: Vector[Query] = Vector(
   query("recordsSugarStart") find recordsSugar in sugaredStart limits run total 8,
@@ -168,9 +173,14 @@ val retriedLostSpelled = monitor[Job, Outcome, Fact, Boolean](false)((broken, be
   broken || !retriedStays(before, after)
 )(broken => broken)
 
-val watched = machine[Job, Outcome, Fact] {
-  monitors(refusedOnce, refusedOnceSpelled, retriedLost, retriedLostSpelled)
-  starts(Job(Phase.idle, false))
-  ends(j => j.phase == Phase.done)
-  steps(start ~> startSugar, retry ~> retrySugar)
-}
+object Watched extends Machine[Job, Outcome, Fact]:
+  val init = Job(Phase.idle, false)
+  def end(j: State) = j.phase == Phase.done
+
+  object monitors extends Section:
+    val refused = refusedOnce
+    val refusedSpelled = refusedOnceSpelled
+    val retried = retriedLost
+    val retriedSpelled = retriedLostSpelled
+
+  object rules extends Bindings(start ~> startSugar, retry ~> retrySugar)

@@ -6,25 +6,27 @@
 package fixture.taskqueue
 
 import temporal.shared.taskqueue.*
-import temporal.shared.taskqueue.DispatchQueue.dispatchQueue
-import temporal.shared.taskqueue.MatchingQueue.{forgetfulQueue, matchingQueue}
 import umpire.*
+import TaskQueueFamily.given
 
-given Family = Family("fixture.taskqueue")
+/** The family, in an object of its own: the machine objects read it while they initialize. */
+object TaskQueueFamily:
+  given family: Family = Family("fixture.taskqueue")
 
 // ### The job
 
 enum JobPhase derives Finite:
   case idle, sent, started, settled
 
-final case class Job(phase: JobPhase) derives Finite
+/** The job's state, named apart from the machine object `Job`. */
+final case class JobState(phase: JobPhase) derives Finite
 
 enum JobOutcome derives Finite:
   case accepted
 
 given Ok[JobOutcome] = Ok(JobOutcome.accepted)
 
-type JobStep = Step[Job, JobOutcome, Nothing]
+type JobStep = Step[JobState, JobOutcome, Nothing]
 
 val send = internal
 val start = internal
@@ -34,71 +36,77 @@ val settle = internal
  * A failed enqueue leaves nothing outstanding, so the job may be sent again; the queue disables the
  * enqueue of a second message while one is outstanding.
  */
-def sendStep(j: Job): List[JobStep] =
-  if j.phase.in(JobPhase.idle, JobPhase.sent) then enter(Job(JobPhase.sent)) else disabled
+def sendStep(j: JobState): List[JobStep] =
+  if j.phase.in(JobPhase.idle, JobPhase.sent) then enter(JobState(JobPhase.sent)) else disabled
 
 /** The queue may deliver a message twice, and the second delivery finds the job started. */
-def startStep(j: Job): List[JobStep] = j.phase match
-  case JobPhase.sent                    => enter(Job(JobPhase.started))
+def startStep(j: JobState): List[JobStep] = j.phase match
+  case JobPhase.sent                    => enter(JobState(JobPhase.started))
   case JobPhase.started                 => stay(j)
   case JobPhase.idle | JobPhase.settled => disabled
 
-def settleStep(j: Job): List[JobStep] =
-  if j.phase == JobPhase.started then enter(Job(JobPhase.settled)) else disabled
+def settleStep(j: JobState): List[JobStep] =
+  if j.phase == JobPhase.started then enter(JobState(JobPhase.settled)) else disabled
 
-val job = machine[Job, JobOutcome, Nothing] {
-  starts(Job(JobPhase.idle))
-  ends(j => j.phase == JobPhase.settled)
-  steps(send ~> sendStep, start ~> startStep, settle ~> settleStep)
-}
+object Job extends Machine[JobState, JobOutcome, Nothing]:
+  val init = JobState(JobPhase.idle)
+  def end(j: State) = j.phase == JobPhase.settled
+
+  object rules extends Bindings(send ~> sendStep, start ~> startStep, settle ~> settleStep)
 
 // ### The job over the opaque queue
 
-final case class OverQueue(job: Job, queue: QueueView)
+final case class OverQueue(job: JobState, queue: QueueView)
 
-val jobOverQueue: Composition[OverQueue] =
-  compose[OverQueue](_.job -> job, _.queue -> dispatchQueue)
-    .sync(_.job -> send, _.queue -> queue.enqueue)
-    .sync(_.job -> start, _.queue -> queue.deliver)
-    .sync(_.job -> settle, _.queue -> queue.acknowledge)
-    .ends(s => s.job.phase == JobPhase.settled)
+object JobOverQueue extends Composition[OverQueue](_.job -> Job, _.queue -> DispatchQueue):
+  def end(s: State) = s.job.phase == JobPhase.settled
+  object syncs extends Syncs:
+    sync(_.job -> send, _.queue -> queue.enqueue)
+    sync(_.job -> start, _.queue -> queue.deliver)
+    sync(_.job -> settle, _.queue -> queue.acknowledge)
 
 val queueSettles =
-  jobOverQueue.property("settles").whenAction(jobOverQueue.synced(_.job -> settle)) holds
+  JobOverQueue.property("settles").whenAction(JobOverQueue.synced(_.job -> settle)) holds
     (_.state.job.phase == JobPhase.settled)
 
 /** Settling is the acknowledgment, so a settled job leaves no message outstanding. */
-val queueSettledLeavesNothing = jobOverQueue
+val queueSettledLeavesNothing = JobOverQueue
   .property("settledLeavesNothing")
   .never(after =>
     after.state.job.phase == JobPhase.settled && after.state.queue.outstanding != Outstanding.empty
   )
 
-val duplicateDelivery = jobOverQueue.scenario
+val duplicateDelivery = JobOverQueue.scenario
   .actions(
-    jobOverQueue.synced(_.job -> send),
-    jobOverQueue.synced(_.job -> start),
-    jobOverQueue.synced(_.job -> start),
-    jobOverQueue.synced(_.job -> settle)
+    JobOverQueue.synced(_.job -> send),
+    JobOverQueue.synced(_.job -> start),
+    JobOverQueue.synced(_.job -> start),
+    JobOverQueue.synced(_.job -> settle)
   )
 
-val queueAny = jobOverQueue.scenario("any").free
+val queueAny = JobOverQueue.scenario("any").free
 
 // ### The job over a detailed provider, which replaces the opaque queue
 
-final case class OverMatching(job: Job, queue: QueueDetail)
+final case class OverMatching(job: JobState, queue: QueueDetail)
 
-val jobOverMatching: Composition[OverMatching] =
-  compose[OverMatching](_.job -> job, _.queue -> matchingQueue)
-    .sync(_.job -> send, _.queue -> queue.enqueue)
-    .sync(_.job -> start, _.queue -> queue.deliver)
-    .sync(_.job -> settle, _.queue -> queue.acknowledge)
-    .replaces(_.queue, dispatchQueue)
-    .ends(s => s.job.phase == JobPhase.settled)
+object JobOverMatching
+    extends Composition[OverMatching](_.job -> Job, _.queue -> MatchingQueue),
+      FailureModel:
+  def end(s: State) = s.job.phase == JobPhase.settled
+  object syncs extends Syncs:
+    sync(_.job -> send, _.queue -> queue.enqueue)
+    sync(_.job -> start, _.queue -> queue.deliver)
+    sync(_.job -> settle, _.queue -> queue.acknowledge)
+    replaces(_.queue, DispatchQueue)
 
-/** The negative control: the replacement is what must fail. */
-val jobOverForgetful: Composition[OverMatching] =
-  jobOverMatching.withMember(_.queue -> forgetfulQueue)
+/**
+ * The negative control: the replacement is what must fail. No Query asks it; the check of the
+ * member that stands in for the opaque queue refutes it.
+ */
+object JobOverForgetful
+    extends Composition(JobOverMatching.withMember(_.queue -> ForgetfulQueue)),
+      NegativeControl
 
 def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
   val settles = c.property.whenAction(c.synced(_.job -> settle)) holds
@@ -132,5 +140,5 @@ val queueQueries: Vector[Query] = Vector(
   query verify queueSettledLeavesNothing in queueAny limits seven total 336
 )
 
-val matchingQueries: Vector[Query] = overMatchingQueries(jobOverMatching)
-val forgetfulQueries: Vector[Query] = overMatchingQueries(jobOverForgetful)
+val matchingQueries: Vector[Query] = overMatchingQueries(JobOverMatching)
+val forgetfulQueries: Vector[Query] = overMatchingQueries(JobOverForgetful)

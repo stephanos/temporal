@@ -2,18 +2,6 @@ package umpire
 
 import scala.annotation.unused
 
-/** A declared `refines:` line: the refined machine and the state map. */
-final private[umpire] case class RefinementDecl[S](product: Model, map: S => Any)
-
-/**
- * `refines: product` / `map: f`. The map's result type is the product's state type, so a map into
- * another machine's states does not compile.
- */
-def refines[S, PS, PO, PF](using
-    m: MachineScope[S, ?, ?]
-)(product: Machine[PS, PO, PF])(f: S => PS): Unit =
-  m.refinement = Some(RefinementDecl[S](product, f))
-
 /**
  * A machine object's refinement, the section `object refinement extends Refinement(OrderProduct)`
  * of the machine that refines `OrderProduct`: `toProduct`, the map from this machine's states to the
@@ -26,3 +14,20 @@ abstract class Refinement[S, P](using @unused owner: Owner[S, ?, ?])(val of: Mac
     extends Section:
   /** The state of the refined machine a state of this one reads as. */
   def toProduct(s: S): P
+
+object Refinement:
+  /**
+   * The machine `machine`'s `object refinement` refines, where it declares one, for the gate's
+   * construction of what an IR file lifts (IrFile.construct). The section is a member object a
+   * machine need not declare, so the base class names no member for it; it is found as the
+   * object's nested module, `<Machine>$refinement$`, which initializes it. The machine's own
+   * wiring, its `rules`, reads no section this way.
+   */
+  private[umpire] def declaredBy(machine: Machine[?, ?, ?]): Option[Model] =
+    scala.util
+      .Try(java.lang.Class.forName(machine.getClass.getName + "refinement$"))
+      .flatMap(c =>
+        scala.util.Try(c.getField("MODULE$").get(null))
+      ) // scalafix:ok DisableSyntax.null
+      .toOption
+      .collect { case r: Refinement[?, ?] => r.of }

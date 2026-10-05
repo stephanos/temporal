@@ -1,5 +1,5 @@
 {
-  "source": "model: fixture.presence.Presence$package$.presence",
+  "source": "model: fixture.presence.Presence",
   "types": [ {
     "name": "fixture.presence.Outcome",
     "position": {
@@ -1252,28 +1252,28 @@
       "function": "fixture.presence.Presence$package$.sendStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 75
+        "line": 77
       }
     }, {
       "action": "fixture.presence.Presence$package$.keep",
       "function": "fixture.presence.Presence$package$.keepStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 75
+        "line": 77
       }
     }, {
       "action": "fixture.presence.Presence$package$.forget",
       "function": "fixture.presence.Presence$package$.forgetStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 75
+        "line": 77
       }
     }, {
       "action": "fixture.presence.Presence$package$.poll",
       "function": "fixture.presence.Presence$package$.pollStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 75
+        "line": 77
       }
     } ]
   } ]

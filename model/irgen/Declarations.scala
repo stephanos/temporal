@@ -138,110 +138,6 @@ private[irgen] trait Declarations:
           name
         case _ => fail(fn, "a step binds a function")
 
-  /** A machine, from the right-hand side of `sym`, the val that declares it. */
-  def machine(sym: Symbol, rhs: Term): ir.Machine =
-    rhs match
-      // A derivation, named after its val, in the given family.
-      case Derivation(_, _, _, family) =>
-        derivedMachine(rhs, constString(family), capturedName(sym, rhs, "a machine"))
-      case _ =>
-        val (s, o, f, family, mname, body) = rhs match
-          case Apply(
-                Apply(Apply(TypeApply(Ident("machine"), List(s, o, f)), List(fam, n)), List(ctx)),
-                _
-              ) =>
-            (s.tpe, o.tpe, f.tpe, fam, Some(n), ctx)
-          // `machine[S, O, F] { ... }`, named after its val, in the given family.
-          case Apply(Apply(TypeApply(Ident("machine"), List(s, o, f)), List(ctx)), fam :: _) =>
-            (s.tpe, o.tpe, f.tpe, fam, None, ctx)
-          case other =>
-            fail(
-              other,
-              "a machine is declared by `machine[S, O, F] { ... }` or `machine[S, O, F](family, name) { ... }`"
-            )
-        // The family is read first, so a refusal of both is reported at the family, as it always was.
-        val familyName = constString(family)
-        val name = mname.fold(capturedName(sym, rhs, "a machine"))(constString)
-        val declared = ir.Machine(
-          family = familyName,
-          name = name,
-          position = Some(pos(rhs)),
-          stateType = typeRef(s, rhs).getNamed,
-          outcomeType = typeRef(o, rhs).getNamed,
-          factType =
-            if f.dealias.typeSymbol != defn.NothingClass then typeRef(f, rhs).getNamed else ""
-        )
-        val stats = body match
-          case Block(List(DefDef("$anonfun", _, _, Some(Block(stats, last)))), _: Closure) =>
-            stats :+ last
-          case other => fail(other, "a machine's body is a block of declarations")
-        val visible = mutable.ArrayBuffer.empty[String]
-        val visibleOutcomes = mutable.ArrayBuffer.empty[String]
-        val folded = stats.foldLeft(declared): (b, stat) =>
-          val decl = stat match
-            case term: Term => call(term)
-            case _          => None
-          decl match
-            case Some(("forEntity", List(List(e), _)))  => b.withEntity(constString(e))
-            case Some(("starts", List(_, List(items)))) =>
-              b.addAllStarts(varargs(items).map(lift(_)))
-            case Some(("ends", List(_, List(p))))          => b.withEnds(lift(p))
-            case Some(("unobservable", List(List(ts), _))) =>
-              b.addAllUnobservable(varargs(ts).map(action))
-            case Some(("evidence", List(_, List(fn)))) =>
-              val evidenceName = s"$name.evidence"
-              fn match
-                case Block(
-                      List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(body))),
-                      _: Closure
-                    ) =>
-                  functions(evidenceName) =
-                    evidenceDefaults(function(evidenceName, params, body, fn), f, fn)
-                case other => fail(other, "evidence is a function of the fact")
-              b.withEvidence(evidenceName)
-            case Some(("refines", List(_, List(product), List(map)))) =>
-              val productName = machineOf(resolveSymbol(product), product).name
-              b.withRefines(ir.Refinement(productName, stepFunction(map, name, "refines")))
-            case Some(("visible", List(_, List(fn)))) =>
-              visible += stepFunction(fn, name, "visible")
-              b
-            case Some(("visibleOutcomes", List(_, List(fn)))) =>
-              visibleOutcomes += stepFunction(fn, name, "visibleOutcomes")
-              b
-            case Some(("monitors", List(_, List(ms)))) =>
-              b.addAllMonitors(varargs(ms).map(m => monitorOf(resolveSymbol(m), m)))
-            case Some(("assumes", List(List(as), _))) =>
-              b.addAllAssumes(varargs(as).map(a => assumptionOf(resolveSymbol(a), a)))
-            case Some(("steps", List(_, List(bindings)))) =>
-              b.addAllSteps(
-                varargs(bindings).map(stepBinding(_, name, "a step is `action ~> function`"))
-              )
-            case _ =>
-              stat match
-                case Literal(UnitConstant()) => b // the block's trailing unit
-                case _ => fail(stat, s"not a machine declaration: ${stat.show}")
-        val b =
-          if folded.evidence.nonEmpty || folded.factType.isEmpty then folded
-          else
-            val evidenceName = s"$name.evidence"
-            functions(evidenceName) = defaultEvidence(evidenceName, f, rhs)
-            folded.withEvidence(evidenceName)
-        distinctActionNames(b, rhs)
-        if b.refines.isEmpty && visible.nonEmpty then
-          fail(rhs, s"$name names the facts a refined machine sees, and declares no refinement")
-        if b.refines.isEmpty && visibleOutcomes.nonEmpty then
-          fail(rhs, s"$name names the outcomes a refined machine sees, and declares no refinement")
-        val m = b.copy(refines =
-          b.refines.map(r =>
-            r.copy(
-              visible = visible.lastOption.getOrElse(r.visible),
-              visibleOutcomes = visibleOutcomes.lastOption.getOrElse(r.visibleOutcomes)
-            )
-          )
-        )
-        checkChannels(m, irTypeName(s.dealias.typeSymbol), rhs)
-        m
-
   // ### Machine objects: `object M extends Machine[S, O, F]`, its header members and its sections
 
   /** How a rule's heading says when it fires: a guard of the state, or phases of its projection. */
@@ -347,6 +243,14 @@ private[irgen] trait Declarations:
         case f: DefDef if f.termParamss.flatMap(_.params).size == 1 => callee(f.symbol, f)
         case v: ValDef if v.rhs.nonEmpty => stepFunction(v.rhs.get, name, kind)
         case other => fail(other, s"$kind is a function of one argument: `def $kind(x: T) = ...`")
+      def unobservable(b: ir.Machine, d: Definition): ir.Machine = d match
+        case v: ValDef if v.rhs.nonEmpty =>
+          val items = v.rhs.get match
+            case Apply(TypeApply(Select(Ident("List" | "Seq" | "Vector"), "apply"), _), List(ts)) =>
+              varargs(ts)
+            case other => fail(other, "unobservable lists its timers: `List(t, ...)`")
+          b.addAllUnobservable(items.map(action))
+        case other => fail(other, "unobservable is `val unobservable = List(t, ...)`")
       val headed = members.foldLeft(declared.addStarts(start).withEnds(ends)): (b, d) =>
         d.name match
           case "entity" =>
@@ -365,6 +269,9 @@ private[irgen] trait Declarations:
                 b.withEvidence(evidenceName)
               case other =>
                 fail(other, "evidence is `val evidence: PartialFunction[F, String] = ...`")
+          // A machine that refines nothing names its unobservable timers among its header members;
+          // one that refines another names them in its refinement, beside what the refined sees.
+          case "unobservable" if sectionOf(c, "refinement").isEmpty => unobservable(b, d)
           // A refinement's members sit in its `refinement` section, the one place it is read.
           case n @ ("refines" | "visible" | "visibleOutcomes" | "unobservable" | "toProduct") =>
             fail(
@@ -393,19 +300,8 @@ private[irgen] trait Declarations:
             case "visibleOutcomes" =>
               visibleOutcomes += function(d, "visibleOutcomes")
               b
-            case "unobservable" =>
-              d match
-                case v: ValDef if v.rhs.nonEmpty =>
-                  val items = v.rhs.get match
-                    case Apply(
-                          TypeApply(Select(Ident("List" | "Seq" | "Vector"), "apply"), _),
-                          List(ts)
-                        ) =>
-                      varargs(ts)
-                    case other => fail(other, "unobservable lists its timers: `List(t, ...)`")
-                  b.addAllUnobservable(items.map(action))
-                case other => fail(other, "unobservable is `val unobservable = List(t, ...)`")
-            case _ => b
+            case "unobservable" => unobservable(b, d)
+            case _              => b
         }
       }
       val watched = sectionOf(c, "monitors").fold(refined) { section =>
@@ -415,6 +311,16 @@ private[irgen] trait Declarations:
               case r: Ref if path(r) => resolveSymbol(r)
               case _                 => v.symbol
             val tpe = v.tpt.tpe
+            // A monitor reads the steps of the machine that watches it, so it is of its states.
+            for
+              watched <- tpe.widen.dealias.typeArgs.headOption
+              if isNamed(tpe, "umpire.Monitor") && !(watched =:= s)
+            do
+              fail(
+                v,
+                s"${v.name} is a monitor of ${watched.show}, and $name's states are ${s.show}: a " +
+                  "machine watches monitors of its own state type"
+              )
             if isNamed(tpe, "umpire.Monitor") then b.addMonitors(monitorOf(sym, v))
             else if isNamed(tpe, "umpire.Assumption") then b.addAssumes(assumptionOf(sym, v))
             else b
@@ -424,7 +330,8 @@ private[irgen] trait Declarations:
       val rules = sectionOf(c, "rules").getOrElse(
         fail(c, s"$name declares no rules: a machine object declares `object rules extends Rules`")
       )
-      if !rules.symbol.typeRef.derivesFrom(rulesClass) then
+      val core = rules.symbol.typeRef.derivesFrom(bindingsClass)
+      if !core && !rules.symbol.typeRef.derivesFrom(rulesClass) then
         fail(
           rules,
           s"$name's rules is `object rules extends Rules`, which its rules are lifted from"
@@ -433,7 +340,15 @@ private[irgen] trait Declarations:
         d match
           case f: DefDef if makesSteps(f.returnTpt.tpe) => givesNoEmpty(f)
           case _                                        => ()
-      val folded = watched.addAllSteps(ruleSteps(name, typeRef(s, c), rules))
+      // The core, `Bindings(action ~> step, ...)`, binds each step function as written.
+      val steps =
+        if core then
+          parentArguments(rules).flatten
+            .filter(a => !isNamed(a.tpe, "umpire.Owner"))
+            .flatMap(varargs)
+            .map(stepBinding(_, name, "a core binding is `action ~> function`"))
+        else ruleSteps(name, typeRef(s, c), rules)
+      val folded = watched.addAllSteps(steps)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
       checkChannels(m, irTypeName(s.dealias.typeSymbol), c)
       m
@@ -457,10 +372,6 @@ private[irgen] trait Declarations:
         functions(evidenceName) = defaultEvidence(evidenceName, f, at)
         folded.withEvidence(evidenceName)
     distinctActionNames(b, at)
-    if b.refines.isEmpty && visible.nonEmpty then
-      fail(at, s"$name names the facts a refined machine sees, and declares no refinement")
-    if b.refines.isEmpty && visibleOutcomes.nonEmpty then
-      fail(at, s"$name names the outcomes a refined machine sees, and declares no refinement")
     b.copy(refines =
       b.refines.map(r =>
         r.copy(
@@ -768,7 +679,9 @@ private[irgen] trait Declarations:
   def derivedMachine(rhs: Term, family: String, name: String): ir.Machine =
     // Each item a bare binding, `action ~> function`, or a group of rules, `when(g) { ... }`: the
     // step it binds, and the rules it lowers from where it binds rules. A bare binding of an action
-    // the source binds by rules keeps their guards and replaces their effect.
+    // the source binds by rules keeps their guards, and their classes, and replaces their effect:
+    // refused where whole-action rules have several effects, and not where each rule fires one
+    // class, whose input the new effect reads.
     def bound(src: ir.Machine, items: Term, op: String): Seq[(ir.StepBinding, Term)] =
       val bindings = varargs(items).flatMap { item =>
         val b = contextBody(item)
@@ -790,12 +703,23 @@ private[irgen] trait Declarations:
             val id = action(a)
             rulesOf.get(src.name).flatMap(_.get(id)) match
               case Some(kept) if op == "rebind" =>
-                val effects = kept.map(r => forwardedDef(r.effect).fold(r.effect.show)(_.fullName))
-                if effects.distinct.size > 1 then
+                def effectOf(r: LiftedRule) =
+                  forwardedDef(r.effect).fold(r.effect.show)(_.fullName)
+                // Rules that each fire another class may differ in effect: the new effect reads the
+                // class's inputs, so each rule keeps its guard and class and takes it. Rules of one
+                // class, or of the whole action, that differ are told apart by their effects, which
+                // one effect would merge.
+                val merged =
+                  if kept.forall(_.cls.nonEmpty) then
+                    kept.groupBy(_.cls).values.find(_.map(effectOf).distinct.size > 1)
+                  else Option.when(kept.map(effectOf).distinct.size > 1)(kept)
+                for rules <- merged do
+                  val what =
+                    rules.head.cls.fold("")(c => s" of the class ${c.map(valueKey).mkString("-")}")
                   fail(
                     b,
-                    s"$name rebinds ${actions(id).name}, which ${src.name} binds by ${kept.size} " +
-                      "rules with different effects, to one effect: rebind its rules with " +
+                    s"$name rebinds ${actions(id).name}, which ${src.name} binds by ${rules.size} " +
+                      s"rules$what with different effects, to one effect: rebind its rules with " +
                       "`when(...) { ... }`, which replace them"
                   )
                 val rules = kept.map(_.copy(effect = effect, at = b))
@@ -856,8 +780,8 @@ private[irgen] trait Declarations:
           .getOrElse(
             fail(
               t,
-              s"$name replaces the refinement of ${src.name}, which declares none: declare it with " +
-                "`refines` in the machine"
+              s"$name replaces the refinement of ${src.name}, which declares none: declare it in " +
+                "the machine's `object refinement extends Refinement(product)`"
             )
           )
         def types(m: ir.Machine) =
@@ -1095,9 +1019,11 @@ private[irgen] trait Declarations:
           try
             if objectForm(sym) then objectMachine(moduleClassOf(sym), at)
             else
-              defs.get(sym) match
-                case Some(ValDef(_, _, Some(rhs))) => machine(sym, rhs)
-                case _ => fail(at, s"${sym.fullName} is not a machine of the lifted sources")
+              fail(
+                at,
+                s"${sym.fullName} is not a machine object of the lifted sources: a machine is an " +
+                  "object, `object M extends Machine[S, O, F]` or `object M extends Derived(...)`"
+              )
           finally declaring -= sym
         distinctModelName(m.name, sym, m.getPosition)
         machines(sym.fullName) = m

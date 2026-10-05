@@ -1,4 +1,4 @@
-// Named choices (model/SEMANTICS.md, Named choices): each step function of `chosen` names its
+// Named choices (model/SEMANTICS.md, Named choices): each step function of `Chosen` names its
 // results with `choose`. The lifter's tests require each name on the step its alternative wrote, in
 // the order written, and an alternative that calls a function to call a copy of it whose every step
 // carries the name. An unnamed list of several steps is refused (Rejects.scala), so fn-120.1's
@@ -110,15 +110,16 @@ def retryNamed(s: Admission): List[AdmissionStep] = choose(
 )
 def resumeStep(s: Admission): List[AdmissionStep] = admitted(s, Message.queued)
 
-val chosen = machine[Admission, Outcome, Fact] {
-  starts(Admission(Phase.scheduled, Message.queued, Active.none))
-  ends(_ => true)
-  steps(
-    admit ~> admitNamed,
-    pause ~> pauseNamed,
-    poll ~> pollNamed,
-    answer ~> answerNamed,
-    retry ~> retryNamed,
-    resume ~> resumeStep
-  )
-}
+object Chosen extends Machine[Admission, Outcome, Fact]:
+  val init = Admission(Phase.scheduled, Message.queued, Active.none)
+  def end(admission: State) = true
+
+  object rules
+      extends Bindings(
+        admit ~> admitNamed,
+        pause ~> pauseNamed,
+        poll ~> pollNamed,
+        answer ~> answerNamed,
+        retry ~> retryNamed,
+        resume ~> resumeStep
+      )

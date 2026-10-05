@@ -29,7 +29,7 @@ func TestLiftedModelsAreAdmitted(t *testing.T) {
 
 // fn-126 R16: a machine object's rules lower to one step function per action, whose table is the
 // one the same machine written in the core, with hand-written step functions, gives
-// (model/irgen/testdata/lifts/Rules.scala: `Switch` and `Core.coreSwitch`).
+// (model/irgen/testdata/lifts/Rules.scala: `Switch` and `CoreSwitch`).
 func TestRulesLowerToTheCoreTables(t *testing.T) {
 	machines, err := Build(lifted(t, "rules"))
 	require.NoError(t, err)

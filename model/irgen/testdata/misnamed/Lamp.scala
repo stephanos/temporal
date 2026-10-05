@@ -15,21 +15,21 @@ enum Outcome derives Finite:
 
 val flip = action(Party("fixture"))
 
-object Switch:
-  object effects:
+object Switch extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(lamp: State) = true
+
+  object effects extends Section:
     def flipped(s: Lamp): List[Step[Lamp, Outcome, Nothing]] =
       List(Step(Outcome.accepted, s.copy(lit = !s.lit)))
 
-  val switch = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(false))
-    ends(_ => true)
-    steps(flip ~> effects.flipped)
-  }
+  object rules extends Rules:
+    when(_ => true)(flip ~> effects.flipped)
 
-def loose: Property[Lamp] = Switch.switch.property holds (after => after.state.lit)
+def loose: Property[Lamp] = Switch.property holds (after => after.state.lit)
 
 final case class Spare(lit: Boolean)
 
 // A type's companion holds no Model in such a file either.
 object Spare:
-  val spare = machine[Lamp, Outcome, Nothing] { starts(Lamp(true)); ends(_ => true) }
+  object SpareLamp extends Derived(Switch.unmonitored)

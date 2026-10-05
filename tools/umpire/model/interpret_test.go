@@ -206,7 +206,7 @@ func TestASendToAFullChannelLeavesTheDomain(t *testing.T) {
 	talk := function(m, "Channels$package$.talkStep")
 	talk.Body = talk.GetBody().GetIf().GetElse()
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Channels.scala:56: relay: row nothing-[ping-0,ping-0]-[]-talk-ping lands in "+
+	require.ErrorContains(t, err, "Channels.scala:61: relay: row nothing-[ping-0,ping-0]-[]-talk-ping lands in "+
 		"nothing-[ping-0,ping-0,ping-0]-[], which is outside the state domain")
 }
 
@@ -382,7 +382,7 @@ func TestADeliveryMovesOneMessage(t *testing.T) {
 		}
 	}
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Channels.scala:58: wireDelivery moves one message of "+
+	require.ErrorContains(t, err, "Channels.scala:63: wireDelivery moves one message of "+
 		"fixture.channels.Channels$package$.wire, and has 0 inputs")
 }
 
@@ -423,23 +423,23 @@ func TestAStepResultMustBeStepRecords(t *testing.T) {
 		"not a list": {"declarations", func(m *umpirespb.Model) {
 			f := function(m, "Declarations$package$.putStep")
 			f.Body = admLiteral(f.GetBody(), &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: false}})
-		}, "Declarations.scala:103: " + putStep + " returns false, not a list of steps"},
+		}, "Declarations.scala:115: " + putStep + " returns false, not a list of steps"},
 		"a step of two fields": {"declarations", func(m *umpirespb.Model) {
 			f := function(m, "Declarations$package$.putStep")
 			f.Body = admLiteral(f.GetBody(), &umpirespb.Value{Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{Items: []*umpirespb.Value{
 				{Kind: &umpirespb.Value_Record{Record: &umpirespb.RecordValue{Type: StepType, Fields: []*umpirespb.Value{
 					admEnum("fixture.declarations.Outcome", "accepted"), admEnum("fixture.declarations.Stage", "staged")}}}}}}}})
-		}, "Declarations.scala:103: " + putStep + " returns a step of 2 fields, not 4"},
+		}, "Declarations.scala:115: " + putStep + " returns a step of 2 fields, not 4"},
 		"an outcome of another type": {"presence", func(m *umpirespb.Model) {
 			f := function(m, "Presence$package$.forgetStep")
 			step := f.GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct()
 			step.Args[0] = admLiteral(step.GetArgs()[0], admEnum("fixture.presence.Result", "failed"))
-		}, "Presence.scala:75: presence: row unsent-Some-succeeded-0-0-forget has outcome failed, which is no fixture.presence.Outcome"},
+		}, "Presence.scala:77: presence: row unsent-Some-succeeded-0-0-forget has outcome failed, which is no fixture.presence.Outcome"},
 		"a fact of another type": {"declarations", func(m *umpirespb.Model) {
 			f := function(m, "Declarations$package$.putStep")
 			facts := f.GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct().GetArgs()[2]
 			facts.GetList().Items[0] = admLiteral(facts, admEnum("fixture.declarations.Kept", "held"))
-		}, "Declarations.scala:103: disk: row empty-put records held, which is no fixture.declarations.Fact"},
+		}, "Declarations.scala:115: disk: row empty-put records held, which is no fixture.declarations.Fact"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			m := proto.Clone(lifted(t, c.fixture)).(*umpirespb.Model)
@@ -458,7 +458,7 @@ func TestATransferIsADeliveryOrALossNotBoth(t *testing.T) {
 		}
 	}
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Channels.scala:60: radioLoss both delivers and loses fixture.channels.Channels$package$.radio")
+	require.ErrorContains(t, err, "Channels.scala:65: radioLoss both delivers and loses fixture.channels.Channels$package$.radio")
 }
 
 // keep and forget given an input of 0..59 each: no binding lists more than 60 classes, and together
@@ -491,17 +491,17 @@ func TestACountPastInt64IsRefusedUnderAnyCeiling(t *testing.T) {
 	require.Equal(t, LimitError{Machine: "relay", Resource: "members", Ceiling: math.MaxInt64, Needed: math.MaxInt64, Overflow: true}, *limit)
 }
 
-// Relay's heard field typed as Relay itself, built without admission: refused, not recursed into.
+// RelayState's heard field typed as RelayState itself, built without admission: refused, not recursed into.
 func TestACatalogThatContainsItselfIsRefused(t *testing.T) {
 	defer debug.SetMaxStack(debug.SetMaxStack(64 << 20))
 	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
 	for _, ty := range m.GetTypes() {
-		if ty.GetName() == "fixture.channels.Relay" {
-			ty.GetRecord().GetFields()[0].Type = named("fixture.channels.Relay")
+		if ty.GetName() == "fixture.channels.RelayState" {
+			ty.GetRecord().GetFields()[0].Type = named("fixture.channels.RelayState")
 		}
 	}
 	_, err := Build(m)
-	require.ErrorContains(t, err, "the catalog of type fixture.channels.Relay contains itself")
+	require.ErrorContains(t, err, "the catalog of type fixture.channels.RelayState contains itself")
 }
 
 func TestARangeEndingAtMaxInt64(t *testing.T) {
@@ -550,7 +550,7 @@ func TestAStateOfTheRightKeyButAnotherTypeIsOutsideTheDomain(t *testing.T) {
 	polls := f.GetBody().GetIf().GetThen().GetList().GetItems()[0].GetConstruct().GetArgs()[1].GetCopy().GetUpdates()[0]
 	polls.Value = admLiteral(polls.GetValue(), &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: "1"}})
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Presence.scala:75: presence: row unsent-None-0-0-poll lands in unsent-None-0-1, "+
+	require.ErrorContains(t, err, "Presence.scala:77: presence: row unsent-None-0-0-poll lands in unsent-None-0-1, "+
 		"which is outside the state domain")
 }
 

@@ -692,7 +692,7 @@ func withTape(members [2]string, alter func(m *umpirespb.Model, tape *umpirespb.
 		alter(m, tape)
 		m.Machines = append(m.Machines, tape)
 
-		admType(m, "fixture.declarations.DetailedPair").GetRecord().GetFields()[0].Type = named("fixture.declarations.Disk")
+		admType(m, "fixture.declarations.DetailedPairState").GetRecord().GetFields()[0].Type = named("fixture.declarations.DiskState")
 		detailed := admComposition(m, "detailedPair")
 		detailed.Ends = nil
 		detailed.Members = []*umpirespb.Member{{Field: "front", Machine: members[0], Replaces: "store"},
@@ -728,7 +728,7 @@ func TestAMembersHoleErasesNoRejectionOfAnotherMember(t *testing.T) {
 // whose map is a second hole has its hole listed beside the disk's.
 func TestAMembersHoleMasksNoOtherMembersErrorOrHole(t *testing.T) {
 	fact := []*umpirespb.Param{{Name: "f", Type: named("fixture.declarations.Fact")}}
-	state := []*umpirespb.Param{{Name: "d", Type: named("fixture.declarations.Disk")}}
+	state := []*umpirespb.Param{{Name: "d", Type: named("fixture.declarations.DiskState")}}
 	crash := HoleReach{Edge: RowHole, ID: crashHole, Name: "crashUnmodeled", Row: "staged-crash"}
 	second := HoleReach{Edge: DeclarationHole, ID: secondHole, Name: "second"}
 	for name, members := range memberOrders {
@@ -770,7 +770,7 @@ func TestAnyMembersReplayFailureIsTheCompositions(t *testing.T) {
 			put(m, tape)
 		}
 	}
-	state := []*umpirespb.Param{{Name: "d", Type: named("fixture.declarations.Disk")}}
+	state := []*umpirespb.Param{{Name: "d", Type: named("fixture.declarations.DiskState")}}
 	for name, members := range memberOrders {
 		t.Run(name, func(t *testing.T) {
 			m := mutated(t, "declarations", withTape(members, holed(func(*umpirespb.Model, *umpirespb.Machine) {})))
@@ -914,7 +914,7 @@ func TestAMachinesDeclarationsAreReadPastAHole(t *testing.T) {
 // What a refinement names visible and its map are read in one generic check: a hole in the one hides
 // neither a hole nor an error of the Model in the other.
 func TestARefinementsMapIsReadPastAVisibilityHole(t *testing.T) {
-	stored := admDeclaredPkg + "stored"
+	stored := declaredRefinementMap
 	atDurable := func(v any) func(m *umpirespb.Model) {
 		return func(m *umpirespb.Model) {
 			f := functionNamed(m, stored)
@@ -1181,7 +1181,7 @@ func TestADeclarationHoleStaysWithWhatDependsOnIt(t *testing.T) {
 
 	// The map of the disk's refinement: the disk has its table, and its own claims are checked.
 	r = checked(t, mutated(t, "declarations", noCrash, func(m *umpirespb.Model) {
-		stored := functionNamed(m, admDeclaredPkg+"stored")
+		stored := functionNamed(m, declaredRefinementMap)
 		stored.Body = hole(stored.GetBody())
 	}))
 	require.Equal(t, map[string]ReceiptKind{
@@ -1325,9 +1325,9 @@ func TestMalformedDeclarationsAreLocatedErrors(t *testing.T) {
 		}, "query disk durableStays", "monitor storedOnce: its initial state held is outside its states"},
 		// The map made the identity: it reads a disk as a disk, which is no state of the store.
 		"a refinement's map": {func(m *umpirespb.Model) {
-			stored := functionNamed(m, admDeclaredPkg+"stored")
+			stored := functionNamed(m, declaredRefinementMap)
 			stored.Body = &umpirespb.Expr{Position: stored.GetBody().GetPosition(), Kind: &umpirespb.Expr_Var{Var: "d"}}
-		}, "refinement disk store", "disk: " + admDeclaredPkg + "stored reads empty as empty, which is no state of store"},
+		}, "refinement disk store", "disk: " + declaredRefinementMap + " reads empty as empty, which is no state of store"},
 		"a progress claim's from": {returning("disk.progress.durableEventually.from", three), "progress disk durableEventually",
 			"disk.durableEventually: disk.progress.durableEventually.from is 3 at empty, not a Boolean"},
 		"a progress claim's to": {returning("disk.progress.durableEventually.to", three), "progress disk durableEventually",

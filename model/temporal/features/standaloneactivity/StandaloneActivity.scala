@@ -679,7 +679,7 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 
 object ActivityWorker
-    extends Derived(shared.worker.Polling.polling.restrict(process.workerStop, process.serve))
+    extends Derived(shared.worker.Polling.restrict(process.workerStop, process.serve))
 
 // ### With the worker of its task queue, the stop is the worker's own phase change and every
 // attempt start is the worker serving, so an attempt has a row only while the worker polls.
@@ -744,10 +744,10 @@ object exports:
     record.StaleAdmission.queries.staleQueries,
     ActivityProtocol.queries.competingTimers,
     shared.taskqueue.MatchingQueue.queries.matchingQueueQueries,
-    shared.taskqueue.MatchingQueue.queries.forgetfulQueueQueries,
-    shared.taskqueue.MatchingQueue.queries.volatileQueueQueries,
-    shared.taskqueue.MatchingQueue.queries.lossyMatchingQueueQueries,
-    shared.taskqueue.MatchingQueue.queries.storageLossQuery,
+    shared.taskqueue.ForgetfulQueue.queries.forgetfulQueueQueries,
+    shared.taskqueue.VolatileQueue.queries.volatileQueueQueries,
+    shared.taskqueue.LossyMatchingQueue.queries.lossyMatchingQueueQueries,
+    shared.taskqueue.LossyMatchingQueue.queries.storageLossQuery,
     withTaskQueue.CurrentOverQueue.queries.currentOverQueueQueries,
     withTaskQueue.StaleOverQueue.queries.staleOverQueueQueries,
     withTaskQueue.CurrentOverMatching.queries.currentOverMatchingQueries,

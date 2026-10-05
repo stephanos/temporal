@@ -26,34 +26,25 @@ given Finite[Holding] =
   given Finite[Inbox[Note]] = wire.contents
   Finite.derived
 
-val elsewhere: Monitor[There, Outcome, Nothing, Boolean] =
-  monitor[There, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
+object HereMachine extends Machine[Here, Outcome, Nothing]:
+  val init = Here(false)
+  def end(here: State) = true
+  object rules extends Bindings()
 
-val here: Machine[Here, Outcome, Nothing] =
-  machine[Here, Outcome, Nothing] {
-    // A monitor of another state type.
-    monitors(elsewhere)
-    starts(Here(false))
-    ends(_ => true)
-  }
-
-val holding: Machine[Holding, Outcome, Nothing] =
-  machine[Holding, Outcome, Nothing] {
-    starts(Holding(wire.empty))
-    ends(_ => true)
-    // A delivery handler that takes another message type.
-    steps(wire.deliver ~> ((h: Holding, s: Signal) => List(Step(Outcome.accepted, h))))
-  }
+object HoldingMachine extends Machine[Holding, Outcome, Nothing]:
+  val init = Holding(wire.empty)
+  def end(holding: State) = true
+  // A delivery handler that takes another message type.
+  object rules
+      extends Bindings(wire.deliver ~> ((h: Holding, s: Signal) => List(Step(Outcome.accepted, h))))
 
 // Membership in no members.
 val nowhere: Boolean = Signal.up.in()
 
-val there: Machine[There, Outcome, Nothing] =
-  machine[There, Outcome, Nothing] {
-    starts(There(false))
-    ends(_ => true)
-  }
+object ThereMachine extends Machine[There, Outcome, Nothing]:
+  val init = There(false)
+  def end(there: State) = true
+  object rules extends Bindings()
 
 // A replacement refinement whose map leads to states of another type than its machine's.
-val crossedRefinement: Machine[Here, Outcome, Nothing] =
-  here.refining(there)(h => h)(using Family("fixture.crossed"))
+object CrossedRefinement extends Derived(HereMachine.refining(ThereMachine)(h => h))

@@ -92,7 +92,12 @@ private[irgen] trait Compositions:
         val c =
           try
             if objectForm(sym) then objectComposition(moduleClassOf(sym), at)
-            else composition(sym, valDef(sym, at, "a composition").rhs.get)
+            else
+              fail(
+                at,
+                s"${sym.fullName} is not a composition object of the lifted sources: a " +
+                  "composition is an object, `object C extends Composition[S](...)`"
+              )
           finally composing -= sym
         distinctModelName(c.name, sym, c.getPosition)
         compositions(sym.fullName) = c
@@ -100,42 +105,6 @@ private[irgen] trait Compositions:
 
   // The compositions whose declarations are being lifted, so one derived from itself is refused.
   private val composing = mutable.LinkedHashSet.empty[Symbol]
-
-  /**
-   * A composition, from `compose[S](members*)` named after its val `sym` in the given family, with
-   * each member by a selector of its field; or another composition with one member replaced,
-   * `c.withMember(_.field -> machine)`; and the syncs, ends and replacements chained onto it.
-   */
-  def composition(sym: Symbol, rhs: Term): ir.Composition =
-    def walk(t: Term): ir.Composition = t match
-      case Apply(Select(inner, "sync"), List(name, first, second)) =>
-        sync(walk(inner), constString(name), first, second, name)
-      // Named after the first member's action, as its declaration names it.
-      case Apply(Select(inner, "sync"), List(first, second)) =>
-        sync(walk(inner), syncName(first), first, second, first)
-      case Apply(Select(inner, "ends"), List(p))                 => walk(inner).withEnds(lift(p))
-      case Apply(Select(inner, "replaces"), List(field, opaque)) =>
-        replacing(walk(inner), field, opaque)
-      case Apply(Apply(Select(inner, "withMember"), List(member)), List(family)) =>
-        derivedComposition(
-          inner,
-          member,
-          family,
-          capturedName(sym, rhs, "a composition"),
-          rhs,
-          walk
-        )
-      case Apply(Apply(TypeApply(Ident("compose"), List(s)), List(members)), List(_, family)) =>
-        declaredComposition(
-          s.tpe,
-          constString(family),
-          capturedName(sym, rhs, "a composition"),
-          members,
-          t,
-          rhs
-        )
-      case other => fail(other, s"not a part of a composition declaration: ${other.show}")
-    checkedSyncs(walk(rhs), rhs)
 
   /** Every sync names members of its composition. */
   private def checkedSyncs(c: ir.Composition, at: Tree): ir.Composition =
@@ -160,10 +129,10 @@ private[irgen] trait Compositions:
       stateType = typeRef(s, t).getNamed,
       members = varargs(members).map { m =>
         val (param, body) = selector(m).getOrElse(
-          fail(m, s"compose names a member by a selector, `_.member -> machine`, not ${m.show}")
+          fail(m, s"$name names a member by a selector, `_.member -> machine`, not ${m.show}")
         )
         val (key, value) = arrow(body)
-        val field = selectedField(param, key, m, "compose")
+        val field = selectedField(param, key, m, name)
         ir.Member(field, memberMachine(field, key, value, m, name).name)
       }
     )

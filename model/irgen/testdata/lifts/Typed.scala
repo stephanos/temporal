@@ -31,12 +31,12 @@ def step(s: State): List[Step[State, Result, Nothing]] = List(
   Step(Result.accepted, s)
 )
 
-val typedMachine: Machine[State, Result, Nothing] =
-  machine[State, Result, Nothing](Family("fixture.typed"), "typed") {
-    starts(State.idle)
-    ends(_ => true)
-    steps(one ~> step)
-  }
+object Typed
+    extends Machine[State, Result, Nothing](using Family("fixture.typed"), summon, summon, summon):
+  val init = State.idle
+  def end(state: State) = true
+
+  object rules extends Bindings(one ~> step)
 
 // The value reaches `Operand.number` through the parameter, not as a literal at the call.
 private def seconds(value: Long): TypedOperand[Long] = Operand.number(value)
@@ -109,7 +109,7 @@ private val roles = Vector(Role("endpoint", RoleKind.endpoint))
 
 val typedRealization = Realization(
   "same",
-  typedMachine,
+  Typed,
   "producer",
   "v1",
   roles,
@@ -143,7 +143,7 @@ val mappedEvidence = Evidence.read(
 )
 val invalidMappedRealization = Realization(
   "invalidMapped",
-  typedMachine,
+  Typed,
   "producer",
   "v1",
   roles,
@@ -154,7 +154,7 @@ val invalidMappedRealization = Realization(
 
 val unknownEnumRealization = Realization(
   "unknownEnum",
-  typedMachine,
+  Typed,
   "producer",
   "v1",
   roles,

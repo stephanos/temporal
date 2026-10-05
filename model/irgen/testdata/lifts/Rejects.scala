@@ -1,6 +1,7 @@
 // Declarations the lifter must refuse before any IR is written, each at the line that declares it.
 // The lifter's tests lift every root below, and one that names nothing, in one run, and compare the
-// diagnostics with expected/rejects.txt.
+// diagnostics with expected/rejects.txt. Its machines and compositions are objects; a machine whose
+// step functions are written out binds them by hand in the core, `object rules extends Bindings(...)`.
 package fixture.rejects
 
 import umpire.*
@@ -20,46 +21,40 @@ final case class Unbounded(notes: List[Note])
 
 given Finite[Unbounded] = Finite.of(Unbounded(Nil), Unbounded(List(Note.ping)))
 
-val unbounded: Machine[Unbounded, Outcome, Nothing] =
-  machine[Unbounded, Outcome, Nothing] {
-    starts(Unbounded(Nil))
-    ends(_ => true)
-    steps(go ~> (_ => Nil))
-  }
+object Hoarding extends Machine[Unbounded, Outcome, Nothing]:
+  val init = Unbounded(Nil)
+  def end(s: State) = true
+  object rules extends Bindings(go ~> (_ => Nil))
 
 /** A channel that holds nothing. */
 val closed: Channel[Note] =
   channel[Note](capacity = 0, order = Order.fifo, loss = Loss.reliable)
 
-final case class Waiting(inbox: Inbox[Note])
+final case class WaitingState(inbox: Inbox[Note])
 
-given Finite[Waiting] =
+given Finite[WaitingState] =
   given Finite[Inbox[Note]] = closed.contents
   Finite.derived
 
-val waiting: Machine[Waiting, Outcome, Nothing] =
-  machine[Waiting, Outcome, Nothing] {
-    starts(Waiting(closed.empty))
-    ends(_ => true)
-    steps(closed.deliver ~> ((w, _) => List(Step(Outcome.accepted, w))))
-  }
+object Waiting extends Machine[WaitingState, Outcome, Nothing]:
+  val init = WaitingState(closed.empty)
+  def end(s: State) = true
+  object rules extends Bindings(closed.deliver ~> ((w, _) => List(Step(Outcome.accepted, w))))
 
 /** A lossy channel whose loss no step says the meaning of. */
 val leaky: Channel[Note] =
   channel[Note](capacity = 1, order = Order.fifo, loss = Loss.lossy)
 
-final case class Listening(inbox: Inbox[Note])
+final case class ListeningState(inbox: Inbox[Note])
 
-given Finite[Listening] =
+given Finite[ListeningState] =
   given Finite[Inbox[Note]] = leaky.contents
   Finite.derived
 
-val listening: Machine[Listening, Outcome, Nothing] =
-  machine[Listening, Outcome, Nothing] {
-    starts(Listening(leaky.empty))
-    ends(_ => true)
-    steps(leaky.deliver ~> ((l, _) => List(Step(Outcome.accepted, l))))
-  }
+object Listening extends Machine[ListeningState, Outcome, Nothing]:
+  val init = ListeningState(leaky.empty)
+  def end(s: State) = true
+  object rules extends Bindings(leaky.deliver ~> ((l, _) => List(Step(Outcome.accepted, l))))
 
 /** One channel held in two fields: which of them a delivery takes from is undefined. */
 final case class Twice(first: Inbox[Note], second: Inbox[Note])
@@ -68,28 +63,25 @@ given Finite[Twice] =
   given Finite[Inbox[Note]] = leaky.contents
   Finite.derived
 
-val doubled: Machine[Twice, Outcome, Nothing] =
-  machine[Twice, Outcome, Nothing] {
-    starts(Twice(leaky.empty, leaky.empty))
-    ends(_ => true)
-    steps(leaky.lose ~> ((t, _) => List(Step(Outcome.accepted, t))))
-  }
+object Doubled extends Machine[Twice, Outcome, Nothing]:
+  val init = Twice(leaky.empty, leaky.empty)
+  def end(s: State) = true
+  object rules extends Bindings(leaky.lose ~> ((t, _) => List(Step(Outcome.accepted, t))))
 
 /** A function that calls itself. */
 def countdown(n: Int): Int = if n <= 0 then 0 else countdown(n - 1)
 
-final case class Counter(n: Int)
+final case class CounterState(n: Int)
 
-given Finite[Counter] =
+given Finite[CounterState] =
   given Finite[Int] = Finite.upTo(2)
   Finite.derived
 
-val counter: Machine[Counter, Outcome, Nothing] =
-  machine[Counter, Outcome, Nothing] {
-    starts(Counter(2))
-    ends(_ => true)
-    steps(go ~> (c => List(Step(Outcome.accepted, Counter(countdown(c.n))))))
-  }
+object Counter extends Machine[CounterState, Outcome, Nothing]:
+  val init = CounterState(2)
+  def end(s: State) = true
+  object rules
+      extends Bindings(go ~> (c => List(Step(Outcome.accepted, CounterState(countdown(c.n))))))
 
 final case class Flag(on: Boolean) derives Finite
 
@@ -99,32 +91,27 @@ def flipStep(f: Flag): List[Step[Flag, Outcome, Nothing]] = List(
   Step(Outcome.accepted, Flag(!f.on))
 )
 
-val first: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing] {
-    starts(Flag(false))
-    ends(_ => true)
-    steps(flip ~> flipStep)
-  }
+object First extends Machine[Flag, Outcome, Nothing]:
+  val init = Flag(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> flipStep)
 
-val second: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing] {
-    starts(Flag(false))
-    ends(_ => true)
-    steps(flip ~> flipStep)
-  }
+object Second extends Machine[Flag, Outcome, Nothing]:
+  val init = Flag(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> flipStep)
 
-val refining: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing] {
-    refines(first)(f => f)
-    starts(Flag(false))
-    ends(_ => true)
-    steps(flip ~> flipStep)
-  }
+object Refining extends Machine[Flag, Outcome, Nothing]:
+  val init = Flag(false)
+  def end(s: State) = true
+  object refinement extends Refinement(First):
+    def toProduct(f: Flag) = f
+  object rules extends Bindings(flip ~> flipStep)
 
 val flips: Property[Flag] =
-  second.property holds (after => after.outcome == Outcome.accepted)
-val flipping: Scenario[Flag] = refining.scenario.starts(Flag(false)).actions(flip)
-val secondFlips: Scenario[Flag] = second.scenario.starts(Flag(false)).actions(flip)
+  Second.property holds (after => after.outcome == Outcome.accepted)
+val flipping: Scenario[Flag] = Refining.scenario.starts(Flag(false)).actions(flip)
+val secondFlips: Scenario[Flag] = Second.scenario.starts(Flag(false)).actions(flip)
 val one: Limits = Limits(steps = 1, actions = 1, search = 8)
 
 /** A Property read through a refinement its Scenario's machine does not declare. */
@@ -141,38 +128,35 @@ val twiceFirst: Monitor[Flag, Outcome, Nothing, Boolean] =
 val twiceSecond: Monitor[Flag, Outcome, Nothing, Boolean] =
   monitor[Flag, Outcome, Nothing, Boolean]("twice", true)((seen, _, _) => seen)(seen => seen)
 
-val watched: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing] {
-    monitors(twiceFirst, twiceSecond)
-    starts(Flag(false))
-    ends(_ => true)
-    steps(flip ~> flipStep)
-  }
+object Watched extends Machine[Flag, Outcome, Nothing]:
+  val init = Flag(false)
+  def end(s: State) = true
+  object monitors extends Section:
+    val firstTwice = twiceFirst
+    val secondTwice = twiceSecond
+  object rules extends Bindings(flip ~> flipStep)
 
 /** What a refined machine sees, on a machine that refines none. */
-val unrefined: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing] {
-    visible(_ => true)
-    starts(Flag(false))
-    ends(_ => true)
-    steps(flip ~> flipStep)
-  }
+object Unrefined extends Machine[Flag, Outcome, Nothing]:
+  val init = Flag(false)
+  def end(s: State) = true
+  def visible(f: Nothing) = true
+  object rules extends Bindings(flip ~> flipStep)
 
 final case class Flags(left: Flag, middle: Flag, right: Flag)
 
 /** A replacement of a member the composition does not have. */
-val misplaced: Composition[Flags] =
-  compose[Flags](_.left -> first, _.right -> refining)
-    .replaces(_.middle, first)
+object Misplaced extends Composition[Flags](_.left -> First, _.right -> Refining):
+  def end(s: State) = false
+  object syncs extends Syncs:
+    replaces(_.middle, First)
 
 /** The outcomes a refined machine sees, on a machine that refines none. */
-val unrefinedOutcomes: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing] {
-    visibleOutcomes(_ => true)
-    starts(Flag(false))
-    ends(_ => true)
-    steps(flip ~> flipStep)
-  }
+object UnrefinedOutcomes extends Machine[Flag, Outcome, Nothing]:
+  val init = Flag(false)
+  def end(s: State) = true
+  def visibleOutcomes(o: Outcome) = true
+  object rules extends Bindings(flip ~> flipStep)
 
 /** Int messages whose catalog is not a range the IR can carry. */
 val counts: Channel[Int] =
@@ -180,17 +164,16 @@ val counts: Channel[Int] =
     Finite.of(1, 5)
   )
 
-final case class Counting(inbox: Inbox[Int])
+final case class CountingState(inbox: Inbox[Int])
 
-given Finite[Counting] =
+given Finite[CountingState] =
   given Finite[Inbox[Int]] = counts.contents
   Finite.derived
 
-val counting: Machine[Counting, Outcome, Nothing] =
-  machine[Counting, Outcome, Nothing] {
-    starts(Counting(counts.empty))
-    ends(_ => true)
-  }
+object Counting extends Machine[CountingState, Outcome, Nothing]:
+  val init = CountingState(counts.empty)
+  def end(s: State) = true
+  object rules extends Bindings()
 
 /** List messages, which have no finite catalog in the IR. */
 val batches: Channel[List[Note]] =
@@ -198,51 +181,48 @@ val batches: Channel[List[Note]] =
     Finite.of(Nil, List(Note.ping))
   )
 
-final case class Batching(inbox: Inbox[List[Note]])
+final case class BatchingState(inbox: Inbox[List[Note]])
 
-given Finite[Batching] =
+given Finite[BatchingState] =
   given Finite[Inbox[List[Note]]] = batches.contents
   Finite.derived
 
-val batching: Machine[Batching, Outcome, Nothing] =
-  machine[Batching, Outcome, Nothing] {
-    starts(Batching(batches.empty))
-    ends(_ => true)
-  }
+object Batching extends Machine[BatchingState, Outcome, Nothing]:
+  val init = BatchingState(batches.empty)
+  def end(s: State) = true
+  object rules extends Bindings()
 
 /** A channel whose order is computed rather than named. */
 val shuffled: Channel[Note] =
   channel[Note](capacity = 1, order = Order.fromOrdinal(1), loss = Loss.reliable)
 
-final case class Shuffling(inbox: Inbox[Note])
+final case class ShufflingState(inbox: Inbox[Note])
 
-given Finite[Shuffling] =
+given Finite[ShufflingState] =
   given Finite[Inbox[Note]] = shuffled.contents
   Finite.derived
 
-val shuffling: Machine[Shuffling, Outcome, Nothing] =
-  machine[Shuffling, Outcome, Nothing] {
-    starts(Shuffling(shuffled.empty))
-    ends(_ => true)
-  }
+object Shuffling extends Machine[ShufflingState, Outcome, Nothing]:
+  val init = ShufflingState(shuffled.empty)
+  def end(s: State) = true
+  object rules extends Bindings()
 
 /** A channel whose loss is computed rather than named. */
 val guessed: Channel[Note] =
   channel[Note](capacity = 1, order = Order.fifo, loss = Loss.valueOf("reliable"))
 
-final case class Guessing(inbox: Inbox[Note])
+final case class GuessingState(inbox: Inbox[Note])
 
-given Finite[Guessing] =
+given Finite[GuessingState] =
   given Finite[Inbox[Note]] = guessed.contents
   Finite.derived
 
-val guessing: Machine[Guessing, Outcome, Nothing] =
-  machine[Guessing, Outcome, Nothing] {
-    starts(Guessing(guessed.empty))
-    ends(_ => true)
-  }
+object Guessing extends Machine[GuessingState, Outcome, Nothing]:
+  val init = GuessingState(guessed.empty)
+  def end(s: State) = true
+  object rules extends Bindings()
 
-// Every fixture takes its family from this given, and its name from its val.
+// Every fixture takes its family from this given, and its name from its object or val.
 given umpire.Family = Family
 
 final case class Lamp(lit: Boolean) derives Finite
@@ -256,11 +236,10 @@ object PinnedTwice:
   given DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
   val again: DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
   val twiceTick = action(Party("fixture"))
-  val pinnedTwice = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(false))
-    ends(_ => true)
-    steps(twiceTick ~> lampStep)
-  }
+  object PinnedTwice extends Machine[Lamp, Outcome, Nothing]:
+    val init = Lamp(false)
+    def end(s: State) = true
+    object rules extends Bindings(twiceTick ~> lampStep)
 
 /** A pin in an object nested in an object that pins its own. */
 object PinsOuter:
@@ -268,11 +247,10 @@ object PinsOuter:
   object PinsInner:
     given DefinitionScope = DefinitionScope("fixture.rejects.Other$package$")
     val innerTick = action(Party("fixture"))
-  val pinnedNested = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(false))
-    ends(_ => true)
-    steps(PinsInner.innerTick ~> lampStep)
-  }
+  object PinnedNested extends Machine[Lamp, Outcome, Nothing]:
+    val init = Lamp(false)
+    def end(s: State) = true
+    object rules extends Bindings(PinsInner.innerTick ~> lampStep)
 
 /** Two owners pinned to one former owner, each with an action of one name. */
 object SharedA:
@@ -283,40 +261,36 @@ object SharedB:
   given DefinitionScope = DefinitionScope("fixture.rejects.Shared$")
   val share = action(Party("fixture"))
 
-val sharedIds = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(SharedA.share ~> lampStep, SharedB.share ~> lampStep)
-}
+object SharedIds extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(SharedA.share ~> lampStep, SharedB.share ~> lampStep)
 
 /** An owner pinned to itself. */
 object Self:
   given DefinitionScope = DefinitionScope("fixture.rejects.Self$")
   val selfTick = action(Party("fixture"))
-  val pinnedSelf = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(false))
-    ends(_ => true)
-    steps(selfTick ~> lampStep)
-  }
+  object PinnedSelf extends Machine[Lamp, Outcome, Nothing]:
+    val init = Lamp(false)
+    def end(s: State) = true
+    object rules extends Bindings(selfTick ~> lampStep)
 
 /** A pin computed rather than written as a literal. */
 object Computed:
   given DefinitionScope = DefinitionScope("fixture.rejects." + "Former$package$")
   val computedTick = action(Party("fixture"))
-  val pinnedComputed = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(false))
-    ends(_ => true)
-    steps(computedTick ~> lampStep)
-  }
+  object PinnedComputed extends Machine[Lamp, Outcome, Nothing]:
+    val init = Lamp(false)
+    def end(s: State) = true
+    object rules extends Bindings(computedTick ~> lampStep)
 
 /** A family whose root is computed rather than written as a literal. */
 object ComputedFamily:
   given umpire.Family = umpire.Family("fixture." + "rejects")
-  val familyComputed = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(false))
-    ends(_ => true)
-    steps(flip ~> lampStep)
-  }
+  object FamilyComputed extends Machine[Lamp, Outcome, Nothing]:
+    val init = Lamp(false)
+    def end(s: State) = true
+    object rules extends Bindings(flip ~> lampStep)
 
 /** Limits named after an anonymous given, a name the compiler made up. */
 object Anonymous:
@@ -338,31 +312,31 @@ def unnamedChecks(m: Machine[Flag, Outcome, Nothing]): Vector[Query] = Vector(
     after.outcome == Outcome.accepted
   )) in secondFlips limits one
 )
-val unnamedProperty: Vector[Query] = unnamedChecks(second)
+val unnamedProperty: Vector[Query] = unnamedChecks(Second)
 
 /** A Scenario in a list, which no val names. */
 val unnamedScenario: Vector[Query] = Vector(
-  query("unnamedScenario") verify flips in second.scenario.actions(flip) limits one
+  query("unnamedScenario") verify flips in Second.scenario.actions(flip) limits one
 )
 
 /** Two machines named alike in two objects. */
 object TwinA:
-  val twin = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(false))
-    ends(_ => true)
-    steps(flip ~> lampStep)
-  }
+  object Twin extends Machine[Lamp, Outcome, Nothing]:
+    val init = Lamp(false)
+    def end(s: State) = true
+    object rules extends Bindings(flip ~> lampStep)
 
 object TwinB:
-  val twin = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(true))
-    ends(_ => true)
-    steps(flip ~> lampStep)
-  }
+  object Twin extends Machine[Lamp, Outcome, Nothing]:
+    val init = Lamp(true)
+    def end(s: State) = true
+    object rules extends Bindings(flip ~> lampStep)
 
 final case class Lamps(left: Lamp, right: Lamp)
 
-val twins = compose[Lamps](_.left -> TwinA.twin, _.right -> TwinB.twin)
+object Twins extends Composition[Lamps](_.left -> TwinA.Twin, _.right -> TwinB.Twin):
+  def end(s: State) = false
+  object syncs extends Syncs
 
 /** Two Queries named alike in two objects. */
 object AskedA:
@@ -392,59 +366,42 @@ object TapA:
 object TapB:
   val tap = action(Party("fixture"))
 
-val tapped = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(TapA.tap ~> lampStep, TapB.tap ~> lampStep)
-}
+object Tapped extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(TapA.tap ~> lampStep, TapB.tap ~> lampStep)
 
-/** A Scenario that names no start, of a machine that declares two. */
-val twoStarts = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false), Lamp(true))
-  ends(_ => true)
-  steps(flip ~> lampStep)
-}
-val twoStartsLit = twoStarts.property holds (after => after.state.lit)
-val eitherStart = twoStarts.scenario.actions(flip)
-val unstarted: Query = query find twoStartsLit in eitherStart limits one
-
-/** A composition's Scenario that names no start, where a member declares two. */
-val oneStart = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> lampStep)
-}
-val startsPair = compose[Lamps](_.left -> twoStarts, _.right -> oneStart)
-val pairLit = startsPair.property holds (after => after.state.left.lit)
-val eitherPair = startsPair.scenario.free
-val unstartedPair: Query = query find pairLit in eitherPair limits one
+object OneStart extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> lampStep)
 
 enum Dropped derives Finite:
   case kept
   case lost(hard: Boolean)
 
 /** A machine that declares no evidence, of a fact with fields. */
-val undeclared = machine[Lamp, Outcome, Dropped] {
-  starts(Lamp(false))
-  ends(_ => true)
-}
+object Undeclared extends Machine[Lamp, Outcome, Dropped]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings()
 
 /** Evidence that names no line for a fact with fields. */
-val unlisted = machine[Lamp, Outcome, Dropped] {
-  starts(Lamp(false))
-  ends(_ => true)
-  evidence { case Dropped.kept => "keptData" }
-}
+object Unlisted extends Machine[Lamp, Outcome, Dropped]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  val evidence: PartialFunction[Dropped, String] = { case Dropped.kept => "keptData" }
+  object rules extends Bindings()
 
 /** Evidence that covers only some values of a fact with fields. */
-val partial = machine[Lamp, Outcome, Dropped] {
-  starts(Lamp(false))
-  ends(_ => true)
-  evidence { case Dropped.lost(true) => "hardLoss" }
-}
+object Partial extends Machine[Lamp, Outcome, Dropped]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  val evidence: PartialFunction[Dropped, String] = { case Dropped.lost(true) => "hardLoss" }
+  object rules extends Bindings()
 
 /** A Property read on a machine of another state type, which refines nothing. */
-val lampFlips = oneStart.scenario.actions(flip)
+val lampFlips = OneStart.scenario.actions(flip)
 val unrelatedRead: Query = query verify flips in lampFlips limits one
 
 /** Two assumptions named alike in two objects, assumed by one machine. */
@@ -454,11 +411,13 @@ object OpaqueA:
 object OpaqueB:
   val opaque = assume
 
-val assumedTwice = machine[Lamp, Outcome, Nothing] {
-  assumes(OpaqueA.opaque, OpaqueB.opaque)
-  starts(Lamp(false))
-  ends(_ => true)
-}
+object AssumedTwice extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object monitors extends Section:
+    val opaqueA = OpaqueA.opaque
+    val opaqueB = OpaqueB.opaque
+  object rules extends Bindings()
 
 /** Two holes named alike in two objects, reached by one machine. */
 object GapA:
@@ -470,41 +429,40 @@ object GapB:
 def gapStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] =
   if l.lit then GapA.gap.reached else GapB.gap.reached
 
-val gapTwice = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> gapStep)
-}
+object GapTwice extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> gapStep)
 
 /** A derivation that rebinds an action its source does not bind. */
 val push = action(Party("fixture"))
-val rebindUnbound = oneStart.rebind(push ~> lampStep)
+object RebindPush extends Derived(OneStart.rebind(push ~> lampStep))
 
 /** A derivation that extends its source by an action it binds already. */
-val extendBound = oneStart.extend(flip ~> lampStep)
+object ExtendBound extends Derived(OneStart.extend(flip ~> lampStep))
 
 /** A derivation that binds one action twice. */
 def darkStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(
   Step(Outcome.accepted, Lamp(false))
 )
-val reboundTwice = oneStart.rebind(flip ~> lampStep, flip ~> darkStep)
+object ReboundTwice extends Derived(OneStart.rebind(flip ~> lampStep, flip ~> darkStep))
 
 /** A derivation that names an assumption its source assumes already. */
 val lampOpaque = assume
-val assumingLamp = machine[Lamp, Outcome, Nothing] {
-  assumes(lampOpaque)
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> lampStep)
-}
-val assumedAgain = assumingLamp.assuming(lampOpaque)
+object AssumingLamp extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object monitors extends Section:
+    val opaque = lampOpaque
+  object rules extends Bindings(flip ~> lampStep)
+object AssumedAgain extends Derived(AssumingLamp.assuming(lampOpaque))
 
 /** A derivation that names one assumption twice. */
 val lampFaulty = assume
-val assumingTwice = oneStart.assuming(lampFaulty, lampFaulty)
+object AssumingTwice extends Derived(OneStart.assuming(lampFaulty, lampFaulty))
 
 /** A refinement replaced where the source declares none. */
-val refinedNothing = oneStart.refining(first)(l => Flag(l.lit))
+object RefinedNothing extends Derived(OneStart.refining(First)(l => Flag(l.lit)))
 
 /** A refinement replaced by one of a machine whose types differ from the replaced one's. */
 enum Seen derives Finite:
@@ -512,26 +470,28 @@ enum Seen derives Finite:
 
 final case class Glimpse(at: Seen) derives Finite
 
-val glimpse = machine[Glimpse, Seen, Nothing] {
-  starts(Glimpse(Seen.seen))
-  ends(_ => true)
-}
-val flagLamp = machine[Lamp, Outcome, Nothing] {
-  refines(first)(l => Flag(l.lit))
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> lampStep)
-}
-val refinedOtherwise = flagLamp.refining(glimpse)(_ => Glimpse(Seen.seen))
+object Glance extends Machine[Glimpse, Seen, Nothing]:
+  val init = Glimpse(Seen.seen)
+  def end(s: State) = true
+  object rules extends Bindings()
+object FlagLamp extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object refinement extends Refinement(First):
+    def toProduct(l: Lamp) = Flag(l.lit)
+  object rules extends Bindings(flip ~> lampStep)
+object RefinedOtherwise extends Derived(FlagLamp.refining(Glance)(_ => Glimpse(Seen.seen)))
 
 /** Two machines derived from each other. */
-val loopFirst: Machine[Lamp, Outcome, Nothing] = loopSecond.rebind(flip ~> darkStep)
-val loopSecond: Machine[Lamp, Outcome, Nothing] = loopFirst.rebind(flip ~> lampStep)
+object LoopFirst extends Derived[Lamp, Outcome, Nothing](LoopSecond.rebind(flip ~> darkStep))
+object LoopSecond extends Derived[Lamp, Outcome, Nothing](LoopFirst.rebind(flip ~> lampStep))
 
 /** Two machines that are aliases of each other. */
 val aliasFirst: Machine[Lamp, Outcome, Nothing] = aliasSecond
 val aliasSecond: Machine[Lamp, Outcome, Nothing] = aliasFirst
-val aliased = compose[Lamps](_.left -> aliasFirst, _.right -> oneStart)
+object Aliased extends Composition[Lamps](_.left -> aliasFirst, _.right -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
@@ -539,30 +499,27 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 val lit = List(true)
 def litStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] =
   if l.lit.in(false, lit*) then enter(Lamp(true)) else disabled
-val splatted = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> litStep)
-}
+object Splatted extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> litStep)
 
 /** An explanation given to steps a helper function returns, not written out. */
 def explainedStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = lampStep(l).because("it flips")
-val explained = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> explainedStep)
-}
+object Explained extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> explainedStep)
 
 /** An ok outcome a helper function computes, which `enter` cannot read. */
 object ComputedOk:
   def okOf(o: Outcome): Ok[Outcome] = Ok(o)
   given Ok[Outcome] = okOf(Outcome.accepted)
   def computedStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = enter(Lamp(!l.lit))
-  val computedOk = machine[Lamp, Outcome, Nothing] {
-    starts(Lamp(false))
-    ends(_ => true)
-    steps(flip ~> computedStep)
-  }
+  object ComputedOk extends Machine[Lamp, Outcome, Nothing]:
+    val init = Lamp(false)
+    def end(s: State) = true
+    object rules extends Bindings(flip ~> computedStep)
 
 // ### Typed composition selectors (fn-112.4)
 
@@ -577,75 +534,94 @@ def dimStep(l: Lamp, level: Dim): List[Step[Lamp, Outcome, Nothing]] = List(
 )
 
 /** A lamp that flips, dims and is pushed, and one that taps TapA's action spelled as TapB's. */
-val dimmer = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> lampStep, dim ~> dimStep, push ~> lampStep)
-}
-val tapLamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(TapA.tap ~> lampStep)
-}
+object Dimmer extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> lampStep, dim ~> dimStep, push ~> lampStep)
+object TapLamp extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(TapA.tap ~> lampStep)
 
 /** A member named by a selector of a field's field. */
-val memberNoField = compose[Lamps](_.left.lit -> oneStart, _.right -> oneStart)
+object MemberNoField extends Composition[Lamps](_.left.lit -> OneStart, _.right -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs
 
 /** A sync whose selector names a field no member fills. */
-val syncNoMember = compose[Trio](_.left -> oneStart, _.right -> dimmer)
-  .sync("flipSpare", _.left -> flip, _.spare -> flip)
+object SyncNoMember extends Composition[Trio](_.left -> OneStart, _.right -> Dimmer):
+  def end(s: State) = false
+  object syncs extends Syncs:
+    sync("flipSpare", _.left -> flip, _.spare -> flip)
 
 /** A member whose machine is of another state type than its field. */
-val memberIncompatible = compose[Lamps](_.left -> oneStart, _.right -> first)
+object MemberIncompatible extends Composition[Lamps](_.left -> OneStart, _.right -> First):
+  def end(s: State) = false
+  object syncs extends Syncs
 
 /** A sync of an action spelled as the one its member binds, of another declaration. */
-val syncUnbound = compose[Lamps](_.left -> tapLamp, _.right -> oneStart)
-  .sync("tapFlip", _.left -> TapB.tap, _.right -> flip)
+object SyncUnbound extends Composition[Lamps](_.left -> TapLamp, _.right -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs:
+    sync("tapFlip", _.left -> TapB.tap, _.right -> flip)
 
 /** A member replaced where no member fills the field, or by a machine of another state type. */
-val spareless = compose[Trio](_.left -> oneStart, _.right -> dimmer)
-val withNoMember = spareless.withMember(_.spare -> oneStart)
-val withIncompatible = spareless.withMember(_.left -> first)
+object Spareless extends Composition[Trio](_.left -> OneStart, _.right -> Dimmer):
+  def end(s: State) = false
+  object syncs extends Syncs
+object WithNoMember extends Composition(Spareless.withMember(_.spare -> OneStart))
+object WithIncompatible extends Composition(Spareless.withMember(_.left -> First))
 
 /** `synced` and `own` of a field no member fills, and `synced` of a field's field. */
-val sparelessLit = spareless.property holds (after => after.state.left.lit)
+val sparelessLit = Spareless.property holds (after => after.state.left.lit)
 val sparelessStart = Trio(Lamp(false), Lamp(false), Lamp(false))
 val syncedSpare =
-  spareless.scenario.starts(sparelessStart).actions(spareless.synced(_.spare -> flip))
+  Spareless.scenario.starts(sparelessStart).actions(Spareless.synced(_.spare -> flip))
 val syncedNoMember: Query = query verify sparelessLit in syncedSpare limits one
-val ownSpare = spareless.scenario.starts(sparelessStart).actions(spareless.own(_.spare, flip))
+val ownSpare = Spareless.scenario.starts(sparelessStart).actions(Spareless.own(_.spare, flip))
 val ownNoMember: Query = query verify sparelessLit in ownSpare limits one
 
 /** A member that stands in for a machine, replaced by a machine that refines none. */
-val standIn = compose[Lamps](_.left -> flagLamp, _.right -> oneStart).replaces(_.left, first)
-val withUnrefined = standIn.withMember(_.left -> oneStart)
+object StandIn extends Composition[Lamps](_.left -> FlagLamp, _.right -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs:
+    replaces(_.left, First)
+object WithUnrefined extends Composition(StandIn.withMember(_.left -> OneStart))
 
 /** A member a sync pairs, replaced by a machine that binds none of the actions it pairs. */
-val flipPair = compose[Lamps](_.left -> oneStart, _.right -> dimmer)
-  .sync("flipBoth", _.left -> flip, _.right -> flip)
-val withUnsynced = flipPair.withMember(_.left -> tapLamp)
+object FlipPair extends Composition[Lamps](_.left -> OneStart, _.right -> Dimmer):
+  def end(s: State) = false
+  object syncs extends Syncs:
+    sync("flipBoth", _.left -> flip, _.right -> flip)
+object WithUnsynced extends Composition(FlipPair.withMember(_.left -> TapLamp))
 
-val flipPairLit = flipPair.property holds (after => after.state.left.lit)
-val flipPairFree = flipPair.scenario.free
+val flipPairLit = FlipPair.property holds (after => after.state.left.lit)
+val flipPairFree = FlipPair.scenario.free
 
 /** `synced` of a member action no sync pairs. */
-val unsyncedPush = flipPair.scenario.actions(flipPair.synced(_.right -> push))
+val unsyncedPush = FlipPair.scenario.actions(FlipPair.synced(_.right -> push))
 val syncedNone: Query = query verify flipPairLit in unsyncedPush limits one
 
 /** `synced` of a member action two syncs pair. */
-val flipTrio = compose[Trio](_.left -> oneStart, _.right -> oneStart, _.spare -> oneStart)
-  .sync("flipRight", _.left -> flip, _.right -> flip)
-  .sync("flipSpare", _.left -> flip, _.spare -> flip)
-val flipTrioLit = flipTrio.property holds (after => after.state.left.lit)
-val eitherFlip = flipTrio.scenario.actions(flipTrio.synced(_.left -> flip))
+object FlipTrio
+    extends Composition[Trio](_.left -> OneStart, _.right -> OneStart, _.spare -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs:
+    sync("flipRight", _.left -> flip, _.right -> flip)
+    sync("flipSpare", _.left -> flip, _.spare -> flip)
+val flipTrioLit = FlipTrio.property holds (after => after.state.left.lit)
+val eitherFlip = FlipTrio.scenario.actions(FlipTrio.synced(_.left -> flip))
 val syncedTwice: Query = query verify flipTrioLit in eitherFlip limits one
 
 // ### Names a declaration takes by default (fn-112.10)
 
 /** A sync named after its first member's action, which another sync of the composition is named. */
-val syncNamedTwice = compose[Trio](_.left -> oneStart, _.right -> oneStart, _.spare -> oneStart)
-  .sync("flip", _.left -> flip, _.right -> flip)
-  .sync(_.left -> flip, _.spare -> flip)
+object SyncNamedTwice
+    extends Composition[Trio](_.left -> OneStart, _.right -> OneStart, _.spare -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs:
+    sync("flip", _.left -> flip, _.right -> flip)
+    sync(_.left -> flip, _.spare -> flip)
 
 object emptied:
   /** A count whose range ends below its start, so it has no values. */
@@ -657,24 +633,22 @@ object emptied:
 val unreached = input[emptied.Unreached]
 val reach = action(Party("fixture")).input(unreached)
 def reachStep(l: Lamp, u: emptied.Unreached): List[Step[Lamp, Outcome, Nothing]] = Nil
-val reachLamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(reach ~> reachStep)
-}
-val reachLit = reachLamp.property holds (after => after.state.lit)
+object ReachLamp extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(reach ~> reachStep)
+val reachLit = ReachLamp.property holds (after => after.state.lit)
 
 /** `reach()`, whose input has no first value to take. */
-val reachOnce = reachLamp.scenario.actions(reach())
+val reachOnce = ReachLamp.scenario.actions(reach())
 val omittedEmpty: Query = query verify reachLit in reachOnce limits one
 
 /** A party no val declares, which states no name. */
 val partyUnnamed = action(Party())
-val partyUnnamedLamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(partyUnnamed ~> lampStep)
-}
+object PartyUnnamedLamp extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(partyUnnamed ~> lampStep)
 
 /** A monitor a Query's expected Run names by a def, which no val declares. */
 def flipWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
@@ -711,17 +685,16 @@ val watchUnwatched: Query = (query verify flips in secondFlips limits one).expec
  */
 val elsewhereWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
   monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
-val watchingElsewhere: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing] {
-    monitors(elsewhereWatch)
-    starts(Flag(false))
-    ends(_ => true)
-    steps(flip ~> flipStep)
-  }
+object WatchingElsewhere extends Machine[Flag, Outcome, Nothing]:
+  val init = Flag(false)
+  def end(s: State) = true
+  object monitors extends Section:
+    val watch = elsewhereWatch
+  object rules extends Bindings(flip ~> flipStep)
 val elsewhereFlips: Property[Flag] =
-  watchingElsewhere.property holds (after => after.outcome == Outcome.accepted)
+  WatchingElsewhere.property holds (after => after.outcome == Outcome.accepted)
 val watchElsewhere: Vector[Query] = Vector(
-  query("watchedThere") verify elsewhereFlips in watchingElsewhere
+  query("watchedThere") verify elsewhereFlips in WatchingElsewhere
     .scenario("there")
     .starts(Flag(false))
     .actions(flip) limits one total 2,
@@ -740,37 +713,42 @@ val watchElsewhere: Vector[Query] = Vector(
 )
 
 /** `own` of a member action a sync pairs. */
-val ownFlip = flipPair.scenario.actions(flipPair.own(_.left, flip))
+val ownFlip = FlipPair.scenario.actions(FlipPair.own(_.left, flip))
 val ownSynced: Query = query verify flipPairLit in ownFlip limits one
 
-val syncedLit = flipPair.scenario.actions(flipPair.synced(_.left.lit -> flip))
+val syncedLit = FlipPair.scenario.actions(FlipPair.synced(_.left.lit -> flip))
 val syncedNoField: Query = query verify flipPairLit in syncedLit limits one
 
 /** `own` of an action spelled as the one its member binds, of another declaration. */
-val tapPair = compose[Lamps](_.left -> tapLamp, _.right -> oneStart)
-val tapPairLit = tapPair.property holds (after => after.state.left.lit)
-val tapOther = tapPair.scenario.actions(tapPair.own(_.left, TapB.tap))
+object TapPair extends Composition[Lamps](_.left -> TapLamp, _.right -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs
+val tapPairLit = TapPair.property holds (after => after.state.left.lit)
+val tapOther = TapPair.scenario.actions(TapPair.own(_.left, TapB.tap))
 val ownSpelledAlike: Query = query verify tapPairLit in tapOther limits one
 
 /** A composition's Scenario that lists a machine's class beside its composed classes. */
-val mixedFlips = flipPair.scenario.actions(flipPair.synced(_.left -> flip), push)
+val mixedFlips = FlipPair.scenario.actions(FlipPair.synced(_.left -> flip), push)
 val mixedSchedule: Query = query verify flipPairLit in mixedFlips limits one
 
 /** A composition's Scenario that lists an action that takes inputs, not a class of it. */
-val bareDim = flipPair.scenario.actions(flipPair.own(_.right, dim))
+val bareDim = FlipPair.scenario.actions(FlipPair.own(_.right, dim))
 val bareInputs: Query = query verify flipPairLit in bareDim limits one
 
 /** `whenAction` of a class, with its inputs, where it names every class of an action. */
-val dimmedHigh = flipPair.property.whenAction(flipPair.own(_.right, dim(Dim.high))) holds
+val dimmedHigh = FlipPair.property.whenAction(FlipPair.own(_.right, dim(Dim.high))) holds
   (after => after.state.right.lit)
 val whenClassInputs: Query = query verify dimmedHigh in flipPairFree limits one
 
 /** A typed replacement of a field no member fills. */
-val replacesSpare = compose[Trio](_.left -> flagLamp, _.right -> oneStart).replaces(_.spare, first)
+object ReplacesSpare extends Composition[Trio](_.left -> FlagLamp, _.right -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs:
+    replaces(_.spare, First)
 
 /** Two compositions derived from each other. */
-val loopPair: Composition[Lamps] = loopPairBack.withMember(_.left -> oneStart)
-val loopPairBack: Composition[Lamps] = loopPair.withMember(_.right -> oneStart)
+object LoopPair extends Composition[Lamps](LoopPairBack.withMember(_.left -> OneStart))
+object LoopPairBack extends Composition[Lamps](LoopPair.withMember(_.right -> OneStart))
 
 // ### Claim patterns, records over a member and function-valued arguments (fn-112.4)
 
@@ -778,41 +756,45 @@ def lampLit(l: Lamp): Boolean = l.lit
 def lampStepLit(after: Step[Lamp, Outcome, Nothing]): Boolean = after.state.lit
 
 /** A claim pattern after `when`: a transition Property is about every step. */
-val litAfterFlip = oneStart.property.when(flip).stays(lampLit)
+val litAfterFlip = OneStart.property.when(flip).stays(lampLit)
 val whenStays: Query = query verify litAfterFlip in lampFlips limits one
 
 /** A `keeps` projection that computes a value rather than reading a field. */
-val litKept = oneStart.property.once(lampLit).keeps(l => !l.lit)
+val litKept = OneStart.property.once(lampLit).keeps(l => !l.lit)
 val keptComputed: Query = query verify litKept in lampFlips limits one
 
 /** `from` on a `never` kept in a val, not written directly after it. */
-val neverLit = oneStart.property.never(lampStepLit)
+val neverLit = OneStart.property.never(lampStepLit)
 val fromKept = neverLit.from(lampLit)
 val fromVal: Query = query verify fromKept in lampFlips limits one
 
 /** A lambda literal where a claim written once takes a predicate, which names no def to bind. */
 def litStays[S](m: Declares[S])(lit: S => Boolean): Property[S] = m.property("litStays").stays(lit)
-val litStaysLambda = litStays(oneStart)(l => l.lit)
+val litStaysLambda = litStays(OneStart)(l => l.lit)
 val sharedLambda: Query = query verify litStaysLambda in lampFlips limits one
 
 /** A composition's records whose selector names no member, and a fact its member does not record. */
-val patternLamps = compose[Lamps](_.left -> oneStart, _.right -> oneStart)
-val patternLampsFree = patternLamps.scenario.free
-val leftLitRecorded = patternLamps.property holds (after => after.records(_.left.lit, Note.ping))
+object PatternLamps extends Composition[Lamps](_.left -> OneStart, _.right -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs
+val patternLampsFree = PatternLamps.scenario.free
+val leftLitRecorded = PatternLamps.property holds (after => after.records(_.left.lit, Note.ping))
 val recordsNoMember: Query = query verify leftLitRecorded in patternLampsFree limits one
-val leftPinged = patternLamps.property holds (after => after.records(_.left, Note.ping))
+val leftPinged = PatternLamps.property holds (after => after.records(_.left, Note.ping))
 val recordsForeignFact: Query = query verify leftPinged in patternLampsFree limits one
 
 /** A composition's records of a field no member fills. */
-final case class Spared(left: Lamp, spare: Lamp)
-val spared = compose[Spared](_.left -> oneStart)
-val sparedFree = spared.scenario.starts(Spared(Lamp(false), Lamp(false))).free
-val sparePinged = spared.property holds (after => after.records(_.spare, Note.ping))
+final case class SparedState(left: Lamp, spare: Lamp)
+object Spared extends Composition[SparedState](_.left -> OneStart):
+  def end(s: State) = false
+  object syncs extends Syncs
+val sparedFree = Spared.scenario.starts(SparedState(Lamp(false), Lamp(false))).free
+val sparePinged = Spared.property holds (after => after.records(_.spare, Note.ping))
 val recordsUnfilled: Query = query verify sparePinged in sparedFree limits one
 
 /** A call of a function parameter in a function no declaring function binds it in. */
 def litBy(after: Step[Lamp, Outcome, Nothing], lit: Lamp => Boolean): Boolean = lit(after.state)
-val litByParam = oneStart.property holds (after => litBy(after, lampLit))
+val litByParam = OneStart.property holds (after => litBy(after, lampLit))
 val paramCalled: Query = query verify litByParam in lampFlips limits one
 
 // ### Input tokens, inputs supplied by name and bounded counters (fn-112.5)
@@ -826,63 +808,59 @@ def brightStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] =
   List(Step(Outcome.accepted, Lamp(a == b)))
 def tintStep(l: Lamp, a: Dim): List[Step[Lamp, Outcome, Nothing]] =
   List(Step(Outcome.accepted, Lamp(a == Dim.high)))
-val brightLamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(bright ~> brightStep, tint ~> tintStep, dim ~> dimStep)
-}
-val brightLit = brightLamp.property holds (after => after.state.lit)
+object BrightLamp extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(bright ~> brightStep, tint ~> tintStep, dim ~> dimStep)
+val brightLit = BrightLamp.property holds (after => after.state.lit)
 
 /** A token of another action, of the input type this one takes. */
-val foreignBright = brightLamp.scenario.actions(bright(shade := Dim.high))
+val foreignBright = BrightLamp.scenario.actions(bright(shade := Dim.high))
 val foreignToken: Query = query verify brightLit in foreignBright limits one
 
 /** One input supplied twice. */
-val twiceBright = brightLamp.scenario.actions(bright(level := Dim.high, level := Dim.low))
+val twiceBright = BrightLamp.scenario.actions(bright(level := Dim.high, level := Dim.low))
 val suppliedTwice: Query = query verify brightLit in twiceBright limits one
 
 /** A supply kept in a val, not written in the call. */
 val keptLevel = level := Dim.high
-val keptBright = brightLamp.scenario.actions(bright(keptLevel))
+val keptBright = BrightLamp.scenario.actions(bright(keptLevel))
 val supplyKept: Query = query verify brightLit in keptBright limits one
 
 /** An action whose inputs are declared by name strings, given a token. */
-val strungDim = brightLamp.scenario.actions(dim(level := Dim.high))
+val strungDim = BrightLamp.scenario.actions(dim(level := Dim.high))
 val namedNoTokens: Query = query verify brightLit in strungDim limits one
 
 /** An action that declares one token twice. */
 val doubleTint = action(Party("fixture")).input(shade).input(shade)
 def doubleTintStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] =
   List(Step(Outcome.accepted, Lamp(a == b)))
-val doubleTintLamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(doubleTint ~> doubleTintStep)
-}
-val doubleTintLit = doubleTintLamp.property holds (after => after.state.lit)
-val doubleTintFree = doubleTintLamp.scenario.free
+object DoubleTintLamp extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(doubleTint ~> doubleTintStep)
+val doubleTintLit = DoubleTintLamp.property holds (after => after.state.lit)
+val doubleTintFree = DoubleTintLamp.scenario.free
 val inputTwice: Query = query verify doubleTintLit in doubleTintFree limits one
 
 /** An input token no val declares, so it has no name. */
 val unnamedTint = action(Party("fixture")).input(input[Dim])
-val unnamedTintLamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(unnamedTint ~> tintStep)
-}
-val unnamedTintLit = unnamedTintLamp.property holds (after => after.state.lit)
-val unnamedTintFree = unnamedTintLamp.scenario.free
+object UnnamedTintLamp extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(unnamedTint ~> tintStep)
+val unnamedTintLit = UnnamedTintLamp.property holds (after => after.state.lit)
+val unnamedTintFree = UnnamedTintLamp.scenario.free
 val tokenUnnamed: Query = query verify unnamedTintLit in unnamedTintFree limits one
 
 /** A counter bounded below zero, which has no values. */
-final case class Below(count: UpTo[-1]) derives Finite
-val below = machine[Below, Outcome, Nothing] {
-  starts(Below(UpTo(0)))
-  ends(_ => true)
-  steps(flip ~> (b => List(Step(Outcome.accepted, b))))
-}
-val belowFree = below.scenario.free
-val belowAny = below.property holds (after => after.state.count == 0)
+final case class BelowState(count: UpTo[-1]) derives Finite
+object Below extends Machine[BelowState, Outcome, Nothing]:
+  val init = BelowState(UpTo(0))
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> (b => List(Step(Outcome.accepted, b))))
+val belowFree = Below.scenario.free
+val belowAny = Below.property holds (after => after.state.count == 0)
 val upToNegative: Query = query verify belowAny in belowFree limits one
 
 // ### fn-112.11: the total each Query asserts (2 states of Flag x 1 scheduled flip = 2)
@@ -910,7 +888,7 @@ def flipQueries(m: Machine[Flag, Outcome, Nothing], total: Int): Vector[Query] =
     .scenario("flipsAgain")
     .actions(flip) limits one total total
 )
-val sharedComputed: Vector[Query] = flipQueries(second, twoStates + 0)
+val sharedComputed: Vector[Query] = flipQueries(Second, twoStates + 0)
 
 // ### Named choices (fn-120.1)
 
@@ -924,78 +902,70 @@ object Elsewhere:
 /** One token naming two alternatives. */
 def chosenTwiceStep(l: Lamp): List[LampStep] =
   choose(lampOn -> stay(l), lampOn -> enter(Lamp(!l.lit)))
-val chosenTwice = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> chosenTwiceStep)
-}
+object ChosenTwice extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> chosenTwiceStep)
 
 /** Two tokens whose vals have one simple name. */
 def spelledTwiceStep(l: Lamp): List[LampStep] =
   choose(lampOn -> stay(l), Elsewhere.lampOn -> enter(Lamp(!l.lit)))
-val spelledTwice = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> spelledTwiceStep)
-}
+object SpelledTwice extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> spelledTwiceStep)
 
 /** An alternative whose function gives two steps, a choose of its own (lampBothStep, below). */
 def choiceHelperStep(l: Lamp): List[LampStep] =
   choose(lampOn -> lampBothStep(l), lampOff -> stay(l))
-val choiceHelper = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> choiceHelperStep)
-}
+object ChoiceHelper extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> choiceHelperStep)
 
 /** An alternative with no step. */
 def choiceDisabledStep(l: Lamp): List[LampStep] =
   choose(lampOn -> enter(Lamp(true)), lampOff -> disabled)
-val choiceDisabled = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> choiceDisabledStep)
-}
+object ChoiceDisabled extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> choiceDisabledStep)
 
 /** An alternative of two steps. */
 def choiceTwoStepsStep(l: Lamp): List[LampStep] = choose(
   lampOn -> List(Step(Outcome.accepted, Lamp(true)), Step(Outcome.accepted, Lamp(false))),
   lampOff -> stay(l)
 )
-val choiceTwoSteps = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> choiceTwoStepsStep)
-}
+object ChoiceTwoSteps extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> choiceTwoStepsStep)
 
 /** An alternative that is a conditional. */
 def choiceIfStep(l: Lamp): List[LampStep] = choose(
   lampOn -> (if l.lit then stay(l) else enter(Lamp(true))),
   lampOff -> stay(l)
 )
-val choiceIf = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> choiceIfStep)
-}
+object ChoiceIf extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> choiceIfStep)
 
 /** Choice tokens no val declares, so they have no name. */
 def choiceUnnamedStep(l: Lamp): List[LampStep] =
   choose(choice -> stay(l), choice -> enter(Lamp(true)))
-val choiceUnnamed = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> choiceUnnamedStep)
-}
+object ChoiceUnnamed extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> choiceUnnamedStep)
 
 /** An alternative kept in a val, not written in the call. */
 val keptOn: (Choice, List[LampStep]) = lampOn -> List(Step(Outcome.accepted, Lamp(true)))
 def choiceKeptStep(l: Lamp): List[LampStep] = choose(keptOn, lampOff -> stay(l))
-val choiceKept = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> choiceKeptStep)
-}
+object ChoiceKept extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> choiceKeptStep)
 
 // ### Claims a shared def declares together, as a bundle read back by field (fn-112.12)
 
@@ -1007,7 +977,7 @@ def mixedLaws(m: Machine[Flag, Outcome, Nothing]): Mixed =
 def mixedQueries(m: Machine[Flag, Outcome, Nothing]): Vector[Query] =
   val laws = mixedLaws(m)
   Vector(query(s"${m.name}.mixedFlips") verify laws.flipped in secondFlips limits one total 2)
-val mixedBundle: Vector[Query] = mixedQueries(second)
+val mixedBundle: Vector[Query] = mixedQueries(Second)
 
 // ### A type moved under a DefinitionScope keeps its former name (MovedRejects.scala, fn-112.12)
 
@@ -1021,11 +991,10 @@ val gaugeTick = action(Party("fixture"))
 def gaugeStep(g: Gauges): List[Step[Gauges, Outcome, Nothing]] = List(Step(Outcome.accepted, g))
 
 /** One machine whose state reads both gauges, which the IR would name alike. */
-val movedNameTaken = machine[Gauges, Outcome, Nothing] {
-  starts(Gauges(Gauge.low, moved.Gauge.empty))
-  ends(_ => true)
-  steps(gaugeTick ~> gaugeStep)
-}
+object MovedNameTaken extends Machine[Gauges, Outcome, Nothing]:
+  val init = Gauges(Gauge.low, moved.Gauge.empty)
+  def end(s: State) = true
+  object rules extends Bindings(gaugeTick ~> gaugeStep)
 
 // ### Functions a choose calls, and unnamed branching (fn-120.2)
 
@@ -1038,120 +1007,114 @@ def lampKeptStep(l: Lamp): List[LampStep] =
   if l.lit then kept else disabled
 def choiceKeptHelperStep(l: Lamp): List[LampStep] =
   choose(lampOn -> lampKeptStep(l), lampOff -> stay(l))
-val choiceKeptHelper = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> choiceKeptHelperStep)
-}
+object ChoiceKeptHelper extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> choiceKeptHelperStep)
 
 /** Two results written as an unnamed list. */
 def unnamedListStep(l: Lamp): List[LampStep] =
   List(Step(Outcome.accepted, l), Step(Outcome.accepted, Lamp(!l.lit)))
-val unnamedList = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> unnamedListStep)
-}
+object UnnamedList extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> unnamedListStep)
 
 /** Two results joined with `++`, here two helpers' steps. */
 def unnamedJoinStep(l: Lamp): List[LampStep] = lampStep(l) ++ stay(l)
-val unnamedJoin = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> unnamedJoinStep)
-}
+object UnnamedJoin extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> unnamedJoinStep)
 
 /** An unnamed list in a function a step function calls, refused where it is written. */
 def lampPairStep(l: Lamp): List[LampStep] =
   List(Step(Outcome.accepted, l), Step(Outcome.accepted, l))
 def unnamedInHelperStep(l: Lamp): List[LampStep] = if l.lit then lampPairStep(l) else disabled
-val unnamedInHelper = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> unnamedInHelperStep)
-}
+object UnnamedInHelper extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> unnamedInHelperStep)
 
 // ### Expressions at the wrong level (fn-120 R13): a step made where no step function is
 
 /** A start computed from a step. */
-val levelStart = machine[Lamp, Outcome, Nothing] {
-  starts(if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false))
-  ends(_ => true)
-  steps(flip ~> lampStep)
-}
+object LevelStart extends Machine[Lamp, Outcome, Nothing]:
+  val init = if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> lampStep)
 
-/** An `ends` that asks whether a step function gives a step. */
-val levelEnds = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(l => lampStep(l) == Nil)
-  steps(flip ~> lampStep)
-}
+/** An `end` that asks whether a step function gives a step. */
+object LevelEnds extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(l: State) = lampStep(l) == Nil
+  object rules extends Bindings(flip ~> lampStep)
 
 /** Evidence that makes a step. */
-val levelEvidence = machine[Lamp, Outcome, Dropped] {
-  starts(Lamp(false))
-  ends(_ => true)
-  evidence {
+object LevelEvidence extends Machine[Lamp, Outcome, Dropped]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  val evidence: PartialFunction[Dropped, String] = {
     case Dropped.kept    => if lampStep(Lamp(false)) == Nil then "keptData" else "keptAgain"
     case Dropped.lost(_) => "lostData"
   }
-}
+  object rules extends Bindings()
 
 /** A refinement whose map reads a step. */
-val levelRefinement = machine[Lamp, Outcome, Nothing] {
-  refines(oneStart)(l => if lampStep(l) == Nil then l else Lamp(!l.lit))
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> lampStep)
-}
+object LevelRefinement extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object refinement extends Refinement(OneStart):
+    def toProduct(l: Lamp) = if lampStep(l) == Nil then l else Lamp(!l.lit)
+  object rules extends Bindings(flip ~> lampStep)
 
 /** A monitor whose next state asks which steps the step function gives. */
 val levelWatch: Monitor[Lamp, Outcome, Nothing, Boolean] =
   monitor[Lamp, Outcome, Nothing, Boolean](false)((seen, before, after) =>
     seen || !lampStep(before).contains(after)
   )(seen => seen)
-val levelMonitor = machine[Lamp, Outcome, Nothing] {
-  monitors(levelWatch)
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> lampStep)
-}
+object LevelMonitor extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object monitors extends Section:
+    val watch = levelWatch
+  object rules extends Bindings(flip ~> lampStep)
 
 /** A step function whose precondition asks whether another step function gives a step. */
 def requiringStep(l: Lamp): List[LampStep] =
   require(lampStep(l) != Nil)
   lampStep(l)
-val levelRequire = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> requiringStep)
-}
+object LevelRequire extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> requiringStep)
 
 /** A same-step Property that asks what the step function gives after the step. */
-val levelHolds = oneStart.property holds (after => lampStep(after.state) == Nil)
+val levelHolds = OneStart.property holds (after => lampStep(after.state) == Nil)
 val levelProperty: Query = query verify levelHolds in lampFlips limits one total 2
 
 /** A transition Property that asks whether the step is one the step function gives. */
 val levelAcross =
-  oneStart.property holdsAcross ((before, after) => lampStep(before).contains(after))
+  OneStart.property holdsAcross ((before, after) => lampStep(before).contains(after))
 val levelTransition: Query = query verify levelAcross in lampFlips limits one total 2
 
 /** A claim pattern whose predicate makes a step. */
 def lampStepped(after: Step[Lamp, Outcome, Nothing]): Boolean = lampStep(after.state) == Nil
-val levelNever = oneStart.property.never(lampStepped)
+val levelNever = OneStart.property.never(lampStepped)
 val levelPattern: Query = query verify levelNever in lampFlips limits one total 2
 
 /** A progress claim whose source asks whether a step function gives a step. */
-val levelProgress = oneStart.leadsTo("levelSettles")(l => lampStep(l) == Nil, l => l.lit, 2)
+val levelProgress = OneStart.leadsTo("levelSettles")(l => lampStep(l) == Nil, l => l.lit, 2)
 
-/** A composition whose `ends` asks whether a member's step function gives a step. */
-val levelComposition = compose[Lamps](_.left -> oneStart, _.right -> oneStart)
-  .ends(c => lampStep(c.left) == Nil)
+/** A composition whose `end` asks whether a member's step function gives a step. */
+object LevelComposition extends Composition[Lamps](_.left -> OneStart, _.right -> OneStart):
+  def end(c: State) = lampStep(c.left) == Nil
+  object syncs extends Syncs
 
 /** A Scenario whose start is computed from a step. */
 val levelStarted =
-  oneStart.scenario.starts(if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false))
-val levelLit = oneStart.property holds (after => after.state.lit)
+  OneStart.scenario.starts(if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false))
+val levelLit = OneStart.property holds (after => after.state.lit)
 val levelScenario: Query =
   query verify levelLit in levelStarted.actions(flip) limits one total 2
 
@@ -1162,22 +1125,20 @@ object outerSection extends Section:
   object innerSection extends Section:
     val nestedTick = action(Party("fixture"))
 
-val sectionNested = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(outerSection.innerSection.nestedTick ~> lampStep)
-}
+object SectionNested extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(outerSection.innerSection.nestedTick ~> lampStep)
 
 /** A section in an object that holds no machine. */
 object Holder:
   object heldSection extends Section:
     val heldTick = action(Party("fixture"))
 
-val sectionMisplaced = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(Holder.heldSection.heldTick ~> lampStep)
-}
+object SectionMisplaced extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(Holder.heldSection.heldTick ~> lampStep)
 
 /** Two sections of one owner, each with an action of one name, which would share its ID. */
 object leftHand extends Section:
@@ -1186,22 +1147,20 @@ object leftHand extends Section:
 object rightHand extends Section:
   val clap = action(Party("fixture"))
 
-val sectionTwins = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(leftHand.clap ~> lampStep, rightHand.clap ~> lampStep)
-}
+object SectionTwins extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(leftHand.clap ~> lampStep, rightHand.clap ~> lampStep)
 
 /** A section that pins: its members take the IDs of the owner it stands in. */
 object pinningSection extends Section:
   given DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
   val pinnedTick = action(Party("fixture"))
 
-val sectionPinned = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(pinningSection.pinnedTick ~> lampStep)
-}
+object SectionPinned extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(pinningSection.pinnedTick ~> lampStep)
 
 // ### Machine objects, rules and effects (fn-126 R15, R16): each refused at its line
 
@@ -1279,15 +1238,8 @@ object RebindSeveral extends Derived(Ruled.rebind(bulbHand.squeeze ~> Ruled.effe
 object RebindUnbound
     extends Derived(Ruled.rebind(when(_ => true)(bulbHand.twist ~> Ruled.effects.darken)))
 
-/** A machine object and a val whose names collide, `colliding`, composed together. */
+/** A derivation of the ruled bulb, the member `EndedTwice` puts in place of another. */
 object Colliding extends Derived(Ruled.restrict(bulbHand.squeeze))
-
-val colliding = Ruled.restrict(bulbHand.squeeze)
-
-object CollidingPair extends Composition[Bulbs](_.a -> Colliding, _.b -> colliding):
-  def end(s: Bulbs) = true
-  object syncs extends Syncs:
-    sync(_.a -> bulbHand.squeeze, _.b -> bulbHand.squeeze)
 
 /** A composition object that says nowhere where it ends. */
 object Endless extends Composition[Bulbs](_.a -> Ruled, _.b -> Ruled):
@@ -1332,3 +1284,47 @@ object NilEffect extends Machine[Bulb, Outcome, Nothing]:
       if s.glow == Glow.bright then Nil else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
   object rules extends Rules:
     when(_ => true)(bulbHand.squeeze ~> effects.brighten)
+
+/** A monitor of another state type than the machine that watches it. */
+val flagWatch =
+  monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
+
+object WatchesElsewhere extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object monitors extends Section:
+    val elsewhere = flagWatch
+  object rules extends Bindings(flip ~> lampStep)
+
+val turnTo = input[Glow]
+
+object dialHand extends Actor:
+  val turn = action(this).input(turnTo)
+
+/** Two rules of one class of `turn`, each with an effect of its own. */
+object ClassRuled extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object effects extends Section:
+    def set(s: Bulb, g: Glow) = enter[Bulb, Outcome, Nothing](s.copy(glow = g))
+  object rules extends Rules(_.glow):
+    in(Glow.dim)(dialHand.turn(Glow.bright) ~> Ruled.effects.brighten)
+    in(Glow.bright)(dialHand.turn(Glow.bright) ~> Ruled.effects.darken)
+
+/** One effect in place of the different effects of two rules of one class. */
+object RebindOneClass extends Derived(ClassRuled.rebind(dialHand.turn ~> ClassRuled.effects.set))
+
+/** A machine declared by a val, which is no machine object. */
+val valMachine: Machine[Lamp, Outcome, Nothing] = OneStart.restrict(flip)
+
+/** A composition declared by a val, which is no composition object. */
+val valComposition: Composition[Lamps] = FlipPair.withMember(_.left -> OneStart)
+
+/** A machine that refines another and names its unobservable timers outside its refinement. */
+object UnobservedRefiner extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  val unobservable = List(flip)
+  object refinement extends Refinement(OneStart):
+    def toProduct(s: Lamp) = s
+  object rules extends Bindings(flip ~> lampStep)

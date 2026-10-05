@@ -8,10 +8,14 @@
 package fixture.totals
 
 import umpire.*
+import TotalsFamily.given
 
-given Family = Family("fixture.totals")
+/** The family, in an object of its own: the machine objects read it while they initialize. */
+object TotalsFamily:
+  given family: Family = Family("fixture.totals")
 
-final case class Lamp(lit: Boolean) derives Finite
+/** A lamp's state, named apart from the machine object `Lamp`. */
+final case class LampState(lit: Boolean) derives Finite
 
 enum Dim derives Finite:
   case low, high
@@ -24,28 +28,28 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 val flip = action(Party("user"))
 val dim = action(Party("user")).input[Dim]("level")
 
-def flipStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = enter(Lamp(!l.lit))
-def dimStep(l: Lamp, level: Dim): List[Step[Lamp, Outcome, Nothing]] =
+def flipStep(l: LampState): List[Step[LampState, Outcome, Nothing]] = enter(LampState(!l.lit))
+def dimStep(l: LampState, level: Dim): List[Step[LampState, Outcome, Nothing]] =
   if l.lit then enter(l) else disabled
 
 // 2 states; its action classes are flip and dim's two levels, 3 in all.
-val lamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> flipStep, dim ~> dimStep)
-}
+object Lamp extends Machine[LampState, Outcome, Nothing]:
+  val init = LampState(false)
+  def end(lamp: State) = true
+
+  object rules extends Bindings(flip ~> flipStep, dim ~> dimStep)
 
 // 2 states; its one action class is flip.
-val plainLamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> flipStep)
-}
+object PlainLamp extends Machine[LampState, Outcome, Nothing]:
+  val init = LampState(false)
+  def end(lamp: State) = true
+
+  object rules extends Bindings(flip ~> flipStep)
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 
-val litOnce = lamp.property holds (after => after.state.lit)
-val flipTwice = lamp.scenario.actions(flip, flip)
+val litOnce = Lamp.property holds (after => after.state.lit)
+val flipTwice = Lamp.scenario.actions(flip, flip)
 
 // Pinned: 2 states x min(2 steps, 2 scheduled flips) = 4.
 val infixTotal = query find litOnce in flipTwice limits two total 4
@@ -65,28 +69,28 @@ val expectThenTotal = (query find litOnce in flipTwice limits two).expect(run).t
  * A Query declared once over a machine, whose total each call supplies. Free: 2 states x the
  * machine's action classes x 2 steps, so 12 on `lamp` (3 classes) and 4 on `plainLamp` (1 class).
  */
-def lampQueries(m: Machine[Lamp, Outcome, Nothing], total: Int): Vector[Query] = Vector(
+def lampQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] = Vector(
   query(s"${m.name}.anyLit") find (m.property(s"${m.name}.lit") holds (after =>
     after.state.lit
   )) in m.scenario("any").free limits two total total
 )
 
 val queries: Vector[Query] = Vector(infixTotal, dottedTotal, totalThenExpect, expectThenTotal)
-val lampTotals: Vector[Query] = lampQueries(lamp, 12)
-val plainLampTotals: Vector[Query] = lampQueries(plainLamp, 4)
+val lampTotals: Vector[Query] = lampQueries(Lamp, 12)
+val plainLampTotals: Vector[Query] = lampQueries(PlainLamp, 4)
 
 // ### Two claims a shared def declares together, as a bundle read back by field
 
 /** The claims every lamp is held to, declared together by `lampLaws`. */
-final case class LampLaws(lit: Property[Lamp], unlit: Property[Lamp])
+final case class LampLaws(lit: Property[LampState], unlit: Property[LampState])
 
-def lampLaws(m: Machine[Lamp, Outcome, Nothing]): LampLaws = LampLaws(
+def lampLaws(m: Machine[LampState, Outcome, Nothing]): LampLaws = LampLaws(
   m.property("bundledLit") holds (after => after.state.lit),
   m.property("bundledUnlit") holds (after => !after.state.lit)
 )
 
 /** The laws of `m`, each read from the bundle by field. Free, so 12 on `lamp` and 4 on `plainLamp`. */
-def bundledLawQueries(m: Machine[Lamp, Outcome, Nothing], total: Int): Vector[Query] =
+def bundledLawQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
   val laws = lampLaws(m)
   val any = m.scenario("bundledAny").free
   Vector(
@@ -95,7 +99,7 @@ def bundledLawQueries(m: Machine[Lamp, Outcome, Nothing], total: Int): Vector[Qu
   )
 
 /** The same claims declared directly. */
-def directLawQueries(m: Machine[Lamp, Outcome, Nothing], total: Int): Vector[Query] =
+def directLawQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
   val any = m.scenario("directAny").free
   Vector(
     query(s"${m.name}.directLit") find (m.property("directLit") holds (after =>
@@ -106,7 +110,7 @@ def directLawQueries(m: Machine[Lamp, Outcome, Nothing], total: Int): Vector[Que
     )) in any limits two total total
   )
 
-val bundledLamp: Vector[Query] = bundledLawQueries(lamp, 12)
-val bundledPlainLamp: Vector[Query] = bundledLawQueries(plainLamp, 4)
-val directLamp: Vector[Query] = directLawQueries(lamp, 12)
-val directPlainLamp: Vector[Query] = directLawQueries(plainLamp, 4)
+val bundledLamp: Vector[Query] = bundledLawQueries(Lamp, 12)
+val bundledPlainLamp: Vector[Query] = bundledLawQueries(PlainLamp, 4)
+val directLamp: Vector[Query] = directLawQueries(Lamp, 12)
+val directPlainLamp: Vector[Query] = directLawQueries(PlainLamp, 4)

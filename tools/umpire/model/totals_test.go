@@ -224,7 +224,7 @@ func TestATotalReadThroughARefinementCountsTheScenarioMachine(t *testing.T) {
 
 	m = proto.CloneOf(m)
 	admQuery(m, "putStoresThroughDisk").Total = wrapperspb.Int64(4)
-	require.EqualError(t, Validate(m), totalsDeclaredAt+"158: query putStoresThroughDisk declares a total of 4, "+
+	require.EqualError(t, Validate(m), totalsDeclaredAt+"171: query putStoresThroughDisk declares a total of 4, "+
 		"and its static combination count is 3 states × 2 scheduled slots (the least of 2 steps and 2 scheduled actions) = 6")
 }
 
@@ -236,8 +236,8 @@ func TestATotalThatIsNotTheCountIsRefusedWithItsFactors(t *testing.T) {
 	admQuery(m, "keptTogether").Total = wrapperspb.Int64(9)
 	admQuery(m, "putAccepted").Total = wrapperspb.Int64(7)
 	require.EqualError(t, Validate(m), strings.Join([]string{
-		totalsDeclaredAt + "161: query keptTogether declares a total of 9, and its static combination count is 4 states × 1 classes × 2 steps = 8",
-		totalsDeclaredAt + "156: query putAccepted declares a total of 7, and its static combination count is " +
+		totalsDeclaredAt + "174: query keptTogether declares a total of 9, and its static combination count is 4 states × 1 classes × 2 steps = 8",
+		totalsDeclaredAt + "169: query putAccepted declares a total of 7, and its static combination count is " +
 			"3 states × 2 scheduled slots (the least of 2 steps and 2 scheduled actions) = 6",
 	}, "\n"))
 }
@@ -309,14 +309,14 @@ func TestAnAbsentTotalIsAdmittedAndNotRequiredOfHistoricalIR(t *testing.T) {
 	for _, l := range lines {
 		require.Contains(t, l, " declares no total: its static combination count is ")
 	}
-	require.Contains(t, lines, totalsDeclaredAt+"157: query putStores declares no total: "+
+	require.Contains(t, lines, totalsDeclaredAt+"170: query putStores declares no total: "+
 		"its static combination count is 2 states × 1 scheduled slots (the least of 2 steps and 1 scheduled actions) = 2")
 
 	declared := declaring(t, m)
 	require.NoError(t, Validate(declared))
 	require.NoError(t, RequireTotals(declared))
 	admQuery(declared, "putStores").Total = nil
-	require.EqualError(t, RequireTotals(declared), totalsDeclaredAt+"157: query putStores declares no total: "+
+	require.EqualError(t, RequireTotals(declared), totalsDeclaredAt+"170: query putStores declares no total: "+
 		"its static combination count is 2 states × 1 scheduled slots (the least of 2 steps and 1 scheduled actions) = 2")
 }
 

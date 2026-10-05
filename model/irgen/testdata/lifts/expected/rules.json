@@ -1,5 +1,5 @@
 {
-  "source": "model: fixture.rules.Core$.coreSwitch, fixture.rules.Dimming, fixture.rules.Loose, fixture.rules.Mirror, fixture.rules.Steady, fixture.rules.Switch, fixture.rules.Switch$.queries$.pressing, fixture.rules.Switch$.queries$.wornOut, fixture.rules.Twins, fixture.rules.Unequal",
+  "source": "model: fixture.rules.CoreSwitch, fixture.rules.Dial, fixture.rules.Dimming, fixture.rules.Loose, fixture.rules.Mirror, fixture.rules.Steady, fixture.rules.Switch, fixture.rules.Switch$.queries$.pressing, fixture.rules.Switch$.queries$.wornOut, fixture.rules.Turned, fixture.rules.Twins, fixture.rules.Unequal",
   "types": [ {
     "name": "fixture.rules.Fact",
     "position": {
@@ -81,7 +81,7 @@
     "name": "fixture.rules.Pair",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 156
+      "line": 160
     },
     "record": {
       "fields": [ {
@@ -101,7 +101,7 @@
     "name": "coreSwitch.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 120
+      "line": 121
     },
     "params": [ {
       "name": "fact",
@@ -112,13 +112,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 120
+        "line": 121
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 120
+            "line": 121
           },
           "var": "fact"
         },
@@ -134,7 +134,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Rules.scala",
-              "line": 120
+              "line": 121
             },
             "literal": {
               "text": "lit"
@@ -152,7 +152,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Rules.scala",
-              "line": 120
+              "line": 121
             },
             "literal": {
               "text": "darkened"
@@ -170,7 +170,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Rules.scala",
-              "line": 120
+              "line": 121
             },
             "literal": {
               "text": "wear"
@@ -180,10 +180,317 @@
       }
     }
   }, {
+    "name": "dial.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Rules.scala",
+      "line": 174
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.rules.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 174
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 174
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "lit"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Rules.scala",
+              "line": 174
+            },
+            "literal": {
+              "text": "lit"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "darkened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Rules.scala",
+              "line": 174
+            },
+            "literal": {
+              "text": "darkened"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "worn"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Rules.scala",
+              "line": 174
+            },
+            "literal": {
+              "text": "worn"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "dial.rules.turn",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Rules.scala",
+      "line": 179
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "knob",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 179
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 179
+          },
+          "var": "knob"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "up"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Rules.scala",
+              "line": 179
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 179
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 177
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 177
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 179
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 178
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 178
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.light",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 179
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 179
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "down"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Rules.scala",
+              "line": 180
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 180
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 177
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 177
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 180
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 178
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 178
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 180
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.dark",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 180
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 179
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
     "name": "dimming.rules.dim",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 151
+      "line": 155
     },
     "params": [ {
       "name": "s",
@@ -194,26 +501,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 151
+        "line": 155
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 151
+            "line": 155
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 151
+                "line": 155
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 151
+                    "line": 155
                   },
                   "var": "s"
                 },
@@ -223,7 +530,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 151
+                "line": 155
               },
               "literal": {
                 "enum": {
@@ -237,14 +544,14 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 151
+            "line": 155
           },
           "call": {
             "function": "fixture.rules.Switch$.effects$.keep",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 151
+                "line": 155
               },
               "var": "s"
             } ]
@@ -253,7 +560,7 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 151
+            "line": 155
           },
           "list": { }
         }
@@ -1020,7 +1327,7 @@
     "name": "fixture.rules.Mirror$.refinement$.toProduct",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 135
+      "line": 139
     },
     "params": [ {
       "name": "s",
@@ -1031,7 +1338,7 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 135
+        "line": 139
       },
       "var": "s"
     }
@@ -1986,7 +2293,7 @@
     "name": "loose.rules.press",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 146
+      "line": 150
     },
     "params": [ {
       "name": "s",
@@ -1997,13 +2304,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 146
+        "line": 150
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 146
+            "line": 150
           },
           "literal": {
             "bool": true
@@ -2012,14 +2319,14 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 146
+            "line": 150
           },
           "call": {
             "function": "fixture.rules.Switch$.effects$.keep",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 146
+                "line": 150
               },
               "var": "s"
             } ]
@@ -2028,7 +2335,7 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 146
+            "line": 150
           },
           "list": { }
         }
@@ -2038,7 +2345,7 @@
     "name": "mirror.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 131
+      "line": 135
     },
     "params": [ {
       "name": "fact",
@@ -2049,13 +2356,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 131
+        "line": 135
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 131
+            "line": 135
           },
           "var": "fact"
         },
@@ -2071,7 +2378,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Rules.scala",
-              "line": 131
+              "line": 135
             },
             "literal": {
               "text": "lit"
@@ -2089,7 +2396,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Rules.scala",
-              "line": 131
+              "line": 135
             },
             "literal": {
               "text": "darkened"
@@ -2107,7 +2414,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Rules.scala",
-              "line": 131
+              "line": 135
             },
             "literal": {
               "text": "worn"
@@ -2120,7 +2427,7 @@
     "name": "mirror.rules.press",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 138
+      "line": 142
     },
     "params": [ {
       "name": "s",
@@ -2131,26 +2438,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 138
+        "line": 142
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 138
+            "line": 142
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 137
+                "line": 141
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 137
+                    "line": 141
                   },
                   "var": "s"
                 },
@@ -2160,13 +2467,13 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 138
+                "line": 142
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 138
+                    "line": 142
                   },
                   "literal": {
                     "enum": {
@@ -2182,14 +2489,14 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 138
+            "line": 142
           },
           "call": {
             "function": "fixture.rules.Switch$.effects$.light",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 138
+                "line": 142
               },
               "var": "s"
             } ]
@@ -2198,26 +2505,26 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 139
+            "line": 143
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 139
+                "line": 143
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 137
+                    "line": 141
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Rules.scala",
-                        "line": 137
+                        "line": 141
                       },
                       "var": "s"
                     },
@@ -2227,13 +2534,13 @@
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 139
+                    "line": 143
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Rules.scala",
-                        "line": 139
+                        "line": 143
                       },
                       "literal": {
                         "enum": {
@@ -2249,14 +2556,14 @@
             "then": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 139
+                "line": 143
               },
               "call": {
                 "function": "fixture.rules.Switch$.effects$.dark",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 139
+                    "line": 143
                   },
                   "var": "s"
                 } ]
@@ -2265,7 +2572,7 @@
             "else": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 138
+                "line": 142
               },
               "list": { }
             }
@@ -2277,7 +2584,7 @@
     "name": "mirror.rules.rest",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 140
+      "line": 144
     },
     "params": [ {
       "name": "s",
@@ -2288,7 +2595,7 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 140
+        "line": 144
       },
       "list": { }
     }
@@ -2296,7 +2603,7 @@
     "name": "steady.rules.tick",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 143
+      "line": 147
     },
     "params": [ {
       "name": "s",
@@ -2307,7 +2614,7 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 143
+        "line": 147
       },
       "if": {
         "condition": {
@@ -2412,14 +2719,14 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 143
+            "line": 147
           },
           "call": {
             "function": "fixture.rules.Switch$.effects$.keep",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 143
+                "line": 147
               },
               "var": "s"
             } ]
@@ -2428,7 +2735,7 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 143
+            "line": 147
           },
           "list": { }
         }
@@ -3395,6 +3702,243 @@
         } ]
       }
     }
+  }, {
+    "name": "turned.rules.turn",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Rules.scala",
+      "line": 184
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "knob",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 184
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 184
+          },
+          "var": "knob"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "up"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Rules.scala",
+              "line": 184
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 177
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 177
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 178
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 178
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.turned",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "var": "knob"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "down"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Rules.scala",
+              "line": 184
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 177
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 177
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 178
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Rules.scala",
+                          "line": 178
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.turned",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "var": "knob"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
   } ],
   "actions": [ {
     "id": "fixture.rules.Rules$package$.dim",
@@ -3451,7 +3995,7 @@
     "name": "coreSwitch",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 117
+      "line": 118
     },
     "stateType": "fixture.rules.Lamp",
     "outcomeType": "fixture.rules.Outcome",
@@ -3459,14 +4003,14 @@
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 118
+        "line": 119
       },
       "construct": {
         "type": "fixture.rules.Lamp",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 118
+            "line": 119
           },
           "literal": {
             "enum": {
@@ -3477,7 +4021,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 118
+            "line": 119
           },
           "literal": {
             "int": "0"
@@ -3488,7 +4032,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 119
+        "line": 120
       },
       "lambda": {
         "params": [ {
@@ -3500,20 +4044,20 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 119
+            "line": 120
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 119
+                "line": 120
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 119
+                    "line": 120
                   },
                   "var": "s"
                 },
@@ -3523,7 +4067,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 119
+                "line": 120
               },
               "literal": {
                 "enum": {
@@ -3541,38 +4085,116 @@
       "function": "fixture.rules.Core$.pressStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 123
+        "line": 128
       }
     }, {
       "action": "fixture.rules.Rules$package$.turn",
       "function": "fixture.rules.Core$.turnStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 124
+        "line": 129
       }
     }, {
       "action": "fixture.rules.Rules$package$.tick",
       "function": "fixture.rules.Core$.tickStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 125
+        "line": 130
       }
     }, {
       "action": "fixture.rules.Rules$package$.rest",
       "function": "fixture.rules.Core$.restStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 126
+        "line": 131
       }
     } ],
     "evidence": "coreSwitch.evidence",
     "monitors": [ "fixture.rules.Switch$.neverWorn" ]
   }, {
     "family": "fixture.rules",
+    "name": "dial",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Rules.scala",
+      "line": 174
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 175
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 175
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 175
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 176
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 176
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Rules.scala",
+                "line": 176
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.Rules$package$.turn",
+      "function": "dial.rules.turn",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 179
+      }
+    } ],
+    "evidence": "dial.evidence"
+  }, {
+    "family": "fixture.rules",
     "name": "dimming",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 151
+      "line": 155
     },
     "stateType": "fixture.rules.Lamp",
     "outcomeType": "fixture.rules.Outcome",
@@ -3669,7 +4291,7 @@
       "function": "dimming.rules.dim",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 151
+        "line": 155
       }
     } ],
     "evidence": "switch.evidence",
@@ -3679,7 +4301,7 @@
     "name": "loose",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 146
+      "line": 150
     },
     "stateType": "fixture.rules.Lamp",
     "outcomeType": "fixture.rules.Outcome",
@@ -3748,7 +4370,7 @@
       "function": "loose.rules.press",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 146
+        "line": 150
       }
     }, {
       "action": "fixture.rules.Rules$package$.turn",
@@ -3779,7 +4401,7 @@
     "name": "mirror",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 131
+      "line": 135
     },
     "stateType": "fixture.rules.Lamp",
     "outcomeType": "fixture.rules.Outcome",
@@ -3787,14 +4409,14 @@
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 132
+        "line": 136
       },
       "construct": {
         "type": "fixture.rules.Lamp",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 132
+            "line": 136
           },
           "literal": {
             "enum": {
@@ -3805,7 +4427,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 132
+            "line": 136
           },
           "literal": {
             "int": "0"
@@ -3816,7 +4438,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 133
+        "line": 137
       },
       "lambda": {
         "params": [ {
@@ -3828,14 +4450,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 133
+            "line": 137
           },
           "call": {
             "function": "fixture.rules.Switch$.states$.brokenLamp",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 133
+                "line": 137
               },
               "var": "s"
             } ]
@@ -3848,14 +4470,14 @@
       "function": "mirror.rules.press",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 138
+        "line": 142
       }
     }, {
       "action": "fixture.rules.Rules$package$.rest",
       "function": "mirror.rules.rest",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 140
+        "line": 144
       }
     } ],
     "evidence": "mirror.evidence",
@@ -3869,7 +4491,7 @@
     "name": "plain",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 154
+      "line": 158
     },
     "stateType": "fixture.rules.Lamp",
     "outcomeType": "fixture.rules.Outcome",
@@ -3968,7 +4590,7 @@
     "name": "steady",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 143
+      "line": 147
     },
     "stateType": "fixture.rules.Lamp",
     "outcomeType": "fixture.rules.Outcome",
@@ -4051,7 +4673,7 @@
       "function": "steady.rules.tick",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 143
+        "line": 147
       }
     }, {
       "action": "fixture.rules.Rules$package$.rest",
@@ -4165,10 +4787,88 @@
     "monitors": [ "fixture.rules.Switch$.neverWorn" ]
   }, {
     "family": "fixture.rules",
+    "name": "turned",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Rules.scala",
+      "line": 184
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 175
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 175
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 175
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 176
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Rules.scala",
+            "line": 176
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Rules.scala",
+                "line": 176
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.Rules$package$.turn",
+      "function": "turned.rules.turn",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Rules.scala",
+        "line": 184
+      }
+    } ],
+    "evidence": "dial.evidence"
+  }, {
+    "family": "fixture.rules",
     "name": "unbending",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 164
+      "line": 168
     },
     "stateType": "fixture.rules.Lamp",
     "outcomeType": "fixture.rules.Outcome",
@@ -4251,7 +4951,7 @@
       "function": "steady.rules.tick",
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 143
+        "line": 147
       }
     }, {
       "action": "fixture.rules.Rules$package$.rest",
@@ -4291,7 +4991,7 @@
     "name": "twins",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 159
+      "line": 163
     },
     "stateType": "fixture.rules.Pair",
     "members": [ {
@@ -4315,7 +5015,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 160
+        "line": 164
       },
       "lambda": {
         "params": [ {
@@ -4327,20 +5027,20 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 160
+            "line": 164
           },
           "call": {
             "function": "fixture.rules.Switch$.end",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 160
+                "line": 164
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 160
+                    "line": 164
                   },
                   "var": "s"
                 },
@@ -4356,7 +5056,7 @@
     "name": "unequal",
     "position": {
       "file": "model/irgen/testdata/lifts/Rules.scala",
-      "line": 167
+      "line": 171
     },
     "stateType": "fixture.rules.Pair",
     "members": [ {
@@ -4380,7 +5080,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Rules.scala",
-        "line": 160
+        "line": 164
       },
       "lambda": {
         "params": [ {
@@ -4392,20 +5092,20 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Rules.scala",
-            "line": 160
+            "line": 164
           },
           "call": {
             "function": "fixture.rules.Switch$.end",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Rules.scala",
-                "line": 160
+                "line": 164
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Rules.scala",
-                    "line": 160
+                    "line": 164
                   },
                   "var": "s"
                 },
