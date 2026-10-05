@@ -346,16 +346,53 @@ final private[irgen] class Context(val index: Index):
         d.symbol.maybeOwner
     }
 
-  /** Whether `owner` is a machine's object: an object at a file's top level holding a machine. */
+  /**
+   * Whether `owner` is a machine's object: an object at a file's top level that is a machine or a
+   * composition (`object M extends Machine[...]`, `Derived(...)` or `Composition(...)`), or, in a
+   * Model the builder declares, one holding a machine.
+   */
   private def machineObject(owner: Symbol): Boolean =
     owner.isClassDef && owner.flags.is(Flags.Module) && owner.maybeOwner.isPackageDef &&
-      !isSection(owner) && defs.values.exists {
+      !isSection(owner) && (objectForm(owner) || defs.values.exists {
         case v: ValDef =>
           v.symbol.maybeOwner == owner &&
           Seq("umpire.Machine", "umpire.Composition")
             .contains(v.tpt.tpe.widen.dealias.typeSymbol.fullName)
         case _ => false
-      }
+      })
+
+  // ### Object forms: an object that is a machine or a composition (umpire.Machine, umpire.Derived,
+  // umpire.Composition), and the sections it reads
+
+  lazy val machineClass: Symbol = Symbol.requiredClass("umpire.Machine")
+  lazy val derivedClass: Symbol = Symbol.requiredClass("umpire.Derived")
+  lazy val compositionClass: Symbol = Symbol.requiredClass("umpire.Composition")
+  lazy val rulesClass: Symbol = Symbol.requiredClass("umpire.Rules")
+  lazy val syncsClass: Symbol = Symbol.requiredClass("umpire.Syncs")
+  lazy val refinementClass: Symbol = Symbol.requiredClass("umpire.Refinement")
+
+  /** Whether a value of this type is a machine: one the builder declared, or a machine object. */
+  def isMachine(t: TypeRepr): Boolean = t.widen.dealias.derivesFrom(machineClass)
+
+  /** Whether a value of this type is a composition. */
+  def isComposition(t: TypeRepr): Boolean = t.widen.dealias.derivesFrom(compositionClass)
+
+  /** The class of an object, given its value's symbol or the class itself. */
+  def moduleClassOf(sym: Symbol): Symbol =
+    if sym.isClassDef then sym
+    else if sym.flags.is(Flags.Module) then sym.moduleClass
+    else Symbol.noSymbol
+
+  /** Whether `sym` names an object that is a machine or a composition. */
+  def objectForm(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.flags.is(Flags.Module) &&
+    (cls.typeRef.derivesFrom(machineClass) || cls.typeRef.derivesFrom(compositionClass))
+
+  /** An object form's name: its object's, with the first letter lowered. */
+  def objectFormName(sym: Symbol): String =
+    val name = moduleClassOf(sym).name.stripSuffix("$")
+    name.take(1).toLowerCase + name.drop(1)
 
   // The type each IR type name was taken by, and the name each type takes, computed once.
   private val typeTakenBy = mutable.Map.empty[String, Symbol]

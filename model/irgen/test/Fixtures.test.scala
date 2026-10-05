@@ -160,6 +160,14 @@ class Fixtures extends munit.FunSuite:
     "hints" -> Seq("keptBehavior", "ownBehavior").map("fixture.hints.Hints$package$." + _),
     // fn-126 R14: sections in a file that pins nothing (lifts/Sections.scala).
     "sections" -> Seq("fixture.sections.Switch$.switch"),
+    // fn-126 R15, R16: a machine object, its core twin, derivations and a composition object
+    // (lifts/Rules.scala); tools/umpire/model holds the twins' tables equal.
+    "rules" -> (Seq("Switch", "Mirror", "Steady", "Loose", "Dimming", "Twins", "Unequal")
+      .map("fixture.rules." + _) ++ Seq(
+      "fixture.rules.Core$.coreSwitch",
+      "fixture.rules.Switch$.queries$.pressing",
+      "fixture.rules.Switch$.queries$.wornOut"
+    )),
     "hintsRefused" -> Seq(
       "zeroInterval",
       "nonPositiveBound",
@@ -382,7 +390,21 @@ class Fixtures extends munit.FunSuite:
     "sectionPinned"
   ).map(
     "fixture.rejects.Rejects$package$." + _
-  ) ++ scriptRejects ++ capabilityRejects ++ hintRejects
+  ) ++ Seq(
+    // fn-126 R15, R16: machine objects, rules and effects.
+    "EffectOutside",
+    "EmptyEffect",
+    "Unheaded",
+    "HeadingTwice",
+    "DisabledFired",
+    "ExtendedBare",
+    "RebindSeveral",
+    "RebindUnbound",
+    "CollidingPair",
+    "Endless",
+    "EndedTwice",
+    "LooseRefinement"
+  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -479,11 +501,25 @@ class Fixtures extends munit.FunSuite:
         "NamedInput.scala:30:31",
         "NoCatalog.scala:7:91",
         "OneChoice.scala:18:62",
+        "Rules.scala:16:43",
         "Sugar.scala:10:27",
         "Sugar.scala:13:76",
         "Sugar.scala:16:71",
         "Sugar.scala:19:68",
         "Sugar.scala:23:69"
+      )
+    )
+
+  // fn-126 R15: a machine object declares its init, its end and its rules, and a derived machine
+  // has none of its own.
+  concurrently("the build refuses a machine object without init, end or rules, at its line"):
+    assertEquals(
+      refusals("objectForms").sorted,
+      Seq(
+        "Invalid.scala:33:8", // no init
+        "Invalid.scala:39:8", // no end
+        "Invalid.scala:45:8", // no rules
+        "Invalid.scala:51:3" // a derived machine's own rules
       )
     )
 
@@ -782,7 +818,7 @@ class Fixtures extends munit.FunSuite:
           "properties, then laws, then queries",
         s"lift: $feature:72: Late belongs before Backwards at $feature:60: a feature file reads " +
           "its header, then its types, then its signature, then its machine and composition " +
-          "objects, then object Files",
+          "objects, then object exports",
         // (d)
         s"lift: $feature:75: extras holds a Model declaration in Misplaced, and is none of its " +
           "sections, effects, properties, laws, queries: its declarations belong in them",
@@ -795,8 +831,57 @@ class Fixtures extends munit.FunSuite:
           "Scenarios, then its Queries",
         s"lift: $feature:98: borrowed is declared over flipped, which Switch.queries declares: " +
           "it belongs in Switch.queries",
-        // (d): a val in Files that is no IR file
-        s"lift: $feature:102: note is declared in Files, which holds the feature's IR files alone"
+        // (d): a val in exports that is no IR file
+        s"lift: $feature:102: note is declared in exports, which holds the feature's IR files alone"
+      )
+    )
+
+  // fn-126 R4 (e), R17 and the whole-index check of section members' IDs: each kind at its line, and
+  // none of the correct object forms beside them (sectionOrder/SectionOrder.scala).
+  concurrently("the declaration-order lint refuses sections out of order or out of place"):
+    val jar = packaged("sectionOrder", materialize("sectionOrder"))
+    val out = scratch.resolve("sectionOrder-out")
+    val at = stored("sectionOrder")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    val f = s"${at}SectionOrder.scala"
+    val order = "object Backwards reads its header, then states, then refinement, then effects, " +
+      "then monitors, then rules, then properties, then implements, then queries"
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: $f:34: fixture.features.sectionorder.metronome$$.tick and " +
+          "fixture.features.sectionorder.clock$.tick would share the Definition ID " +
+          "fixture.features.sectionorder.SectionOrder$package$.tick: a section is transparent to " +
+          "Definition IDs, so the members of one owner's sections and the owner's own members " +
+          "keep distinct names",
+        s"lift: $f:38: the section spare sits in fixture.features.sectionorder.Holder, which is no " +
+          "machine's object: a section sits at the top level of a Model file or directly in a " +
+          "machine's object",
+        s"lift: $f:41: the section implements sits at the top level of a feature file: a " +
+          "machine's sections sit directly in its machine or composition object",
+        s"lift: $f:103: states belongs before effects at $f:100: $order",
+        s"lift: $f:109: rules belongs before properties at $f:106: $order",
+        s"lift: $f:116: stray is a step function, and belongs in the `effects` object of its " +
+          "machine's object, not in Misfiled",
+        s"lift: $f:117: watched is a monitor, assumption, hole or channel, and belongs in the " +
+          "`monitors` object of its machine's object, not in Misfiled",
+        s"lift: $f:118: lit is vocabulary of Misfiled, declared outside its sections: it belongs " +
+          "in the `states` object of its machine's object",
+        s"lift: $f:119: unobservable is a member of Misfiled's refinement: declare it in " +
+          "`object refinement extends Refinement(product)`, which holds the machine's refinement",
+        s"lift: $f:128: dim is a monitor, assumption, hole or channel, declared in " +
+          "Misfiled.properties: it belongs in the `monitors` object of its machine's object",
+        s"lift: $f:129: borrowed is declared over Switch, a machine object: it belongs in " +
+          "Switch.properties",
+        s"lift: $f:136: a step function is bound by hand, `action ~> step`, in HandBound: a " +
+          "machine object says when each action fires in its `rules`, " +
+          "`when(g) { action ~> effects.x }`, and a derivation binds one in `rebind`",
+        s"lift: $f:139: the section more sits in the section effects: a section sits at the top " +
+          "level of a Model file or directly in a machine's object, never in another",
+        s"lift: $f:154: armed is read while Guarded.rules initializes, before it is declared at " +
+          s"$f:155, so it is still null here: declare it before the declaration that reads it"
       )
     )
 
@@ -912,6 +997,27 @@ class Fixtures extends munit.FunSuite:
     assertEquals(actions("reset"), ("fixture.sections.Sections$package$.reset", "system"))
     assertEquals(actions("flip"), ("fixture.sections.Sections$package$.flip", "panel"))
     assertEquals(actions("press"), ("fixture.sections.Switch$.press", "operator"))
+
+  // A machine object's members name its state type through the machine, `State`, as the type it
+  // stands for: `def broken(s: State)` lifts as `def brokenLamp(s: Lamp)` does (lifts/Rules.scala).
+  test("a state type named through its machine, State, lifts as the type it stands for"):
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("rules"))
+    def function(name: String) =
+      val f = model
+        .path("functions")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == s"fixture.rules.Switch$$.states$$.$name")
+        .getOrElse(fail(s"no function $name"))
+        .deepCopy[ObjectNode]()
+      f.remove(java.util.List.of("name", "position"))
+      f.findParents("position").asScala.foreach {
+        case o: ObjectNode => o.remove("position"): Unit
+        case _             => ()
+      }
+      f.toPrettyString
+    assertEquals(function("broken"), function("brokenLamp"))
 
   /**
    * The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each
@@ -1299,15 +1405,16 @@ class Fixtures extends munit.FunSuite:
   // spelled alike.
   concurrently("typed members, syncs, replaces, withMember, synced and own keep the composed keys"):
     import com.fasterxml.jackson.databind.JsonNode
-    // Each design's object, named as its val is with the first letter raised: its Queries in its
-    // `queries`, or the design itself where no Query runs over it.
+    // Each design is an object, named as the composition is with the first letter raised: its
+    // Queries in its `queries`, or the design itself where no Query runs over it.
     val designs = "temporal.features.standaloneactivity.withTaskQueue."
-    def designObject(d: String) = designs + d.head.toUpper + d.tail + "$."
+    def designObject(d: String) = designs + d.head.toUpper + d.tail
     val overQueue = Seq("currentOverQueue", "staleOverQueue")
     val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")
     val unqueried = Seq("currentOverForgetful", "currentOverVolatile")
-    val roots = (overQueue ++ overMatching).map(d => s"${designObject(d)}queries$$.${d}Queries") ++
-      unqueried.map(d => designObject(d) + d) ++ Seq("switchQueries", "flickedBothOnce")
+    val roots =
+      (overQueue ++ overMatching).map(d => s"${designObject(d)}$$.queries$$.${d}Queries") ++
+        unqueried.map(designObject) ++ Seq("switchQueries", "flickedBothOnce")
     val (model, _, _) = declarations("members", roots)
     def all(kind: String) = model.path(kind).elements().asScala.toList
     def named(name: String)(n: JsonNode) = n.path("name").asText() == name

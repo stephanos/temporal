@@ -90,7 +90,9 @@ private[irgen] trait Compositions:
           )
         composing += sym
         val c =
-          try composition(sym, valDef(sym, at, "a composition").rhs.get)
+          try
+            if objectForm(sym) then objectComposition(moduleClassOf(sym), at)
+            else composition(sym, valDef(sym, at, "a composition").rhs.get)
           finally composing -= sym
         distinctModelName(c.name, sym, c.getPosition)
         compositions(sym.fullName) = c
@@ -105,80 +107,192 @@ private[irgen] trait Compositions:
    * `c.withMember(_.field -> machine)`; and the syncs, ends and replacements chained onto it.
    */
   def composition(sym: Symbol, rhs: Term): ir.Composition =
-    def declared(s: TypeTree, family: String, name: String, members: Term, t: Term) =
-      ir.Composition(
-        position = Some(pos(rhs)),
-        family = family,
-        name = name,
-        stateType = typeRef(s.tpe, t).getNamed,
-        members = varargs(members).map { m =>
-          val (param, body) = selector(m).getOrElse(
-            fail(m, s"compose names a member by a selector, `_.member -> machine`, not ${m.show}")
-          )
-          val (key, value) = arrow(body)
-          val field = selectedField(param, key, m, "compose")
-          ir.Member(field, memberMachine(field, key, value, m, name).name)
-        }
-      )
-    // A typed move names its member by a selector and the very action the member binds.
-    def move(c: ir.Composition, sync: String, t: Term): ir.SyncMove =
-      val (param, body) = selector(t).getOrElse(
-        fail(t, s"sync names a member by a selector, `_.member -> action`, not ${t.show}")
-      )
-      val (key, a) = arrow(body)
-      val field = selectedField(param, key, t, s"sync $sync")
-      val member = filled(c, field, t, s"sync $sync")
-      val id = action(a)
-      if !binds(member.machine, id) then
-        fail(
-          t,
-          s"sync $sync pairs ${actions(id).name} of $field, and ${member.machine} binds no action " +
-            s"of $id: a sync pairs the action its member binds, not one of another declaration"
-        )
-      ir.SyncMove(field, actions(id).name)
-    // A sync named `n`, or after its first member's action, refused where another has its name.
-    def sync(c: ir.Composition, n: String, first: Term, second: Term, at: Tree) =
-      for s <- c.syncs.find(_.name == n) do
-        fail(
-          at,
-          s"${c.name} pairs two syncs named $n, and the IR keys a sync by its name: a sync is " +
-            "named after its first member's action unless it names itself, `.sync(\"name\", ...)`"
-        )
-      c.addSyncs(ir.Sync(n, Some(move(c, n, first)), Some(move(c, n, second))))
     def walk(t: Term): ir.Composition = t match
       case Apply(Select(inner, "sync"), List(name, first, second)) =>
         sync(walk(inner), constString(name), first, second, name)
       // Named after the first member's action, as its declaration names it.
       case Apply(Select(inner, "sync"), List(first, second)) =>
-        val (_, body) = selector(first).getOrElse(
-          fail(first, s"sync names a member by a selector, `_.member -> action`, not ${first.show}")
-        )
-        sync(walk(inner), actions(action(arrow(body)._2)).name, first, second, first)
+        sync(walk(inner), syncName(first), first, second, first)
       case Apply(Select(inner, "ends"), List(p))                 => walk(inner).withEnds(lift(p))
       case Apply(Select(inner, "replaces"), List(field, opaque)) =>
-        val c = walk(inner)
-        val replaced = machineOf(resolveSymbol(opaque), opaque).name
-        val (param, body) = selector(field).getOrElse(
-          fail(field, s"replaces names a member by a selector, `_.member`, not ${field.show}")
-        )
-        replaces(c, selectedField(param, body, field, "replaces"), replaced, field)
+        replacing(walk(inner), field, opaque)
       case Apply(Apply(Select(inner, "withMember"), List(member)), List(family)) =>
-        val base = inner match
-          case r: Ref => compositionOf(resolveSymbol(r), r)
-          case chain  => walk(chain)
-        withMember(base, member).copy(
-          family = constString(family),
-          name = capturedName(sym, rhs, "a composition"),
-          position = Some(pos(rhs))
+        derivedComposition(
+          inner,
+          member,
+          family,
+          capturedName(sym, rhs, "a composition"),
+          rhs,
+          walk
         )
       case Apply(Apply(TypeApply(Ident("compose"), List(s)), List(members)), List(_, family)) =>
-        declared(s, constString(family), capturedName(sym, rhs, "a composition"), members, t)
+        declaredComposition(
+          s.tpe,
+          constString(family),
+          capturedName(sym, rhs, "a composition"),
+          members,
+          t,
+          rhs
+        )
       case other => fail(other, s"not a part of a composition declaration: ${other.show}")
-    val c = walk(rhs)
+    checkedSyncs(walk(rhs), rhs)
+
+  /** Every sync names members of its composition. */
+  private def checkedSyncs(c: ir.Composition, at: Tree): ir.Composition =
     val fields = c.members.map(_.field)
     for s <- c.syncs; m <- Seq(s.getFirst, s.getSecond) if !fields.contains(m.member) do
-      fail(rhs, s"sync ${s.name} names ${m.member}, which is not a member of ${c.name}")
+      fail(at, s"sync ${s.name} names ${m.member}, which is not a member of ${c.name}")
     c
+
+  /** A composition of members, each named by a selector of its field. */
+  private def declaredComposition(
+      s: TypeRepr,
+      family: String,
+      name: String,
+      members: Term,
+      t: Term,
+      at: Tree
+  ): ir.Composition =
+    ir.Composition(
+      position = Some(pos(at)),
+      family = family,
+      name = name,
+      stateType = typeRef(s, t).getNamed,
+      members = varargs(members).map { m =>
+        val (param, body) = selector(m).getOrElse(
+          fail(m, s"compose names a member by a selector, `_.member -> machine`, not ${m.show}")
+        )
+        val (key, value) = arrow(body)
+        val field = selectedField(param, key, m, "compose")
+        ir.Member(field, memberMachine(field, key, value, m, name).name)
+      }
+    )
+
+  /** `base.withMember(member)`, named `name` in `family`. */
+  private def derivedComposition(
+      base: Term,
+      member: Term,
+      family: Term,
+      name: String,
+      at: Tree,
+      walk: Term => ir.Composition
+  ): ir.Composition =
+    val c = base match
+      case r: Ref => compositionOf(resolveSymbol(r), r)
+      case chain  => walk(chain)
+    withMember(c, member).copy(family = constString(family), name = name, position = Some(pos(at)))
+
+  /** The name of a sync written without one: its first member's action's. */
+  private def syncName(first: Term): String =
+    val (_, body) = selector(first).getOrElse(
+      fail(first, s"sync names a member by a selector, `_.member -> action`, not ${first.show}")
+    )
+    actions(action(arrow(body)._2)).name
+
+  // A typed move names its member by a selector and the very action the member binds.
+  private def move(c: ir.Composition, sync: String, t: Term): ir.SyncMove =
+    val (param, body) = selector(t).getOrElse(
+      fail(t, s"sync names a member by a selector, `_.member -> action`, not ${t.show}")
+    )
+    val (key, a) = arrow(body)
+    val field = selectedField(param, key, t, s"sync $sync")
+    val member = filled(c, field, t, s"sync $sync")
+    val id = action(a)
+    if !binds(member.machine, id) then
+      fail(
+        t,
+        s"sync $sync pairs ${actions(id).name} of $field, and ${member.machine} binds no action " +
+          s"of $id: a sync pairs the action its member binds, not one of another declaration"
+      )
+    ir.SyncMove(field, actions(id).name)
+
+  // A sync named `n`, or after its first member's action, refused where another has its name.
+  private def sync(c: ir.Composition, n: String, first: Term, second: Term, at: Tree) =
+    if c.syncs.exists(_.name == n) then
+      fail(
+        at,
+        s"${c.name} pairs two syncs named $n, and the IR keys a sync by its name: a sync is " +
+          "named after its first member's action unless it names itself, `.sync(\"name\", ...)`"
+      )
+    c.addSyncs(ir.Sync(n, Some(move(c, n, first)), Some(move(c, n, second))))
+
+  /** `replaces(_.field, opaque)`: the member of the field stands in for `opaque`. */
+  private def replacing(c: ir.Composition, field: Term, opaque: Term): ir.Composition =
+    val replaced = machineOf(resolveSymbol(opaque), opaque).name
+    val (param, body) = selector(field).getOrElse(
+      fail(field, s"replaces names a member by a selector, `_.member`, not ${field.show}")
+    )
+    replaces(c, selectedField(param, body, field, "replaces"), replaced, field)
+
+  /**
+   * A composition object, `object C extends Composition[S](members*)` with its `end` and its
+   * `syncs`, or `object C extends Composition(c.withMember(...))`, which keeps its source's: named
+   * after its object.
+   */
+  def objectComposition(cls: Symbol, at: Tree): ir.Composition =
+    val c = objectBody(cls, at)
+    val name = objectFormName(cls)
+    val members = statements(c).collect { case d: Definition => d }
+    val end = members.collectFirst { case d: DefDef if d.name == "end" => d }
+    val syncs = sectionOf(c, "syncs")
+    parentArguments(c).flatten.filterNot(a => isNamed(a.tpe, "umpire.Family")) match
+      case List(derivation) if isComposition(derivation.tpe) =>
+        for d <- end.orElse(syncs) do
+          fail(
+            d,
+            s"$name is derived from another composition, whose end and syncs it keeps: it " +
+              "declares neither"
+          )
+        unwrapped(derivation) match
+          case Apply(Apply(Select(inner, "withMember"), List(member)), List(family)) =>
+            def walk(t: Term): ir.Composition = t match
+              case Apply(Apply(Select(i, "withMember"), List(m)), List(f)) =>
+                derivedComposition(i, m, f, name, t, walk)
+              case r: Ref => compositionOf(resolveSymbol(r), r)
+              case other  => fail(other, s"not a composition derivation: ${other.show}")
+            checkedSyncs(derivedComposition(inner, member, family, name, derivation, walk), c)
+          case other =>
+            fail(
+              other,
+              s"$name derives from ${other.show}: a derived composition is `c.withMember(...)`"
+            )
+      case _ =>
+        val s = cls.typeRef
+          .baseType(compositionClass)
+          .typeArgs
+          .headOption
+          .getOrElse(fail(c, s"$name is a composition of one state type, `Composition[S]`"))
+        val family = familyArgument(c).getOrElse(fail(c, s"$name has no family"))
+        val selectors = parentArguments(c).headOption.getOrElse(Nil) match
+          case List(items) => items
+          case _ => fail(c, s"$name composes its members, `Composition[S](_.a -> m, ...)`")
+        val declared = declaredComposition(s, constString(family), name, selectors, selectors, c)
+        val ended = end match
+          case Some(d) => declared.withEnds(endOf(d))
+          case None    =>
+            fail(c, s"$name declares no end: a composition object declares `def end(s: S) = ...`")
+        val synced = syncs match
+          case Some(section) =>
+            if !section.symbol.typeRef.derivesFrom(syncsClass) then
+              fail(section, s"$name's syncs is `object syncs extends Syncs`")
+            statements(section).foldLeft(ended) {
+              case (b, t: Term) =>
+                call(t) match
+                  case Some(("sync", List(List(n, first, second)))) =>
+                    sync(b, constString(n), first, second, n)
+                  case Some(("sync", List(List(first, second)))) =>
+                    sync(b, syncName(first), first, second, first)
+                  case Some(("replaces", List(List(field, opaque)))) => replacing(b, field, opaque)
+                  case _ => fail(t, s"not a sync of $name: ${t.show}")
+              case (_, other) =>
+                fail(other, s"$name's syncs declare syncs alone, not ${other.show}")
+            }
+          case None =>
+            fail(
+              c,
+              s"$name declares no syncs: a composition object declares `object syncs extends Syncs`"
+            )
+        checkedSyncs(synced, c)
 
   /** `c` with the member of `field` standing in for `opaque`, which its machine must refine. */
   def replaces(c: ir.Composition, field: String, opaque: String, at: Tree): ir.Composition =
@@ -240,8 +354,14 @@ private[irgen] trait Compositions:
     case Typed(e, _)        => selection(e)
     case Inlined(_, Nil, e) => selection(e)
     case Apply(Select(c, op @ ("synced" | "own")), args)
-        if t.symbol.maybeOwner.fullName == "umpire.Composition" =>
+        if t.symbol.maybeOwner == compositionClass =>
       Some((c, op, args))
+    // Inside a composition object, its own `synced(...)` and `own(...)`.
+    case Apply(fn @ Ident(op @ ("synced" | "own")), args)
+        if t.symbol.maybeOwner == compositionClass =>
+      onThis(fn) match
+        case Select(c, _) => Some((c, op, args))
+        case _            => None
     case _ => None
 
   /** Whether a term selects a composed class or action: `c.synced(...)` or `c.own(...)`. */

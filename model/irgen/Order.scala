@@ -16,12 +16,26 @@ import scala.collection.mutable
  *   - (c) in a feature file, a declaration out of the reading order of model/README.md;
  *   - (d) in a feature file, a declaration outside the place that order gives its kind; beside a
  *     feature file, a Model declaration of another file; and in a Model package whose folder has
- *     no feature file, a Model declaration of a file not named after its folder.
+ *     no feature file, a Model declaration of a file not named after its folder;
+ *   - (e) in a feature file, R17's section rules: in a machine or composition object
+ *     (`umpire.Machine`, `Derived`, `Composition`), its header and sections out of the order
+ *     states, refinement, effects, monitors, rules (a composition's syncs), properties,
+ *     implements, queries; a declaration in a section other than its kind's, vocabulary outside
+ *     `states`, a refinement's member outside `refinement`, an effect outside `effects` and a
+ *     monitor outside `monitors`; a step function bound by hand, `action ~> step`, outside a
+ *     derivation's `rebind`; and a machine's section outside its object. A machine object the
+ *     builder declares, `val m = machine[S, O, F] { ... }`, keeps the order it had, its monitors its
+ *     own members and its capabilities in `laws`;
+ *   - over every inspected file, not just what one IR file lifts: a section (umpire.Section) that
+ *     sits anywhere but at the top level of a file or directly in a machine's object, and two
+ *     actions, monitors, assumptions, holes or channels that would take one Definition ID.
  *
  * A read inside a def, a lambda, a by-name argument or a lazy val of the owner itself, and an object
  * declared but not read, initializes nothing. A context function the DSL applies at once, such as
- * `machine[S, O, F] { ... }`, is read as written. A def called while its owner initializes is not
- * followed, so a val it reads is not checked.
+ * `machine[S, O, F] { ... }`, is read as written, and so are a rule heading's rules and its guard,
+ * and the phase projection of `Rules(_.phase)`, which the rules' disjointness check calls while they
+ * initialize. A def called while its owner initializes is not followed, so a val it reads is not
+ * checked.
  *
  * Scala's own checkers do not serve: `-Wsafe-init` checks classes, not objects (Scala 3.9), and
  * `-Ysafe-init-global`, which checks objects, stops the compiler on a read of a ScalaPB gRPC method
@@ -43,6 +57,7 @@ final private[irgen] class Order(index: Index):
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
     checked.foreach(initialization)
     cycles()
+    placesAndIdentities(checked)
     // A source is compiled to a tree per top-level type and one for its top-level definitions.
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1)
     sources.foreach((path, trees) => layout(path, trees, sources.map(_._1)))
@@ -64,6 +79,20 @@ final private[irgen] class Order(index: Index):
     file.startsWith("model/irgen/testdata/") && file.endsWith("Rejects.scala")
 
   private def treeOf(s: Symbol): Option[Tree] = scala.util.Try(s.tree).toOption
+
+  // ### Object forms and sections
+
+  private val machineClass = Symbol.requiredClass("umpire.Machine")
+  private val compositionClass = Symbol.requiredClass("umpire.Composition")
+  private val sectionClass = Symbol.requiredClass("umpire.Section")
+  private val rulesClass = Symbol.requiredClass("umpire.Rules")
+
+  /** Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`. */
+  private def objectForm(c: Symbol): Boolean =
+    isOwner(c) && (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(compositionClass))
+
+  /** Whether `c` is a section object, `object timers extends Section`, an actor or `rules`. */
+  private def isSection(c: Symbol): Boolean = isOwner(c) && c.typeRef.derivesFrom(sectionClass)
 
   // ### (a) and (b): what each owner reads while it initializes
 
@@ -146,6 +175,18 @@ final private[irgen] class Order(index: Index):
           case l @ Lambda(_, body) =>
             // A context function the DSL applies at once is read now; any other lambda later.
             if l.tpe.isContextFunctionType then traverseTree(body)(o)
+          // A rule heading runs its rules at once, and the disjointness check calls its guard, and
+          // the rules' phase projection, while the rules initialize (umpire.Rules).
+          case Apply(fn, args) if appliesAtOnce(fn.symbol) =>
+            traverseTree(fn)(o)
+            def atOnce(a: Tree): Unit = a match
+              case Lambda(_, body)   => traverseTree(body)(o)
+              case Inlined(_, bs, e) => bs.foreach(traverseTree(_)(o)); atOnce(e)
+              case Typed(e, _)       => atOnce(e)
+              case Block(Nil, e)     => atOnce(e)
+              case NamedArg(_, e)    => atOnce(e)
+              case other             => traverseTree(other)(o)
+            args.foreach(atOnce)
           case Apply(fn, args) =>
             traverseTree(fn)(o)
             val params = fn.tpe.widen match
@@ -161,6 +202,19 @@ final private[irgen] class Order(index: Index):
           case id: Ident => read(id, i)
           case _         => super.traverseTree(t)(o)
       initReads.traverseTree(init)(owner)
+
+  /**
+   * A call that runs its function arguments while it is made: a rule heading of `rules`, `when(g)`
+   * or `in(p*)`, whose rules run at once and whose guard the disjointness check calls; `Rules`'s
+   * constructor, whose phase projection the guards of `in` call; and a derivation's rules,
+   * `when(g)(bindings*)`, whose guard it calls too.
+   */
+  private def appliesAtOnce(s: Symbol): Boolean =
+    s.exists && {
+      val owner = s.maybeOwner
+      (owner == rulesClass && (s.isClassConstructor || s.name == "when" || s.name == "in")) ||
+      (s.name == "when" && owner.fullName == "umpire.Syntax$package$")
+    }
 
   /**
    * Each cycle of owners, once, at its first read in source order: the owners of one strongly
@@ -209,6 +263,145 @@ final private[irgen] class Order(index: Index):
           "lambda or a lazy val, or move what is read into an object of its own"
       )
 
+  // ### Where sections sit, and the Definition IDs their members take, over every inspected file
+
+  /**
+   * Refuses, over every inspected file rather than what one IR file lifts (R14, R6): a section that
+   * sits anywhere but at the top level of a file or directly in a machine's object, each at its
+   * line; and two declarations that would take one Definition ID, at the later. IDs are taken as
+   * the lifter takes them (Context.definitionId): a val's owner and name, the owner by the former
+   * owner its `DefinitionScope` pins if it pins one, and a section's member as a member of the
+   * section's enclosing owner, the file's package object at the top level of a file.
+   */
+  private def placesAndIdentities(checked: List[Tree]): Unit =
+    val sectionObjects = mutable.ArrayBuffer.empty[ClassDef]
+    val declarations = mutable.ArrayBuffer.empty[ValDef]
+    val packageObjects = mutable.Map.empty[(Symbol, String), Symbol]
+    object collect extends TreeTraverser:
+      override def traverseTree(t: Tree)(o: Symbol): Unit =
+        t match
+          case c: ClassDef if isOwner(c.symbol) && static(c.symbol) =>
+            if c.name.endsWith("$package$") then
+              packageObjects((c.symbol.maybeOwner, fileOf(c))) = c.symbol
+            if isSection(c.symbol) then sectionObjects += c
+          case v: ValDef if isOwner(v.symbol.maybeOwner) && static(v.symbol.maybeOwner) =>
+            if declaresId(v) then declarations += v
+          case _ => ()
+        super.traverseTree(t)(o)
+    for t <- checked if !fileOf(t).startsWith("model/umpire/") do
+      collect.traverseTree(t)(Symbol.spliceOwner)
+
+    def ownerId(o: Symbol) = pins.getOrElse(o, o.fullName)
+    // The owner whose IDs a section's members take, or none where the section is refused.
+    def sectionOwner(section: Symbol): Option[String] =
+      val enclosing = section.maybeOwner
+      if isSection(enclosing) then None
+      else if enclosing.isPackageDef then
+        treeOf(section).flatMap(t => packageObjects.get(enclosing -> fileOf(t))).map(ownerId)
+      else Option.when(machineObjectAt(enclosing))(ownerId(enclosing))
+
+    for s <- sectionObjects do
+      val name = plain(s.name)
+      val enclosing = s.symbol.maybeOwner
+      if isSection(enclosing) then
+        refuse(
+          s,
+          s"the section $name sits in the section ${plain(enclosing.name)}: a section sits at the " +
+            "top level of a Model file or directly in a machine's object, never in another"
+        )
+      else if enclosing.isPackageDef then
+        if !packageObjects.contains(enclosing -> fileOf(s)) &&
+          declarations.exists(_.symbol.maybeOwner == s.symbol)
+        then
+          refuse(
+            s,
+            s"the section $name sits at the top level of a file that declares nothing there, so " +
+              "the file has no package object whose Definition IDs its members could take: " +
+              "declare its actions directly, or the section in a machine's object"
+          )
+      else if !machineObjectAt(enclosing) then
+        refuse(
+          s,
+          s"the section $name sits in ${plain(enclosing.fullName)}, which is no machine's " +
+            "object: a section sits at the top level of a Model file or directly in a machine's " +
+            "object"
+        )
+
+    val taken = mutable.LinkedHashMap.empty[String, mutable.ArrayBuffer[ValDef]]
+    for v <- declarations do
+      val owner = v.symbol.maybeOwner
+      val id =
+        if isSection(owner) then sectionOwner(owner).map(o => s"$o.${v.name}")
+        else Some(pins.get(owner).fold(v.symbol.fullName)(p => s"$p.${v.name}"))
+      for i <- id do taken.getOrElseUpdate(i, mutable.ArrayBuffer.empty) += v
+    for (id, vs) <- taken if vs.map(_.symbol).distinct.sizeIs > 1 do
+      val sorted = vs.distinctBy(_.symbol).sortBy(v => (fileOf(v), lineOf(v))).toList
+      val first = sorted.head
+      for v <- sorted.tail do
+        val why =
+          if isSection(v.symbol.maybeOwner) || isSection(first.symbol.maybeOwner) then
+            "a section is transparent to Definition IDs, so the members of one owner's sections " +
+              "and the owner's own members keep distinct names"
+          else "two declarations pinned to one former owner keep the distinct names they had there"
+        refuse(
+          v,
+          s"${v.symbol.fullName} and ${first.symbol.fullName} would share the Definition ID " +
+            s"$id: $why"
+        )
+
+  /** Whether `owner` and every object it sits in is an object, one of a Model, not an instance's. */
+  private def static(owner: Symbol): Boolean =
+    Iterator
+      .iterate(owner)(_.maybeOwner)
+      .takeWhile(o => !o.isNoSymbol && !o.isPackageDef)
+      .forall(isOwner)
+
+  /**
+   * Whether `owner` is a machine's object, as the lifter reads one (Context.machineObject): an
+   * object at a file's top level that is a machine or a composition, or that holds a machine the
+   * builder declares.
+   */
+  private def machineObjectAt(owner: Symbol): Boolean =
+    isOwner(owner) && owner.maybeOwner.isPackageDef && !isSection(owner) &&
+      (objectForm(owner) || treeOf(owner).exists {
+        case c: ClassDef => members(c).exists(typed(_, Set("umpire.Machine", "umpire.Composition")))
+        case _           => false
+      })
+
+  // The former owner each owner's `DefinitionScope` pins, read as the lifter reads it.
+  private lazy val pins: Map[Symbol, String] = index.defs.values.toList.flatMap {
+    case v: ValDef if typed(v, Set("umpire.DefinitionScope")) =>
+      v.rhs.collect {
+        case Apply(Select(_, "apply"), List(Literal(StringConstant(s)))) if s.nonEmpty =>
+          v.symbol.maybeOwner -> s
+      }
+    case _ => None
+  }.toMap
+
+  private val idKinds =
+    Set("umpire.Action", "umpire.Monitor", "umpire.Assumption", "umpire.Hole", "umpire.Channel")
+
+  /**
+   * Whether a val declares an action, monitor, assumption, hole or channel, which takes a Definition
+   * ID of its own: a call that makes one, such as `action(caller).input(...)` or `timer`, rather than
+   * another declaration's name, such as `caller.start`.
+   */
+  private def declaresId(v: ValDef): Boolean =
+    idKinds(v.tpt.tpe.widen.dealias.typeSymbol.fullName) && v.rhs.exists { rhs =>
+      def framework(s: Symbol) =
+        s.isDefDef && s.maybeOwner.fullName.startsWith("umpire.") &&
+          !s.maybeOwner.fullName.endsWith("$package$")
+      @tailrec def root(t: Term): Term = t match
+        case Inlined(_, Nil, e)                      => root(e)
+        case Typed(e, _)                             => root(e)
+        case Block(Nil, e)                           => root(e)
+        case Apply(fn, _)                            => root(fn)
+        case TypeApply(fn, _)                        => root(fn)
+        case s @ Select(q, _) if framework(s.symbol) => root(q)
+        case other                                   => other
+      scala.util.Try(root(rhs).symbol).toOption.exists(s => s.exists && s.isDefDef)
+    }
+
   // ### (c) and (d): the reading order and the places of a feature file
 
   /** The kinds of declaration whose place the order gives, by the type a val or def declares. */
@@ -221,7 +414,7 @@ final private[irgen] class Order(index: Index):
         extends Kind("a capabilities declaration", "the `laws` object of its machine's object")
     case Scenario extends Kind("a Scenario", "the `queries` object of its machine's object")
     case Query extends Kind("a Query", "the `queries` object of its machine's object")
-    case File extends Kind("an IR file", "`object Files`")
+    case File extends Kind("an IR file", "`object exports`")
 
   private val iterable = Symbol.requiredClass("scala.collection.Iterable")
   private val option = Symbol.requiredClass("scala.Option")
@@ -256,10 +449,39 @@ final private[irgen] class Order(index: Index):
   private def kindOf(d: Definition): Option[Kind] = d match
     case v: ValDef if !v.symbol.flags.is(Flags.Module) => kindOf(v.tpt.tpe)
     case f: DefDef if !f.symbol.isClassConstructor     => kindOf(f.returnTpt.tpe)
-    case _                                             => None
+    // An object that is a machine or a composition, read as its own declaration.
+    case c: ClassDef if objectForm(c.symbol) => Some(Kind.Machine)
+    case _                                   => None
 
+  /** The place a kind belongs in: in an object form, a monitor's is the `monitors` section. */
+  private def belongs(k: Kind, inObjectForm: Boolean): String = k match
+    case Kind.Watch if inObjectForm => "the `monitors` object of its machine's object"
+    case Kind.Laws if inObjectForm  => "the `implements` object of its machine's object"
+    case _                          => k.belongs
+
+  /** The sections of a machine object the builder declares, whose capabilities sit in `laws`. */
   private val sections = Seq("effects", "properties", "laws", "queries")
+
+  /**
+   * The sections of a machine or composition object, in R2's order: its vocabulary, its refinement,
+   * then its declarations by kind; a composition's `syncs` takes the place of `rules`.
+   */
+  private val formSections = Seq(
+    "states",
+    "refinement",
+    "effects",
+    "monitors",
+    "rules",
+    "properties",
+    "implements",
+    "queries"
+  )
   private def plain(name: String) = name.stripSuffix("$")
+
+  /** The section of a machine or composition object an object is named as, `syncs` as `rules`. */
+  private def sectionNamed(o: ClassDef): Option[String] = plain(o.name) match
+    case "syncs" => Some("rules")
+    case n       => Option.when(formSections.contains(n))(n)
 
   /** A member declaration of an owner: no synthetic one, no object's own val, no constructor. */
   private def members(cls: ClassDef): List[Definition] = cls.body.flatMap {
@@ -314,7 +536,7 @@ final private[irgen] class Order(index: Index):
       case _ => Nil
     trees.flatMap(in)
 
-  private def holdsModel(c: ClassDef): Boolean = members(c).exists { m =>
+  private def holdsModel(c: ClassDef): Boolean = objectForm(c.symbol) || members(c).exists { m =>
     kindOf(m).nonEmpty || objectOf(m).exists(o => sections.contains(plain(o.name)))
   }
 
@@ -330,6 +552,14 @@ final private[irgen] class Order(index: Index):
   private def noModelIn(c: ClassDef, where: String): Unit =
     for m <- members(c) do
       objectOf(m) match
+        // A section here is refused where it sits, by `placesAndIdentities`.
+        case Some(o) if isSection(o.symbol)      => ()
+        case Some(o) if sectionNamed(o).nonEmpty =>
+          refuse(
+            o,
+            s"the section ${plain(o.name)} sits inside $where, which is no machine or " +
+              "composition object: a machine's sections sit directly in its object"
+          )
         case Some(o) if holdsModelWithin(o) =>
           refuse(
             o,
@@ -404,14 +634,14 @@ final private[irgen] class Order(index: Index):
     "its types",
     "its signature",
     "its machine and composition objects",
-    "object Files"
+    "object exports"
   )
 
   private def featureLayout(declared: List[Definition]): Unit =
     // (c): the file's order, each top-level declaration by its rank in it.
     def rank(d: Definition): Int = objectOf(d) match
       case Some(c) =>
-        if plain(c.name) == "Files" then 4
+        if plain(c.name) == "exports" then 4
         else if familyObject(c) then 0
         else if holdsModel(c) then 3
         else 2
@@ -425,10 +655,18 @@ final private[irgen] class Order(index: Index):
     // (d): the top level declares no Model; a machine object and its sections hold them.
     for d <- declared do
       objectOf(d) match
-        case Some(c) if plain(c.name) == "Files" =>
+        case Some(c) if plain(c.name) == "exports" =>
           for m <- members(c) if !kindOf(m).contains(Kind.File) do
-            refuse(m, s"${m.name} is declared in Files, which holds the feature's IR files alone")
-        case Some(c) if holdsModel(c) => machineObject(c)
+            refuse(m, s"${m.name} is declared in exports, which holds the feature's IR files alone")
+        // A section of a machine object's name sits in it, not at the top level (R17).
+        case Some(c) if sectionNamed(c).nonEmpty =>
+          refuse(
+            c,
+            s"the section ${plain(c.name)} sits at the top level of a feature file: a machine's " +
+              "sections sit directly in its machine or composition object"
+          )
+        case Some(c) if objectForm(c.symbol) => formObject(c)
+        case Some(c) if holdsModel(c)        => machineObject(c)
         case Some(c) => noModelIn(c, s"${plain(c.name)}, an object of the signature")
         case None    =>
           for k <- kindOf(d) do
@@ -475,36 +713,131 @@ final private[irgen] class Order(index: Index):
             case Some(k)                                =>
               refuse(m, s"${m.name} is ${k.written}, and belongs in ${k.belongs}, not in $owner")
 
-  private def section(machineObject: ClassDef, s: ClassDef): Unit =
-    val name = plain(s.name)
+  /**
+   * A machine or composition object (R2, R15, R17): its header, then its sections in order, its
+   * vocabulary in `states` and its refinement in `refinement`, each holding its own kind of
+   * declaration alone, and no step function bound by hand.
+   */
+  private def formObject(c: ClassDef): Unit =
+    val owner = nameOf(c.symbol)
+    val composed = c.symbol.typeRef.derivesFrom(compositionClass)
+    val sectionNames = formSections.map(n => if n == "rules" && composed then "syncs" else n)
+    val header = Set("init", "end", "entity", "evidence")
+    // The object's pin (R6) heads it with the header members.
+    def headed(d: Definition) =
+      header(d.name) || typed(d, Set("umpire.DefinitionScope", "umpire.Family"))
+    val refinement = Set("refines", "visible", "visibleOutcomes", "unobservable", "toProduct")
+    def rank(d: Definition): Int = objectOf(d) match
+      case Some(o) => sectionNamed(o).fold(-1)(n => formSections.indexOf(n) + 1)
+      // Any other member is refused below, at its place.
+      case None => if headed(d) && kindOf(d).isEmpty then 0 else -1
+    ordered(members(c), rank, "its header" +: sectionNames, s"object $owner")
+    def vocabulary(d: Definition): Unit =
+      refuse(
+        d,
+        s"${plain(d.name)} is vocabulary of $owner, declared outside its sections: it belongs in " +
+          "the `states` object of its machine's object"
+      )
+    for m <- members(c) do
+      objectOf(m) match
+        case Some(s) if sectionNamed(s).nonEmpty => section(c, s, formed = true)
+        // A section of its own, such as a machine's own timers, is refused if misplaced by
+        // `placesAndIdentities`, and holds no Model declaration; any other object is vocabulary.
+        case Some(o) =>
+          if holdsModelWithin(o) then
+            refuse(
+              o,
+              s"${plain(o.name)} holds a Model declaration in $owner, and is none of its sections, " +
+                s"${sectionNames.mkString(", ")}: its declarations belong in them"
+            )
+          else if !isSection(o.symbol) then vocabulary(o)
+        case None =>
+          kindOf(m) match
+            case Some(k) =>
+              refuse(
+                m,
+                s"${plain(m.name)} is ${k.written}, and belongs in ${belongs(k, true)}, not in " +
+                  owner
+              )
+            case None if refinement(m.name) =>
+              refuse(
+                m,
+                s"${m.name} is a member of $owner's refinement: declare it in `object refinement " +
+                  "extends Refinement(product)`, which holds the machine's refinement"
+              )
+            case None if headed(m) => ()
+            case None              => vocabulary(m)
+    handBound(c, owner)
+
+  /**
+   * Refuses a step function bound by hand, `action ~> step` (umpire.Machine's core binding), in a
+   * machine or composition object (R17): its `rules` say when each action fires. A derivation's
+   * `rebind(action ~> effect)`, which keeps the action's rules, and the rules a derivation binds,
+   * `when(g) { action ~> effect }`, are no hand-written step function.
+   */
+  private def handBound(c: ClassDef, owner: String): Unit =
+    def core(s: Symbol) =
+      s.exists && s.name == "~>" && s.maybeOwner.fullName == "umpire.Machine$package$"
+    def derivation(s: Symbol) =
+      s.exists && ((s.name == "rebind" && s.maybeOwner == machineClass) ||
+        (s.name == "when" && s.maybeOwner.fullName == "umpire.Syntax$package$"))
+    object bindings extends TreeTraverser:
+      override def traverseTree(t: Tree)(o: Symbol): Unit = t match
+        case Apply(fn, _) if derivation(fn.symbol) => ()
+        case Apply(fn, _) if core(fn.symbol)       =>
+          refuse(
+            t,
+            s"a step function is bound by hand, `action ~> step`, in $owner: a machine object " +
+              "says when each action fires in its `rules`, `when(g) { action ~> effects.x }`, and " +
+              "a derivation binds one in `rebind`"
+          )
+        case _ => super.traverseTree(t)(o)
+    bindings.traverseTree(c)(c.symbol)
+
+  private def section(machineObject: ClassDef, s: ClassDef, formed: Boolean = false): Unit =
+    val name = sectionNamed(s).getOrElse(plain(s.name))
     val owner = nameOf(machineObject.symbol)
     val allowed: Set[Kind] = name match
-      case "effects"    => Set(Kind.Step)
-      case "properties" => Set(Kind.Claim)
-      case "laws"       => Set(Kind.Laws)
-      case _            => Set(Kind.Scenario, Kind.Query)
+      case "effects"               => Set(Kind.Step)
+      case "monitors"              => Set(Kind.Watch)
+      case "rules"                 => Set.empty // statements alone, or a composition's syncs
+      case "properties"            => Set(Kind.Claim)
+      case "laws"                  => Set(Kind.Laws) // a builder-declared machine's
+      case "implements"            => Set(Kind.Laws)
+      case "states" | "refinement" => Set.empty // vocabulary, and the machine's refinement
+      case _                       => Set(Kind.Scenario, Kind.Query)
     if name == "queries" then
       def rank(d: Definition) = kindOf(d) match
         case Some(Kind.Scenario) => 0
         case Some(Kind.Query)    => 1
         case _                   => -1
       ordered(members(s), rank, Seq("its Scenarios", "its Queries"), s"$owner.queries")
-    for o <- members(s).flatMap(objectOf) do noModelIn(o, s"$owner.$name.${plain(o.name)}")
+    val written = plain(s.name)
+    for o <- members(s).flatMap(objectOf) do
+      // A section in a section is refused where it sits, by `placesAndIdentities`.
+      if isSection(o.symbol) then ()
+      else if sectionNamed(o).nonEmpty then
+        refuse(
+          o,
+          s"the section ${plain(o.name)} sits in the section $owner.$written: a machine's " +
+            "sections sit directly in its object, never in another section"
+        )
+      else noModelIn(o, s"$owner.$written.${plain(o.name)}")
     for m <- members(s); k <- kindOf(m) do
       if !allowed(k) then
         refuse(
           m,
-          s"${m.name} is ${k.written}, declared in $owner.$name: it belongs in ${k.belongs}"
+          s"${plain(m.name)} is ${k.written}, declared in $owner.$written: it belongs in " +
+            belongs(k, formed)
         )
       else
         // A declaration over a machine sits with that machine's object, and a Query with its
         // Scenario.
-        for (named, home, where) <- over(m, machineObject.symbol, s.symbol) do
-          refuse(
-            m,
-            s"${m.name} is declared over ${named.name}, which ${nameOf(named.maybeOwner)} " +
-              s"declares: it belongs in ${nameOf(home)}$where"
-          )
+        for (named, home, where) <- over(m, machineObject.symbol, s.symbol, formed) do
+          val declaring =
+            if objectForm(named) then s"${nameOf(named)}, a machine object"
+            else s"${named.name}, which ${nameOf(named.maybeOwner)} declares"
+          refuse(m, s"${m.name} is declared over $declaring: it belongs in ${nameOf(home)}$where")
 
   /**
    * The machines and Scenarios a declaration names that are declared elsewhere than it must sit
@@ -513,7 +846,8 @@ final private[irgen] class Order(index: Index):
   private def over(
       d: Definition,
       machineObject: Symbol,
-      section: Symbol
+      section: Symbol,
+      formed: Boolean
   ): List[(Symbol, Symbol, String)] =
     val found = mutable.ArrayBuffer.empty[(Symbol, Symbol, String)]
     // A member of an object, not a parameter or a local of a declaring function.
@@ -522,12 +856,17 @@ final private[irgen] class Order(index: Index):
     def machine(m: Term, where: String): Unit =
       if declared(m, Kind.Machine) && m.symbol.maybeOwner != machineObject then
         found += ((m.symbol, m.symbol.maybeOwner, where))
+      // A machine or composition object named by its object: its own declarations sit in it.
+      else if m.symbol.flags.is(Flags.Module) && objectForm(m.symbol.moduleClass) &&
+        m.symbol.moduleClass != machineObject
+      then found += ((m.symbol.moduleClass, m.symbol.moduleClass, where))
     object names extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit =
         t match
           case Select(m, "property") => machine(m, ".properties")
           case Select(m, "scenario") => machine(m, ".queries")
-          case Apply(fn, (m: Ref) :: _) if fn.symbol.name == "capabilities" => machine(m, ".laws")
+          case Apply(fn, (m: Ref) :: _) if fn.symbol.name == "capabilities" =>
+            machine(m, if formed then ".implements" else ".laws")
           case r: Ref
               if kindOf(d).contains(Kind.Query) && declared(r, Kind.Scenario) &&
                 r.symbol.maybeOwner != section =>

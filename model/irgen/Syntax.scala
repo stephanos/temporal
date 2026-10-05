@@ -22,7 +22,10 @@ private[irgen] trait Syntax:
     case Apply(fn, args)  => sugarCall(fn).map((n, as) => (n, as :+ args))
     case TypeApply(fn, _) => sugarCall(fn)
     case r: Ref if r.symbol.maybeOwner.fullName == sugarOwner => Some(r.symbol.name -> Nil)
-    case _                                                    => None
+    // A guard of a machine's rules reads `phase.in(a, b)` as the rules repeat it.
+    case r: Ref if r.symbol.maybeOwner.fullName == "umpire.Rules" && r.symbol.name == "in" =>
+      Some("in" -> Nil)
+    case _ => None
 
   /** The type arguments a sugar call is applied to, innermost first. */
   private def typeArgs(t: Term): List[TypeRepr] = t match

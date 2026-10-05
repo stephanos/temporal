@@ -1202,3 +1202,111 @@ val sectionPinned = machine[Lamp, Outcome, Nothing] {
   ends(_ => true)
   steps(pinningSection.pinnedTick ~> lampStep)
 }
+
+// ### Machine objects, rules and effects (fn-126 R15, R16): each refused at its line
+
+enum Glow derives Finite:
+  case dim, bright
+
+final case class Bulb(glow: Glow) derives Finite
+
+final case class Bulbs(a: Bulb, b: Bulb)
+
+object bulbHand extends Actor:
+  val squeeze = action(this)
+  val twist = action(this)
+
+/** A machine whose squeeze brightens a dim bulb and dims a bright one: two rules of squeeze. */
+object Ruled extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object effects extends Section:
+    def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
+    def darken(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.dim))
+  object rules extends Rules(_.glow):
+    in(Glow.dim)(bulbHand.squeeze ~> effects.brighten)
+    in(Glow.bright)(bulbHand.squeeze ~> effects.darken)
+
+/** A rule whose effect is no def of `effects`. */
+object EffectOutside extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
+  object rules extends Rules:
+    when(_ => true)(bulbHand.squeeze ~> brighten)
+
+/** An effect that gives no step in one branch: the rules say where it fires. */
+object EmptyEffect extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object effects extends Section:
+    def brighten(s: Bulb) =
+      if s.glow == Glow.bright then disabled else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
+  object rules extends Rules:
+    when(_ => true)(bulbHand.squeeze ~> effects.brighten)
+
+/** A rule under no heading. */
+object Unheaded extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object rules extends Rules:
+    bulbHand.squeeze ~> Ruled.effects.brighten
+
+/** A heading under a heading. */
+object HeadingTwice extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object rules extends Rules(_.glow):
+    when(_ => true) {
+      in(Glow.dim)(bulbHand.squeeze ~> Ruled.effects.brighten)
+    }
+
+/** An action both disabled and fired by a rule. */
+object DisabledFired extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object rules extends Rules(_.glow):
+    disabled(bulbHand.squeeze)
+    in(Glow.dim)(bulbHand.squeeze ~> Ruled.effects.brighten)
+
+/** A bare binding where the source's actions are bound by rules: extend takes rules. */
+object ExtendedBare extends Derived(Ruled.extend(bulbHand.twist ~> Ruled.effects.darken))
+
+/** One effect in place of two rules' different effects. */
+object RebindSeveral extends Derived(Ruled.rebind(bulbHand.squeeze ~> Ruled.effects.darken))
+
+/** Rules for an action class the source does not bind. */
+object RebindUnbound
+    extends Derived(Ruled.rebind(when(_ => true)(bulbHand.twist ~> Ruled.effects.darken)))
+
+/** A machine object and a val whose names collide, `colliding`, composed together. */
+object Colliding extends Derived(Ruled.restrict(bulbHand.squeeze))
+
+val colliding = Ruled.restrict(bulbHand.squeeze)
+
+object CollidingPair extends Composition[Bulbs](_.a -> Colliding, _.b -> colliding):
+  def end(s: Bulbs) = true
+  object syncs extends Syncs:
+    sync(_.a -> bulbHand.squeeze, _.b -> bulbHand.squeeze)
+
+/** A composition object that says nowhere where it ends. */
+object Endless extends Composition[Bulbs](_.a -> Ruled, _.b -> Ruled):
+  object syncs extends Syncs:
+    sync(_.a -> bulbHand.squeeze, _.b -> bulbHand.squeeze)
+
+object Paired extends Composition[Bulbs](_.a -> Ruled, _.b -> Ruled):
+  def end(s: Bulbs) = true
+  object syncs extends Syncs:
+    sync(_.a -> bulbHand.squeeze, _.b -> bulbHand.squeeze)
+
+/** A derived composition that declares its own end, which its source's is. */
+object EndedTwice extends Composition(Paired.withMember(_.b -> Colliding)):
+  def end(s: Bulbs) = false
+
+/** A refinement's member written outside its `refinement` section. */
+object LooseRefinement extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  def toProduct(s: Bulb) = s
+  object rules extends Rules:
+    when(_ => true)(bulbHand.squeeze ~> Ruled.effects.brighten)

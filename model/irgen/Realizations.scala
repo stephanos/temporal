@@ -68,7 +68,7 @@ private[irgen] trait Realizations:
 
   /** A value the IR names rather than writes out: a machine, a channel, an action or a class. */
   def namedByIR(tpe: TypeRepr): Boolean =
-    Set("umpire.Machine", "umpire.Channel", "umpire.Action", "umpire.Class")(
+    isMachine(tpe) || Set("umpire.Machine", "umpire.Channel", "umpire.Action", "umpire.Class")(
       tpe.widen.dealias.typeSymbol.fullName
     )
 
@@ -735,8 +735,8 @@ private[irgen] trait Realizations:
         constString(follow(Bound(qual, b.env)).term)
       case Select(qual, field) if fieldOfDeclaration(Bound(qual, b.env), field).nonEmpty =>
         textOfBound(fieldOfDeclaration(Bound(qual, b.env), field).get)
-      case Literal(StringConstant(s))                 => s
-      case r: Ref if isNamed(r.tpe, "umpire.Machine") =>
+      case Literal(StringConstant(s)) => s
+      case r: Ref if isMachine(r.tpe) =>
         machineOf(resolveSymbol(r), r).name
       case r: Ref if isNamed(r.tpe, "umpire.Channel") =>
         channelOf(resolveSymbol(r), r)

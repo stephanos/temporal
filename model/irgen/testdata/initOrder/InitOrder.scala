@@ -4,7 +4,7 @@
 // Property at the top level, in its machine's object rather than its `properties`, or over another
 // object's machine; a machine in a type's companion or in an object of the signature; a Property in
 // an object of a machine object that is none of its sections; a Query over another object's
-// Scenario; a val in Files that is no IR file. (b): Switch's `laws` reads the realization
+// Scenario; a val in exports that is no IR file. (b): Switch's `laws` reads the realization
 // (Realization.scala), which reads it back.
 package fixture.features.initorder
 
@@ -97,6 +97,6 @@ object Asked:
     val late = asked.scenario.free
     val borrowed = query verify properties.stays in Switch.queries.flipped limits one total 2
 
-object Files:
+object exports:
   val switchFile = irFile("switch")(Switch.switch)
-  val note = "the switch" // Files holds IR files alone
+  val note = "the switch" // exports holds IR files alone

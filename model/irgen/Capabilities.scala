@@ -188,9 +188,9 @@ private[irgen] trait Capabilities:
   def capable(t: Term): Boolean = t match
     case _: Apply =>
       val sym = t.symbol
-      (sym.name == "capabilities" && sym.maybeOwner.fullName.startsWith(
+      (sym.name == "capabilities" && (sym.maybeOwner.fullName.startsWith(
         "umpire.Capabilities$package"
-      )) ||
+      ) || sym.maybeOwner.fullName == "umpire.Declares")) ||
       (sym.maybeOwner.fullName == "umpire.Capabilities" &&
         Set("except", "overriding", "claim")(sym.name))
     case _ => false
@@ -229,9 +229,19 @@ private[irgen] trait Capabilities:
 
   private def declaration(t: Term, env: Map[Symbol, Decl]): Decl =
     val (base, waivers) = peel(t, Nil)
+    // Inside a machine or composition object, `capabilities(limits = ...)(...)` declares its own.
+    def receiver(t: Term): Term = t match
+      case Apply(fn, _)     => receiver(fn)
+      case TypeApply(fn, _) => receiver(fn)
+      case Select(r, _)     => r
+      case i: Ident         => receiver(onThis(i))
+      case other            => other
     val (m, limits, items, catalogTerm) = call(arguments(base)) match
       case Some(("capabilities", List(List(m, limits), items, List(catalog)))) =>
         (m, limits, items.flatMap(varargs), catalog)
+      case Some(("capabilities", List(List(limits), items, List(catalog))))
+          if base.symbol.maybeOwner.fullName == "umpire.Declares" =>
+        (receiver(arguments(base)), limits, items.flatMap(varargs), catalog)
       case _ =>
         fail(
           base,
