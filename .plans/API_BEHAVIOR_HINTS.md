@@ -488,6 +488,42 @@ the read's method); a step in its window that no command performs and no `Server
 cause kind with no `CauseBound`. An explicit `Poll` stays accepted only with a recorded reason
 (task 4's final rule).
 
+### As built by task 4 (2026-10-05)
+
+`tools/umpire/lower/waits.go` derives the waits; `producer.ReadOnce` and `producer.WaitWithin` write
+them. Adjustments to the rules above:
+
+- **Which reads derive.** A `Poll` with no interval (`interval_ms = 0`, which the reader now admits)
+  derives its wait; one that writes an interval keeps it and checks nothing, so every checked-in
+  Case lowers byte for byte as before. The recorded reason for an explicit poll is fn-118.5's: the
+  IR has no field for it yet, and requiring one now would refuse every existing Case. A derived poll
+  that writes a deadline is refused by the reader.
+- **The step a poll waits for** is the last step of the path its evidence kind confirms, as the
+  producer's confirmations place it. A script's window runs from its last read (the end of what that
+  read waited for) to that step, or to its own last performed step if later. Another script's placed
+  command is in the window when the next step its script performs is.
+- **Hint ids in a Case.** A timer's wait names two entries: `deadline.<class>` at the server step's
+  line with the deadline, then `cause.timer` with the slack. A cause waited for twice is named twice.
+- **Calls that read** are checked only in a realization that declares a behavior: the historical IR
+  in the migration and original baselines declares none and its non-closing `history` read must
+  lower as before. A call after an eventually visible write is refused, since a single call cannot
+  wait.
+- **Writes no hint can name.** A `NexusCompletion` (the callback, no WorkflowService method) is a
+  write; a checked read after one is refused. No path reads after one today.
+- **Derived waits of the existing Cases**, with every poll's interval cleared (the fixture in
+  `waits_test.go`): `await-paused` (both) and `await-terminated` (three Cases) read once;
+  `await-completed`/`await-failed` poll within `cause.delivery` + `cause.activityAnswer` (5,000 ms);
+  `await-timed-out` within `deadline.scheduleToStart` + `cause.timer` (5,000 ms); every Nexus
+  `await-scheduled` within `cause.workflowTask` (5,000 ms); `pending-attempts` within
+  `cause.handlerReply` + the eventual `visibility.handlerReply.describeWorkflowExecution` (7,000 ms).
+  All at 250 ms, all prepared by Testpilot unchanged.
+- **For fn-118.5.** activity-retry's path now takes the Model's `backoff` timer step, which no server
+  step declares, so its read is refused until the realization declares one (with it declared as a
+  delivery the read waits 3 x delivery + 2 x answer). The activity `cancel` and `cancelRequest`
+  Queries (unsupported today) read after RequestCancelActivityExecution, which no visibility names;
+  with derived polls their refusal is an error that comes before their gaps, so fn-118.5 declares
+  the pair or keeps their polls explicit.
+
 ## Helper interface for fn-112.9
 
 fn-112.9 adds no hint field, derived wait or Program change. It shapes the kit so that fn-118.2 can

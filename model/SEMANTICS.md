@@ -476,14 +476,32 @@ the machine that no command performs, such as an activity's delivery or a timeou
 cause it is and, for a timer, the deadline the realization set. Each hint has an id, derived from
 what it relates (`visibility.<write>.<read>`, `cause.<kind>`), and its declaration's position. No
 table, ID, fingerprint, Query answer or Contract reads either; they shape only how a lowered Case
-waits, and no Case reads them yet. Admission refuses a hint with no id or one another hint took, a
+waits. Admission refuses a hint with no id or one another hint took, a
 visibility that names no write or no read or a pair another names, a cause bound of no known kind or
 of a kind another bounds, a cause bound with no bound, a bound or interval of zero or less, an
 interval greater than its bound, and a server step that names no class of the machine, a class
 declared twice or one a command performs, a kind the realization bounds no cause of, a timer with no
 positive deadline and a deadline on a step that is no timer; each at its declaration's position.
 Whether the API binds a write to POST and a read to GET is read from descriptors where waits are
-derived, by the lowering.
+derived, by the lowering, which refuses a visibility that names otherwise at its position, and a
+command that calls a method bound to neither.
+
+The lowering derives a read's wait from the behavior. A read is a poll, or a call bound to GET that
+reads its response; a write is a call bound to POST, or a command of a worker's script, which is the
+kind of cause its activation is (an activity's answer, a workflow task, a handler's reply). A script
+synchronizes at each read. A poll that writes no interval waits as derived: if a write of its own
+script performs the step its evidence confirms, that write's visibility decides, and the poll reads
+once when it is at once and polls within the visibility's bound when it is eventual; otherwise it
+polls within the sum of the bounds of every asynchronous cause between its script's last
+synchronization and that step (a timer's bound is its deadline and then its slack), plus the
+visibility's bound where the write that performs the step is eventual, at the smallest interval
+among them. The Case's wait names each hint with its position, and its timeout is their sum. The
+lowering refuses, at the read, a write in that window with no declared visibility to the read's
+method, naming both; a step no command performs and no server step declares; and a cause whose kind
+the realization bounds not. A call that reads is checked the same way but never waits: one after an
+eventually visible write is refused. A closing read and a poll that writes its own interval check
+nothing; a poll left to derive its wait that writes a deadline is refused. A realization that
+declares no behavior has its calls that read taken as written.
 
 A realization carries no Case and decides nothing a Query's path decides. Lowering a find Query
 through it is the same for every realization:

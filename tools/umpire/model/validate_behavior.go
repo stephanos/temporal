@@ -12,8 +12,8 @@ var causeKinds = map[umpirespb.CauseKind]string{
 	umpirespb.CAUSE_KIND_HANDLER_REPLY: "handler reply", umpirespb.CAUSE_KIND_DELIVERY: "delivery", umpirespb.CAUSE_KIND_TIMER: "timer",
 }
 
-// aCause is a kind of cause with its article: "a delivery", "an activity answer".
-func aCause(k umpirespb.CauseKind) string {
+// ACause is a kind of cause with its article, as a diagnostic names it: "a delivery", "an activity answer".
+func ACause(k umpirespb.CauseKind) string {
 	if strings.HasPrefix(causeKinds[k], "a") {
 		return "an " + causeKinds[k]
 	}
@@ -79,7 +79,7 @@ func visibilityWrite(h *umpirespb.Visibility) string {
 		return w.Method
 	case *umpirespb.Visibility_Cause:
 		if known(umpirespb.CauseKind_name, int32(w.Cause)) {
-			return aCause(w.Cause)
+			return ACause(w.Cause)
 		}
 	default:
 	}
@@ -96,7 +96,7 @@ func (a *realizing) causeBounds() map[umpirespb.CauseKind]string {
 		if !known(umpirespb.CauseKind_name, int32(c.GetKind())) {
 			a.report(at, "cause bound %s is of no known kind", id)
 		} else if other, ok := bounded[c.GetKind()]; ok {
-			a.report(at, "cause bounds %s and %s both bound %s; one hint bounds a kind", other, id, aCause(c.GetKind()))
+			a.report(at, "cause bounds %s and %s both bound %s; one hint bounds a kind", other, id, ACause(c.GetKind()))
 		} else {
 			bounded[c.GetKind()] = id
 		}
@@ -125,7 +125,7 @@ func (a *realizing) serverStepKind(mm *umpirespb.Machine, s *umpirespb.ServerSte
 	case !known(umpirespb.CauseKind_name, int32(kind)):
 		a.report(at, "%s is of no known kind", step)
 	case !bounds:
-		a.report(at, "%s is %s, and the realization bounds no %s", step, aCause(kind), causeKinds[kind])
+		a.report(at, "%s is %s, and the realization bounds no %s", step, ACause(kind), causeKinds[kind])
 	default:
 	}
 	switch {

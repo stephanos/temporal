@@ -71,6 +71,8 @@ onPath(control(Control.pause))(awaitStatus(ProtocolFact.statusPaused, ActivityEx
 
 **Built by task .2 (2026-10-04).** The IR fields are `Realization.behavior = 16` and `server_steps = 17` (fn-122.4 took 15). The framework gains only the open traits `Behavior` and `SystemStep`; the hint vocabulary and `temporalBehavior` are the kit's (`model/temporal/realize/Realize.scala`, `Behavior.scala`). Ids are derived by the lifter (`visibility.<write>.<read>`, `cause.<kind>`). The POST/GET check moves to task .4, which holds the descriptors. Details in `.plans/API_BEHAVIOR_HINTS.md`, "As built by task 2".
 
+**Built by task .4 (2026-10-05).** A `Poll` with no interval derives its wait (`tools/umpire/lower/waits.go`); one that writes an interval keeps it, so Case bytes are unchanged until task .5 clears the kit's interval. A timer's wait names `deadline.<class>` (the server step) and `cause.timer` (the slack). Calls that read are checked only in a realization that declares a behavior. The recorded reason for an explicit poll stays task .5's. Details in `.plans/API_BEHAVIOR_HINTS.md`, "As built by task 4".
+
 **Shared-kit seam for fn-112.9.** A read is written as a typed evidence read and a typed condition (`await(evidence, role)(assign, until)`); no call site writes an interval, a timeout or `Instruction.poll`, and until task .5 the kit passes its one interval value. The script helpers take no timeout. The deadlines realizations set are kit values. Every Temporal realization is built by one kit function, where task .2 attaches `behavior`.
 
 **Reporting.** When a wait runs out, the failure names the condition, the declared bound and the hint it came from, with the hint's Scala position.

@@ -102,6 +102,28 @@ func TimeoutMilliseconds(ms int64) NodeOption {
 	}
 }
 
+// ReadOnce makes a node's ReadEvidence read once: its condition is checked once, with no interval.
+func ReadOnce() NodeOption {
+	return func(n *testpilotspb.InstructionNode) {
+		read := n.GetInstruction().GetReadEvidence()
+		read.Once, read.PollIntervalMilliseconds = true, 0
+	}
+}
+
+// WaitWithin makes a node's ReadEvidence poll every interval within the bounds of the hints it
+// names: the node writes its own timeout, their sum, and no Profile default applies to it.
+func WaitWithin(intervalMilliseconds int64, hints ...*testpilotspb.WaitHint) NodeOption {
+	return func(n *testpilotspb.InstructionNode) {
+		var sum int64
+		for _, h := range hints {
+			sum += h.GetAtMostMilliseconds()
+		}
+		n.GetInstruction().GetReadEvidence().PollIntervalMilliseconds = intervalMilliseconds
+		n.WaitHints = hints
+		TimeoutMilliseconds(sum)(n)
+	}
+}
+
 // Guard sets the node's guard.
 func Guard(e *testpilotspb.Expression) NodeOption {
 	return func(n *testpilotspb.InstructionNode) { n.Guard = e }
