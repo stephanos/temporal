@@ -30,9 +30,10 @@ import (
 //
 // What may differ from it is the closed delta of original.json (Delta): inert fields, entity
 // attachments, since fn-122 the claims the lifter generates from the laws a Model's capabilities
-// bring, since fn-118.5 the waits a realization leaves to the API behavior (waits.go), and since
-// fn-124.3 the Case members that behavior declares (declared.go). A law replacement names one generated claim of one IR file; the expected Model
-// is the baseline with each replacement's retired Queries removed and its renamed Property under the
+// bring, since fn-118.5 the waits a realization leaves to the API behavior (waits.go), since fn-124.3
+// the Case members that behavior declares (declared.go), and since fn-124.5 each expected Run read as
+// declared (expectations.go). A law replacement names one generated claim of one IR file; the expected
+// Model is the baseline with each replacement's retired Queries removed and its renamed Property under the
 // generated name, every Query that read it reading it so; the current Model is compared without the
 // listed generated claims (Ungenerated). What is compared after that is compared exactly: tables,
 // answers, receipts, Definition IDs, canonical forms, fingerprints, refined Properties and Cases are
@@ -119,6 +120,9 @@ type Delta struct {
 	// refuse a baseline Case that carries one (Declared.Baseline); a member the list does not name stays
 	// compared, and so does every other byte of the Case.
 	DeclaredMembers []string `json:"declared_case_members"`
+	// DeclaredRuns are the reasons the baseline's expected Runs wrote as prose, since fn-124.5 an id
+	// of the IR, by which the archive is read with every expected Run declared (expectations.go).
+	DeclaredRuns DeclaredRuns `json:"declared_run_expectations"`
 }
 
 // Attachment attaches the machine of a name, or the action of an ID, to an entity.
@@ -231,6 +235,9 @@ func (d Delta) check() error {
 		reduced[key] = true
 	}
 	if err := d.checkWaits(newFiles); err != nil {
+		return err
+	}
+	if err := d.DeclaredRuns.check(); err != nil {
 		return err
 	}
 	return d.checkDeclared()
@@ -746,9 +753,18 @@ func Located(text []byte, labels ...string) []byte {
 	return located.ReplaceAll(text, []byte("<source>"))
 }
 
-// OriginalArchive reads the archive's frozen inputs.
+// OriginalArchive reads the archive's frozen inputs, each expected Run declared as the delta's
+// DeclaredRuns read it: the schema the archive was frozen in is no longer the IR's.
 func OriginalArchive(root string) (map[string][]byte, error) {
-	return Read(filepath.Join(root, OriginalDir, "archive"))
+	archived, err := Read(filepath.Join(root, OriginalDir, "archive"))
+	if err != nil {
+		return nil, err
+	}
+	delta, err := OriginalDelta()
+	if err != nil {
+		return nil, err
+	}
+	return delta.DeclaredRuns.Declare(archived)
 }
 
 // OriginalCurrent reads the current files the archive freezes, under the archive's keys.
