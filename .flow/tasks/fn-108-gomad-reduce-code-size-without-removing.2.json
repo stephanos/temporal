@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-108-gomad-reduce-code-size-without-removing",
   "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Remove unused internal helpers, decimal/decoder, minimizer serialization and duplicate canonical validation",
   "updated_at": "2026-10-01T01:03:40.809146Z"
 }

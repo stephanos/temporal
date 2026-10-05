@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-108-gomad-reduce-code-size-without-removing",
   "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Shared completed-execution assessment owner in Runner (fulfils fn-105.1 D1)",
   "updated_at": "2026-10-01T01:03:40.809244Z"
 }

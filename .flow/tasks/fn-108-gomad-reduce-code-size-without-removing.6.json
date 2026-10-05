@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-108-gomad-reduce-code-size-without-removing",
   "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Shared retention policy and artifact-input composition (fulfils fn-105.2 D2)",
   "updated_at": "2026-10-01T01:03:40.809272Z"
 }

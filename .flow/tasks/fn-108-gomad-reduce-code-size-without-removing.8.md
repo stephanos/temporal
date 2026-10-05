@@ -19,9 +19,15 @@ remain unchanged.
 - Close this task and fn-108 under the amended scope, remove the completed spec from MILESTONES.md, and leave D12 and other specs' gates unchanged.
 
 ## Done summary
-TBD
+Closed under the owner's explicit waiver: "close fn-108 without linux check".
+The outstanding linux/amd64 R9 execution requirement is waived for fn-108 only.
+Existing accepted darwin/arm64 evidence and the historical final report are retained.
+No Linux checks were executed or claimed to pass; this is scope acceptance, not
+native Linux qualification. D12 and all other specs' Linux gates remain unchanged.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1610deb3852f7b8070bdae000070449ce422a092
+- Tests: flowctl validate --spec fn-108 --json (valid, 0 errors, 0 warnings), git diff --check (pass; documentation and tracking only; no Linux execution)
 - PRs:

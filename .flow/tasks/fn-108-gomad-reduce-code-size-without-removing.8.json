@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-108-gomad-reduce-code-size-without-removing",
   "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Record owner waiver of the linux/amd64 gates",
-  "updated_at": "2026-10-05T00:40:19.970680Z"
+  "updated_at": "2026-10-05T00:42:04.663938Z"
 }

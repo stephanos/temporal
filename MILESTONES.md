@@ -26,7 +26,7 @@ Completed specs and their evidence remain in `.flow/` and Git history.
 1. Verify the combined D26/fn-110 candidate, then qualify fn-114 task 13, fn-112 task 5, D26, D27, and fn-110 task 2 on both native platforms; run fn-114 task 14 against that same candidate.
 2. Qualify the merged fn-112 tasks 16 and 9, fn-113 tasks 1–4, and fn-109 tasks 2–6 against the integrated source; retain each task's acceptance checks.
 3. Investigate D12 with loaded native linux/amd64 cohorts and the existing diagnostics, then restore strict replay expectations when a causal fix qualifies.
-4. Qualify the merged fn-109 tasks 7–12 and fn-110 tasks 3–4, and continue fn-109 tasks 13–21 and fn-110 task 5 in their delivery order. Source implementation may advance after its predecessor candidate is integrated and reviewed; keep acceptance open until its required native gates pass. Complete fn-108 task 8 and other platform-only gates when native hosts or CI are available.
+4. Qualify the merged fn-109 tasks 7–12 and fn-110 tasks 3–4, and continue fn-109 tasks 13–21 and fn-110 task 5 in their delivery order. Source implementation may advance after its predecessor candidate is integrated and reviewed; keep acceptance open until its required native gates pass. Complete other platform-only gates when native hosts or CI are available.
 5. Resume fn-107's downstream cell when its checkout is available, and run the final both-platform consumer gates.
 
 ## Verification instructions for agents
@@ -181,21 +181,6 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-107.5](.flow/tasks/fn-107-gomad-finish-downstream-cell.5.md) | 🚧 In progress | Reconcile dual-platform qualification evidence and completion requirements |
 | [fn-107.6](.flow/tasks/fn-107-gomad-finish-downstream-cell.6.md) | ✅ Done | Implement bounded CDS auxiliary stores and in-process WAL |
 | [fn-107.7](.flow/tasks/fn-107-gomad-finish-downstream-cell.7.md) | ✅ Done | Add injectable CDS factory and host source seams |
-
-<a id="code-size-cleanup-fn-108"></a>
-
-## Code-size cleanup — [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-108.1](.flow/tasks/fn-108-gomad-reduce-code-size-without-removing.1.md) | ✅ Done | Record baseline revision, size accounting and gate dispositions |
-| [fn-108.2](.flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md) | ✅ Done | Remove unused helpers and duplicate canonical validation. |
-| [fn-108.3](.flow/tasks/fn-108-gomad-reduce-code-size-without-removing.3.md) | ✅ Done | Prepare the modernc memory adapter through the rewritten-module owner |
-| [fn-108.4](.flow/tasks/fn-108-gomad-reduce-code-size-without-removing.4.md) | ✅ Done | Publish upgrade dossiers through hostfs.Replace |
-| [fn-108.5](.flow/tasks/fn-108-gomad-reduce-code-size-without-removing.5.md) | ✅ Done | Share Runner completed-execution assessment (D1). |
-| [fn-108.6](.flow/tasks/fn-108-gomad-reduce-code-size-without-removing.6.md) | ✅ Done | Share retention policy and artifact-input composition (D2). |
-| [fn-108.7](.flow/tasks/fn-108-gomad-reduce-code-size-without-removing.7.md) | ✅ Done | Equivalence, size comparison and final gate evidence |
-| [fn-108.8](.flow/tasks/fn-108-gomad-reduce-code-size-without-removing.8.md) | ⬜ Todo | Run the linux/amd64 gates for the code-size cleanup |
 
 <a id="deep-modules-and-tool-interfaces-fn-109"></a>
 

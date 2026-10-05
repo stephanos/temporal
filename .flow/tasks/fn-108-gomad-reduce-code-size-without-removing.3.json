@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-108-gomad-reduce-code-size-without-removing",
   "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Prepare the modernc memory adapter through the rewritten-module owner",
   "updated_at": "2026-10-01T01:03:40.809185Z"
 }

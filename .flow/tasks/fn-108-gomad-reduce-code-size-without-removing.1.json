@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-108-gomad-reduce-code-size-without-removing",
   "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Record baseline revision, size accounting and gate dispositions",
   "updated_at": "2026-10-01T01:03:40.808945Z"
 }

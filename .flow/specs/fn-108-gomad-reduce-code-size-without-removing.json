@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-108-gomad-reduce-code-size-without-removing.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: reduce code size without removing features",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T00:39:31.356515Z"
+  "updated_at": "2026-10-05T00:41:17.671855Z"
 }
