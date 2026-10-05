@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reduce copied Model text in the lifter fixtures to minimal fixture-local Models",
   "updated_at": "2026-10-04T16:29:31.882987Z"
 }

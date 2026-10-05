@@ -14,7 +14,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Close fn-114 with literal and line counts and full gates",
   "updated_at": "2026-10-04T17:53:12.885611Z"
 }

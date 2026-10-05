@@ -21,33 +21,28 @@ def providerQueries(
     anyTotal: Int
 ) =
   val laws = queueLaws(m)
-  val afterInvocation = m
-    .scenario("crashAfterInvocation")
+  val crashAfterInvocation = m.scenario
     .actions(enqueue, addActivityTask, crash, addActivityTask, persistTask, deliver)
-  val afterSyncMatch = m
-    .scenario("crashAfterSyncMatch")
+  val crashAfterSyncMatch = m.scenario
     .actions(enqueue, addActivityTask, syncMatch, crash, addActivityTask, syncMatch, deliver)
-  val afterPersistence = m
-    .scenario("crashAfterPersistence")
+  val crashAfterPersistence = m.scenario
     .actions(enqueue, addActivityTask, persistTask, crash, deliver)
-  val afterDelivery = m
-    .scenario("crashAfterDelivery")
+  val crashAfterDelivery = m.scenario
     .actions(enqueue, addActivityTask, persistTask, deliver, crash, deliver)
-  val afterAcknowledgment = m
-    .scenario("crashAfterAcknowledgment")
+  val crashAfterAcknowledgment = m.scenario
     .actions(enqueue, addActivityTask, persistTask, deliver, acknowledge, crash)
-  val any = m.scenario("any").free
+  val any = m.scenario.free
   Vector(
     query(s"${m.name}.crashAfterInvocation") find laws.delivers in
-      afterInvocation limits seven total 180,
+      crashAfterInvocation limits seven total 180,
     query(s"${m.name}.crashAfterSyncMatch") find laws.delivers in
-      afterSyncMatch limits seven total 210,
+      crashAfterSyncMatch limits seven total 210,
     query(s"${m.name}.crashAfterPersistence") find laws.delivers in
-      afterPersistence limits seven total 150,
+      crashAfterPersistence limits seven total 150,
     query(s"${m.name}.crashAfterDelivery") find laws.delivers in
-      afterDelivery limits seven total 180,
+      crashAfterDelivery limits seven total 180,
     query(s"${m.name}.crashAfterAcknowledgment") verify laws.committedStays in
-      afterAcknowledgment limits seven total 180,
+      crashAfterAcknowledgment limits seven total 180,
     query verify laws.committedStays in any limits twelve total anyTotal
   )
 
@@ -63,5 +58,5 @@ val persistedThenLost =
   lossyMatchingQueue.scenario.actions(enqueue, addActivityTask, persistTask, storageLoss)
 
 val storageLossQuery =
-  query("lossyMatchingQueue.storageLoss") find storageLossDrops in
+  query(s"${lossyMatchingQueue.name}.storageLoss") find storageLossDrops in
     persistedThenLost limits seven total 120

@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retire the string-named declaration forms from the DSL and the lifter",
   "updated_at": "2026-10-03T19:46:27.986589Z"
 }

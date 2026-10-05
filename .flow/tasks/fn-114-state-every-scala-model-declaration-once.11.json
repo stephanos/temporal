@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.11.md",
-  "status": "todo",
+  "status": "done",
   "title": "Drop type annotations the compiler and lifter do not need",
   "updated_at": "2026-10-04T16:29:31.603672Z"
 }

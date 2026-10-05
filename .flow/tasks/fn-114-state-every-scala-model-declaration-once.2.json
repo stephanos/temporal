@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Restate the Nexus caller Model with captured names, derivation and the four-file layout",
   "updated_at": "2026-10-03T19:46:26.178539Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Convert the Nexus close-policy declarations to the final DSL in place",
   "updated_at": "2026-10-03T22:12:16.567002Z"
 }
