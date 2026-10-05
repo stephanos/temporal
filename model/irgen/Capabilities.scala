@@ -561,7 +561,13 @@ private[irgen] trait Capabilities:
           s"${sym.name} takes ${shown(shape(d))}, and the law ${law.name} it overrides takes " +
             s"${shown(shape(law.statement))}: an overriding def takes the law's parameters"
         )
-      case _ => fail(at, s"${sym.fullName} is not a def of the lifted sources")
+      case _ if throughOf.contains(sym) =>
+        fail(
+          at,
+          s"overriding ${law.name} names a def that takes the law's parameters, not a member's " +
+            s"def read with through: ${at.show}"
+        )
+      case _ => fail(at, s"${functionName(sym)} is not a def of the lifted sources")
 
   /**
    * One law expanded on `machine`: its Property, folded from the law's `apply` (or the def that
@@ -687,7 +693,7 @@ private[irgen] trait Capabilities:
 
   /** How the sidecar shows what a field is bound to: the def it names, or the value as written. */
   private def bindingText(a: Term): String = forwardedDef(a) match
-    case Some(sym) => sym.fullName
+    case Some(sym) => functionName(sym)
     case None      => plain(a).show
 
   /**

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-127-simplify-the-dsls-words",
   "spec_path": ".flow/tasks/fn-127-simplify-the-dsls-words.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Read composition law parameters through a member with through",
   "updated_at": "2026-10-05T02:58:30.241701Z"
 }

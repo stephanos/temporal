@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-127-simplify-the-dsls-words.md",
-  "status": "open",
+  "status": "done",
   "title": "Simplify the DSL's words",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T02:55:32.760860Z"
+  "updated_at": "2026-10-05T07:36:36.320427Z"
 }

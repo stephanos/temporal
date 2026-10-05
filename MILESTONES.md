@@ -72,18 +72,9 @@ cross-spec gates the conductor holds.
 
 
 
-### fn-127: Simplify the DSL's words
-
-Gate: fn-114, fn-118 and fn-122 are closed; never alongside fn-124.8; closes before fn-126 starts and before fn-125 resumes.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-127.1 | ✅ done | `accept`/`Accepted` → `enter`/`Ok`; realize `poll` → `readUntil`, `.setting` → `.withFields`, `always` → `everyCase`, `Outcome` → `PropertyOutcome`; no IR change |
-| fn-127.2 | 🔄 in progress | `through(selector)(predicate)` replaces the compositions' forwarding objects; close |
-
 ### fn-126: Read each feature top to bottom: one object per machine
 
-Gate: starts after fn-114, fn-118, fn-122 and fn-127 close; never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes.
+Gate: starts after fn-124.5 lands; never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -96,7 +87,7 @@ Gate: starts after fn-114, fn-118, fn-122 and fn-127 close; never alongside fn-1
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 3 after fn-118; task 4 beside task 3; task 5 after fn-127.1 and before fn-126.1 starts; task 7 after fn-114, fn-122 and fn-126 close (fn-120 is closed); task 8 last, never alongside fn-126 or fn-127.
+Gates: task 5 lands before fn-126.1 starts; task 7 after fn-126 closes (fn-114, fn-120 and fn-122 are closed); task 8 last, never alongside fn-126.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -154,7 +145,7 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 
 - fn-122.7 (Pausable on fn-119's example) waits for fn-119; fn-122 itself is closed.
 - `make umpire-check-backends` in CI; it runs locally after `make umpire-install-backends`.
-- The IR explorer (fn-120.4) was removed. fn-112, fn-114, fn-118, fn-120, fn-121 and fn-122 are closed.
+- The IR explorer (fn-120.4) was removed. fn-112, fn-114, fn-118, fn-120, fn-121, fn-122 and fn-127 are closed.
 
 ## Open for the owner
 

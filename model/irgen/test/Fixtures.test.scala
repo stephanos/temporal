@@ -142,7 +142,8 @@ class Fixtures extends munit.FunSuite:
       "pairCapabilities",
       "keptCapabilities",
       "killedWhileQueued",
-      "rogueCapabilities"
+      "rogueCapabilities",
+      "rightNeverHeld"
     )
       .map("fixture.capabilities.Capabilities$package$." + _),
     "captured" -> Seq(
@@ -286,8 +287,8 @@ class Fixtures extends munit.FunSuite:
     "foreignFact"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
-  // The refusals of fn-122.2's capability declarations and fn-122.5's citations
-  // (lifts/CapabilityRejects.scala).
+  // The refusals of fn-122.2's capability declarations, fn-122.5's citations and fn-127.2's
+  // `through` (lifts/CapabilityRejects.scala).
   private val capabilityRejects: Seq[String] = Seq(
     "unboundAction",
     "lambdaField",
@@ -303,7 +304,10 @@ class Fixtures extends munit.FunSuite:
     "lambdaQuery",
     "uncited",
     "computedCitation",
-    "unknownParameter"
+    "unknownParameter",
+    "throughComputed",
+    "throughLambda",
+    "overridingThrough"
   ).map("fixture.capabilityrejects.CapabilityRejects$package$." + _)
 
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
@@ -451,6 +455,7 @@ class Fixtures extends munit.FunSuite:
         "Capabilities.scala:19:78",
         "Capabilities.scala:22:16",
         "Capabilities.scala:25:17",
+        "Capabilities.scala:30:80",
         "Crossed.scala:35:14",
         "Crossed.scala:45:28",
         "Crossed.scala:49:24",

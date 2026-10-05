@@ -227,7 +227,7 @@
     "name": "temporal.standaloneactivity.OverMatching",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 50
+      "line": 43
     },
     "record": {
       "fields": [ {
@@ -2199,7 +2199,7 @@
         "line": 77
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverMatching$.twoActive",
+        "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/Properties.scala",
@@ -2255,7 +2255,7 @@
                 "line": 24
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.paused",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Pause.scala",
@@ -2312,7 +2312,7 @@
         "line": 24
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverMatching$.running",
+        "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/capabilities/Pause.scala",
@@ -2375,7 +2375,7 @@
                     "line": 32
                   },
                   "call": {
-                    "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                    "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/capabilities/Close.scala",
@@ -2402,7 +2402,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -2427,7 +2427,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -2496,7 +2496,7 @@
         "line": 77
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverMatching$.twoActive",
+        "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/Properties.scala",
@@ -2552,7 +2552,7 @@
                 "line": 24
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.paused",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Pause.scala",
@@ -2609,7 +2609,7 @@
         "line": 24
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverMatching$.running",
+        "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/capabilities/Pause.scala",
@@ -2672,7 +2672,7 @@
                     "line": 32
                   },
                   "call": {
-                    "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                    "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/capabilities/Close.scala",
@@ -2699,7 +2699,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -2724,7 +2724,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -2793,7 +2793,7 @@
         "line": 77
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverQueue$.twoActive",
+        "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/Properties.scala",
@@ -2849,7 +2849,7 @@
                 "line": 24
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverQueue$.paused",
+                "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Pause.scala",
@@ -2906,7 +2906,7 @@
         "line": 24
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverQueue$.running",
+        "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/capabilities/Pause.scala",
@@ -2969,7 +2969,7 @@
                     "line": 32
                   },
                   "call": {
-                    "function": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+                    "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/capabilities/Close.scala",
@@ -2996,7 +2996,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -3021,7 +3021,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -4940,7 +4940,7 @@
         "line": 77
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverMatching$.twoActive",
+        "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/Properties.scala",
@@ -4996,7 +4996,7 @@
                 "line": 24
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.paused",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Pause.scala",
@@ -5053,7 +5053,7 @@
         "line": 24
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverMatching$.running",
+        "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/capabilities/Pause.scala",
@@ -5116,7 +5116,7 @@
                     "line": 32
                   },
                   "call": {
-                    "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                    "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/capabilities/Close.scala",
@@ -5143,7 +5143,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -5168,7 +5168,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -5237,7 +5237,7 @@
         "line": 77
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverQueue$.twoActive",
+        "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/Properties.scala",
@@ -5464,7 +5464,7 @@
                 "line": 24
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverQueue$.paused",
+                "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Pause.scala",
@@ -5521,7 +5521,7 @@
         "line": 24
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.compositions.OverQueue$.running",
+        "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/capabilities/Pause.scala",
@@ -5584,7 +5584,7 @@
                     "line": 32
                   },
                   "call": {
-                    "function": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+                    "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/capabilities/Close.scala",
@@ -5611,7 +5611,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -5636,7 +5636,7 @@
                 "line": 32
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+                "function": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/capabilities/Close.scala",
@@ -13898,9 +13898,46 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.compositions.OverMatching$.paused",
+    "name": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
     "position": {
-      "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
+      "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.standaloneactivity.OverMatching"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+        "line": 61
+      },
+      "call": {
+        "function": "temporal.features.standaloneactivity.admission.Admission$.paused",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+            "line": 61
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+                "line": 61
+              },
+              "var": "s"
+            },
+            "field": "activity"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
       "line": 54
     },
     "params": [ {
@@ -13911,20 +13948,20 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
+        "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
         "line": 54
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.admission.Admission$.paused",
+        "function": "temporal.features.standaloneactivity.admission.Admission$.phase",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
+            "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
             "line": 54
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
+                "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
                 "line": 54
               },
               "var": "s"
@@ -13935,10 +13972,10 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+    "name": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.running",
     "position": {
-      "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 57
+      "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+      "line": 65
     },
     "params": [ {
       "name": "s",
@@ -13948,58 +13985,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 57
-      },
-      "field": {
-        "base": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 57
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 57
-              },
-              "var": "s"
-            },
-            "field": "activity"
-          }
-        },
-        "field": "phase"
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.compositions.OverMatching$.running",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 55
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.standaloneactivity.OverMatching"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 55
+        "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+        "line": 65
       },
       "call": {
         "function": "temporal.features.standaloneactivity.admission.Admission$.running",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 55
+            "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+            "line": 65
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 55
+                "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+                "line": 65
               },
               "var": "s"
             },
@@ -14009,10 +14009,10 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.compositions.OverMatching$.twoActive",
+    "name": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.twoActive",
     "position": {
-      "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 56
+      "file": "model/temporal/features/standaloneactivity/compositions/Properties.scala",
+      "line": 43
     },
     "params": [ {
       "name": "s",
@@ -14022,21 +14022,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 56
+        "file": "model/temporal/features/standaloneactivity/compositions/Properties.scala",
+        "line": 43
       },
       "call": {
         "function": "temporal.features.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 56
+            "file": "model/temporal/features/standaloneactivity/compositions/Properties.scala",
+            "line": 43
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 56
+                "file": "model/temporal/features/standaloneactivity/compositions/Properties.scala",
+                "line": 43
               },
               "var": "s"
             },
@@ -14046,10 +14046,10 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.compositions.OverQueue$.paused",
+    "name": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
     "position": {
-      "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 32
+      "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+      "line": 40
     },
     "params": [ {
       "name": "s",
@@ -14059,21 +14059,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 32
+        "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+        "line": 40
       },
       "call": {
         "function": "temporal.features.standaloneactivity.admission.Admission$.paused",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 32
+            "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+            "line": 40
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 32
+                "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+                "line": 40
               },
               "var": "s"
             },
@@ -14083,46 +14083,9 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+    "name": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
     "position": {
-      "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 35
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.standaloneactivity.OverQueue"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 35
-      },
-      "field": {
-        "base": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 35
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 35
-              },
-              "var": "s"
-            },
-            "field": "activity"
-          }
-        },
-        "field": "phase"
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.compositions.OverQueue$.running",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
+      "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
       "line": 33
     },
     "params": [ {
@@ -14133,20 +14096,20 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
+        "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
         "line": 33
       },
       "call": {
-        "function": "temporal.features.standaloneactivity.admission.Admission$.running",
+        "function": "temporal.features.standaloneactivity.admission.Admission$.phase",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
+            "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
             "line": 33
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
+                "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
                 "line": 33
               },
               "var": "s"
@@ -14157,10 +14120,10 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.compositions.OverQueue$.twoActive",
+    "name": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.running",
     "position": {
-      "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 34
+      "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+      "line": 44
     },
     "params": [ {
       "name": "s",
@@ -14170,21 +14133,58 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 34
+        "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+        "line": 44
+      },
+      "call": {
+        "function": "temporal.features.standaloneactivity.admission.Admission$.running",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+            "line": 44
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
+                "line": 44
+              },
+              "var": "s"
+            },
+            "field": "activity"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.twoActive",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/compositions/Properties.scala",
+      "line": 30
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.standaloneactivity.OverQueue"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/compositions/Properties.scala",
+        "line": 30
       },
       "call": {
         "function": "temporal.features.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 34
+            "file": "model/temporal/features/standaloneactivity/compositions/Properties.scala",
+            "line": 30
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 34
+                "file": "model/temporal/features/standaloneactivity/compositions/Properties.scala",
+                "line": 30
               },
               "var": "s"
             },
@@ -20332,7 +20332,7 @@
     "name": "currentOverForgetful",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 70
+      "line": 56
     },
     "stateType": "temporal.standaloneactivity.OverMatching",
     "members": [ {
@@ -20377,7 +20377,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 65
+        "line": 51
       },
       "lambda": {
         "params": [ {
@@ -20389,20 +20389,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 65
+            "line": 51
           },
           "call": {
             "function": "temporal.features.standaloneactivity.admission.Admission$.ends",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 65
+                "line": 51
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                    "line": 65
+                    "line": 51
                   },
                   "var": "s"
                 },
@@ -20418,7 +20418,7 @@
     "name": "currentOverLossyMatching",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 74
+      "line": 60
     },
     "stateType": "temporal.standaloneactivity.OverMatching",
     "members": [ {
@@ -20463,7 +20463,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 65
+        "line": 51
       },
       "lambda": {
         "params": [ {
@@ -20475,20 +20475,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 65
+            "line": 51
           },
           "call": {
             "function": "temporal.features.standaloneactivity.admission.Admission$.ends",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 65
+                "line": 51
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                    "line": 65
+                    "line": 51
                   },
                   "var": "s"
                 },
@@ -20504,7 +20504,7 @@
     "name": "currentOverMatching",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 60
+      "line": 46
     },
     "stateType": "temporal.standaloneactivity.OverMatching",
     "members": [ {
@@ -20549,7 +20549,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 65
+        "line": 51
       },
       "lambda": {
         "params": [ {
@@ -20561,20 +20561,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 65
+            "line": 51
           },
           "call": {
             "function": "temporal.features.standaloneactivity.admission.Admission$.ends",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 65
+                "line": 51
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                    "line": 65
+                    "line": 51
                   },
                   "var": "s"
                 },
@@ -20590,7 +20590,7 @@
     "name": "currentOverQueue",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 38
+      "line": 31
     },
     "stateType": "temporal.standaloneactivity.OverQueue",
     "members": [ {
@@ -20634,7 +20634,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 42
+        "line": 35
       },
       "lambda": {
         "params": [ {
@@ -20646,20 +20646,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 42
+            "line": 35
           },
           "call": {
             "function": "temporal.features.standaloneactivity.admission.Admission$.ends",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 42
+                "line": 35
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                    "line": 42
+                    "line": 35
                   },
                   "var": "s"
                 },
@@ -20675,7 +20675,7 @@
     "name": "currentOverVolatile",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 71
+      "line": 57
     },
     "stateType": "temporal.standaloneactivity.OverMatching",
     "members": [ {
@@ -20720,7 +20720,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 65
+        "line": 51
       },
       "lambda": {
         "params": [ {
@@ -20732,20 +20732,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 65
+            "line": 51
           },
           "call": {
             "function": "temporal.features.standaloneactivity.admission.Admission$.ends",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 65
+                "line": 51
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                    "line": 65
+                    "line": 51
                   },
                   "var": "s"
                 },
@@ -20761,7 +20761,7 @@
     "name": "staleOverMatching",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 67
+      "line": 53
     },
     "stateType": "temporal.standaloneactivity.OverMatching",
     "members": [ {
@@ -20806,7 +20806,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 65
+        "line": 51
       },
       "lambda": {
         "params": [ {
@@ -20818,20 +20818,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 65
+            "line": 51
           },
           "call": {
             "function": "temporal.features.standaloneactivity.admission.Admission$.ends",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 65
+                "line": 51
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                    "line": 65
+                    "line": 51
                   },
                   "var": "s"
                 },
@@ -20847,7 +20847,7 @@
     "name": "staleOverQueue",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-      "line": 44
+      "line": 37
     },
     "stateType": "temporal.standaloneactivity.OverQueue",
     "members": [ {
@@ -20891,7 +20891,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-        "line": 42
+        "line": 35
       },
       "lambda": {
         "params": [ {
@@ -20903,20 +20903,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-            "line": 42
+            "line": 35
           },
           "call": {
             "function": "temporal.features.standaloneactivity.admission.Admission$.ends",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                "line": 42
+                "line": 35
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/compositions/Model.scala",
-                    "line": 42
+                    "line": 35
                   },
                   "var": "s"
                 },
@@ -22391,12 +22391,12 @@
     "name": "currentOverLossyMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 47
+      "line": 58
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-        "line": 47
+        "line": 58
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22490,12 +22490,12 @@
     "name": "currentOverLossyMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 46
+      "line": 53
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-        "line": 46
+        "line": 53
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -23084,12 +23084,12 @@
     "name": "currentOverMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 47
+      "line": 58
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-        "line": 47
+        "line": 58
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -23183,12 +23183,12 @@
     "name": "currentOverMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 46
+      "line": 53
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-        "line": 46
+        "line": 53
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -23640,12 +23640,12 @@
     "name": "currentOverQueue.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 33
+      "line": 37
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-        "line": 33
+        "line": 37
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverQueue",
@@ -26066,12 +26066,12 @@
     "name": "staleOverMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 47
+      "line": 58
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-        "line": 47
+        "line": 58
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -26165,12 +26165,12 @@
     "name": "staleOverMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 46
+      "line": 53
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-        "line": 46
+        "line": 53
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -26584,12 +26584,12 @@
     "name": "staleOverQueue.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 33
+      "line": 37
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-        "line": 33
+        "line": 37
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverQueue",
@@ -27533,7 +27533,7 @@
     "name": "currentOverLossyMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 47
+      "line": 58
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27577,7 +27577,7 @@
     "name": "currentOverLossyMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 46
+      "line": 53
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27687,7 +27687,7 @@
     "name": "currentOverMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 47
+      "line": 58
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27731,7 +27731,7 @@
     "name": "currentOverMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 46
+      "line": 53
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27841,7 +27841,7 @@
     "name": "currentOverQueue.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 33
+      "line": 37
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28656,7 +28656,7 @@
     "name": "staleOverMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 47
+      "line": 58
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28700,7 +28700,7 @@
     "name": "staleOverMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 46
+      "line": 53
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28810,7 +28810,7 @@
     "name": "staleOverQueue.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala",
-      "line": 33
+      "line": 37
     },
     "form": "FORM_VERIFY",
     "property": {

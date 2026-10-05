@@ -588,6 +588,31 @@ field or no member, a member of another state type, a sync of an action the memb
 a `synced` that matches no sync or several, an `own` of a paired or foreign action, and a
 replacement of a replacing member by a machine that refines nothing.
 
+A law over a composition reads a member's status set with `through(select, read)`, where it would
+name a def: the composition's capability fields and a declaring function's function-valued
+arguments. `through(_.activity, Admission.paused)` is `s => Admission.paused(s.activity)`, so a
+composition needs no def of its own that restates its member's:
+
+```scala
+def overQueueCapabilities(c: Composition[OverQueue]) = capabilities(c, limits = five)(
+  Closable(status = through(_.activity, Admission.phase), terminal = Admission.terminal, rejected = closedAnswer),
+  Pausable(…, paused = through(_.activity, Admission.paused)),
+  Pollable(dispatch = c.synced(_.activity -> attemptStart), running = through(_.activity, Admission.running))
+)
+
+atMostOneActive(c)(through(_.activity, Admission.twoActive))
+```
+
+The IR generator lifts each `through` as one function of the composed state,
+`<state>.through.<path>.<def>` (here
+`temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused`),
+which the law calls as it calls a def. `select` is a field path, `_.activity` or `_.left.phase`, and
+`read` a def of the lifted sources; each other selector and a lambda for `read` are refused at their
+line, as a lambda is, and a `read` over another type than the member's does not compile. Its two
+arguments share one parameter list: Scala infers the composed state from where the function is
+passed only then. `through` is core, not sugar: no def of the lifted sources says which member a
+law reads.
+
 The queue in that example is the task queue, `model/temporal/shared/taskqueue`: a shared entity
 (`taskQueue`, keyed by the queue's name) that a feature composes by synchronizing its own actions
 with `enqueue`, `deliver` and `acknowledge`, and that imports nothing of any feature. It owns the
@@ -615,7 +640,8 @@ val notAdmittedWhilePaused = pausedIsNotDispatched(m)(Admission.paused, Admissio
 
 A law is an object named after it: its `apply` states it, and its `Law` arguments are the server
 code it rests on, what it promises and what it does not. A lambda passed for a function-valued
-parameter is refused at its line, naming the def to write, and so is a claim pattern after `when` (a
+parameter is refused at its line, naming the def to write (a member's def read with `through`, above,
+passes for a def), and so is a claim pattern after `when` (a
 pattern reads every step) and a `keeps` projection that is not a field path. Any other value
 parameter, such as an outcome, a fact or an action class, reads as the value the call passes: an
 expression, a class or `when` reads `rejected` as `Outcome.notFound`.
@@ -726,7 +752,8 @@ entity's machine stays the only one, and the laws are read on it.
 
 The framework keeps the mechanism and names no capability (`model/umpire/Capabilities.scala`:
 `CapabilityOf`, `capabilities`, `except`, `overriding`, `cited`; `model/umpire/Catalog.scala`:
-`CapabilityKind`, `Law`, `Catalog`). Temporal's capability kinds, every law with its server
+`CapabilityKind`, `Law`, `Catalog`; `model/umpire/Compose.scala`: `through`, which a composition's
+fields read a member with). Temporal's capability kinds, every law with its server
 citations and the one `given Catalog` live in `model/temporal/capabilities`:
 
 | Capability | Fields | Laws it brings |
@@ -775,7 +802,8 @@ Closable, Terminable, Cancelable and Describable.
 **How a law is lifted.** Each law is the law's `apply` (or the def an
 `overriding(law -> def, because = …)` names, which takes the law's parameters) folded with the model
 and the fields of the capabilities that bring it, bound by parameter name. Every field that takes a
-function names a def of the lifted sources, never a lambda. A law of one action class (`when`) is
+function names a def of the lifted sources, or a member's def read with `through` on a composition,
+never a lambda. A law of one action class (`when`) is
 asked by a `find` from the start through the capability's path to a live state (its field that lists
 action classes, Terminable's `reach`) and that class, expecting of a server the Run its
 `RunExpectation` field names; any other is verified over the free Scenario from the start under
@@ -866,7 +894,7 @@ laws model/ir/activity.json activityProduct
 ```
 
 **Core and sugar.** `capabilities`, the capability types and kinds, `except`, `overriding`, `cited`,
-`Catalog`, `Law` and the law objects are core: each introduces meaning the IR or the sidecar needs.
+`through`, `Catalog`, `Law` and the law objects are core: each introduces meaning the IR or the sidecar needs.
 This surface has no sugar today; a convenience spelling of it would live in
 `model/umpire/Syntax.scala` or `model/temporal/capabilities/Syntax.scala`, documented with its core
 form, with its matching in `model/irgen/Syntax.scala` and a fixture requiring the core spelling's IR,
