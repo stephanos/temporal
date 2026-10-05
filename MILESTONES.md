@@ -98,8 +98,8 @@ Gate: started before fn-114 closed (its remaining tasks are cleanup).
 | fn-118.1 | ✅ done | Wait inventory and hint-aware helper interface |
 | fn-118.2 | ✅ done | Hints declared in the kit, lifted to the IR, validated in Go |
 | fn-118.3 | ✅ done | Testpilot waits by condition within declared bounds |
-| fn-118.4 | ⬜ todo | Lowering derives Case waits from hints; undeclared visibility refused |
-| fn-118.5 | ⬜ todo | Realizations migrated to derived waits; close |
+| fn-118.4 | ✅ done | Lowering derives Case waits from hints; undeclared visibility refused |
+| fn-118.5 | 🔄 in progress | Realizations migrated to derived waits; close |
 
 
 ### fn-122: Capabilities and their laws
