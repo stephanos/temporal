@@ -3,12 +3,13 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-04.
+As of 2026-10-05.
 
 ## Keeping this page current
 
 - This page describes the present. Rewrite a status in place; do not append dated entries.
-- Remove a spec or task from this page when it is done. Flow and git keep the history.
+- List each open spec's tasks with ID, status and a brief description; set a task's status in place
+  when it changes. Remove a spec when it closes. Flow and git keep the history.
 - Close a cancelled or abandoned spec in Flow (tasks blocked, a "Closed: won't do" note in the
   spec) and remove it from this page.
 - Update the "As of" date with every edit.
@@ -62,171 +63,115 @@ are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8)
 
 The planned work below continues that direction: the Scala layer first, then the Models.
 
-## Planned
+## Specs
 
-Deferred by the owner: `make umpire-check-backends`, which needs P and .NET installed. Open for the
-owner: the canary policy's `workflowPath` names the deleted production-canary workflow, so
-production dispatch fails closed.
-
-| Order | Spec | In one line | Waits for |
-| --- | --- | --- | --- |
-| 1 | fn-114 | Roll the fn-112 showcase constructs, including choices, out to every other Model; then shrink copied fixture text and rename the model/ tool folders | — (in progress) |
-| alongside 1 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | — (in progress) |
-| alongside 1 | fn-120 rollout and tools | fn-120.2 done (unnamed branching refused; `choose` accepts helper calls); fn-120.3 model lint done; the IR explorer (fn-120.4) is deferred by the owner; fn-120.5 closes | started early: fn-114's remaining tasks are cleanup |
-| alongside 1 | fn-118 behavior | fn-118.3 done (Testpilot waits by condition within declared bounds, read-once evidence, scale factor); fn-118.2 hints in the kit in progress; then derived waits | started early, as above |
-| alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | tasks 1-2 done (archives deleted, checker trimmed); 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
-| alongside | fn-125 | Dynamic configuration in the Models: settings as finite Model inputs bound per Query, API preconditions, bound assumptions, derived required settings | task 1 (switch defects) now; framework after fn-114; preconditions after fn-118.2 |
-
-fn-112 (the standalone activity DSL showcase) is closed: the feature is 1,567 lines and 54 string literals
-(targets 1,600 and 60), on captured names, machine derivation, typed compositions, claim patterns, input tokens,
-`UpTo` counters, author-computed Query totals, a shared `model/temporal/taskqueue` entity and a shared Temporal
-realization kit, with Case bytes unchanged. fn-120.1 (named choices) is done. These rows are execution phases,
-not new specs. The structural migrations freeze Case bytes, while fn-118 separately permits specified Program
-changes and freezes Contracts. fn-119's generic Driver primitives are done (fn-119.1-.2). Flow records
-dependencies only within a spec, so the conductor holds the cross-spec gates: fn-120.2 and fn-118.2-.5 wait for
-fn-114 to close.
-
-Deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution):
-fn-119 (Go SDK workflow showcase; its generic Driver primitives are done) with fn-122.7, which needs its example;
-fn-123 (faults as environment actions, not yet planned); fn-120.4 (IR explorer); fn-125.4 (settings in the Quint/P
-exports). fn-121 closed without CI verification.
-
-Open for the owner: generated Cases that stop a worker (activity-terminate and activity-pauseResume always,
-the two scheduleToStartTimeout Cases sometimes) come back INCONCLUSIVE because of a matching race, not Model or
-test-shape changes. `ShutdownWorker` returns early when the task queue's root partition is not loaded yet
-(`service/matching/matching_engine.go`, upstream #9424), never records the worker as shut down, and later polls
-hang until `stop-worker` runs out its 10 s limit. With `frontend.enableMatchingFanOutForPollCancellation=false`
-the same Cases are satisfied in 20 of 20 Runs. The choice is a server fix or that setting in the generated
-test's Profile; `terminateSettles` and both
-scheduleToStartTimeout Cases are affected too, under both Nexus implementations; with the setting off they pass
-10 of 10 Runs. fn-125.6 declares that setting as a `workerStop` precondition and drafts the upstream report.
-
-Open for the owner (deferred by fn-112's behavior freeze): the witness-only Properties `terminated` and
-`cancelRequestedWhileStarted` (false on 120 rows each) and seven pause/unpause rows the server rejects (pause in
-paused, pauseRequested and cancelRequested; unpause in scheduled, backingOff, started and cancelRequested).
-
-Design decisions taken on 2026-10-03 and folded into the specs: operator policy
-(`.plans/DSL_OPERATORS.md`: words for logic, symbols only where every programmer knows them);
-syntactic sugar lives in separate `Syntax.scala` files in the framework, the Temporal kit and the
-lifter, each form lifting to the same IR as its core spelling; three-level temporal claims
-(`.plans/TEMPORAL_PATTERNS.md`: named patterns now, `always`/`eventually` deferred, raw IR as the
-backend form); reusable behavioral protocols (`.plans/SEMANTIC_PROTOCOLS.md`, vision #PROTOCOLS);
-MUST/MAY/MUST NOT as generated views with a specification-hole lint rather than author keywords
-(`.plans/MODALITIES.md`).
+Listed in delivery order. Flow records dependencies only within a spec, so each spec names the
+cross-spec gates the conductor holds.
 
 ### fn-114: State every Scala Model declaration once
 
-Split out of fn-113 so the specs run in a line. Rolls fn-112's constructs out to the Nexus caller, its close policy, the worker and the lifter
-fixtures, and removes the string-named forms from the framework. Realizations refer to their own
-ids by value, identity evidence lines go, and the contents of each IR file are declared in Scala
-with one lifter run writing all of them. Every Model folder gets the same file names as the
-activity, and no `Claims.scala` remains. The Temporal realization vocabulary leaves the framework for `model/temporal/realize` behind a guard test
-(fn-114.12), type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
-names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
-(absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`. The same pass groups `model/temporal` into `features/`
-(standalone activity, Nexus caller, Nexus operation) and `shared/` (task queue, worker) beside `capabilities/` and
-`realize/`.
+Gate: task 9 runs after fn-118.2 and fn-120.3 have merged (both done); task 8 closes the spec.
 
+| Task | Status | What |
+| --- | --- | --- |
+| fn-114.1 | done | IR-file roots declared in Scala, one lifter run |
+| fn-114.2 | done | Nexus caller Model restated (captured names, derivation, four files) |
+| fn-114.3 | done | Nexus caller realization by value with the shared kit |
+| fn-114.4 | done | Close-policy declarations in the final DSL (`sticky`) |
+| fn-114.5 | done | Close-policy Model split into the four-file layout |
+| fn-114.6 | done | Worker Model and lifter fixtures restated |
+| fn-114.7 | done | String-named declaration forms retired |
+| fn-114.10 | done | Lifter fixtures reduced to fixture-local Models |
+| fn-114.11 | done | Redundant type annotations dropped |
+| fn-114.12 | done | `model/umpire` Temporal-agnostic, guarded by a test |
+| fn-114.9 | todo | Rename tool folders (`irgen`, `check`, `build`); group `model/temporal` into `features/` and `shared/` |
+| fn-114.8 | todo | Close: counts and full gates |
 
-Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFile("name")(roots...)` in
-`IrFiles.scala`), one lifter run writes all six, and the gate's root lists are gone; the lift step went from
-8-16 s to 5 s. The new files put standaloneactivity at 1,614 lines, above fn-112's 1,600; fn-114.8's counts
-report it. Task 2 is done: the Nexus caller Model uses captured names, derivation and the four-file layout
-(its four files went from 898 lines and 114 literals to 780 and 21); the source-path change moved the canary
-Case identity, so its pinned Run was re-recorded. Task 3 is done: the caller realization refers to
-its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4 and 5
-are done: the close policy uses the final DSL with a new `sticky` monitor form and the four-file layout (58
-literals, from 148). Task 6 is done: the worker Model is `Model.scala`
-with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7 is done:
-the string-named and string-keyed declaration forms are gone from the DSL and the lifter, each refused at
-compile time. Tasks 10, 11 and 12 are done: lifter fixtures no longer copy live Model text
-(CloseReset retired, Realizations' expected IR from 14,255 to 3,932 lines), type annotations dropped where
-inference agrees (269 to 25), and `model/umpire` names no Temporal concept behind a guard test. Task 9 (folder
-rename and the `features/`/`shared/` grouping) runs once fn-118.2 and fn-120.3 have merged, then task 8 closes the
-spec. `leadsTo` has no captured-name form yet,
-which leaves two literals in the close policy.
+### fn-118: Declare how Temporal APIs behave once
 
-### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
+Gate: started before fn-114 closed (its remaining tasks are cleanup).
 
-Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
-hint-aware kit interface in `.plans/API_BEHAVIOR_HINTS.md`. The rest waits for the Case freeze.
-
-Realizations hand-write their waiting today: three polls with a literal 250 ms interval and two
-literal 5,000 ms timeouts. This spec declares how an API behaves once, as metadata beside the typed
-API: whether a write is visible to a read at once or eventually, how long a condition may take, and
-which error means "not yet". The hints travel through the IR, which is a schema change. The lowering
-derives each Case's waiting from them, refuses a read after a write with no declared visibility, and
-the Go framework waits by condition within the declared bound. Further hints (repeatable calls,
-blocking reads, call cost) are candidates until an existing Case needs one.
+| Task | Status | What |
+| --- | --- | --- |
+| fn-118.1 | done | Wait inventory and hint-aware helper interface |
+| fn-118.2 | done | Hints declared in the kit, lifted to the IR, validated in Go |
+| fn-118.3 | done | Testpilot waits by condition within declared bounds |
+| fn-118.4 | todo | Lowering derives Case waits from hints; undeclared visibility refused |
+| fn-118.5 | todo | Realizations migrated to derived waits; close |
 
 ### fn-120: Adopt what Quint does well
 
-Decides on ten suggestions from a review of Quint and adopts three; ITF interchange was withdrawn by the
-owner on 2026-10-04. A `choose` construct names the
-alternatives of a nondeterministic step and the IR records the names, which is a schema change. A
-lint command reports model-quality findings from the IR (an unreachable case, an action never
-enabled, a Property no Query names, a fact with no evidence) and the gate fails on a new one. An
-explorer steps through a machine from the IR and says why a class is disabled, at its Scala line.
-The lint also reports specification holes (a pair disabled only by a
-default arm, an enabled class no Property constrains, a Property only pinned Queries ask), with a
-per-operation rules table and a per-state view of MAY, MUST and MUST NOT. Temporal operators, Scenario combinators and Queries answered
-by Quint, Apalache or TLC are recorded as later work with their own specs.
-
+| Task | Status | What |
+| --- | --- | --- |
+| fn-120.1 | done | Named choices, inert IR names, Quint export |
+| fn-120.2 | done | Unnamed branching refused; `choose` accepts helper calls |
+| fn-120.3 | done | Model lint, specification holes, coverage summary, accepted findings |
+| fn-120.4 | deferred | IR explorer |
+| fn-120.5 | todo | Close |
 
 ### fn-122: Capabilities and their laws
 
-An entity declares capabilities (`Closable`, `Terminable`, `Pausable`, `Pollable`, `Describable`)
-and their bindings; each capability brings laws, and pairs bring interaction laws without being
-listed. The pilots lift `terminalIsFinal` into `terminalStatesAreFinal` and `pausedIsNotDispatched`
-into a `Pausable × Pollable` law, on standalone activity and a minimal Nexus operation Model. A law
-joins only once two entities adopt it; an entity that differs overrides it with a recorded reason.
-
-Task 1 is done: law bodies and the catalog as plain defs with server
-citations; the inventory classifies 76 claims as 8 law instances and 68 feature-specific. Three bodies wait for
-task 2's binding of plain value arguments. Task 2 is done: `capabilities(m, limits)(...)`
-with `except` and `overriding` (each with a reason) lifts each law into a Property, Scenario and Query named
-`<machine>.<law>`, a `<file>.laws.json` sidecar sits beside each IR file that declares capabilities, and all five
-laws now lift. Task 3 is done: the activity declares Closable, Pausable, Pollable, Terminable,
-Cancelable and Describable, its law claims are generated and every generated twin answers as the claim it
-retired, with two new generated Cases. `closedIsRejectedUniformly` is false for the admission record (a delivery
-to a timed-out record is accepted and recorded as `admissionRejected`), so the designs waive it with that reason.
-The new live Cases and the authored terminate Case time out inconclusive under shared load (10 s Contract
-window); fn-118's derived waits take that up. Task 4 is done: a standalone Nexus operation Model
-(`model/temporal/nexusoperation/`, Closable, Terminable, Cancelable, Describable) gives every catalog law two
-instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. A realization now declares the
-dynamic-config settings it requires; preparation refuses a Case whose environment differs, naming the setting.
-Tasks 1-4 are merged into `umpire`. Task 8 is done on the branch (merging): the framework names no
-capability or law; the six kinds, every law with its citations and the catalog live in
-`model/temporal/capabilities/`, and each Model declares its capabilities in its own `Capabilities.scala`. Task 5
-(law lint kinds) waits for fn-120.3's model lint and accepted-findings file, so tasks 6 and 7 wait too.
-The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
-are modeled and verified but have no live Case.
+| Task | Status | What |
+| --- | --- | --- |
+| fn-122.1 | done | Law bodies and catalog with server citations |
+| fn-122.2 | done | `capabilities` declaration, `except`/`overriding`, lifting |
+| fn-122.3 | done | Activity capabilities; authored twins retired |
+| fn-122.4 | done | Standalone Nexus operation Model; required settings |
+| fn-122.8 | done | Capability vocabulary moved to `model/temporal/capabilities` |
+| fn-122.5 | in progress | Law lint kinds; waiver reasons in the accepted-findings file |
+| fn-122.6 | todo | Docs, authored vs generated counts; close |
+| fn-122.7 | deferred | Pausable on fn-119's example |
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-A cleanup spec from the 2026-10-04 audit. The bespoke Go checker stays: off-the-shelf checkers would need a larger
-exporter than the ~3,000 lines of exploration they could replace, and the interpreter, admission and claim binding
-serve lowering and judging anyway. The spec deletes the `tools/umpire0` and `model0` archives (~33k Go lines, 13 MB),
-removes the duplicate refinement implementation and test-only APIs, moves the Temporal knowledge the Run judge
-hard-codes (attempt rules, start carriers, lost admissions, causal parents, default timeouts, history event names) into
-realization declarations, defines verdict aggregation once, compares expected outcomes by declared ids, makes Model
-assessment the command-line judge, retires the migration harness once fn-114, fn-120 and fn-122 close (~8k lines,
-~26 MB), and splits `tools/umpire/model` into `ir/`, `interp/`, `check/` and `realization/`.
+Gates: task 3 after fn-118; task 7 after fn-114, fn-120 and fn-122 close; task 8 last.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-124.1 | done | `tools/umpire0`, `model0` and the empty command deleted |
+| fn-124.2 | done | Duplicate refinement and test-only APIs removed |
+| fn-124.3 | todo | Temporal facts the judge hard-codes declared in the realization |
+| fn-124.4 | todo | Verdict aggregation defined once; judge rules documented |
+| fn-124.5 | todo | Generated-Case outcomes compared by declared ids |
+| fn-124.6 | todo | Model assessment as the command-line judge; Evaluation Profile derived or retired |
+| fn-124.7 | todo | Migration harness and frozen snapshots retired |
+| fn-124.8 | todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
 ### fn-125: Represent dynamic configuration in the Models
 
-Dynamic configuration decides both whether behavior exists (feature switches) and how it is timed. A
-setting is one of four kinds: a Model setting (`setting[T]`, a finite input steps read, bound per Query
-with `under` and multiplying its total), an API precondition declared next to fn-118's behavior hints, a
-bound assumption under a declared wait bound checked at preparation, or a behavior-neutral Profile value.
-A Case's required settings are derived from its Query's valuation, its preconditions and its bounds;
-the live harness builds each cluster from exactly those, and the hard-coded HSM/CHASM switch goes. Task 1
-fixes two verified switch defects: the CHASM value never set the workflow-operations rollout percent, and
-the HSM value ran with CHASM on. Evidence: `.plans/DYNAMIC_CONFIG.md`. Decided 2026-10-04: the
-ShutdownWorker race is reported upstream and meanwhile declared as a `workerStop` precondition; remote
-Profiles fail closed; one Case per valuation. Task 1 is done: the switch really
-runs each implementation (confirmed from server task types), applies only to workflow-scheduled Nexus Cases, and
-refuses a key two sources set differently; the Driver no longer derives schedule-to-close from the Profile.
-No Case differs between HSM and CHASM: HSM raises `attempt` when an attempt completes and CHASM when it is
-scheduled, but every current Query reads it during the first backoff, where both show 1. Whether the two may
-differ stays open until a Query reads `attempt` elsewhere.
+Gates: tasks 2-3 after fn-114 closes, not alongside fn-124.8; tasks 5-6 after fn-118.2 (done); task 7 after
+fn-118.5; task 9 after fn-118.4. Evidence: `.plans/DYNAMIC_CONFIG.md`.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-125.1 | done | HSM/CHASM switch fixed; schedule-to-close no longer from the Profile |
+| fn-125.2 | todo | `setting[T]` over finite domains in the framework, lifted |
+| fn-125.3 | todo | Query `under`: one Query per valuation |
+| fn-125.4 | deferred | Settings in the Quint/P exports |
+| fn-125.5 | todo | Dynamic-config keys declared once in the kit, pinned to the server registry |
+| fn-125.6 | todo | API preconditions; derived required settings; ShutdownWorker precondition |
+| fn-125.7 | todo | Nexus implementation encoded; one Case per valuation; switch retired |
+| fn-125.8 | todo | Caller attempt semantics as the owner chooses |
+| fn-125.9 | todo | Bound assumptions on server durations checked at preparation |
+| fn-125.10 | todo | Disposition for every implicit assumption |
+| fn-125.11 | todo | Docs; close |
+
+## Deferred
+
+Deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution):
+fn-119 (Go SDK workflow showcase; tasks 1-2 done, 3-6 blocked), fn-122.7, fn-123 (faults as environment
+actions, not planned), fn-120.4 and fn-125.4. Also deferred: `make umpire-check-backends` in CI (it runs
+locally after `make umpire-install-backends`). fn-112 and fn-121 are closed.
+
+## Open for the owner
+
+- The matching ShutdownWorker race (`service/matching/matching_engine.go`, upstream #9424) makes the Cases
+  that stop a worker INCONCLUSIVE under both Nexus implementations; with
+  `frontend.enableMatchingFanOutForPollCancellation=false` they pass. fn-125.6 declares that as a `workerStop`
+  precondition and drafts the upstream report.
+- 691 lint findings accepted with reasons in `model/ir/*.lint.json` (fn-120.3); review the H2 reasons first.
+- Behavior-freeze follow-ups from fn-112: the witness-only Properties `terminated` and
+  `cancelRequestedWhileStarted`, and seven pause/unpause rows the server rejects.
+- Whether HSM and CHASM may count Nexus `attempt` differently (fn-125.8); no current Query shows a difference.
+- The canary policy's `workflowPath` names the deleted production-canary workflow, so production dispatch
+  fails closed.
