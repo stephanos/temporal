@@ -410,6 +410,16 @@ interface does not fulfill a depth requirement.
 
 ## Decision Context
 
+Task9's adapter-listing integration may advance from the reviewed integrated
+task40 mechanism and cleanup at `d2e0e035519f1385b9acf630a70152655b113f61`
+under MILESTONES item 3. Its source-only start exception supersedes its prior
+operational dependency waits, not task8/task40 edges or their completion.
+Fresh literal BASE source/process evidence and measured listing capacity precede
+the bounded integration; default command contracts, pins and projection remain
+preserved. Root claims with the recorded exception and commits independently
+reviewed source progress. Original native/full/formal and preservation gates
+remain open wherever unproved; Linux stays nonblocking under fn128.
+
 Task44 admits four inherited mechanical compatibility-pack lint repairs from
 reviewed integrated commit 13df4f16f90d49938ea123a29859da62ad2cab9f:
 three destination-typed source-record conversions and test import regrouping.
