@@ -78,7 +78,7 @@ Gate: fn-114, fn-118 and fn-122 are closed; never alongside fn-124.8; closes bef
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-127.1 | ⬜ todo | `accept`/`Accepted` → `enter`/`Ok`; realize `poll` → `readUntil`, `.setting` → `.withFields`, `always` → `everyCase`, `Outcome` → `PropertyOutcome`; no IR change |
+| fn-127.1 | 🔄 in progress | `accept`/`Accepted` → `enter`/`Ok`; realize `poll` → `readUntil`, `.setting` → `.withFields`, `always` → `everyCase`, `Outcome` → `PropertyOutcome`; no IR change |
 | fn-127.2 | ⬜ todo | `through(selector)(predicate)` replaces the compositions' forwarding objects; close |
 
 ### fn-126: Read each feature top to bottom: one object per machine
@@ -102,7 +102,7 @@ Gates: task 3 after fn-118; task 7 after fn-114, fn-122 and fn-126 close (fn-120
 | --- | --- | --- |
 | fn-124.1 | ✅ done | `tools/umpire0`, `model0` and the empty command deleted |
 | fn-124.2 | ✅ done | Duplicate refinement and test-only APIs removed |
-| fn-124.3 | ⬜ todo | Temporal facts the judge hard-codes declared in the realization |
+| fn-124.3 | 🔄 in progress | Temporal facts the judge hard-codes declared in the realization |
 | fn-124.4 | ⬜ todo | Verdict aggregation defined once; judge rules documented |
 | fn-124.5 | ⬜ todo | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ⬜ todo | Model assessment as the command-line judge; Evaluation Profile derived or retired |
