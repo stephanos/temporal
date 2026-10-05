@@ -275,6 +275,19 @@ abstract class RuleBook[S, O, F] extends Section:
   private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])]
 
 /**
+ * A machine's rules in the core: one step function per action, bound by hand,
+ * `object rules extends Bindings(clerk.ship ~> shipStep, courier.strike ~> (_ => Nil))`, which is
+ * what `Rules` lower to. It is the spelling of the IR generator's core fixtures, whose step
+ * functions are written out; a Model says when each action fires in `Rules`, and the IR generator
+ * refuses a hand-bound step function in a Model (fn-126 R17).
+ */
+abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
+    bindings: StepBinding[S, O, F]*
+) extends RuleBook[S, O, F]:
+  private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
+    bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function))
+
+/**
  * A step function's results for the state and one class's inputs in declaration order, whatever
  * the function's arity: `f(s, inputs*)`, the function `action ~> f` binds.
  */

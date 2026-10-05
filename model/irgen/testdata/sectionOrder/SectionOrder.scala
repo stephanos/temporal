@@ -116,7 +116,7 @@ object Misfiled extends Machine[Lamp, Outcome, Nothing]:
   def stray(s: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(Step(Outcome.accepted, s))
   val watched = sticky[Lamp, Outcome, Nothing](after => !after.state.lit)
   def lit(s: Lamp) = s.lit
-  val unobservable = List(hand.tap)
+  def toProduct(s: Lamp) = s
 
   object effects extends Section:
     def kept(s: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(Step(Outcome.accepted, s))

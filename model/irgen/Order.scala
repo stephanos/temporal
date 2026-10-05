@@ -668,7 +668,10 @@ final private[irgen] class Order(index: Index):
         case Some(c) if objectForm(c.symbol) => formObject(c)
         case Some(c) if holdsModel(c)        => machineObject(c)
         case Some(c) => noModelIn(c, s"${plain(c.name)}, an object of the signature")
-        case None    =>
+        // An assumption no machine makes of its own, which a derivation adds with `assuming` or
+        // a progress claim names with `under`, is the feature's: it sits in the signature.
+        case None if typed(d, Set("umpire.Assumption")) => ()
+        case None                                       =>
           for k <- kindOf(d) do
             refuse(
               d,
@@ -722,11 +725,17 @@ final private[irgen] class Order(index: Index):
     val owner = nameOf(c.symbol)
     val composed = c.symbol.typeRef.derivesFrom(compositionClass)
     val sectionNames = formSections.map(n => if n == "rules" && composed then "syncs" else n)
-    val header = Set("init", "end", "entity", "evidence")
+    // A machine that refines nothing names its unobservable timers among its header members; one
+    // that refines another names them in its `refinement`.
+    val refines = members(c).flatMap(objectOf).exists(o => plain(o.name) == "refinement")
+    val header = Set("init", "end", "entity", "evidence") ++ Option.when(!refines)("unobservable")
     // The object's pin (R6) heads it with the header members.
     def headed(d: Definition) =
       header(d.name) || typed(d, Set("umpire.DefinitionScope", "umpire.Family"))
-    val refinement = Set("refines", "visible", "visibleOutcomes", "unobservable", "toProduct")
+    val refinement =
+      Set("refines", "visible", "visibleOutcomes", "toProduct") ++ Option.when(refines)(
+        "unobservable"
+      )
     def rank(d: Definition): Int = objectOf(d) match
       case Some(o) => sectionNamed(o).fold(-1)(n => formSections.indexOf(n) + 1)
       // Any other member is refused below, at its place.

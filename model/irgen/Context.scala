@@ -368,6 +368,9 @@ final private[irgen] class Context(val index: Index):
   lazy val derivedClass: Symbol = Symbol.requiredClass("umpire.Derived")
   lazy val compositionClass: Symbol = Symbol.requiredClass("umpire.Composition")
   lazy val rulesClass: Symbol = Symbol.requiredClass("umpire.Rules")
+  lazy val bindingsClass: Symbol = Symbol.requiredClass("umpire.Bindings")
+  lazy val failureModelClass: Symbol = Symbol.requiredClass("umpire.FailureModel")
+  lazy val negativeControlClass: Symbol = Symbol.requiredClass("umpire.NegativeControl")
   lazy val syncsClass: Symbol = Symbol.requiredClass("umpire.Syncs")
   lazy val refinementClass: Symbol = Symbol.requiredClass("umpire.Refinement")
 

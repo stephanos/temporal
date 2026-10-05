@@ -164,7 +164,7 @@ class Fixtures extends munit.FunSuite:
     // (lifts/Rules.scala); tools/umpire/model holds the twins' tables equal.
     "rules" -> (Seq("Switch", "Mirror", "Steady", "Loose", "Dimming", "Twins", "Unequal")
       .map("fixture.rules." + _) ++ Seq(
-      "fixture.rules.Core$.coreSwitch",
+      "fixture.rules.CoreSwitch",
       "fixture.rules.Switch$.queries$.pressing",
       "fixture.rules.Switch$.queries$.wornOut"
     )),
@@ -871,7 +871,7 @@ class Fixtures extends munit.FunSuite:
           "`monitors` object of its machine's object, not in Misfiled",
         s"lift: $f:118: lit is vocabulary of Misfiled, declared outside its sections: it belongs " +
           "in the `states` object of its machine's object",
-        s"lift: $f:119: unobservable is a member of Misfiled's refinement: declare it in " +
+        s"lift: $f:119: toProduct is a member of Misfiled's refinement: declare it in " +
           "`object refinement extends Refinement(product)`, which holds the machine's refinement",
         s"lift: $f:128: dim is a monitor, assumption, hole or channel, declared in " +
           "Misfiled.properties: it belongs in the `monitors` object of its machine's object",

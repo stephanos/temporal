@@ -347,6 +347,14 @@ private[irgen] trait Declarations:
         case f: DefDef if f.termParamss.flatMap(_.params).size == 1 => callee(f.symbol, f)
         case v: ValDef if v.rhs.nonEmpty => stepFunction(v.rhs.get, name, kind)
         case other => fail(other, s"$kind is a function of one argument: `def $kind(x: T) = ...`")
+      def unobservable(b: ir.Machine, d: Definition): ir.Machine = d match
+        case v: ValDef if v.rhs.nonEmpty =>
+          val items = v.rhs.get match
+            case Apply(TypeApply(Select(Ident("List" | "Seq" | "Vector"), "apply"), _), List(ts)) =>
+              varargs(ts)
+            case other => fail(other, "unobservable lists its timers: `List(t, ...)`")
+          b.addAllUnobservable(items.map(action))
+        case other => fail(other, "unobservable is `val unobservable = List(t, ...)`")
       val headed = members.foldLeft(declared.addStarts(start).withEnds(ends)): (b, d) =>
         d.name match
           case "entity" =>
@@ -365,6 +373,9 @@ private[irgen] trait Declarations:
                 b.withEvidence(evidenceName)
               case other =>
                 fail(other, "evidence is `val evidence: PartialFunction[F, String] = ...`")
+          // A machine that refines nothing names its unobservable timers among its header members;
+          // one that refines another names them in its refinement, beside what the refined sees.
+          case "unobservable" if sectionOf(c, "refinement").isEmpty => unobservable(b, d)
           // A refinement's members sit in its `refinement` section, the one place it is read.
           case n @ ("refines" | "visible" | "visibleOutcomes" | "unobservable" | "toProduct") =>
             fail(
@@ -393,19 +404,8 @@ private[irgen] trait Declarations:
             case "visibleOutcomes" =>
               visibleOutcomes += function(d, "visibleOutcomes")
               b
-            case "unobservable" =>
-              d match
-                case v: ValDef if v.rhs.nonEmpty =>
-                  val items = v.rhs.get match
-                    case Apply(
-                          TypeApply(Select(Ident("List" | "Seq" | "Vector"), "apply"), _),
-                          List(ts)
-                        ) =>
-                      varargs(ts)
-                    case other => fail(other, "unobservable lists its timers: `List(t, ...)`")
-                  b.addAllUnobservable(items.map(action))
-                case other => fail(other, "unobservable is `val unobservable = List(t, ...)`")
-            case _ => b
+            case "unobservable" => unobservable(b, d)
+            case _              => b
         }
       }
       val watched = sectionOf(c, "monitors").fold(refined) { section =>
@@ -424,7 +424,8 @@ private[irgen] trait Declarations:
       val rules = sectionOf(c, "rules").getOrElse(
         fail(c, s"$name declares no rules: a machine object declares `object rules extends Rules`")
       )
-      if !rules.symbol.typeRef.derivesFrom(rulesClass) then
+      val core = rules.symbol.typeRef.derivesFrom(bindingsClass)
+      if !core && !rules.symbol.typeRef.derivesFrom(rulesClass) then
         fail(
           rules,
           s"$name's rules is `object rules extends Rules`, which its rules are lifted from"
@@ -433,7 +434,15 @@ private[irgen] trait Declarations:
         d match
           case f: DefDef if makesSteps(f.returnTpt.tpe) => givesNoEmpty(f)
           case _                                        => ()
-      val folded = watched.addAllSteps(ruleSteps(name, typeRef(s, c), rules))
+      // The core, `Bindings(action ~> step, ...)`, binds each step function as written.
+      val steps =
+        if core then
+          parentArguments(rules).flatten
+            .filter(a => !isNamed(a.tpe, "umpire.Owner"))
+            .flatMap(varargs)
+            .map(stepBinding(_, name, "a core binding is `action ~> function`"))
+        else ruleSteps(name, typeRef(s, c), rules)
+      val folded = watched.addAllSteps(steps)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
       checkChannels(m, irTypeName(s.dealias.typeSymbol), c)
       m
