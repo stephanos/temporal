@@ -63,6 +63,11 @@ type LawCell struct {
 	Text     string
 }
 
+// cellOf is a rule as the law view reads it, with the capability fields that name its class.
+func cellOf(r Rule, fields []string) LawCell {
+	return LawCell{Class: r.Class, Fields: fields, Label: r.Label, Modality: r.Modality, Text: r.Text}
+}
+
 // compositionLaws is the law tables of the owners with no per-operation table, the compositions.
 // A file with no sidecar has none.
 func (m *Model) compositionLaws() []*LawTable {
@@ -154,7 +159,7 @@ func (v *view) lawTable(t *Table) *LawTable {
 		if !ok || slices.ContainsFunc(r.Pinned, func(p string) bool { return laws[p] }) {
 			continue
 		}
-		lt.Unpinned = append(lt.Unpinned, LawCell{Class: r.Class, Fields: fields, Label: r.Label, Modality: r.Modality, Text: r.Text})
+		lt.Unpinned = append(lt.Unpinned, cellOf(r, fields))
 	}
 	return lt
 }
@@ -179,7 +184,7 @@ func (v *view) pins(t *Table, c model.LawClaim, acting map[string][]string) []La
 			continue
 		}
 		if fields, ok := classes[r.Class]; ok {
-			out = append(out, LawCell{Class: r.Class, Fields: fields, Label: r.Label, Modality: r.Modality, Text: r.Text})
+			out = append(out, cellOf(r, fields))
 		}
 		if _, ok := byLabel[r.Label]; !ok {
 			labels = append(labels, r.Label)
@@ -310,7 +315,13 @@ func writeLaw(w io.Writer, lv LawView, table bool) error {
 		if c.Modality == "" {
 			return string(lv.Modality), ""
 		}
-		return string(lv.Modality), "cell: " + strings.TrimSpace(string(c.Modality)+" "+c.Text)
+		// On a cell the step function permits, a transition law forbids a shape of its results, not
+		// the class: unpausing a paused activity is a MAY whose results may not land in running.
+		modality := string(lv.Modality)
+		if lv.Modality == MustNot && c.Modality == May {
+			modality += " of its results"
+		}
+		return modality, "cell: " + strings.TrimSpace(string(c.Modality)+" "+c.Text)
 	})
 }
 

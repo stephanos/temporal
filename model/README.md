@@ -838,8 +838,9 @@ reported with the law, its capabilities and their bindings
 
 **The laws on the table.** `umpire-lint --tables` prints, after each machine's per-operation table,
 the laws it is held to: per law its claim, what it promises and does not promise, and the modality
-it pins (MUST NOT for a transition law, MUST for a same-step one, which a find asks on its path
-only) on the cells of its capabilities' actions, beside each cell's own modality; a law whose
+it pins (MUST NOT for a transition law, of its results where the cell is a MAY; MUST for a same-step
+one, which a find asks on its path only) on the cells of its capabilities' actions, beside each
+cell's own modality; a law whose
 capabilities name no action, Closable's, pins its cells on every class. A product law the protocol
 reads through its refinement is marked `inherited`, and `unchecked` where no Query over the
 protocol's own Scenarios asks it. Then come the cells of the capabilities' actions that no law pins,
@@ -853,7 +854,7 @@ laws model/ir/activity.json activityProduct
     does not promise: what a pause of held work does (…), what a second pause or an unpause of a live entity answers, …
     attemptStart (Pollable.dispatch)    paused  MUST NOT  cell: ? s.phase != scheduled
     control-pause (Pausable.pause)      paused  MUST NOT  cell: ? !pausable(s)
-    control-unpause (Pausable.unpause)  paused  MUST NOT  cell: MAY accepted -> scheduled [statusScheduled]
+    control-unpause (Pausable.unpause)  paused  MUST NOT of its results  cell: MAY accepted -> scheduled [statusScheduled]
   activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/Capabilities.scala:19
     …
     every class  completed, failed, canceled, terminated, timedOut  MUST NOT

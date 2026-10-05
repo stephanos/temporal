@@ -136,6 +136,7 @@ func TestLawTablesAreWritten(t *testing.T) {
 	require.Regexp(t, `\n  activityProduct\.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  model/temporal/features/standaloneactivity/Capabilities\.scala:\d+\n`, text)
 	require.Contains(t, text, "\n    promises: while an entity is paused no work is handed to a worker")
 	require.Regexp(t, `\n    attemptStart \(Pollable\.dispatch\) +paused +MUST NOT +cell: \? s\.phase != scheduled\n`, text)
+	require.Regexp(t, `\n    control-unpause \(Pausable\.unpause\) +paused +MUST NOT of its results +cell: MAY accepted -> scheduled`, text)
 	require.Regexp(t, `\n    every class +completed, failed, canceled, terminated, timedOut +MUST NOT\n`, text)
 	require.Contains(t, text, "\n  no law pins\n")
 	require.Contains(t, text, "inherited from activityProduct, unchecked")
