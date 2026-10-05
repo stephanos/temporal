@@ -59,7 +59,7 @@ func TestAdmitRecordsAClosedRunAndAdmitsIt(t *testing.T) {
 
 	profile, err := LoadProfile(canary.EvaluationProfile)
 	require.NoError(t, err)
-	decision := evaluation.Assess(subject, *profile)
+	decision := evaluation.Assess(subject, *profile, nil)
 	require.Equal(t, evaluation.DecisionAccepted, decision.Outcome)
 }
 
@@ -87,7 +87,7 @@ func TestTheRunOfThePriorPinnedCaseKeepsItsDecision(t *testing.T) {
 	require.Equal(t, fixture.Case, subject.CaseIdentity)
 	profile, err := LoadProfile(canary.EvaluationProfile)
 	require.NoError(t, err)
-	require.Equal(t, evaluation.DecisionAccepted, evaluation.Assess(subject, *profile).Outcome)
+	require.Equal(t, evaluation.DecisionAccepted, evaluation.Assess(subject, *profile, nil).Outcome)
 
 	_, err = admit(prior, &then, fixture.Driver, fixture.Run)
 	rejection, ok := evaluation.IsRejection(err)

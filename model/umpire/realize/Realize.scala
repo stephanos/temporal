@@ -589,7 +589,8 @@ object ProtoValue:
  * model assessment's conformance and the Property's outcome, the Contract's Verdict, how the Run
  * ends and how its cleanup ends. Each is declared, none defaulted, so a generated Case's check
  * compares what the Model says and infers nothing. An outcome short of satisfied names its `reason`,
- * the judge's own; a satisfied one names none.
+ * the judge's own; a satisfied one names none. Conformance short of conformant names its
+ * `conformanceReason` the same way, and conformant names none.
  */
 final case class RunExpectation(
     conformance: Conformance,
@@ -598,6 +599,7 @@ final case class RunExpectation(
     disposition: Disposition,
     cleanup: Cleanup,
     reason: Option[Reason] = None,
+    conformanceReason: Option[Reason] = None,
     monitors: Vector[MonitorExpectation] = Vector.empty
 )
 
@@ -616,11 +618,12 @@ enum Cleanup:
   case succeeded, failed, timedOut
 
 /**
- * Why the model assessment leaves an outcome short of satisfied, by the judge's id: no evidence of
- * the machine, a Run that did not close complete, a hole of the Model in reach, evidence no modeled
- * execution explains, explaining executions that disagree on the claim, one that never reaches the
- * claim's evaluation point, one the claim cannot be read on, or every one violating it. The judge
- * owns each reason's wording (tools/umpire/conformance/conclude.go).
+ * Why the model assessment leaves an outcome short of satisfied, or conformance short of
+ * conformant, by the judge's id: no evidence of the machine, a Run that did not close complete, a
+ * hole of the Model in reach, evidence no modeled execution explains, explaining executions that
+ * disagree on the claim, one that never reaches the claim's evaluation point, one the claim cannot
+ * be read on, or every one violating it. The judge owns each reason's wording
+ * (tools/umpire/conformance/conclude.go).
  */
 enum Reason:
   case noEvidence, incomplete, hole, unexplained, explanationsDisagree, neverEvaluated, unreadable,

@@ -10,10 +10,11 @@ import (
 
 // A baseline expected Run is read as its reader read it: an unwritten Contract is satisfied, a
 // violated one stops the Run and any other completes it, cleanup succeeds, and each prose reason is
-// the IR reason the delta lists for it. The manifest is rewritten line by line in GenerateCases's
-// layout.
+// the IR reason the delta lists for it, and a conformance short of conformant names the reason the
+// delta lists for its conformance. The manifest is rewritten line by line in GenerateCases's layout.
 func TestDeclaredRunsReadTheArchiveAsItsReaderDid(t *testing.T) {
-	runs := DeclaredRuns{Reasons: map[string]string{"they disagree": "REASON_EXPLANATIONS_DISAGREE", "all violate": "REASON_EVERY_EXPLANATION_VIOLATES"}}
+	runs := DeclaredRuns{Reasons: map[string]string{"they disagree": "REASON_EXPLANATIONS_DISAGREE", "all violate": "REASON_EVERY_EXPLANATION_VIOLATES"},
+		ConformanceReasons: map[string]string{"CONFORMANCE_INCONCLUSIVE": "REASON_INCOMPLETE"}}
 	archived := map[string][]byte{
 		OriginalIR + "m.json": []byte(`{"queries": [
 			{"name": "plain", "expectedRun": {"property": "OUTCOME_INCONCLUSIVE", "reason": "they disagree", "conformance": "CONFORMANCE_CONFORMANT",
@@ -65,8 +66,10 @@ func TestDeclaredRunsReadTheArchiveAsItsReaderDid(t *testing.T) {
 		umpirespb.RunExpectation_REASON_EXPLANATIONS_DISAGREE, umpirespb.RunExpectation_CONFORMANCE_CONFORMANT)
 	plain.Monitors = []*umpirespb.MonitorExpectation{{Name: "watch", Outcome: umpirespb.RunExpectation_OUTCOME_SATISFIED}}
 	require.Equal(t, plain.String(), m.GetQueries()[0].GetExpectedRun().String())
-	require.Equal(t, run(umpirespb.RunExpectation_OUTCOME_VIOLATED, umpirespb.RunExpectation_OUTCOME_VIOLATED, umpirespb.RunExpectation_DISPOSITION_STOPPED_BY_MONITOR,
-		umpirespb.RunExpectation_REASON_EVERY_EXPLANATION_VIOLATES, umpirespb.RunExpectation_CONFORMANCE_INCONCLUSIVE).String(), m.GetQueries()[1].GetExpectedRun().String())
+	forged := run(umpirespb.RunExpectation_OUTCOME_VIOLATED, umpirespb.RunExpectation_OUTCOME_VIOLATED, umpirespb.RunExpectation_DISPOSITION_STOPPED_BY_MONITOR,
+		umpirespb.RunExpectation_REASON_EVERY_EXPLANATION_VIOLATES, umpirespb.RunExpectation_CONFORMANCE_INCONCLUSIVE)
+	forged.ConformanceReason = umpirespb.RunExpectation_REASON_INCOMPLETE
+	require.Equal(t, forged.String(), m.GetQueries()[1].GetExpectedRun().String())
 	require.Nil(t, m.GetQueries()[2].GetExpectedRun())
 	// The manifest is rewritten in GenerateCases's layout, line by line.
 	manifest := string(declared[OriginalCases+"manifest.json"])
@@ -93,6 +96,7 @@ func TestDeclaredRunsReadTheArchiveAsItsReaderDid(t *testing.T) {
         "disposition": "stopped_by_monitor",
         "cleanup": "succeeded",
         "conformance": "inconclusive",
+        "conformanceReason": "incomplete",
         "properties": [
           {
             "id": "forged",
@@ -106,7 +110,7 @@ func TestDeclaredRunsReadTheArchiveAsItsReaderDid(t *testing.T) {
 }
 `, manifest)
 	require.Contains(t, manifest, "\"expected\": {\n        \"contract\": \"violated\",\n        \"disposition\": \"stopped_by_monitor\",\n"+
-		"        \"cleanup\": \"succeeded\",\n        \"conformance\": \"inconclusive\",")
+		"        \"cleanup\": \"succeeded\",\n        \"conformance\": \"inconclusive\",\n        \"conformanceReason\": \"incomplete\",\n        \"properties\"")
 	require.Equal(t, archived[OriginalCases+"m-plain-case.json"], declared[OriginalCases+"m-plain-case.json"], "a Case is no expected Run")
 
 	for name, test := range map[string]struct {
@@ -118,6 +122,12 @@ func TestDeclaredRunsReadTheArchiveAsItsReaderDid(t *testing.T) {
 		"a listed reason no Run writes": {runs, `{"queries": [{"expectedRun": {"property": "OUTCOME_INCONCLUSIVE", "reason": "they disagree"}}]}`},
 		"an archived Run that declares its disposition": {DeclaredRuns{Reasons: map[string]string{"they disagree": "REASON_EXPLANATIONS_DISAGREE"}},
 			`{"queries": [{"expectedRun": {"property": "OUTCOME_INCONCLUSIVE", "reason": "they disagree", "disposition": "DISPOSITION_COMPLETED"}}]}`},
+		"an unlisted conformance short of conformant": {DeclaredRuns{},
+			`{"queries": [{"expectedRun": {"property": "OUTCOME_SATISFIED", "conformance": "CONFORMANCE_NONCONFORMANT"}}]}`},
+		"a listed conformance no Run is of": {DeclaredRuns{ConformanceReasons: map[string]string{"CONFORMANCE_INCONCLUSIVE": "REASON_INCOMPLETE"}},
+			`{"queries": [{"expectedRun": {"property": "OUTCOME_SATISFIED", "conformance": "CONFORMANCE_CONFORMANT"}}]}`},
+		"an archived Run that declares its conformance reason": {DeclaredRuns{ConformanceReasons: map[string]string{"CONFORMANCE_INCONCLUSIVE": "REASON_INCOMPLETE"}},
+			`{"queries": [{"expectedRun": {"property": "OUTCOME_SATISFIED", "conformance": "CONFORMANCE_INCONCLUSIVE", "conformanceReason": "REASON_HOLE"}}]}`},
 	} {
 		t.Run(name, func(t *testing.T) {
 			_, err := test.runs.Declare(map[string][]byte{OriginalIR + "m.json": []byte(test.model)})
@@ -125,4 +135,6 @@ func TestDeclaredRunsReadTheArchiveAsItsReaderDid(t *testing.T) {
 		})
 	}
 	require.Error(t, DeclaredRuns{Reasons: map[string]string{"prose": "REASON_SOMETHING"}}.check(), "a reason the IR does not have")
+	require.Error(t, DeclaredRuns{ConformanceReasons: map[string]string{"CONFORMANCE_CONFORMANT": "REASON_HOLE"}}.check(), "a conformant conformance names no reason")
+	require.Error(t, DeclaredRuns{ConformanceReasons: map[string]string{"CONFORMANCE_INCONCLUSIVE": "REASON_SOMETHING"}}.check(), "a reason the IR does not have")
 }

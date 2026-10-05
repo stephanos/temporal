@@ -235,7 +235,7 @@ func decide(canary *policy.Policy, profile *evaluation.Profile, scope *preflight
 	if err != nil {
 		return Outcome{Status: StatusUnconstructible, Err: err}
 	}
-	decision := evaluation.Assess(subject, *profile)
+	decision := evaluation.Assess(subject, *profile, nil)
 	receipt, err := evaluation.Render(subject, *profile, decision)
 	if err != nil {
 		return Outcome{Status: StatusUnconstructible, Err: err}

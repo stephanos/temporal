@@ -76,6 +76,22 @@ func TestManifestRejectsInvalidMetadata(t *testing.T) {
 		"an unknown reason": expecting(func(e *ExpectedRun) {
 			e.Properties[0].Status, e.Properties[0].Reason = "inconclusive", "Explanations Disagree"
 		}),
+		// Conformance short of conformant names the judge's reason, spelled as a claim's is.
+		"conformant with a conformance reason": expecting(func(e *ExpectedRun) {
+			e.Conformance, e.ConformanceReason = "conformant", "hole"
+		}),
+		"an unknown conformance reason": expecting(func(e *ExpectedRun) {
+			e.Conformance, e.ConformanceReason = "inconclusive", "half-closed"
+		}),
+		"a mixed-case conformance reason": expecting(func(e *ExpectedRun) {
+			e.Conformance, e.ConformanceReason = "inconclusive", "Incomplete"
+		}),
+		"inconclusive conformance without a reason": expecting(func(e *ExpectedRun) {
+			e.Conformance, e.ConformanceReason = "inconclusive", ""
+		}),
+		"nonconformant without a reason": expecting(func(e *ExpectedRun) {
+			e.Conformance, e.ConformanceReason = "nonconformant", ""
+		}),
 	} {
 		t.Run(name, func(t *testing.T) {
 			m, err := DecodeManifest(encoded)
@@ -91,6 +107,14 @@ func TestManifestRejectsInvalidMetadata(t *testing.T) {
 		_, err := DecodeManifest(invalid)
 		require.Error(t, err)
 	}
+	// A conformance reason on conformance short of conformant is read back as declared.
+	m, err := DecodeManifest(encoded)
+	require.NoError(t, err)
+	expecting(func(e *ExpectedRun) { e.Conformance, e.ConformanceReason = "inconclusive", "incomplete" })(m)
+	valid, err := json.Marshal(m)
+	require.NoError(t, err)
+	_, err = DecodeManifest(valid)
+	require.NoError(t, err)
 }
 
 // expecting changes the first lowered Query's expected Run.
@@ -122,10 +146,48 @@ func TestGeneratingRefusesAnExpectationTheJudgeCannotConclude(t *testing.T) {
 		query.GetPosition().GetFile(), query.GetPosition().GetLine()))
 }
 
+// A Query's declared conformance reason reaches its manifest entry as ExpectationID spells it, and
+// generating refuses an expectation short of conformant that declares none.
+func TestGeneratingCarriesADeclaredConformanceReason(t *testing.T) {
+	m := loaded(t, "nexus-control")
+	p, err := NewProducer(m)
+	require.NoError(t, err)
+	at := slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "forgedCompletion" })
+	require.GreaterOrEqual(t, at, 0)
+	query := m.GetQueries()[at]
+	entry, _, err := generateCase(p, "nexus-control.json", query)
+	require.NoError(t, err)
+	require.Equal(t, "incomplete", entry.Expected.ConformanceReason)
+	query.GetExpectedRun().ConformanceReason = umpirespb.RunExpectation_REASON_UNSPECIFIED
+	_, _, err = generateCase(p, "nexus-control.json", query)
+	require.ErrorContains(t, err, "invalid expected conformance reason")
+}
+
+// The conformance reason is held to the Assessment's by equality: a conformant expectation names
+// none, and an Assessment that gives one differs from it.
+func TestExpectedRunChecksADeclaredConformanceReason(t *testing.T) {
+	expected := &ExpectedRun{Contract: "satisfied", Disposition: "completed", Cleanup: "succeeded", Conformance: "inconclusive",
+		ConformanceReason: "incomplete", Properties: []ExpectedClaim{{ID: "settles", Status: "satisfied"}}}
+	run := &testpilotspb.Run{Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED,
+		Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}}
+	verdict := &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_SATISFIED}
+	assessed := func(reason string) *runtime.Assessment {
+		return &runtime.Assessment{Conformance: runtime.ConformanceAssessment{Status: runtime.ConformanceInconclusive, Reason: reason, Detail: "the prose"},
+			Properties: []runtime.PropertyAssessment{{ID: "settles", Status: runtime.PropertySatisfied}}}
+	}
+	require.NoError(t, expected.Check(run, verdict, assessed("incomplete")))
+	require.EqualError(t, expected.Check(run, verdict, assessed("hole")), "the conformance reason is hole, expected incomplete: the prose")
+	expected.Conformance, expected.ConformanceReason = "conformant", ""
+	conformant := assessed("")
+	conformant.Conformance.Status = runtime.ConformanceConformant
+	require.NoError(t, expected.Check(run, verdict, conformant))
+	require.ErrorContains(t, expected.Check(run, verdict, assessed("hole")), "the conformance reason is hole, expected none: the prose")
+}
+
 // Check holds a Run, its Verdict and its Assessment to the expectation by equality, and names each
 // thing that differs; prose is never compared.
 func TestExpectedRunChecksEachDeclaredValueByEquality(t *testing.T) {
-	expected := &ExpectedRun{Contract: "violated", Disposition: "stopped_by_monitor", Cleanup: "succeeded", Conformance: "inconclusive",
+	expected := &ExpectedRun{Contract: "violated", Disposition: "stopped_by_monitor", Cleanup: "succeeded", Conformance: "inconclusive", ConformanceReason: "incomplete",
 		Properties: []ExpectedClaim{{ID: "forgedSuccess", Status: "violated", Reason: "every_explanation_violates"}, {ID: "watch", Status: "satisfied"}}}
 	run := func() *testpilotspb.Run {
 		return &testpilotspb.Run{Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
@@ -165,12 +227,21 @@ func TestExpectedRunChecksEachDeclaredValueByEquality(t *testing.T) {
 		"conformance": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
 			a.Conformance.Status = runtime.ConformanceConformant
 		}, "the conformance is conformant, expected inconclusive"},
+		"conformance reason": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Conformance.Reason = "hole"
+		}, "the conformance reason is hole, expected incomplete: any prose"},
 		"status": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
 			a.Properties[1].Status = runtime.PropertyInconclusive
 		}, "forgedSuccess's status is inconclusive, expected violated: other prose"},
 		"reason": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
 			a.Properties[1].Reason = "explanations_disagree"
 		}, "forgedSuccess's reason is explanations_disagree, expected every_explanation_violates"},
+		"a reason where none is expected": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Properties[0].Status, a.Properties[0].Reason = runtime.PropertyInconclusive, "never_evaluated"
+		}, "watch's reason is never_evaluated, expected none"},
+		"no reason where one is expected": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Properties[1].Reason = ""
+		}, "forgedSuccess's reason is none, expected every_explanation_violates"},
 		"omitted claim": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
 			a.Properties = a.Properties[1:]
 		}, "the assessment omits watch"},
@@ -310,4 +381,37 @@ func manifestStanding(manifest *Manifest, query Selected) Standing {
 		}
 	}
 	return ""
+}
+
+// A generated Case is found by its fingerprint whatever its bytes' form, among the lowered Cases of
+// the manifest beside it; a Case none of them is, a hand-written one or one regenerated since, is
+// ErrNotGenerated.
+func TestFindGeneratedCaseFindsALoweredCaseByItsFingerprint(t *testing.T) {
+	directory := filepath.Join("..", "..", "..", "model", "cases")
+	read := func(path string) *testpilotspb.Case {
+		encoded, err := os.ReadFile(path)
+		require.NoError(t, err)
+		source, err := runtime.DecodeCaseProtoJSON(encoded)
+		require.NoError(t, err)
+		return source
+	}
+	source := read(filepath.Join(directory, "nexus-control-forgedCompletion-case.json"))
+	entry, err := FindGeneratedCase(directory, source)
+	require.NoError(t, err)
+	require.Equal(t, "nexus-control.json", entry.Model)
+	require.Equal(t, "forgedCompletion", entry.Query.Name)
+	require.Equal(t, "nexus-control-forgedCompletion-case.json", entry.File)
+	require.Equal(t, "inconclusive", entry.Expected.Conformance)
+
+	regenerated := read(filepath.Join(directory, "nexus-control-forgedCompletion-case.json"))
+	regenerated.Provenance.ProducerVersion += "+1"
+	for name, other := range map[string]*testpilotspb.Case{
+		"a hand-written Case":      read(filepath.Join("..", "..", "..", "tests", "testcore", "testpilot", "testdata", "nexusPairTests-bothComplete-case.json")),
+		"a Case regenerated since": regenerated,
+	} {
+		_, err := FindGeneratedCase(directory, other)
+		require.ErrorIs(t, err, ErrNotGenerated, name)
+	}
+	_, err = FindGeneratedCase(t.TempDir(), source)
+	require.ErrorIs(t, err, os.ErrNotExist)
 }

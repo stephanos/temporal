@@ -163,7 +163,8 @@ val forgedCompletion = (query find forgedSuccess in inspectedFailure limits cont
       contract = PropertyOutcome.violated,
       disposition = Disposition.stoppedByMonitor,
       cleanup = Cleanup.succeeded,
-      reason = Some(Reason.everyExplanationViolates)
+      reason = Some(Reason.everyExplanationViolates),
+      conformanceReason = Some(Reason.incomplete)
     )
   )
   .explore(

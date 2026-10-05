@@ -252,6 +252,17 @@ func (b *Bound) Run(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdi
 	return b.prepared.Run(ctx, b.driver)
 }
 
+// RunAssessed is Run with factory's assessment beside the Contract, as testpilot.AssessedCase runs
+// it: the Run and the Verdict are what Run would give, and the Assessment is the factory's. A factory
+// bound to another Case fails before the Driver is opened.
+func (b *Bound) RunAssessed(ctx context.Context, factory testpilot.AssessmentFactory) (*testpilotspb.Run, *testpilotspb.Verdict, *testpilot.Assessment, error) {
+	assessed, err := b.prepared.WithAssessment(factory)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return assessed.Run(ctx, b.driver)
+}
+
 // Release is best-effort teardown of the Driver and the SDK client, run whatever the Run did. It
 // names every resource it could not remove.
 func (b *Bound) Release(ctx context.Context) error {

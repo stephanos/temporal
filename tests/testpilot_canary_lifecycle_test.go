@@ -110,7 +110,7 @@ func TestTestpilotCanaryLifecycle(t *testing.T) {
 			if err != nil {
 				return controller.Outcome{Status: controller.StatusUnconstructible, Err: err}
 			}
-			decision := evaluation.Assess(subject, *profile)
+			decision := evaluation.Assess(subject, *profile, nil)
 			return controller.Outcome{Status: decision.Outcome}
 		},
 		Recovery: store, Progress: &progress, Started: time.Now(),

@@ -7,11 +7,13 @@ import (
 	"fmt"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 )
 
-// ReceiptFormatVersion is the receipt format this package writes and reads.
-const ReceiptFormatVersion = 1
+// ReceiptFormatVersion is the receipt format this package writes and reads. Version 2 lists the
+// reasons by their fixed ids and records a Model assessment the decision was made with.
+const ReceiptFormatVersion = 2
 
 // Receipt is one Evaluation Receipt: one Profile's decision on one closed Run of one Case, with
 // everything the decision was read from, in a fixed key order. It carries identities, IDs, statuses
@@ -23,9 +25,11 @@ type Receipt struct {
 	Case    ReceiptCase    `json:"case"`
 	Run     ReceiptRun     `json:"run"`
 	Verdict ReceiptVerdict `json:"verdict"`
+	// Assessment is the Model assessment the decision was made with, absent when none was.
+	Assessment *ReceiptAssessment `json:"assessment,omitempty"`
 	// Decision is accepted, rejected or incomplete.
 	Decision string `json:"decision"`
-	// Reasons are the Profile's rows that hold, in the table's order.
+	// Reasons are the reasons that hold, in Assess's fixed order.
 	Reasons []Reason `json:"reasons"`
 	// UnsupportedRules are the rules the Verdict names at a terminal state with no supporting event.
 	UnsupportedRules []string          `json:"unsupportedRules"`
@@ -72,6 +76,38 @@ type ReceiptRule struct {
 	Status                   string  `json:"status"`
 	TerminalState            string  `json:"terminalState"`
 	SupportingEventSequences []int64 `json:"supportingEventSequences"`
+}
+
+// ReceiptAssessment is a Model assessment as a receipt records it: the identities of the Model and
+// the Query it was made under, the conformance and each property by status, reason id and
+// supporting sequences, and its failure by code. It carries no prose.
+type ReceiptAssessment struct {
+	Model       string                    `json:"model"`
+	Query       string                    `json:"query"`
+	Conformance ReceiptConclusion         `json:"conformance"`
+	Properties  []ReceiptProperty         `json:"properties"`
+	Failure     *ReceiptAssessmentFailure `json:"failure,omitempty"`
+}
+
+// ReceiptConclusion is one conclusion of a Model assessment: its status, its reason id ("" when it
+// gives none) and the Run Events that decided it.
+type ReceiptConclusion struct {
+	Status                   string  `json:"status"`
+	Reason                   string  `json:"reason"`
+	SupportingEventSequences []int64 `json:"supportingEventSequences"`
+}
+
+// ReceiptProperty is one property's conclusion.
+type ReceiptProperty struct {
+	ID string `json:"id"`
+	ReceiptConclusion
+}
+
+// ReceiptAssessmentFailure is why a Model assessment did not conclude: its code and the Run Event it
+// failed on, or zero.
+type ReceiptAssessmentFailure struct {
+	Code          string `json:"code"`
+	EventSequence int64  `json:"eventSequence"`
 }
 
 // ReceiptKnownGap is one of the Case's Known Gaps, by kind and code.
@@ -142,6 +178,9 @@ func Render(subject *Subject, profile Profile, decision Decision) ([]byte, error
 	for _, gap := range decision.KnownGaps {
 		receipt.KnownGaps = append(receipt.KnownGaps, ReceiptKnownGap(gap))
 	}
+	if assessment := decision.Assessment; assessment != nil {
+		receipt.Assessment = receiptAssessment(assessment)
+	}
 	rendered, err := renderReceipt(&receipt)
 	if err != nil {
 		return nil, err
@@ -150,6 +189,28 @@ func Render(subject *Subject, profile Profile, decision Decision) ([]byte, error
 		return nil, err
 	}
 	return rendered, nil
+}
+
+func receiptAssessment(assessment *testpilot.Assessment) *ReceiptAssessment {
+	conclusion := func(status, reason string, sequences []int64) ReceiptConclusion {
+		return ReceiptConclusion{Status: status, Reason: reason, SupportingEventSequences: append([]int64{}, sequences...)}
+	}
+	recorded := &ReceiptAssessment{
+		Model: assessment.Model,
+		Query: assessment.Query,
+		Conformance: conclusion(string(assessment.Conformance.Status), assessment.Conformance.Reason,
+			assessment.Conformance.SupportingEventSequences),
+		Properties: []ReceiptProperty{},
+	}
+	for _, property := range assessment.Properties {
+		recorded.Properties = append(recorded.Properties, ReceiptProperty{
+			ID: property.ID, ReceiptConclusion: conclusion(string(property.Status), property.Reason, property.SupportingEventSequences),
+		})
+	}
+	if failure := assessment.Failure; failure != nil {
+		recorded.Failure = &ReceiptAssessmentFailure{Code: string(failure.Code), EventSequence: failure.EventSequence}
+	}
+	return recorded
 }
 
 func renderReceipt(receipt *Receipt) ([]byte, error) {
@@ -201,6 +262,16 @@ func hasNullList(receipt *Receipt) bool {
 	for _, rule := range receipt.Verdict.Rules {
 		if rule.SupportingEventSequences == nil {
 			return true
+		}
+	}
+	if assessment := receipt.Assessment; assessment != nil {
+		if assessment.Properties == nil || assessment.Conformance.SupportingEventSequences == nil {
+			return true
+		}
+		for _, property := range assessment.Properties {
+			if property.SupportingEventSequences == nil {
+				return true
+			}
 		}
 	}
 	return false

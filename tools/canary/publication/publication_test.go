@@ -38,7 +38,7 @@ func item(t *testing.T, iteration int, runID string, fenced []string, edit func(
 	}
 	profile, err := assessment.LoadProfile(canary.EvaluationProfile)
 	require.NoError(t, err)
-	decision := evaluation.Assess(subject, *profile)
+	decision := evaluation.Assess(subject, *profile, nil)
 	receipt, err := evaluation.Render(subject, *profile, decision)
 	require.NoError(t, err)
 	provenance, err := assessment.RenderProvenance(&assessment.Provenance{

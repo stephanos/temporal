@@ -49,8 +49,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// Limits are the ceilings one assessment runs within. Each must be set: there is no default a result
-// could silently depend on.
+// Limits are the ceilings one assessment runs within. Each must be set: an unset one is no default a
+// result could silently depend on, and a caller that wants the shared ceilings names DefaultLimits.
 type Limits struct {
 	// MaxEvents, MaxProperties and MaxDuration are Testpilot's own ceilings on an assessment.
 	MaxEvents     int64
@@ -63,6 +63,13 @@ type Limits struct {
 	// MaxReadings is the most readings of a claim's function on a step or a monitor state that
 	// preparing the factory makes: every claim is read on every step once, before any Run.
 	MaxReadings int
+}
+
+// DefaultLimits are the ceilings a generated Case is assessed under wherever it runs: the live tests,
+// umpire-run and umpire-assess. Sharing them keeps the binding's Query identity, which covers the
+// candidate and work ceilings, the same for a live Run and an offline assessment of its record.
+func DefaultLimits() Limits {
+	return Limits{MaxEvents: 2048, MaxProperties: 16, MaxDuration: time.Minute, MaxCandidates: 1 << 16, MaxWork: 1 << 22, MaxReadings: 1 << 22}
 }
 
 const (

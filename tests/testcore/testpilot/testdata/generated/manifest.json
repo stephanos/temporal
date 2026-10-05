@@ -175,6 +175,7 @@
         "disposition": "stopped_by_monitor",
         "cleanup": "succeeded",
         "conformance": "inconclusive",
+        "conformanceReason": "incomplete",
         "properties": [
           {
             "id": "forgedSuccess",

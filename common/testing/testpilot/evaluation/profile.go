@@ -20,15 +20,8 @@ import (
 //go:embed profiles/*.json
 var embeddedProfiles embed.FS
 
-// The closed vocabularies a Profile is written in, as Umpire.Evaluation spells them.
-var (
-	conditions = []string{
-		"verdict-violated", "verdict-inconclusive", "disposition-stopped", "disposition-incomplete",
-		"cleanup-unclosed", "known-gap-blocking", "unsupported-rule",
-	}
-	forcedDecisions = []string{DecisionRejected, DecisionIncomplete}
-	knownGapKinds   = []string{"capability", "input", "interpretation", "claim"}
-)
+// The Known Gap kinds a Profile may name as blocking, in the order a rendering lists them.
+var knownGapKinds = []string{"capability", "input", "interpretation", "claim"}
 
 // The decisions an assessment reaches. A reason forces rejected or incomplete; accepted is what
 // remains when no reason holds.
@@ -41,25 +34,23 @@ const (
 // ErrUnknownProfile says a name is not one of the embedded Profiles.
 var ErrUnknownProfile = errors.New("no such Evaluation Profile")
 
-// profileFormatVersion is the rendered Profile format this reader knows.
-const profileFormatVersion = 1
+// profileFormatVersion is the rendered Profile format this reader knows. Version 1 carried a reason
+// table; the reasons are now Assess's own, and a Profile states only its policy.
+const profileFormatVersion = 2
 
-// Reason is one row of a Profile's reason table: its name, the condition it tests and the decision
-// it forces.
-type Reason struct {
-	Name      string `json:"name"`
-	Condition string `json:"condition"`
-	Decision  string `json:"decision"`
-}
-
-// Profile is one loaded, validated Evaluation Profile.
+// Profile is one loaded, validated Evaluation Profile: the policy one deployment's claim is decided
+// under. What decides is Assess's fixed precedence; a Profile names the claim and the trust it
+// asserts, which Known Gap kinds keep a subject from being accepted, and what an unsupported rule
+// forces.
 type Profile struct {
 	Version           int      `json:"version"`
 	Name              string   `json:"name"`
 	Claim             string   `json:"claim"`
 	Trust             string   `json:"trust"`
 	BlockingKnownGaps []string `json:"blockingKnownGaps"`
-	Reasons           []Reason `json:"reasons"`
+	// UnsupportedRule is the decision a rule concluded at a terminal state with no supporting event
+	// forces: rejected or incomplete.
+	UnsupportedRule string `json:"unsupportedRule"`
 	// Identity is `sha256:` and the hex SHA-256 of the Profile's canonical bytes.
 	Identity string `json:"-"`
 }
@@ -98,8 +89,8 @@ func LoadProfileIn(profiles fs.FS, name string) (*Profile, error) {
 	return profile, nil
 }
 
-// ParseProfile decodes a rendered Profile strictly and validates it as Lean checks a declaration,
-// so an assessment only ever receives a valid Profile. Strict means the bytes are exactly the
+// ParseProfile decodes a rendered Profile strictly and validates it, so an assessment only ever
+// receives a valid Profile. Strict means the bytes are exactly the
 // canonical rendering of what they decode to: an unknown, repeated or case-folded key, other
 // spacing or another field order is refused.
 func ParseProfile(encoded []byte) (*Profile, error) {
@@ -124,8 +115,8 @@ func ParseProfile(encoded []byte) (*Profile, error) {
 	return &profile, nil
 }
 
-// renderProfile is the canonical rendering Lean's Profile.render produces: compact, the fields in
-// declaration order, no HTML escaping, one trailing newline.
+// renderProfile is a Profile's canonical rendering: compact, the fields in declaration order, no
+// HTML escaping, one trailing newline.
 func renderProfile(profile *Profile) ([]byte, error) {
 	normalized := *profile
 	if normalized.BlockingKnownGaps == nil {
@@ -159,8 +150,9 @@ func firstRepeated(values []string) string {
 	return ""
 }
 
-// validateProfile holds a Profile to what Umpire.Evaluation's Profile.declare checks, plus the
-// closed vocabularies and the fixed kind order a rendering carries.
+// validateProfile holds a Profile to its format: this version, a name, a claim, a trust basis,
+// blocking Known Gap kinds from the closed set, each once and in the kind order, and a decision for
+// an unsupported rule.
 func validateProfile(profile *Profile) error {
 	if profile.Version != profileFormatVersion {
 		return fmt.Errorf("Profile format version %d, not %d", profile.Version, profileFormatVersion)
@@ -173,29 +165,6 @@ func validateProfile(profile *Profile) error {
 	}
 	if profile.Trust == "" {
 		return errors.New("the Profile states no trust basis")
-	}
-	if len(profile.Reasons) == 0 {
-		return errors.New("the Profile's reason table is empty")
-	}
-	var names, named []string
-	for _, reason := range profile.Reasons {
-		if reason.Name == "" {
-			return errors.New("a reason has an empty name")
-		}
-		if !slices.Contains(conditions, reason.Condition) {
-			return fmt.Errorf("reason %q names unknown condition %q", reason.Name, reason.Condition)
-		}
-		if !slices.Contains(forcedDecisions, reason.Decision) {
-			return fmt.Errorf("reason %q forces unknown decision %q", reason.Name, reason.Decision)
-		}
-		names = append(names, reason.Name)
-		named = append(named, reason.Condition)
-	}
-	if repeated := firstRepeated(names); repeated != "" {
-		return fmt.Errorf("reason %q is declared twice", repeated)
-	}
-	if repeated := firstRepeated(named); repeated != "" {
-		return fmt.Errorf("condition %q is named by two reasons", repeated)
 	}
 	ranks := make([]int, 0, len(profile.BlockingKnownGaps))
 	for _, kind := range profile.BlockingKnownGaps {
@@ -211,12 +180,8 @@ func validateProfile(profile *Profile) error {
 	if !slices.IsSorted(ranks) {
 		return errors.New("the blocking Known Gap kinds are not in the kind order")
 	}
-	blocking := slices.Contains(named, "known-gap-blocking")
-	if blocking && len(profile.BlockingKnownGaps) == 0 {
-		return errors.New("a 'known-gap-blocking' reason is declared with no blocking kind")
-	}
-	if !blocking && len(profile.BlockingKnownGaps) > 0 {
-		return errors.New("blocking Known Gap kinds are declared with no 'known-gap-blocking' reason")
+	if profile.UnsupportedRule != DecisionRejected && profile.UnsupportedRule != DecisionIncomplete {
+		return fmt.Errorf("an unsupported rule forces unknown decision %q", profile.UnsupportedRule)
 	}
 	return nil
 }

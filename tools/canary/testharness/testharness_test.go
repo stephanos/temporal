@@ -18,7 +18,7 @@ import (
 
 // canaryHarnessIdentity is the canary harness identity this test pins; changing it is a deliberate
 // profile change.
-const canaryHarnessIdentity = "sha256:cfb6675934e5c89b50748e5d6b37c17fa7608a6bc63b1ca9108b710a654fc860"
+const canaryHarnessIdentity = "sha256:a5367ed73f1881720a33d94f3637d65c4de1d0707853baaf50bfcdef8b7ec516"
 
 func environment(values map[string]string) authority.Lookup {
 	return func(key string) (string, bool) {
@@ -51,7 +51,7 @@ func TestLoadPolicyReadsAHarnessPolicy(t *testing.T) {
 	require.Equal(t, ProfileName, canary.EvaluationProfile)
 	require.Equal(t, ProfileName, profile.Name)
 	require.Equal(t, "test-cluster-harness", profile.Trust)
-	require.Equal(t, canaryHarnessIdentity, profile.Identity, "Go reads the bytes Lean pins")
+	require.Equal(t, canaryHarnessIdentity, profile.Identity, "Go reads the pinned bytes")
 }
 
 // A harness policy that names production's Evaluation Profile or authority class, or is missing

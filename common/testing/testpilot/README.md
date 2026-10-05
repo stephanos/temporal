@@ -487,6 +487,54 @@ Its exit codes separate the answer from the infrastructure: `0` satisfied, `1` v
 inconclusive, `3` preparation, infrastructure, or Run error. That is why a CI caller can tell an
 unreachable server from a Run that really was inconclusive.
 
+With `--model <dir>` (the `model/` directory) it also runs the Model's assessment beside the
+Contract, as the live tests do. It finds the Case among the lowered Cases of `<dir>/cases` by
+`CaseFingerprint`, loads its Query's Model from `<dir>/ir`, and prepares the assessment with
+`conformance.Prepare` under `conformance.DefaultLimits()`, the ceilings the live tests use. All of
+this happens before anything is opened, so a Case the Model does not lower exits `3` with no Run.
+After the Run's lines the report adds `conformance <status> [<reason>]` and one `property <id>
+<status> [<reason>]` line per property, each by its reason id and never its prose. A failed
+assessment adds `assessment failed <code> at event <n>`. Then comes `expected match`, or one
+`expected differs: …` line per difference from the Query's expected Run (`lower.ExpectedRun.Check`,
+the live tests' comparison).
+
+The exit code is then the worse of the Verdict and the assessment:
+
+- `1` when either found a violation: a violated Verdict, a nonconformant Run, or a violated
+  property. This includes a violation the assessment established before it failed.
+- Otherwise `3` when the assessment failed.
+- Otherwise `2` when the Verdict, the conformance or any property is inconclusive.
+- Otherwise `0`.
+
+Whether the Run matches its expectation is reported, never folded into the exit code. A Query
+that expects an inconclusive property exits `2` and reports `expected match`. Without `--model`,
+the output and exit codes are as above.
+
+`tools/umpire/cmd/umpire-assess` is the offline judge of a recorded Run. It decides the recorded
+Verdict under an Evaluation Profile and publishes a canonical receipt. With `--model <dir>` it
+finds the Case in the same way and prepares it offline. Offline means under the Profile name the
+Run was recorded with, every setting the Program requires, and delivery control, since nothing is
+driven. It then replays the recorded events through `AssessedCase.Evaluate`, which is what the
+live test does with its Run, so the Assessment is the one the live test produced. A recorded Run
+that does not read back to its recorded Verdict is refused. The Assessment decides beside the
+Verdict, and the receipt records it (`assessment`: the Model and Query identities, the
+conformance and each property by status, reason id and supporting sequences, and the failure by
+code).
+
+A Profile states only the policy that differs between deployments: its claim, the trust it
+asserts, which Known Gap kinds block, and whether an unsupported rule rejects or leaves the
+subject incomplete. `evaluation.Assess` decides by one fixed precedence:
+
+1. **Rejected** for a violated Verdict (as `ConcludeVerdict` concludes it), a nonconformant Run,
+   a violated property, or an unsupported rule under a Profile that rejects one.
+2. **Incomplete** for an inconclusive Verdict, a cleanup that did not succeed, a blocking Known
+   Gap, an unsupported rule, or an assessment that failed or left anything inconclusive.
+3. **Accepted** otherwise.
+
+The receipt lists every reason that holds by its fixed id. A Run stopped by its Monitor is its
+violated Verdict, and a Run that did not close complete its inconclusive one; neither is a reason
+of its own.
+
 With `--create` it provisions the resources it names and deletes them on exit; without it they must
 already exist and none is ever deleted. Only Cases whose Profile `DeriveProfile` derives are
 runnable; a typed fixture rejects with its admission category on stderr. It links the Driver and the

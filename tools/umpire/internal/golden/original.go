@@ -121,7 +121,8 @@ type Delta struct {
 	// compared, and so does every other byte of the Case.
 	DeclaredMembers []string `json:"declared_case_members"`
 	// DeclaredRuns are the reasons the baseline's expected Runs wrote as prose, since fn-124.5 an id
-	// of the IR, by which the archive is read with every expected Run declared (expectations.go).
+	// of the IR, and since fn-124.6 the reason each conformance short of conformant is declared with,
+	// by which the archive is read with every expected Run declared (expectations.go).
 	DeclaredRuns DeclaredRuns `json:"declared_run_expectations"`
 }
 

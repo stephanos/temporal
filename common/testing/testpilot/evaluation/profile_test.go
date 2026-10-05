@@ -11,7 +11,7 @@ import (
 // localEphemeralIdentity is the identity the embedded Profile was rendered under. No live target
 // renders the file any more, so this pin is what keeps the Go reading of the checked-in bytes equal
 // to that identity.
-const localEphemeralIdentity = "sha256:2803afa29ed404cf0a774ead9c0672de29a6d38f27fe54fd42014f0b2f78174c"
+const localEphemeralIdentity = "sha256:05b2152d5129ccb4e8fe9fd6625b423ddfcf0264cafbcfeff9910cf2819c7d5a"
 
 func readTestProfile(t *testing.T, name string) []byte {
 	t.Helper()
@@ -26,15 +26,7 @@ func TestLoadProfileSelectsAnEmbeddedProfileByItsExactName(t *testing.T) {
 	require.Equal(t, localEphemeralIdentity, profile.Identity)
 	require.Equal(t, "local-ephemeral-cluster", profile.Trust)
 	require.Equal(t, []string{"capability", "interpretation"}, profile.BlockingKnownGaps)
-	var table []string
-	for _, reason := range profile.Reasons {
-		table = append(table, reason.Condition+"="+reason.Decision)
-	}
-	require.Equal(t, []string{
-		"verdict-violated=rejected", "disposition-stopped=rejected", "verdict-inconclusive=incomplete",
-		"disposition-incomplete=incomplete", "cleanup-unclosed=incomplete", "known-gap-blocking=incomplete",
-		"unsupported-rule=incomplete",
-	}, table)
+	require.Equal(t, DecisionIncomplete, profile.UnsupportedRule)
 
 	for _, name := range []string{"", "local", "Local-Ephemeral", "local-ephemeral.json", "profiles/local-ephemeral", "../evaluation/profiles/local-ephemeral", "local-strict"} {
 		_, err := LoadProfile(name)
@@ -51,9 +43,10 @@ func TestTheTestOnlyProfileIsAnotherProfile(t *testing.T) {
 	require.NotEqual(t, localEphemeralIdentity, strict.Identity)
 }
 
-// Every load rejection Lean's declaration check makes, plus the closed vocabularies and the
-// canonical form a rendering carries.
-func TestParseProfileRejectsWhatLeanWouldNotDeclare(t *testing.T) {
+// Every load rejection: the format version, the name, the claim and trust, the closed Known Gap
+// kinds in their order, the unsupported-rule decision, and the canonical form a rendering carries.
+// A version 1 Profile, which carried a reason table, is another format.
+func TestParseProfileRejectsAnInvalidProfile(t *testing.T) {
 	embedded, err := embeddedProfiles.ReadFile("profiles/local-ephemeral.json")
 	require.NoError(t, err)
 	valid := string(embedded)
@@ -63,39 +56,43 @@ func TestParseProfileRejectsWhatLeanWouldNotDeclare(t *testing.T) {
 		require.Contains(t, valid, old)
 		return []byte(strings.Replace(valid, old, replacement, 1))
 	}
-	gapReason := `,{"name":"known-gap-blocking","condition":"known-gap-blocking","decision":"incomplete"}`
 	for name, probe := range map[string]struct {
 		encoded []byte
 		detail  string
 	}{
-		"unknown condition":         {mutate(`"condition":"cleanup-unclosed"`, `"condition":"cleanup-leaked"`), `unknown condition "cleanup-leaked"`},
-		"unknown decision":          {mutate(`"decision":"rejected"`, `"decision":"accepted"`), `unknown decision "accepted"`},
-		"unknown Known Gap kind":    {mutate(`["capability","interpretation"]`, `["capability","vibes"]`), `unknown Known Gap kind "vibes"`},
-		"an empty table":            {[]byte(`{"version":1,"name":"x","claim":"c","trust":"t","blockingKnownGaps":[],"reasons":[]}` + "\n"), "reason table is empty"},
-		"an empty reason name":      {mutate(`"name":"verdict-violated"`, `"name":""`), "empty name"},
-		"a duplicate reason":        {mutate(`"name":"monitor-stopped"`, `"name":"verdict-violated"`), `reason "verdict-violated" is declared twice`},
-		"a repeated condition":      {mutate(`"condition":"disposition-stopped"`, `"condition":"verdict-violated"`), `condition "verdict-violated" is named by two reasons`},
-		"a duplicate blocking kind": {mutate(`["capability","interpretation"]`, `["capability","capability"]`), `kind "capability" is named twice`},
-		"kinds out of order":        {mutate(`["capability","interpretation"]`, `["interpretation","capability"]`), "not in the kind order"},
-		"blocking without kinds":    {mutate(`["capability","interpretation"]`, `[]`), "with no blocking kind"},
-		"kinds without blocking":    {mutate(gapReason, ``), "no 'known-gap-blocking' reason"},
-		"another format version":    {mutate(`{"version":1,`, `{"version":2,`), "format version 2"},
-		"an invalid name":           {mutate(`"name":"local-ephemeral"`, `"name":"Local"`), `Profile name "Local"`},
-		"an empty claim":            {mutate(`"claim":"The Case's Contract held for one closed Run of the Case against an ephemeral local test cluster, under the recorded Driver identity."`, `"claim":""`), "no claim"},
-		"an empty trust basis":      {mutate(`"trust":"local-ephemeral-cluster"`, `"trust":""`), "no trust basis"},
-		"an unknown field":          {mutate(`{"version":1,`, `{"version":1,"extra":1,`), "unknown field"},
-		"a case-folded key":         {mutate(`"claim":`, `"Claim":`), "canonical form"},
-		"a repeated key":            {mutate(`"trust":"local-ephemeral-cluster",`, `"trust":"x","trust":"local-ephemeral-cluster",`), "canonical form"},
-		"other spacing":             {mutate(`{"version":1,`, `{"version": 1,`), "canonical form"},
-		"no trailing newline":       {[]byte(strings.TrimSuffix(valid, "\n")), "canonical form"},
-		"a second document":         {[]byte(valid + valid), "canonical form"},
-		"another field order":       {mutate(`"name":"local-ephemeral","claim":`, `"claim":`), "canonical form"},
-		"null blocking kinds":       {mutate(`["capability","interpretation"]`, `null`), "canonical form"},
-		"not JSON":                  {[]byte("{"), "decode Profile"},
+		"unknown unsupported-rule decision": {mutate(`"unsupportedRule":"incomplete"`, `"unsupportedRule":"accepted"`), `unknown decision "accepted"`},
+		"no unsupported-rule decision":      {mutate(`"unsupportedRule":"incomplete"`, `"unsupportedRule":""`), `unknown decision ""`},
+		"unknown Known Gap kind":            {mutate(`["capability","interpretation"]`, `["capability","vibes"]`), `unknown Known Gap kind "vibes"`},
+		"a duplicate blocking kind":         {mutate(`["capability","interpretation"]`, `["capability","capability"]`), `kind "capability" is named twice`},
+		"kinds out of order":                {mutate(`["capability","interpretation"]`, `["interpretation","capability"]`), "not in the kind order"},
+		"a reason table":                    {mutate(`,"unsupportedRule":`, `,"reasons":[],"unsupportedRule":`), "unknown field"},
+		"the format with a reason table":    {[]byte(`{"version":1,"name":"x","claim":"c","trust":"t","blockingKnownGaps":[],"reasons":[{"name":"r","condition":"verdict-violated","decision":"rejected"}]}` + "\n"), "unknown field"},
+		"another format version":            {mutate(`{"version":2,`, `{"version":1,`), "format version 1"},
+		"an invalid name":                   {mutate(`"name":"local-ephemeral"`, `"name":"Local"`), `Profile name "Local"`},
+		"an empty claim":                    {mutate(`"claim":"The Case's Contract held for one closed Run of the Case against an ephemeral local test cluster, under the recorded Driver identity."`, `"claim":""`), "no claim"},
+		"an empty trust basis":              {mutate(`"trust":"local-ephemeral-cluster"`, `"trust":""`), "no trust basis"},
+		"an unknown field":                  {mutate(`{"version":2,`, `{"version":2,"extra":1,`), "unknown field"},
+		"a case-folded key":                 {mutate(`"claim":`, `"Claim":`), "canonical form"},
+		"a repeated key":                    {mutate(`"trust":"local-ephemeral-cluster",`, `"trust":"x","trust":"local-ephemeral-cluster",`), "canonical form"},
+		"other spacing":                     {mutate(`{"version":2,`, `{"version": 2,`), "canonical form"},
+		"no trailing newline":               {[]byte(strings.TrimSuffix(valid, "\n")), "canonical form"},
+		"a second document":                 {[]byte(valid + valid), "canonical form"},
+		"another field order":               {mutate(`"name":"local-ephemeral","claim":`, `"claim":`), "canonical form"},
+		"null blocking kinds":               {mutate(`["capability","interpretation"]`, `null`), "canonical form"},
+		"not JSON":                          {[]byte("{"), "decode Profile"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			_, err := ParseProfile(probe.encoded)
 			require.ErrorContains(t, err, probe.detail)
 		})
 	}
+}
+
+// A Profile with no blocking kind blocks on none.
+func TestAProfileMayBlockOnNoKnownGapKind(t *testing.T) {
+	embedded, err := embeddedProfiles.ReadFile("profiles/local-ephemeral.json")
+	require.NoError(t, err)
+	profile, err := ParseProfile([]byte(strings.Replace(string(embedded), `["capability","interpretation"]`, `[]`, 1)))
+	require.NoError(t, err)
+	require.Empty(t, profile.BlockingKnownGaps)
 }

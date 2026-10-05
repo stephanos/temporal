@@ -5035,13 +5035,14 @@
       "conformance": "CONFORMANCE_INCONCLUSIVE",
       "contract": "OUTCOME_VIOLATED",
       "disposition": "DISPOSITION_STOPPED_BY_MONITOR",
-      "cleanup": "CLEANUP_SUCCEEDED"
+      "cleanup": "CLEANUP_SUCCEEDED",
+      "conformanceReason": "REASON_INCOMPLETE"
     },
     "exploration": {
       "name": "nexusControl",
       "position": {
         "file": "model/temporal/features/nexuscaller/Queries.scala",
-        "line": 170
+        "line": 171
       },
       "variations": [ {
         "index": 1,
@@ -5055,7 +5056,7 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 176
+            "line": 177
           }
         }, {
           "name": "once",
@@ -5065,18 +5066,18 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 177
+            "line": 178
           }
         }, {
           "name": "none",
           "position": {
             "file": "model/temporal/features/nexuscaller/Queries.scala",
-            "line": 178
+            "line": 179
           }
         } ],
         "position": {
           "file": "model/temporal/features/nexuscaller/Queries.scala",
-          "line": 173
+          "line": 174
         }
       } ],
       "runs": 1,
