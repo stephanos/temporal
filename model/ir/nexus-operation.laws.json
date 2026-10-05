@@ -4,6 +4,9 @@
     "name": "nexusOperation.cancelIsRequested",
     "law": "cancelIsRequested",
     "capabilities": [ "Cancelable" ],
+    "actions": {
+      "Cancelable.requestCancel": "requestCancel"
+    },
     "bindings": {
       "requestCancel": "temporal.features.nexusoperation.Model$package.requestCancel",
       "requested": "temporal.features.nexusoperation.OperationFact.statusCancelRequested"
@@ -15,6 +18,7 @@
     "name": "nexusOperation.closedIsRejectedUniformly",
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
+    "actions": { },
     "bindings": {
       "status": "temporal.features.nexusoperation.Operation$.phase",
       "terminal": "temporal.features.nexusoperation.Operation$.terminal",
@@ -30,6 +34,7 @@
     "name": "nexusOperation.terminalStatesAreFinal",
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
+    "actions": { },
     "bindings": {
       "status": "temporal.features.nexusoperation.Operation$.phase",
       "terminal": "temporal.features.nexusoperation.Operation$.terminal"
@@ -41,6 +46,9 @@
     "name": "nexusOperation.terminateSettles",
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
+    "actions": {
+      "Terminable.terminate": "terminate"
+    },
     "bindings": {
       "terminate": "temporal.features.nexusoperation.Model$package.terminate",
       "settled": "temporal.features.nexusoperation.OperationFact.statusTerminated"

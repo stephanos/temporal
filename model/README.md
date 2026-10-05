@@ -343,9 +343,8 @@ instructions `WorkerInstruction.{AttemptFailure, AttemptCanceled, Fault, Workflo
 NexusReply, NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, the
 dynamic-configuration `RequiredSetting`, and the API behavior hints `ApiBehavior` and `ServerStep`
 with `WaitBound`, `Visible` and `CauseKind`. `TestFrameworkNamesNoTemporal` in `tools/umpire/model`
-fails when a file under `model/umpire` names a Temporal term; a mention stays only under an
-allowance that states its reason, and today only `model/umpire/Capabilities.scala` and
-`model/umpire/laws/` have one, until the capabilities and their laws move to `model/temporal`. The
+fails when a file under `model/umpire` names a Temporal term, the six capability kinds among them; a
+mention stays only under an allowance that states its reason, and none has one today. The
 tooling downstream of the DSL is Temporal's driver tooling by design: the IR generator matches the kit's
 vocabulary by fully qualified name and writes it into the IR's realization messages, whose names are
 Temporal's, and lowering turns a Query into a Testpilot Case the Temporal Driver runs.
@@ -620,52 +619,8 @@ pattern reads every step) and a `keeps` projection that is not a field path. Any
 parameter, such as an outcome, a fact or an action class, reads as the value the call passes: an
 expression, a class or `when` reads `rejected` as `Outcome.notFound`.
 
-A machine declares its capabilities, each binding a protocol's parameters to its own vocabulary,
-and receives the laws the given `Catalog` brings for each capability and for each pair it declares
-both of, without listing them. The framework keeps the mechanism (model/umpire/Capabilities.scala,
-model/umpire/Catalog.scala: `CapabilityOf`, `CapabilityKind`, `Law`, `Catalog`, `capabilities`,
-`except`, `overriding`) and names no capability; Temporal's kinds, their bindings, every law with its
-server citations and the one `given Catalog` live in `model/temporal/capabilities`. Each Model folder
-that adopts capabilities declares them in its own `Capabilities.scala`:
-
-```scala
-import temporal.capabilities.{given, *}
-
-val jobCapabilities = capabilities(job, limits = three)(
-  Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone),
-  Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
-  Pollable(dispatch = poll, running = Jobs.running),
-  Terminable(terminate = kill, settled = Note.killedNote, reach = Seq(poll))
-).except(closedIsRejectedUniformly, because = "…")
-```
-
-Each law is lifted as a Property, a Scenario and a Query, all named `<machine>.<law>`: the law's
-`apply` (or the def an `overriding(law -> def, because = …)` names, which takes the law's
-parameters) folded with the model and the fields of the capabilities that bring it, bound by
-parameter name. A law of one action class (`when`) is asked by a `find` from the start through the
-capability's path to a live state (its field that lists action classes, Terminable's `reach`) and
-that class; any other is verified over the free Scenario from the start under `limits`. The Query's
-total is computed as below; a find expects of a server the Run its capability's `RunExpectation`
-field names (Terminable and Cancelable carry one). A field of an action class names an action the
-machine must bind. A capability is a case class extending `CapabilityOf` whose companion extends
-`CapabilityKind`, which the catalog keys its laws by; the IR generator refuses any other. `except` lifts nothing for its law. A Query of
-the entity's own reads a generated Property by its law, `declared.claim(pausedIsNotDispatched)`, as
-the activity's pinned paths do; a law the declaration waives has none. The IR generator writes what
-it expanded beside the IR file, as `<file>.laws.json`: each generated claim with its law,
-bindings and the citations of its cited bindings, each waiver with its reason and position, and the
-catalog's laws with what they say, the parameters each instance must cite, where the catalog brings
-them and the machines, one per state type and with it, that instantiate them. A law lists the
-parameters where entities differ on purpose, `Law(…, parameters = Seq("rejected"))`, and an entity
-backs each such binding with the server code that answers it so,
-`rejected = cited(Outcome.notFound, "chasm/lib/activity/activity.go")`; `cited` changes no IR, and
-lint reports a binding left uncited (above). A capability declaration is a root of an IR
-file like a Query. Refused at their lines: an action the machine does not bind, a lambda for a
-function-valued field, two capabilities of one kind, a waiver of a law the catalog does not bring,
-a waiver whose reason is blank, an overriding def with other parameters than the law's, a `cited`
-without a citation or with one that is no string literal or val of one, and a law's `parameters`
-entry its `apply` does not take. The
-compiler refuses a predicate of another state type, a declaration without `limits`, a waiver
-without `because`, and a declaration where no `Catalog` is given.
+A machine that declares capabilities receives such laws without calling them: see
+[Capabilities and their laws](#capabilities-and-their-laws).
 
 Such a function returns several claims as a bundle, a case class whose every field is a Property,
 Scenario or Query. The IR generator folds the constructor's call to its claims, and a field read to the
@@ -757,6 +712,164 @@ the exceptions. A fact case with fields needs a line that covers all its values.
 
 `query … in s` takes no given. A Property of the machine the Scenario's machine `refines` is read
 through that refinement; a Property of an unrelated machine is refused at the Query's line.
+
+### Capabilities and their laws
+
+A capability is what an entity can do, declared on its machine as a binding of a protocol's
+parameters to the machine's own vocabulary: which statuses close it, which class pauses it, which
+class hands its work to a worker. A law is a claim stated once for every entity that has a
+capability, or a pair of them. A machine that declares its capabilities receives the laws the given
+`Catalog` brings for each capability and for each pair it declares both of, without listing them,
+as a Property, a Scenario and a Query named `<machine>.<law>`. A capability is not a machine: the
+entity's machine stays the only one, and the laws are read on it.
+
+The framework keeps the mechanism and names no capability (`model/umpire/Capabilities.scala`:
+`CapabilityOf`, `capabilities`, `except`, `overriding`, `cited`; `model/umpire/Catalog.scala`:
+`CapabilityKind`, `Law`, `Catalog`). Temporal's capability kinds, every law with its server
+citations and the one `given Catalog` live in `model/temporal/capabilities`:
+
+| Capability | Fields | Laws it brings |
+| --- | --- | --- |
+| `Closable` | `status`, `terminal`, `rejected` | `terminalStatesAreFinal`, `closedIsRejectedUniformly` |
+| `Terminable` | `terminate`, `settled`, `reach`, `expect` | `terminateSettles` |
+| `Cancelable` | `requestCancel`, `requested`, `reach`, `expect` | `cancelIsRequested` |
+| `Pausable` with `Pollable` | `pause`, `unpause`, `paused`; `dispatch`, `running` | `pausedIsNotDispatched`, the law of the pair |
+| `Describable` | `status`, the realization's fact-to-status table | none of its own: the generated finds' awaits read its table |
+
+**The worked example.** The standalone activity declares its capabilities in two declarations,
+`model/temporal/features/standaloneactivity/Capabilities.scala`:
+
+```scala
+import temporal.capabilities.{given, *}
+
+val productCapabilities = capabilities(activityProduct, limits = three)(
+  Closable(status = phase, terminal = terminal, rejected = cited(Outcome.notFound, notFoundCode)),
+  Pausable(pause = control(Control.pause), unpause = control(Control.unpause), paused = Product.paused),
+  Pollable(dispatch = attemptStart, running = Product.running)
+)
+
+val protocolCapabilities = capabilities(activityProtocol, limits = three)(
+  Terminable(terminate = control(Control.terminate), settled = ProtocolFact.statusTerminated,
+    reach = Seq(start(), workerStop), expect = inconclusive(explanationsDisagree)),
+  Cancelable(requestCancel = control(Control.requestCancel), requested = ProtocolFact.statusCancelRequested,
+    reach = Seq(start(), workerStop), expect = inconclusive(explanationsDisagree)),
+  Describable(status = ActivityRealization.activityStatus)
+)
+```
+
+The first gives `activityProduct.terminalStatesAreFinal` and `activityProduct.closedIsRejectedUniformly`
+(Closable), and `activityProduct.pausedIsNotDispatched`, because the product declares both Pausable
+and Pollable; nobody lists the pair. Each is a transition Property, verified over the product's free
+Scenario under `three`, and the protocol reads them through its refinement. The second gives
+`activityProtocol.terminateSettles` and `activityProtocol.cancelIsRequested`, each a same-step
+Property asked by a `find` that starts the activity, stops the worker and then takes the control; a
+find has a realization, so they lower to the Cases `activity-activityProtocol.terminateSettles` and
+`activity-activityProtocol.cancelIsRequested`, whose awaited status comes from the `Describable`
+table. The functional laws sit on the protocol because a find lowers only through a realization,
+which is the protocol's. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
+activity's own files any more; the admission designs and both composition families declare the same
+three capabilities on their record, and the Nexus operation (`features/nexusoperation`) declares
+Closable, Terminable, Cancelable and Describable.
+
+**How a law is lifted.** Each law is the law's `apply` (or the def an
+`overriding(law -> def, because = …)` names, which takes the law's parameters) folded with the model
+and the fields of the capabilities that bring it, bound by parameter name. Every field that takes a
+function names a def of the lifted sources, never a lambda. A law of one action class (`when`) is
+asked by a `find` from the start through the capability's path to a live state (its field that lists
+action classes, Terminable's `reach`) and that class, expecting of a server the Run its
+`RunExpectation` field names; any other is verified over the free Scenario from the start under
+`limits`. The Query's total is computed as [below](#counting-a-querys-total). A field of an action
+class names an action the machine must bind. A capability is a case class extending `CapabilityOf`
+whose companion extends `CapabilityKind`, which the catalog keys its laws by; the IR generator
+refuses any other. A Query of the entity's own reads a generated Property by its law,
+`declared.claim(pausedIsNotDispatched)`, as the activity's pinned paths do.
+
+**`except` and `overriding`.** An entity the server answers otherwise waives the law with its reason,
+citing the server code; both are refused without one. `except(law, because = …)` lifts nothing for
+the law: the admission record answers a delivery after it closed, so its designs and compositions
+declare `.except(closedIsRejectedUniformly, because = deliveryAfterClose)`.
+`overriding(law -> ownDef, because = …)` lifts the entity's own def under the law's name: the Nexus
+operation answers a repeated request id OK after it closed, so it declares
+`.overriding(closedIsRejectedUniformly -> closedRejectsOrRepeats, because = repeatedRequestsAnswer)`.
+A law lists the parameters where entities differ on purpose, `Law(…, parameters = Seq("rejected"))`,
+and an entity backs each such binding with the server code that answers it so,
+`rejected = cited(Outcome.notFound, "chasm/lib/activity/activity.go")`; `cited` changes no IR. Lint
+forwards each waiver's reason into `<file>.lint.json` and reports a binding left uncited
+([Running the gate](#running-the-gate)).
+
+**How a new entity gets its laws.**
+
+1. Give its Model folder a `Capabilities.scala` that imports `temporal.capabilities.{given, *}` and
+   declares `capabilities(m, limits)(…)` with the capabilities the machine has, each field a def or
+   an action class of the Model, and each parameter its law lists under `parameters` written with
+   `cited`.
+2. Name the declaration as a root of the folder's `irFile`, as `nexusOperationFile` names
+   `operationCapabilities`.
+3. Run `make umpire-gen-model`: it writes the generated claims, the Cases of the generated finds and
+   the law sidecar. A law the Model breaks shows as a counterexample of the Query `<machine>.<law>`.
+   Where the server does not keep the law for this entity, waive it with `except` or `overriding`
+   and the reason; otherwise fix the Model.
+4. Read the laws on the machine's table: `go run ./tools/umpire/cmd/umpire-lint --tables
+   model/ir/<file>.json` (below).
+
+**The catalog and the two-entity rule.** The catalog is a Scala value, `given catalog` in
+`model/temporal/capabilities/Catalog.scala`, built with `Catalog.single(kind)(law, …)`,
+`Catalog.pair(kind, kind)(law, …)` and `++`; the IR generator folds it as data, and finds the pairs
+among a declaration's kinds. A law enters the catalog only once two instantiating entities declare
+the capabilities that bring it, an instantiating entity being a machine with its own state type: a
+composition reading its members' capabilities through their projections does not count again, and
+neither does a derived machine. `Catalog.test.scala` fails, naming the law, for a law fewer than two
+declared machines instantiate, and lint's `law-with-one-instance` counts the same way across the
+sidecars of `model/ir`. A claim with one instance stays the feature's own (`atMostOneActive`,
+`startedByPollingWorker`).
+
+**The law sidecar.** The IR has no text field on a Property, so the IR generator writes what it
+expanded beside each IR file whose Models declare capabilities, as `<file>.laws.json`: each
+generated claim with its law, the capabilities that brought it, the action class each of their
+action fields names (`Pollable.dispatch`: `attemptStart`), its bindings and the citations of its
+cited bindings, and the def that overrides it; each waiver with its reason and position; and the
+catalog's laws with what they promise and do not promise, the parameters each instance must cite,
+where the catalog brings them and the machines, one per state type, that instantiate them. It is a
+checked-in output of the gate like the IR, not IR: lint, the table view and the accepted findings
+read it, and a Go reader skips it (`IRPaths`). A generated Query whose verdict is a counterexample is
+reported with the law, its capabilities and their bindings
+(`rogueJob.pausedIsNotDispatched breaks the law pausedIsNotDispatched of Pausable and Pollable
+(paused = …, running = …)`).
+
+**The laws on the table.** `umpire-lint --tables` prints, after each machine's per-operation table,
+the laws it is held to: per law its claim, what it promises and does not promise, and the modality
+it pins (MUST NOT for a transition law, of its results where the cell is a MAY; MUST for a same-step
+one, which a find asks on its path only) on the cells of its capabilities' actions, beside each
+cell's own modality; a law whose
+capabilities name no action, Closable's, pins its cells on every class. A product law the protocol
+reads through its refinement is marked `inherited`, and `unchecked` where no Query over the
+protocol's own Scenarios asks it. Then come the cells of the capabilities' actions that no law pins,
+and the laws the machine waives with `except`. A law pins cells the step function wrote; it never
+adds, removes or rewrites a row:
+
+```text
+laws model/ir/activity.json activityProduct
+  activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/Capabilities.scala:20
+    promises: while an entity is paused no work is handed to a worker: no step from paused lands in running
+    does not promise: what a pause of held work does (…), what a second pause or an unpause of a live entity answers, …
+    attemptStart (Pollable.dispatch)    paused  MUST NOT  cell: ? s.phase != scheduled
+    control-pause (Pausable.pause)      paused  MUST NOT  cell: ? !pausable(s)
+    control-unpause (Pausable.unpause)  paused  MUST NOT of its results  cell: MAY accepted -> scheduled [statusScheduled]
+  activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/Capabilities.scala:19
+    …
+    every class  completed, failed, canceled, terminated, timedOut  MUST NOT
+  no law pins
+    attemptStart (Pollable.dispatch)    scheduled                 MAY  accepted -> started [statusStarted]
+    control-pause (Pausable.pause)      scheduled, started        MAY  accepted -> paused [statusPaused]
+    …
+```
+
+**Core and sugar.** `capabilities`, the capability types and kinds, `except`, `overriding`, `cited`,
+`Catalog`, `Law` and the law objects are core: each introduces meaning the IR or the sidecar needs.
+This surface has no sugar today; a convenience spelling of it would live in
+`model/umpire/Syntax.scala` or `model/temporal/capabilities/Syntax.scala`, documented with its core
+form, with its matching in `model/irgen/Syntax.scala` and a fixture requiring the core spelling's IR,
+under the rule [above](#writing-a-model).
 
 ### Counting a Query's total
 

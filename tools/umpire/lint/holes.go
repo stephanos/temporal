@@ -60,12 +60,14 @@ type Rule struct {
 
 // Table is a machine's per-operation modality table: every reachable cell, and the rules they group
 // into, class by class. Field is the state field rules are labelled by: the state record's first
-// enum-typed field, or none.
+// enum-typed field, or none. Laws is the laws the machine is held to, read onto its rules from the
+// law sidecar, or nil where it is held to none.
 type Table struct {
 	Machine string
 	Field   string
 	Cells   []Cell
 	Rules   []Rule
+	Laws    *LawTable
 }
 
 // holes reads every machine's modality table, and from it the hole kinds H1-H5 and their tallies.
@@ -82,6 +84,7 @@ func (m *Model) holes() ([]*Table, []Tally, error) {
 		if err != nil {
 			return nil, nil, fmt.Errorf("%s: %w", name, err)
 		}
+		t.Laws = v.lawTable(t)
 		tables = append(tables, t)
 		tallies = append(tallies, v.tallies(t)...)
 	}
@@ -812,33 +815,48 @@ func (r Rule) notes() string {
 }
 
 // WriteTables writes each machine's per-operation modality table: a block per machine, a line per
-// rule, class by class.
+// rule, class by class, then the laws it is held to; and the laws of each composition.
 func WriteTables(w io.Writer, r *Result) error {
 	for _, t := range r.Tables {
-		by := ""
-		if t.Field != "" {
-			by = " by " + t.Field
-		}
-		if _, err := fmt.Fprintf(w, "rules %s %s%s\n", r.File, t.Machine, by); err != nil {
+		if err := writeRules(w, r.File, t); err != nil {
 			return err
 		}
-		tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
-		class := ""
-		for _, rule := range t.Rules {
-			if rule.Class != class {
-				class = rule.Class
-				if _, err := fmt.Fprintf(tw, "  %s\n", class); err != nil {
-					return err
-				}
-			}
-			if _, err := fmt.Fprintf(tw, "    %s\t%s\t%s\t%s\t%s\n", rule.Label, rule.Modality, rule.Text, rule.Position,
-				rule.notes()); err != nil {
+		if t.Laws != nil {
+			if err := writeLawTable(w, r.File, t.Laws, true); err != nil {
 				return err
 			}
 		}
-		if err := tw.Flush(); err != nil {
+	}
+	for _, lt := range r.Laws {
+		if err := writeLawTable(w, r.File, lt, false); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// writeRules writes one machine's rules, class by class.
+func writeRules(w io.Writer, file string, t *Table) error {
+	by := ""
+	if t.Field != "" {
+		by = " by " + t.Field
+	}
+	if _, err := fmt.Fprintf(w, "rules %s %s%s\n", file, t.Machine, by); err != nil {
+		return err
+	}
+	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
+	class := ""
+	for _, rule := range t.Rules {
+		if rule.Class != class {
+			class = rule.Class
+			if _, err := fmt.Fprintf(tw, "  %s\n", class); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintf(tw, "    %s\t%s\t%s\t%s\t%s\n", rule.Label, rule.Modality, rule.Text, rule.Position,
+			rule.notes()); err != nil {
+			return err
+		}
+	}
+	return tw.Flush()
 }

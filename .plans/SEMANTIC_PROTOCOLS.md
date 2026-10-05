@@ -290,7 +290,7 @@ with a reason: their queue member keeps stepping after the record closes.
 instantiating machines of each law the record brings. `terminated` and its find stay authored:
 `activityProtocol.terminateSettles` lowers to a Case of its own, not to theirs byte for byte.
 
-**Second entity (fn-122 task 4).** `model/temporal/nexusoperation` declares Closable, Terminable,
+**Second entity (fn-122 task 4).** `model/temporal/features/nexusoperation` declares Closable, Terminable,
 Cancelable and Describable on `nexusOperation`. Its rejection is a parameter (`alreadyCompleted`,
 FailedPrecondition, where the activity answers NotFound), and it overrides
 `closedIsRejectedUniformly` with `closedRejectsOrRepeats`: a repeated request id is answered OK after
@@ -305,6 +305,24 @@ Open finding of task 4, for the owner:
 - The Driver reserves a Nexus handler only through a workflow's or an activity's start, so the
   operation's handler paths (`handlerReply`, `complete`) are modeled and verified but no Case through
   them lowers.
+
+**Where it stands (fn-122 closed, task 6).** The vocabulary and the laws are in
+`model/temporal/capabilities` (task 8), the framework keeps only the mechanism, and each adopting
+Model folder declares its capabilities in its own `Capabilities.scala`; `model/README.md`
+("Capabilities and their laws") documents the surface with the activity's two declarations as its
+worked example. The table view (`umpire-lint --tables`) prints each machine's laws after its
+per-operation table: what each promises and does not, read from the sidecar, and the modality it
+pins on the cells of its capabilities' actions (the sidecar records each action field's class,
+`Pollable.dispatch: attemptStart`): `pausedIsNotDispatched` is MUST NOT on the `paused` cells of
+`attemptStart`, `control-pause` and `control-unpause`, and Closable's laws, whose capability names no
+action, MUST NOT on the terminal cells of every class. It lists the cells of those actions no law
+pins, and marks the product's laws on the protocol `inherited, unchecked`, since no Query over the
+protocol's Scenarios asks them. Claims across `model/ir`, authored/generated, from fn-112's close
+to fn-122's: Properties 172/0 to 155/26, Queries 264/0 to 248/26 (activity 11/0 to 9/5 and 12/0
+to 10/5, activity-system 39/0 to 24/17 and 84/0 to 70/17, the new nexus-operation 0/4 and 0/4, the
+Nexus caller, close and control files unchanged). Pausable on the fn-119 workflow (task 7, R10) is
+deferred until fn-119's example exists; until then the admission record is the second machine of
+`pausedIsNotDispatched`.
 
 **For the owner.** No claim is unclassified. These are the borderline calls, each decided above:
 
