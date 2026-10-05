@@ -48,6 +48,14 @@ make test-live-capability
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
+
+### Current command inventory gap, 2026-10-05
+
+AdapterPreparedSourceSetSHA256 in tools/gomad3/target/adapter_source_set.go also runs go list -e -find -json . directly through exec.CommandContext with unbounded stdout/stderr buffers. This path was omitted from the inventory above. Task39 owns only its deferred GOPATH removal and does not repair this R10 command omission. The prior checked acceptance and Done/Evidence below are historical; they do not establish complete R10 coverage on the current source.
+
+Task9 owns the missing transport integration and task21 consumes its source-bound preservation evidence. Serialize overlapping adapter_source_set.go work after task39's reviewed progress commit; neither task39's full acceptance nor task21 completion is a source-admission prerequisite. Before changing transport, characterize BASE literal digest/projection and ordinary exit, signal, startup, empty/relative-directory, cancellation/deadline and stderr/error text/type/unwrap/precedence. A simple Structured swap loses raw exec errors and stderr and changes cancellation outcomes. Preserve R18 rather than silently accepting that migration; any shared hostexec write surface needs bounded admission and independent existing-consumer review. No new public seam, command framework, pin, grant or requirement waiver is authorized by this inventory amendment.
+
+Retained decision and source research are .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/. Static diagnosis is not execution evidence. All original R10/R18/R19, predecessor/full/default/functional/affected/formal/native Darwin requirements remain open where unproved; Linux execution remains with fn128 and nonblocking.
 ## Acceptance
 
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
