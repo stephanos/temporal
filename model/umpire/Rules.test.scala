@@ -173,7 +173,12 @@ class RulesTest extends munit.FunSuite:
         when(_ => true)(hand.press ~> Switch.effects.wear, hand.press ~> Switch.effects.dark)
       )
     )
-    assert(refused.getMessage.startsWith("switch fires "), refused.getMessage)
+    assertEquals(
+      refused.getMessage,
+      "a derivation of switch fires press by two rules in Lamp(off,0): rule 1, when, and rule 2, " +
+        "when: the rules of one action class hold in no common state, so write alternatives as " +
+        "one effect that names each with `choose`"
+    )
   }
 
   test("a composition object is its members, and an IR file constructs what it reaches") {
@@ -192,4 +197,12 @@ class RulesTest extends munit.FunSuite:
       "change"
     )
     assertEquals(writtenAction("umpire.apply[(A, B)](example.orders.buyer.place)(x := y)"), "place")
+    assertEquals(
+      writtenActions(
+        "[\n  umpire.~>(example.orders.clerk.ship)[A,\n    B, Nothing]((s: A) =>\n    f(s)),\n" +
+          "  umpire.~>(example.orders.buyer.place)[A, B, Nothing]((s: A) => g(s))\n :\n" +
+          "  umpire.StepBinding[A, B, Nothing\n    ]\n]*"
+      ),
+      List("ship", "place")
+    )
   }

@@ -219,7 +219,13 @@ field path or a `read` that is not a def; one lifting fixture and one refusal fi
 4. No alphanumeric infix without `infix`, and no alphanumeric infix with more than one argument.
 5. No `inline`, `transparent inline` or macro on the author surface; every operator is a `def` or
    `extension` whose call the lifter matches by name in TASTy (fn-113 R25, fn-112 "built once, in the
-   lifter").
+   lifter"). One sanctioned exception, as `compose` once was (fn-126.4): the rule binding `~>` of
+   `umpire.Rules` is a plain (not transparent) `inline` extension with an `inline` receiver, so that
+   `scala.compiletime.codeOf` names the action a rule fires. An action's runtime name is `""` (the
+   lifter names it after its `val`), and the rules' disjointness check, which runs in Scala, must name
+   the action class in its overlap message. TASTy is pickled before inlining, so the lifter reads the
+   unexpanded call; were it ever expanded, the lifter would refuse the expansion loudly ("not a rule")
+   rather than lift anything.
 6. No operator that needs a sentence of explanation in a doc comment (style guide test). If the
    explanation is one English word, that word is the method name.
 7. No temporal symbols (`[]`, `<>`, `~>`, `WF`); when temporal operators come (fn-120 decision 4),

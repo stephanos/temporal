@@ -224,6 +224,12 @@ def stickyAcross[S, O, F](promise: (S, Step[S, O, F]) => Boolean): Monitor[S, O,
  * Core form: one step function per action, the rules of the action in order,
  * `action ~> ((s, i) => if g1(s) && c1(i) then e1(s, i) else if g2(s) then e2(s, i) else Nil)`, and
  * `action ~> (_ => Nil)` for an action no state enables.
+ *
+ * A rule's `~>` is `inline`, with an `inline` receiver: the one sanctioned exception to "no inline on
+ * the author surface" (.plans/DSL_OPERATORS.md, rule 5). An action's runtime name is `""`, since the
+ * lifter names it after its `val`, so `scala.compiletime.codeOf` names the action in an overlap
+ * message. TASTy is pickled before inlining, so the lifter reads the unexpanded call, and it refuses
+ * an expanded one loudly ("not a rule") rather than lift it.
  */
 abstract class Rules[S, O, F, P](using owner: Owner[S, O, F])(
     phase: S => P = (_: S) => throw IllegalStateException("these rules declare no projection")
@@ -386,22 +392,31 @@ object PhasesOf:
 /**
  * Rules a derivation binds in its source's place, under one heading:
  * `rebind(when(_ => true) { clerk.ship ~> OrderRecord.effects.send })`, each a whole
- * action's. Core form: the step function `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`.
+ * action's. Its bindings are `inline`, as a rule's `~>` is (`Rules`), so that an overlap names
+ * each action as written. Core form: the step function
+ * `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`.
  */
-def when[S, O, F](using
+inline def when[S, O, F](using
     owner: Owner[S, O, F]
 )(guard: S => Boolean)(
-    bindings: StepBinding[S, O, F]*
+    inline bindings: StepBinding[S, O, F]*
+): RuleGroup[S, O, F] = derivedRules(owner, guard, bindings, codeOf(bindings))
+
+/** The rules of a derivation's `when`, each named by its action as `written` spells them. */
+private[umpire] def derivedRules[S, O, F](
+    owner: Owner[S, O, F],
+    guard: S => Boolean,
+    bindings: Seq[StepBinding[S, O, F]],
+    written: String
 ): RuleGroup[S, O, F] =
+  val names = writtenActions(written)
   val rules = bindings.zipWithIndex.toVector.map: (b, i) =>
-    Rule(i + 1, "when", b.decl.name, b.decl, None, guard, effectOf[S, O, F](b.decl, b.function))
-  for
-    (r, i) <- rules.zipWithIndex;
-    refused <- overlap(
-      owner.machine.name,
-      owner.machine.fs,
-      rules.take(i),
-      r
-    )
+    val action = names.lift(i).getOrElse(b.decl.name)
+    Rule(i + 1, "when", action, b.decl, None, guard, effectOf[S, O, F](b.decl, b.function))
+  // The derived machine is not made yet, so the overlap names the machine it derives from.
+  val machine = owner.machine.name match
+    case ""     => "a derivation"
+    case source => s"a derivation of $source"
+  for (r, i) <- rules.zipWithIndex; refused <- overlap(machine, owner.machine.fs, rules.take(i), r)
   do throw IllegalArgumentException(refused)
   RuleGroup(rules)

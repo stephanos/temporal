@@ -359,6 +359,30 @@ private[umpire] def writtenAction(code: String): String =
     .fold(code)(_.split('.').last)
 
 /**
+ * The actions of several bindings as `codeOf` writes a repeated argument, `[a ~> e, b ~> f : T]*`:
+ * each binding split at a top-level comma, the list's brackets and type left out.
+ */
+private[umpire] def writtenActions(code: String): List[String] =
+  def split(text: String, at: Char): List[String] =
+    text
+      .foldLeft((List(""), 0)) { case ((acc, depth), c) =>
+        c match
+          case `at` if depth == 0 => ("" :: acc, depth)
+          case '(' | '[' | '{'    => ((acc.head + c) :: acc.tail, depth + 1)
+          case ')' | ']' | '}'    => ((acc.head + c) :: acc.tail, depth - 1)
+          case _                  => ((acc.head + c) :: acc.tail, depth)
+      }
+      ._1
+      .reverse
+  // A repeated argument is written spliced, `[...]*`.
+  val trimmed = code.trim.stripSuffix("*")
+  val listed =
+    if trimmed.startsWith("[") && trimmed.endsWith("]") then
+      split(trimmed.drop(1).dropRight(1), ':').head
+    else trimmed
+  split(listed, ',').map(_.trim).filter(_.nonEmpty).map(writtenAction)
+
+/**
  * A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.
  * Declared as an object that is the machine, named after the object with its first letter lowered:
  *
