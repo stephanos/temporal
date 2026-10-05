@@ -350,7 +350,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-118-declare-how-temporal-apis-behave-once.md",
-  "status": "open",
+  "status": "done",
   "title": "Declare how Temporal APIs behave once, and let the generated tests use it",
   "tracker": {
     "baseHashFlow": null,
@@ -363,5 +363,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T05:14:36.754413Z"
+  "updated_at": "2026-10-05T05:18:25.014721Z"
 }

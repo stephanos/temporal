@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-118-declare-how-temporal-apis-behave-once",
   "spec_path": ".flow/tasks/fn-118-declare-how-temporal-apis-behave-once.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Make Testpilot wait by condition within a declared bound and report the bound",
   "updated_at": "2026-10-03T19:46:29.475792Z"
 }

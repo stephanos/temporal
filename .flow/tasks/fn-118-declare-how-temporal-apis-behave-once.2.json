@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-118-declare-how-temporal-apis-behave-once",
   "spec_path": ".flow/tasks/fn-118-declare-how-temporal-apis-behave-once.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Declare adopted hints in the shared kit, lift them into the IR and validate them in Go",
   "updated_at": "2026-10-03T19:50:25.982501Z"
 }
