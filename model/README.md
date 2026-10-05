@@ -158,6 +158,21 @@ at its Scala line. It fails on a finding until you fix the Model or accept the f
 in `model/ir/<file>.lint.json`, and on an acceptance that no longer matches a finding. The coverage
 summary it prints per machine is informational; no count fails the gate.
 
+Lint reads the law sidecar beside an IR file (`model/ir/<file>.laws.json`) for the law kinds, each at
+the Scala line the sidecar records:
+
+| Kind | Reported for | Fix |
+| --- | --- | --- |
+| `waived-law` | a law a declaration waives with `except` or `overriding` and a reason | nothing: the gate's update forwards the reason into `<file>.lint.json`, keyed `<machine>.<law>` |
+| `law-waived-without-reason` | a waiver with an empty reason (the lifter refuses one, so the sidecar was edited) | regenerate the sidecar |
+| `reason-names-no-law` | a waiver of a law the sidecar's catalog does not bring | remove the waiver, or declare the capability that brings the law |
+| `parameter-without-citation` | a binding of a parameter its law lists in `Law(parameters = …)`, written without `cited(value, "<server file>")` | cite the server code that answers it so |
+| `law-with-one-instance` | a catalog law fewer than two machines with their own state types instantiate, across every sidecar of `model/ir` | take the law out of the catalog until a second machine declares it |
+
+The waivers' reasons have one source, the sidecar: `make umpire-gen-model` rewrites each forwarded
+`waived-law` acceptance from it, after the acceptances an author wrote, and a check fails on a
+`<file>.lint.json` that does not carry them, and on a forwarded acceptance whose waiver is gone.
+
 Each file of `model/ir` is declared once, in Scala, beside the Models it holds (the folder's
 `IrFiles.scala`): its name and its roots, named by value.
 
@@ -623,12 +638,19 @@ machine must bind. A capability is a case class extending `CapabilityOf` whose c
 `CapabilityKind`, which the catalog keys its laws by; the lifter refuses any other. `except` lifts nothing for its law. A Query of
 the entity's own reads a generated Property by its law, `declared.claim(pausedIsNotDispatched)`, as
 the activity's pinned paths do; a law the declaration waives has none. The lifter writes what
-it expanded beside the IR file, as `<file>.laws.json`: each generated claim with its law and
-bindings, each waiver with its reason and position, and the catalog's laws with what they say and
-the machines, one per state type, that instantiate them. A capability declaration is a root of an IR
+it expanded beside the IR file, as `<file>.laws.json`: each generated claim with its law,
+bindings and the citations of its cited bindings, each waiver with its reason and position, and the
+catalog's laws with what they say, the parameters each instance must cite, where the catalog brings
+them and the machines, one per state type and with it, that instantiate them. A law lists the
+parameters where entities differ on purpose, `Law(…, parameters = Seq("rejected"))`, and an entity
+backs each such binding with the server code that answers it so,
+`rejected = cited(Outcome.notFound, "chasm/lib/activity/activity.go")`; `cited` changes no IR, and
+lint reports a binding left uncited (above). A capability declaration is a root of an IR
 file like a Query. Refused at their lines: an action the machine does not bind, a lambda for a
 function-valued field, two capabilities of one kind, a waiver of a law the catalog does not bring,
-a waiver whose reason is blank, and an overriding def with other parameters than the law's. The
+a waiver whose reason is blank, an overriding def with other parameters than the law's, a `cited`
+without a citation or with one that is no string literal or val of one, and a law's `parameters`
+entry its `apply` does not take. The
 compiler refuses a predicate of another state type, a declaration without `limits`, a waiver
 without `because`, and a declaration where no `Catalog` is given.
 

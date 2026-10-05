@@ -79,6 +79,14 @@
         "nexusOperation.terminateSettles"
       ],
       "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "waived-law",
+      "owner": "nexusOperation",
+      "subjects": [
+        "nexusOperation.closedIsRejectedUniformly"
+      ],
+      "because": "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate"
     }
   ]
 }

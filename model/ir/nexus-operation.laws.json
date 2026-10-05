@@ -8,6 +8,7 @@
       "requestCancel": "temporal.nexusoperation.Model$package.requestCancel",
       "requested": "temporal.nexusoperation.OperationFact.statusCancelRequested"
     },
+    "cites": { },
     "position": "model/temporal/nexusoperation/Capabilities.scala:35"
   }, {
     "machine": "nexusOperation",
@@ -18,6 +19,9 @@
       "status": "temporal.nexusoperation.Operation$.phase",
       "terminal": "temporal.nexusoperation.Operation$.terminal",
       "rejected": "temporal.nexusoperation.Outcome.alreadyCompleted"
+    },
+    "cites": {
+      "rejected": [ "chasm/lib/nexusoperation/operation.go" ]
     },
     "overriddenBy": "temporal.nexusoperation.Properties$package$.closedRejectsOrRepeats",
     "position": "model/temporal/nexusoperation/Capabilities.scala:24"
@@ -30,6 +34,7 @@
       "status": "temporal.nexusoperation.Operation$.phase",
       "terminal": "temporal.nexusoperation.Operation$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/nexusoperation/Capabilities.scala:24"
   }, {
     "machine": "nexusOperation",
@@ -40,6 +45,7 @@
       "terminate": "temporal.nexusoperation.Model$package.terminate",
       "settled": "temporal.nexusoperation.OperationFact.statusTerminated"
     },
+    "cites": { },
     "position": "model/temporal/nexusoperation/Capabilities.scala:29"
   } ],
   "waivers": [ {
@@ -56,27 +62,47 @@
     "cites": [ "chasm/lib/activity/operator_commands.go", "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation.go" ],
     "promises": "a cancel request of an entity whose work is in flight records the request and leaves the entity live",
     "doesNotPromise": "that the entity is then canceled, which only its work's answer settles; what a cancel with no work in flight does (the activity settles canceled at once); or what a second request answers (the Nexus operation answers ErrCancellationAlreadyRequested)",
-    "instantiating": [ "nexusOperation" ]
+    "parameters": [ ],
+    "instantiating": [ {
+      "machine": "nexusOperation",
+      "state": "temporal.nexusoperation.OperationState"
+    } ],
+    "position": "model/temporal/capabilities/Catalog.scala:11"
   }, {
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
     "cites": [ "chasm/lib/activity/activity.go", "chasm/lib/nexusoperation/operation.go", "chasm/lib/scheduler/scheduler.go" ],
     "promises": "every step from a terminal status keeps the state and answers the entity's rejecting outcome",
     "doesNotPromise": "which outcome rejects (a parameter: the activity answers NotFound, the Nexus operation and the schedule FailedPrecondition), or that a repeated request with the same request id is rejected: the server answers it as the first",
-    "instantiating": [ "nexusOperation" ]
+    "parameters": [ "rejected" ],
+    "instantiating": [ {
+      "machine": "nexusOperation",
+      "state": "temporal.nexusoperation.OperationState"
+    } ],
+    "position": "model/temporal/capabilities/Catalog.scala:9"
   }, {
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
     "cites": [ "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation_statemachine.go" ],
     "promises": "no step moves an entity out of a terminal status, or from one terminal status to another",
     "doesNotPromise": "that a closed entity answers a mutation by rejecting it (closedIsRejectedUniformly), that its status is reported, or that the close is recorded once",
-    "instantiating": [ "nexusOperation" ]
+    "parameters": [ ],
+    "instantiating": [ {
+      "machine": "nexusOperation",
+      "state": "temporal.nexusoperation.OperationState"
+    } ],
+    "position": "model/temporal/capabilities/Catalog.scala:9"
   }, {
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
     "cites": [ "chasm/lib/activity/activity.go", "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation_statemachine.go" ],
     "promises": "a terminate of a live entity settles it as terminated in one step and records that",
     "doesNotPromise": "what a terminate of a closed entity answers (closedIsRejectedUniformly), what a second terminate answers (the activity answers the same request id OK, the Nexus operation also refuses another id by name), or that a reason and an identity are recorded: the schedule records only that it closed",
-    "instantiating": [ "nexusOperation" ]
+    "parameters": [ ],
+    "instantiating": [ {
+      "machine": "nexusOperation",
+      "state": "temporal.nexusoperation.OperationState"
+    } ],
+    "position": "model/temporal/capabilities/Catalog.scala:10"
   } ]
 }

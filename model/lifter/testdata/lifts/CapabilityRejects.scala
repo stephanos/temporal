@@ -1,8 +1,8 @@
-// Capability declarations the lifter refuses, each at its line (fn-122.2): an action the machine
-// does not bind, a lambda for a function-valued field, two capabilities of one kind in one
-// declaration or in two, a waiver of a
-// law the catalog does not bring, a waiver with no reason, an overriding def with other parameters
-// than the law's, and a function-valued argument of a law that is a lambda.
+// Capability declarations the lifter refuses, each at its line (fn-122.2, fn-122.5): an action the
+// machine does not bind, a lambda for a function-valued field, two capabilities of one kind in one
+// declaration or in two, a waiver of a law the catalog does not bring, a waiver with no reason, an
+// overriding def with other parameters than the law's, a function-valued argument of a law that is
+// a lambda, a `cited` with no citation or a computed one, and a law citing a parameter it lacks.
 package fixture.capabilityrejects
 
 import umpire.*
@@ -92,3 +92,31 @@ object otherKit:
 val sameName = capabilities(job, limits = three)(
   otherKit.Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 ).except(terminalStatesAreFinal, because = "another kit's Closable brings no Temporal law")
+
+// A binding `cited` with no citation, and one whose citation is computed.
+val uncited = capabilities(job, limits = three)(
+  Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = cited(Answer.gone))
+)
+
+val computedCitation = capabilities(job, limits = three)(
+  Closable(
+    status = Jobs.phase,
+    terminal = Jobs.terminal,
+    rejected = cited(Answer.gone, Answer.gone.toString)
+  )
+)
+
+/** A law that names among its cited parameters one its apply does not take. */
+object citesNoParameter
+    extends Law(
+      cites = Seq("model/lifter/testdata/lifts/CapabilityRejects.scala"),
+      promises = "a closed job keeps its status",
+      doesNotPromise = "anything a fixture does not need",
+      parameters = Seq("terminal", "rejected")
+    ):
+  def apply[S, P](m: Declares[S])(status: S => P, terminal: P => Boolean): Property[S] =
+    m.property.once(s => terminal(status(s))).keeps(status)
+
+val unknownParameter = capabilities(job, limits = three)(
+  Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
+)(using Catalog.single(Closable)(citesNoParameter))

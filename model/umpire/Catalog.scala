@@ -23,9 +23,16 @@ trait CapabilityKind:
 /**
  * A law: an object named after it whose `apply` states it, a def that takes the model and the
  * capability's fields and returns a Property, and as data the lifter reads, the server code it rests
- * on, what it promises and what it leaves to other laws or parameters.
+ * on, what it promises and what it leaves to other laws or parameters. `parameters` names the
+ * parameters of its `apply` in which entities differ on purpose: each entity's binding of one backs
+ * its value with the server code that answers it so, written with `cited`.
  */
-abstract class Law(val cites: Seq[String], val promises: String, val doesNotPromise: String):
+abstract class Law(
+    val cites: Seq[String],
+    val promises: String,
+    val doesNotPromise: String,
+    val parameters: Seq[String] = Nil
+):
   /** The law's name, which generated claims take as `<machine>.<law>`: its object's. */
   def name: String = getClass.getSimpleName.stripSuffix("$")
 

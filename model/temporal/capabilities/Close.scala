@@ -33,9 +33,8 @@ object terminalStatesAreFinal
     )
 
 /**
- * A closed entity is rejected alike by every step: from a state whose `status` is `terminal`, a step
- * keeps the state and answers `rejected`. Phrased over every step, because a transition Property
- * restricted by `when` is not supported (model/SEMANTICS.md, Claims).
+ * A closed entity is rejected alike: every step from a `terminal` status keeps the state and
+ * answers `rejected`, phrased so because `when` restricts no transition (SEMANTICS.md, Claims).
  */
 object closedIsRejectedUniformly
     extends Law(
@@ -49,7 +48,8 @@ object closedIsRejectedUniformly
       doesNotPromise =
         "which outcome rejects (a parameter: the activity answers NotFound, the Nexus operation and " +
           "the schedule FailedPrecondition), or that a repeated request with the same request id " +
-          "is rejected: the server answers it as the first"
+          "is rejected: the server answers it as the first",
+      parameters = Seq("rejected")
     ):
   def apply[S, P](m: Declares[S])(
       status: S => P,

@@ -586,6 +586,62 @@
         "delivers"
       ],
       "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "waived-law",
+      "owner": "currentAdmission",
+      "subjects": [
+        "currentAdmission.closedIsRejectedUniformly"
+      ],
+      "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
+    },
+    {
+      "kind": "waived-law",
+      "owner": "currentOverLossyMatching",
+      "subjects": [
+        "currentOverLossyMatching.closedIsRejectedUniformly"
+      ],
+      "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
+    },
+    {
+      "kind": "waived-law",
+      "owner": "currentOverMatching",
+      "subjects": [
+        "currentOverMatching.closedIsRejectedUniformly"
+      ],
+      "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
+    },
+    {
+      "kind": "waived-law",
+      "owner": "currentOverQueue",
+      "subjects": [
+        "currentOverQueue.closedIsRejectedUniformly"
+      ],
+      "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
+    },
+    {
+      "kind": "waived-law",
+      "owner": "staleAdmission",
+      "subjects": [
+        "staleAdmission.closedIsRejectedUniformly"
+      ],
+      "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
+    },
+    {
+      "kind": "waived-law",
+      "owner": "staleOverMatching",
+      "subjects": [
+        "staleOverMatching.closedIsRejectedUniformly"
+      ],
+      "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
+    },
+    {
+      "kind": "waived-law",
+      "owner": "staleOverQueue",
+      "subjects": [
+        "staleOverQueue.closedIsRejectedUniformly"
+      ],
+      "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     }
   ]
 }
