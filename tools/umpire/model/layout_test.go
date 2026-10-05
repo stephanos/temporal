@@ -69,9 +69,10 @@ var retiredFeatureFilePaths = regexp.MustCompile(strings.Join([]string{
 
 // retiredFeatureFileProse matches a retired per-kind file named bare in prose, the way a Model
 // folder's file was named: owned by a folder, a feature or a Model ("its Model folder's
-// Capabilities.scala"), or after a preposition ("read off Properties.scala", "in `Queries.scala`").
+// Capabilities.scala"), after "own" ("its own `Capabilities.scala`"), or after a preposition ("read
+// off Properties.scala", "in `Queries.scala`").
 var retiredFeatureFileProse = regexp.MustCompile(
-	"(?:\\b(?:folder|feature|[Mm]odel)'s|\\b(?:off|in|from|beside|see)) `?(?:Model|Properties|Queries|Capabilities|IrFiles)\\.scala\\b")
+	"(?:\\b(?:folder|feature|[Mm]odel)'s|\\b(?:off|in|from|beside|see|own)) `?(?:Model|Properties|Queries|Capabilities|IrFiles)\\.scala\\b")
 
 // ownCapabilities are the files that keep the name Capabilities.scala on purpose: the framework's
 // mechanism, the kit's capability kinds and the IR generator's expansion and fixture. A file of
@@ -256,6 +257,7 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"a fixture named like a retired file":  {"model/irgen/testdata/lifts/Capabilities.scala, irFileRefusals/IrFiles.scala", false},
 		"a folder's file named bare":           {"in its Model folder's Capabilities.scala", true},
 		"a feature's file named bare":          {"the feature's `IrFiles.scala`", true},
+		"a Model's own file named bare":        {"its own `Capabilities.scala`", true},
 		"a file read off by name":              {"The claims are read off Properties.scala", true},
 		"a file named after a preposition":     {"declared in `Queries.scala`, beside Model.scala", true},
 		"the framework's Capabilities.scala":   {"`cited` in `Capabilities.scala` (model/umpire)", false},
