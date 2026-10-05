@@ -38,7 +38,7 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 			for _, path := range []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
-			for _, path := range []string{"deterministicio/testdata/cactusstatsd", "deterministicio/testdata/hashicorpmetrics", "deterministicio/testdata/memberlist", "deterministicio/testdata/pebble", "deterministicio/testdata/sentry", "deterministicio/testdata/sockaddr", "deterministicio/testdata/sprig", "deterministicio/testdata/validator", "internal/compatibilitypack/testdata/xsys", "internal/gomadtool/conformance/testdata", "internal/gomadtool/conformance/testdata/libc_adapter", "internal/gomadtool/conformance/testdata/sqlite_adapter", "qualification/corpus"} {
+			for _, path := range []string{"deterministicio/testdata/cactusstatsd", "deterministicio/testdata/hashicorpmetrics", "deterministicio/testdata/memberlist", "deterministicio/testdata/pebble", "deterministicio/testdata/sentry", "deterministicio/testdata/sockaddr", "deterministicio/testdata/sprig", "deterministicio/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "internal/gomadtool/conformance/testdata", "internal/gomadtool/conformance/testdata/libc_adapter", "internal/gomadtool/conformance/testdata/sqlite_adapter", "qualification/corpus"} {
 				files[path+"/go.mod"] = "module example.invalid/fixture\n\ngo 1.27.1\n"
 				files[path+"/fixture.go"] = "package fixture\n"
 			}

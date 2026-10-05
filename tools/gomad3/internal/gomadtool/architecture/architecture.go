@@ -193,7 +193,7 @@ var expectedModules = map[string]bool{
 	"deterministicio/testdata/memberlist/go.mod": true, "deterministicio/testdata/pebble/go.mod": true,
 	"deterministicio/testdata/sentry/go.mod": true, "deterministicio/testdata/sockaddr/go.mod": true,
 	"deterministicio/testdata/sprig/go.mod": true, "deterministicio/testdata/validator/go.mod": true,
-	"internal/compatibilitypack/testdata/xsys/go.mod": true, "internal/gomadtool/conformance/testdata/go.mod": true,
+	"internal/compatibilitypack/testdata/v041/go.mod": true, "internal/compatibilitypack/testdata/xsys/go.mod": true, "internal/gomadtool/conformance/testdata/go.mod": true,
 	"internal/gomadtool/conformance/testdata/libc_adapter/go.mod": true, "internal/gomadtool/conformance/testdata/sqlite_adapter/go.mod": true,
 	"qualification/corpus/go.mod": true,
 }

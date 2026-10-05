@@ -1,0 +1,138 @@
+{
+  "base_commit": "b1054ecc0968cb1d9b957c3b98ef6dd8c340c414",
+  "recovery_parent": "56148912df17e105dab3ec4b9e250ff5ef813318",
+  "deletion_commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+  "historical_files": [
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json",
+      "historical_sha256": "406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85",
+      "final_sha256": "406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85",
+      "byte_equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v041.json",
+      "historical_sha256": "1fbbf22377644ba3aec9f1bf2612b207d23e9a4f6a91747d93a373808fbc40f4",
+      "final_sha256": "1fbbf22377644ba3aec9f1bf2612b207d23e9a4f6a91747d93a373808fbc40f4",
+      "byte_equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md",
+      "historical_sha256": "a83095bc7ffb68d1c79b6eb17260c08171003827d80e47789fa0e9be4cbf666e",
+      "final_sha256": "a83095bc7ffb68d1c79b6eb17260c08171003827d80e47789fa0e9be4cbf666e",
+      "byte_equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/v041/go.mod",
+      "historical_sha256": "fede118011c2f4975aa514f01da3afce5d39bf730bfd6f512b419075b705dc17",
+      "final_sha256": "fede118011c2f4975aa514f01da3afce5d39bf730bfd6f512b419075b705dc17",
+      "byte_equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/v041/go.sum",
+      "historical_sha256": "26ffc8384dc377da24be175a04fe821ccc977dc18c01a49cf64742216f5ebdc7",
+      "final_sha256": "26ffc8384dc377da24be175a04fe821ccc977dc18c01a49cf64742216f5ebdc7",
+      "byte_equal": true
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go",
+      "historical_sha256": "b22bc85f378d93ada9af6e900761706f23110db40c81f1ec78a1c1e3b60d59a6",
+      "final_sha256": "b22bc85f378d93ada9af6e900761706f23110db40c81f1ec78a1c1e3b60d59a6",
+      "byte_equal": true
+    }
+  ],
+  "changed_source_bindings": {
+    "tools/gomad3/architecture_test.go": {
+      "base_sha256": "446a3b17f64eeb078d7a28a1ca5434696f1dd414dbcdf15e5ad0130eda53159d",
+      "final_sha256": "2c3cd6b7b0b818a5776be1df46361da1c5f2d4a70c89b692559252bdf2e17924"
+    },
+    "tools/gomad3/internal/compatibilitypack/authoring/generate_test.go": {
+      "base_sha256": "78edbad5086fd6f04aee45487b5df8eebc88107b371f15682e11f59b2727869e",
+      "final_sha256": "47f6efed5d2e58ac7996b2562f693efc03f8a9c3a2dc6af13397ad592cd7a026"
+    },
+    "tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go": {
+      "base_sha256": "eee56683da565225acf33ee9a8f96061476204595c47a2e0f1d7597ac270ab23",
+      "final_sha256": "aaf9ca88e7f679177cccd0c03b820878777b755de6d2ec003a61c3975ca66af6"
+    },
+    "tools/gomad3/internal/compatibilitypack/evidence_test.go": {
+      "base_sha256": "edc2b3b17425cdda7ac88fe6adfb2681dfc9b8cd8079d8ee4d137d0045fc4ecb",
+      "final_sha256": "edc20c081d8da33fcc6541471e86ffc6d44a53d90dc1f63c51cf364e57e85031"
+    },
+    "tools/gomad3/internal/compatibilitypack/generation.json": {
+      "base_sha256": "683f038aab921b3fee562963639660b507643948e907e7ff7a6d6c83798f91f1",
+      "final_sha256": "c1724200b05f2777002cc281ec91778216ed5650f2bcfe0ea494af917a13bf7e"
+    },
+    "tools/gomad3/internal/compatibilitypack/packs_generated_test.go": {
+      "base_sha256": "70297a5bbab77d08e5cd7196d88284ea977b040a1b6caf179eb5027695ad67aa",
+      "final_sha256": "58b685662777218d494be80058864a5442d494450fd9544272907ce2bb14eebe"
+    },
+    "tools/gomad3/internal/compatibilitypack/policy_test.go": {
+      "base_sha256": "d9c059923630e3f9e2898eee73b53ba47df5ee1757879f02a72d574aa832312e",
+      "final_sha256": "10c083a1b15bd8d6360179120a207904d6ca53dafcd8a7784d0f0b801f0cd742"
+    },
+    "tools/gomad3/internal/compatibilitypack/working-directories.json": {
+      "base_sha256": "00bbb9827a684c1fab45fcb1629f73b2a06430471fcf41cc63aa02822c6cacd6",
+      "final_sha256": "7af51de25955685903bfcd5b14acc73fbc8b6d9507eaea021e68c37e4693f3f9"
+    },
+    "tools/gomad3/internal/gomadtool/architecture/architecture.go": {
+      "base_sha256": "68734d4d0967e8bf3fe33fab2c9256b678d0f431d42c6de14012526bf278a929",
+      "final_sha256": "60783dc207b83a9d751cf7d69e81e3346d6baa1fd4c9577c9e854094f85f2908"
+    }
+  },
+  "source_closure": {
+    "base_path_count": 1052,
+    "final_path_count": 1058,
+    "unchanged_existing_paths": 1043,
+    "added_paths": [
+      "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json",
+      "tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v041.json",
+      "tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md",
+      "tools/gomad3/internal/compatibilitypack/testdata/v041/go.mod",
+      "tools/gomad3/internal/compatibilitypack/testdata/v041/go.sum",
+      "tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go"
+    ],
+    "final_sha256": "0ec36102e873df86109324700eeb05791e16713a1dbe95b0fd874cf6f4457727",
+    "scope": "All cached tracked plus nonignored untracked source paths under tools/gomad3, tools/gomad3sim, tools/gomad3integration, root Makefile and .github/.golangci.yml; includes all six restored files; no artifacts. Capture legacy tracked_path_count key counts this complete closure."
+  },
+  "outputs": {
+    "unrelated_output_count": 35,
+    "unrelated_outputs_unchanged": true,
+    "unrelated_generation_manifest_bindings_unchanged": true,
+    "unrelated_registry_bytes_unchanged": true,
+    "unrelated_mapping_entries_unchanged": true,
+    "v041_mutation_count": 21
+  },
+  "approval": {
+    "historical": "sha256:0ea7c3348fb859e204f7cbfd36db3a735b99261597a3e33260e725b375fe8820",
+    "preserved": true,
+    "new_approval_granted": false,
+    "discovery_performed": false,
+    "workload_qualification_performed": false,
+    "adapter_profile_pins_equal_current_v047": true,
+    "pins": [
+      {
+        "path": "modernc.org/libc",
+        "version": "v1.72.3",
+        "sum": "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=",
+        "profile": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0"
+      },
+      {
+        "path": "modernc.org/memory",
+        "version": "v1.11.0",
+        "sum": "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=",
+        "profile": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0"
+      }
+    ]
+  },
+  "task_historical_done_and_evidence_unchanged": true,
+  "architecture_classification": {
+    "exact_literal_module_entry_only": true,
+    "exact_synthetic_fixture_directory_only": true,
+    "source_exclusions_and_refusal_predicates_unchanged": true
+  },
+  "task_historical_comparison_scope": "Done narrative and Evidence retained exactly; only the Flow-managed Blocked: segment before ## Evidence is excluded from comparison so the conductor can update current runtime blockers.",
+  "idempotence": {
+    "run": "generate-repeat",
+    "exit_code": 0,
+    "source_sha256": "ee94b87e5323642756208f5dc812a22d31e256e859c06d1b25d5786115d3c89b"
+  }
+}

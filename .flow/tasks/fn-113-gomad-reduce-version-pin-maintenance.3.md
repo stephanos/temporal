@@ -11,7 +11,7 @@ One command that runs `discover`, `review`, and `generate` for every request a b
 
 **Size:** M
 **Files:** `tools/gomad3/cmd/gomadtool/compatibility_pack.go`, `tools/gomad3/internal/compatibilitypack/authoring/*.go`, `tools/gomad3/internal/compatibilitypack/{packs,requests,reports}/`, `generation.json`, `tools/gomad3/Makefile`
-**Touches:** [tools/gomad3/cmd/gomadtool/**, tools/gomad3/internal/compatibilitypack/**, tools/gomad3/Makefile, tools/gomad3/qualification/corpus/**]
+**Touches:** [tools/gomad3/cmd/gomadtool/**, tools/gomad3/internal/compatibilitypack/**, tools/gomad3/Makefile, tools/gomad3/qualification/corpus/**, tools/gomad3/internal/gomadtool/architecture/architecture.go, tools/gomad3/architecture_test.go]
 
 ### Approach
 - Add a `refresh` subcommand beside the existing five. It runs on a checkout where the bump is already applied, so the candidate versions are the ones the working tree resolves. It takes the invalidated request set from the task 1 report run against that checkout.
@@ -49,6 +49,40 @@ Retain focused baseline/final refresh tests and the actual pinned lint before/af
 The refresh switch now explicitly ignores the two unchanged statuses. [The checkpoint](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-exhaustive-20261005/progress.md) links baseline/final controls, exact source preservation, raw lint and independent source review. Scoped lint changes from 136 to 135 findings and integrated lint from 318 to 317; every remaining diagnostic block is unchanged. Both gates remain red. The inherited pin-impact host refusal remains a failure, original acceptance stays open, and no native qualification or formal SHIP is claimed.
 
 stage: impl-review - skipped(policy: required lint/native/R4 gates remain open; independent source-progress review approved)
+stage: plan-sync - skipped(config: disabled; no task completion)
+
+### Source-progress revival (2026-10-05): selected v041 preservation
+
+Restore the six historical v041 pack, request, report and fixture files from `56148912df17e105dab3ec4b9e250ff5ef813318` inside this task's existing Touches. Deleting the selecting fixture did not satisfy R4's unselected-variant condition. Add the sorted working-directory mapping and regenerate the current inventory and mutation controls through `authoring.Regenerate`; preserve the shared Makefile flow and all current v047 coverage. Recover recorded approval bytes exactly. Offline regeneration grants no approval and establishes no current discovery or workload qualification.
+
+Add v041 selection, exact evidence, capability and near-miss refusal controls alongside the current v047 assertions. Retain baseline controls, a failing-before/passing-after restoration regression, six historical byte comparisons, unrelated output preservation, repeat-generation idempotence, ordinary pack/authoring and selected CLI tests, generator validation, architecture and actual affected lint. Add a scratch-root stale-recorded-approval regeneration control that refuses before publishing and preserves every pre-call artifact. Verify that the shared table resolves v041's actual restored directory. Source-only generated package vectors establish selection policy, not live closure availability.
+
+The current generator lives at `tools/gomad3/internal/compatibilitypack/authoring/generate.go:58`; its CLI regeneration branch is `tools/gomad3/cmd/gomadtool/compatibility_pack.go:132`. Extend the existing evidence and policy tests rather than replacing v047 with v041. The historical profile and libc/memory pins match current v047; no stale-pin mismatch has been demonstrated. A future native discovery must compare the complete fresh review digest with the historical approval before claiming current approval; changed evidence follows the existing approval flow.
+
+Keep task .1/.2 dependencies, all original acceptance, current-source R4/R18 reconciliation, native Darwin closure qualification, actual fixture execution and replay, full gates and formal review open where unproved. MILESTONES permits reviewed source progress and requires its own commit. Linux execution remains nonblocking under fn-128.4/.7. This is a cohesive restoration in the existing owner, with one generator/cache writer and independent read-only research and source review. No new API, pin range, automatic approval, owner, requirement or waiver is introduced.
+
+SHORT research skips external scouts; this correction uses existing authoring APIs. Declined concepts and legacy copies are absent. Formal plan review is skipped for this bounded task refinement; independent source-progress review gates the commit, and original formal acceptance review remains required.
+
+Classification follow-up (2026-10-05): the first restored-candidate `TestPackageArchitecture` run rejects `internal/compatibilitypack/testdata/v041/go.mod` as an unclassified module on both source sets. Add only this exact required module beside the existing xsys fixture in `internal/gomadtool/architecture/architecture.go`, and mirror its fixture directory in the existing `architecture_test.go` inventory setup. These two precise paths extend this restoration's Touches; discovery, source exclusions and unclassified/stale-module guards remain unchanged. Retain the failing receipt and rerun package architecture plus its classification/refusal controls on a new frozen candidate. This integrates the restored fixture and grants no capability or gate waiver.
+
+### Memory findings
+
+memory: bm25 (jev-unavailable(no_key))
+
+| Track | Category | Entry | Why relevant |
+| --- | --- | --- | --- |
+| bug | integration | Profile adapter changes leave libc-bound compatibility packs stale (2026-10-01) | Exact profile bindings require rediscovery after an actual adapter change; this is conditional precedent, not a current mismatch. |
+| bug | integration | Shard merge and prepared-target cache must bind source identity, not go.mod (2026-09-29) | Restoration receipts must identify the frozen source candidate, not merely its module or toolchain. |
+
+### Selected v041 source checkpoint (2026-10-05)
+
+The six historical v041 files, exact shared-directory mapping and current generated mutation controls are restored alongside v047. [The checkpoint](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/v041-restoration-20261005/progress.md) binds the meaningful RED controls, final pack/authoring and generator checks, required-module integration, two independent 253-case conductor rechecks, all six historical byte comparisons and 1,043 unchanged existing source paths. Native closure, actual fixture execution and exact replay remain unverified.
+
+Actual integrated lint remains red with the same 317 complete diagnostic blocks as the previous candidate. Scoped compatibility/CLI lint retains 138 inherited findings. Original acceptance, .1/.2 dependencies, current-source R4/R18 reconciliation, required native Darwin/full gates and formal review remain open. Transferred Linux execution stays nonblocking under fn-128.4/.7. The checkpoint records independent source-progress review separately from formal qualification.
+
+The full post-stage whitespace check records the recovered report's historical extra blank line at EOF. The earlier unstaged check omitted this new file. Preserve its exact historical and current-generator bytes, retain the failure, and leave the full check red without changing whitespace rules.
+
+stage: impl-review - skipped(policy: required lint/native/R4 gates remain open; independent source-progress review recorded separately)
 stage: plan-sync - skipped(config: disabled; no task completion)
 ## Acceptance
 
@@ -101,11 +135,13 @@ stage: plan-sync - skipped(config: planSync.enabled != true)
 Tracker sync: n/a (sync active=false).
 
 Blocked:
-ORIGINAL_QUALIFICATION_OPEN. The refresh status exhaustive finding is repaired by one explicit no-op case. Focused refresh controls pass before and after, and the conductor recheck passes all 11 cases. The pin-impact control retains its exact pre-edit linux/arm64 preparation refusal (three pass, one fail); the build-pin proof is not satisfied here.
+ORIGINAL_QUALIFICATION_OPEN. The selecting v041 fixture, exact pack/request/report and shared mapping are restored. Six historical files match the recovery parent; current generation is idempotent and preserves unrelated outputs. Pack/evidence/policy and classification/refusal controls pass, including the conductor's current-source 253-case recheck with no failures or skips. Source restoration establishes policy availability only.
 
-Actual full-config scoped lint remains red with 135 errcheck findings. Integrated lint remains red with 317 findings (252 errcheck, two exhaustive, 11 forbidigo, 52 staticcheck); Make exits 2 and never reaches integrated errortype. Literal preservation and complete raw diagnostic comparison confirm only the selected exhaustive finding was removed.
+Actual integrated lint remains red with 317 complete diagnostic blocks identical to the previous candidate (252 errcheck, two exhaustive, 11 forbidigo, 52 staticcheck). Make exits 2 and integrated errortype remains UNREACHED. Scoped compatibility/CLI lint retains 138 inherited findings and architecture lint four findings in unchanged code.
 
-Task .1/.2 acceptance dependencies, full current-source R4 reconciliation including selected-v041 preservation, required native Darwin validate/pack and broader qualification, and formal review remain open. This checkpoint is verified source progress, not completed acceptance. Linux execution remains transferred and nonblocking under fn-128.4/.7.
+The full staged whitespace check exits 2 on the exact recovered report's historical blank line at EOF. Its retained receipt supersedes the narrower unstaged check for this addition. The report and current generator output remain byte-identical to the recovery parent; neither generator nor whitespace rules change.
+
+Task .1/.2 acceptance dependencies, full current-source R4/R18 reconciliation, fresh native Darwin discovery with the complete review digest compared to historical approval, actual Runner fixture execution and exact replay, required native/full gates and formal review remain open. The current adapter/profile pins match v047; no current stale-pin mismatch or new approval is claimed. Transferred Linux execution remains nonblocking under fn-128.4/.7.
 ## Evidence
 - Commits:
 - Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade (focused-bound-final.log; exit0), go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade (vet-final.log; exit0), make -C tools/gomad3 validate compatibility-pack-qualification (8 Darwin requests; exit0), real CLI refresh in root and corpus mappings; approve one via generate --approve-review; rerun reports only other; Linux request unchanged; unmapped CLI exits2, selector audit:16Go modules, no remaining v041 selectors; retired pack/request/report/fixture and migrated same coverage to v047, codex implementation review: SHIP,R4met,16path bindings including6deletions and patch digest verified, gofmt and git diff --check clean; scopedlint17pre-existing findings none newrefresh files; nativeLinux unavailable, finalgates task4

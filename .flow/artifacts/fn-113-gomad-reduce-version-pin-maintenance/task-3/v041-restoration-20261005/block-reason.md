@@ -1,0 +1,7 @@
+ORIGINAL_QUALIFICATION_OPEN. The selecting v041 fixture, exact pack/request/report and shared mapping are restored. Six historical files match the recovery parent; current generation is idempotent and preserves unrelated outputs. Pack/evidence/policy and classification/refusal controls pass, including the conductor's current-source 253-case recheck with no failures or skips. Source restoration establishes policy availability only.
+
+Actual integrated lint remains red with 317 complete diagnostic blocks identical to the previous candidate (252 errcheck, two exhaustive, 11 forbidigo, 52 staticcheck). Make exits 2 and integrated errortype remains UNREACHED. Scoped compatibility/CLI lint retains 138 inherited findings and architecture lint four findings in unchanged code.
+
+The full staged whitespace check exits 2 on the exact recovered report's historical blank line at EOF. Its retained receipt supersedes the narrower unstaged check for this addition. The report and current generator output remain byte-identical to the recovery parent; neither generator nor whitespace rules change.
+
+Task .1/.2 acceptance dependencies, full current-source R4/R18 reconciliation, fresh native Darwin discovery with the complete review digest compared to historical approval, actual Runner fixture execution and exact replay, required native/full gates and formal review remain open. The current adapter/profile pins match v047; no current stale-pin mismatch or new approval is claimed. Transferred Linux execution remains nonblocking under fn-128.4/.7.

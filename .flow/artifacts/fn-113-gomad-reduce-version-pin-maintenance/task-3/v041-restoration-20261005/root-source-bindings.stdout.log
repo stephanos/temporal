@@ -1,0 +1,21 @@
+{
+  "base_git_paths_verified": 1052,
+  "unchanged_existing_source_paths": 1043,
+  "modified_existing_paths": [
+    "tools/gomad3/architecture_test.go",
+    "tools/gomad3/internal/compatibilitypack/authoring/generate_test.go",
+    "tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go",
+    "tools/gomad3/internal/compatibilitypack/evidence_test.go",
+    "tools/gomad3/internal/compatibilitypack/generation.json",
+    "tools/gomad3/internal/compatibilitypack/packs_generated_test.go",
+    "tools/gomad3/internal/compatibilitypack/policy_test.go",
+    "tools/gomad3/internal/compatibilitypack/working-directories.json",
+    "tools/gomad3/internal/gomadtool/architecture/architecture.go"
+  ],
+  "exact_historical_recoveries": 6,
+  "final_source_paths": 1058,
+  "final_source_sha256": "0ec36102e873df86109324700eeb05791e16713a1dbe95b0fd874cf6f4457727",
+  "retained_command_bindings": 22,
+  "archival_done_and_evidence_unchanged": true,
+  "current_flow_blocker_excluded_from_archival_comparison": true
+}

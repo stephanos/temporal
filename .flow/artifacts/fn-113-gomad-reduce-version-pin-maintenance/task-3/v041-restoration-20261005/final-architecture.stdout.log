@@ -1,0 +1,10 @@
+{"Time":"2026-10-05T21:39:44.187542364Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3"}
+{"Time":"2026-10-05T21:39:44.191291155Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture"}
+{"Time":"2026-10-05T21:39:44.192205697Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture","Output":"=== RUN   TestPackageArchitecture\n","OutputType":"frame"}
+{"Time":"2026-10-05T21:39:45.905195448Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture","Output":"    architecture_test.go:176: darwin/arm64 unclassified-module internal/compatibilitypack/testdata/v041/go.mod: nested module needs an explicit classification\n","OutputType":"error"}
+{"Time":"2026-10-05T21:39:47.096194698Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture","Output":"    architecture_test.go:176: linux/amd64 unclassified-module internal/compatibilitypack/testdata/v041/go.mod: nested module needs an explicit classification\n","OutputType":"error"}
+{"Time":"2026-10-05T21:39:47.098137573Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture","Output":"--- FAIL: TestPackageArchitecture (2.91s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T21:39:47.098305032Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3","Test":"TestPackageArchitecture","Elapsed":2.91}
+{"Time":"2026-10-05T21:39:47.098371573Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-05T21:39:47.098802782Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"FAIL\tgo.temporal.io/server/tools/gomad3\t2.910s\n","OutputType":"frame"}
+{"Time":"2026-10-05T21:39:47.09898099Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3","Elapsed":2.911}

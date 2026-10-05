@@ -94,6 +94,31 @@ func TestRegenerateUsesOnlyRecordedExactApprovals(t *testing.T) {
 	}
 }
 
+func TestRegenerateRejectsStaleRecordedApprovalWithoutPublication(t *testing.T) {
+	root := t.TempDir()
+	request := validRequest()
+	approval, err := ApprovalSHA256(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := Generate(root, request, approval); err != nil {
+		t.Fatal(err)
+	}
+	request.ApprovalSHA256 = approval
+	request.Justification += " Changed after approval."
+	if err := PublishRequest(filepath.Join(root, "requests", request.ID+".json"), request); err != nil {
+		t.Fatal(err)
+	}
+	before := generationSnapshot(t, root)
+	err = Regenerate(root)
+	if err == nil || err.Error() != "compatibility-pack request example-pack approval is stale" {
+		t.Fatalf("Regenerate() = %v, want stale approval refusal", err)
+	}
+	if after := generationSnapshot(t, root); !maps.Equal(before, after) {
+		t.Fatal("rejected regeneration changed the populated root")
+	}
+}
+
 func TestGenerateAdmissionRejectsFiveHostImportsBeforePublication(t *testing.T) {
 	for _, test := range []struct{ capability, approval, want string }{
 		{"import:os/exec", "", "compatibility-pack capability import:os/exec is never admitted"},

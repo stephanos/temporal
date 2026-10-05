@@ -16,6 +16,7 @@ import (
 
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/target"
+	"golang.org/x/mod/modfile"
 )
 
 const refreshDependency = "example.com/dependency"
@@ -379,6 +380,30 @@ func TestCheckedInWorkingDirectoriesMapEveryRequest(t *testing.T) {
 		if info, err := os.Stat(filepath.Join(directory, "go.mod")); err != nil || !info.Mode().IsRegular() {
 			t.Errorf("%s working directory %s has no go.mod: %v", id, directory, err)
 		}
+	}
+	v041 := filepath.Join("..", "testdata", "v041")
+	if directories["modernc-libc-xsys-v041"] != v041 {
+		t.Fatalf("v041 working directory = %q, want %q", directories["modernc-libc-xsys-v041"], v041)
+	}
+	contents, err := os.ReadFile(filepath.Join(v041, "go.mod"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	module, err := modfile.Parse(filepath.Join(v041, "go.mod"), contents, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if module.Module == nil || module.Module.Mod.Path != "gomad3.compatibility.v041" {
+		t.Fatalf("v041 fixture module = %#v", module.Module)
+	}
+	var xsysVersion string
+	for _, dependency := range module.Require {
+		if dependency.Mod.Path == "golang.org/x/sys" {
+			xsysVersion = dependency.Mod.Version
+		}
+	}
+	if xsysVersion != "v0.41.0" {
+		t.Fatalf("v041 fixture declares x/sys %q, want v0.41.0", xsysVersion)
 	}
 }
 

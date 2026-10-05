@@ -150,32 +150,46 @@ func TestVerifyValidatedPackIdentitiesRejectsUnavailableOrModifiedPacks(t *testi
 }
 
 func TestSelectBindsExactPackIdentityAndCapabilities(t *testing.T) {
-	// Other packs also activate on x/sys v0.47.0, so select this one alone.
-	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v047")
-	packages := generatedExactPackages(validated.pack)
-	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, packages, validated.pack.Governance.Platforms[0])
-	if err != nil {
-		t.Fatal(err)
-	}
-	identities := selection.Identities()
-	if len(identities) != 1 || identities[0].ID != "modernc-libc-xsys-v047" || identities[0].SHA256 == "" {
-		t.Fatalf("identities = %#v", identities)
-	}
-	xsys := generatedPackageForTest(t, packages, "golang.org/x/sys/unix")
-	if !selection.AllowsCapability(xsys, "import:syscall") {
-		t.Fatal("exact x/sys import capability was not authorized")
-	}
-	xsys.Module.Version = "v0.42.0"
-	if selection.AllowsCapability(xsys, "import:syscall") {
-		t.Fatal("unknown x/sys identity was authorized")
-	}
-	libc := generatedPackageForTest(t, packages, "modernc.org/libc")
-	if !selection.AllowsCapability(libc, "import:syscall") {
-		t.Fatal("exact local adapter source set was not authorized")
-	}
-	libc.SourceSetSHA256 = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
-	if selection.AllowsCapability(libc, "import:syscall") {
-		t.Fatal("modified local adapter source set was authorized")
+	for _, id := range []string{"modernc-libc-xsys-v047", "modernc-libc-xsys-v041"} {
+		t.Run(id, func(t *testing.T) {
+			validated := loadGeneratedPackForTest(t, id)
+			packages := generatedExactPackages(validated.pack)
+			var selection Selection
+			var err error
+			if id == "modernc-libc-xsys-v047" {
+				// Other packs also activate on x/sys v0.47.0, so select this one alone.
+				selection, err = SelectPacksForPlatform([]ValidatedPack{validated}, packages, validated.pack.Governance.Platforms[0])
+			} else {
+				selection, err = selectGeneratedPacksForTest(t, validated, packages)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			identities := selection.Identities()
+			if len(identities) != 1 || identities[0].ID != id || identities[0].SHA256 == "" {
+				t.Fatalf("identities = %#v", identities)
+			}
+			if err := VerifyIdentities(identities); err != nil {
+				t.Fatal(err)
+			}
+			requireTestEqual(t, validated.digest, identities[0].SHA256)
+			xsys := generatedPackageForTest(t, packages, "golang.org/x/sys/unix")
+			if !selection.AllowsCapability(xsys, "import:syscall") {
+				t.Fatal("exact x/sys import capability was not authorized")
+			}
+			xsys.Module.Version = "v0.42.0"
+			if selection.AllowsCapability(xsys, "import:syscall") {
+				t.Fatal("unknown x/sys identity was authorized")
+			}
+			libc := generatedPackageForTest(t, packages, "modernc.org/libc")
+			if !selection.AllowsCapability(libc, "import:syscall") {
+				t.Fatal("exact local adapter source set was not authorized")
+			}
+			libc.SourceSetSHA256 = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+			if selection.AllowsCapability(libc, "import:syscall") {
+				t.Fatal("modified local adapter source set was authorized")
+			}
+		})
 	}
 }
 
