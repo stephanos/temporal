@@ -329,6 +329,11 @@ Checked IR, generated Cases, specimens, specs, README and SEMANTICS move directl
 Reserve `model/examples` for fn-119 authoring examples and `tools/umpire/explore` for fn-120 explorer
 work; no example or UI is implemented here. Root lists kept their meaning until fn-114.1 moved them
 into Scala: each IR file is an `irFile` val beside its Models, and the gate's `Roots.scala` is gone.
+Since fn-114 closed, the Models own every root of `model/ir`: `features/nexuscaller/IrFiles.scala`
+declares `nexus-caller` and `nexus-control`, `features/nexuscaller/closepolicy/IrFiles.scala`
+`nexus-close`, `features/standaloneactivity/IrFiles.scala` `activity`, `activity-system` and
+`activity-race`, and `features/nexusoperation/IrFiles.scala` `nexus-operation`. Adding a root or an
+IR file edits only those files; the gate and the IR generator name none of them.
 
 | Command after migration | Existing source / behavior |
 | --- | --- |
