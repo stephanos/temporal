@@ -533,7 +533,7 @@ private[irgen] trait Claims:
       case (p, a) if !values.contains(p.symbol) =>
         p.symbol -> functions
           .get(p.symbol)
-          .fold(argument(p, d, a, env))(f => Decl.FunctionRef(f.fullName))
+          .fold(argument(p, d, a, env))(f => Decl.FunctionRef(functionName(f)))
     }
     binding(functions, types, values)(fold(d.rhs.get, bound.toMap, named))
 

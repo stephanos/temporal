@@ -120,6 +120,7 @@ private[irgen] trait Expressions:
     case Block(Nil, e)                               => forwardedDef(e)
     case r: Ref if boundFunctions.contains(r.symbol) => Some(boundFunctions(r.symbol))
     case r: Ref if isFunction(r.symbol)              => Some(r.symbol)
+    case c: Apply if throughCall(c)                  => Some(through(c))
     case _                                           =>
       lambda(t).flatMap { (params, body) =>
         def forwards(args: List[Term]) = args.map(_.symbol) == params.map(_.symbol)
@@ -132,6 +133,52 @@ private[irgen] trait Expressions:
             Some(boundFunctions(f.symbol))
           case _ => None
       }
+
+  /** Whether a call is the framework's `through(select, read)`. */
+  def throughCall(c: Apply): Boolean =
+    c.symbol.name == "through" && c.symbol.maybeOwner.fullName.startsWith("umpire.Compose$package")
+
+  /**
+   * `through(select, read)`: the symbol that stands for the function `s => read(s.<path>)` of the
+   * composed state where a def is bound or named, one per state, path and def. `callee` lifts it on
+   * its first call, named `<state>.through.<path>.<def>`. Refused at its argument, as a lambda is: a
+   * selector that is not a field path, and a `read` that names no def of the lifted sources.
+   */
+  def through(c: Apply): Symbol =
+    def unwrapped(t: Term): Term = t match
+      case NamedArg(_, e)     => unwrapped(e)
+      case Typed(e, _)        => unwrapped(e)
+      case Inlined(_, Nil, e) => unwrapped(e)
+      case _                  => t
+    val (select, read) = c.args.map(unwrapped) match
+      case List(select, read) => (select, read)
+      case _                  => fail(c, s"through takes a selector and a def, not ${c.show}")
+    val (state, path) = lambda(select)
+      .collect { case (List(p), body) => fieldPath(p, body).filter(_.nonEmpty).map(p -> _) }
+      .flatten
+      .map((p, path) => (instantiated(p.tpt.tpe).widen.dealias, path))
+      .getOrElse(
+        fail(
+          select,
+          s"through reads a member by its field path, such as `_.activity`, not ${select.show}"
+        )
+      )
+    val target = forwardedDef(read).getOrElse(
+      fail(
+        read,
+        "through reads the member with a def of the lifted sources, which the lifter binds, not " +
+          s"${read.show}: declare it as a `def` and pass that"
+      )
+    )
+    val name = s"${state.typeSymbol.fullName}.through.${path.mkString(".")}.${functionName(target)}"
+    throughs.getOrElseUpdate(
+      name, {
+        val sym =
+          Symbol.newVal(Symbol.spliceOwner, "through", state, Flags.EmptyFlags, Symbol.noSymbol)
+        throughOf(sym) = Through(name, state, path, target, c)
+        sym
+      }
+    )
 
   /**
    * The fields a lambda's body reads off its one parameter, outermost first: `List("activity",
@@ -195,6 +242,25 @@ private[irgen] trait Expressions:
    */
   def callee(named: Symbol, at: Tree): String =
     val sym = boundFunctions.getOrElse(named, named)
+    throughOf.get(sym).fold(defCallee(sym, at))(throughCallee)
+
+  /** The function a `through` stands for, lifted on its first call: `s => read(s.<path>)`. */
+  private def throughCallee(t: Through): String =
+    if !functions.contains(t.name) then
+      functions(t.name) = ir.Function.defaultInstance
+      val read = callee(t.read, t.at)
+      val member = t.path.foldLeft(expr(t.at)(E.Var("s"))) { (base, field) =>
+        expr(t.at)(E.Field(ir.FieldAccess(Some(base), field)))
+      }
+      functions(t.name) = ir.Function(
+        name = t.name,
+        position = Some(pos(t.at)),
+        params = Seq(ir.Param("s", Some(typeRef(t.state, t.at)))),
+        body = Some(expr(t.at)(E.Call(ir.Call(read, Seq(member)))))
+      )
+    t.name
+
+  private def defCallee(sym: Symbol, at: Tree): String =
     if lifting(sym.fullName) then
       fail(
         at,
@@ -456,9 +522,9 @@ private[irgen] trait Expressions:
 
   def call(fn: Symbol, args: List[Term], at: Tree): ir.Expr =
     val name = callee(fn, at)
-    val params = defs(boundFunctions.getOrElse(fn, fn)) match
-      case d: DefDef => d.termParamss.flatMap(_.params).map(_.tpt.tpe)
-      case _         => Nil
+    val params = defs.get(boundFunctions.getOrElse(fn, fn)) match
+      case Some(d: DefDef) => d.termParamss.flatMap(_.params).map(_.tpt.tpe)
+      case _               => Nil
     expr(at)(E.Call(ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))))
 
   /** Steps written out as a list and not explained yet, each with `reason` as its explanation. */

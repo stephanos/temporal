@@ -687,7 +687,7 @@ private[irgen] trait Capabilities:
 
   /** How the sidecar shows what a field is bound to: the def it names, or the value as written. */
   private def bindingText(a: Term): String = forwardedDef(a) match
-    case Some(sym) => sym.fullName
+    case Some(sym) => functionName(sym)
     case None      => plain(a).show
 
   /**

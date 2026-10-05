@@ -24,3 +24,7 @@ val noLimits = capabilities(here)(Pollable(dispatch = flick, running = hereOn))
 // A waiver without a reason.
 val noBecause = capabilities(here, ticks)(Pollable(dispatch = flick, running = hereOn))
   .except(terminalStatesAreFinal)
+
+// A member read with `through` by a def of another state type.
+val throughForeign =
+  capabilities(here, ticks)(Pollable(dispatch = flick, running = through(_.on, elsewhereOn)))

@@ -109,8 +109,8 @@
       "Pollable.dispatch": "left_poll"
     },
     "bindings": {
-      "paused": "fixture.capabilities.Pairs$.paused",
-      "running": "fixture.capabilities.Pairs$.running"
+      "paused": "fixture.capabilities.Pair.through.left.fixture.capabilities.Jobs$.paused",
+      "running": "fixture.capabilities.Pair.through.left.phase.fixture.capabilities.Capabilities$package$.runs"
     },
     "cites": { },
     "position": "model/irgen/testdata/lifts/Capabilities.scala:151"

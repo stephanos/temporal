@@ -2,13 +2,15 @@
 // machine does not bind, a lambda for a function-valued field, two capabilities of one kind in one
 // declaration or in two, a waiver of a law the catalog does not bring, a waiver with no reason, an
 // overriding def with other parameters than the law's, a function-valued argument of a law that is
-// a lambda, a `cited` with no citation or a computed one, and a law citing a parameter it lacks.
+// a lambda, a `cited` with no citation or a computed one, a law citing a parameter it lacks, and a
+// `through` whose selector is no field path or whose read is a lambda (fn-127.2).
 package fixture.capabilityrejects
 
 import umpire.*
 import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
 import temporal.capabilities.{given, *}
 import fixture.capabilities.{job, kill, poll, three, Answer, Job, Jobs, Note, Phase}
+import fixture.capabilities.{pair, pause, resume}
 
 given Family = Family("fixture.capabilityrejects")
 
@@ -120,3 +122,19 @@ object citesNoParameter
 val unknownParameter = capabilities(job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 )(using Catalog.single(Closable)(citesNoParameter))
+
+// A member read with `through` by a computed selector, and with a lambda for its def.
+val throughComputed = capabilities(pair, limits = three)(
+  Pollable(
+    dispatch = pair.own(_.left, poll),
+    running = through(_.left.copy(phase = Phase.queued), Jobs.running)
+  )
+)
+
+val throughLambda = capabilities(pair, limits = three)(
+  Pausable(
+    pause = pair.own(_.left, pause),
+    unpause = pair.own(_.left, resume),
+    paused = through(_.left, j => j.phase == Phase.paused)
+  )
+)

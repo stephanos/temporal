@@ -99,6 +99,19 @@ type Move[S] = S => (Any, Action[?])
 final class Composed private[umpire] (val composition: Model, val selected: Any)
 
 /**
+ * A member's def read from the composed state: `through(_.activity, Admission.paused)` is
+ * `s => Admission.paused(s.activity)`. A composition's capability field or a declaring function's
+ * function-valued argument names it where it would name a def, so a law reads a member's status
+ * set without a def that restates it for the composition. The IR generator lifts it as one function
+ * of the composed state, named after the state, the path and the def, and refuses a selector that is
+ * not a field path and a `read` that is not a def of the lifted sources, as it refuses a lambda.
+ *
+ * Core: it says which member a law reads, which no def of the lifted sources says. Its two arguments
+ * share one parameter list so that the composed state is inferred from where it is passed.
+ */
+def through[S, M, A](select: S => M, read: M => A): S => A = s => read(select(s))
+
+/**
  * Starts a composition named after the `val` that declares it, in the `given Family`, over members
  * each named by a selector of the field it fills: `compose[OverQueue](_.order -> currentRecord,
  * _.queue -> dispatchQueue)`.

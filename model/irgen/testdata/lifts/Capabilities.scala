@@ -3,7 +3,7 @@
 //   - a single capability's laws (Closable's two);
 //   - the law of a pair found without being listed (Pausable with Pollable);
 //   - functional laws asked from `reach` (Terminable's and Cancelable's);
-//   - a composition's law read through its members' projections (the cross-entity form);
+//   - a composition's law read through its members' defs with `through` (the cross-entity form);
 //   - a law waived with `except` and one replaced with `overriding`, each with its reason.
 //   - a rogue job whose poll dispatches a paused job, which breaks the pair's law (R11);
 //   - a fixture's own catalog, given explicitly, whose law keeps `status` (`terminal` a cited
@@ -140,9 +140,9 @@ val legacyCapabilities = capabilities(legacyJob, limits = three)(
 final case class Pair(left: Job, right: Job) derives Finite
 
 object Pairs:
-  def paused(p: Pair): Boolean = Jobs.paused(p.left)
-  def running(p: Pair): Boolean = Jobs.running(p.left)
   def ends(p: Pair): Boolean = Jobs.ends(p.left) && Jobs.ends(p.right)
+
+def runs(p: Phase): Boolean = p == Phase.running
 
 val pair: Composition[Pair] = compose[Pair](_.left -> job, _.right -> legacyJob).ends(Pairs.ends)
 
@@ -151,9 +151,9 @@ val pairCapabilities = capabilities(pair, limits = three)(
   Pausable(
     pause = pair.own(_.left, pause),
     unpause = pair.own(_.left, resume),
-    paused = Pairs.paused
+    paused = through(_.left, Jobs.paused)
   ),
-  Pollable(dispatch = pair.own(_.left, poll), running = Pairs.running)
+  Pollable(dispatch = pair.own(_.left, poll), running = through(_.left.phase, runs))
 )
 
 // ### A catalog of the fixture's own, whose law reads a bound field-path def as its `keeps`
