@@ -218,7 +218,11 @@
         ],
         "operation": "protocol_code"
       }
-    ]
+    ],
+    "instructionDefaults": {
+      "timeoutMilliseconds": "10000",
+      "maxAttempts": "1"
+    }
   },
   "contract": {
     "contractId": "temporal.case.systemInfoTests.answered.contract",

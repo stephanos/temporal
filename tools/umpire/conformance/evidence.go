@@ -85,6 +85,9 @@ type reader struct {
 	scope   []string
 	sources []string
 	kinds   map[string]*kind
+	// oneRun is whether the realization declares every attempt of an activity of its one run, so
+	// that one operation's evidence names one activity run.
+	oneRun bool
 }
 
 // newReader binds what the Case says of its evidence to the realization's declarations, by the
@@ -125,7 +128,8 @@ func newReader(r *umpirespb.Realization, source *testpilotspb.Case) (*reader, er
 	for _, e := range r.GetEvidence() {
 		declared[e.GetId()] = e
 	}
-	out := &reader{observation: contract.GetEvidenceObservationId(), scope: contract.GetScopeFields(), sources: contract.GetSources(), kinds: map[string]*kind{}}
+	out := &reader{observation: contract.GetEvidenceObservationId(), scope: contract.GetScopeFields(), sources: contract.GetSources(), kinds: map[string]*kind{},
+		oneRun: r.GetBehavior().GetAttemptNumbering().GetOneRun()}
 	for _, rule := range contract.GetProjectionRules() {
 		id, ok := definition[rule.GetKind()]
 		if !ok {

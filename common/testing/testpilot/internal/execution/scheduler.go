@@ -110,6 +110,17 @@ func (s *scheduler) entrypointKind(entrypointID string) contract.EntrypointKind 
 	return 0
 }
 
+// attemptNumbering is how the named activity entrypoint of the source Program numbers its attempts,
+// read from the source for the reason performsNothing gives; nil for any other entrypoint.
+func (s *scheduler) attemptNumbering(entrypointID string) *testpilotspb.AttemptNumbering {
+	for _, entrypoint := range s.values.program.source.GetEntrypoints() {
+		if entrypoint.GetEntrypointId() == entrypointID {
+			return entrypoint.GetActivity().GetAttemptNumbering()
+		}
+	}
+	return nil
+}
+
 // reservationVerdict is what the Run does with the outcome a reservation settles with.
 type reservationVerdict uint8
 
@@ -191,21 +202,24 @@ var reservationOutcomes = map[reservationOutcome]reservationRule{
 
 // judgeReservation reads reservationOutcomes for the outcome of the reservation at ordinal of an
 // entrypoint of the kind. unused says the entrypoint performs nothing, and priorRun is the activity
-// run the attempts of the same activity recorded so far named, empty when none is recorded. One
-// started activity is one run, so an outcome that names another is crossed and rejected.
-func judgeReservation(kind contract.EntrypointKind, unused bool, ordinal int64, priorRun string, outcome *testpilotspb.InstructionOutcome) reservationVerdict {
+// run the attempts of the same activity recorded so far named, empty when none is recorded. An
+// activity's attempts are numbered as its entrypoint declares: the reservation at ordinal is the
+// attempt numbered first + ordinal, and where every attempt is of one run, an outcome that names
+// another is crossed and rejected.
+func judgeReservation(kind contract.EntrypointKind, numbering *testpilotspb.AttemptNumbering, unused bool, ordinal int64, priorRun string, outcome *testpilotspb.InstructionOutcome) reservationVerdict {
 	attempt := outcome.GetActivityAttempt()
 	// An outcome the table does not list reads as the zero rule, whose verdict is rejection.
 	rule := reservationOutcomes[reservationOutcome{kind: kind, status: outcome.GetStatus(), response: attempt.GetResponse()}]
 	if rule.unusedOnly && !unused {
 		return reservationRejected
 	}
+	sameRun := !numbering.GetOneRun() || priorRun == "" || attempt.GetActivityRunId() == priorRun
 	var valid bool
 	switch rule.attempt {
 	case deliveredAttempt:
-		valid = attempt.GetActivityRunId() != "" && (priorRun == "" || attempt.GetActivityRunId() == priorRun) && int64(attempt.GetSdkAttempt()) == ordinal+1 && attempt.GetDeliveryId() != ""
+		valid = attempt.GetActivityRunId() != "" && sameRun && numbering.GetFirst() > 0 && int64(attempt.GetSdkAttempt()) == numbering.GetFirst()+ordinal && attempt.GetDeliveryId() != ""
 	case undeliveredAttempt:
-		valid = priorRun != "" && attempt.GetActivityRunId() == priorRun && attempt.GetSdkAttempt() == 0 && attempt.GetDeliveryId() == ""
+		valid = priorRun != "" && attempt.GetActivityRunId() != "" && sameRun && attempt.GetSdkAttempt() == 0 && attempt.GetDeliveryId() == ""
 	default:
 		valid = attempt == nil
 	}
@@ -934,7 +948,7 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		// The attempts of one activity share every part of their source but the ordinal.
 		activity := reservation.source[:strings.LastIndex(reservation.source, ".")]
 		prior := s.attemptFacts[activity]
-		verdict := judgeReservation(s.entrypointKind(id.EntrypointID), s.performsNothing(id.EntrypointID), id.Ordinal, prior.activityRunID, outcome)
+		verdict := judgeReservation(s.entrypointKind(id.EntrypointID), s.attemptNumbering(id.EntrypointID), s.performsNothing(id.EntrypointID), id.Ordinal, prior.activityRunID, outcome)
 		if verdict == reservationRejected || !ir.IsNil(completion.result.Response) || outcome.Value != nil {
 			return Stop, s.recorder.completionFailure(ctx, "activation_failed", ir.Invalid(ir.Malformed, "reservation", "required activation failed or returned unexpected payload"))
 		}

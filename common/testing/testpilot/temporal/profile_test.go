@@ -37,6 +37,9 @@ func commandCase(command *commandpb.Command) *testpilotspb.Case {
 				},
 			}},
 			Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
+			// A Temporal Case declares the limits of an instruction that writes none, as the kit
+			// lowers them; a derived Profile supplies none.
+			InstructionDefaults: limits,
 		},
 		Contract: &testpilotspb.Contract{
 			ContractId: "contract",
@@ -226,7 +229,7 @@ func activityCase() *testpilotspb.Case {
 	}
 	activity := &testpilotspb.Entrypoint{
 		EntrypointId: "activity",
-		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}},
 		Instructions: []*testpilotspb.InstructionNode{{InstructionId: "run-attempt", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}}},
 	}
 	controller := &testpilotspb.Entrypoint{

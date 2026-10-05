@@ -294,9 +294,11 @@ func (r *invocation) refuse(found recovery.Lease, state string) (*Result, error)
 	return &Result{Lease: &found, Unreconciled: true}, nil
 }
 
-// notFoundPause is one RPC's timeout, the Profile's instruction default, plus a margin.
+// notFoundPause is one RPC's timeout, the instruction default the prepared Case declares, plus a
+// margin.
 func (r *invocation) notFoundPause() time.Duration {
-	return time.Duration(r.Scope.Profile.InstructionDefaults.TimeoutMilliseconds)*time.Millisecond + notFoundMargin
+	ms := r.Scope.Prepared.Snapshot().GetProgram().GetInstructionDefaults().GetTimeoutMilliseconds()
+	return time.Duration(ms)*time.Millisecond + notFoundMargin
 }
 
 // iterationBound is the longest one iteration can take: a Run spends its total duration running,

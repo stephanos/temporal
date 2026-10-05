@@ -57,6 +57,16 @@ func declared(t *testing.T, m *umpirespb.Model, r *umpirespb.Realization) [][2]s
 			for _, c := range r.GetBehavior().GetCauses() {
 				out = append(out, [2]string{name, c.GetId()})
 			}
+			// Its other declarations each by their own name.
+			if r.GetBehavior().GetAttemptNumbering() != nil {
+				out = append(out, [2]string{name, "attemptNumbering"})
+			}
+			if r.GetBehavior().GetInstructionDefaults() != nil {
+				out = append(out, [2]string{name, "instructionDefaults"})
+			}
+			if r.GetBehavior().GetRunOrderIsCausal() {
+				out = append(out, [2]string{name, "runOrderIsCausal"})
+			}
 		case f.Kind() == protoreflect.MessageKind:
 			inner := message.Get(f).Message()
 			inner.Range(func(fd protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
@@ -156,8 +166,16 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 				case "realization":
 					require.Equal(t, slices.Contains([]string{"id", "name"}, e.ID), e.Disposition == Names, e.ID)
 				case "behavior", "server_steps":
-					// A hint or server step a wait reads is in the instructions whose waits it shapes.
 					require.Contains(t, []Disposition{InCase, Unread}, e.Disposition, e.ID)
+					if slices.Contains([]string{"attemptNumbering", "instructionDefaults", "runOrderIsCausal"}, e.ID) {
+						// The rest of the behavior is in the Program's part that carries it.
+						for _, part := range e.As {
+							require.True(t, strings.HasPrefix(part, "program.instruction_defaults.") || part == "program.run_order_is_causal" ||
+								strings.HasPrefix(part, "program.entrypoints["), part)
+						}
+						continue
+					}
+					// A hint or server step a wait reads is in the instructions whose waits it shapes.
 					waits = append(waits, e.As...)
 				default:
 					require.Equal(t, InCase, e.Disposition, e.ID)

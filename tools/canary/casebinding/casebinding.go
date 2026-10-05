@@ -11,6 +11,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"time"
 
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -48,7 +49,8 @@ func Identity() (string, error) { return recordedrun.CaseIdentity(pinned) }
 
 // ProfileSpec is the canary's hand-authored Driver Profile for the pinned Case under the given
 // environment's coordinates: the roles, methods, reservation carriers, opcodes and command types
-// the Case needs, and the Temporal Profile's ceilings and instruction defaults, all as literals.
+// the Case needs, and the Temporal Profile's ceilings, all as literals. The limits of an instruction
+// that writes none are the ones the pinned Case declares (InstructionTimeout).
 func ProfileSpec(canary *policy.Policy, catalog *testpilot.Catalog, environment testpilotdriver.Environment) testpilot.ProfileSpec {
 	return testpilot.ProfileSpec{
 		Identity: canary.CaseProfile,
@@ -97,8 +99,21 @@ func ProfileSpec(canary *policy.Policy, catalog *testpilot.Catalog, environment 
 			MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 100000000,
 			MaxCaptures: 16, MaxCorrelationDepth: 2,
 		},
-		InstructionDefaults: testpilot.InstructionDefaults{TimeoutMilliseconds: 10000, MaxAttempts: 1},
 	}
+}
+
+// InstructionTimeout is the timeout the pinned Case declares for an instruction that writes none,
+// such as one RPC of its cleanup.
+func InstructionTimeout() (time.Duration, error) {
+	source, err := testpilot.DecodeCaseProtoJSON(pinned)
+	if err != nil {
+		return 0, fmt.Errorf("decode the pinned canary Case: %w", err)
+	}
+	ms := source.GetProgram().GetInstructionDefaults().GetTimeoutMilliseconds()
+	if ms <= 0 {
+		return 0, errors.New("the pinned canary Case declares no instruction timeout")
+	}
+	return time.Duration(ms) * time.Millisecond, nil
 }
 
 // Bound is the pinned Case prepared for one environment: its source, its identity, the Profile it

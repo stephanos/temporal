@@ -21,7 +21,7 @@ func workflowActivityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Pro
 	p.Opcodes = append(p.Opcodes, contract.ActivityAttemptFailure, contract.ActivityAttemptWithholding)
 	c.Program.Entrypoints = append(c.Program.Entrypoints, &testpilotspb.Entrypoint{
 		EntrypointId: "activity",
-		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}},
 		Instructions: []*testpilotspb.InstructionNode{
 			activityNode("withhold", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{}}}),
 			failing("fail", retryableFailure()),

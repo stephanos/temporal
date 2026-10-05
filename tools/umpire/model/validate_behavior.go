@@ -27,13 +27,20 @@ const activationOf = "the activation of "
 // behavior checks the hints a realization declares of how the APIs it calls behave, and its server
 // steps (.plans/API_BEHAVIOR_HINTS.md). Each hint is named by an id no other hint takes; a visibility
 // names a write and a read, and no pair twice; a cause bound is of one kind, which no other bounds;
-// and every bound is positive, with an interval no greater than it. A server step is a class of the
-// machine that no command performs, declared once, of a kind the realization bounds, and a timer's
-// step names the deadline the realization set. It runs once the scripts are read, so that what the
-// commands perform is known. Whether the API binds a write to POST and a read to GET is the lowering's
-// to check: this package holds no descriptors.
+// and every bound is positive, with an interval no greater than it. Attempts are numbered from a
+// positive first number, and the limits of an instruction that writes none are positive. A server
+// step is a class of the machine that no command performs, declared once, of a kind the realization
+// bounds, and a timer's step names the deadline the realization set. It runs once the scripts are
+// read, so that what the commands perform is known. Whether the API binds a write to POST and a read
+// to GET is the lowering's to check: this package holds no descriptors.
 func (a *realizing) behavior(mm *umpirespb.Machine) {
 	a.visibilities()
+	if n := a.r.GetBehavior().GetAttemptNumbering(); n != nil && n.GetFirst() < 1 {
+		a.report(n.GetPosition(), "attempts are numbered from %d; the first attempt's number is positive", n.GetFirst())
+	}
+	if d := a.r.GetBehavior().GetInstructionDefaults(); d != nil && (d.GetTimeoutMs() <= 0 || d.GetAttempts() <= 0) {
+		a.report(d.GetPosition(), "an instruction that writes no limits takes %d ms and %d attempts; both are positive", d.GetTimeoutMs(), d.GetAttempts())
+	}
 	bounded := a.causeBounds()
 	declared := map[string]bool{}
 	for _, s := range a.r.GetServerSteps() {

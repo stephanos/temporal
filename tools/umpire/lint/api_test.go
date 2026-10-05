@@ -49,7 +49,7 @@ func apiRegistryLowering(reached *[]string) Lowering {
 		return fd.Message(), nil
 	}
 	return Lowering{
-		Element: func(e *umpirespb.Evidence) (protoreflect.MessageDescriptor, error) {
+		Element: func(_ *umpirespb.Realization, e *umpirespb.Evidence) (protoreflect.MessageDescriptor, error) {
 			switch from := e.GetFrom().(type) {
 			case *umpirespb.Evidence_Read:
 				return response(from.Read)

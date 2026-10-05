@@ -95,7 +95,9 @@ func realizedWith(t testing.TB, m *umpirespb.Model, machine string, kinds []kind
 		ProducerVersion: "1",
 		Observations:    []*umpirespb.Observed{{Id: evidenceObservation, Message: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}},
 		Correlation: &umpirespb.Correlation{Projection: "test." + machine + ".projection", Run: "run", Operation: "operation",
-			Observation: evidenceObservation, Events: 64, Buffered: 16, Keys: 8, Support: 128, Work: 1000000, EventSize: 512}}
+			Observation: evidenceObservation, Events: 64, Buffered: 16, Keys: 8, Support: 128, Work: 1000000, EventSize: 512},
+		// Attempts are numbered as the Temporal kit declares: from 1, every one of the activity's one run.
+		Behavior: &umpirespb.ApiBehavior{AttemptNumbering: &umpirespb.AttemptNumbering{First: 1, OneRun: true}}}
 	for _, k := range kinds {
 		commitment := umpirespb.Evidence_COMMITMENT_REPORTED
 		if k.durable {

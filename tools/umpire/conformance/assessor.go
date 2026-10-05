@@ -160,8 +160,9 @@ func (a *assessor) admit(seen *observation) (*instance, error) {
 	if len(of.evidence) >= maxEvidence {
 		return nil, &LimitError{Resource: "evidence of one operation", Ceiling: maxEvidence, Event: seen.sequence}
 	}
-	// One operation is one activity run: evidence two Run Events record under two runs is crossed.
-	if seen.run.known && of.run.known && seen.run.id != of.run.id {
+	// Where the realization declares an activity's attempts of one run, one operation is one activity
+	// run: evidence two Run Events record under two runs is crossed.
+	if a.plan.reader.oneRun && seen.run.known && of.run.known && seen.run.id != of.run.id {
 		return nil, &EvidenceError{Event: seen.sequence, Message: fmt.Sprintf("evidence of operation %s on a Run Event of activity run %q, and the operation's evidence is of activity run %q",
 			of.name, seen.run.id, of.run.id)}
 	}

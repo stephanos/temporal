@@ -674,9 +674,11 @@ message Realization {
   // the realization carries them, and preparation refuses an environment that sets one otherwise.
   repeated RequiredSetting required_settings = 15;
   // How the APIs a run calls behave between its calls, as the system's kit declares it once: when a
-  // write's effect is visible to a read, and how long each kind of asynchronous cause may take. It
-  // shapes only how a lowered Case waits; no table, ID, fingerprint, Query answer or Contract reads
-  // it. Unset in a realization no kit declares behavior for.
+  // write's effect is visible to a read, how long each kind of asynchronous cause may take, how
+  // attempts are numbered, the limits of an instruction no hint bounds, and whether a run's record
+  // order is causal. It shapes only a lowered Case's Program and how conformance reads a Run's
+  // attempts; no table, ID, fingerprint, Query answer or Contract reads it. Unset in a realization no
+  // kit declares behavior for.
   ApiBehavior behavior = 16;
   // The kind of cause each step class no command performs is, such as an activity's delivery or a
   // server timer at a deadline the realization set.
@@ -696,6 +698,28 @@ message RequiredSetting {
 message ApiBehavior {
   repeated Visibility visibility = 1;
   repeated CauseBound causes = 2;
+  // How the system numbers an activity's attempts.
+  AttemptNumbering attempt_numbering = 3;
+  // The limits of an instruction no hint bounds and that writes none: a call whose response no read
+  // waits on, a Driver wait or a control.
+  InstructionLimit instruction_defaults = 4;
+  // Whether a run's record order is the causal order of one operation's evidence across sources.
+  bool run_order_is_causal = 5;
+}
+
+// How a system numbers the attempts of one activity: the Nth delivery is the attempt numbered
+// first + N - 1, and with one_run every attempt belongs to the activity's one run.
+message AttemptNumbering {
+  Position position = 1;
+  int64 first = 2;
+  bool one_run = 3;
+}
+
+// The limits of one instruction: its deadline in milliseconds, and the attempts it may take.
+message InstructionLimit {
+  Position position = 1;
+  int64 timeout_ms = 2;
+  int64 attempts = 3;
 }
 
 // When the effect of a write is visible to a read: at once, or eventually within a bound.

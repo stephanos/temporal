@@ -52,6 +52,9 @@ func TestDefaultCeilingsAdmitTheConformanceCorpus(t *testing.T) {
 			require.NoError(t, err)
 			profile, err := temporal.DeriveProfile(source, catalog, temporal.Environment{Identity: "conformance"})
 			require.NoError(t, err)
+			// The corpus is written for the facade conformance Profile, whose instruction defaults
+			// give its instructions their limits; a derived Profile has none of its own.
+			profile.InstructionDefaults = testpilot.InstructionDefaults{TimeoutMilliseconds: 10000, MaxAttempts: 1}
 			_, err = testpilot.Prepare(source, profile)
 			require.NoError(t, err)
 		})

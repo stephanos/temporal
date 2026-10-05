@@ -410,12 +410,25 @@ func TestTheInventoryAccountsForTheHintsAWaitReads(t *testing.T) {
 	require.Equal(t, []string{string(InCase), completed}, got["attemptStart"])
 	require.Equal(t, []string{string(Unread)}, got["cause.timer"])
 	require.Equal(t, []string{string(Unread)}, got["scheduleToStart"])
+	// The behavior that shapes no wait is carried by the Program as declared, whatever the waits.
+	carried := map[string][]string{
+		"attemptNumbering":    {string(InCase), "program.entrypoints[activity]"},
+		"instructionDefaults": {string(InCase), "program.instruction_defaults.timeout_milliseconds", "program.instruction_defaults.max_attempts"},
+		"runOrderIsCausal":    {string(InCase), "program.run_order_is_causal"},
+	}
+	for id, want := range carried {
+		require.Equal(t, want, got[id], id)
+	}
 
 	p, err := NewProducer(derivedModel(t, "activity", explicitly))
 	require.NoError(t, err)
 	l, err = p.Lower("pauseResume", activityIdentity("pauseResume"))
 	require.NoError(t, err)
 	for id, disposition := range hints(l) {
+		if want, ok := carried[id]; ok {
+			require.Equal(t, want, disposition, id)
+			continue
+		}
 		require.Equal(t, []string{string(Unread)}, disposition, id)
 	}
 }

@@ -58,7 +58,7 @@ func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttr
 	attributes.TaskQueue = &taskqueuepb.TaskQueue{Name: "temporal.task-queue"}
 	activity := &testpilotpb.Entrypoint{
 		EntrypointId: "activity",
-		Activation:   &testpilotpb.Entrypoint_Activity{Activity: &testpilotpb.ActivityActivation{ActivityType: "scheduled-activity-type", WorkerRoleId: "temporal.worker", TaskQueueRoleId: "temporal.task-queue"}},
+		Activation:   &testpilotpb.Entrypoint_Activity{Activity: &testpilotpb.ActivityActivation{ActivityType: "scheduled-activity-type", WorkerRoleId: "temporal.worker", TaskQueueRoleId: "temporal.task-queue", AttemptNumbering: &testpilotpb.AttemptNumbering{First: 1, OneRun: true}}},
 	}
 	for index, instruction := range script {
 		activity.Instructions = append(activity.Instructions, &testpilotpb.InstructionNode{InstructionId: fmt.Sprintf("attempt-%d", index+1), Instruction: instruction, Limits: limits})
@@ -68,6 +68,11 @@ func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttr
 		CaseId:  "scheduled-activity",
 		Program: &testpilotpb.Program{
 			ProgramId: "scheduled-activity",
+			// The limits of an instruction that writes none, as a Temporal realization declares them.
+			InstructionDefaults: &testpilotpb.InstructionLimits{
+				Timeout:  &testpilotpb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 10000},
+				Attempts: &testpilotpb.InstructionLimits_MaxAttempts{MaxAttempts: 1},
+			},
 			Roles: []*testpilotpb.Role{
 				{RoleId: "temporal.workflow-service", Kind: testpilotpb.ROLE_KIND_ENDPOINT},
 				{RoleId: "temporal.worker", Kind: testpilotpb.ROLE_KIND_WORKER, NamespaceBindingId: scheduledActivityNamespaceBinding},

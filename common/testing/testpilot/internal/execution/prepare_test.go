@@ -362,7 +362,7 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 // in declaration order; an activity, a controller or a cleanup call reserves nothing.
 func TestPrepareDerivesReservationsFromTheProfileCarriers(t *testing.T) {
 	c, catalog, p := handleFixture(t)
-	c.Program.Entrypoints = append(c.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "activity", Activation: &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
+	c.Program.Entrypoints = append(c.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "activity", Activation: &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}}})
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("cleanup-call")}
 	prepared, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
@@ -477,7 +477,7 @@ func TestInstructionLimitsTakeTheProfileDefaults(t *testing.T) {
 	_, err := Prepare(c, catalog, p)
 	var diagnostic *ir.Error
 	require.ErrorAs(t, err, &diagnostic)
-	require.Equal(t, ir.Error{Category: ir.Malformed, Path: "controller.call", Detail: "instruction writes no limit the Profile has no default for"}, *diagnostic)
+	require.Equal(t, ir.Error{Category: ir.Malformed, Path: "controller.call", Detail: "instruction writes no limit that neither the Program nor the Profile has a default for"}, *diagnostic)
 
 	p.InstructionDefaults = contract.InstructionDefaults{TimeoutMilliseconds: 2000, MaxAttempts: 3}
 	prepared, err := Prepare(c, catalog, p)
@@ -504,6 +504,48 @@ func TestInstructionLimitsTakeTheProfileDefaults(t *testing.T) {
 			policy := p
 			policy.InstructionDefaults = test.defaults
 			_, err := Prepare(c, catalog, policy)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, test.want, *diagnostic)
+		})
+	}
+}
+
+// A Program that declares instruction defaults gives an instruction that writes no limit its own:
+// each default it declares takes the place of the Profile's, one it leaves out is still the
+// Profile's, and a declared default is positive and within the Profile's ceiling.
+func TestInstructionLimitsTakeTheProgramDefaults(t *testing.T) {
+	c, catalog, p := fixture(t)
+	c.Program.Entrypoints[0].Instructions[0].Limits = nil
+	timeout := func(ms int64) *testpilotspb.InstructionLimits_TimeoutMilliseconds {
+		return &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: ms}
+	}
+	c.Program.InstructionDefaults = &testpilotspb.InstructionLimits{Timeout: timeout(4000), Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}
+	prepared, err := Prepare(c, catalog, p)
+	require.NoError(t, err)
+	plan := prepared.Entrypoints()[0].Instructions()[0]
+	require.Equal(t, []int64{4000, 1}, []int64{plan.TimeoutMilliseconds(), plan.MaxAttempts()})
+
+	p.InstructionDefaults = contract.InstructionDefaults{TimeoutMilliseconds: 2000, MaxAttempts: 3}
+	c.Program.InstructionDefaults = &testpilotspb.InstructionLimits{Timeout: timeout(4000)}
+	prepared, err = Prepare(c, catalog, p)
+	require.NoError(t, err)
+	plan = prepared.Entrypoints()[0].Instructions()[0]
+	require.Equal(t, []int64{4000, 3}, []int64{plan.TimeoutMilliseconds(), plan.MaxAttempts()})
+
+	for _, test := range []struct {
+		name     string
+		declared *testpilotspb.InstructionLimits
+		want     ir.Error
+	}{
+		{"zero", &testpilotspb.InstructionLimits{Timeout: timeout(0)},
+			ir.Error{Category: ir.Malformed, Path: "program.instruction_defaults", Detail: "a declared instruction default is positive"}},
+		{"above the ceiling", &testpilotspb.InstructionLimits{Timeout: timeout(p.Limits.MaxTotalDurationMilliseconds + 1)},
+			ir.Error{Category: ir.LimitExceeded, Path: "program.instruction_defaults", Detail: "a declared instruction default exceeds the Profile ceiling"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			c.Program.InstructionDefaults = test.declared
+			_, err := Prepare(c, catalog, p)
 			var diagnostic *ir.Error
 			require.ErrorAs(t, err, &diagnostic)
 			require.Equal(t, test.want, *diagnostic)
@@ -650,7 +692,7 @@ func TestInstructionContextMatrix(t *testing.T) {
 				case contract.WorkflowEntrypoint:
 					g.Activation = &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
 				case contract.ActivityEntrypoint:
-					g.Activation = &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
+					g.Activation = &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}}
 				case contract.NexusHandlerEntrypoint:
 					g.Activation = &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{Service: "service", Operation: "operation", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
 				default:

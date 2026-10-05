@@ -493,8 +493,15 @@ func keyedByRun(declaration *testpilotspb.EvidenceDeclaration) *testpilotspb.Evi
 // reservation it carried, and key their evidence by the Run's own ID, where the payload names no
 // key that the Run's other evidence shares. Two kinds read at one instruction, the instruction's
 // completion and its attempts' records, are then evidence of one operation, each in its own source,
-// chained in the order the Run recorded them.
+// chained in the order the Run recorded them where the Program declares that order causal, and
+// ordered by nothing across their sources where it does not.
 func TestRunLiftsTheEventsOfOneInstructionKeyedByTheRun(t *testing.T) {
+	for _, causal := range []bool{true, false} {
+		t.Run(fmt.Sprint("run order causal ", causal), func(t *testing.T) { runLiftsTheEventsOfOneInstruction(t, causal) })
+	}
+}
+
+func runLiftsTheEventsOfOneInstruction(t *testing.T, causal bool) {
 	accepted := keyedByRun(at("call", under(
 		compare(testpilotspb.COMPARISON_OPERATOR_EQUAL, projected("status"), &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}),
 		&testpilotspb.EvidenceDeclaration{
@@ -502,6 +509,7 @@ func TestRunLiftsTheEventsOfOneInstructionKeyedByTheRun(t *testing.T) {
 			Source: &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}},
 		})))
 	source, catalog, policy := attemptFixture(t, 1, accepted, keyedByRun(at("call", under(delivered(), attemptRecord("attemptDelivered", "attempts")))))
+	source.Program.RunOrderIsCausal = causal
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	succeeded := testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
@@ -519,9 +527,13 @@ func TestRunLiftsTheEventsOfOneInstructionKeyedByTheRun(t *testing.T) {
 	require.Equal(t, []string{"scheduler.g0.n0.a1.completed", firstAttempt, secondAttempt}, carriers)
 	scope := []*testpilotspb.NamedValue{{FieldId: "run", Value: textValue("one")}}
 	start := &testpilotspb.CorrelatedIdentity{EvidenceSource: "starts", Scope: scope}
+	var parents []*testpilotspb.CorrelatedIdentity
+	if causal {
+		parents = []*testpilotspb.CorrelatedIdentity{start}
+	}
 	protorequire.ProtoSliceEqual(t, []*testpilotspb.CorrelatedEvidence{
 		{Kind: "startAccepted", Operation: "run", Identity: start},
-		{Kind: "attemptDelivered", Operation: "run", Fields: attemptFields("1", "delivery-1"), Parents: []*testpilotspb.CorrelatedIdentity{start},
+		{Kind: "attemptDelivered", Operation: "run", Fields: attemptFields("1", "delivery-1"), Parents: parents,
 			Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: "attempts", Scope: scope}},
 		{Kind: "attemptDelivered", Operation: "run", Fields: attemptFields("2", "delivery-2"),
 			Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: "attempts", Ordinal: 1, Scope: scope}},

@@ -153,9 +153,28 @@ final class Visibility private[realize] (
 /** How long one kind of cause may take: `kind.boundedBy(bound)`. */
 final class CauseBound private[realize] (val kind: CauseKind, val bound: WaitBound)
 
-/** The behavior every Temporal realization carries: Behavior.scala declares it once. */
-final case class ApiBehavior(visibility: Vector[Visibility], causes: Vector[CauseBound])
-    extends Behavior
+/**
+ * How the server numbers the attempts of one activity: the Nth delivery is the attempt numbered
+ * `first + N - 1`, and with `oneRun` every attempt belongs to the activity's one run.
+ */
+final case class AttemptNumbering(first: Long, oneRun: Boolean)
+
+/** The limits of one instruction: its deadline in milliseconds, and the attempts it may take. */
+final case class InstructionLimit(timeoutMs: Long, attempts: Long)
+
+/**
+ * The behavior every Temporal realization carries: Behavior.scala declares it once. Besides the
+ * hints, how attempts are numbered, the limits of an instruction no hint bounds and that writes
+ * none, and whether a run's record order is the causal order of one operation's evidence across
+ * sources. A lifter fixture leaves them out, and the IR leaves them unset.
+ */
+final case class ApiBehavior(
+    visibility: Vector[Visibility],
+    causes: Vector[CauseBound],
+    attemptNumbering: Option[AttemptNumbering] = None,
+    instructionDefaults: Option[InstructionLimit] = None,
+    runOrderIsCausal: Boolean = false
+) extends Behavior
 
 /**
  * A step class no command performs, and the kind of cause it is: an activity's `attemptStart` is a

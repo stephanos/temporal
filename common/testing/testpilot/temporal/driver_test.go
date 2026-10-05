@@ -92,6 +92,8 @@ func preparedConformanceProgram(t *testing.T) testpilot.PreparedProgram {
 	require.NoError(t, err)
 	profile, err := DeriveProfile(source, catalog, Environment{Identity: "composite"})
 	require.NoError(t, err)
+	// The corpus is written for the facade conformance Profile's instruction defaults.
+	profile.InstructionDefaults = testpilot.InstructionDefaults{TimeoutMilliseconds: 10000, MaxAttempts: 1}
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)
 	return facadetest.Capture(t, prepared)
@@ -306,7 +308,7 @@ func TestCompositeSessionCarriesAnActivityStartAsAnActivityCarrier(t *testing.T)
 		program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc().Method = delivery.StartActivityPath
 		program.Entrypoints = append(program.Entrypoints[:1], &testpilotspb.Entrypoint{
 			EntrypointId: "activity",
-			Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+			Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}},
 			Instructions: []*testpilotspb.InstructionNode{{InstructionId: "run-attempt", Limits: facadetest.Bounds(), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: facadetest.Text("done")}}}}},
 		})
 	})

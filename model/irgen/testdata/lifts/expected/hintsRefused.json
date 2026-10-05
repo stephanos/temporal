@@ -6756,7 +6756,24 @@
           "intervalMs": "250",
           "atMostMs": "3000"
         }
-      } ]
+      } ],
+      "attemptNumbering": {
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 105
+        },
+        "first": "1",
+        "oneRun": true
+      },
+      "instructionDefaults": {
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 110
+        },
+        "timeoutMs": "10000",
+        "attempts": "1"
+      },
+      "runOrderIsCausal": true
     },
     "serverSteps": [ {
       "position": {
@@ -7174,7 +7191,24 @@
           "intervalMs": "250",
           "atMostMs": "3000"
         }
-      } ]
+      } ],
+      "attemptNumbering": {
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 105
+        },
+        "first": "1",
+        "oneRun": true
+      },
+      "instructionDefaults": {
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 110
+        },
+        "timeoutMs": "10000",
+        "attempts": "1"
+      },
+      "runOrderIsCausal": true
     },
     "serverSteps": [ {
       "position": {

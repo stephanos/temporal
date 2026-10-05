@@ -748,7 +748,12 @@
         ],
         "operation": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
       }
-    ]
+    ],
+    "instructionDefaults": {
+      "timeoutMilliseconds": "10000",
+      "maxAttempts": "1"
+    },
+    "runOrderIsCausal": true
   },
   "contract": {
     "contractId": "temporal.case.nexusPairTests.bothComplete.contract",

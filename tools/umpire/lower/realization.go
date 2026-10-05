@@ -114,6 +114,13 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 	for _, s := range a.r.GetRequiredSettings() {
 		out.Plan.RequiredSettings = append(out.Plan.RequiredSettings, &testpilotspb.RequiredSetting{Key: s.GetKey(), Value: s.GetValue()})
 	}
+	behavior := a.r.GetBehavior()
+	if d := behavior.GetInstructionDefaults(); d != nil {
+		out.Plan.InstructionDefaults = &testpilotspb.InstructionLimits{
+			Timeout:  &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: d.GetTimeoutMs()},
+			Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: d.GetAttempts()}}
+	}
+	out.Plan.RunOrderIsCausal = behavior.GetRunOrderIsCausal()
 	return out, problems
 }
 
@@ -138,12 +145,9 @@ func (a *adapter) source(e *umpirespb.Evidence) (*cp.EvidenceSource, error) {
 	var element protoreflect.MessageDescriptor
 	switch from := e.GetFrom().(type) {
 	case *umpirespb.Evidence_History:
-		event, err := messageNamed(at, historyEventMessage)
+		event, err := historyElement(a.r, e, from.History)
 		if err != nil {
 			return nil, err
-		}
-		if event.Oneofs().ByName("attributes").Fields().ByName(protoreflect.Name(from.History)) == nil {
-			return nil, errorAt(at, "evidence %s: a history event has no attributes %s", e.GetId(), from.History)
 		}
 		element, out.Recorded = event, cp.Recorded{HistoryAttributes: from.History}
 	case *umpirespb.Evidence_Read:
@@ -491,9 +495,16 @@ func (a *adapter) activation(s *umpirespb.Script) (func() *testpilotspb.Entrypoi
 		}, nil
 	case *umpirespb.Script_Activity:
 		activityType := a.w.name(act.Activity.GetActivityType())
+		// How the attempts the script answers are numbered is the API behavior's, the same for every
+		// activity of the realization.
+		var numbering *testpilotspb.AttemptNumbering
+		if n := a.r.GetBehavior().GetAttemptNumbering(); n != nil {
+			numbering = &testpilotspb.AttemptNumbering{First: n.GetFirst(), OneRun: n.GetOneRun()}
+		}
 		return func() *testpilotspb.Entrypoint {
 			return &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{
-				ActivityType: activityType, WorkerRoleId: act.Activity.GetWorker(), TaskQueueRoleId: act.Activity.GetTaskQueue()}}}
+				ActivityType: activityType, WorkerRoleId: act.Activity.GetWorker(), TaskQueueRoleId: act.Activity.GetTaskQueue(),
+				AttemptNumbering: proto.CloneOf(numbering)}}}
 		}, nil
 	default:
 		return nil, errorAt(s.GetPosition(), "script %s is activated by nothing this reader lowers", s.GetId())
@@ -824,7 +835,8 @@ func (a *adapter) target(c *umpirespb.Command, path string, end reached, target 
 		}
 		return &testpilotspb.ReadTarget{Target: &testpilotspb.ReadTarget_SlotId{SlotId: tg.Bind}}, nil
 	case *umpirespb.Target_Lift:
-		if end.message() == nil || end.message().FullName() != historyEventMessage {
+		// What a lift reads is the realization's history event, the same for every lift (historyEvent).
+		if end.message() == nil {
 			return nil, errorAt(at, "command %s lifts evidence from %s, which reads no history event", c.GetId(), path)
 		}
 		return &testpilotspb.ReadTarget{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{
