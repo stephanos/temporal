@@ -1457,7 +1457,7 @@ class Fixtures extends munit.FunSuite:
     import com.fasterxml.jackson.databind.JsonNode
     // Each design is an object, named as the composition is with the first letter raised: its
     // Queries in its `queries`, or the design itself where no Query runs over it.
-    val designs = "temporal.features.standaloneactivity.withTaskQueue."
+    val designs = "temporal.features.standaloneactivity.system."
     def designObject(d: String) = designs + d.head.toUpper + d.tail
     val overQueue = Seq("currentOverQueue", "staleOverQueue")
     val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")

@@ -62,6 +62,7 @@ import shared.worker.worker
 
 import CallerFamily.given
 import Timeout.expires
+import system.{inspection, ForgedCompletion, NexusProtocol}
 
 object NexusRealization:
   // Moved from temporal.nexuscaller; the pin keeps its Definition IDs.
@@ -518,4 +519,4 @@ object NexusRealization:
   val asyncNexus = realization(NexusProtocol)
 
   val forgedCompletion =
-    realization(ForgedCompletion, perform(ForgedCompletion.caller.inspect -> inspectWorkflow))
+    realization(ForgedCompletion, perform(inspection.inspect -> inspectWorkflow))

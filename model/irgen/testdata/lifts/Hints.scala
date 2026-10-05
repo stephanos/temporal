@@ -16,7 +16,7 @@ import umpire.*
 import umpire.realize.*
 import temporal.realize.*
 import temporal.features.standaloneactivity.{activity, deadline, worker}
-import temporal.features.standaloneactivity.ActivityProtocol as activityProtocol
+import temporal.features.standaloneactivity.system.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
 given Family = Family("fixture.hints")

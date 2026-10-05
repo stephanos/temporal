@@ -30,7 +30,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	require.False(t, last.Match())
 	require.False(t, last.Then)
 	require.True(t, last.State)
-	require.Contains(t, last.Position, "model/temporal/features/standaloneactivity/StandaloneActivity.scala:")
+	require.Contains(t, last.Position, "model/temporal/features/standaloneactivity/system/System.scala:")
 	// The match on the input decided first, on the input alone.
 	input := w.Decisions[0]
 	require.True(t, input.Match())
@@ -49,7 +49,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	w = whyIn(t, m, "activityProtocol", "completed-1-unset-unset-unset", "control-pause")
 	require.Len(t, w.Steps, 1)
 	guard := w.Decisions[1]
-	require.Equal(t, []string{"temporal.features.standaloneactivity.ActivityProtocol$.states$.terminal"}, guard.Calls)
+	require.Equal(t, []string{"temporal.features.standaloneactivity.system.ActivityProtocol$.states$.terminal"}, guard.Calls)
 	require.True(t, guard.Then)
 	require.True(t, guard.State)
 	require.False(t, guard.Nested)

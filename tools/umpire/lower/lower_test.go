@@ -22,7 +22,7 @@ import (
 
 const realizationAt = "model/temporal/features/nexuscaller/Realization.scala:"
 
-// functionalQueries is the functional set of model/temporal/features/nexuscaller/NexusCaller.scala,
+// functionalQueries is the functional set of model/temporal/features/nexuscaller/system/System.scala,
 // in its declaration order.
 var functionalQueries = []string{"syncCompletion", "asyncCompletion", "asyncFailure", "handlerError", "retry",
 	"scheduleToStartTimeout", "startToCloseTimeout"}

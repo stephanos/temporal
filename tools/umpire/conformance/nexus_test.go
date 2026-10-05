@@ -148,7 +148,7 @@ type nexusWitness struct {
 	why             reason
 }
 
-// Each expectation is read off model/temporal/features/nexuscaller/NexusCaller.scala (the protocol
+// Each expectation is read off model/temporal/features/nexuscaller/system/System.scala (the protocol
 // machine's effects, rules and properties), which the comment beside it cites.
 var nexusWitnesses = []nexusWitness{
 	// A completed event is also what a completion of an operation the handler never answered

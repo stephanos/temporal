@@ -46,14 +46,14 @@ func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 	}
 }
 
-// The activity's claims are declared in its feature file, StandaloneActivity.scala, in the
-// `properties`, `laws` and `queries` objects of its machine objects, beside the system contract's that
-// are written there once: the competing timers'. Every declaration there is lifted, into the activity
+// The activity's claims are declared in its levels' files, product/Product.scala and
+// system/System.scala, in the `properties`, `laws` and `queries` objects of its machine objects,
+// beside the system contract's that are written there once: the competing timers'. Every declaration there is lifted, into the activity
 // root or the system contract's, and every claim the activity root lifts is declared there. A capability declaration declares, for each law of the catalog whose capabilities
 // it names, the law's Property, Scenario and Query, each named `<machine>.<law>`.
 func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	dir := filepath.Join("..", "..", "..", "model", "temporal", "features", "standaloneactivity")
-	files := []string{"StandaloneActivity.scala"}
+	files := []string{"product/Product.scala", "system/System.scala"}
 	var source []byte
 	at := map[string]bool{}
 	for _, file := range files {
