@@ -141,7 +141,7 @@ func TestSilentRejection(t *testing.T) {
 	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activityProtocol" })]
 	i := slices.IndexFunc(protocol.Rules, func(r Rule) bool { return r.Class == "backoff" && r.Modality == MustNot })
 	require.GreaterOrEqual(t, i, 0)
-	require.Equal(t, "!(List(backingOff).contains(s.phase))", protocol.Rules[i].Text)
+	require.Equal(t, "s.phase != backingOff", protocol.Rules[i].Text)
 	require.Contains(t, protocol.Rules[i].Position, "model/temporal/features/standaloneactivity/StandaloneActivity.scala:")
 }
 

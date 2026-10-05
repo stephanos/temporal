@@ -542,7 +542,7 @@ func guard(d model.Decision, decided bool) string {
 	case d.Then:
 		return spell(d.Expr.GetIf().GetCondition())
 	default:
-		return "!" + operand(d.Expr.GetIf().GetCondition())
+		return negated(d.Expr.GetIf().GetCondition())
 	}
 }
 
