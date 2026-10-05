@@ -12,7 +12,7 @@
       "requested": "temporal.features.nexusoperation.OperationFact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:222"
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:233"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.closedIsRejectedUniformly",
@@ -20,15 +20,15 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.nexusoperation.Operation$.phase",
-      "terminal": "temporal.features.nexusoperation.Operation$.terminal",
+      "status": "temporal.features.nexusoperation.NexusOperation$.states$.phase",
+      "terminal": "temporal.features.nexusoperation.NexusOperation$.states$.terminal",
       "rejected": "temporal.features.nexusoperation.Outcome.alreadyCompleted"
     },
     "cites": {
       "rejected": [ "chasm/lib/nexusoperation/operation.go" ]
     },
-    "overriddenBy": "temporal.features.nexusoperation.Operation$.properties$.closedRejectsOrRepeats",
-    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:211"
+    "overriddenBy": "temporal.features.nexusoperation.NexusOperation$.properties$.closedRejectsOrRepeats",
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:222"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.terminalStatesAreFinal",
@@ -36,11 +36,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.nexusoperation.Operation$.phase",
-      "terminal": "temporal.features.nexusoperation.Operation$.terminal"
+      "status": "temporal.features.nexusoperation.NexusOperation$.states$.phase",
+      "terminal": "temporal.features.nexusoperation.NexusOperation$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:211"
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:222"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.terminateSettles",
@@ -54,15 +54,15 @@
       "settled": "temporal.features.nexusoperation.OperationFact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:216"
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:227"
   } ],
   "waivers": [ {
     "machine": "nexusOperation",
     "law": "closedIsRejectedUniformly",
     "waiver": "overriding",
-    "by": "temporal.features.nexusoperation.Operation$.properties$.closedRejectsOrRepeats",
+    "by": "temporal.features.nexusoperation.NexusOperation$.properties$.closedRejectsOrRepeats",
     "because": "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate",
-    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:230"
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:241"
   } ],
   "catalog": [ {
     "law": "cancelIsRequested",

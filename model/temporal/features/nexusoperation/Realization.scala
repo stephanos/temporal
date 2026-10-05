@@ -94,7 +94,7 @@ object OperationRealization:
 
   /** One standalone operation a controller starts on the Case's endpoint. */
   val standalone: Realization = temporalRealization(
-    machine = Operation.nexusOperation,
+    machine = NexusOperation,
     operation = operation,
     roles = Vector(workflowService, taskQueue, nexusEndpoint),
     scripts = Vector(operationController),

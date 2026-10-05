@@ -76,9 +76,9 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	for _, f := range m.GetFunctions() {
 		for _, x := range []*umpirespb.Expr{f.GetBody(), f.GetRequires()} {
 			walk(x, func(x *umpirespb.Expr) {
-				if c := x.GetCall(); c != nil && (strings.HasSuffix(c.GetFunction(), "Protocol$.saturatingSucc") ||
-					strings.HasSuffix(c.GetFunction(), "Protocol$.validAttempts")) {
-					c.Function = "temporal.features.nexuscaller.Protocol$.move"
+				if c := x.GetCall(); c != nil && (strings.HasSuffix(c.GetFunction(), "NexusProtocol$.states$.saturatingSucc") ||
+					strings.HasSuffix(c.GetFunction(), "NexusProtocol$.states$.validAttempts")) {
+					c.Function = "temporal.features.nexuscaller.NexusProtocol$.states$.move"
 				}
 			})
 		}
@@ -88,7 +88,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	lines := strings.Split(err.Error(), "\n")
 	require.GreaterOrEqual(t, len(lines), 5, "every renamed call is reported, not only the first")
 	for _, l := range lines {
-		require.Regexp(t, `^model/temporal/features/nexuscaller/NexusCaller\.scala:\d+: no function temporal\.features\.nexuscaller\.Protocol\$\.move$`, l)
+		require.Regexp(t, `^model/temporal/features/nexuscaller/NexusCaller\.scala:\d+: no function temporal\.features\.nexuscaller\.NexusProtocol\$\.states\$\.move$`, l)
 	}
 }
 
@@ -96,12 +96,12 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
 	for _, mm := range m.GetMachines() {
 		for _, b := range mm.GetSteps() {
-			if strings.HasSuffix(b.GetFunction(), "Protocol$.effects$.handlerReplyStep") {
-				b.Function = "temporal.features.nexuscaller.Protocol$.effects$.backoffStep"
+			if b.GetFunction() == "nexusProtocol.rules.handlerReply" {
+				b.Function = "nexusProtocol.rules.backoff"
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/NexusCaller.scala:466: temporal.features.nexuscaller.Protocol$.effects$.backoffStep "+
+	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/NexusCaller.scala:450: nexusProtocol.rules.backoff "+
 		"steps handlerReply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 
@@ -128,7 +128,7 @@ func TestValidateReportsUnrelatedSameStateMachinesAtQueryPosition(t *testing.T) 
 // interpreter finds the row that leaves the domain.
 func TestBuildRejectsAStepOutsideTheDomain(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
-	succ := function(m, "Protocol$.saturatingSucc")
+	succ := function(m, "NexusProtocol$.states$.saturatingSucc")
 	at := succ.GetBody().GetPosition()
 	succ.Body = &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{Op: umpirespb.Binary_OP_ADD,
 		Left:  &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Var{Var: "a"}},

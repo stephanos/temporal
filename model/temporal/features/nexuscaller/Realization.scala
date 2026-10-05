@@ -515,9 +515,7 @@ object NexusRealization:
     )
   )
 
-  val asyncNexus = realization(Protocol.nexusProtocol)
+  val asyncNexus = realization(NexusProtocol)
 
-  val forgedCompletion = realization(
-    temporal.features.nexuscaller.Control.forgedCompletion,
-    perform(temporal.features.nexuscaller.Control.caller.inspect -> inspectWorkflow)
-  )
+  val forgedCompletion =
+    realization(ForgedCompletion, perform(ForgedCompletion.caller.inspect -> inspectWorkflow))

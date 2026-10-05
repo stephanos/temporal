@@ -4,11 +4,13 @@
  * No cancellation (fn-79) and no concurrency-limit setup parameter.
  *
  * Read top to bottom: the types; the signature (the entities, the inputs, the parties with their
- * actions, the derived observation, the timers and the bounds); then one object per machine, each
- * before the machines that use it -- Product, the product machine; Protocol, the protocol machine
- * that refines it; HandlerWorker, the handler's worker; NexusCaller, the protocol with that worker;
- * Control, the forged control a caller must refuse -- and last exports, its IR files.
- * Realization.scala realizes it; closepolicy/ holds the close and reset designs.
+ * actions, the derived observation, the timers, the bounds and the control's choices); then one
+ * object per machine, each before the machines that use it -- NexusProduct, the product machine;
+ * NexusProtocol, the protocol machine that refines it; HandlerWorker, the handler's worker;
+ * NexusCaller, the protocol with that worker; ForgedCompletion, the forged control a caller must
+ * refuse -- and last exports, its IR files. A machine object reads its header (entity, init, end,
+ * evidence), then its sections in order: states, refinement, effects, rules, properties and
+ * queries. Realization.scala realizes it; closepolicy/ holds the close and reset designs.
  */
 package temporal
 package features.nexuscaller
@@ -28,9 +30,13 @@ import Timeout.expires
 // Moved from temporal.nexuscaller; the pin keeps its Definition IDs and type names.
 given DefinitionScope = DefinitionScope("temporal.nexuscaller.Model$package$")
 
-/** The family of the caller's machines; the control takes its own, in `object Control`. */
+/** The family of the caller's machines; the control takes `ControlFamily`. */
 object CallerFamily:
   given family: Family = Family("temporal.nexus.caller")
+
+/** The control's family, which `ForgedCompletion` names where it extends `Machine`. */
+object ControlFamily:
+  val family: Family = Family("temporal.nexus.control")
 
 // ### Types
 //
@@ -179,9 +185,16 @@ object deadline extends Section:
   val scheduleToStart = timer
   val startToClose = timer
 
+/**
+ * Bounds the attempt count. Nothing wires the Limits into a machine's state, so the bound is
+ * written here, beside the state type's `Finite`, which reads it before any machine exists; the Go
+ * model evaluator checks each require precondition against it.
+ */
+val attemptBound = 2
+
 given Finite[ProtocolState] =
   // The lifter reads this Int bound; the Go model evaluator uses it to enumerate protocol states.
-  given Finite[Int] = Finite.upTo(Protocol.attemptBound)
+  given Finite[Int] = Finite.upTo(attemptBound)
   Finite.derived
 
 // The bounds of the Queries, beside three and four (shared.Bounds). Nine actions are enabled before
@@ -191,96 +204,90 @@ given Finite[ProtocolState] =
 val two = Limits(steps = 2, actions = 2, search = 512)
 val control = Limits(steps = 8, actions = 8, search = 262144)
 
+// A failed callback completes the forged control's operation two ways: as the success the control
+// forges, and as the failure the runtime still sends.
+val forged = choice
+val sent = choice
+
 // ### The product machine
 //
 // What an operation does, with no account of how. Every Property written against it is carried to
 // the protocol machine by the refinement declared there.
 
-object Product:
+object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
   import ProductPhase.*
 
-  /** The four phases the product machine ends on. */
-  def productTerminal(s: ProductState) = s.phase.in(succeeded, failed, canceled, timedOut)
+  val entity = operation
+  val init = ProductState(scheduled)
+  def end(s: State) = states.productTerminal(s)
 
-  object effects:
+  /** The product's phase sets. */
+  object states extends Section:
+    /** The four phases the product machine ends on. */
+    def productTerminal(s: State) = s.phase.in(succeeded, failed, canceled, timedOut)
+
+  /** Every fact the product machine records is confirmed by the history event of its name. */
+  object effects extends Section:
     import ProductFact.*
 
-    /**
-     * The handler's reply to the server's start request. An operation that has not started yet is
-     * the only one a reply can move.
-     */
-    def handlerReplyStep(s: ProductState, reply: Reply) =
-      if s.phase != scheduled then disabled
-      else
-        reply match
-          case Reply.syncSuccess       => enter(ProductState(succeeded), nexusOperationCompleted)
-          case Reply.async             => enter(ProductState(started), nexusOperationStarted)
-          case Reply.operationFailed   => enter(ProductState(failed), nexusOperationFailed)
-          case Reply.operationCanceled => enter(ProductState(canceled), nexusOperationCanceled)
-          // A retryable handler error leaves the operation where it is: the product machine does not
-          // know about backing off, which is the whole of what the protocol machine adds.
-          case Reply.handlerError(retryable) =>
-            if retryable then disabled else enter(ProductState(failed), nexusOperationFailed)
+    def succeed(s: State) = enter(s.copy(phase = succeeded), nexusOperationCompleted)
 
-    /**
-     * An asynchronous completion. A completion that arrives after the operation is over is not
-     * found, and changes nothing.
-     */
-    def completeStep(s: ProductState, resolution: Resolution) =
-      if productTerminal(s) then List(Step(Outcome.notFound, s))
-      else
-        resolution match
-          case Resolution.succeeded => enter(ProductState(succeeded), nexusOperationCompleted)
-          case Resolution.failed    => enter(ProductState(failed), nexusOperationFailed)
-          case Resolution.canceled  => enter(ProductState(canceled), nexusOperationCanceled)
+    def start(s: State) = enter(s.copy(phase = started), nexusOperationStarted)
 
-    /**
-     * A transport fault is an ordinary action of the network. The product machine cannot see one:
-     * whether a delivery was retried is the protocol's account of how, not what.
-     */
-    def transportFaultStep(@unused s: ProductState): List[ProductStep] = disabled
+    def fail(s: State) = enter(s.copy(phase = failed), nexusOperationFailed)
 
-    /**
-     * The handler's worker stopping is a fault the Run records and the operation does not feel. The
-     * product machine cannot see it, like the transport fault: a step that kept the state and
-     * recorded nothing would be indistinguishable from a stutter, and the refinement would read
-     * every stutter as this step.
-     */
-    def workerStopStep(@unused s: ProductState): List[ProductStep] = disabled
+    def cancel(s: State) = enter(s.copy(phase = canceled), nexusOperationCanceled)
+
+    /** A completion that arrives after the operation is over is not found, and changes nothing. */
+    def notFound(s: State): List[ProductStep] = List(Step(Outcome.notFound, s))
 
     /**
      * One of the operation's deadlines firing. Which deadline is the protocol's account of how, so
-     * the product machine has one timer, and it fires while the operation runs.
+     * the product machine has one timer.
      */
-    def timeoutStep(s: ProductState) =
-      if s.phase.in(scheduled, started) then enter(ProductState(timedOut), nexusOperationTimedOut)
-      else disabled
+    def timeOut(s: State) = enter(s.copy(phase = timedOut), nexusOperationTimedOut)
 
-  /** Every fact the product machine records is confirmed by the history event of its name. */
-  val nexusProduct = machine[ProductState, Outcome, ProductFact] {
-    forEntity(operation)
-    starts(ProductState(ProductPhase.scheduled))
-    ends(productTerminal)
-    steps(
-      handler.handlerReply ~> effects.handlerReplyStep,
-      handler.complete ~> effects.completeStep,
-      network.transportFault ~> effects.transportFaultStep,
-      worker.workerStop ~> effects.workerStopStep,
-      timers.timeout ~> effects.timeoutStep
-    )
-  }
+  object rules extends Rules(_.phase):
+    // The handler's reply to the server's start request moves only an operation that has not
+    // started yet. A retryable handler error leaves the operation where it is, so no rule fires it:
+    // the product machine does not know about backing off, which is the whole of what the protocol
+    // machine adds.
+    in(scheduled) {
+      handler.handlerReply(Reply.syncSuccess) ~> effects.succeed
+      handler.handlerReply(Reply.async) ~> effects.start
+      handler.handlerReply(Reply.operationFailed) ~> effects.fail
+      handler.handlerReply(Reply.operationCanceled) ~> effects.cancel
+      handler.handlerReply(Reply.handlerError(false)) ~> effects.fail
+    }
+
+    // An asynchronous completion settles a running operation, and is not found once it is over.
+    when(s => states.productTerminal(s))(handler.complete ~> effects.notFound)
+    in(scheduled, started) {
+      handler.complete(Resolution.succeeded) ~> effects.succeed
+      handler.complete(Resolution.failed) ~> effects.fail
+      handler.complete(Resolution.canceled) ~> effects.cancel
+    }
+
+    // A transport fault is an ordinary action of the network, and the handler's worker stopping is a
+    // fault the Run records. The product machine sees neither: whether a delivery was retried is the
+    // protocol's account of how, not what, and a step that kept the state and recorded nothing would
+    // be indistinguishable from a stutter, which the refinement would read as this step.
+    disabled(network.transportFault, worker.workerStop)
+
+    // The deadline fires while the operation runs.
+    in(scheduled, started)(timers.timeout ~> effects.timeOut)
 
   // A same-step claim names the action it is about under `when` and holds of the step that action
   // produces; a transition claim holds of the state before and the step after. A functional Query
   // realizes a same-step claim, because the Case's Contract is the claim's clause triggered by the
   // action the Case performs; a transition claim is searched and verified, never realized.
 
-  object properties:
+  object properties extends Section:
     /**
      * Once an operation is over, no step changes its phase. Declared on the product machine and read
      * on the protocol machine through the map.
      */
-    val terminalIsFinal = nexusProduct.property.once(productTerminal).keeps(_.phase)
+    val terminalIsFinal = property.once(states.productTerminal).keeps(_.phase)
 
 // ### The protocol machine
 //
@@ -295,48 +302,66 @@ object Product:
 // Not here, for reasons recorded rather than silent: the cancel field and its rows (fn-79), and the
 // concurrency-limit rejection, which names no operation and is not modeled until a Query needs it.
 
-object Protocol:
+object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
   import Phase.*
 
-  /**
-   * Bounds the attempt count. Nothing wires the Limits into a machine's state, so the bound is
-   * written here; the Go model evaluator checks each require precondition against it.
-   */
-  val attemptBound = 2
-
-  def validAttempts(a: Int) = 0 <= a && a <= attemptBound
-
-  /** A retry past the bound stays at it, rather than wrapping as `Fin` arithmetic would. */
-  def saturatingSucc(a: Int) =
-    require(validAttempts(a))
-    if a < attemptBound then a + 1 else a
-
-  /** The four phases the design ends on. A completion that arrives after one of them is not found. */
-  def terminalPhase(p: Phase) = p.in(succeeded, failed, canceled, timedOut)
-
-  /** Scheduled and not yet over: the phases a completion resolves and a timer can fire in. */
-  def running(p: Phase) = p.in(scheduled, backingOff, started)
-
-  /**
-   * How a protocol state reads as a product state. A phase of the same name is that phase; backing
-   * off is still scheduled, because the product machine cannot see a retry; and an operation not
-   * yet scheduled reads as scheduled, because the product machine begins there. Every other field
-   * is hidden, which is what a map that does not read it says.
-   */
-  def productOf(s: ProtocolState) = s.phase match
-    case Phase.unscheduled | Phase.scheduled | Phase.backingOff =>
-      ProductState(ProductPhase.scheduled)
-    case Phase.started   => ProductState(ProductPhase.started)
-    case Phase.succeeded => ProductState(ProductPhase.succeeded)
-    case Phase.failed    => ProductState(ProductPhase.failed)
-    case Phase.canceled  => ProductState(ProductPhase.canceled)
-    case Phase.timedOut  => ProductState(ProductPhase.timedOut)
+  val entity = operation
 
   /** Where every path begins: before the operation exists, with every deadline at its first value. */
-  val unscheduled =
-    ProtocolState(Phase.unscheduled, 0, Timeout.unset, Timeout.unset, Timeout.unset)
+  val init = ProtocolState(Phase.unscheduled, 0, Timeout.unset, Timeout.unset, Timeout.unset)
+  def end(s: State) = states.terminalPhase(s.phase)
 
-  object effects:
+  /**
+   * A timeout is confirmed by the one timed-out event, whichever deadline fired, and the attempt
+   * count by its observation.
+   */
+  val evidence: PartialFunction[ProtocolFact, String] = {
+    case ProtocolFact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
+    case ProtocolFact.pendingAttempts           => pendingAttempts.name
+  }
+
+  /** The protocol's phase sets and its attempt count's arithmetic. */
+  object states extends Section:
+    def validAttempts(a: Int) = 0 <= a && a <= attemptBound
+
+    /** A retry past the bound stays at it, rather than wrapping as `Fin` arithmetic would. */
+    def saturatingSucc(a: Int) =
+      require(validAttempts(a))
+      if a < attemptBound then a + 1 else a
+
+    /** The four phases the design ends on. A completion that arrives after one of them is not found. */
+    def terminalPhase(p: Phase) = p.in(succeeded, failed, canceled, timedOut)
+
+    /** Scheduled and not yet over: the phases a completion resolves and a timer can fire in. */
+    def running(p: Phase) = p.in(scheduled, backingOff, started)
+
+    /** Waiting for the handler to accept: what the schedule-to-start deadline covers. */
+    def waiting(p: Phase) = p.in(scheduled, backingOff)
+
+    /** Every phase once the operation is scheduled, running or over: what a completion answers. */
+    def created(p: Phase) = running(p) || terminalPhase(p)
+
+  /** The protocol refines the product: what each of its states reads as there. */
+  object refinement extends Refinement(NexusProduct):
+    /**
+     * A phase of the same name is that phase; backing off is still scheduled, because the product
+     * machine cannot see a retry; and an operation not yet scheduled reads as scheduled, because the
+     * product machine begins there. Every other field is hidden, which is what a map that does not
+     * read it says.
+     */
+    def toProduct(s: State): ProductState = s.phase match
+      case Phase.unscheduled | Phase.scheduled | Phase.backingOff =>
+        ProductState(ProductPhase.scheduled)
+      case Phase.started   => ProductState(ProductPhase.started)
+      case Phase.succeeded => ProductState(ProductPhase.succeeded)
+      case Phase.failed    => ProductState(ProductPhase.failed)
+      case Phase.canceled  => ProductState(ProductPhase.canceled)
+      case Phase.timedOut  => ProductState(ProductPhase.timedOut)
+
+    /** The backoff timer records nothing a Run can read: a retry writes no history event. */
+    val unobservable = List(timers.backoff)
+
+  object effects extends Section:
     import ProtocolFact.*
 
     /**
@@ -344,18 +369,16 @@ object Protocol:
      * is a state field because whether a timer fires is a question about the operation and not about
      * the command that started it.
      */
-    def scheduleStep(
-        s: ProtocolState,
+    def schedule(
+        @unused s: State,
         scheduleToClose: Timeout,
         scheduleToStart: Timeout,
         startToClose: Timeout
     ) =
-      if s.phase != Phase.unscheduled then disabled
-      else
-        enter(
-          ProtocolState(scheduled, 0, scheduleToClose, scheduleToStart, startToClose),
-          nexusOperationScheduled
-        )
+      enter(
+        ProtocolState(scheduled, 0, scheduleToClose, scheduleToStart, startToClose),
+        nexusOperationScheduled
+      )
 
     /**
      * The handler's reply to the server's start request. What the product machine cannot see is the
@@ -363,126 +386,99 @@ object Protocol:
      * count is read back through the pendingAttempts observation because no history event records
      * it.
      */
-    def handlerReplyStep(s: ProtocolState, reply: Reply) =
-      require(validAttempts(s.attempts))
-      if s.phase != scheduled then disabled
-      else
-        reply match
-          case Reply.syncSuccess       => enter(s.copy(phase = succeeded), nexusOperationCompleted)
-          case Reply.async             => enter(s.copy(phase = started), nexusOperationStarted)
-          case Reply.operationFailed   => enter(s.copy(phase = failed), nexusOperationFailed)
-          case Reply.operationCanceled => enter(s.copy(phase = canceled), nexusOperationCanceled)
-          case Reply.handlerError(retryable) =>
-            if !retryable then enter(s.copy(phase = failed), nexusOperationFailed)
-            else
-              enter(
-                s.copy(phase = backingOff, attempts = saturatingSucc(s.attempts)),
-                ProtocolFact.pendingAttempts
-              )
+    def handlerReply(s: State, reply: Reply) =
+      require(states.validAttempts(s.attempts))
+      reply match
+        case Reply.syncSuccess       => enter(s.copy(phase = succeeded), nexusOperationCompleted)
+        case Reply.async             => enter(s.copy(phase = started), nexusOperationStarted)
+        case Reply.operationFailed   => enter(s.copy(phase = failed), nexusOperationFailed)
+        case Reply.operationCanceled => enter(s.copy(phase = canceled), nexusOperationCanceled)
+        case Reply.handlerError(retryable) =>
+          if !retryable then enter(s.copy(phase = failed), nexusOperationFailed)
+          else
+            enter(
+              s.copy(phase = backingOff, attempts = states.saturatingSucc(s.attempts)),
+              ProtocolFact.pendingAttempts
+            )
 
     /** A transport fault is the same failure arriving as a dropped delivery rather than as a reply. */
-    def transportFaultStep(s: ProtocolState) =
-      require(validAttempts(s.attempts))
-      if s.phase != scheduled then disabled
-      else
-        enter(
-          s.copy(phase = backingOff, attempts = saturatingSucc(s.attempts)),
-          ProtocolFact.pendingAttempts
-        )
+    def backOff(s: State) =
+      require(states.validAttempts(s.attempts))
+      enter(
+        s.copy(phase = backingOff, attempts = states.saturatingSucc(s.attempts)),
+        ProtocolFact.pendingAttempts
+      )
 
     /**
      * The handler's worker stopping is a fault the Run records and the operation does not feel, so
      * the step keeps the state and records nothing. On a path it is confirmed by the evidence of the
      * step after it, and the Case says so in a Known Gap.
      */
-    def workerStopStep(s: ProtocolState): List[ProtocolStep] = stay(s)
+    def keep(s: State): List[ProtocolStep] = stay(s)
+
+    /** A completion that arrives after the operation is over is not found, and changes nothing. */
+    def notFound(s: State): List[ProtocolStep] = List(Step(Outcome.notFound, s))
 
     /**
      * An asynchronous completion. Before a start, the server records a Started event first, which is
      * why the evidence is two facts and not one -- and why the product machine, which has no
      * backingOff phase to have skipped, could write the completion alone.
      */
-    def completeStep(s: ProtocolState, resolution: Resolution) =
-      if terminalPhase(s.phase) then List(Step(Outcome.notFound, s))
-      else if s.phase == Phase.unscheduled then disabled
-      else
-        val startedFirst =
-          if s.phase != started then List(nexusOperationStarted) else Nil
-        resolution match
-          case Resolution.succeeded =>
-            enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
-          case Resolution.failed =>
-            enter(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
-          case Resolution.canceled =>
-            enter(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
+    def complete(s: State, resolution: Resolution) =
+      val startedFirst =
+        if s.phase != started then List(nexusOperationStarted) else Nil
+      resolution match
+        case Resolution.succeeded =>
+          enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
+        case Resolution.failed =>
+          enter(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
+        case Resolution.canceled =>
+          enter(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
 
     /**
      * The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
      * it is stuck in, and it records nothing: a retry writes no history event.
      */
-    def backoffStep(s: ProtocolState): List[ProtocolStep] =
-      if s.phase != backingOff then disabled else enter(s.copy(phase = scheduled))
+    def retry(s: State): List[ProtocolStep] = enter(s.copy(phase = scheduled))
 
-    /**
-     * The schedule-to-close deadline covers the whole operation, so it fires in every running phase
-     * -- and only when the schedule command set it.
-     */
-    def scheduleToCloseStep(s: ProtocolState) =
-      if running(s.phase) && s.scheduleToClose == Timeout.expires then
-        enter(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.scheduleToClose))
-      else disabled
+    /** One of the three deadlines firing; the timed-out event records which. */
+    def timeOut(s: State, t: TimeoutType) =
+      enter(s.copy(phase = timedOut), nexusOperationTimedOut(t))
 
-    /**
-     * The schedule-to-start deadline covers the wait for the handler to accept, so it stops at the
-     * start.
-     */
-    def scheduleToStartStep(s: ProtocolState) =
-      if s.phase.in(scheduled, backingOff) && s.scheduleToStart == Timeout.expires then
-        enter(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.scheduleToStart))
-      else disabled
+  object rules extends Rules(_.phase):
+    in(unscheduled)(caller.schedule ~> effects.schedule)
+    in(scheduled)(handler.handlerReply ~> effects.handlerReply)
 
-    /** The start-to-close deadline covers the handler's own work, so it begins at the start. */
-    def startToCloseStep(s: ProtocolState) =
-      if s.phase == started && s.startToClose == Timeout.expires then
-        enter(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.startToClose))
-      else disabled
+    // A completion resolves any running phase, and is not found once the operation is over; an
+    // operation not yet scheduled has nothing to complete.
+    when(s => states.terminalPhase(s.phase))(handler.complete ~> effects.notFound)
+    when(s => states.running(s.phase))(handler.complete ~> effects.complete)
 
-  /**
-   * A timeout is confirmed by the one timed-out event, whichever deadline fired, and the attempt
-   * count by its observation.
-   */
-  val nexusProtocol = machine[ProtocolState, Outcome, ProtocolFact] {
-    forEntity(operation)
-    refines(Product.nexusProduct)(productOf)
-    starts(unscheduled)
-    ends(s => terminalPhase(s.phase))
-    unobservable(timers.backoff)
-    evidence {
-      case ProtocolFact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
-      case ProtocolFact.pendingAttempts           => pendingAttempts.name
+    in(scheduled)(network.transportFault ~> effects.backOff)
+    when(_ => true)(worker.workerStop ~> effects.keep)
+    in(backingOff)(timers.backoff ~> effects.retry)
+
+    // Each deadline fires only when the schedule command set it. Schedule-to-close covers the whole
+    // operation, schedule-to-start the wait for the handler to accept, and start-to-close the
+    // handler's own work.
+    when(s => states.running(s.phase) && s.scheduleToClose == Timeout.expires) {
+      deadline.scheduleToClose ~> (s => effects.timeOut(s, TimeoutType.scheduleToClose))
     }
-    steps(
-      caller.schedule ~> effects.scheduleStep,
-      handler.handlerReply ~> effects.handlerReplyStep,
-      handler.complete ~> effects.completeStep,
-      network.transportFault ~> effects.transportFaultStep,
-      worker.workerStop ~> effects.workerStopStep,
-      timers.backoff ~> effects.backoffStep,
-      deadline.scheduleToClose ~> effects.scheduleToCloseStep,
-      deadline.scheduleToStart ~> effects.scheduleToStartStep,
-      deadline.startToClose ~> effects.startToCloseStep
-    )
-  }
+    when(s => states.waiting(s.phase) && s.scheduleToStart == Timeout.expires) {
+      deadline.scheduleToStart ~> (s => effects.timeOut(s, TimeoutType.scheduleToStart))
+    }
+    when(s => s.phase == started && s.startToClose == Timeout.expires) {
+      deadline.startToClose ~> (s => effects.timeOut(s, TimeoutType.startToClose))
+    }
 
-  object properties:
+  object properties extends Section:
     /** A synchronous reply settles the operation as succeeded, and the completed event records it. */
-    val syncSucceeds = nexusProtocol.property when handler.handlerReply(Reply.syncSuccess) holds {
-      s =>
-        s.state.phase == Phase.succeeded && s.records(ProtocolFact.nexusOperationCompleted)
+    val syncSucceeds = property when handler.handlerReply(Reply.syncSuccess) holds { s =>
+      s.state.phase == Phase.succeeded && s.records(ProtocolFact.nexusOperationCompleted)
     }
 
     /** An asynchronous reply starts the operation, and the started event records it. */
-    val asyncStarts = nexusProtocol.property when handler.handlerReply(Reply.async) holds { s =>
+    val asyncStarts = property when handler.handlerReply(Reply.async) holds { s =>
       s.state.phase == Phase.started && s.records(ProtocolFact.nexusOperationStarted)
     }
 
@@ -492,11 +488,11 @@ object Protocol:
      * outcome too, so a clause fixing it would be answered before the completion.
      */
     val completionSucceeds =
-      nexusProtocol.property when handler.complete(Resolution.succeeded) holds
+      property when handler.complete(Resolution.succeeded) holds
         (_.records(ProtocolFact.nexusOperationCompleted))
 
     /** A failed completion is recorded by the failed event. */
-    val completionFails = nexusProtocol.property when handler.complete(Resolution.failed) holds
+    val completionFails = property when handler.complete(Resolution.failed) holds
       (_.records(ProtocolFact.nexusOperationFailed))
 
     /**
@@ -504,7 +500,7 @@ object Protocol:
      * it.
      */
     val handlerErrorFails =
-      nexusProtocol.property when handler.handlerReply(Reply.handlerError(false)) holds { s =>
+      property when handler.handlerReply(Reply.handlerError(false)) holds { s =>
         s.state.phase == Phase.failed && s.records(ProtocolFact.nexusOperationFailed)
       }
 
@@ -520,22 +516,21 @@ object Protocol:
      * attempt: the count the retryable failure raised is still one, and the completed event records
      * the reply.
      */
-    val retrySucceeds = nexusProtocol.property when handler.handlerReply(Reply.syncSuccess) holds {
-      s =>
-        s.state == succeededOnRetry && s.records(ProtocolFact.nexusOperationCompleted)
+    val retrySucceeds = property when handler.handlerReply(Reply.syncSuccess) holds { s =>
+      s.state == succeededOnRetry && s.records(ProtocolFact.nexusOperationCompleted)
     }
 
     /**
      * The schedule-to-start deadline settles an operation no handler started as timed out, and the
      * timed-out event records which deadline it was.
      */
-    val scheduleToStartFires = nexusProtocol.property when deadline.scheduleToStart holds { s =>
+    val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
       s.state.phase == Phase.timedOut &&
       s.records(ProtocolFact.nexusOperationTimedOut(TimeoutType.scheduleToStart))
     }
 
     /** The start-to-close deadline settles a started operation no handler completed as timed out. */
-    val startToCloseFires = nexusProtocol.property when deadline.startToClose holds { s =>
+    val startToCloseFires = property when deadline.startToClose holds { s =>
       s.state.phase == Phase.timedOut &&
       s.records(ProtocolFact.nexusOperationTimedOut(TimeoutType.startToClose))
     }
@@ -543,65 +538,15 @@ object Protocol:
   /**
    * The paths the Queries run, then the Queries. Each path is one upstream functional test's shape,
    * from before the operation exists: the schedule command, then the side effects that settle the
-   * operation. A schedule that sets no deadline is `schedule()`, each input at `unset`.
+   * operation. A schedule that sets no deadline is `schedule()`, each input at `unset`. A path one
+   * Query takes is written in it.
    */
-  object queries:
-    val syncReplied =
-      nexusProtocol.scenario.actions(caller.schedule(), handler.handlerReply(Reply.syncSuccess))
-
-    val asyncThenSucceeded = nexusProtocol.scenario
+  object queries extends Section:
+    val asyncThenSucceeded = scenario
       .actions(
         caller.schedule(),
         handler.handlerReply(Reply.async),
         handler.complete(Resolution.succeeded)
-      )
-
-    val asyncThenFailed = nexusProtocol.scenario
-      .actions(
-        caller.schedule(),
-        handler.handlerReply(Reply.async),
-        handler.complete(Resolution.failed)
-      )
-
-    val nonRetryableError =
-      nexusProtocol.scenario.actions(
-        caller.schedule(),
-        handler.handlerReply(Reply.handlerError(false))
-      )
-
-    /**
-     * The retryable error backs the operation off; the backoff timer fires and records nothing; the
-     * retried attempt is answered synchronously.
-     */
-    val retriedThenSucceeded = nexusProtocol.scenario.actions(
-      caller.schedule(),
-      handler.handlerReply(Reply.handlerError(true)),
-      timers.backoff,
-      handler.handlerReply(Reply.syncSuccess)
-    )
-
-    /**
-     * The schedule command sets the schedule-to-start deadline; the handler's worker stops, so
-     * nothing answers the start request; the deadline fires. The worker stops after the schedule in
-     * the operation's order, where the stop changes nothing; the realization stops it before the
-     * workflow starts, where the stop cannot race the dispatch.
-     */
-    val scheduleToStartExpires = nexusProtocol.scenario
-      .actions(
-        caller.schedule(scheduleToStart := expires),
-        worker.workerStop,
-        deadline.scheduleToStart
-      )
-
-    /**
-     * The schedule command sets the start-to-close deadline; the handler accepts asynchronously and
-     * never completes; the deadline fires.
-     */
-    val startToCloseExpires = nexusProtocol.scenario
-      .actions(
-        caller.schedule(startToClose := expires),
-        handler.handlerReply(Reply.async),
-        deadline.startToClose
       )
 
     // The design's seven: sync success, async reply then succeeded callback, async reply then failed
@@ -611,7 +556,10 @@ object Protocol:
     // Case. The product claim is verified over every trace of one path, outside `functionalQueries`,
     // because a verify Query realizes nothing.
 
-    val syncCompletion = (query find properties.syncSucceeds in syncReplied limits two total 384)
+    val syncCompletion = (query find properties.syncSucceeds in scenario("syncReplied").actions(
+      caller.schedule(),
+      handler.handlerReply(Reply.syncSuccess)
+    ) limits two total 384)
       .expect(satisfied)
       .explore(
         Exploration(
@@ -639,25 +587,57 @@ object Protocol:
       (query find properties.completionSucceeds in asyncThenSucceeded limits three total 576)
         .expect(inconclusive(Reason.explanationsDisagree))
     val asyncFailure =
-      (query find properties.completionFails in asyncThenFailed limits three total 576)
+      (query find properties.completionFails in scenario("asyncThenFailed").actions(
+        caller.schedule(),
+        handler.handlerReply(Reply.async),
+        handler.complete(Resolution.failed)
+      ) limits three total 576)
         .expect(inconclusive(Reason.explanationsDisagree))
     val handlerError =
-      (query find properties.handlerErrorFails in nonRetryableError limits two total 384)
+      (query find properties.handlerErrorFails in scenario("nonRetryableError").actions(
+        caller.schedule(),
+        handler.handlerReply(Reply.handlerError(false))
+      ) limits two total 384)
         .expect(inconclusive(Reason.neverEvaluated))
-    val retry = (query find properties.retrySucceeds in retriedThenSucceeded limits four total 768)
+
+    // The retryable error backs the operation off; the backoff timer fires and records nothing; the
+    // retried attempt is answered synchronously.
+    val retry = (query find properties.retrySucceeds in scenario("retriedThenSucceeded").actions(
+      caller.schedule(),
+      handler.handlerReply(Reply.handlerError(true)),
+      timers.backoff,
+      handler.handlerReply(Reply.syncSuccess)
+    ) limits four total 768)
       .expect(inconclusive(Reason.explanationsDisagree))
+
+    // The schedule command sets the schedule-to-start deadline; the handler's worker stops, so
+    // nothing answers the start request; the deadline fires. The worker stops after the schedule in
+    // the operation's order, where the stop changes nothing; the realization stops it before the
+    // workflow starts, where the stop cannot race the dispatch.
     val scheduleToStartTimeout =
-      (query find properties.scheduleToStartFires in scheduleToStartExpires limits three total 576)
+      (query find properties.scheduleToStartFires in scenario("scheduleToStartExpires").actions(
+        caller.schedule(scheduleToStart := expires),
+        worker.workerStop,
+        deadline.scheduleToStart
+      ) limits three total 576)
         .expect(inconclusive(Reason.neverEvaluated))
+
+    // The schedule command sets the start-to-close deadline; the handler accepts asynchronously and
+    // never completes; the deadline fires.
     val startToCloseTimeout =
-      (query find properties.startToCloseFires in startToCloseExpires limits three total 576)
+      (query find properties.startToCloseFires in scenario("startToCloseExpires").actions(
+        caller.schedule(startToClose := expires),
+        handler.handlerReply(Reply.async),
+        deadline.startToClose
+      ) limits three total 576)
         .expect(inconclusive(Reason.neverEvaluated))
 
     /**
      * A product claim on a protocol path, read through the refinement the protocol machine declares.
      */
     val terminalHolds =
-      query verify Product.properties.terminalIsFinal in asyncThenSucceeded limits three total 576
+      query verify NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three total
+        576
 
     /** The functional Queries in declaration order. */
     val functionalQueries = Vector(
@@ -671,14 +651,13 @@ object Protocol:
     )
 
 // ### The handler's worker
+//
+// The caller's view of the handler's worker: it stops and it serves. It never resumes, because an
+// action no sync line names would stay executable on its own and admit a stop, a resume and then a
+// reply; the operation's timers settle every state a stop leaves.
 
-object HandlerWorker:
-  /**
-   * The caller's view of the handler's worker: it stops and it serves. It never resumes, because an
-   * action no sync line names would stay executable on its own and admit a stop, a resume and then a
-   * reply; the operation's timers settle every state a stop leaves.
-   */
-  val handlerWorker = shared.worker.Polling.restrict(worker.workerStop, worker.serve)
+object HandlerWorker
+    extends Derived(shared.worker.Polling.restrict(worker.workerStop, worker.serve))
 
 // ### The operation and the handler's worker
 //
@@ -688,56 +667,70 @@ object HandlerWorker:
 // and every reply is the worker serving, so a reply has a row only while the worker polls. No
 // functional Query reads the composition; it is what the cross-entity claim is verified over.
 
-object NexusCaller:
-  val pollingWorker = WorkerState(WorkerPhase.polling)
+object NexusCaller
+    extends Composition[NexusCallerState](
+      _.operation -> NexusProtocol,
+      _.worker -> HandlerWorker
+    ):
+  def end(s: State) = NexusProtocol.states.terminalPhase(s.operation.phase)
 
-  val nexusCaller =
-    compose[NexusCallerState](
-      _.operation -> Protocol.nexusProtocol,
-      _.worker -> HandlerWorker.handlerWorker
-    )
-      .sync(_.operation -> worker.workerStop, _.worker -> worker.workerStop)
-      .sync(_.operation -> handler.handlerReply, _.worker -> worker.serve)
-      .ends(s => Protocol.terminalPhase(s.operation.phase))
+  object syncs extends Syncs:
+    sync(_.operation -> worker.workerStop, _.worker -> worker.workerStop)
+    sync(_.operation -> handler.handlerReply, _.worker -> worker.serve)
 
-  object properties:
+  object properties extends Section:
     /**
      * The cross-entity claim: every reply, of any class, leaves the handler's worker polling, so no
      * handler replies while its worker is stopped.
      */
-    val repliedByPollingWorker = nexusCaller.property
-      .whenAction(nexusCaller.synced(_.operation -> handler.handlerReply))
+    val repliedByPollingWorker = property
+      .whenAction(synced(_.operation -> handler.handlerReply))
       .holds(_.state.worker.phase == WorkerPhase.polling)
 
-  object queries:
+  object queries extends Section:
     /**
-     * A retryable reply backs the operation off; the handler's worker then stops, so the retried
-     * attempt is never answered and the schedule-to-start deadline fires. The start is stated: a
-     * default would take the worker's from shared/worker/Worker.scala.
+     * The cross-entity claim, verified over the path on which a retryable reply backs the operation
+     * off; the handler's worker then stops, so the retried attempt is never answered and the
+     * schedule-to-start deadline fires. The start is stated: a default would take the worker's from
+     * shared/worker/Worker.scala.
      */
-    val repliedThenStopped = nexusCaller.scenario
-      .starts(NexusCallerState(Protocol.unscheduled, pollingWorker))
-      .actions(
-        nexusCaller.own(_.operation, caller.schedule(scheduleToStart := expires)),
-        nexusCaller.synced(_.operation -> handler.handlerReply(Reply.handlerError(true))),
-        nexusCaller.synced(_.operation -> worker.workerStop),
-        nexusCaller.own(_.operation, deadline.scheduleToStart)
-      )
-
-    /** The cross-entity claim, verified over that path. */
     val stoppedWorkerRepliesNothing =
-      query verify properties.repliedByPollingWorker in repliedThenStopped limits four total 1536
+      query verify properties.repliedByPollingWorker in scenario("repliedThenStopped")
+        .starts(NexusCallerState(NexusProtocol.init, WorkerState(WorkerPhase.polling)))
+        .actions(
+          own(_.operation, caller.schedule(scheduleToStart := expires)),
+          synced(_.operation -> handler.handlerReply(Reply.handlerError(true))),
+          synced(_.operation -> worker.workerStop),
+          own(_.operation, deadline.scheduleToStart)
+        ) limits four total 1536
 
 // ### The control
 //
 // A caller design that predicts success for a failed completion, which the forged-completion Query
-// must refuse. It keeps its own family, and its Definition IDs hang off this object.
+// must refuse. It keeps its own family, and its Definition IDs hang off this object's pin. It is the
+// protocol machine without its refinement, its completion forged and an inspection added, declared
+// rather than derived from NexusProtocol: a derivation lifts its source machines, and
+// nexus-control.json holds this machine alone.
 
-object Control:
+object ForgedCompletion
+    extends Machine[ProtocolState, Outcome, ProtocolFact](using
+      ControlFamily.family,
+      summon,
+      summon,
+      summon
+    ),
+      NegativeControl:
   // Moved from temporal.nexuscaller; the pin keeps its Definition IDs.
   given DefinitionScope = DefinitionScope("temporal.nexuscaller.Control$")
 
-  given family: Family = Family("temporal.nexus.control")
+  val entity = operation
+  val init = NexusProtocol.init
+  def end(s: State) = NexusProtocol.states.terminalPhase(s.phase)
+  val evidence: PartialFunction[ProtocolFact, String] = {
+    case ProtocolFact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
+    case ProtocolFact.pendingAttempts           => pendingAttempts.name
+  }
+  val unobservable = List(timers.backoff)
 
   /**
    * The caller's inspection of its workflow, which only this control takes. The section keeps the
@@ -747,70 +740,68 @@ object Control:
   object caller extends Section:
     val inspect = action(features.nexuscaller.caller).on(operation)
 
-  // A failed callback completes the operation two ways: as the success the control forges, and as
-  // the failure the runtime still sends.
-  val forged = choice
-  val sent = choice
+  object effects extends Section:
+    def inspect(s: State): List[ProtocolStep] = stay(s)
 
-  object effects:
-    def inspectStep(s: ProtocolState): List[ProtocolStep] = stay(s)
+    /**
+     * The protocol's completion of an operation once scheduled: not found once it is over, and
+     * resolved while it runs. One effect rather than two rules, because the forged completion names
+     * both alternatives of a failed callback in every such phase, the not-found ones included.
+     */
+    def settle(s: State, resolution: Resolution) =
+      if NexusProtocol.states.terminalPhase(s.phase) then NexusProtocol.effects.notFound(s)
+      else NexusProtocol.effects.complete(s, resolution)
 
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.
-    def forgedComplete(s: ProtocolState, resolution: Resolution) =
+    def forgedComplete(s: State, resolution: Resolution) =
       if resolution == Resolution.failed then
-        choose(
-          forged -> Protocol.effects.completeStep(s, Resolution.succeeded),
-          sent -> Protocol.effects.completeStep(s, resolution)
-        )
-      else Protocol.effects.completeStep(s, resolution)
+        choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution))
+      else settle(s, resolution)
 
-  // The protocol machine without its refinement, its completion forged and an inspection added.
-  // It is declared, not derived from nexusProtocol: a derivation lifts its source machines, and
-  // nexus-control.json holds this machine alone.
-  val forgedCompletion = machine[ProtocolState, Outcome, ProtocolFact] {
-    forEntity(operation)
-    starts(Protocol.unscheduled)
-    ends(s => Protocol.terminalPhase(s.phase))
-    unobservable(timers.backoff)
-    evidence {
-      case ProtocolFact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
-      case ProtocolFact.pendingAttempts           => pendingAttempts.name
+  // The protocol machine's rules, its completion forged and the inspection added.
+  object rules extends Rules(_.phase):
+    in(Phase.unscheduled)(features.nexuscaller.caller.schedule ~> NexusProtocol.effects.schedule)
+    in(Phase.scheduled)(handler.handlerReply ~> NexusProtocol.effects.handlerReply)
+    when(s => NexusProtocol.states.created(s.phase))(handler.complete ~> effects.forgedComplete)
+    when(_ => true)(caller.inspect ~> effects.inspect)
+    in(Phase.scheduled)(network.transportFault ~> NexusProtocol.effects.backOff)
+    when(_ => true)(worker.workerStop ~> NexusProtocol.effects.keep)
+    in(Phase.backingOff)(timers.backoff ~> NexusProtocol.effects.retry)
+    when(s => NexusProtocol.states.running(s.phase) && s.scheduleToClose == Timeout.expires) {
+      deadline.scheduleToClose ~> (s =>
+        NexusProtocol.effects.timeOut(s, TimeoutType.scheduleToClose)
+      )
     }
-    steps(
-      features.nexuscaller.caller.schedule ~> Protocol.effects.scheduleStep,
-      handler.handlerReply ~> Protocol.effects.handlerReplyStep,
-      handler.complete ~> effects.forgedComplete,
-      caller.inspect ~> effects.inspectStep,
-      network.transportFault ~> Protocol.effects.transportFaultStep,
-      worker.workerStop ~> Protocol.effects.workerStopStep,
-      timers.backoff ~> Protocol.effects.backoffStep,
-      deadline.scheduleToClose ~> Protocol.effects.scheduleToCloseStep,
-      deadline.scheduleToStart ~> Protocol.effects.scheduleToStartStep,
-      deadline.startToClose ~> Protocol.effects.startToCloseStep
-    )
-  }
+    when(s => NexusProtocol.states.waiting(s.phase) && s.scheduleToStart == Timeout.expires) {
+      deadline.scheduleToStart ~> (s =>
+        NexusProtocol.effects.timeOut(s, TimeoutType.scheduleToStart)
+      )
+    }
+    when(s => s.phase == Phase.started && s.startToClose == Timeout.expires) {
+      deadline.startToClose ~> (s => NexusProtocol.effects.timeOut(s, TimeoutType.startToClose))
+    }
 
-  object properties:
+  object properties extends Section:
     /**
      * A failed completion is recorded as completed: what the control predicts and no runtime sends.
      */
-    val forgedSuccess = forgedCompletion.property when handler.complete(Resolution.failed) holds
+    val forgedSuccess = property when handler.complete(Resolution.failed) holds
       (_.records(ProtocolFact.nexusOperationCompleted))
 
-  object queries:
-    /** The control inspects the operation around a failed completion. */
-    val inspectedFailure = Control.forgedCompletion.scenario.actions(
-      features.nexuscaller.caller.schedule(),
-      caller.inspect,
-      handler.handlerReply(Reply.async),
-      caller.inspect,
-      handler.complete(Resolution.failed)
-    )
-
-    /** The forged control, which every modeled execution that explains the evidence refutes. */
+  object queries extends Section:
+    /**
+     * The forged control, which every modeled execution that explains the evidence refutes, on a
+     * path that inspects the operation around a failed completion.
+     */
     val forgedCompletion =
-      (query find properties.forgedSuccess in inspectedFailure limits control total 960)
+      (query find properties.forgedSuccess in scenario("inspectedFailure").actions(
+        features.nexuscaller.caller.schedule(),
+        caller.inspect,
+        handler.handlerReply(Reply.async),
+        caller.inspect,
+        handler.complete(Resolution.failed)
+      ) limits control total 960)
         .expect(
           RunExpectation(
             Conformance.inconclusive,
@@ -849,17 +840,20 @@ object exports:
   // The product claim read on a protocol path and the cross-entity Query, which carries the
   // composition with the handler's worker and its claim, are roots too.
   val nexusCaller = irFile("nexus-caller")(
-    Product.nexusProduct,
-    Protocol.nexusProtocol,
-    HandlerWorker.handlerWorker,
-    NexusCaller.nexusCaller,
+    NexusProduct,
+    NexusProtocol,
+    HandlerWorker,
+    NexusCaller,
     shared.worker.Polling,
-    Protocol.queries.functionalQueries,
-    Protocol.queries.terminalHolds,
+    NexusProtocol.queries.functionalQueries,
+    NexusProtocol.queries.terminalHolds,
     NexusCaller.queries.stoppedWorkerRepliesNothing,
     NexusRealization.asyncNexus
   )
 
   // The forged completion a caller must refuse, and the realization that offers it.
   val nexusControl =
-    irFile("nexus-control")(Control.queries.forgedCompletion, NexusRealization.forgedCompletion)
+    irFile("nexus-control")(
+      ForgedCompletion.queries.forgedCompletion,
+      NexusRealization.forgedCompletion
+    )
