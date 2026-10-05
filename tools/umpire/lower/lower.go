@@ -61,8 +61,8 @@ const (
 	OffPath Disposition = "off-path"
 	// Names is what identifies the realization in the IR, which no part of a Case repeats.
 	Names Disposition = "names"
-	// Unread is a hint of the API behavior, or a server step, which shapes only how a Case waits: no
-	// part of a Case reads one until waits are derived from them (fn-118.4).
+	// Unread is a hint of the API behavior, or a server step, which shapes only how a Case waits, that
+	// no wait of the Case reads: a read that writes its own interval, or one whose window it is not in.
 	Unread Disposition = "unread"
 )
 
@@ -741,6 +741,9 @@ type lowering struct {
 	// confirmations is which kind of evidence confirms each step of the path, as the producer decides
 	// it: set once the producer has read the path whole and refused nothing.
 	confirmations []cp.Confirmation
+	// uses is, for each hint and server step the Case's waits read, by "behavior:<id>" or
+	// "server_steps:<class>", the instructions that read it.
+	uses map[string][]string
 }
 
 func (p *Producer) source(q *umpirespb.Query) cp.Source {
@@ -796,6 +799,9 @@ func (p *Producer) check(a *asked, identity Identity) (*lowering, []error) {
 			problems = append(problems, fmt.Errorf("%s: query %s: %w", locate(at), name, err))
 		} else {
 			problems = append(problems, l.unstarted()...)
+			var refused []error
+			l.adapter.waits, l.uses, refused = l.waits()
+			problems = append(problems, refused...)
 		}
 	}
 	return l, problems
@@ -1042,25 +1048,29 @@ func (a *accounting) requiredSettings() error {
 }
 
 // behavior records each hint of the API behavior by its id, and serverSteps each server step by its
-// class: no part of a Case reads them yet.
+// class: in the instructions whose waits read it, or unread.
 func (a *accounting) behavior() error {
 	for _, v := range a.l.a.r.GetBehavior().GetVisibility() {
-		a.unread("behavior", v.GetId(), v.GetPosition())
+		a.read("behavior", v.GetId(), v.GetPosition())
 	}
 	for _, c := range a.l.a.r.GetBehavior().GetCauses() {
-		a.unread("behavior", c.GetId(), c.GetPosition())
+		a.read("behavior", c.GetId(), c.GetPosition())
 	}
 	return nil
 }
 
 func (a *accounting) serverSteps() error {
 	for _, s := range a.l.a.r.GetServerSteps() {
-		a.unread("server_steps", a.l.adapter.classKey(s.GetStep()), s.GetPosition())
+		a.read("server_steps", a.l.adapter.classKey(s.GetStep()), s.GetPosition())
 	}
 	return nil
 }
 
-func (a *accounting) unread(kind, id string, at *umpirespb.Position) {
+func (a *accounting) read(kind, id string, at *umpirespb.Position) {
+	if parts := a.l.uses[kind+":"+id]; len(parts) > 0 {
+		a.own(kind, id, at, parts...)
+		return
+	}
 	a.entries = append(a.entries, Entry{Kind: kind, ID: id, Position: locate(at), Disposition: Unread})
 }
 

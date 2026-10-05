@@ -826,8 +826,15 @@ func (a *realizing) poll(c commandOf, poll *umpirespb.Poll) {
 	if computes := a.typed(c, poll.GetUntil(), true); computes != AnyShape && computes != ConditionShape {
 		a.report(c.at, "command %s polls until %s, and a poll's condition is a condition", c.name, computes)
 	}
-	if poll.GetIntervalMs() < 1 {
+	// A poll that writes no interval waits as the lowering derives from the API behavior; it then
+	// writes no deadline either, since its bound is the hints' (.plans/API_BEHAVIOR_HINTS.md).
+	switch {
+	case poll.GetIntervalMs() < 0:
 		a.report(c.at, "command %s polls every %d milliseconds", c.name, poll.GetIntervalMs())
+	case poll.GetIntervalMs() == 0 && c.c.GetTimeoutMs() > 0:
+		a.report(c.at, "command %s waits within the bound the API behavior derives, and writes a deadline of %d milliseconds besides",
+			c.name, c.c.GetTimeoutMs())
+	default:
 	}
 }
 

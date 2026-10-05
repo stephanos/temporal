@@ -36,6 +36,9 @@ type adapter struct {
 	evidence map[string]*umpirespb.Evidence
 	element  map[string]protoreflect.MessageDescriptor
 	observed map[string]protoreflect.MessageDescriptor
+	// waits is how each read of the Case waits where the API behavior derives it, by script and
+	// instruction id; set once the path is read.
+	waits map[string]derivedWait
 }
 
 func newAdapter(r *umpirespb.Realization, t *umpiremodel.Table, classKey func(*umpirespb.ActionClass) string, fixture string) *adapter {
@@ -104,6 +107,7 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 		out.Plan.Entrypoints = append(out.Plan.Entrypoints, plan)
 		out.Actions = append(out.Actions, bindings...)
 	}
+	problems = append(problems, a.visibilityBindings()...)
 	if a.r.GetCleanup() != "" {
 		out.Plan.Cleanup = &testpilotspb.Cleanup{EntrypointId: a.r.GetCleanup()}
 	}
@@ -428,7 +432,9 @@ func (a *adapter) script(s *umpirespb.Script) (cp.EntrypointPlan, []cp.ActionBin
 			action := a.t.ActionAtom(key).ID
 			classes = append(classes, action)
 			bindings = append(bindings, cp.ActionBinding{Action: action, Key: key, InstructionID: p.GetCommand().GetId(),
-				Node: func(_ cp.Placement, id string) *testpilotspb.InstructionNode { return b.with(id, nil) }})
+				Node: func(_ cp.Placement, id string) *testpilotspb.InstructionNode {
+					return a.derive(s.GetId(), b.with(id, nil))
+				}})
 		}
 		plan.Items = append(plan.Items, cp.Actions{Classes: classes})
 	}
@@ -452,7 +458,7 @@ func (a *adapter) placed(s *umpirespb.Script, item *umpirespb.Item) (cp.Item, er
 		return nil, err
 	}
 	node := func(_ cp.Placement, rules []cp.EvidenceRule) *testpilotspb.InstructionNode {
-		return b.with(c.GetId(), rules)
+		return a.derive(s.GetId(), b.with(c.GetId(), rules))
 	}
 	if len(item.GetWhen()) == 0 {
 		return cp.Fixed{Node: node}, nil
@@ -764,6 +770,11 @@ func (a *adapter) rpc(c *umpirespb.Command, rpc *umpirespb.Rpc) (*testpilotspb.I
 	method, err := methodNamed(at, rpc.GetMethod())
 	if err != nil {
 		return nil, err
+	}
+	// A wait tells a read from a write by the method's HTTP binding.
+	if verb := httpVerb(method); verb != "get" && verb != "post" {
+		return nil, errorAt(at, "command %s calls %s, which the API binds to neither HTTP GET nor POST, so it is told neither a read nor a write",
+			c.GetId(), rpc.GetMethod())
 	}
 	assignments, err := a.assignments(c, method.Input(), rpc.GetAssign())
 	if err != nil {

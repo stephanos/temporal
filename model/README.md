@@ -856,7 +856,10 @@ A realization names the steps no command performs and the kind of cause each is,
 CauseKind.timer, deadlineMs))`, a timer with the kit's deadline its request sets. A hint names only
 generated method constants, so one the API does not have does not compile, and the IR generator refuses a
 method that is no generated constant at its line; the Go reader refuses a missing or non-positive
-bound at the hint's line. The lowering ignores both until fn-118.4.
+bound at the hint's line. A read written with no interval waits as the lowering derives from both:
+once after a write of its own script visible at once, and otherwise within the declared bounds of
+what it waits for; a read after a write with no declared visibility is refused, naming both methods
+(SEMANTICS.md, Realizations).
 
 ### Naming protobuf data in a Model
 
