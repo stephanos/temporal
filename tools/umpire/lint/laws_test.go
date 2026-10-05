@@ -5,6 +5,7 @@ package lint
 // other fixture changes kept in one place to trigger one.
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"slices"
@@ -170,4 +171,21 @@ func TestForwardReplacesTheWaiversAndKeepsTheAuthorsAcceptances(t *testing.T) {
 		{Kind: WaivedLaw, Owner: "shed", Subjects: []string{"shed.lockedStaysLocked"}, Because: "a shed's lock is a latch: server/shed.go Unlatch"},
 	}, forwarded.Accepted)
 	require.Equal(t, []Acceptance{authored}, Forward(&Accepted{Accepted: []Acceptance{gone, authored}}, nil).Accepted)
+}
+
+// A waiver with no reason, or of a law the catalog does not bring, excuses nothing, so the accepted
+// findings may not accept one; and a sidecar may waive a law of a machine once.
+func TestWaiverFaultsCannotBeAcceptedNorWaivedTwice(t *testing.T) {
+	for _, k := range []Kind{LawWaivedWithoutReason, ReasonNamesNoLaw} {
+		a := Accepted{Accepted: []Acceptance{{Kind: k, Owner: "shed", Subjects: []string{"shed.lockedStaysLocked"}, Because: "kept"}}}
+		require.ErrorContains(t, a.check(), "acceptance 0 accepts "+string(k)+", which is fixed in the declaration, not accepted")
+	}
+	twice := sidecar(t, "kept")
+	twice.Waivers = append(twice.Waivers, twice.Waivers[1])
+	encoded, err := json.Marshal(twice)
+	require.NoError(t, err)
+	ir := filepath.Join(t.TempDir(), "twice.json")
+	require.NoError(t, os.WriteFile(model.LawSidecarPath(ir), encoded, 0o644))
+	_, err = model.ReadLawSidecar(ir)
+	require.ErrorContains(t, err, "shed.lockedStaysLocked is waived twice")
 }

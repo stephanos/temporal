@@ -147,12 +147,13 @@ func lintFile(path string, options lint.Options, tables, update bool, stdout io.
 	if err != nil {
 		return err
 	}
-	unforwarded, err := forward(path, accepted, lint.Forward(accepted, m.Laws), update)
+	forwarded := lint.Forward(accepted, m.Laws)
+	unforwarded, err := forward(path, accepted, forwarded, update)
 	if err != nil {
 		return err
 	}
 	if !unforwarded {
-		accepted = lint.Forward(accepted, m.Laws)
+		accepted = forwarded
 	}
 	verdict := accepted.Judge(result.Findings())
 	t.unaccepted += len(verdict.Unaccepted)

@@ -40,8 +40,8 @@ type Acceptance struct {
 }
 
 // ReadAccepted reads the accepted findings beside the IR file at irPath, or none where there is no
-// such file. An acceptance with no reason, no subject or an unknown kind, and a finding accepted
-// twice, are errors of the file.
+// such file. An acceptance with no reason, no subject, an unknown kind or a kind no reason excuses
+// (LawWaivedWithoutReason, ReasonNamesNoLaw), and a finding accepted twice, are errors of the file.
 func ReadAccepted(irPath string) (*Accepted, error) {
 	path := AcceptedPath(irPath)
 	encoded, err := os.ReadFile(path)
@@ -76,6 +76,10 @@ func (a *Accepted) check() error {
 			problems = append(problems, fmt.Errorf("acceptance %d of %s %s gives no reason", i, x.Kind, x.Owner))
 		case len(x.Subjects) == 0:
 			problems = append(problems, fmt.Errorf("acceptance %d of %s %s accepts nothing", i, x.Kind, x.Owner))
+		case x.Kind == LawWaivedWithoutReason || x.Kind == ReasonNamesNoLaw:
+			// A waiver with no reason, or of a law no capability brings, excuses nothing: it is fixed
+			// in the declaration, never accepted.
+			problems = append(problems, fmt.Errorf("acceptance %d accepts %s, which is fixed in the declaration, not accepted", i, x.Kind))
 		default:
 		}
 		for _, s := range x.Subjects {

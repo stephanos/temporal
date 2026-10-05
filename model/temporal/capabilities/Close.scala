@@ -33,8 +33,8 @@ object terminalStatesAreFinal
     )
 
 /**
- * A closed entity is rejected alike: from a `terminal` status, every step keeps the state and
- * answers `rejected`, over every step: a transition Property takes no `when` (SEMANTICS.md).
+ * A closed entity is rejected alike: every step from a `terminal` status keeps the state and
+ * answers `rejected`, phrased so because `when` restricts no transition (SEMANTICS.md, Claims).
  */
 object closedIsRejectedUniformly
     extends Law(

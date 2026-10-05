@@ -135,7 +135,13 @@ func (s *LawSidecar) check() error {
 		default:
 		}
 	}
+	waived := map[[2]string]bool{}
 	for i, w := range s.Waivers {
+		key := [2]string{w.Machine, w.Law}
+		if waived[key] {
+			problems = append(problems, fmt.Errorf("%s.%s is waived twice", w.Machine, w.Law))
+		}
+		waived[key] = true
 		switch {
 		case w.Machine == "" || w.Law == "":
 			problems = append(problems, fmt.Errorf("waiver %d names no machine or law", i))
