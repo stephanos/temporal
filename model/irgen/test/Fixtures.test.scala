@@ -1854,7 +1854,8 @@ class Fixtures extends munit.FunSuite:
     )
 
   // R20 (c): a machine's sections by their closed names, with or without `extends Section`, and
-  // one object exports per feature, in its root feature file (layoutRefusals/c).
+  // one object exports per feature, in its root feature file (layoutRefusals/c); a level folder's
+  // file is held to a feature file's order, which has no exports there.
   concurrently("the structure lint refuses an unnamed section and a misplaced exports"):
     val jar = packaged("layoutRefusals-c", materializeTree("layoutRefusals/c"))
     val out = scratch.resolve("layoutRefusals-c-out")
@@ -1876,7 +1877,10 @@ class Fixtures extends munit.FunSuite:
         s"lift: $product:21: helpers is an object in KilnProduct $none",
         s"lift: $product:21: helpers is vocabulary of KilnProduct, declared outside its " +
           "sections: it belongs in the `states` object of its machine's object",
-        s"lift: ${at}pump/system/System.scala:21: object exports sits in " +
+        s"lift: ${at}pump/system/System.scala:21: Gauge belongs before PumpSystem at " +
+          s"${at}pump/system/System.scala:7: a level folder's file reads its header, then its " +
+          "types, then its signature, then its machine and composition objects",
+        s"lift: ${at}pump/system/System.scala:24: object exports sits in " +
           s"${at}pump/system/System.scala, not in pump's root feature file: a feature names its " +
           "IR files in one object exports, there"
       )

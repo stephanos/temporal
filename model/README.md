@@ -939,8 +939,9 @@ own beside it; a feature of one level keeps its machines in its feature file and
 The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
 object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
 `syncs`, `properties`, `implements` or `queries`; its refusal fixtures are under
-`model/irgen/testdata/layoutRefusals/`. Until the Models move into their levels (fn-126.6), it holds
-only a feature that has a `product/` or `system/` folder.
+`model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter
+fixture once it has a `product/` or `system/` folder. A file of a level folder reads in a feature
+file's order, without `object exports`, which only the root feature file holds.
 
 ### Capabilities and their laws
 

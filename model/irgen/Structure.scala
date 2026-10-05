@@ -28,12 +28,9 @@ import scala.collection.mutable
  *     which refines nothing, and `system/System.scala` one `<P>System` whose `object refinement`
  *     refines it. It goes in `feature`, beside (a), where the levels' files are found.
  *
- * Until fn-126.6 moves the Models into their levels, a feature is held to these rules only once it
- * has a `product/` or `system/` folder, which no Model has yet, so the lint refuses none of today's
- * Models; its fixtures, which have the folders, are held. `Structure.everyFeature` turns it on for
- * every feature of the Temporal Models (model/temporal/) whatever its folders: fn-126.6 sets it
- * once the Models have moved. The lifter's other fixtures, single-file features of their own
- * rules, are held only where they have the folders.
+ * Every feature of the Temporal Models (model/temporal/) is held to these rules, whatever its
+ * folders. The lifter's fixtures, single-file features of their own rules, are held only where they
+ * have a `product/` or `system/` folder, as the template and the refusal fixtures do.
  */
 final private[irgen] class Structure(index: Index):
   import index.quotes.reflect.*
@@ -108,10 +105,9 @@ final private[irgen] class Structure(index: Index):
       case _                                            => Nil
     trees.flatMap(in).sortBy(d => scala.util.Try(d.pos.start).getOrElse(0))
 
-  /** Whether a feature is held to the rules: it has a level folder, or every feature is. */
+  /** Whether a feature is held to the rules: it is a Temporal Model's, or has a level folder. */
   private def held(feature: Seq[Source]): Boolean =
-    feature.exists(_.level) ||
-      Structure.everyFeature && feature.exists(_.path.startsWith("model/temporal/"))
+    feature.exists(s => s.level || s.path.startsWith("model/temporal/"))
 
   // ### Machine objects and their refinements
 
@@ -238,13 +234,6 @@ final private[irgen] class Structure(index: Index):
         )
 
 object Structure:
-  /**
-   * Whether every feature of the Temporal Models is held to R20, whatever its folders. Until it is
-   * set, only a feature with a `product/` or `system/` folder is. fn-126.6 sets it once the Models
-   * have moved into their levels (and then removes it, with the gate in `held`).
-   */
-  val everyFeature = false
-
   /** A feature's level folders, by audience (fn-126 decision 16). */
   val levels = Set("product", "system")
 

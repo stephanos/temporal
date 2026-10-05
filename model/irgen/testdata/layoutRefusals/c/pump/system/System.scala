@@ -17,6 +17,9 @@ object PumpSystem extends Machine[Pump, Outcome, Nothing]:
   object rules extends Rules:
     when(!_.running)(operator.start ~> effects.started)
 
+// A type after the machine: a level folder's file reads as a feature file, its exports aside.
+final case class Gauge(reading: Boolean) derives Finite
+
 // An IR file outside the root feature file.
 object exports:
   val pump = irFile("pump")(PumpProduct, PumpSystem)
