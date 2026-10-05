@@ -39,8 +39,8 @@ Apply these instructions when implementing the milestones:
   test setup must not leak mutable state. Compare timings on equivalent inputs before claiming a
   speedup. Do not add a profiling or caching framework without evidence it is needed.
 - Commands that hold: run the full Go tooling suite with `-tags test_dep -p 2 -timeout 30m` (the
-  lower, model and export test binaries take 3.5-5 GB each, so never more than two at once, and
-  `-p 1` doubles wall time); run the model gate with `MODEL_GATE_ARGS=--skip-go-checks` when the Go
+  lower, model and export test binaries take up to about 6.5 GB each (export), so never more than
+  two at once, and `-p 1` doubles wall time); run the model gate with `MODEL_GATE_ARGS=--skip-go-checks` when the Go
   suite runs separately, since its Go phase repeats it. Agents sharing one machine serialize heavy
   suites with one `flock` lock file. After any Model or lifter change, run `make umpire-gen-model`,
   review the diff of `model/ir` and `model/cases`, and run `make umpire-check-cases`: the reader's

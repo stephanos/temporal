@@ -352,12 +352,20 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 	captured := schemaBeforeRename(t)
 	delete(captured, "descriptor.binpb")
-	require.Contains(t, captured, "wire/supplement.binpb")
-	require.Greater(t, len(captured), 1)
+	const lifts = "wire/lifter/testdata/lifts/expected/"
+	require.ElementsMatch(t, []string{
+		"wire/supplement.binpb",
+		"wire/ir/activity.binpb", "wire/ir/activity-race.binpb", "wire/ir/activity-system.binpb",
+		"wire/ir/nexus-caller.binpb", "wire/ir/nexus-close.binpb", "wire/ir/nexus-control.binpb",
+		lifts + "admission.binpb", lifts + "channels.binpb", lifts + "closereset.binpb",
+		lifts + "declarations.binpb", lifts + "presence.binpb", lifts + "realizations.binpb",
+	}, slices.Collect(maps.Keys(captured)))
 	historical := map[protoreflect.FullName]bool{}
 	for name, wire := range captured {
 		decoded := new(umpirespb.Model)
 		require.NoError(t, proto.Unmarshal(wire, decoded), name)
+		// Only the reasons an expected Run once wrote as text are no field of the schema now.
+		require.Empty(t, schemaUnknownOutside(decoded.ProtoReflect(), "RunExpectation", "MonitorExpectation"), name)
 		if name == "wire/supplement.binpb" {
 			expected := new(umpirespb.Model)
 			require.NoError(t, protojson.Unmarshal([]byte(schemaSupplement), expected))
@@ -404,6 +412,28 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 
 	maps.Copy(current, historical)
 	require.Empty(t, schemaFieldsUnset(current), "the captured wire bytes and schemaAddedSupplement set every field of the schema")
+}
+
+// schemaUnknownOutside is every message of m, by its full name, that carries bytes no field of the
+// schema reads, but those named allowed.
+func schemaUnknownOutside(m protoreflect.Message, allowed ...protoreflect.Name) []protoreflect.FullName {
+	var out []protoreflect.FullName
+	if len(m.GetUnknown()) > 0 && !slices.Contains(allowed, m.Descriptor().Name()) {
+		out = append(out, m.Descriptor().FullName())
+	}
+	m.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
+		switch {
+		case field.Message() == nil, field.IsMap():
+		case field.IsList():
+			for i := range value.List().Len() {
+				out = append(out, schemaUnknownOutside(value.List().Get(i).Message(), allowed...)...)
+			}
+		default:
+			out = append(out, schemaUnknownOutside(value.Message(), allowed...)...)
+		}
+		return true
+	})
+	return out
 }
 
 // schemaFieldsUnset is every field of the schema not in set.

@@ -103,7 +103,8 @@ Temporal's driver tooling names Temporal concepts by design:
   `common/testing/testpilot/temporal`) are the Temporal driver.
 
 The [parity claim inventory](umpire-migration-claims.json) maps retired oracle comparisons to
-frozen evidence and surviving checks, and preserves their original commentary with source attribution.
+frozen evidence and surviving checks, and preserves their original commentary with source attribution. It is
+history: its paths point at snapshots fn-124.7 retired.
 
 ## Public types and file boundaries
 

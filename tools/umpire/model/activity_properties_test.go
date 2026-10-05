@@ -13,6 +13,8 @@ package model
 // the composition's Property on every row of the composition, by the row's composed class key.
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"slices"
 	"strings"
@@ -237,11 +239,13 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 	}
 	tally := map[string]propertyTally{}
 	failing := map[string]int{}
+	answers := map[string][]string{}
 	for key, side := range all {
 		claim, at, _ := strings.Cut(key, " at ")
 		_, machine, _ := strings.Cut(claim, " on ")
 		row, ok := rows[machine][at]
 		require.True(t, ok, key)
+		answers[claim] = append(answers[claim], fmt.Sprintf("%s: %t %s", at, side.About, side.Outcome))
 		counts := tally[claim]
 		switch {
 		case !side.About:
@@ -292,28 +296,68 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		failures["retryCompletes on activityProtocol: "+phase+" attemptResult-completed"] = 23
 	}
 	require.Equal(t, failures, failing)
+
+	// Which rows each Property is about and holds on, as a digest of its sorted row answers, so two
+	// Properties with the same counts cannot trade rows. Properties that answer every row alike share
+	// a digest: the product's three laws on the product and the two that hold everywhere on the
+	// protocol, and the protocol's two Properties about a cancel request and its two about a terminate.
+	digests := map[string]string{}
+	for claim, lines := range answers {
+		slices.Sort(lines)
+		sum := sha256.Sum256([]byte(strings.Join(lines, "\n")))
+		digests[claim] = hex.EncodeToString(sum[:8])
+	}
+	require.Equal(t, map[string]string{
+		"activityProduct.closedIsRejectedUniformly on activityProduct":  "d2d252860115d036",
+		"activityProduct.closedIsRejectedUniformly on activityProtocol": "f7b1f6aca763376e",
+		"activityProduct.pausedIsNotDispatched on activityProduct":      "d2d252860115d036",
+		"activityProduct.pausedIsNotDispatched on activityProtocol":     "cd88dc5d6c54123f",
+		"activityProduct.terminalStatesAreFinal on activityProduct":     "d2d252860115d036",
+		"activityProduct.terminalStatesAreFinal on activityProtocol":    "cd88dc5d6c54123f",
+		"activityProtocol.cancelIsRequested on activityProtocol":        "925931cbf7edf634",
+		"activityProtocol.terminateSettles on activityProtocol":         "d8d1580aec86b399",
+		"cancelRequestedWhileStarted on activityProtocol":               "925931cbf7edf634",
+		"canceledByWorker on activityProtocol":                          "5df80f7977d7cc82",
+		"completes on activityProtocol":                                 "3b2ecece8bd9bc43",
+		"nonRetryableFails on activityProtocol":                         "66fd2a7d636b2033",
+		"retryCompletes on activityProtocol":                            "68929ac91aa5be6d",
+		"scheduleToStartFires on activityProtocol":                      "456ef5114b04bfed",
+		"startToCloseFires on activityProtocol":                         "e9896ed37195c487",
+		"startedByPollingWorker on standaloneActivity":                  "7cb4b0f2e228aed8",
+		"terminated on activityProtocol":                                "d8d1580aec86b399",
+	}, digests)
 }
 
-// pathAnswer is what a Query says: its verdict, how much its search explored and expanded, and the
-// classes of its witness.
+// pathAnswer is what a Query says: its verdict, how much its search explored and expanded, whether
+// its claim was read on some step, and each step of its witness: the class, the answer, the state it
+// reaches and the facts it records.
 type pathAnswer struct {
 	Kind               ReceiptKind
 	Explored, Expanded int
+	Exercised          bool
 	Witness            []string
 }
 
+func witnessStep(class, outcome, state string, facts []string) string {
+	return fmt.Sprintf("%s: %s, %s %v", class, outcome, state, facts)
+}
+
 func pathAnswerOf(r Receipt) pathAnswer {
-	answer := pathAnswer{Kind: r.Kind, Explored: r.Explored, Expanded: r.Expanded}
+	answer := pathAnswer{Kind: r.Kind, Explored: r.Explored, Expanded: r.Expanded, Exercised: r.Exercised}
 	if r.Witness != nil {
 		for _, step := range r.Witness.Steps {
-			answer.Witness = append(answer.Witness, step.Action.Value)
+			var facts []string
+			for _, fact := range step.Facts {
+				facts = append(facts, fact.Value)
+			}
+			answer.Witness = append(answer.Witness, witnessStep(step.Action.Value, step.Outcome.Value, step.State.Value, facts))
 		}
 	}
 	return answer
 }
 
 // Every Query of the Model answers as pinned: a found one by the path its Scenario places, a verified
-// one over its whole search.
+// one over its whole search, and each reads its claim on some step.
 func TestActivityQueriesAnswerAlongTheirPaths(t *testing.T) {
 	got := map[string]pathAnswer{}
 	for _, r := range activityChecked(t).Receipts {
@@ -325,28 +369,52 @@ func TestActivityQueriesAnswerAlongTheirPaths(t *testing.T) {
 		}
 	}
 	found := func(explored int, witness ...string) pathAnswer {
-		return pathAnswer{Kind: Found, Explored: explored, Expanded: explored - 1, Witness: witness}
+		return pathAnswer{Kind: Found, Explored: explored, Expanded: explored - 1, Exercised: true, Witness: witness}
 	}
 	verified := func(explored, expanded int) pathAnswer {
-		return pathAnswer{Kind: Verified, Explored: explored, Expanded: expanded}
+		return pathAnswer{Kind: Verified, Explored: explored, Expanded: expanded, Exercised: true}
 	}
-	const start, deadline, scheduleToStart = "start-unset-unset-unset", "start-unset-unset-expires", "start-unset-expires-unset"
+	// accepted is a step every party's request on these paths is answered by.
+	accepted := func(class, state string, facts ...string) string { return witnessStep(class, "accepted", state, facts) }
+	var (
+		scheduled       = accepted("start-unset-unset-unset", "scheduled-0-unset-unset-unset", "statusScheduled")
+		stopped         = accepted("workerStop", "scheduled-0-unset-unset-unset")
+		started         = accepted("attemptStart", "started-1-unset-unset-unset", "statusStarted", "attemptCount")
+		cancelRequested = accepted("control-requestCancel", "cancelRequested-1-unset-unset-unset", "statusCancelRequested")
+		canceled        = accepted("attemptResult-canceled", "canceled-1-unset-unset-unset", "statusCanceled")
+		terminated      = accepted("control-terminate", "terminated-0-unset-unset-unset", "statusTerminated")
+	)
 	require.Equal(t, map[string]pathAnswer{
 		"activityProduct.closedIsRejectedUniformly": verified(10, 10),
 		"activityProduct.pausedIsNotDispatched":     verified(10, 10),
 		"activityProduct.terminalStatesAreFinal":    verified(10, 10),
-		"activityProtocol.cancelIsRequested":        found(4, start, "workerStop", "control-requestCancel"),
-		"activityProtocol.terminateSettles":         found(4, start, "workerStop", "control-terminate"),
-		"cancel":                                    found(5, start, "attemptStart", "control-requestCancel", "attemptResult-canceled"),
-		"cancelRequest":                             found(5, start, "attemptStart", "control-requestCancel", "attemptResult-canceled"),
-		"completion":                                found(4, start, "attemptStart", "attemptResult-completed"),
-		"nonRetryableFailure":                       found(4, start, "attemptStart", "attemptResult-failed-false"),
-		"pauseResume":                               found(6, start, "control-pause", "control-unpause", "attemptStart", "attemptResult-completed"),
-		"retry": found(7, start, "attemptStart", "attemptResult-failed-true", "backoff", "attemptStart",
-			"attemptResult-completed"),
-		"scheduleToStartTimeout":     found(4, scheduleToStart, "workerStop", "scheduleToStart"),
-		"startToCloseTimeout":        found(4, deadline, "attemptStart", "startToClose"),
-		"terminate":                  found(4, start, "workerStop", "control-terminate"),
+		"activityProtocol.cancelIsRequested": found(4, scheduled, stopped,
+			accepted("control-requestCancel", "cancelRequested-0-unset-unset-unset", "statusCancelRequested")),
+		"activityProtocol.terminateSettles": found(4, scheduled, stopped, terminated),
+		"cancel":                            found(5, scheduled, started, cancelRequested, canceled),
+		"cancelRequest":                     found(5, scheduled, started, cancelRequested, canceled),
+		"completion": found(4, scheduled, started,
+			accepted("attemptResult-completed", "completed-1-unset-unset-unset", "statusCompleted")),
+		"nonRetryableFailure": found(4, scheduled, started,
+			accepted("attemptResult-failed-false", "failed-1-unset-unset-unset", "statusFailed")),
+		"pauseResume": found(6, scheduled,
+			accepted("control-pause", "paused-0-unset-unset-unset", "statusPaused"),
+			accepted("control-unpause", "scheduled-0-unset-unset-unset", "statusScheduled"), started,
+			accepted("attemptResult-completed", "completed-1-unset-unset-unset", "statusCompleted")),
+		"retry": found(7, scheduled, started,
+			accepted("attemptResult-failed-true", "backingOff-1-unset-unset-unset", "statusScheduled", "attemptCount"),
+			accepted("backoff", "scheduled-1-unset-unset-unset"),
+			accepted("attemptStart", "started-2-unset-unset-unset", "statusStarted", "attemptCount"),
+			accepted("attemptResult-completed", "completed-2-unset-unset-unset", "statusCompleted")),
+		"scheduleToStartTimeout": found(4,
+			accepted("start-unset-expires-unset", "scheduled-0-unset-expires-unset", "statusScheduled"),
+			accepted("workerStop", "scheduled-0-unset-expires-unset"),
+			accepted("scheduleToStart", "timedOut-0-unset-expires-unset", "statusTimedOut-scheduleToStart")),
+		"startToCloseTimeout": found(4,
+			accepted("start-unset-unset-expires", "scheduled-0-unset-unset-expires", "statusScheduled"),
+			accepted("attemptStart", "started-1-unset-unset-expires", "statusStarted", "attemptCount"),
+			accepted("startToClose", "timedOut-1-unset-unset-expires", "statusTimedOut-startToClose")),
+		"terminate":                  found(4, scheduled, stopped, terminated),
 		"stoppedWorkerStartsNothing": verified(7, 6),
 	}, got)
 }
