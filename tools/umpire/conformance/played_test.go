@@ -240,7 +240,7 @@ func playedKinds(t testing.TB, source *testpilotspb.Case, run *testpilotspb.Run,
 // the Case's declarations lift from it, one piece per step the path confirms by evidence, in path
 // order; the Contract reads it as the witness and is satisfied.
 //
-// The claims are read off Properties.scala and the protocol machine:
+// The claims are read off the protocol machine's object, its properties and its step functions:
 //
 //   - completion, pauseResume (`completes`) and nonRetryableFailure (`nonRetryableFails`) are
 //     satisfied: the status the Run ends on is recorded by the claim's class alone, every step of that

@@ -67,6 +67,29 @@ var retiredFeatureFilePaths = regexp.MustCompile(strings.Join([]string{
 	`"(?:features|shared)"(?:, "[\w-]+")*, "(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala"`,
 }, "|"))
 
+// retiredFeatureFileProse matches a retired per-kind file named bare in prose, the way a Model
+// folder's file was named: owned by a folder, a feature or a Model ("its Model folder's
+// Capabilities.scala"), or after a preposition ("read off Properties.scala", "in `Queries.scala`").
+var retiredFeatureFileProse = regexp.MustCompile(
+	"(?:\\b(?:folder|feature|[Mm]odel)'s|\\b(?:off|in|from|beside|see)) `?(?:Model|Properties|Queries|Capabilities|IrFiles)\\.scala\\b")
+
+// ownCapabilities are the files that keep the name Capabilities.scala on purpose: the framework's
+// mechanism, the kit's capability kinds and the IR generator's expansion and fixture. A file of
+// theirs, or a line that names their folder, may name Capabilities.scala bare.
+var ownCapabilities = regexp.MustCompile(`\b(?:model/umpire|temporal/capabilities|model/irgen|irgen/testdata)\b`)
+
+// retiredFeatureFileProseIn reports whether a line of the file at path names a retired per-kind file
+// bare, apart from Capabilities.scala where its own folders name it.
+func retiredFeatureFileProseIn(path, line string) bool {
+	for _, found := range retiredFeatureFileProse.FindAllString(line, -1) {
+		own := strings.HasSuffix(found, "Capabilities.scala") && (ownCapabilities.MatchString(path) || ownCapabilities.MatchString(line))
+		if !own {
+			return true
+		}
+	}
+	return false
+}
+
 // retiredFeatureFiles lists the files under root's Model folders that bear a retired per-kind name.
 func retiredFeatureFiles(root string) ([]string, error) {
 	var found []string
@@ -108,7 +131,8 @@ func retiredModelMentions(path, content string) []string {
 	scala, inModel := strings.HasSuffix(path, ".scala"), strings.HasPrefix(path, modelRoot+"/")
 	for i, line := range strings.Split(content, "\n") {
 		if retiredModelNames.MatchString(line) || inModel && retiredModelRelatives.MatchString(line) ||
-			scala && retiredScalaPackages.MatchString(line) || retiredFeatureFilePaths.MatchString(line) {
+			scala && retiredScalaPackages.MatchString(line) || retiredFeatureFilePaths.MatchString(line) ||
+			retiredFeatureFileProseIn(path, line) {
 			found = append(found, fmt.Sprintf("%s:%d", path, i+1))
 		}
 	}
@@ -230,11 +254,22 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"the kit's capabilities":               {"model/temporal/capabilities/Capabilities.scala", false},
 		"the framework's capabilities":         {"model/umpire/Capabilities.scala", false},
 		"a fixture named like a retired file":  {"model/irgen/testdata/lifts/Capabilities.scala, irFileRefusals/IrFiles.scala", false},
+		"a folder's file named bare":           {"in its Model folder's Capabilities.scala", true},
+		"a feature's file named bare":          {"the feature's `IrFiles.scala`", true},
+		"a file read off by name":              {"The claims are read off Properties.scala", true},
+		"a file named after a preposition":     {"declared in `Queries.scala`, beside Model.scala", true},
+		"the framework's Capabilities.scala":   {"`cited` in `Capabilities.scala` (model/umpire)", false},
+		"the kit's Capabilities.scala":         {"the kinds in temporal/capabilities, in Capabilities.scala", false},
+		"a retired file beside the kit's":      {"model/umpire keeps Capabilities.scala; see Queries.scala", true},
+		"a file named by its kind alone":       {"no file named by kind (`Model.scala`, `Properties.scala`)", false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, test.found, len(retiredModelMentions("model/temporal/A.scala", test.content)) > 0, test.content)
 		})
 	}
+	// The kit's own files name their Capabilities.scala bare, as no other file may.
+	require.Empty(t, retiredModelMentions("model/temporal/capabilities/Catalog.scala", "brought in Capabilities.scala"))
+	require.NotEmpty(t, retiredModelMentions("model/temporal/capabilities/Catalog.scala", "read off Properties.scala"))
 	// A Go package of Testpilot's is named like a moved Scala package, and its folder like a moved
 	// folder named from model/; neither is one.
 	require.Empty(t, retiredModelMentions("common/testing/testpilot/temporal/worker/api.go", "package worker"))
