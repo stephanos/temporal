@@ -28,30 +28,34 @@ caller Model is in `model/temporal/features/nexuscaller`, and its machine `nexus
 its feature file, `NexusCaller.scala`, in the machine's object `Protocol`.
 
 A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/features/nexuscaller/NexusCaller.scala`, line 473, in
+example's Property (`model/temporal/features/nexuscaller/NexusCaller.scala`, line 479, in
 `Protocol.properties`), named after its `val`:
 
 ```scala
 /** A synchronous reply settles the operation as succeeded, and the completed event records it. */
-val syncSucceeds = nexusProtocol.property when handlerReply(Reply.syncSuccess) holds { s =>
-  s.state.phase == Phase.succeeded && s.records(ProtocolFact.nexusOperationCompleted)
+val syncSucceeds = nexusProtocol.property when handler.handlerReply(Reply.syncSuccess) holds {
+  s =>
+    s.state.phase == Phase.succeeded && s.records(ProtocolFact.nexusOperationCompleted)
 }
 ```
 
 A **Scenario** is a path through a machine: a start state and a sequence of actions. Here the
-caller schedules the operation and the handler replies synchronously (line 540, in
+caller schedules the operation and the handler replies synchronously (line 549, in
 `Protocol.queries`):
 
 ```scala
-val syncReplied = nexusProtocol.scenario.actions(schedule(), handlerReply(Reply.syncSuccess))
+val syncReplied =
+  nexusProtocol.scenario.actions(caller.schedule(), handler.handlerReply(Reply.syncSuccess))
 ```
 
+Each action is written with the party that takes it: the feature declares the caller's actions in
+`object caller` and the handler's in `object handler`, so `caller.schedule` is the caller's.
 The path starts where the machine does, in `unscheduled`, the state before the operation exists.
-`schedule()` leaves each of the operation's three optional timeouts at its first value, `unset`;
-`schedule(Inputs.scheduleToStart := expires)` sets one by name.
+`caller.schedule()` leaves each of the operation's three optional timeouts at its first value,
+`unset`; `caller.schedule(scheduleToStart := expires)` sets one by name.
 
 A **Query** is a bounded question that joins the two: find a path of this Scenario on which the
-Property is put to work, or verify that the Property holds on every path of it (line 585, beside
+Property is put to work, or verify that the Property holds on every path of it (line 614, beside
 its Scenario, without its exploration settings):
 
 ```scala
@@ -409,7 +413,7 @@ The IR generator reads what an author wrote, as written:
   (`_.activity -> currentRecord`), and so do its `sync`, `replaces` and `withMember`; a `sync`
   with no name is named after its first member's action; a Scenario
   or `whenAction` of it names a sync by one member action it pairs, `c.synced(_.activity ->
-  dispatch)`, and a member's own action by `c.own(_.activity, control(Control.pause))`.
+  history.dispatch)`, and a member's own action by `c.own(_.activity, caller.control(Control.pause))`.
 - **Shared claims:** `property` and `scenario` are declared on `Declares[S]`, the supertype of a
   machine and a composition, so one function over `m: Declares[S]` declares a Property on either.
   A function-valued argument of such a function names a def of the lifted sources, which the
@@ -555,8 +559,8 @@ A feature file reads in this order:
    its family;
 2. its types: every enum, state case class and type alias, at the top level, so each keeps its
    `pkg.Type` IR name;
-3. its signature: entities, inputs, actions, observations, choices, timers, bounds and the top-level
-   `given`s;
+3. its signature: entities, inputs, the actor and section objects that hold its actions and
+   timers, observations, choices, bounds and the top-level `given`s;
 4. one object per machine or composition, in dependency order: a refined machine before the one that
    refines it, a base machine before those derived from it, the members of a composition before it;
 5. `object Files`, its `irFile` roots.
@@ -567,7 +571,7 @@ capabilities) and `object queries` (its Scenarios, then its Queries). A machine 
 vocabulary object (`Product`, `Protocol`, `Admission`), so its status sets keep their names
 (`Product.terminal`, `Protocol.held`), and its machine `val` keeps the machine's name
 (`Product.activityProduct`). Step functions sit in `effects` so they do not shadow the actions they
-answer (`attemptStart ~> effects.attemptStart`). A machine object that holds a monitor, assumption,
+answer (`worker.attemptStart ~> effects.attemptStart`). A machine object that holds a monitor, assumption,
 hole or channel pins its former owner, as `record/`'s `Admission` pins `…System$package$` beside its
 file's own pin of the same owner. A section object is initialized on first use: a `laws` that reads
 the realization, as the protocol's `Describable` does, leaves the machine object free for the
@@ -588,6 +592,28 @@ through one `given DefinitionScope = DefinitionScope("pkg.Former$package$")` the
 name for the former owner: each ID is `<former owner>.<val name>`. An owner pins once, not inside
 an owner that pins and not to itself, and no two declarations may share an ID. Owners nested in a
 pinned one keep their own IDs. No declaration names an ID of its own.
+
+A feature declares its actions grouped by who takes them, so every call site shows the actor:
+`caller.start()`, `worker.attemptStart`, `deadline.scheduleToStart`. A party that takes actions is
+an actor object, `object caller extends Actor` (`umpire.Actor`), named after its object with the
+first letter lowered, whose members are its actions (`val start = action(this)…`). Steps that are
+no party's own are grouped in sections, `object timers extends Section` (`umpire.Section`):
+`timers`, `deadline`, `history` for internal steps, `queue` and `faults`. Actor and section objects
+are transparent to Definition IDs: a member takes the ID it would take as a direct member of the
+section's enclosing owner, which at a file's top level is the file's package object, under the
+file's pin, and directly in a machine's object is that object, under its pin
+(`Control.caller.inspect` keeps `…Control$.inspect`). The IR generator refuses a section inside a
+section, a section anywhere else, a section that pins, and two members that would share an ID, each
+at its line. Actions a feature adds to a party another declares sit in a section that names the
+party: the standalone activity's poll and answer are its `object worker extends Section`, taken by
+the shared worker party it imports as `process` (`import shared.worker.{worker as process}`), whose
+own actions read `process.workerStop`; the close policy's designs add `callerSide` and
+`handlerSide` to the Nexus caller's `caller` and `handler`. A section is not named like a type of its
+package but for the case, since the two would compile to class files whose names differ only in
+case, which a case-insensitive file system cannot hold: beside the close policy's types `Caller` and
+`Handler`, its sections are `callerSide` and `handlerSide`. The inputs an action declares by token
+sit at the top level, apart from one named like an action of the object that takes it, which `object
+Inputs` holds (`Inputs.control`, since inside `object caller` the name `control` is the action).
 
 Type names follow the same pin. A top-level type belongs to its package, not its file, so a type at
 the top level of a file whose declarations pin a former file owner `pkg.File$package$` takes the IR
@@ -616,13 +642,13 @@ A composition is written with field selectors, and one derives from another by r
 
 ```scala
 val currentOverQueue = compose[OverQueue](_.activity -> currentRecord, _.queue -> dispatchQueue)
-  .sync(_.activity -> dispatch, _.queue -> enqueue)
-  .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
+  .sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
+  .sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
   .ends(s => Admission.ends(s.activity))
 val staleOverQueue = currentOverQueue.withMember(_.activity -> staleRecord)
 val stale = currentOverQueue.scenario.actions(
-  currentOverQueue.synced(_.activity -> dispatch),
-  currentOverQueue.own(_.activity, control(Control.pause))
+  currentOverQueue.synced(_.activity -> history.dispatch),
+  currentOverQueue.own(_.activity, caller.control(Control.pause))
 )
 ```
 
@@ -646,7 +672,7 @@ composition needs no def of its own that restates its member's:
 def overQueueCapabilities(c: Composition[OverQueue]) = capabilities(c, limits = five)(
   Closable(status = through(_.activity, Admission.phase), terminal = Admission.terminal, rejected = closedAnswer),
   Pausable(…, paused = through(_.activity, Admission.paused)),
-  Pollable(dispatch = c.synced(_.activity -> attemptStart), running = through(_.activity, Admission.running))
+  Pollable(dispatch = c.synced(_.activity -> worker.attemptStart), running = through(_.activity, Admission.running))
 )
 
 atMostOneActive(c)(through(_.activity, Admission.twoActive))
@@ -855,15 +881,15 @@ import temporal.capabilities.{given, *}
 
 val productCapabilities = capabilities(activityProduct, limits = three)(
   Closable(status = phase, terminal = terminal, rejected = cited(Outcome.notFound, notFoundCode)),
-  Pausable(pause = control(Control.pause), unpause = control(Control.unpause), paused = Product.paused),
-  Pollable(dispatch = attemptStart, running = Product.running)
+  Pausable(pause = caller.control(Control.pause), unpause = caller.control(Control.unpause), paused = Product.paused),
+  Pollable(dispatch = worker.attemptStart, running = Product.running)
 )
 
 val protocolCapabilities = capabilities(activityProtocol, limits = three)(
-  Terminable(terminate = control(Control.terminate), settled = ProtocolFact.statusTerminated,
-    reach = Seq(start(), workerStop), expect = inconclusive(explanationsDisagree)),
-  Cancelable(requestCancel = control(Control.requestCancel), requested = ProtocolFact.statusCancelRequested,
-    reach = Seq(start(), workerStop), expect = inconclusive(explanationsDisagree)),
+  Terminable(terminate = caller.control(Control.terminate), settled = ProtocolFact.statusTerminated,
+    reach = Seq(caller.start(), process.workerStop), expect = inconclusive(explanationsDisagree)),
+  Cancelable(requestCancel = caller.control(Control.requestCancel), requested = ProtocolFact.statusCancelRequested,
+    reach = Seq(caller.start(), process.workerStop), expect = inconclusive(explanationsDisagree)),
   Describable(status = ActivityRealization.activityStatus)
 )
 ```
@@ -1077,8 +1103,8 @@ CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000))
 ```
 
 A realization names the steps no command performs and the kind of cause each is,
-`serverSteps = Vector(ServerStep(attemptStart, CauseKind.delivery), ServerStep(scheduleToStart,
-CauseKind.timer, deadlineMs))`, a timer with the kit's deadline its request sets (an activity's
+`serverSteps = Vector(ServerStep(worker.attemptStart, CauseKind.delivery),
+ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs))`, a timer with the kit's deadline its request sets (an activity's
 retry `backoff` names the kit's `firstRetryBackoffMs`, the server's default first retry interval). A hint names only
 generated method constants, so one the API does not have does not compile, and the IR generator refuses a
 method that is no generated constant at its line; the Go reader refuses a missing or non-positive
