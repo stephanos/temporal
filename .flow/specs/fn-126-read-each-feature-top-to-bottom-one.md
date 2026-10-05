@@ -267,6 +267,8 @@ The cost:
   - (c) section names form a closed set (`states`, `effects`, `monitors`, `rules`, `properties`, `implements`, `queries`, `refinement`, `syncs`, the signature's actor and section objects); any other `Section` is refused; a feature has exactly one `object exports`, in its root feature file.
   - `shared/` follows the same rules (owner, 2026-10-05): a shared Model's contract is its Product and its provider its System. A positive fixture, `model/irgen/testdata/layout/` (a small two-level feature, the template for new features), passes; one refusal fixture per rule. `model/README.md` "Writing a Model" states the layout and points to the fixture. The Go layout test (R10) keeps the repo-wide prose and path checks.
 
+- **R21 `stuck-state` lint (owner request 2026-10-05).** A new default lint kind in `tools/umpire/lint`: a reachable state of a machine (or composition) that is not an `end` state and in which no action class has an enabled row. It reports the machine, the state and a shortest path to it, at the machine's position. It catches a forgotten timer or internal-step case, which `silent-rejection` (actor actions only) and `never-enabled` (only an action enabled nowhere) miss. Deliberate stuck states are accepted in `model/ir/*.lint.json` with a reason, like every finding. One finding fixture and one passing fixture; the README's lint table lists it.
+
 ## API sketch
 
 The final shape, after task 6. Before task 6, the same objects carry today's names (`ActivityProtocol`, `worker.attemptStart`).
