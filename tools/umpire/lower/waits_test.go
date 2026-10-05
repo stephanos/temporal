@@ -518,4 +518,48 @@ func TestNoBehaviorDerivesNoWait(t *testing.T) {
 	_, err := lowerDerived(t, m, "terminate")
 	require.ErrorContains(t, err, "command controller/await-terminated reads "+workflowService+"DescribeActivityExecution after command controller/start-activity")
 	require.ErrorContains(t, err, "and the realization declares no visibility of "+workflowService+"StartActivityExecution")
+
+	// The forged control's second inspection, made to read, would be refused under the kit's behavior
+	// (TestACallThatReadsIsCheckedAndNeverWaits); with none declared it lowers as written.
+	unhinted := derivedModel(t, "nexus-control", func(m *umpirespb.Model) {
+		for _, r := range m.GetRealizations() {
+			r.Behavior, r.ServerSteps = nil, nil
+			r.Observations = append(r.Observations, &umpirespb.Observed{Id: "described", Position: r.GetPosition(),
+				Message: "temporal.api.workflow.v1.WorkflowExecutionInfo"})
+		}
+		for _, c := range commandsOfModel(m) {
+			switch {
+			case c.GetId() == "inspect-workflow":
+				c.GetRpc().Reads = []*umpirespb.ResponseRead{{Path: "workflow_execution_info", Cardinality: umpirespb.ResponseRead_CARDINALITY_ONE,
+					Targets: []*umpirespb.Target{{Target: &umpirespb.Target_Observe{Observe: "described"}}}}}
+			case c.GetPoll() != nil:
+				c.GetPoll().IntervalMs = 250
+			}
+		}
+	})
+	l, err := lowerDerived(t, unhinted, "forgedCompletion")
+	require.NoError(t, err)
+	require.Len(t, instruction(t, l.Case, "controller", "inspect-workflow-2").GetInstruction().GetInvokeRpc().GetResponseReads(), 1)
+}
+
+// A closing poll left to derive its wait reads once: the realization declares it is made after its
+// sources report nothing more, so it waits for nothing and checks no write.
+func TestAClosingPollReadsOnce(t *testing.T) {
+	m := derivedModel(t, "nexus-caller", func(m *umpirespb.Model) {
+		for _, c := range commandsOfModel(m) {
+			if c.GetId() == "await-scheduled" {
+				c.Closes = []string{c.GetPoll().GetEvidence()}
+			}
+		}
+		for _, r := range m.GetRealizations() {
+			for _, e := range r.GetEvidence() {
+				if strings.HasSuffix(e.GetId(), ".scheduled") {
+					e.Exhaustive = true
+				}
+			}
+		}
+	})
+	l, err := lowerDerived(t, m, "retry")
+	require.NoError(t, err)
+	require.Equal(t, readOnce, waitsOf(l.Case)["controller/await-scheduled"])
 }

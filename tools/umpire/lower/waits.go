@@ -17,8 +17,8 @@ package lower
 //     within the visibility's bound. Otherwise it polls within the sum of the bounds of every
 //     asynchronous cause in its window, plus the visibility's bound where the write that performs
 //     the step is visible only eventually.
-//   - A closing read checks nothing: its realization declares it is made after its sources report
-//     nothing more. A poll that writes its own interval keeps it and checks nothing (fn-118.5 then
+//   - A closing read checks nothing, and a closing poll with no interval reads once: its
+//     realization declares it is made after its sources report nothing more. A poll that writes its own interval keeps it and checks nothing (fn-118.5 then
 //     requires the reason it is explicit). A call that reads, in a realization that declares no
 //     behavior at all, is taken as written.
 
@@ -321,7 +321,7 @@ func (l *lowering) confirmed(kind string) int {
 // script walks one script's commands, synchronizing at each read.
 func (w *waiting) script(s *umpirespb.Script) {
 	seq := w.scripts[s.GetId()]
-	synced, syncedAt := -1, -1
+	from := span{fromCommand: -1, fromStep: -1}
 	for i, r := range seq {
 		c := w.l.callOf(s, r.c)
 		if c.access != reads {
@@ -337,41 +337,55 @@ func (w *waiting) script(s *umpirespb.Script) {
 			end = max(end, before.step)
 		}
 		end = max(end, r.step)
-		// A call that reads is checked only against a declared behavior: a realization no kit declares
-		// one for reads as it is written, as before hints existed.
-		if len(r.c.GetCloses()) == 0 && poll.GetIntervalMs() == 0 && (poll != nil || w.l.a.r.GetBehavior() != nil) {
-			w.read(s, r, c.method, target, w.window(s, synced, i, syncedAt, end), poll != nil)
+		// A closing poll that writes no interval reads once: it is made after its sources report
+		// nothing more. A call that reads is checked only against a declared behavior: a realization
+		// no kit declares one for reads as it is written, as before hints existed.
+		switch {
+		case poll != nil && poll.GetIntervalMs() == 0 && len(r.c.GetCloses()) > 0:
+			w.waits[s.GetId()+"/"+r.id] = derivedWait{once: true}
+		case len(r.c.GetCloses()) == 0 && poll.GetIntervalMs() == 0 && (poll != nil || w.l.a.r.GetBehavior() != nil):
+			window := span{fromCommand: from.fromCommand, atCommand: i, fromStep: from.fromStep, toStep: end}
+			w.read(s, r, c.method, target, w.window(s, window), poll != nil)
+		default:
 		}
-		synced, syncedAt = i, end
+		from = span{fromCommand: i, fromStep: end}
 	}
+}
+
+// span is a read's window in its script: the commands after its last read (fromCommand) and before
+// it (atCommand), by their places in the script, and the steps of the path after the end of what
+// that read waited for (fromStep) up to the step it waits for itself (toStep).
+type span struct {
+	fromCommand, atCommand int
+	fromStep, toStep       int
 }
 
 // window is what lies between a read's last synchronization and the step it waits for: the steps of
 // the path after the synchronization up to end, but no step its own script performs after it; its
 // script's own commands since the synchronization; and each other script's command that runs before
 // a step of the window.
-func (w *waiting) window(s *umpirespb.Script, synced, at, syncedAt, end int) []event {
-	out := w.steps(s, synced, at, syncedAt, end)
-	out = append(out, w.placedOwn(s, synced, at)...)
+func (w *waiting) window(s *umpirespb.Script, in span) []event {
+	out := w.steps(s, in)
+	out = append(out, w.placedOwn(s, in)...)
 	for _, x := range w.l.a.r.GetScripts() {
 		if x.GetId() != s.GetId() {
-			out = append(out, w.placedOther(x, syncedAt, end)...)
+			out = append(out, w.placedOther(x, in)...)
 		}
 	}
 	slices.SortStableFunc(out, func(a, b event) int { return a.order - b.order })
 	return out
 }
 
-// steps is the steps of the path after syncedAt up to end, less the ones the read's own script
-// performs outside its commands between synced and at.
-func (w *waiting) steps(s *umpirespb.Script, synced, at, syncedAt, end int) []event {
+// steps is the steps of the window, less the ones the read's own script performs outside its
+// commands of the window.
+func (w *waiting) steps(s *umpirespb.Script, in span) []event {
 	seq := w.scripts[s.GetId()]
 	var out []event
-	for i := syncedAt + 1; i <= end; i++ {
+	for i := in.fromStep + 1; i <= in.toStep; i++ {
 		p := w.performs[i]
 		switch {
 		case p.command != nil && p.script.GetId() == s.GetId():
-			if j := slices.IndexFunc(seq, func(c carried) bool { return c.step == i }); j > synced && j < at {
+			if j := slices.IndexFunc(seq, func(c carried) bool { return c.step == i }); j > in.fromCommand && j < in.atCommand {
 				out = append(out, event{order: 2*i + 1, step: i, label: w.commandLabel(s, *p.command), call: w.l.callOf(s, p.command.c)})
 			}
 		case p.command != nil:
@@ -385,14 +399,14 @@ func (w *waiting) steps(s *umpirespb.Script, synced, at, syncedAt, end int) []ev
 	return out
 }
 
-// placedOwn is the commands the read's script places between synced and at, each after the steps its
-// script performed before it.
-func (w *waiting) placedOwn(s *umpirespb.Script, synced, at int) []event {
+// placedOwn is the commands the read's script places in the window, each after the steps its script
+// performed before it.
+func (w *waiting) placedOwn(s *umpirespb.Script, in span) []event {
 	var out []event
 	performed := -1
-	for j, c := range w.scripts[s.GetId()][:at] {
+	for j, c := range w.scripts[s.GetId()][:in.atCommand] {
 		performed = max(performed, c.step)
-		if j > synced && c.step < 0 {
+		if j > in.fromCommand && c.step < 0 {
 			out = append(out, event{order: 2*performed + 2, step: -1, label: w.commandLabel(s, c), call: w.l.callOf(s, c.c)})
 		}
 	}
@@ -401,7 +415,7 @@ func (w *waiting) placedOwn(s *umpirespb.Script, synced, at int) []event {
 
 // placedOther is the commands another script places that run before a step of the window: before the
 // next step their script performs.
-func (w *waiting) placedOther(x *umpirespb.Script, syncedAt, end int) []event {
+func (w *waiting) placedOther(x *umpirespb.Script, in span) []event {
 	var out []event
 	xs := w.scripts[x.GetId()]
 	for j, c := range xs {
@@ -412,7 +426,7 @@ func (w *waiting) placedOther(x *umpirespb.Script, syncedAt, end int) []event {
 		if next < 0 {
 			continue
 		}
-		if hi := xs[j+next].step; hi > syncedAt && hi <= end {
+		if hi := xs[j+next].step; hi > in.fromStep && hi <= in.toStep {
 			out = append(out, w.other(x, c, 2*hi))
 		}
 	}
