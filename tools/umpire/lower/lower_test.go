@@ -3,6 +3,7 @@ package lower
 import (
 	"encoding/json"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -233,10 +234,20 @@ func TestALearnedHandleIsBoundOnceAndReadByItsDependents(t *testing.T) {
 	require.Equal(t, slot, instruction(t, c, "controller", "complete-nexus-operation").GetInstruction().GetNexusOperationCompletion().GetHandleSlotId())
 }
 
+// onPathKinds is, for each functional Query, the evidence kinds its Case confirms: those a step of its
+// path records.
+var onPathKinds = map[string][]string{
+	"syncCompletion":         {"scheduled", "completed"},
+	"asyncCompletion":        {"scheduled", "started", "completed"},
+	"asyncFailure":           {"scheduled", "started", "failed"},
+	"handlerError":           {"scheduled", "failed"},
+	"retry":                  {"scheduled", "pendingAttempts", "completed"},
+	"scheduleToStartTimeout": {"scheduled", "timedOut"},
+	"startToCloseTimeout":    {"scheduled", "started", "timedOut"},
+}
+
 // offPathKinds is, for each functional Query, the history kinds its Case carries off its path: the
-// five history events less the ones a step of the path records, which are the kinds the Case the
-// comparative Model rendered for the Query declared (`program.evidence`) before the fixtures under
-// tests/testcore/testpilot/testdata/generated were lowered from this Model.
+// five history events less the ones a step of the path records.
 var offPathKinds = map[string][]string{
 	"syncCompletion":         {"started", "failed", "canceled", "timedOut"},
 	"asyncCompletion":        {"failed", "canceled", "timedOut"},
@@ -245,6 +256,34 @@ var offPathKinds = map[string][]string{
 	"retry":                  {"started", "failed", "canceled", "timedOut"},
 	"scheduleToStartTimeout": {"started", "completed", "failed", "canceled"},
 	"startToCloseTimeout":    {"completed", "failed", "canceled"},
+}
+
+// The Scala realization declares the five history kinds exhaustive (Realization.scala,
+// historySource), so a Case confirms the kinds its path records and carries every other of the five,
+// declared, lifted by the history read and given no meaning in the Contract.
+func TestALoweredCaseDeclaresTheHistoryKindsOffItsPath(t *testing.T) {
+	history := []string{"started", "completed", "failed", "canceled", "timedOut"}
+	p, err := NewProducer(loaded(t, "nexus-caller"))
+	require.NoError(t, err)
+	for _, query := range functionalQueries {
+		t.Run(query, func(t *testing.T) {
+			c := lowered(t, p, query)
+			names := definitions(c)
+			kinds := map[testpilotspb.CorrelatedEvidenceMeaning][]string{}
+			for _, rule := range c.GetContract().GetCorrelated().GetProjectionRules() {
+				kinds[rule.GetMeaning()] = append(kinds[rule.GetMeaning()],
+					strings.TrimPrefix(defined(names, rule.GetKind()), "temporal.nexus.caller.evidence."))
+			}
+			require.Len(t, kinds, 2)
+			confirmed, off := kinds[testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED], kinds[testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT]
+			require.ElementsMatch(t, onPathKinds[query], confirmed)
+			require.ElementsMatch(t, offPathKinds[query], off)
+			for _, kind := range history {
+				require.NotEqual(t, slices.Contains(confirmed, kind), slices.Contains(off, kind), "%s is confirmed or off the path", kind)
+			}
+			require.Len(t, c.GetProgram().GetEvidence(), len(confirmed)+len(off))
+		})
+	}
 }
 
 // The Scala Model and its realization say what the comparative Go Model and its realization say, but

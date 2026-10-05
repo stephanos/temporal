@@ -1,35 +1,28 @@
 package lower
 
 import (
-	"encoding/json"
-	"path/filepath"
 	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/internal/golden"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
+// producerContractFixture is what the producer is handed for a Query of the Nexus caller Model once
+// the lowerer has checked it: the Query, its identity, the realization and the source.
 func producerContractFixture(t *testing.T, name string) (*umpiremodel.Query, Identity, *cp.Realization, cp.Source) {
 	t.Helper()
-	files, err := golden.Read(filepath.Join("testdata", "migration"))
+	p, err := NewProducer(loaded(t, "nexus-caller"))
 	require.NoError(t, err)
-	model := new(umpirespb.Model)
-	require.NoError(t, protojson.Unmarshal(files["original/inputs/ir/nexus-caller.json"], model))
-	MigrationComparativeModel(t, model)
-	var identity Identity
-	var source cp.Source
-	key := "oracles/nexus/" + name + "/typed/"
-	require.NoError(t, json.Unmarshal(files[key+"identity-input.json"], &identity))
-	require.NoError(t, json.Unmarshal(files[key+"source.json"], &source))
-	query, realization, err := MigrationFixture(model, name, identity)
+	a, standing, err := p.ask(name)
 	require.NoError(t, err)
-	return query, identity, realization, source
+	require.Equal(t, Lowered, standing)
+	identity := nexusIdentity(name)
+	l, problems := p.check(a, identity)
+	require.Empty(t, problems)
+	return l.query, identity, l.realization, p.source(a.q)
 }
 
 func instructions(c *testpilotspb.Case, entrypoint string) []string {
