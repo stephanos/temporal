@@ -60,12 +60,14 @@ type Rule struct {
 
 // Table is a machine's per-operation modality table: every reachable cell, and the rules they group
 // into, class by class. Field is the state field rules are labelled by: the state record's first
-// enum-typed field, or none.
+// enum-typed field, or none. Laws is the laws the machine is held to, read onto its rules from the
+// law sidecar, or nil where it is held to none.
 type Table struct {
 	Machine string
 	Field   string
 	Cells   []Cell
 	Rules   []Rule
+	Laws    *LawTable
 }
 
 // holes reads every machine's modality table, and from it the hole kinds H1-H5 and their tallies.
@@ -82,6 +84,7 @@ func (m *Model) holes() ([]*Table, []Tally, error) {
 		if err != nil {
 			return nil, nil, fmt.Errorf("%s: %w", name, err)
 		}
+		t.Laws = v.lawTable(t)
 		tables = append(tables, t)
 		tallies = append(tallies, v.tallies(t)...)
 	}
@@ -812,7 +815,7 @@ func (r Rule) notes() string {
 }
 
 // WriteTables writes each machine's per-operation modality table: a block per machine, a line per
-// rule, class by class.
+// rule, class by class, then the laws it is held to; and the laws of each composition.
 func WriteTables(w io.Writer, r *Result) error {
 	for _, t := range r.Tables {
 		by := ""
@@ -837,6 +840,16 @@ func WriteTables(w io.Writer, r *Result) error {
 			}
 		}
 		if err := tw.Flush(); err != nil {
+			return err
+		}
+		if t.Laws != nil {
+			if err := writeLawTable(w, r.File, t.Laws, true); err != nil {
+				return err
+			}
+		}
+	}
+	for _, lt := range r.Laws {
+		if err := writeLawTable(w, r.File, lt, false); err != nil {
 			return err
 		}
 	}

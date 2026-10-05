@@ -4,6 +4,9 @@
     "name": "job.cancelIsRequested",
     "law": "cancelIsRequested",
     "capabilities": [ "Cancelable" ],
+    "actions": {
+      "Cancelable.requestCancel": "cancel"
+    },
     "bindings": {
       "requestCancel": "fixture.capabilities.Capabilities$package.cancel",
       "requested": "fixture.capabilities.Note.cancelAsked"
@@ -15,6 +18,7 @@
     "name": "job.closedIsRejectedUniformly",
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
+    "actions": { },
     "bindings": {
       "status": "fixture.capabilities.Jobs$.phase",
       "terminal": "fixture.capabilities.Jobs$.terminal",
@@ -29,6 +33,11 @@
     "name": "job.pausedIsNotDispatched",
     "law": "pausedIsNotDispatched",
     "capabilities": [ "Pausable", "Pollable" ],
+    "actions": {
+      "Pausable.pause": "pause",
+      "Pausable.unpause": "resume",
+      "Pollable.dispatch": "poll"
+    },
     "bindings": {
       "paused": "fixture.capabilities.Jobs$.paused",
       "running": "fixture.capabilities.Jobs$.running"
@@ -40,6 +49,7 @@
     "name": "job.terminalStatesAreFinal",
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
+    "actions": { },
     "bindings": {
       "status": "fixture.capabilities.Jobs$.phase",
       "terminal": "fixture.capabilities.Jobs$.terminal"
@@ -51,6 +61,9 @@
     "name": "job.terminateSettles",
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
+    "actions": {
+      "Terminable.terminate": "kill"
+    },
     "bindings": {
       "terminate": "fixture.capabilities.Capabilities$package.kill",
       "settled": "fixture.capabilities.Note.killedNote"
@@ -62,6 +75,7 @@
     "name": "keptJob.statusStaysClosed",
     "law": "statusStaysClosed",
     "capabilities": [ "Closable" ],
+    "actions": { },
     "bindings": {
       "status": "fixture.capabilities.Jobs$.phase",
       "terminal": "fixture.capabilities.Jobs$.terminal"
@@ -75,6 +89,7 @@
     "name": "legacyJob.closedIsRejectedUniformly",
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
+    "actions": { },
     "bindings": {
       "status": "fixture.capabilities.Jobs$.phase",
       "terminal": "fixture.capabilities.Jobs$.terminal",
@@ -88,6 +103,11 @@
     "name": "pair.pausedIsNotDispatched",
     "law": "pausedIsNotDispatched",
     "capabilities": [ "Pausable", "Pollable" ],
+    "actions": {
+      "Pausable.pause": "left_pause",
+      "Pausable.unpause": "left_resume",
+      "Pollable.dispatch": "left_poll"
+    },
     "bindings": {
       "paused": "fixture.capabilities.Pairs$.paused",
       "running": "fixture.capabilities.Pairs$.running"
@@ -99,6 +119,11 @@
     "name": "rogueJob.pausedIsNotDispatched",
     "law": "pausedIsNotDispatched",
     "capabilities": [ "Pausable", "Pollable" ],
+    "actions": {
+      "Pausable.pause": "pause",
+      "Pausable.unpause": "resume",
+      "Pollable.dispatch": "poll"
+    },
     "bindings": {
       "paused": "fixture.capabilities.Jobs$.paused",
       "running": "fixture.capabilities.Jobs$.running"

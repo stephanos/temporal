@@ -21,13 +21,16 @@ type LawSidecar struct {
 	Catalog []LawEntry  `json:"catalog"`
 }
 
-// LawClaim is one generated claim: `<machine>.<law>`, the law and capabilities that brought it, what
-// each of the law's parameters is bound to, and the server code each cited binding names.
+// LawClaim is one generated claim: `<machine>.<law>`, the law and capabilities that brought it, the
+// action class each action field of those capabilities names, keyed `<capability>.<field>` and
+// spelled as a Class's Key, what each of the law's parameters is bound to, and the server code each
+// cited binding names.
 type LawClaim struct {
 	Machine      string              `json:"machine"`
 	Name         string              `json:"name"`
 	Law          string              `json:"law"`
 	Capabilities []string            `json:"capabilities"`
+	Actions      map[string]string   `json:"actions"`
 	Bindings     map[string]string   `json:"bindings"`
 	Cites        map[string][]string `json:"cites"`
 	OverriddenBy string              `json:"overriddenBy"`

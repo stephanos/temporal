@@ -5,14 +5,17 @@ import io.temporal.server.api.umpire.v1 as ir
 import org.json4s.JsonAST.*
 
 /**
- * A claim a capability declaration generated, as the law sidecar records it: with its bindings, by
- * the law's parameter names, the server code each binding written with `cited` names.
+ * A claim a capability declaration generated, as the law sidecar records it: with the action class
+ * each action field of the capabilities that brought it names, keyed `<capability>.<field>` and
+ * spelled as Umpire keys a class, its bindings, by the law's parameter names, and the server code
+ * each binding written with `cited` names. The table view reads the actions as the cells a law pins.
  */
 final private[irgen] case class LawClaim(
     machine: String,
     name: String,
     law: String,
     by: Seq[String],
+    actions: Seq[(String, String)],
     bindings: Seq[(String, String)],
     cites: Seq[(String, Seq[String])],
     overriddenBy: Option[String],
@@ -65,6 +68,7 @@ private[irgen] def lawSidecar(ctx: Context): Option[JValue] =
           "name" -> text(c.name),
           "law" -> text(c.law),
           "capabilities" -> texts(c.by),
+          "actions" -> JObject(c.actions.map((k, v) => k -> text(v)).toList),
           "bindings" -> JObject(c.bindings.map((k, v) => k -> text(v)).toList),
           "cites" -> JObject(c.cites.map((k, vs) => k -> texts(vs)).toList)
         ) ++ c.overriddenBy.map("overriddenBy" -> text(_)) :+ ("position" -> text(c.position))
@@ -650,11 +654,36 @@ private[irgen] trait Capabilities:
       name,
       law.name,
       bringing.map(_.kind).sorted,
+      actionsOf(machine, bringing, env),
       bound.map((p, a, _) => p.name -> bindingText(a)),
       bound.collect { case (p, _, Some(cites)) => p.name -> cites },
       overriding.map(_._1.fullName),
       where(at)
     )
+
+  /**
+   * The action class each action field of the capabilities names, keyed `<capability>.<field>` and
+   * spelled as tools/umpire/model keys a class: the action's name, then each input's key, or a
+   * composition's class as its Scenarios key one. A bare action with inputs is its name alone.
+   */
+  private def actionsOf(
+      machine: String,
+      bringing: Seq[Declared],
+      env: Map[Symbol, Decl]
+  ): Seq[(String, String)] =
+    val named = for
+      d <- bringing
+      (field, tpe) <- d.fieldTypes.toSeq
+      if actionType(tpe)
+    yield
+      val a = d.fields(field)
+      val key =
+        if composed(a) then composedKey(a, machine, env, classes = true)
+        else
+          val cls = classOf(a)
+          actions(cls.action).name + cls.inputs.map("-" + valueKey(_)).mkString
+      s"${d.kind}.$field" -> key
+    named.sortBy(_._1)
 
   /** How the sidecar shows what a field is bound to: the def it names, or the value as written. */
   private def bindingText(a: Term): String = forwardedDef(a) match

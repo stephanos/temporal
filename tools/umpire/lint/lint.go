@@ -216,12 +216,13 @@ func kinds() []kind {
 	}
 }
 
-// Result is what linting one Model found: every kind's tallies, and each machine's per-operation
-// modality table.
+// Result is what linting one Model found: every kind's tallies, each machine's per-operation
+// modality table with the laws it is held to, and the laws of each composition.
 type Result struct {
 	File    string
 	Tallies []Tally
 	Tables  []*Table
+	Laws    []*LawTable
 }
 
 // Lint runs every kind over the Model.
@@ -238,7 +239,7 @@ func (m *Model) Lint() (*Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("holes: %w", err)
 	}
-	out.Tables = tables
+	out.Tables, out.Laws = tables, m.compositionLaws()
 	out.Tallies = append(out.Tallies, tallies...)
 	for i := range out.Tallies {
 		sortFindings(out.Tallies[i].Findings)
