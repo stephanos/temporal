@@ -268,46 +268,36 @@ func CheckSupport(run *testpilotspb.Run, verdict *testpilotspb.Verdict) *Support
 }
 
 // Agreement decides whether a closed Run's disposition, its Verdict's status and its rules' statuses
-// agree both ways, as the Monitor and the evaluator produce them: the Verdict is violated exactly
-// when some rule is violated, and the Run is stopped by its Monitor exactly then; it is satisfied
-// exactly when every rule is satisfied on a completed Run; otherwise it is inconclusive. A status
-// left unspecified, or a rule still pending, agrees with nothing. The detail names the first
-// disagreement.
+// agree both ways, as the Monitor and the evaluator produce them: the Verdict's status and the Run's
+// disposition are what testpilot.ConcludeVerdict concludes from the rules, and the Run is stopped
+// by its Monitor only beside a violation. A status left unspecified, or a rule still pending,
+// agrees with nothing. The detail names the first disagreement.
 func Agreement(run *testpilotspb.Run, verdict *testpilotspb.Verdict) (bool, string) {
 	status := verdict.GetStatus()
 	if status == testpilotspb.VERDICT_STATUS_UNSPECIFIED {
 		return false, "the Verdict's status is unspecified"
 	}
-	anyViolated, allSatisfied := false, true
-	for _, rule := range verdict.GetRules() {
+	statuses := make([]testpilotspb.RuleVerdictStatus, len(verdict.GetRules()))
+	for i, rule := range verdict.GetRules() {
 		switch rule.GetStatus() {
 		case testpilotspb.RULE_VERDICT_STATUS_UNSPECIFIED, testpilotspb.RULE_VERDICT_STATUS_PENDING:
 			return false, fmt.Sprintf("rule %s is %s in a closed Verdict", rule.GetRuleId(), rule.GetStatus())
-		case testpilotspb.RULE_VERDICT_STATUS_VIOLATED:
-			anyViolated = true
-			allSatisfied = false
-		case testpilotspb.RULE_VERDICT_STATUS_SATISFIED:
 		default:
-			allSatisfied = false
+			statuses[i] = rule.GetStatus()
 		}
 	}
-	violated := status == testpilotspb.VERDICT_STATUS_VIOLATED
-	if violated != anyViolated {
-		return false, fmt.Sprintf("verdict %s beside rules of which violated: %t", status, anyViolated)
-	}
-	stopped := run.GetDisposition() == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
-	if stopped != violated {
-		return false, fmt.Sprintf("disposition %s beside verdict %s", run.GetDisposition(), status)
-	}
-	satisfied := run.GetDisposition() == testpilotspb.RUN_DISPOSITION_COMPLETED && allSatisfied
+	concluded, disposition := testpilot.ConcludeVerdict(run.GetDisposition(), statuses)
+	violated := concluded == testpilotspb.VERDICT_STATUS_VIOLATED
 	switch {
-	case violated:
+	case (status == testpilotspb.VERDICT_STATUS_VIOLATED) != violated:
+		return false, fmt.Sprintf("verdict %s beside rules of which violated: %t", status, violated)
+	case run.GetDisposition() != disposition || (disposition == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR) != violated:
+		return false, fmt.Sprintf("disposition %s beside verdict %s", run.GetDisposition(), status)
+	case status == concluded:
 		return true, ""
-	case satisfied && status != testpilotspb.VERDICT_STATUS_SATISFIED:
+	case concluded == testpilotspb.VERDICT_STATUS_SATISFIED:
 		return false, fmt.Sprintf("verdict %s where every rule is satisfied on a completed Run", status)
-	case !satisfied && status != testpilotspb.VERDICT_STATUS_INCONCLUSIVE:
-		return false, fmt.Sprintf("verdict %s on disposition %s with a rule not satisfied", status, run.GetDisposition())
 	default:
-		return true, ""
+		return false, fmt.Sprintf("verdict %s on disposition %s with a rule not satisfied", status, run.GetDisposition())
 	}
 }

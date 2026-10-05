@@ -65,7 +65,8 @@ func TestConclude(t *testing.T) {
 }
 
 // The recorder concludes the Monitor's answer against the Run's disposition through Conclude:
-// incompleteness turns anything short of a violation inconclusive, and a violation stops the Run.
+// incompleteness turns anything short of a violation inconclusive, a violation stops the Run, and
+// a Monitor that stopped the Run but answers satisfied is recorded inconclusive.
 func TestRecorderClosesThroughConclude(t *testing.T) {
 	answers := map[testpilotspb.VerdictStatus]testpilotspb.RuleVerdictStatus{
 		testpilotspb.VERDICT_STATUS_SATISFIED:    testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
@@ -83,9 +84,6 @@ func TestRecorderClosesThroughConclude(t *testing.T) {
 						}
 						if incomplete || disposition == testpilotspb.RUN_DISPOSITION_INCOMPLETE {
 							input = testpilotspb.RUN_DISPOSITION_INCOMPLETE
-						}
-						if input == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR && answer == testpilotspb.VERDICT_STATUS_SATISFIED {
-							t.Skip("a Monitor that stops a Run answers violated")
 						}
 						r, _ := recorderFixture(t, &recorderMonitor{close: func(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, error) {
 							return &testpilotspb.Verdict{Status: answer}, nil

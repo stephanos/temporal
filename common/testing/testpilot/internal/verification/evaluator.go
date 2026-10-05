@@ -18,7 +18,6 @@ import (
 type Evaluator struct {
 	correlated                                               *correlatedMonitor
 	result                                                   *testpilotspb.Verdict
-	satisfied                                                int
 	prepared                                                 *PreparedContract
 	rules                                                    []ruleState
 	trace                                                    []transitionTrace
@@ -479,22 +478,21 @@ func (e *Evaluator) recordTerminal(change ruleChange, event *testpilotspb.RunEve
 	case testpilotspb.CONTRACT_STATE_STATUS_SATISFIED:
 		result.Status = testpilotspb.RULE_VERDICT_STATUS_SATISFIED
 		result.TerminalStateId = terminal.StateId
-		e.satisfied++
 	default:
 	}
 }
 func (e *Evaluator) verdict(disposition testpilotspb.RunDisposition) *testpilotspb.Verdict {
-	e.result.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
-	correlatedSatisfied := true
+	if e.incomplete {
+		disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
+	}
 	if e.correlated != nil {
-		correlatedSatisfied = e.recordCorrelated(true, e.incomplete || disposition != testpilotspb.RUN_DISPOSITION_COMPLETED)
+		e.recordCorrelated(true, disposition != testpilotspb.RUN_DISPOSITION_COMPLETED)
 	}
-	if correlatedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_DISPOSITION_COMPLETED && e.satisfied == len(e.rules) {
-		e.result.Status = testpilotspb.VERDICT_STATUS_SATISFIED
+	statuses := make([]testpilotspb.RuleVerdictStatus, len(e.result.Rules))
+	for i, rule := range e.result.Rules {
+		statuses[i] = rule.Status
 	}
-	if e.violated {
-		e.result.Status = testpilotspb.VERDICT_STATUS_VIOLATED
-	}
+	e.result.Status, _ = execution.Conclude(disposition, statuses)
 	return e.result
 }
 
@@ -558,9 +556,8 @@ func checkRunOrder(ctx context.Context, events []*testpilotspb.RunEvent) error {
 	return nil
 }
 
-func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
+func (e *Evaluator) recordCorrelated(closed, incomplete bool) {
 	s := e.prepared.source.Correlated
-	all := true
 	for i := range s.Rules {
 		result := e.result.Rules[len(e.rules)+i]
 		if result.Status != testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
@@ -586,7 +583,5 @@ func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
 		if closed && result.Status == testpilotspb.RULE_VERDICT_STATUS_SATISFIED {
 			result.TerminalStateId = "correlated.satisfied"
 		}
-		all = all && result.Status == testpilotspb.RULE_VERDICT_STATUS_SATISFIED
 	}
-	return all
 }

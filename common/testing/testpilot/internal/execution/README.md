@@ -109,7 +109,9 @@ The production Monitor freezes rule transitions when it observes execution incom
 processing that event. Thus failure followed by a potentially violating in-flight fact remains
 incomplete/inconclusive; only a violation committed before failure survives as stopped/violated.
 The recorder publishes the failure marker before the callback and does not reinterpret a committed
-Monitor result or mask Verdicts differently from offline replay.
+Monitor result or mask Verdicts differently from offline replay. It concludes the Monitor's Verdict
+status against the Run's disposition through `Conclude` (`verdict.go`), the aggregation the
+evaluator uses for its rules; see "How a Run is judged" in the Testpilot README.
 
 The private `scheduler` runs each ordinary controller entrypoint once, using the compiled ready
 order and one attempt per enabled node. A node runs after the previous node of its entrypoint unless

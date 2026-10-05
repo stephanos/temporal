@@ -21,3 +21,15 @@ func Conclude(disposition testpilotspb.RunDisposition, rules []testpilotspb.Rule
 	}
 	return testpilotspb.VERDICT_STATUS_INCONCLUSIVE, disposition
 }
+
+// monitorAnswer reads a Monitor's Verdict status as the rule status it concludes like.
+func monitorAnswer(status testpilotspb.VerdictStatus) testpilotspb.RuleVerdictStatus {
+	switch status {
+	case testpilotspb.VERDICT_STATUS_VIOLATED:
+		return testpilotspb.RULE_VERDICT_STATUS_VIOLATED
+	case testpilotspb.VERDICT_STATUS_SATISFIED:
+		return testpilotspb.RULE_VERDICT_STATUS_SATISFIED
+	default:
+		return testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE
+	}
+}

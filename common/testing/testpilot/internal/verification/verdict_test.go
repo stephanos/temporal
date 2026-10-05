@@ -39,9 +39,6 @@ func TestEvaluatorVerdictConcludes(t *testing.T) {
 					for i, status := range mix {
 						e.rules = append(e.rules, ruleState{ruleID: fmt.Sprint(i)})
 						e.result.Rules = append(e.result.Rules, &testpilotspb.RuleVerdict{RuleId: fmt.Sprint(i), Status: status})
-						if status == satisfied {
-							e.satisfied++
-						}
 						e.violated = e.violated || status == violated
 					}
 					input := disposition
