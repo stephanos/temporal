@@ -154,6 +154,12 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 | fn-125.10 | ⏸️ deferred | Disposition for every implicit assumption |
 | fn-125.11 | ⏸️ deferred | Docs; close |
 
+### fn-130: Model views
+
+Deferred 2026-10-05 before task planning; the spec has no tasks yet. When revived, starts after fn-126 closes. Evidence: `.plans/MODEL_VISUALIZATION.md`.
+
+Rendered views per Model (signature, phase diagram, refinement, compositions, derived-design diff, witness paths), checked in as `.d2` plus `.svg` under `model/views/` and gated; D2 as a Go library with ELK; no DSL declaration.
+
 ### Other deferred items
 
 - fn-122.7 (Pausable on fn-119's example) waits for fn-119; fn-122 itself is closed.
