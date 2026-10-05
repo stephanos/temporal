@@ -110,7 +110,7 @@ val pendingAttempts = Observation(on = operation, read = "attempts")
 enum Outcome derives Finite:
   case accepted, notFound
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 // ### The product machine
 //
@@ -144,14 +144,14 @@ object Product:
     if s.phase != scheduled then disabled
     else
       reply match
-        case Reply.syncSuccess       => accept(ProductState(succeeded), nexusOperationCompleted)
-        case Reply.async             => accept(ProductState(started), nexusOperationStarted)
-        case Reply.operationFailed   => accept(ProductState(failed), nexusOperationFailed)
-        case Reply.operationCanceled => accept(ProductState(canceled), nexusOperationCanceled)
+        case Reply.syncSuccess       => enter(ProductState(succeeded), nexusOperationCompleted)
+        case Reply.async             => enter(ProductState(started), nexusOperationStarted)
+        case Reply.operationFailed   => enter(ProductState(failed), nexusOperationFailed)
+        case Reply.operationCanceled => enter(ProductState(canceled), nexusOperationCanceled)
         // A retryable handler error leaves the operation where it is: the product machine does not
         // know about backing off, which is the whole of what the protocol machine adds.
         case Reply.handlerError(retryable) =>
-          if retryable then disabled else accept(ProductState(failed), nexusOperationFailed)
+          if retryable then disabled else enter(ProductState(failed), nexusOperationFailed)
 
   /**
    * An asynchronous completion. A completion that arrives after the operation is over is not
@@ -161,9 +161,9 @@ object Product:
     if productTerminal(s) then List(Step(Outcome.notFound, s))
     else
       resolution match
-        case Resolution.succeeded => accept(ProductState(succeeded), nexusOperationCompleted)
-        case Resolution.failed    => accept(ProductState(failed), nexusOperationFailed)
-        case Resolution.canceled  => accept(ProductState(canceled), nexusOperationCanceled)
+        case Resolution.succeeded => enter(ProductState(succeeded), nexusOperationCompleted)
+        case Resolution.failed    => enter(ProductState(failed), nexusOperationFailed)
+        case Resolution.canceled  => enter(ProductState(canceled), nexusOperationCanceled)
 
   /**
    * A transport fault is an ordinary action of the network. The product machine cannot see one:
@@ -184,7 +184,7 @@ object Product:
    * product machine has one timer, and it fires while the operation runs.
    */
   def timeoutStep(s: ProductState) =
-    if s.phase.in(scheduled, started) then accept(ProductState(timedOut), nexusOperationTimedOut)
+    if s.phase.in(scheduled, started) then enter(ProductState(timedOut), nexusOperationTimedOut)
     else disabled
 
 val timeout = timer
@@ -287,7 +287,7 @@ object Protocol:
   ) =
     if s.phase != Phase.unscheduled then disabled
     else
-      accept(
+      enter(
         ProtocolState(scheduled, 0, scheduleToClose, scheduleToStart, startToClose),
         nexusOperationScheduled
       )
@@ -302,14 +302,14 @@ object Protocol:
     if s.phase != scheduled then disabled
     else
       reply match
-        case Reply.syncSuccess       => accept(s.copy(phase = succeeded), nexusOperationCompleted)
-        case Reply.async             => accept(s.copy(phase = started), nexusOperationStarted)
-        case Reply.operationFailed   => accept(s.copy(phase = failed), nexusOperationFailed)
-        case Reply.operationCanceled => accept(s.copy(phase = canceled), nexusOperationCanceled)
+        case Reply.syncSuccess       => enter(s.copy(phase = succeeded), nexusOperationCompleted)
+        case Reply.async             => enter(s.copy(phase = started), nexusOperationStarted)
+        case Reply.operationFailed   => enter(s.copy(phase = failed), nexusOperationFailed)
+        case Reply.operationCanceled => enter(s.copy(phase = canceled), nexusOperationCanceled)
         case Reply.handlerError(retryable) =>
-          if !retryable then accept(s.copy(phase = failed), nexusOperationFailed)
+          if !retryable then enter(s.copy(phase = failed), nexusOperationFailed)
           else
-            accept(
+            enter(
               s.copy(phase = backingOff, attempts = saturatingSucc(s.attempts)),
               ProtocolFact.pendingAttempts
             )
@@ -319,7 +319,7 @@ object Protocol:
     require(validAttempts(s.attempts))
     if s.phase != scheduled then disabled
     else
-      accept(
+      enter(
         s.copy(phase = backingOff, attempts = saturatingSucc(s.attempts)),
         ProtocolFact.pendingAttempts
       )
@@ -344,18 +344,18 @@ object Protocol:
         if s.phase != started then List(nexusOperationStarted) else Nil
       resolution match
         case Resolution.succeeded =>
-          accept(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
+          enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
         case Resolution.failed =>
-          accept(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
+          enter(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
         case Resolution.canceled =>
-          accept(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
+          enter(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
 
   /**
    * The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
    * it is stuck in, and it records nothing: a retry writes no history event.
    */
   def backoffStep(s: ProtocolState): List[ProtocolStep] =
-    if s.phase != backingOff then disabled else accept(s.copy(phase = scheduled))
+    if s.phase != backingOff then disabled else enter(s.copy(phase = scheduled))
 
   /**
    * The schedule-to-close deadline covers the whole operation, so it fires in every running phase
@@ -363,7 +363,7 @@ object Protocol:
    */
   def scheduleToCloseStep(s: ProtocolState) =
     if running(s.phase) && s.scheduleToClose == Timeout.expires then
-      accept(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.scheduleToClose))
+      enter(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.scheduleToClose))
     else disabled
 
   /**
@@ -372,13 +372,13 @@ object Protocol:
    */
   def scheduleToStartStep(s: ProtocolState) =
     if s.phase.in(scheduled, backingOff) && s.scheduleToStart == Timeout.expires then
-      accept(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.scheduleToStart))
+      enter(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.scheduleToStart))
     else disabled
 
   /** The start-to-close deadline covers the handler's own work, so it begins at the start. */
   def startToCloseStep(s: ProtocolState) =
     if s.phase == started && s.startToClose == Timeout.expires then
-      accept(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.startToClose))
+      enter(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.startToClose))
     else disabled
 
   /**

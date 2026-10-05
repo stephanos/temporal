@@ -6,15 +6,15 @@ package temporal
 package features.nexuscaller
 
 import umpire.*
-import umpire.realize.{Alternative, Conformance, Exploration, Outcome, RunExpectation, Variation}
+import umpire.realize.{Alternative, Conformance, Exploration, RunExpectation, Variation}
+import umpire.realize.PropertyOutcome
 import shared.worker.workerStop
-import Control.inspect
-import Timeout.expires
+import Control.inspect, Timeout.expires
 
 // What a live Run is expected to show.
-val satisfied = RunExpectation(Conformance.conformant, Outcome.satisfied)
+val satisfied = RunExpectation(Conformance.conformant, PropertyOutcome.satisfied)
 def inconclusive(reason: String) =
-  RunExpectation(Conformance.conformant, Outcome.inconclusive, reason)
+  RunExpectation(Conformance.conformant, PropertyOutcome.inconclusive, reason)
 val explanationsDisagree = "the executions that explain the evidence disagree"
 val neverEvaluated =
   "an execution that explains the evidence never reaches the claim's evaluation point"
@@ -166,9 +166,9 @@ val forgedCompletion = (query find forgedSuccess in inspectedFailure limits cont
   .expect(
     RunExpectation(
       Conformance.inconclusive,
-      Outcome.violated,
+      PropertyOutcome.violated,
       "every modeled execution that explains the evidence violates it",
-      contract = Outcome.violated
+      contract = PropertyOutcome.violated
     )
   )
   .explore(

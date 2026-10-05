@@ -12,7 +12,7 @@ given Family = Family("fixture.inputs")
 enum Outcome derives Finite:
   case accepted
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 /** Where the counted run is. */
 enum Stage derives Finite:
@@ -60,12 +60,12 @@ type CountedStep = Step[Counted, Outcome, Nothing]
 
 def started(s: Counted, close: Deadline, toStart: Deadline, toClose: Deadline): List[CountedStep] =
   if s.phase != Stage.unstarted then disabled
-  else accept(Counted(Stage.scheduled, UpTo(0), close, toStart, toClose))
+  else enter(Counted(Stage.scheduled, UpTo(0), close, toStart, toClose))
 
 // A retried answer counts one more attempt, saturating at the bound.
 def responded(s: Counted, a: Answer, u: Boolean): List[CountedStep] = a match
   case Answer.failed(true) if s.phase == Stage.started || u =>
-    accept(s.copy(phase = Stage.backingOff, attempts = UpTo((s.attempts + 1).min(2))))
+    enter(s.copy(phase = Stage.backingOff, attempts = UpTo((s.attempts + 1).min(2))))
   case _ => disabled
 
 def steered(s: Counted, c: Control): List[CountedStep] =

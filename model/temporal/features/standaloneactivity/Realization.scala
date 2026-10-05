@@ -85,7 +85,7 @@ object ActivityRealization:
     field(_.getTaskQueue.name) := taskQueueName
     field(_.requestId) := run
   }
-  private val startUnreached = startActivity.setting {
+  private val startUnreached = startActivity.withFields {
     field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
   }
 
@@ -124,10 +124,10 @@ object ActivityRealization:
     onPath(control(Control.pause))(stopWorkerUntilReleased),
     perform(
       start() -> startUnreached,
-      start(Inputs.scheduleToStart := expires) -> startUnreached.setting {
+      start(Inputs.scheduleToStart := expires) -> startUnreached.withFields {
         field(_.getScheduleToStartTimeout.seconds) := deadline
       },
-      start(Inputs.startToClose := expires) -> startActivity.setting {
+      start(Inputs.startToClose := expires) -> startActivity.withFields {
         field(_.getStartToCloseTimeout.seconds) := deadline
       }
     ),
@@ -293,7 +293,7 @@ object ActivityRealization:
     roles = Vector(workflowService, taskQueue),
     scripts = Vector(
       controller(
-        always(startUnreached),
+        everyCase(startUnreached),
         perform(dispatch -> holdDispatch),
         perform(control(Control.pause) -> pauseActivity),
         onPath(control(Control.pause))(awaitPaused),
@@ -316,7 +316,7 @@ object ActivityRealization:
     roles = Vector(workflowService, taskQueue),
     scripts = Vector(
       controller(
-        always(startUnreached),
+        everyCase(startUnreached),
         perform(dispatch -> holdDispatch),
         perform(shared.taskqueue.ackLoss -> loseAdmissionResponse)
       )

@@ -1,6 +1,7 @@
 package recordedrun
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -59,6 +60,39 @@ func TestAgreementHoldsBothWays(t *testing.T) {
 			require.Equal(t, probe.agrees, agrees, detail)
 			require.Contains(t, detail, probe.detail)
 		})
+	}
+}
+
+// Agreement is ConcludeVerdict read both ways over every disposition, rule mix and Verdict status:
+// a closed Verdict agrees exactly when its rules are settled, its status and the Run's disposition
+// are what ConcludeVerdict concludes, and the Run is stopped by its Monitor only beside a violation.
+func TestAgreementIsConcludeVerdict(t *testing.T) {
+	const (
+		satisfied = testpilotspb.RULE_VERDICT_STATUS_SATISFIED
+		violated  = testpilotspb.RULE_VERDICT_STATUS_VIOLATED
+		unsettled = testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE
+		pending   = testpilotspb.RULE_VERDICT_STATUS_PENDING
+	)
+	mixes := [][]testpilotspb.RuleVerdictStatus{nil, {satisfied}, {satisfied, unsettled}, {pending}, {testpilotspb.RULE_VERDICT_STATUS_UNSPECIFIED}, {violated}, {satisfied, violated}, {pending, violated}}
+	for _, mix := range mixes {
+		for disposition := range testpilotspb.RunDisposition_name {
+			for status := range testpilotspb.VerdictStatus_name {
+				disposition, status := testpilotspb.RunDisposition(disposition), testpilotspb.VerdictStatus(status)
+				t.Run(fmt.Sprintf("%v/%s/%s", mix, disposition, status), func(t *testing.T) {
+					var rules []*testpilotspb.RuleVerdict
+					settled := status != testpilotspb.VERDICT_STATUS_UNSPECIFIED
+					for i, ruleStatus := range mix {
+						rules = append(rules, rule(fmt.Sprint(i), ruleStatus))
+						settled = settled && ruleStatus != pending && ruleStatus != testpilotspb.RULE_VERDICT_STATUS_UNSPECIFIED
+					}
+					wantStatus, wantDisposition := testpilot.ConcludeVerdict(disposition, mix)
+					want := settled && status == wantStatus && disposition == wantDisposition &&
+						(disposition == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR) == (wantStatus == testpilotspb.VERDICT_STATUS_VIOLATED)
+					agrees, detail := Agreement(closed(disposition, status, rules...))
+					require.Equal(t, want, agrees, detail)
+				})
+			}
+		}
 	}
 }
 

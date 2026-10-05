@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 )
 
@@ -42,11 +43,11 @@ func ViolatedForm(run *testpilotspb.Run, verdict *testpilotspb.Verdict) (ok bool
 	if verdict.GetStatus() != testpilotspb.VERDICT_STATUS_VIOLATED {
 		return false, ReasonNonViolated, fmt.Sprintf("verdict %s, not violated", verdict.GetStatus())
 	}
-	violatedRule := false
-	for _, rule := range verdict.GetRules() {
-		violatedRule = violatedRule || rule.GetStatus() == testpilotspb.RULE_VERDICT_STATUS_VIOLATED
+	statuses := make([]testpilotspb.RuleVerdictStatus, len(verdict.GetRules()))
+	for i, rule := range verdict.GetRules() {
+		statuses[i] = rule.GetStatus()
 	}
-	if !violatedRule {
+	if concluded, _ := testpilot.ConcludeVerdict(run.GetDisposition(), statuses); concluded != testpilotspb.VERDICT_STATUS_VIOLATED {
 		return false, ReasonNonViolated, "a violated Verdict naming no violated rule"
 	}
 	// What remains is the agreement qualification admission checks too: a violated Verdict only on

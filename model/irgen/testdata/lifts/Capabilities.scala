@@ -13,7 +13,7 @@ package fixture.capabilities
 
 import umpire.*
 import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
-import umpire.realize.statusTable
+import umpire.realize.{statusTable, Conformance, PropertyOutcome, RunExpectation}
 import temporal.capabilities.{given, *}
 
 given Family = Family("fixture.capabilities")
@@ -26,7 +26,7 @@ final case class Job(phase: Phase) derives Finite
 enum Answer derives Finite:
   case ok, gone
 
-given Accepted[Answer] = Accepted(Answer.ok)
+given Ok[Answer] = Ok(Answer.ok)
 
 enum Note derives Finite:
   case started, held, resumed, killedNote, cancelAsked, finished
@@ -54,25 +54,25 @@ object Jobs:
   private def closed(j: Job): List[Step[Job, Answer, Note]] = List(Step(Answer.gone, j))
 
   def poll(j: Job): List[Step[Job, Answer, Note]] =
-    if j.phase == queued then accept(Job(Phase.running), Note.started) else disabled
+    if j.phase == queued then enter(Job(Phase.running), Note.started) else disabled
   def finish(j: Job): List[Step[Job, Answer, Note]] =
-    if j.phase == Phase.running then accept(Job(done), Note.finished) else disabled
+    if j.phase == Phase.running then enter(Job(done), Note.finished) else disabled
   def pause(j: Job): List[Step[Job, Answer, Note]] =
     if terminal(j.phase) then closed(j)
-    else if j.phase.in(queued, Phase.running) then accept(Job(Phase.paused), Note.held)
+    else if j.phase.in(queued, Phase.running) then enter(Job(Phase.paused), Note.held)
     else disabled
   def resume(j: Job): List[Step[Job, Answer, Note]] =
     if terminal(j.phase) then closed(j)
-    else if j.phase == Phase.paused then accept(Job(queued), Note.resumed)
+    else if j.phase == Phase.paused then enter(Job(queued), Note.resumed)
     else disabled
   def kill(j: Job): List[Step[Job, Answer, Note]] =
-    if terminal(j.phase) then closed(j) else accept(Job(killed), Note.killedNote)
+    if terminal(j.phase) then closed(j) else enter(Job(killed), Note.killedNote)
   def cancel(j: Job): List[Step[Job, Answer, Note]] =
-    if terminal(j.phase) then closed(j) else accept(j, Note.cancelAsked)
+    if terminal(j.phase) then closed(j) else enter(j, Note.cancelAsked)
 
   /** The rogue job's poll, which dispatches a paused job as it does a queued one. */
   def rogueDispatch(j: Job): List[Step[Job, Answer, Note]] =
-    if j.phase.in(queued, Phase.paused) then accept(Job(Phase.running), Note.started) else disabled
+    if j.phase.in(queued, Phase.paused) then enter(Job(Phase.running), Note.started) else disabled
 
   /** The legacy job's answer to a closed job: it keeps the state, whatever it answers. */
   def closedKeepsTheState[S, P](m: Declares[S])(
@@ -108,7 +108,7 @@ val three = Limits(steps = 3, actions = 3, search = 512)
 val jobStatus = statusTable(Note.started -> "RUNNING", Note.killedNote -> "TERMINATED")
 
 /** The Run a server is expected to give the job's functional laws. */
-val settles = realize.RunExpectation(realize.Conformance.conformant, realize.Outcome.satisfied)
+val settles = RunExpectation(Conformance.conformant, PropertyOutcome.satisfied)
 
 // Free verify Queries: 5 states x 6 classes x 3 steps = 90; finds: 5 states x min(3, 2) = 10.
 val jobCapabilities = capabilities(job, limits = three)(

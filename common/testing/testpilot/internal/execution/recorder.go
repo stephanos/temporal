@@ -399,13 +399,12 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunDispos
 		closeErr = errors.Join(closeErr, err, r.failLocked(testpilotspb.RUN_DIAGNOSTIC_KIND_MONITOR, "verdict_missing", err))
 	}
 	r.run.Verdict = proto.CloneOf(verdict)
-	if r.incomplete && r.run.Verdict.Status != testpilotspb.VERDICT_STATUS_VIOLATED {
+	if r.incomplete {
 		r.run.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
-		r.run.Verdict.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
 	}
-	if r.run.Verdict.Status == testpilotspb.VERDICT_STATUS_VIOLATED {
-		r.run.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
-	}
+	// The recorder concludes the Monitor's answer, not its rules: whichever Monitor ran, its Verdict
+	// status is the one rule status the Run is concluded from.
+	r.run.Verdict.Status, r.run.Disposition = Conclude(r.run.Disposition, []testpilotspb.RuleVerdictStatus{monitorAnswer(verdict.GetStatus())})
 	return proto.CloneOf(r.run), proto.CloneOf(r.run.Verdict), closeErr
 }
 func (r *recorder) postClose(ctx context.Context) error {

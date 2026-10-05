@@ -53,7 +53,7 @@ Every wait is one of three kinds.
 | Where | What | Note |
 | --- | --- | --- |
 | `model/umpire/realize/Realize.scala:371-378`, `:375` | `Command.timeoutMs`, default 0 (the run's default) | the only timeout surface; W-16, W-17 use it |
-| `:433-440`, `:439`; `:474-478` | `TypedPoll.intervalMs`, `Instruction.poll(..., intervalMs)`, default 0 | the only interval surface; W-1, W-9, W-10 use it. A 0 interval is refused by the reader |
+| `:433-440`, `:439`; `:474-478` | `TypedPoll.intervalMs`, `Instruction.readUntil(...)`, default 0 | the only interval surface; W-1, W-9, W-10 use it. A 0 interval is refused by the reader |
 | `:441`, `:443-444` | `AwaitLearned`, `AwaitCommand` | carry no bound of their own |
 
 ### Lowering and reader

@@ -185,7 +185,7 @@ def controller(items: Item*) = script(controllerScript, Activation.Controller)(i
 def await[Req, Projected](evidence: EvidenceRef[Req, Projected], role: Role)(
     until: Condition[Projected]
 )(assign: RequestScope[Req] ?=> Unit) =
-  poll(evidence, role, until, intervalMs = 0)(assign)
+  readUntil(evidence, role, until, intervalMs = 0)(assign)
 
 /** That a command of the controller succeeded, as the Run records its outcome. */
 val succeeded = Condition.equal(

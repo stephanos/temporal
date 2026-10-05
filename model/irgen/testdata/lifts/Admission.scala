@@ -21,7 +21,7 @@ val activity = Entity(key = "activityId")
 enum Outcome derives Finite:
   case accepted, notFound
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 // Only a pause and a completion are in scope. The other controls and answers are classes no step
 // takes, kept because a free Scenario's total counts every class.
@@ -55,17 +55,17 @@ object Product:
   import ProductFact.*
 
   def attemptStart(s: ProductState) =
-    if s.phase == scheduled then accept(ProductState(started), statusStarted) else disabled
+    if s.phase == scheduled then enter(ProductState(started), statusStarted) else disabled
 
   def attemptResult(s: ProductState, r: AttemptResult) =
     if s.phase == started && r == AttemptResult.completed then
-      accept(ProductState(completed), statusCompleted)
+      enter(ProductState(completed), statusCompleted)
     else disabled
 
   /** A pause holds before an attempt starts or while one runs; a completed activity is not found. */
   def control(s: ProductState, c: Control) =
     if s.phase == completed then List(Step(Outcome.notFound, s))
-    else if c == Control.pause && s.phase != paused then accept(ProductState(paused), statusPaused)
+    else if c == Control.pause && s.phase != paused then enter(ProductState(paused), statusPaused)
     else disabled
 
 /** No unpause is in scope, so a path may end paused, as the designs' paths may. */

@@ -289,7 +289,7 @@ private val start = Command(
 /** One branch: polls the started run's history for its start. */
 private val awaitStarted = Command(
   "await-started",
-  Instruction.poll(runOpenedEvidence, workflowService)(
+  Instruction.readUntil(runOpenedEvidence, workflowService)(
     startedRun,
     Condition.present(
       Field[HistoryEvent, Option[WorkflowExecutionStartedEventAttributes]](
@@ -531,10 +531,10 @@ val heldByValue: Query =
   (query find watchedOpens in watched limits onePush total 2).expect(
     RunExpectation(
       Conformance.conformant,
-      Outcome.satisfied,
+      PropertyOutcome.satisfied,
       monitors = Vector(
-        MonitorExpectation(opensOnce, Outcome.inconclusive, "never evaluated"),
-        MonitorExpectation(staysOpen, Outcome.satisfied)
+        MonitorExpectation(opensOnce, PropertyOutcome.inconclusive, "never evaluated"),
+        MonitorExpectation(staysOpen, PropertyOutcome.satisfied)
       )
     )
   )
@@ -542,10 +542,10 @@ val heldByName: Query =
   (query find watchedOpens in watched limits onePush total 2).expect(
     RunExpectation(
       Conformance.conformant,
-      Outcome.satisfied,
+      property = PropertyOutcome.satisfied,
       monitors = Vector(
-        MonitorExpectation("opensOnce", Outcome.inconclusive, "never evaluated"),
-        MonitorExpectation("staysOpen", Outcome.satisfied)
+        MonitorExpectation("opensOnce", PropertyOutcome.inconclusive, "never evaluated"),
+        MonitorExpectation("staysOpen", PropertyOutcome.satisfied)
       )
     )
   )
@@ -687,7 +687,7 @@ private def awaitListed(
 ) =
   Command(
     id,
-    Instruction.poll(evidence, workflowService)(
+    Instruction.readUntil(evidence, workflowService)(
       Vector(
         Assignment.typed(
           Field[ListActivityExecutionsRequest, String](_.namespace),
@@ -961,7 +961,7 @@ val tallyRealization: Realization = Realization(
           Some(
             Command(
               "await-opened",
-              Instruction.poll(tallyOpenedEvidence, workflowService)(
+              Instruction.readUntil(tallyOpenedEvidence, workflowService)(
                 Vector(
                   Assignment.typed(
                     Field[DescribeActivityExecutionRequest, String](_.namespace),

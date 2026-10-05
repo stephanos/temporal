@@ -37,17 +37,17 @@ private[irgen] trait Syntax:
   def sugared(t: Term): Boolean = sugarCall(t).nonEmpty
 
   /**
-   * Hook: a sugar form lifted to the IR of its core form. Core form: `accept(s, f)` lifts as
+   * Hook: a sugar form lifted to the IR of its core form. Core form: `enter(s, f)` lifts as
    * `List(Step(Outcome.accepted, s, List(f)))`, `stay(s)` as `List(Step(Outcome.accepted, s))`,
    * `disabled` as `Nil`, `x.in(a, b)` as `List(a, b).contains(x)`, `a implies b` as `!a || b`,
    * `after.records(f)` as `after.facts.contains(f)` and a composition's `after.records(_.member, f)`
    * as `after.facts.contains("member_f")`.
    */
   def sugar(t: Term): ir.Expr = sugarCall(t) match
-    case Some(("accept", List(List(state, facts), List(accepted)))) =>
-      list(Seq(step(outcomeOf(accepted, "accept"), lift(state), lift(facts), text("", t), t)), t)
-    case Some(("stay", List(List(state), List(accepted)))) =>
-      list(Seq(step(outcomeOf(accepted, "stay"), lift(state), list(Nil, t), text("", t), t)), t)
+    case Some(("enter", List(List(state, facts), List(ok)))) =>
+      list(Seq(step(outcomeOf(ok, "enter"), lift(state), lift(facts), text("", t), t)), t)
+    case Some(("stay", List(List(state), List(ok)))) =>
+      list(Seq(step(outcomeOf(ok, "stay"), lift(state), list(Nil, t), text("", t), t)), t)
     case Some(("disabled", Nil))                            => list(Nil, t)
     case Some(("in", List(List(value), List(first, rest)))) =>
       val member = typeArgs(t).headOption
@@ -123,10 +123,10 @@ private[irgen] trait Syntax:
   /**
    * Hook: one line of a request scope written with the Temporal kit's sugar, `field(_.name) :=
    * operand`, lifted as the assignment record its core form writes, or None for a line that is not
-   * one. The field's request type is the scope's, `root`, which the enclosing `rpc`/`poll` call
-   * opened; the selector is read against it. Core form: `Assignment.typed(Field[Req, V](_.name),
-   * operand)` lifts as `{target: "name", value: operand}`. `Realizations.scoped` asks it of every
-   * line before it reads a core one.
+   * one. The field's request type is the scope's, `root`, which the enclosing `rpc`/`readUntil`
+   * call opened; the selector is read against it. Core form:
+   * `Assignment.typed(Field[Req, V](_.name), operand)` lifts as `{target: "name", value: operand}`.
+   * `Realizations.scoped` asks it of every line before it reads a core one.
    */
   def requestAssignment(line: Bound, root: TypeRepr, into: Descriptor): Option[PMessage] =
     val t = follow(line).term
@@ -390,9 +390,9 @@ private[irgen] trait Syntax:
       .flatten
       .orElse(forwardedDef(x).flatMap(defPath))
 
-  /** The outcome a `given Accepted[O] = Accepted(o)` names: `o`. */
-  private def outcomeOf(accepted: Term, form: String): ir.Expr =
-    val declared = accepted match
+  /** The outcome a `given Ok[O] = Ok(o)` names: `o`. */
+  private def outcomeOf(ok: Term, form: String): ir.Expr =
+    val declared = ok match
       case r: Ref =>
         defs.get(resolveSymbol(r)) match
           case Some(ValDef(_, _, Some(rhs)))      => Some(rhs)
@@ -402,11 +402,11 @@ private[irgen] trait Syntax:
     declared.map(arguments) match
       case Some(Apply(fn, List(outcome)))
           if fn.symbol.name == "apply" &&
-            fn.symbol.owner.companionClass.fullName == "umpire.Accepted" =>
+            fn.symbol.owner.companionClass.fullName == "umpire.Ok" =>
         lift(outcome)
       case _ =>
         fail(
-          accepted,
-          s"$form answers the outcome a `given Accepted[O] = Accepted(o)` of the lifted sources names, " +
-            s"not ${accepted.show}"
+          ok,
+          s"$form answers the outcome a `given Ok[O] = Ok(o)` of the lifted sources names, " +
+            s"not ${ok.show}"
         )

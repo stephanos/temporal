@@ -23,7 +23,7 @@ final case class Admission(phase: Phase, message: Message, active: Active) deriv
 enum Outcome derives Finite:
   case accepted, rejected
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 enum Fact derives Finite:
   case statusStarted, attemptAdmitted, statusPaused, admissionRejected
@@ -52,12 +52,12 @@ def oneMore(a: Active): Active = a match
 def admitNamed(s: Admission): List[AdmissionStep] =
   val next = s.copy(phase = Phase.started, active = oneMore(s.active))
   choose(
-    committed -> accept(
+    committed -> enter(
       next.copy(message = Message.empty),
       Fact.statusStarted,
       Fact.attemptAdmitted
     ),
-    redelivered -> accept(
+    redelivered -> enter(
       next.copy(message = Message.redelivery),
       Fact.statusStarted,
       Fact.attemptAdmitted
@@ -81,16 +81,16 @@ def pollNamed(s: Admission): List[AdmissionStep] = s.phase match
   case Phase.scheduled =>
     if s.message == Message.queued then
       choose(
-        committed -> accept(s.copy(phase = Phase.started), Fact.statusStarted),
+        committed -> enter(s.copy(phase = Phase.started), Fact.statusStarted),
         held -> stay(s).because("the worker polls again")
       )
     else disabled
-  case Phase.paused => choose(held -> stay(s), dropped -> accept(s.copy(message = Message.empty)))
+  case Phase.paused => choose(held -> stay(s), dropped -> enter(s.copy(message = Message.empty)))
   case _            => disabled
 
 // Alternatives that answer different outcomes.
 def answerNamed(s: Admission): List[AdmissionStep] = choose(
-  committed -> accept(s.copy(active = Active.none), Fact.statusStarted),
+  committed -> enter(s.copy(active = Active.none), Fact.statusStarted),
   refused -> List(Step(Outcome.rejected, s, List(Fact.admissionRejected)))
 )
 
@@ -100,7 +100,7 @@ def admitted(s: Admission, m: Message): List[AdmissionStep] =
   if s.phase == Phase.paused then disabled
   else if s.phase == Phase.started then
     List(Step(Outcome.rejected, s, List(Fact.admissionRejected)))
-  else accept(s.copy(phase = Phase.started, message = m), Fact.statusStarted)
+  else enter(s.copy(phase = Phase.started, message = m), Fact.statusStarted)
 def redeliveredStep(s: Admission): List[AdmissionStep] = admitted(s, Message.redelivery)
 
 def retryNamed(s: Admission): List[AdmissionStep] = choose(

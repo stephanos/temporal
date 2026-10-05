@@ -3,7 +3,7 @@ package features.standaloneactivity
 package admission
 
 import umpire.*
-import umpire.realize.{Conformance, MonitorExpectation, Outcome as RunOutcome, RunExpectation}
+import umpire.realize.{Conformance, MonitorExpectation, PropertyOutcome, RunExpectation}
 import temporal.capabilities.pausedIsNotDispatched
 
 /** Every claim and path, declared on the design `m`, since each belongs to one machine. */
@@ -52,14 +52,14 @@ val heldStaleDelivery =
     .actions(dispatch, control(Control.pause), attemptStart) limits three total 108).expect(
     RunExpectation(
       Conformance.conformant,
-      RunOutcome.satisfied,
+      PropertyOutcome.satisfied,
       monitors = Vector(
         MonitorExpectation(
           atMostOneActiveAttempt,
-          RunOutcome.inconclusive,
+          PropertyOutcome.inconclusive,
           neverEvaluated
         ),
-        MonitorExpectation(terminalFinality, RunOutcome.satisfied)
+        MonitorExpectation(terminalFinality, PropertyOutcome.satisfied)
       )
     )
   )
