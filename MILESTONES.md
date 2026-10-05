@@ -79,7 +79,7 @@ Gate: never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes
 | Task | Status | What |
 | --- | --- | --- |
 | fn-126.1 | ✅ done | Standalone activity as one feature file per folder; `record/`, `withTaskQueue/`; declaration-order lint |
-| fn-126.2 | ⬜ todo | Nexus folders and shared Models as feature files; shared bounds; per-kind file names retired |
+| fn-126.2 | 🔄 in progress | Nexus folders and shared Models as feature files; shared bounds; per-kind file names retired |
 | fn-126.3 | ⬜ todo | Actions grouped by actor in section objects that keep Definition IDs |
 | fn-126.4 | ⬜ todo | Machine objects with effects, rules and sections; lifter reshaped; standalone activity converted |
 | fn-126.5 | ⬜ todo | Remaining Models as machine objects; builder forms retired |
