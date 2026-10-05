@@ -204,6 +204,8 @@ func (selection Selection) Evaluate(pkg Package, fact Fact) Decision {
 						return Decision{Allowed: true, Disposition: DispositionAllowedExactPack, PackID: selected.pack.ID}
 					}
 				}
+			case FactMalformedLinkname, FactNoReviewedGoSource:
+				continue
 			}
 		}
 	}

@@ -1,0 +1,37 @@
+{
+  "name": "final-validate-nil-selection",
+  "argv": [
+    "make",
+    "validate"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:29:18Z",
+  "end": "2026-10-05T14:29:20Z",
+  "elapsed_seconds": 2.213894543,
+  "exit": 0,
+  "log": "raw/final-validate-nil-selection.log",
+  "log_sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679",
+  "source_before": "manifests/final-validate-nil-selection-before.sha256",
+  "source_after": "manifests/final-validate-nil-selection-after.sha256",
+  "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

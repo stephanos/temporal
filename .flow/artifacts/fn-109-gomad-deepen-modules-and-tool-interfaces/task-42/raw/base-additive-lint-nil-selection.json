@@ -1,0 +1,42 @@
+{
+  "name": "base-additive-lint-nil-selection",
+  "argv": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--config=../../.github/.golangci.yml",
+    "--build-tags=test_dep",
+    "--timeout=10m",
+    "--fix=false",
+    "./internal/compatibilitypack"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:25:39Z",
+  "end": "2026-10-05T14:25:40Z",
+  "elapsed_seconds": 0.706177167,
+  "exit": 1,
+  "log": "raw/base-additive-lint-nil-selection.log",
+  "log_sha256": "b6189e91318546e60db883066d06563706346165bd55bee56808f9b7913163d3",
+  "source_before": "manifests/base-additive-lint-nil-selection-before.sha256",
+  "source_after": "manifests/base-additive-lint-nil-selection-after.sha256",
+  "source_before_sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+  "source_after_sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

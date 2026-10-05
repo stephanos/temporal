@@ -1,0 +1,38 @@
+{
+  "name": "final-errortype",
+  "argv": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "-test=true",
+    "./internal/compatibilitypack"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:21:32Z",
+  "end": "2026-10-05T14:21:33Z",
+  "elapsed_seconds": 0.610791292,
+  "exit": 0,
+  "log": "raw/final-errortype.log",
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "source_before": "manifests/final-errortype-before.sha256",
+  "source_after": "manifests/final-errortype-after.sha256",
+  "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+  "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

@@ -1,0 +1,2 @@
+tools/gomad3/internal/compatibilitypack/policy.go: OK
+tools/gomad3/internal/compatibilitypack/policy_exhaustive_test.go: OK

@@ -1,0 +1,47 @@
+{
+  "name": "base-architecture-serial",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./internal/gomadtool/architecture"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:11:31Z",
+  "end": "2026-10-05T14:13:16Z",
+  "elapsed_seconds": 104.750716483,
+  "exit": 0,
+  "log": "raw/base-architecture-serial.log",
+  "log_sha256": "0cdd6c05fc1111a3a8f1b68329a7b1f897c4e9d7424bcdf712a948afd565c525",
+  "source_before": "manifests/base-architecture-serial-before.sha256",
+  "source_after": "manifests/base-architecture-serial-after.sha256",
+  "source_before_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+  "source_after_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+  "source_count": 996,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+      "pass": 180,
+      "top_pass": 26
+    }
+  },
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

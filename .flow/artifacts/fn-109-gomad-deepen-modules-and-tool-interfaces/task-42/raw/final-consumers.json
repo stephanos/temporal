@@ -1,0 +1,74 @@
+{
+  "name": "final-consumers",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./record",
+    "./world",
+    "./internal/compatibilitypack",
+    "./internal/compatibilitypack/authoring",
+    "./internal/canonicaljson"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:21:35Z",
+  "end": "2026-10-05T14:21:36Z",
+  "elapsed_seconds": 0.818224459,
+  "exit": 0,
+  "log": "raw/final-consumers.log",
+  "log_sha256": "97d3f298f6280ca5b58c980767f5c269e263ff8d0533df8c4b0676c0e646d30a",
+  "source_before": "manifests/final-consumers-before.sha256",
+  "source_after": "manifests/final-consumers-after.sha256",
+  "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+  "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/record": {
+      "pass": 41,
+      "top_pass": 26
+    },
+    "go.temporal.io/server/tools/gomad3/world": {
+      "pass": 77,
+      "top_pass": 38
+    },
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+      "pass": 301,
+      "top_pass": 23,
+      "skip": 1,
+      "top_skip": 1
+    },
+    "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+      "pass": 81,
+      "top_pass": 12
+    },
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+      "pass": 30,
+      "top_pass": 20
+    }
+  },
+  "skipped_tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestHostPacksBindCurrentProfile"
+    }
+  ],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

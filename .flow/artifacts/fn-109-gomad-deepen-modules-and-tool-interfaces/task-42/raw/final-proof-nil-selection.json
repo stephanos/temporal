@@ -1,0 +1,37 @@
+{
+  "name": "final-proof-nil-selection",
+  "argv": [
+    "bash",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/prove-source.sh"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:34:25Z",
+  "end": "2026-10-05T14:34:26Z",
+  "elapsed_seconds": 0.728544334,
+  "exit": 0,
+  "log": "raw/final-proof-nil-selection.log",
+  "log_sha256": "37bcca6d7facdfb109e06a1c167bb9d4de23889862387445a6bbbd3132885cde",
+  "source_before": "manifests/final-proof-nil-selection-before.sha256",
+  "source_after": "manifests/final-proof-nil-selection-after.sha256",
+  "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

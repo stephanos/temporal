@@ -1,0 +1,49 @@
+{
+  "name": "final-target-nil-selection",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./target",
+    "-run",
+    "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:29:16Z",
+  "end": "2026-10-05T14:29:17Z",
+  "elapsed_seconds": 0.213221334,
+  "exit": 0,
+  "log": "raw/final-target-nil-selection.log",
+  "log_sha256": "f51bed6225a9cfa3b2f48392c106272223f295187b905e0378f1e0041850fd97",
+  "source_before": "manifests/final-target-nil-selection-before.sha256",
+  "source_after": "manifests/final-target-nil-selection-after.sha256",
+  "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/target": {
+      "pass": 25,
+      "top_pass": 12
+    }
+  },
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

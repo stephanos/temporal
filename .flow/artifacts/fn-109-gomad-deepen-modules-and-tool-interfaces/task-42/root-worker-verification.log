@@ -1,0 +1,228 @@
+manifests/final-characterization-nil-selection-before.sha256: OK
+manifests/final-characterization-nil-selection-after.sha256: OK
+raw/final-characterization-nil-selection.log: OK
+{
+  "name": "final-characterization-nil-selection",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./internal/compatibilitypack",
+    "-run",
+    "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+  ],
+  "exit": 0,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+      "pass": 57,
+      "top_pass": 5
+    }
+  },
+  "skipped_tests": []
+}
+manifests/final-lint-nil-selection-before.sha256: OK
+manifests/final-lint-nil-selection-after.sha256: OK
+raw/final-lint-nil-selection.log: OK
+{
+  "name": "final-lint-nil-selection",
+  "argv": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--config=../../.github/.golangci.yml",
+    "--build-tags=test_dep",
+    "--timeout=10m",
+    "--fix=false",
+    "./internal/compatibilitypack"
+  ],
+  "exit": 1,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": []
+}
+manifests/final-errortype-nil-selection-before.sha256: OK
+manifests/final-errortype-nil-selection-after.sha256: OK
+raw/final-errortype-nil-selection.log: OK
+{
+  "name": "final-errortype-nil-selection",
+  "argv": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "-test=true",
+    "./internal/compatibilitypack"
+  ],
+  "exit": 0,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": []
+}
+manifests/final-gofmt-nil-selection-before.sha256: OK
+manifests/final-gofmt-nil-selection-after.sha256: OK
+raw/final-gofmt-nil-selection.log: OK
+{
+  "name": "final-gofmt-nil-selection",
+  "argv": [
+    "gofmt",
+    "-l",
+    "internal/compatibilitypack/policy.go",
+    "internal/compatibilitypack/policy_exhaustive_test.go"
+  ],
+  "exit": 0,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": []
+}
+manifests/final-consumers-nil-selection-before.sha256: OK
+manifests/final-consumers-nil-selection-after.sha256: OK
+raw/final-consumers-nil-selection.log: OK
+{
+  "name": "final-consumers-nil-selection",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./record",
+    "./world",
+    "./internal/compatibilitypack",
+    "./internal/compatibilitypack/authoring",
+    "./internal/canonicaljson"
+  ],
+  "exit": 0,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/record": {
+      "pass": 41,
+      "top_pass": 26
+    },
+    "go.temporal.io/server/tools/gomad3/world": {
+      "pass": 77,
+      "top_pass": 38
+    },
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+      "pass": 301,
+      "top_pass": 23,
+      "skip": 1,
+      "top_skip": 1
+    },
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+      "pass": 30,
+      "top_pass": 20
+    },
+    "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+      "pass": 81,
+      "top_pass": 12
+    }
+  },
+  "skipped_tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+      "test": "TestHostPacksBindCurrentProfile"
+    }
+  ]
+}
+manifests/final-architecture-nil-selection-before.sha256: OK
+manifests/final-architecture-nil-selection-after.sha256: OK
+raw/final-architecture-nil-selection.log: OK
+{
+  "name": "final-architecture-nil-selection",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./internal/gomadtool/architecture"
+  ],
+  "exit": 0,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+      "pass": 180,
+      "top_pass": 26
+    }
+  },
+  "skipped_tests": []
+}
+manifests/final-boundaries-nil-selection-before.sha256: OK
+manifests/final-boundaries-nil-selection-after.sha256: OK
+raw/final-boundaries-nil-selection.log: OK
+{
+  "name": "final-boundaries-nil-selection",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    ".",
+    "-run",
+    "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+  ],
+  "exit": 0,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3": {
+      "pass": 3,
+      "top_pass": 3
+    }
+  },
+  "skipped_tests": []
+}
+manifests/final-target-nil-selection-before.sha256: OK
+manifests/final-target-nil-selection-after.sha256: OK
+raw/final-target-nil-selection.log: OK
+{
+  "name": "final-target-nil-selection",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./target",
+    "-run",
+    "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+  ],
+  "exit": 0,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/target": {
+      "pass": 25,
+      "top_pass": 12
+    }
+  },
+  "skipped_tests": []
+}
+manifests/final-validate-nil-selection-before.sha256: OK
+manifests/final-validate-nil-selection-after.sha256: OK
+raw/final-validate-nil-selection.log: OK
+{
+  "name": "final-validate-nil-selection",
+  "argv": [
+    "make",
+    "validate"
+  ],
+  "exit": 0,
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": []
+}
+raw/base-characterization-nil-selection.log: OK
+Root verified all nine latest captures, raw counts/hashes, BASE/final literals, exact production reconstruction, 995 protected inputs, unchanged lint residuals and encoded diffs.

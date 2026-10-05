@@ -1,0 +1,49 @@
+{
+  "name": "final-boundaries-nil-selection",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    ".",
+    "-run",
+    "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:28:51Z",
+  "end": "2026-10-05T14:29:15Z",
+  "elapsed_seconds": 24.012936345,
+  "exit": 0,
+  "log": "raw/final-boundaries-nil-selection.log",
+  "log_sha256": "636b565949b8f84e9bb16c76c59312f1cd02aab118a7ed90987f762b46e8ee7e",
+  "source_before": "manifests/final-boundaries-nil-selection-before.sha256",
+  "source_after": "manifests/final-boundaries-nil-selection-after.sha256",
+  "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3": {
+      "pass": 3,
+      "top_pass": 3
+    }
+  },
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

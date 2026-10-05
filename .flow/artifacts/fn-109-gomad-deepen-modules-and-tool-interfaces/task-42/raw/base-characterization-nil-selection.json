@@ -1,0 +1,49 @@
+{
+  "name": "base-characterization-nil-selection",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./internal/compatibilitypack",
+    "-run",
+    "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:25:12Z",
+  "end": "2026-10-05T14:25:13Z",
+  "elapsed_seconds": 1.118842084,
+  "exit": 0,
+  "log": "raw/base-characterization-nil-selection.log",
+  "log_sha256": "9c20c4e1f466991e54115a60de4e8cb65d7f4effae82772f31f279ede82f3b35",
+  "source_before": "manifests/base-characterization-nil-selection-before.sha256",
+  "source_after": "manifests/base-characterization-nil-selection-after.sha256",
+  "source_before_sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+  "source_after_sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+      "pass": 57,
+      "top_pass": 5
+    }
+  },
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

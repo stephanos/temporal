@@ -1,0 +1,27 @@
+{
+  "baseline": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-41/root-integrated-final.log",
+    "sha256": "1bb1271a13e1ab87cf3ec0fadedd8ffb22e8064046c5ec5cf590678cdfac7544",
+    "count": 324
+  },
+  "final": {
+    "path": "/tmp/fn109-policy-integrated.hwEkegMn/gate.log",
+    "sha256": "51d765a947eb3a52300ed85195a1d04e09c7009bdf5a7f829e8fc0d7aee3064f",
+    "count": 323
+  },
+  "removed": [
+    {
+      "header": "tools/gomad3/internal/compatibilitypack/policy.go:196:4: missing cases in switch of type compatibility.FactKind: compatibility.FactMalformedLinkname, compatibility.FactNoReviewedGoSource (exhaustive)",
+      "raw": "tools/gomad3/internal/compatibilitypack/policy.go:196:4: missing cases in switch of type compatibility.FactKind: compatibility.FactMalformedLinkname, compatibility.FactNoReviewedGoSource (exhaustive)\n\t\t\tswitch fact.Kind {\n\t\t\t^\n"
+    }
+  ],
+  "added": [],
+  "unchanged_residual_blocks": 323,
+  "counts": {
+    "forbidigo": 11,
+    "staticcheck": 56,
+    "errcheck": 252,
+    "exhaustive": 3,
+    "gci": 1
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "final-lint-nil-selection",
+  "argv": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--config=../../.github/.golangci.yml",
+    "--build-tags=test_dep",
+    "--timeout=10m",
+    "--fix=false",
+    "./internal/compatibilitypack"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:26:28Z",
+  "end": "2026-10-05T14:26:29Z",
+  "elapsed_seconds": 0.712688167,
+  "exit": 1,
+  "log": "raw/final-lint-nil-selection.log",
+  "log_sha256": "93af1a3b410aee20dce59e54a2d4376d945992de21764bd73c91a9081efdc762",
+  "source_before": "manifests/final-lint-nil-selection-before.sha256",
+  "source_after": "manifests/final-lint-nil-selection-after.sha256",
+  "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

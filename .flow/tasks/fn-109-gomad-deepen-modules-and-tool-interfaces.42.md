@@ -47,8 +47,17 @@ Use absolute cached executables and the root BASE safe offline pins when running
 
 
 ## Done summary
-TBD
+Blocked:
+Blocked on original qualification, not on Linux. The exact-pack exhaustive source correction and additive characterization are verified progress; required integrated lint still has323 findings, and all original first-baseline, predecessor, preservation, full/default/functional/affected-consumer/formal/native-Darwin/static-both-source-set requirements remain open wherever unproved.
 
+The candidate adds only the terminal two-line inner-loop continue case. The final literal test file ran on unchanged production before the source change and unchanged afterward:57 cases/five top-level tests pass. All995 protected inputs, existing tests, grants, errors, comments and pins remain unchanged. Scoped lint is8→7 with exact inherited residual blocks; the original integrated gate is324→323, with no added finding and all323 remaining blocks byte-identical. Its later full errortype stage is unreached; standalone scoped errortype passed separately.
+
+[Root integrated evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/root-integrated-lint.md), [worker snapshot](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/handover.md), [source proof](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/source-proof.json) and [progress reviews](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/independent-progress-reviews.md) retain the evidence and original owner/command handback. The worker's in_progress/pending-root-gate state is an earlier snapshot; authoritative Flow is blocked after the actual root gate. Reviews are bounded progress checks, not formal SHIP.
+
+The existing plugin/runtime-cgo pack-policy mismatch is characterized and separately documented; it is not repaired or endorsed here. Task11 keeps R17 and task21 directly consumes task42. Missing transferred Linux execution remains nonblocking under fn128; this checkpoint establishes no native support, qualification, plugin/cgo execution or host escape.
+
+stage: impl-review - deferred(policy: required lint red; original qualification remains open)
+stage: plan-sync - skipped(config: disabled; source-progress checkpoint remains blocked)
 ## Evidence
 - Commits:
 - Tests:

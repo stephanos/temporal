@@ -1,0 +1,2834 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.42",
+  "status": "in_progress",
+  "scope": "bounded source progress; root owns commits, Flow state, integrated lint and independent reviews",
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "base_commit": "533aa074337bc1e21e52c306ddb5a19e93fdfdbe",
+  "production_admission": "7750f4f57b84289545f6e4972cf8b6fe85c92eb3",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "'/tmp/fn109-lint-tools.ZdNe1t50/errortype' '-test=true' './internal/compatibilitypack'",
+    "'/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0' 'run' '--config=../../.github/.golangci.yml' '--build-tags=test_dep' '--timeout=10m' '--fix=false' './internal/compatibilitypack'",
+    "'bash' '/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/prove-source.sh'",
+    "'go' 'test' '-count=1' '-tags' 'test_dep' '-json' '.' '-run' '^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$'",
+    "'go' 'test' '-count=1' '-tags' 'test_dep' '-json' './internal/compatibilitypack' '-run' '^(TestEvaluateMatchingPackDecisions|TestEvaluateForbidsHostImports|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$'",
+    "'go' 'test' '-count=1' '-tags' 'test_dep' '-json' './internal/compatibilitypack' '-run' '^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$'",
+    "'go' 'test' '-count=1' '-tags' 'test_dep' '-json' './internal/gomadtool/architecture'",
+    "'go' 'test' '-count=1' '-tags' 'test_dep' '-json' './record' './world' './internal/compatibilitypack' './internal/compatibilitypack/authoring' './internal/canonicaljson'",
+    "'go' 'test' '-count=1' '-tags' 'test_dep' '-json' './target' '-run' '^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$'",
+    "'gofmt' '-l' 'internal/compatibilitypack/policy.go' 'internal/compatibilitypack/policy_exhaustive_test.go'",
+    "'make' 'validate'"
+  ],
+  "tier": "Tier: implementer — gpt-6.1-sol at high, selected from Codex AGENTS.md model routing.",
+  "tier_evidence": "Explicit root dispatch configuration; host execution-model metadata was not exposed.",
+  "proof": {
+    "base_commit": "533aa074337bc1e21e52c306ddb5a19e93fdfdbe",
+    "production_base_sha256": "c7bde3286e60001d4235897c1b36dd7a5cdb4a0390114097cfc09971fddaf84f",
+    "production_final_sha256": "c7d137b5d1df036f25cbdc11ebeb31da6c1dc0e1a26adc5e00dfe276df7d9642",
+    "added_bytes": "\t\t\tcase FactMalformedLinkname, FactNoReviewedGoSource:\n\t\t\t\tcontinue\n",
+    "exact_reconstruction": true,
+    "test_sha256": "e3e498aa5750ec118480f68416170fbf002e2d5fa4cb879d59599f9e5a0266d5",
+    "literal_tests_unchanged_between_passing_base_and_final": true,
+    "literal_decision_output_identical": true,
+    "protected_manifest_sha256": "d4a299ca7b099304371b67ad29fb80dec693529781f9953891678cfd35682867",
+    "protected_entries": 995,
+    "protected_all_unchanged": true,
+    "existing_tests_unchanged": true,
+    "base_additive_lint_byte_identical_to_root": true,
+    "residual_blocks_byte_identical": true,
+    "residual_sha256": "d400efce3f6feb6c51767b76daeb95317052c139e7bf4c6f3ca12a2eb89988f7",
+    "base_lint": {
+      "exhaustive": 1,
+      "gci": 1,
+      "staticcheck": 6,
+      "total": 8
+    },
+    "final_lint": {
+      "exhaustive": 0,
+      "gci": 1,
+      "staticcheck": 6,
+      "total": 7
+    },
+    "diffs": {
+      "production": {
+        "path": "production-diff.json",
+        "raw_sha256": "31967c9a361c3d6d7531de54477148f13173dda1d121c88d7926c407a7defde4",
+        "decoded_exact": true
+      },
+      "test": {
+        "path": "test-diff.json",
+        "raw_sha256": "7673e1a5745e7edfe1f58cb171f0cef9be2c628b3000792a1eacbff9e0cfdf96",
+        "decoded_exact": true
+      }
+    }
+  },
+  "observations": [
+    {
+      "name": "base-additive-lint-nil-selection",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./internal/compatibilitypack"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:25:39Z",
+      "end": "2026-10-05T14:25:40Z",
+      "elapsed_seconds": 0.706177167,
+      "exit": 1,
+      "log": "raw/base-additive-lint-nil-selection.log",
+      "log_sha256": "b6189e91318546e60db883066d06563706346165bd55bee56808f9b7913163d3",
+      "source_before": "manifests/base-additive-lint-nil-selection-before.sha256",
+      "source_after": "manifests/base-additive-lint-nil-selection-after.sha256",
+      "source_before_sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+      "source_after_sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-additive-lint",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./internal/compatibilitypack"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:19:51Z",
+      "end": "2026-10-05T14:19:52Z",
+      "elapsed_seconds": 0.712522792,
+      "exit": 1,
+      "log": "raw/base-additive-lint.log",
+      "log_sha256": "b6189e91318546e60db883066d06563706346165bd55bee56808f9b7913163d3",
+      "source_before": "manifests/base-additive-lint-before.sha256",
+      "source_after": "manifests/base-additive-lint-after.sha256",
+      "source_before_sha256": "c0d3f6aeb0e76c276d78a19723a1dcdec656ffa96f0f11c051519489dc806c0e",
+      "source_after_sha256": "c0d3f6aeb0e76c276d78a19723a1dcdec656ffa96f0f11c051519489dc806c0e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-architecture-serial",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/gomadtool/architecture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:11:31Z",
+      "end": "2026-10-05T14:13:16Z",
+      "elapsed_seconds": 104.750716483,
+      "exit": 0,
+      "log": "raw/base-architecture-serial.log",
+      "log_sha256": "0cdd6c05fc1111a3a8f1b68329a7b1f897c4e9d7424bcdf712a948afd565c525",
+      "source_before": "manifests/base-architecture-serial-before.sha256",
+      "source_after": "manifests/base-architecture-serial-after.sha256",
+      "source_before_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_after_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_count": 996,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+          "pass": 180,
+          "top_pass": 26
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-architecture",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/gomadtool/architecture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:09:24Z",
+      "end": "2026-10-05T14:11:08Z",
+      "elapsed_seconds": 104.071284341,
+      "exit": 0,
+      "log": "raw/base-architecture.log",
+      "log_sha256": "8193dde11cdc10302873ca1d9939414a8549dea7b46fd0ab23fc00348cb1cef9",
+      "source_before": "manifests/base-architecture-before.sha256",
+      "source_after": "manifests/base-architecture-after.sha256",
+      "source_before_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_after_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_count": 996,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+          "pass": 180,
+          "top_pass": 26
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-boundaries-serial",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:13:17Z",
+      "end": "2026-10-05T14:13:42Z",
+      "elapsed_seconds": 24.482570012,
+      "exit": 0,
+      "log": "raw/base-boundaries-serial.log",
+      "log_sha256": "51ffd8e9bad92fb5c85cdc7c62ee2f03bf003bd616a1ff07c1ab4fd8509ad421",
+      "source_before": "manifests/base-boundaries-serial-before.sha256",
+      "source_after": "manifests/base-boundaries-serial-after.sha256",
+      "source_before_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_after_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_count": 996,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3": {
+          "pass": 3,
+          "top_pass": 3
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-boundaries",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:09:37Z",
+      "end": "2026-10-05T14:10:01Z",
+      "elapsed_seconds": 24.28878597,
+      "exit": 0,
+      "log": "raw/base-boundaries.log",
+      "log_sha256": "23070e7f4afac06e44e05a1a4656e90cb7a102438d0204ecc28bc9305085d5cb",
+      "source_before": "manifests/base-boundaries-before.sha256",
+      "source_after": "manifests/base-boundaries-after.sha256",
+      "source_before_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_after_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_count": 996,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3": {
+          "pass": 3,
+          "top_pass": 3
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-characterization-final-literals",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/compatibilitypack",
+        "-run",
+        "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:19:35Z",
+      "end": "2026-10-05T14:19:36Z",
+      "elapsed_seconds": 0.612767542,
+      "exit": 0,
+      "log": "raw/base-characterization-final-literals.log",
+      "log_sha256": "98a54d9791b69a179c6c3a77cb04e88d82b8c72c77d9f2528052730b7b467760",
+      "source_before": "manifests/base-characterization-final-literals-before.sha256",
+      "source_after": "manifests/base-characterization-final-literals-after.sha256",
+      "source_before_sha256": "c0d3f6aeb0e76c276d78a19723a1dcdec656ffa96f0f11c051519489dc806c0e",
+      "source_after_sha256": "c0d3f6aeb0e76c276d78a19723a1dcdec656ffa96f0f11c051519489dc806c0e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 57,
+          "top_pass": 5
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-characterization-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/compatibilitypack",
+        "-run",
+        "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:25:12Z",
+      "end": "2026-10-05T14:25:13Z",
+      "elapsed_seconds": 1.118842084,
+      "exit": 0,
+      "log": "raw/base-characterization-nil-selection.log",
+      "log_sha256": "9c20c4e1f466991e54115a60de4e8cb65d7f4effae82772f31f279ede82f3b35",
+      "source_before": "manifests/base-characterization-nil-selection-before.sha256",
+      "source_after": "manifests/base-characterization-nil-selection-after.sha256",
+      "source_before_sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+      "source_after_sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 57,
+          "top_pass": 5
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-characterization-observed",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/compatibilitypack",
+        "-run",
+        "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:19:01Z",
+      "end": "2026-10-05T14:19:02Z",
+      "elapsed_seconds": 0.619008792,
+      "exit": 0,
+      "log": "raw/base-characterization-observed.log",
+      "log_sha256": "c438f67f3a4d2f03672efe6b5354f61358a48172c4d96f982179b523755ef2cc",
+      "source_before": "manifests/base-characterization-observed-before.sha256",
+      "source_after": "manifests/base-characterization-observed-after.sha256",
+      "source_before_sha256": "547bfe53f7fdb6709b486127b0d1b7d758679ec096646edf80ebb6cd14c71c20",
+      "source_after_sha256": "547bfe53f7fdb6709b486127b0d1b7d758679ec096646edf80ebb6cd14c71c20",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 57,
+          "top_pass": 5
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-characterization",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/compatibilitypack",
+        "-run",
+        "^(TestEvaluateMatchingPackDecisions|TestEvaluateForbidsHostImports|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:17:26Z",
+      "end": "2026-10-05T14:17:27Z",
+      "elapsed_seconds": 0.611230792,
+      "exit": 1,
+      "log": "raw/base-characterization.log",
+      "log_sha256": "ed8ad83a51ea264694e20db867f3f2f326e2ee09266991ddc76a3718bbb3cbc3",
+      "source_before": "manifests/base-characterization-before.sha256",
+      "source_after": "manifests/base-characterization-after.sha256",
+      "source_before_sha256": "ad12e0a855d5929e406f9c7ee166da4d0dc0d94f339f2c6a5d865ba710d19324",
+      "source_after_sha256": "ad12e0a855d5929e406f9c7ee166da4d0dc0d94f339f2c6a5d865ba710d19324",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 54,
+          "top_pass": 4,
+          "fail": 3,
+          "top_fail": 1
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-consumers-capture-repaired",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./record",
+        "./world",
+        "./internal/compatibilitypack",
+        "./internal/compatibilitypack/authoring",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:08:42Z",
+      "end": "2026-10-05T14:08:42Z",
+      "elapsed_seconds": 0.610289417,
+      "exit": 0,
+      "log": "raw/base-consumers-capture-repaired.log",
+      "log_sha256": "f11356f103b10df948c3ce566420b51c215194d98260b63b89818f6ab60ce804",
+      "source_before": "manifests/base-consumers-capture-repaired-before.sha256",
+      "source_after": "manifests/base-consumers-capture-repaired-after.sha256",
+      "source_before_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_after_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_count": 996,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/record": {
+          "pass": 41,
+          "top_pass": 26
+        },
+        "go.temporal.io/server/tools/gomad3/world": {
+          "pass": 77,
+          "top_pass": 38
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 244,
+          "top_pass": 18,
+          "skip": 1,
+          "top_skip": 1
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+          "pass": 30,
+          "top_pass": 20
+        },
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 81,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+          "test": "TestHostPacksBindCurrentProfile"
+        }
+      ],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-target",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./target",
+        "-run",
+        "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:13:43Z",
+      "end": "2026-10-05T14:13:43Z",
+      "elapsed_seconds": 0.203769584,
+      "exit": 0,
+      "log": "raw/base-target.log",
+      "log_sha256": "8dc4556de167e327e8793347561917eaf72ff570eed7b3c911ecba404c23c9c6",
+      "source_before": "manifests/base-target-before.sha256",
+      "source_after": "manifests/base-target-after.sha256",
+      "source_before_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_after_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_count": 996,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/target": {
+          "pass": 25,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "base-validate",
+      "argv": [
+        "make",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:13:44Z",
+      "end": "2026-10-05T14:13:46Z",
+      "elapsed_seconds": 1.819584209,
+      "exit": 0,
+      "log": "raw/base-validate.log",
+      "log_sha256": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364",
+      "source_before": "manifests/base-validate-before.sha256",
+      "source_after": "manifests/base-validate-after.sha256",
+      "source_before_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_after_sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "source_count": 996,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-architecture-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/gomadtool/architecture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:27:06Z",
+      "end": "2026-10-05T14:28:50Z",
+      "elapsed_seconds": 103.712647508,
+      "exit": 0,
+      "log": "raw/final-architecture-nil-selection.log",
+      "log_sha256": "bebee6aa1524adeef7d7301caea58f3f1972762783da132eb91aa14abbe535b2",
+      "source_before": "manifests/final-architecture-nil-selection-before.sha256",
+      "source_after": "manifests/final-architecture-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+          "pass": 180,
+          "top_pass": 26
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-architecture",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/gomadtool/architecture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:21:37Z",
+      "end": "2026-10-05T14:23:20Z",
+      "elapsed_seconds": 103.076840633,
+      "exit": 0,
+      "log": "raw/final-architecture.log",
+      "log_sha256": "16217f07e49f08df31faa70be1bd7a0fd7170c0990eced4d866636cbd3a28dfc",
+      "source_before": "manifests/final-architecture-before.sha256",
+      "source_after": "manifests/final-architecture-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+          "pass": 180,
+          "top_pass": 26
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-boundaries-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:28:51Z",
+      "end": "2026-10-05T14:29:15Z",
+      "elapsed_seconds": 24.012936345,
+      "exit": 0,
+      "log": "raw/final-boundaries-nil-selection.log",
+      "log_sha256": "636b565949b8f84e9bb16c76c59312f1cd02aab118a7ed90987f762b46e8ee7e",
+      "source_before": "manifests/final-boundaries-nil-selection-before.sha256",
+      "source_after": "manifests/final-boundaries-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3": {
+          "pass": 3,
+          "top_pass": 3
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-boundaries",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:23:21Z",
+      "end": "2026-10-05T14:23:45Z",
+      "elapsed_seconds": 23.904357345,
+      "exit": 0,
+      "log": "raw/final-boundaries.log",
+      "log_sha256": "9dfdde454643e4cbf18ced2310041c319c58be11437c4f61aaae97c79b4eeced",
+      "source_before": "manifests/final-boundaries-before.sha256",
+      "source_after": "manifests/final-boundaries-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3": {
+          "pass": 3,
+          "top_pass": 3
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-characterization-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/compatibilitypack",
+        "-run",
+        "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:26:17Z",
+      "end": "2026-10-05T14:26:18Z",
+      "elapsed_seconds": 0.609128417,
+      "exit": 0,
+      "log": "raw/final-characterization-nil-selection.log",
+      "log_sha256": "a5531597554460873bf0b3f661be3fe49c4978eb16f9a2d67548c38a817cc599",
+      "source_before": "manifests/final-characterization-nil-selection-before.sha256",
+      "source_after": "manifests/final-characterization-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 57,
+          "top_pass": 5
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-characterization",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/compatibilitypack",
+        "-run",
+        "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:20:45Z",
+      "end": "2026-10-05T14:20:46Z",
+      "elapsed_seconds": 0.623041,
+      "exit": 0,
+      "log": "raw/final-characterization.log",
+      "log_sha256": "f4ff1af38e16b39dda7e5d5f076dd044aceb70d41f46a4742eff721ca920db01",
+      "source_before": "manifests/final-characterization-before.sha256",
+      "source_after": "manifests/final-characterization-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 57,
+          "top_pass": 5
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-consumers-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./record",
+        "./world",
+        "./internal/compatibilitypack",
+        "./internal/compatibilitypack/authoring",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:27:04Z",
+      "end": "2026-10-05T14:27:05Z",
+      "elapsed_seconds": 0.606033292,
+      "exit": 0,
+      "log": "raw/final-consumers-nil-selection.log",
+      "log_sha256": "815a78a3e846b8004fc3598f9e42f65b95ca1cfcd2f39d63f65f82dc69c17e4d",
+      "source_before": "manifests/final-consumers-nil-selection-before.sha256",
+      "source_after": "manifests/final-consumers-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/record": {
+          "pass": 41,
+          "top_pass": 26
+        },
+        "go.temporal.io/server/tools/gomad3/world": {
+          "pass": 77,
+          "top_pass": 38
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 301,
+          "top_pass": 23,
+          "skip": 1,
+          "top_skip": 1
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+          "pass": 30,
+          "top_pass": 20
+        },
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 81,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+          "test": "TestHostPacksBindCurrentProfile"
+        }
+      ],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-consumers",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./record",
+        "./world",
+        "./internal/compatibilitypack",
+        "./internal/compatibilitypack/authoring",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:21:35Z",
+      "end": "2026-10-05T14:21:36Z",
+      "elapsed_seconds": 0.818224459,
+      "exit": 0,
+      "log": "raw/final-consumers.log",
+      "log_sha256": "97d3f298f6280ca5b58c980767f5c269e263ff8d0533df8c4b0676c0e646d30a",
+      "source_before": "manifests/final-consumers-before.sha256",
+      "source_after": "manifests/final-consumers-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/record": {
+          "pass": 41,
+          "top_pass": 26
+        },
+        "go.temporal.io/server/tools/gomad3/world": {
+          "pass": 77,
+          "top_pass": 38
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 301,
+          "top_pass": 23,
+          "skip": 1,
+          "top_skip": 1
+        },
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 81,
+          "top_pass": 12
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+          "pass": 30,
+          "top_pass": 20
+        }
+      },
+      "skipped_tests": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+          "test": "TestHostPacksBindCurrentProfile"
+        }
+      ],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-errortype-nil-selection",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-test=true",
+        "./internal/compatibilitypack"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:26:59Z",
+      "end": "2026-10-05T14:26:59Z",
+      "elapsed_seconds": 0.633028209,
+      "exit": 0,
+      "log": "raw/final-errortype-nil-selection.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_before": "manifests/final-errortype-nil-selection-before.sha256",
+      "source_after": "manifests/final-errortype-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-errortype",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-test=true",
+        "./internal/compatibilitypack"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:21:32Z",
+      "end": "2026-10-05T14:21:33Z",
+      "elapsed_seconds": 0.610791292,
+      "exit": 0,
+      "log": "raw/final-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_before": "manifests/final-errortype-before.sha256",
+      "source_after": "manifests/final-errortype-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-gofmt-nil-selection",
+      "argv": [
+        "gofmt",
+        "-l",
+        "internal/compatibilitypack/policy.go",
+        "internal/compatibilitypack/policy_exhaustive_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:27:00Z",
+      "end": "2026-10-05T14:27:01Z",
+      "elapsed_seconds": 0.105898542,
+      "exit": 0,
+      "log": "raw/final-gofmt-nil-selection.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_before": "manifests/final-gofmt-nil-selection-before.sha256",
+      "source_after": "manifests/final-gofmt-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-gofmt",
+      "argv": [
+        "gofmt",
+        "-l",
+        "internal/compatibilitypack/policy.go",
+        "internal/compatibilitypack/policy_exhaustive_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:21:34Z",
+      "end": "2026-10-05T14:21:34Z",
+      "elapsed_seconds": 0.109839083,
+      "exit": 0,
+      "log": "raw/final-gofmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_before": "manifests/final-gofmt-before.sha256",
+      "source_after": "manifests/final-gofmt-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-lint-nil-selection",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./internal/compatibilitypack"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:26:28Z",
+      "end": "2026-10-05T14:26:29Z",
+      "elapsed_seconds": 0.712688167,
+      "exit": 1,
+      "log": "raw/final-lint-nil-selection.log",
+      "log_sha256": "93af1a3b410aee20dce59e54a2d4376d945992de21764bd73c91a9081efdc762",
+      "source_before": "manifests/final-lint-nil-selection-before.sha256",
+      "source_after": "manifests/final-lint-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-lint",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./internal/compatibilitypack"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:20:56Z",
+      "end": "2026-10-05T14:20:57Z",
+      "elapsed_seconds": 0.706866417,
+      "exit": 1,
+      "log": "raw/final-lint.log",
+      "log_sha256": "93af1a3b410aee20dce59e54a2d4376d945992de21764bd73c91a9081efdc762",
+      "source_before": "manifests/final-lint-before.sha256",
+      "source_after": "manifests/final-lint-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-proof-nil-selection",
+      "argv": [
+        "bash",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/prove-source.sh"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:34:25Z",
+      "end": "2026-10-05T14:34:26Z",
+      "elapsed_seconds": 0.728544334,
+      "exit": 0,
+      "log": "raw/final-proof-nil-selection.log",
+      "log_sha256": "37bcca6d7facdfb109e06a1c167bb9d4de23889862387445a6bbbd3132885cde",
+      "source_before": "manifests/final-proof-nil-selection-before.sha256",
+      "source_after": "manifests/final-proof-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-target-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./target",
+        "-run",
+        "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:29:16Z",
+      "end": "2026-10-05T14:29:17Z",
+      "elapsed_seconds": 0.213221334,
+      "exit": 0,
+      "log": "raw/final-target-nil-selection.log",
+      "log_sha256": "f51bed6225a9cfa3b2f48392c106272223f295187b905e0378f1e0041850fd97",
+      "source_before": "manifests/final-target-nil-selection-before.sha256",
+      "source_after": "manifests/final-target-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/target": {
+          "pass": 25,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-target",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./target",
+        "-run",
+        "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:23:46Z",
+      "end": "2026-10-05T14:23:47Z",
+      "elapsed_seconds": 0.532109792,
+      "exit": 0,
+      "log": "raw/final-target.log",
+      "log_sha256": "f2346c81d431b83966e9fd7650c5d7d25ea59b4aeb46d2bb0c399a2a4ec9f2a3",
+      "source_before": "manifests/final-target-before.sha256",
+      "source_after": "manifests/final-target-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/target": {
+          "pass": 25,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-validate-nil-selection",
+      "argv": [
+        "make",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:29:18Z",
+      "end": "2026-10-05T14:29:20Z",
+      "elapsed_seconds": 2.213894543,
+      "exit": 0,
+      "log": "raw/final-validate-nil-selection.log",
+      "log_sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679",
+      "source_before": "manifests/final-validate-nil-selection-before.sha256",
+      "source_after": "manifests/final-validate-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-validate",
+      "argv": [
+        "make",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:23:48Z",
+      "end": "2026-10-05T14:23:52Z",
+      "elapsed_seconds": 3.558681585,
+      "exit": 0,
+      "log": "raw/final-validate.log",
+      "log_sha256": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364",
+      "source_before": "manifests/final-validate-before.sha256",
+      "source_after": "manifests/final-validate-after.sha256",
+      "source_before_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_after_sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "success": true,
+      "assignee": "stephanos@users.noreply.github.com",
+      "claim_note": "",
+      "claimed_at": "2026-10-05T14:02:52.461318Z",
+      "created_at": "2026-10-05T13:59:34.607210Z",
+      "depends_on": [],
+      "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.42",
+      "priority": null,
+      "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+      "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md",
+      "status": "in_progress",
+      "title": "Preserve exact-pack decisions while repairing exhaustive lint",
+      "updated_at": "2026-10-05T14:02:52.461304Z",
+      "impl": null,
+      "review": null,
+      "sync": null,
+      "status_source": "flow-state"
+    }
+  ],
+  "final_commands": [
+    {
+      "name": "final-architecture-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/gomadtool/architecture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:27:06Z",
+      "end": "2026-10-05T14:28:50Z",
+      "elapsed_seconds": 103.712647508,
+      "exit": 0,
+      "log": "raw/final-architecture-nil-selection.log",
+      "log_sha256": "bebee6aa1524adeef7d7301caea58f3f1972762783da132eb91aa14abbe535b2",
+      "source_before": "manifests/final-architecture-nil-selection-before.sha256",
+      "source_after": "manifests/final-architecture-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+          "pass": 180,
+          "top_pass": 26
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-boundaries-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:28:51Z",
+      "end": "2026-10-05T14:29:15Z",
+      "elapsed_seconds": 24.012936345,
+      "exit": 0,
+      "log": "raw/final-boundaries-nil-selection.log",
+      "log_sha256": "636b565949b8f84e9bb16c76c59312f1cd02aab118a7ed90987f762b46e8ee7e",
+      "source_before": "manifests/final-boundaries-nil-selection-before.sha256",
+      "source_after": "manifests/final-boundaries-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3": {
+          "pass": 3,
+          "top_pass": 3
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-characterization-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/compatibilitypack",
+        "-run",
+        "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:26:17Z",
+      "end": "2026-10-05T14:26:18Z",
+      "elapsed_seconds": 0.609128417,
+      "exit": 0,
+      "log": "raw/final-characterization-nil-selection.log",
+      "log_sha256": "a5531597554460873bf0b3f661be3fe49c4978eb16f9a2d67548c38a817cc599",
+      "source_before": "manifests/final-characterization-nil-selection-before.sha256",
+      "source_after": "manifests/final-characterization-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 57,
+          "top_pass": 5
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-consumers-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./record",
+        "./world",
+        "./internal/compatibilitypack",
+        "./internal/compatibilitypack/authoring",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:27:04Z",
+      "end": "2026-10-05T14:27:05Z",
+      "elapsed_seconds": 0.606033292,
+      "exit": 0,
+      "log": "raw/final-consumers-nil-selection.log",
+      "log_sha256": "815a78a3e846b8004fc3598f9e42f65b95ca1cfcd2f39d63f65f82dc69c17e4d",
+      "source_before": "manifests/final-consumers-nil-selection-before.sha256",
+      "source_after": "manifests/final-consumers-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/record": {
+          "pass": 41,
+          "top_pass": 26
+        },
+        "go.temporal.io/server/tools/gomad3/world": {
+          "pass": 77,
+          "top_pass": 38
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 301,
+          "top_pass": 23,
+          "skip": 1,
+          "top_skip": 1
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+          "pass": 30,
+          "top_pass": 20
+        },
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 81,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+          "test": "TestHostPacksBindCurrentProfile"
+        }
+      ],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-errortype-nil-selection",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-test=true",
+        "./internal/compatibilitypack"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:26:59Z",
+      "end": "2026-10-05T14:26:59Z",
+      "elapsed_seconds": 0.633028209,
+      "exit": 0,
+      "log": "raw/final-errortype-nil-selection.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_before": "manifests/final-errortype-nil-selection-before.sha256",
+      "source_after": "manifests/final-errortype-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-gofmt-nil-selection",
+      "argv": [
+        "gofmt",
+        "-l",
+        "internal/compatibilitypack/policy.go",
+        "internal/compatibilitypack/policy_exhaustive_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:27:00Z",
+      "end": "2026-10-05T14:27:01Z",
+      "elapsed_seconds": 0.105898542,
+      "exit": 0,
+      "log": "raw/final-gofmt-nil-selection.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_before": "manifests/final-gofmt-nil-selection-before.sha256",
+      "source_after": "manifests/final-gofmt-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-lint-nil-selection",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./internal/compatibilitypack"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:26:28Z",
+      "end": "2026-10-05T14:26:29Z",
+      "elapsed_seconds": 0.712688167,
+      "exit": 1,
+      "log": "raw/final-lint-nil-selection.log",
+      "log_sha256": "93af1a3b410aee20dce59e54a2d4376d945992de21764bd73c91a9081efdc762",
+      "source_before": "manifests/final-lint-nil-selection-before.sha256",
+      "source_after": "manifests/final-lint-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-proof-nil-selection",
+      "argv": [
+        "bash",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/prove-source.sh"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:34:25Z",
+      "end": "2026-10-05T14:34:26Z",
+      "elapsed_seconds": 0.728544334,
+      "exit": 0,
+      "log": "raw/final-proof-nil-selection.log",
+      "log_sha256": "37bcca6d7facdfb109e06a1c167bb9d4de23889862387445a6bbbd3132885cde",
+      "source_before": "manifests/final-proof-nil-selection-before.sha256",
+      "source_after": "manifests/final-proof-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-target-nil-selection",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./target",
+        "-run",
+        "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:29:16Z",
+      "end": "2026-10-05T14:29:17Z",
+      "elapsed_seconds": 0.213221334,
+      "exit": 0,
+      "log": "raw/final-target-nil-selection.log",
+      "log_sha256": "f51bed6225a9cfa3b2f48392c106272223f295187b905e0378f1e0041850fd97",
+      "source_before": "manifests/final-target-nil-selection-before.sha256",
+      "source_after": "manifests/final-target-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/target": {
+          "pass": 25,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    },
+    {
+      "name": "final-validate-nil-selection",
+      "argv": [
+        "make",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T14:29:18Z",
+      "end": "2026-10-05T14:29:20Z",
+      "elapsed_seconds": 2.213894543,
+      "exit": 0,
+      "log": "raw/final-validate-nil-selection.log",
+      "log_sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679",
+      "source_before": "manifests/final-validate-nil-selection-before.sha256",
+      "source_after": "manifests/final-validate-nil-selection-after.sha256",
+      "source_before_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_after_sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "source_count": 997,
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ]
+    }
+  ],
+  "all_raw_and_manifest_hashes": [
+    {
+      "sha256": "5eee908bb125642e33f29d291fca6dea61dbac8d9bad7cd05c611ac63f865245",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/baseline.sh"
+    },
+    {
+      "sha256": "371cff905cfe4ad321f1e07bafcdc4cee4a220aa07ae22df29fe41f26e75583e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/end.txt"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/errortype.log"
+    },
+    {
+      "sha256": "7c30bac8b3f61cea517515bf870c4985b85f4a8269749395c75c9cfaac0c80a5",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/head.txt"
+    },
+    {
+      "sha256": "b6189e91318546e60db883066d06563706346165bd55bee56808f9b7913163d3",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/lint.log"
+    },
+    {
+      "sha256": "f4e36890b41f5f0a0458dd7344d0d786b61be39a7ec3cb4e15e807aed495fc05",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/results.txt"
+    },
+    {
+      "sha256": "6e2570bc4738d863745dab47b7e43d73324afa9ca11679e529b2c122919a1021",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/source-check.log"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/source.sha256"
+    },
+    {
+      "sha256": "23f980e1dd41897318607e1d2fe66d40a8fcf0a1fe1213bc146add5c7158c31b",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/start.txt"
+    },
+    {
+      "sha256": "ed641a7cba7c70ea8aec38957fc53d3ee3c395f155709df1ccecf96a005c3d58",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/tests.jsonl"
+    },
+    {
+      "sha256": "6e2570bc4738d863745dab47b7e43d73324afa9ca11679e529b2c122919a1021",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/admission-base/worker-recheck.log"
+    },
+    {
+      "sha256": "c0d3f6aeb0e76c276d78a19723a1dcdec656ffa96f0f11c051519489dc806c0e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-additive-lint-after.sha256"
+    },
+    {
+      "sha256": "c0d3f6aeb0e76c276d78a19723a1dcdec656ffa96f0f11c051519489dc806c0e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-additive-lint-before.sha256"
+    },
+    {
+      "sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-additive-lint-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-additive-lint-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-architecture-after.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-architecture-before.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-architecture-serial-after.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-architecture-serial-before.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-boundaries-after.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-boundaries-before.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-boundaries-serial-after.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-boundaries-serial-before.sha256"
+    },
+    {
+      "sha256": "ad12e0a855d5929e406f9c7ee166da4d0dc0d94f339f2c6a5d865ba710d19324",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-characterization-after.sha256"
+    },
+    {
+      "sha256": "ad12e0a855d5929e406f9c7ee166da4d0dc0d94f339f2c6a5d865ba710d19324",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-characterization-before.sha256"
+    },
+    {
+      "sha256": "c0d3f6aeb0e76c276d78a19723a1dcdec656ffa96f0f11c051519489dc806c0e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-characterization-final-literals-after.sha256"
+    },
+    {
+      "sha256": "c0d3f6aeb0e76c276d78a19723a1dcdec656ffa96f0f11c051519489dc806c0e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-characterization-final-literals-before.sha256"
+    },
+    {
+      "sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-characterization-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "9c23a0a9e114d14733c8c8fc85109508d43f1323d76a1cb443542c5ad7bbf4fe",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-characterization-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "547bfe53f7fdb6709b486127b0d1b7d758679ec096646edf80ebb6cd14c71c20",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-characterization-observed-after.sha256"
+    },
+    {
+      "sha256": "547bfe53f7fdb6709b486127b0d1b7d758679ec096646edf80ebb6cd14c71c20",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-characterization-observed-before.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-consumers-after.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-consumers-before.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-consumers-capture-repaired-after.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-consumers-capture-repaired-before.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-target-after.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-target-before.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-validate-after.sha256"
+    },
+    {
+      "sha256": "ca918fe536a3a4d2b98070a135911f7c0686c53e8d970d13e441c2c33d90743f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/base-validate-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-architecture-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-architecture-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-architecture-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-architecture-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-boundaries-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-boundaries-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-boundaries-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-boundaries-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-characterization-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-characterization-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-characterization-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-characterization-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-consumers-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-consumers-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-consumers-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-consumers-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-errortype-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-errortype-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-errortype-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-errortype-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-gofmt-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-gofmt-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-gofmt-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-gofmt-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-lint-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-lint-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-lint-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-lint-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-proof-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-proof-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-target-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-target-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-target-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-target-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-validate-after.sha256"
+    },
+    {
+      "sha256": "96e1837753ad950a759d0b8953bcaa29c81235ef920ea6680bd503217447704e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-validate-before.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-validate-nil-selection-after.sha256"
+    },
+    {
+      "sha256": "c1d4566c049d89be0ea4f0a580a33554fc77809a4e3be584619e908535597a23",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/final-validate-nil-selection-before.sha256"
+    },
+    {
+      "sha256": "d4a299ca7b099304371b67ad29fb80dec693529781f9953891678cfd35682867",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/manifests/protected.sha256"
+    },
+    {
+      "sha256": "520de51087729eedf3da0091678a7e56b949847092183fb059c0cc36f1332608",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-additive-lint-nil-selection.json"
+    },
+    {
+      "sha256": "b6189e91318546e60db883066d06563706346165bd55bee56808f9b7913163d3",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-additive-lint-nil-selection.log"
+    },
+    {
+      "sha256": "ae9372aa3ecad981f26a6a77ec229e6590222a8ebba40495173719e25a5cfb98",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-additive-lint.json"
+    },
+    {
+      "sha256": "b6189e91318546e60db883066d06563706346165bd55bee56808f9b7913163d3",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-additive-lint.log"
+    },
+    {
+      "sha256": "96e23736b1555ffe958dc1426b92ee467f11c62af24f92f9dd437b0377a48dae",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-architecture-serial.json"
+    },
+    {
+      "sha256": "0cdd6c05fc1111a3a8f1b68329a7b1f897c4e9d7424bcdf712a948afd565c525",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-architecture-serial.log"
+    },
+    {
+      "sha256": "08b081ba0cf7cc4a80a36563cbad6867f21b18b898352274961bc474b69c619f",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-architecture.json"
+    },
+    {
+      "sha256": "8193dde11cdc10302873ca1d9939414a8549dea7b46fd0ab23fc00348cb1cef9",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-architecture.log"
+    },
+    {
+      "sha256": "c08d0211c037cf2abcff71950e1aead48b1ed4fc5cf4572f7f31d064ca812d4e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-boundaries-serial.json"
+    },
+    {
+      "sha256": "51ffd8e9bad92fb5c85cdc7c62ee2f03bf003bd616a1ff07c1ab4fd8509ad421",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-boundaries-serial.log"
+    },
+    {
+      "sha256": "745b4cc34e5e190c1d185012b44bebe4b67bda1c8c5ae2f3f3197d2102c0c383",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-boundaries.json"
+    },
+    {
+      "sha256": "23070e7f4afac06e44e05a1a4656e90cb7a102438d0204ecc28bc9305085d5cb",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-boundaries.log"
+    },
+    {
+      "sha256": "01166d5c29387c046ba669294c5a9d8a3ee867ae4f84419310bbaa1060633409",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-characterization-final-literals.json"
+    },
+    {
+      "sha256": "98a54d9791b69a179c6c3a77cb04e88d82b8c72c77d9f2528052730b7b467760",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-characterization-final-literals.log"
+    },
+    {
+      "sha256": "f08d918a26c55cc63656fb343ba83db3bede01026daf30747da7e10d1a0d2936",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-characterization-nil-selection.json"
+    },
+    {
+      "sha256": "9c20c4e1f466991e54115a60de4e8cb65d7f4effae82772f31f279ede82f3b35",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-characterization-nil-selection.log"
+    },
+    {
+      "sha256": "085ace39d0b146fe69f3b7914b2fa46d8ef4fcdf33f0313b5b4486aaf4d98eb2",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-characterization-observed.json"
+    },
+    {
+      "sha256": "c438f67f3a4d2f03672efe6b5354f61358a48172c4d96f982179b523755ef2cc",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-characterization-observed.log"
+    },
+    {
+      "sha256": "f51d504d3fe90ebbaeb525189dc864600ca009b79ca967e5fd545fc2a85df421",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-characterization.json"
+    },
+    {
+      "sha256": "ed8ad83a51ea264694e20db867f3f2f326e2ee09266991ddc76a3718bbb3cbc3",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-characterization.log"
+    },
+    {
+      "sha256": "9d44bd4a6e8320da074c1f1b87f70266a7d03fee359884cac5b90d807bfd23bd",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-consumers-capture-repaired.json"
+    },
+    {
+      "sha256": "f11356f103b10df948c3ce566420b51c215194d98260b63b89818f6ab60ce804",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-consumers-capture-repaired.log"
+    },
+    {
+      "sha256": "d0563cfa757c9e310549dc9326688a868e304e1d73e8043f8bc6c4e3c1ab89e1",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-consumers.log"
+    },
+    {
+      "sha256": "4cea008ab88b7d6fcb23cacee1f9e0425bfbded7e0d03f294039096666140042",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-target.json"
+    },
+    {
+      "sha256": "8dc4556de167e327e8793347561917eaf72ff570eed7b3c911ecba404c23c9c6",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-target.log"
+    },
+    {
+      "sha256": "221dab63eb9f71338a13029a5b1a90a270699166c11131986365af5046f5dfe8",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-validate.json"
+    },
+    {
+      "sha256": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/base-validate.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-architecture-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "dca8e32b3b81187be92adf5cff83fd6b478d099374055cc9cb8d7609ff422a58",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-architecture-nil-selection.json"
+    },
+    {
+      "sha256": "bebee6aa1524adeef7d7301caea58f3f1972762783da132eb91aa14abbe535b2",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-architecture-nil-selection.log"
+    },
+    {
+      "sha256": "883f825932e2984e96a11dd6744e9fb2ae193965e228b4610545417142b63a5e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-architecture.json"
+    },
+    {
+      "sha256": "16217f07e49f08df31faa70be1bd7a0fd7170c0990eced4d866636cbd3a28dfc",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-architecture.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-boundaries-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "dd7da41dbeae482d310887df1ef5001aa19cb76e32534abf4a2c8eb222a9e93d",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-boundaries-nil-selection.json"
+    },
+    {
+      "sha256": "636b565949b8f84e9bb16c76c59312f1cd02aab118a7ed90987f762b46e8ee7e",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-boundaries-nil-selection.log"
+    },
+    {
+      "sha256": "f3bf419cb2842e8d5ba096e88094a7cfa0e7643b79e092e518b9b937a75c7389",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-boundaries.json"
+    },
+    {
+      "sha256": "9dfdde454643e4cbf18ced2310041c319c58be11437c4f61aaae97c79b4eeced",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-boundaries.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-characterization-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "ed6ff03600f1726aa75f0461d23b1255f7bfddf79675e26ddbab71d319348674",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-characterization-nil-selection.json"
+    },
+    {
+      "sha256": "a5531597554460873bf0b3f661be3fe49c4978eb16f9a2d67548c38a817cc599",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-characterization-nil-selection.log"
+    },
+    {
+      "sha256": "c67090b961588947688f577eeb8bb597ceea82f302fb484839e2ac6477440c10",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-characterization.json"
+    },
+    {
+      "sha256": "f4ff1af38e16b39dda7e5d5f076dd044aceb70d41f46a4742eff721ca920db01",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-characterization.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-consumers-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "cf9fb6ed5388796d77830a0e4ba585b5940e1bf0da01b41025779d162ab827a4",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-consumers-nil-selection.json"
+    },
+    {
+      "sha256": "815a78a3e846b8004fc3598f9e42f65b95ca1cfcd2f39d63f65f82dc69c17e4d",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-consumers-nil-selection.log"
+    },
+    {
+      "sha256": "f1b7f79544d63c6583c5f9102db0b2bd42b6ac6fdc4158c67ab75622f701d7b2",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-consumers.json"
+    },
+    {
+      "sha256": "97d3f298f6280ca5b58c980767f5c269e263ff8d0533df8c4b0676c0e646d30a",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-consumers.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-errortype-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "0e666d94f0eb6d7886ce4c70fca413feb6c1c7885fbbe0616d6a2db43fbc8721",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-errortype-nil-selection.json"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-errortype-nil-selection.log"
+    },
+    {
+      "sha256": "b545104a84aa523454b6a4ff926ae2b01212c6c7f64163b85b830b6f8d7bde1d",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-errortype.json"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-errortype.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-gofmt-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "12fecc2751823a8b3e501bf2b9ef2e136f5904ccd769c27449d8c250bdcda751",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-gofmt-nil-selection.json"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-gofmt-nil-selection.log"
+    },
+    {
+      "sha256": "525f5c8681d385e362f8f5ffd25538ba66847b5a62bb95e3fd3c321971bd2886",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-gofmt.json"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-gofmt.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-lint-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "ffe5564fcb8fd154a5ced75501a8da3afdbfe791f1f4b59b620739cac8ceeaa0",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-lint-nil-selection.json"
+    },
+    {
+      "sha256": "93af1a3b410aee20dce59e54a2d4376d945992de21764bd73c91a9081efdc762",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-lint-nil-selection.log"
+    },
+    {
+      "sha256": "d418f7c2ac67f9f684c70f403a1cc562349b2e40cfc18fd3f45bc65b46fac7a7",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-lint.json"
+    },
+    {
+      "sha256": "93af1a3b410aee20dce59e54a2d4376d945992de21764bd73c91a9081efdc762",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-lint.log"
+    },
+    {
+      "sha256": "4eede220697444d4f2a9fb785dcfa5a3bc6dde438453ab1a977d9d099d78f29b",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-proof-nil-selection.json"
+    },
+    {
+      "sha256": "37bcca6d7facdfb109e06a1c167bb9d4de23889862387445a6bbbd3132885cde",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-proof-nil-selection.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-target-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "4a4b8463a0df0b6304456ba359e56740636dafd88898d14c396511e1b5c9ee08",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-target-nil-selection.json"
+    },
+    {
+      "sha256": "f51bed6225a9cfa3b2f48392c106272223f295187b905e0378f1e0041850fd97",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-target-nil-selection.log"
+    },
+    {
+      "sha256": "eacb93e692c651da0a35412a0210f5b1703a56b2fa1ceb1870cf6fda39b13980",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-target.json"
+    },
+    {
+      "sha256": "f2346c81d431b83966e9fd7650c5d7d25ea59b4aeb46d2bb0c399a2a4ec9f2a3",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-target.log"
+    },
+    {
+      "sha256": "808b4435441f55ca67a96f27c17c1389f37ca70845020098cdb0dc005d1ede83",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-validate-nil-selection-terminal-source-check.log"
+    },
+    {
+      "sha256": "044174ae56c308cfa057628b7190802ed9de4a268be52efc143e4f15c99dd123",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-validate-nil-selection.json"
+    },
+    {
+      "sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-validate-nil-selection.log"
+    },
+    {
+      "sha256": "79f00c2c8317143103d60e7775a412cfc5bc583a0aba9eaa76fb47dbff77114c",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-validate.json"
+    },
+    {
+      "sha256": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/final-validate.log"
+    },
+    {
+      "sha256": "feb64da7845689a2ad918ae980f7fcb3c9c216dcf8ede2a13a853a400b76f31b",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/protected-check.log"
+    },
+    {
+      "sha256": "37bcca6d7facdfb109e06a1c167bb9d4de23889862387445a6bbbd3132885cde",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/source-proof-final.log"
+    },
+    {
+      "sha256": "dfda57d7b313457e0cb681910c12070a7a5df66d440fc4c9c0fa9e60fb89c1de",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/source-proof.log"
+    },
+    {
+      "sha256": "03c97e885ad2331c79bc8f1729393ec740644463c5f9813bdc2a80bed80e32f3",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/terminal-flow-status.json"
+    },
+    {
+      "sha256": "feb64da7845689a2ad918ae980f7fcb3c9c216dcf8ede2a13a853a400b76f31b",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/terminal-protected-check.log"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/raw/terminal-tool-processes.log"
+    }
+  ],
+  "root_baseline": {
+    "command": "admission-base/baseline.sh",
+    "manifest": "admission-base/source.sha256",
+    "entries": 996,
+    "worker_recheck": "admission-base/worker-recheck.log",
+    "tests": "admission-base/tests.jsonl",
+    "lint": "admission-base/lint.log",
+    "results": "admission-base/results.txt",
+    "reuse": "Standalone errortype uses the identical pinned command/tool and original production. Fresh worker BASE consumer/architecture/boundary/target/validate controls are separately retained."
+  },
+  "fixture_development": [
+    {
+      "name": "base-characterization",
+      "exit": 1,
+      "source_stable": true,
+      "reason": "Assumed all five host-import capabilities were rejected by LoadPack. Actual unchanged BASE accepted plugin and runtime/cgo; remaining decision tests passed. The literal expectations were corrected from BASE observations before production edits.",
+      "evidence": "raw/base-characterization.log"
+    },
+    {
+      "name": "base-characterization-observed",
+      "exit": 0,
+      "reason": "First corrected loader outcomes; superseded by full separate accepted-pack grant characterization."
+    },
+    {
+      "name": "base-characterization-final-literals",
+      "exit": 0,
+      "reason": "First complete literal set; superseded only to exercise actual nil Selection.packs versus explicit empty packs."
+    }
+  ],
+  "capture_development": {
+    "name": "base-consumers",
+    "wrapper_exit": 2,
+    "observation": "inconclusive",
+    "error": "jq: Unknown option -o",
+    "reason": "Argv serialization parsed Go options as jq flags after suite output capture. Do not infer suite exit from orphan output. Corrected capture ran once under base-consumers-capture-repaired with exit0 and stable996 entries.",
+    "start": null,
+    "end": null,
+    "timestamp_note": "Wrapper start/end receipt was not produced; raw test events retain their own timestamps.",
+    "raw": "raw/base-consumers.log",
+    "before": "manifests/base-consumers-before.sha256",
+    "after": "manifests/base-consumers-after.sha256"
+  },
+  "execution_overlap": {
+    "observations": [
+      "base-architecture",
+      "base-boundaries"
+    ],
+    "reason": "Boundary command accidentally started before architecture handle exited. Both handles were reaped; their observations remain historical. BASE controls were repeated sequentially as base-architecture-serial and base-boundaries-serial before any production edit.",
+    "accepted_baselines": [
+      "base-architecture-serial",
+      "base-boundaries-serial"
+    ]
+  },
+  "superseded_final": {
+    "test_sha256": "80e9d3748aca807f96675b6a639ccedebc08b3d32dbfcfb8a08c30e019c880fc",
+    "names": "final-* without -nil-selection",
+    "proof": "source-proof-first-final.json",
+    "test_diff": "test-diff-first-final.json",
+    "reason": "Nil/empty pack-list inputs both produced nonnil empty Selection.packs. The final test exercises actual zero Selection and explicit empty packs. Only worker-owned two production lines were temporarily removed for a fresh literal BASE, then restored unchanged; final source-bound gates were rerun."
+  },
+  "preserved_behavior": {
+    "matching_fixture_sha256": "sha256:535a48101ccd58f1e158b5ad89c1cb2182aa302ba8799bf80bf539181b1a9df2",
+    "selected_id": "example-pack",
+    "platform": "darwin/arm64",
+    "literal_characterization_tests": 57,
+    "top_level": 5,
+    "host_import_note": "Original syscall/linkname fixture denies all five host-import requests with remain_unsupported. Separate validated fixtures accepting plugin/runtime/cgo grant their exact facts on BASE and final. These are retained loader/Evaluate behaviors, not native support or a demonstrated end-to-end generic grant. R17/task11 owns semantics.",
+    "source_trace": "external-pack-policy-gap.md"
+  },
+  "skip_disclosure": {
+    "test": "TestHostPacksBindCurrentProfile",
+    "reason": "no deterministic profile for linux/arm64",
+    "base_and_final_consumer_skips": 1,
+    "make_validate": "Runs the same host-profile test with plain output; exit0 is check-only generation/source validation, not supported-host qualification."
+  },
+  "formatting": {
+    "initial_authored_file_command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -w tools/gomad3/internal/compatibilitypack/policy_exhaustive_test.go",
+    "exit": 0,
+    "start": null,
+    "end": null,
+    "note": "Initial formatting tool exit was directly observed before literal BASE; precise command timestamps were not retained. Final check-only gofmt has full metadata and empty output."
+  },
+  "review": {
+    "formal_implementation": "not invoked; required lint red",
+    "independent_progress": "conductor owns fresh bounded source/evidence reviews after worker returns",
+    "verdict": null
+  },
+  "integrated_lint": {
+    "worker_executed": false,
+    "owner": "root conductor",
+    "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false",
+    "later_errortype": "No integrated-stage reachability is claimed from standalone errortype0; root retains actual integrated output."
+  },
+  "remaining_open": [
+    {
+      "owner": "task42/root",
+      "requirement": "Original integrated lint is still red at admission; final original-gate execution, fresh independent progress reviews and separate checkpoint commit await root."
+    },
+    {
+      "owner": "task11/task21",
+      "requirement": "Original matched first-baseline, predecessor, R17/R18/R19 preservation and affected-consumer proof remain open wherever unproved; this task preserves current admitted policy only.",
+      "commands": [
+        "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./target/... ./deterministicio/... ./internal/compatibilitypack/...",
+        "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep . -run \"TestPackageArchitecture|TestCompatibilityPackHasOneOwner|TestExactModuleEdges\"",
+        "make validate-compatibility",
+        "make test-live-capability"
+      ]
+    },
+    {
+      "owner": "task19/task21",
+      "requirement": "Original static both-supported-source-set coverage, full-host, formal implementation review and native Darwin qualification remain unproved by stock linux/arm64 controls.",
+      "commands": [
+        "make -C tools/gomad3 test",
+        "GOFLAGS=\"-tags=test_dep -count=1\" make -C tools/gomad3 test-host",
+        "make gomad3-runner",
+        "make gomad3-integration-test",
+        "make gomad3-smoke-qualification",
+        "make -C tools/gomad3 compatibility-pack-qualification core-qualification-set",
+        "tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim",
+        "make lint-code-fast"
+      ]
+    },
+    {
+      "owner": "fn128.1/fn128.4/fn128.7",
+      "requirement": "Native linux/amd64 qualification remains deferred, unverified and nonblocking for source-owned acceptance."
+    }
+  ],
+  "source_and_cache_frozen": true,
+  "live_worker_handles": [],
+  "terminal_process_probe": "raw/terminal-tool-processes.log",
+  "terminal_flow_snapshot": "raw/terminal-flow-status.json"
+}

@@ -1,0 +1,4 @@
+{
+  "raw_diff": "diff --git a/tools/gomad3/internal/compatibilitypack/policy.go b/tools/gomad3/internal/compatibilitypack/policy.go\nindex 7e2959f187..e2aab2dfbe 100644\n--- a/tools/gomad3/internal/compatibilitypack/policy.go\n+++ b/tools/gomad3/internal/compatibilitypack/policy.go\n@@ -204,6 +204,8 @@ func (selection Selection) Evaluate(pkg Package, fact Fact) Decision {\n \t\t\t\t\t\treturn Decision{Allowed: true, Disposition: DispositionAllowedExactPack, PackID: selected.pack.ID}\n \t\t\t\t\t}\n \t\t\t\t}\n+\t\t\tcase FactMalformedLinkname, FactNoReviewedGoSource:\n+\t\t\t\tcontinue\n \t\t\t}\n \t\t}\n \t}\n",
+  "sha256": "31967c9a361c3d6d7531de54477148f13173dda1d121c88d7926c407a7defde4"
+}

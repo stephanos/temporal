@@ -1,0 +1,49 @@
+{
+  "name": "base-characterization-observed",
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./internal/compatibilitypack",
+    "-run",
+    "^(TestEvaluateMatchingPackDecisions|TestEvaluateHostImportDecisions|TestEvaluateNilAndEmptySelections|TestEvaluateTraversesRulesAndPacks|TestEvaluatePreservesInputsAndDetachedCopies)$"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "start": "2026-10-05T14:19:01Z",
+  "end": "2026-10-05T14:19:02Z",
+  "elapsed_seconds": 0.619008792,
+  "exit": 0,
+  "log": "raw/base-characterization-observed.log",
+  "log_sha256": "c438f67f3a4d2f03672efe6b5354f61358a48172c4d96f982179b523755ef2cc",
+  "source_before": "manifests/base-characterization-observed-before.sha256",
+  "source_after": "manifests/base-characterization-observed-after.sha256",
+  "source_before_sha256": "547bfe53f7fdb6709b486127b0d1b7d758679ec096646edf80ebb6cd14c71c20",
+  "source_after_sha256": "547bfe53f7fdb6709b486127b0d1b7d758679ec096646edf80ebb6cd14c71c20",
+  "source_count": 997,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+      "pass": 57,
+      "top_pass": 5
+    }
+  },
+  "skipped_tests": [],
+  "pins": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "base_commit": "533aa074337bc1e21e52c306ddb5a19e93fdfdbe",
+  "production_base_sha256": "c7bde3286e60001d4235897c1b36dd7a5cdb4a0390114097cfc09971fddaf84f",
+  "production_final_sha256": "c7d137b5d1df036f25cbdc11ebeb31da6c1dc0e1a26adc5e00dfe276df7d9642",
+  "added_bytes": "\t\t\tcase FactMalformedLinkname, FactNoReviewedGoSource:\n\t\t\t\tcontinue\n",
+  "exact_reconstruction": true,
+  "test_sha256": "80e9d3748aca807f96675b6a639ccedebc08b3d32dbfcfb8a08c30e019c880fc",
+  "literal_tests_unchanged_between_passing_base_and_final": true,
+  "literal_decision_output_identical": true,
+  "protected_manifest_sha256": "d4a299ca7b099304371b67ad29fb80dec693529781f9953891678cfd35682867",
+  "protected_entries": 995,
+  "protected_all_unchanged": true,
+  "existing_tests_unchanged": true,
+  "base_additive_lint_byte_identical_to_root": true,
+  "residual_blocks_byte_identical": true,
+  "residual_sha256": "d400efce3f6feb6c51767b76daeb95317052c139e7bf4c6f3ca12a2eb89988f7",
+  "base_lint": {
+    "exhaustive": 1,
+    "gci": 1,
+    "staticcheck": 6,
+    "total": 8
+  },
+  "final_lint": {
+    "exhaustive": 0,
+    "gci": 1,
+    "staticcheck": 6,
+    "total": 7
+  },
+  "diffs": {
+    "production": {
+      "path": "production-diff.json",
+      "raw_sha256": "31967c9a361c3d6d7531de54477148f13173dda1d121c88d7926c407a7defde4",
+      "decoded_exact": true
+    },
+    "test": {
+      "path": "test-diff.json",
+      "raw_sha256": "f9fa943b41ebeecc6977bd2b695356ef13e9a42992ad62661c567ef75ec17a23",
+      "decoded_exact": true
+    }
+  }
+}
