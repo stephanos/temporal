@@ -1,0 +1,4 @@
+tests=0
+lint=1
+errortype=0
+stability=0
