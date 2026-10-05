@@ -140,7 +140,7 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 		t.Run(query, func(t *testing.T) {
 			l, err := p.Lower(query, nexusIdentity(query))
 			require.NoError(t, err)
-			var carried, evidence []string
+			var carried, evidence, waits []string
 			for _, e := range l.Inventory {
 				requireDeclaredIn(t, e.Position, realizationAt)
 				require.Equal(t, e.Disposition == InCase, len(e.As) > 0, e.ID)
@@ -156,7 +156,9 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 				case "realization":
 					require.Equal(t, slices.Contains([]string{"id", "name"}, e.ID), e.Disposition == Names, e.ID)
 				case "behavior", "server_steps":
-					require.Equal(t, Unread, e.Disposition, e.ID)
+					// A hint or server step a wait reads is in the instructions whose waits it shapes.
+					require.Contains(t, []Disposition{InCase, Unread}, e.Disposition, e.ID)
+					waits = append(waits, e.As...)
 				default:
 					require.Equal(t, InCase, e.Disposition, e.ID)
 				}
@@ -172,6 +174,8 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 			}
 			require.ElementsMatch(t, instructions, carried)
 			require.ElementsMatch(t, declared, evidence)
+			require.Subset(t, instructions, waits)
+			require.NotEmpty(t, waits, "every Nexus Case waits for its scheduled event")
 		})
 	}
 

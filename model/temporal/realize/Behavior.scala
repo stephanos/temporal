@@ -3,8 +3,9 @@
  * kind of asynchronous cause may take. Each hint is a claim about the server and cites the code it
  * rests on; a wrong one hides a bug or wastes time, so a change to one changes its citation too.
  *
- * Only the pairs and causes an existing Case needs are declared. The lowering ignores them until
- * fn-118.4, so they change no Case yet.
+ * Only the pairs and causes an existing Query's path needs are declared. The lowering derives each
+ * read's wait from them (tools/umpire/lower/waits.go): a realization writes no interval and no
+ * deadline of its own.
  */
 package temporal.realize
 
@@ -28,6 +29,13 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
     // A terminate applies TERMINATED in its own transaction, without waiting for a worker:
     // chasm/lib/activity/handler.go:333-342, activity.go:551-569, statemachine.go:161-175.
     METHOD_TERMINATE_ACTIVITY_EXECUTION.visibleTo(
+      METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+      Visible.atOnce
+    ),
+    // A cancel request applies CANCEL_REQUESTED, and CANCELED where no attempt runs, in its own
+    // transaction: chasm/lib/activity/handler.go:352-375, operator_commands.go:236-286,
+    // statemachine.go:176-190, :552-564.
+    METHOD_REQUEST_CANCEL_ACTIVITY_EXECUTION.visibleTo(
       METHOD_DESCRIBE_ACTIVITY_EXECUTION,
       Visible.atOnce
     ),
@@ -70,10 +78,8 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
     )
   ),
   causes = Vector(
-    // Matching hands the task to a waiting poll; after an unpause the timer queue dispatches it, and
-    // a retried attempt waits the 1 s first backoff, without jitter:
-    // chasm/lib/activity/tasks.go:67-102, attempt.go:75-82, common/backoff/retry.go:198-209,
-    // common/retrypolicy/retry_policy.go:76-81.
+    // Matching hands the task to a waiting poll; after an unpause, or a retry's backoff timer, the
+    // timer queue dispatches it: chasm/lib/activity/tasks.go:67-102, statemachine.go:393-420.
     CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000)),
     // The Case's own worker answers an attempt as soon as it is delivered, with nothing to wait for
     // (common/testing/testpilot/temporal/worker/interpreter.go:240-300), and the respond applies the

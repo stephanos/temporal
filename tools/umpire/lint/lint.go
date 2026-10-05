@@ -46,6 +46,10 @@ const (
 	UnreadRefinement Kind = "unread-refinement"
 	// UnreadObservation is an observation of a realization that nothing fills or names.
 	UnreadObservation Kind = "unread-observation"
+	// ExplicitWait is a poll that writes its own interval in a realization that declares the API
+	// behavior its reads' waits are derived from (.plans/API_BEHAVIOR_HINTS.md): a wait no hint covers,
+	// kept explicit only where an acceptance records why (fn-118 R4).
+	ExplicitWait Kind = "explicit-wait"
 	// UnmodeledAPIValue is an enum value or oneof member of a field a realization's poll condition or
 	// Run Event guard tests, which no test of an evidence kind that records a fact maps.
 	UnmodeledAPIValue Kind = "unmodeled-api-value"
@@ -203,6 +207,7 @@ func kinds() []kind {
 		{kind: UntakenChoice, run: untakenChoices, count: &count{"named choices", "", "taken by a reachable state"}},
 		{kind: UnreadRefinement, run: unreadRefinements, count: &count{"refinements", "declared", "read through by a Query"}},
 		{kind: UnreadObservation, run: unreadObservations, count: &count{"observations", "", "read"}},
+		{kind: ExplicitWait, run: explicitWaits},
 		{kind: UnmodeledAPIValue, run: unmodeledAPIValues, count: &count{"API values", "tested", "mapped to a fact"}},
 		{kind: UnreachableValue, run: unreachableValues},
 		{kind: NeverEnabled, run: neverEnabled},
@@ -269,7 +274,7 @@ func sortFindings(fs []Finding) {
 
 // order is every kind in the order findings are listed.
 var order = []Kind{UnreachableValue, NeverEnabled, Unproduced, UntakenChoice, UnaskedProperty, UnfiredVerify, UnevidencedFact,
-	UnperformedAction, UnrealizedFind, UnreadRefinement, UnreadObservation, UnmodeledAPIValue, DisabledByDefault, SilentRejection,
+	UnperformedAction, UnrealizedFind, UnreadRefinement, UnreadObservation, ExplicitWait, UnmodeledAPIValue, DisabledByDefault, SilentRejection,
 	UnconstrainedResult, WitnessOnly, MustNotPinned, WaivedLaw, LawWaivedWithoutReason, ReasonNamesNoLaw, ParameterWithoutCitation,
 	LawWithOneInstance}
 

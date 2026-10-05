@@ -121,6 +121,28 @@ func compareOriginalCases(expected, actual map[string][]byte, labels ...string) 
 	return golden.Compare(want, got)
 }
 
+// underivedCases gives a tree of Cases with each Case lowered from an IR file the delta lists derived
+// waits of, by its manifest entry, without the waits the lowering derives for them (Waits.Case). Every
+// other byte of every file stays, the manifest's among them.
+func underivedCases(delta golden.Delta, cases map[string][]byte) (map[string][]byte, error) {
+	manifest, err := lower.DecodeManifest(cases[golden.OriginalCases+"manifest.json"])
+	if err != nil {
+		return nil, err
+	}
+	out := maps.Clone(cases)
+	for _, e := range manifest.Queries {
+		waits := delta.Waits(golden.OriginalIR + e.Model)
+		key := golden.OriginalCases + e.File
+		if e.Standing != lower.Lowered || len(waits) == 0 {
+			continue
+		}
+		if out[key], err = waits.Case(cases[key]); err != nil {
+			return nil, fmt.Errorf("%s: %w", key, err)
+		}
+	}
+	return out, nil
+}
+
 func sources(models map[string]*umpirespb.Model) []string {
 	var out []string
 	for _, m := range models {
@@ -186,7 +208,8 @@ func ungeneratedCases(delta golden.Delta, cases map[string][]byte) (map[string][
 // TestOriginalBaselineCases holds every checked-in Case and the manifest to the Cases the current
 // model/ir lowers to, and those, without the generated Queries the delta lists, to the archived Cases:
 // when the delta attaches entities or replaces claims, to the Cases the baseline lowers to with
-// exactly that delta.
+// exactly that delta. The baseline keeps its explicit waits, so a Case of an IR file with derived
+// waits is compared on both sides without the waits of the instructions they name (underivedCases).
 func TestOriginalBaselineCases(t *testing.T) {
 	in := readOriginalLowering(t)
 	expected := casesOf(in.archived)
@@ -199,7 +222,11 @@ func TestOriginalBaselineCases(t *testing.T) {
 	require.NoError(t, compareOriginalCases(lowered, casesOf(in.current)), "checked in as lowered from the current IR")
 	ungenerated, err := ungeneratedCases(in.delta, lowered)
 	require.NoError(t, err)
-	require.NoError(t, compareOriginalCases(expected, ungenerated, labels...), "lowered from the current IR")
+	want, err := underivedCases(in.delta, expected)
+	require.NoError(t, err)
+	got, err := underivedCases(in.delta, ungenerated)
+	require.NoError(t, err)
+	require.NoError(t, compareOriginalCases(want, got, labels...), "lowered from the current IR")
 	require.NoError(t, compareOriginalCases(ungenerated, generatedCases(t, in.ungenerated)), "the generated Queries are all the tree adds")
 }
 
@@ -265,13 +292,84 @@ func TestOriginalBaselineCasesRejectChanges(t *testing.T) {
 			require.Error(t, compareOriginalCases(archived, changed))
 		})
 	}
+
+	// A Case of an IR file with derived waits is compared without the waits of the instructions they
+	// name, and with every other byte.
+	current := casesOf(in.current)
+	const nexus = golden.OriginalCases + "nexus-caller-retry-case.json"
+	compare := func(changed map[string][]byte) error {
+		want, err := underivedCases(in.delta, current)
+		if err != nil {
+			return err
+		}
+		got, err := underivedCases(in.delta, changed)
+		if err != nil {
+			return err
+		}
+		return compareOriginalCases(want, got)
+	}
+	replaced := func(old, replacement string) func(map[string][]byte) {
+		return func(m map[string][]byte) {
+			require.Contains(t, string(m[nexus]), old)
+			m[nexus] = bytes.Replace(m[nexus], []byte(old), []byte(replacement), 1)
+		}
+	}
+	scheduled := `"pollIntervalMilliseconds":"250"}},"limits":{"timeoutMilliseconds":"5000"}`
+	for name, c := range map[string]struct {
+		change   func(map[string][]byte)
+		admitted bool
+	}{
+		"derived waits":   {change: replaced(scheduled, `"pollIntervalMilliseconds":"500","once":true}},"limits":{"timeoutMilliseconds":"9000"}`), admitted: true},
+		"Contract byte":   {change: replaced(`"contract":{"contractId":"temporal.case.scala.nexus-caller.retry.contract"`, `"contract":{"contractId":"temporal.case.scala.nexus-caller.retried.contract"`)},
+		"listed evidence": {change: replaced(`"evidenceId":"evidence.scheduled","endpointRoleId"`, `"evidenceId":"evidence.started","endpointRoleId"`)},
+		"listed until":    {change: replaced(`"path":"attributes<nexus_operation_scheduled_event_attributes>"}}}},`+scheduled, `"path":"attributes<nexus_operation_started_event_attributes>"}}}},`+scheduled)},
+		"unlisted limits": {change: replaced(`{"instructionId":"await-close",`, `{"instructionId":"await-close","limits":{"timeoutMilliseconds":"5000"},`)},
+		"waits of an unlisted IR file": {change: func(m map[string][]byte) {
+			const operation = golden.OriginalCases + "nexus-operation-nexusOperation.terminateSettles-case.json"
+			require.Contains(t, string(m[operation]), `"once":true`)
+			m[operation] = bytes.Replace(m[operation], []byte(`"once":true`), []byte(`"pollIntervalMilliseconds":"250"`), 1)
+		}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := maps.Clone(current)
+			c.change(changed)
+			if c.admitted {
+				require.NoError(t, compare(changed))
+			} else {
+				require.Error(t, compare(changed))
+			}
+		})
+	}
+}
+
+// reading is how deriveExplorations reads the explorations of the Model of one archive key: each
+// candidate Model as the delta projects that side of the comparison, and each candidate Case without
+// the waits the delta lists as derived for the key.
+type reading struct {
+	project func(*umpirespb.Model) (*umpirespb.Model, error)
+	waits   golden.Waits
+}
+
+func readingOf(delta golden.Delta, key string, current bool) reading {
+	project := func(m *umpirespb.Model) (*umpirespb.Model, error) { return delta.ProjectBaseline(key, m) }
+	if current {
+		project = func(m *umpirespb.Model) (*umpirespb.Model, error) { return delta.ProjectCurrent(key, m) }
+	}
+	return reading{project: project, waits: delta.Waits(key)}
+}
+
+// frozenDelta is the delta the archive's derived outputs were captured under, before it listed derived
+// waits: it reads every candidate Model and Case with its waits, as the archive does.
+func frozenDelta(delta golden.Delta) golden.Delta {
+	delta.DerivedWaits = nil
+	return delta
 }
 
 // deriveExplorations streams every exploration of one Model: its plan, and each candidate and
 // reduction with its lowered Case. A candidate's own digest covers positions and Function names, so
 // the candidate is named by the digest of its Model as the comparison reads it, everywhere its
-// digest appears, and its Case identity is derived again from those bytes.
-func deriveExplorations(m *umpirespb.Model, project func(*umpirespb.Model) (*umpirespb.Model, error), s *golden.Stream) error {
+// digest appears, and its Case, without the derived waits, is identified again from those bytes.
+func deriveExplorations(m *umpirespb.Model, read reading, s *golden.Stream) error {
 	label := m.GetSource()
 	for _, query := range m.GetQueries() {
 		if query.GetExploration() == nil {
@@ -285,7 +383,7 @@ func deriveExplorations(m *umpirespb.Model, project func(*umpirespb.Model) (*ump
 			return err
 		}
 		candidate := func(key string, c *explore.Candidate) error {
-			projected, err := project(c.Model)
+			projected, err := read.project(c.Model)
 			if err != nil {
 				return err
 			}
@@ -301,6 +399,9 @@ func deriveExplorations(m *umpirespb.Model, project func(*umpirespb.Model) (*ump
 					return err
 				}
 				encoded = golden.Located(bytes.ReplaceAll(encoded, []byte(c.Digest), []byte(digest)), label)
+				if encoded, err = read.waits.Case(encoded); err != nil {
+					return err
+				}
 				if named.Identity, err = recordedrun.CaseIdentity(encoded); err != nil {
 					return err
 				}
@@ -330,12 +431,14 @@ func deriveExplorations(m *umpirespb.Model, project func(*umpirespb.Model) (*ump
 	return nil
 }
 
-func explorationDigests(t *testing.T, models map[string]*umpirespb.Model, project func(*umpirespb.Model) (*umpirespb.Model, error)) golden.Derived {
+// explorationDigests digests the explorations of models, each read as readingOf reads that side of
+// the comparison under the delta.
+func explorationDigests(t *testing.T, models map[string]*umpirespb.Model, delta golden.Delta, current bool) golden.Derived {
 	t.Helper()
 	d := golden.Derived{}
 	for key, m := range models {
 		s := &golden.Stream{}
-		require.NoError(t, deriveExplorations(m, project, s), key)
+		require.NoError(t, deriveExplorations(m, readingOf(delta, key, current), s), key)
 		d["explorations/"+key] = s.Digest()
 	}
 	return d
@@ -346,12 +449,14 @@ func TestCaptureOriginalBaseline(t *testing.T) {
 		t.Skip("explicit -capture-original=<archive directory> required")
 	}
 	in := readOriginalLowering(t)
-	require.NoError(t, golden.WriteDerived(*captureOriginal, originalLowerOutputs, explorationDigests(t, in.baselines, in.delta.ProjectBaseline)))
+	require.NoError(t, golden.WriteDerived(*captureOriginal, originalLowerOutputs, explorationDigests(t, in.baselines, frozenDelta(in.delta), false)))
 }
 
 // TestOriginalBaselineExplorations holds every exploration of the current Models, its candidates,
 // reductions and their Cases, to the original baseline's: of the current Models without the generated
-// claims the delta lists, since a candidate is a whole Model, to the baseline's with the delta.
+// claims the delta lists, since a candidate is a whole Model, to the baseline's with the delta. Each
+// side's candidates are read without the waits the delta lists as derived, which the archive, captured
+// before, still reads.
 func TestOriginalBaselineExplorations(t *testing.T) {
 	if *captureOriginal != "" {
 		t.Skip("capture is separate from verification")
@@ -360,21 +465,23 @@ func TestOriginalBaselineExplorations(t *testing.T) {
 	expected, err := golden.ReadDerived(in.root, originalLowerOutputs)
 	require.NoError(t, err)
 	expected = in.delta.ComparedOutputs(expected)
-	if in.delta.Rederives() {
-		require.NoError(t, golden.CompareDerived(expected, explorationDigests(t, in.baselines, in.delta.ProjectBaseline), nil),
+	// The archive reads every wait, so with derived waits the expected explorations are derived again
+	// too, read without them.
+	if in.delta.Rederives() || len(in.delta.DerivedWaits) > 0 {
+		require.NoError(t, golden.CompareDerived(expected, explorationDigests(t, in.baselines, frozenDelta(in.delta), false), nil),
 			"the archive explores as it was frozen")
-		expected = explorationDigests(t, in.expected, in.delta.ProjectBaseline)
+		expected = explorationDigests(t, in.expected, in.delta, false)
 	}
 	explain := func(key string) string {
 		model := strings.TrimPrefix(key, "explorations/")
 		return golden.Explain(expected[key], func(original bool, s *golden.Stream) error {
 			if original {
-				return deriveExplorations(in.expected[model], in.delta.ProjectBaseline, s)
+				return deriveExplorations(in.expected[model], readingOf(in.delta, model, false), s)
 			}
-			return deriveExplorations(in.ungenerated[model], in.delta.ProjectCurrent, s)
+			return deriveExplorations(in.ungenerated[model], readingOf(in.delta, model, true), s)
 		})
 	}
-	require.NoError(t, golden.CompareDerived(expected, explorationDigests(t, in.ungenerated, in.delta.ProjectCurrent), explain))
+	require.NoError(t, golden.CompareDerived(expected, explorationDigests(t, in.ungenerated, in.delta, true), explain))
 }
 
 // TestOriginalBaselineExplorationsRejectChanges moves the Nexus caller as a migration may, which the
@@ -384,15 +491,16 @@ func TestOriginalBaselineExplorationsRejectChanges(t *testing.T) {
 	in := readOriginalLowering(t)
 	archived, err := golden.ReadDerived(in.root, originalLowerOutputs)
 	require.NoError(t, err)
-	digest := func(m *umpirespb.Model, project func(*umpirespb.Model) (*umpirespb.Model, error)) string {
-		return explorationDigests(t, map[string]*umpirespb.Model{key: m}, project)["explorations/"+key]
+	// The baseline's own explorations are read as the archive was captured, with their waits.
+	digest := func(m *umpirespb.Model, delta golden.Delta) string {
+		return explorationDigests(t, map[string]*umpirespb.Model{key: m}, delta, true)["explorations/"+key]
 	}
 	moved := proto.CloneOf(in.baselines[key])
 	moved.Source = "model: moved roots"
 	for _, q := range moved.GetQueries() {
 		q.Position = &umpirespb.Position{File: "model/temporal/features/nexuscaller/Queries.scala", Line: 7}
 	}
-	require.Equal(t, archived["explorations/"+key], digest(moved, in.delta.ProjectCurrent))
+	require.Equal(t, archived["explorations/"+key], digest(moved, frozenDelta(in.delta)))
 	changed := proto.CloneOf(moved)
 	var exploring *umpirespb.Query
 	for _, q := range changed.GetQueries() {
@@ -402,5 +510,36 @@ func TestOriginalBaselineExplorationsRejectChanges(t *testing.T) {
 	}
 	require.NotNil(t, exploring)
 	exploring.GetExploration().GetVariations()[0].GetChoices()[0].Priority += 5
-	require.NotEqual(t, archived["explorations/"+key], digest(changed, in.delta.ProjectCurrent))
+	require.NotEqual(t, archived["explorations/"+key], digest(changed, frozenDelta(in.delta)))
+}
+
+// TestOriginalBaselineExplorationsReadOnlyTheDerivedWaits reads the Nexus caller, whose realization
+// leaves the listed waits to the API behavior: they enter its candidate Models and Cases, so the
+// archive's reading tells the current Model from the baseline, and the reading without them does not.
+// A wait the delta does not list is still read.
+func TestOriginalBaselineExplorationsReadOnlyTheDerivedWaits(t *testing.T) {
+	const key = golden.OriginalIR + "nexus-caller.json"
+	in := readOriginalLowering(t)
+	digest := func(delta golden.Delta, m *umpirespb.Model, current bool) string {
+		return explorationDigests(t, map[string]*umpirespb.Model{key: m}, delta, current)["explorations/"+key]
+	}
+	frozen := frozenDelta(in.delta)
+	require.NotEqual(t, digest(frozen, in.expected[key], false), digest(frozen, in.ungenerated[key], true), "the waits enter the candidates")
+	baseline := digest(in.delta, in.expected[key], false)
+	require.Equal(t, baseline, digest(in.delta, in.ungenerated[key], true), "read without the listed waits")
+	changed := proto.CloneOf(in.ungenerated[key])
+	var closing *umpirespb.Command
+	for _, r := range changed.GetRealizations() {
+		for _, s := range r.GetScripts() {
+			for _, item := range s.GetItems() {
+				if s.GetId() == "controller" && item.GetCommand().GetId() == "await-close" {
+					closing = item.GetCommand()
+				}
+			}
+		}
+	}
+	require.NotNil(t, closing)
+	require.Zero(t, closing.GetTimeoutMs())
+	closing.TimeoutMs = 5000
+	require.NotEqual(t, baseline, digest(in.delta, changed, true), "an unlisted wait is read")
 }

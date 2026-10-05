@@ -212,6 +212,34 @@ func TestUnreadObservations(t *testing.T) {
 	require.Equal(t, map[string][]string{"activityProtocol": {"spare-evidence"}}, r.subjects)
 }
 
+// A read of a realization that declares an API behavior writes no interval: its wait is derived.
+// One that writes its own is a finding, kept only where an acceptance records why; a realization that
+// declares no behavior derives nothing, so its polls are not counted.
+func TestExplicitWaits(t *testing.T) {
+	r := run(t, read(t, activityIR), explicitWaits)
+	require.Equal(t, map[string]int{"activityProtocol": 6}, r.population)
+	require.Empty(t, r.subjects)
+
+	explicit := func(ir *umpirespb.Model) {
+		for _, c := range commandsNamed(realization(ir, "activityProtocol"), "await-completed") {
+			c.GetPoll().IntervalMs = 250
+		}
+	}
+	r = run(t, read(t, activityIR, explicit), explicitWaits)
+	require.Equal(t, map[string][]string{"activityProtocol": {"controller/await-completed"}}, r.subjects)
+
+	r = run(t, read(t, activityIR, explicit, func(ir *umpirespb.Model) {
+		r := realization(ir, "activityProtocol")
+		r.Behavior, r.ServerSteps = nil, nil
+	}), explicitWaits)
+	require.Empty(t, r.population)
+}
+
+// commandsNamed is every command of a realization with an id.
+func commandsNamed(r *umpirespb.Realization, id string) []*umpirespb.Command {
+	return slices.DeleteFunc(commands(r), func(c *umpirespb.Command) bool { return c.GetId() != id })
+}
+
 func TestUnreachableValues(t *testing.T) {
 	r := run(t, read(t, activityIR), unreachableValues)
 	require.Equal(t, map[string]int{"activityProduct": 9, "activityProtocol": 21, "activityWorker": 2, "polling": 2}, r.population)

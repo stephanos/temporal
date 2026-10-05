@@ -113,8 +113,9 @@ type Projection struct {
 	// by no table, ID, fingerprint, answer or Case: a frozen input never sets one, and the current IR
 	// is compared without it. A realization's required settings are read by the Cases lowered through
 	// it, which TestMigrationProjectionKeepsLoweredCases compares on their own. Its API behavior hints
-	// and server steps are read by no table, ID, fingerprint or answer, and by no Case until fn-118.4
-	// lowers a Case's waits from them.
+	// and server steps are read by no table, ID, fingerprint, answer or Contract. Since fn-118.4 a
+	// Case's waits are lowered from them, and the waits they shape are compared through the original
+	// baseline's derived waits (Delta.DerivedWaits), which MatchAt and the lowered Cases' comparison read.
 	InertFields []string `json:"inert_fields"`
 	// CaseIDs are the kinds of lowered Case compared without their ID. An exploration Case's IDs carry
 	// the digest of its whole candidate Model, which the changes above alter; its other bytes do not.
@@ -570,14 +571,15 @@ func OriginalKey(path string) string {
 	return path
 }
 
-// Match is MatchAt of no original-baseline key: what no law replacement names.
+// Match is MatchAt of no original-baseline key: what no law replacement or derived wait names.
 func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 	return c.MatchAt("", original, current)
 }
 
 // MatchAt checks a current Model against its frozen input, the Model of an original-baseline key
 // (OriginalKey): the frozen input with the original baseline's delta applied (Attached), against the
-// current Model without the generated claims the delta lists (Ungenerated).
+// current Model without the generated claims the delta lists (Ungenerated), each read without the
+// waits the delta lists as derived (Underived).
 func (c Config) MatchAt(key string, original, current *umpirespb.Model) (bool, error) {
 	if proto.Equal(original, current) {
 		return false, nil
@@ -603,6 +605,9 @@ func (c Config) MatchAt(key string, original, current *umpirespb.Model) (bool, e
 		return false, err
 	}
 	if current, err = Ungenerated(key, current); err != nil {
+		return false, err
+	}
+	if mapped, current, err = Underived(key, mapped, current); err != nil {
 		return false, err
 	}
 	if current, err = c.Unsplit(current); err != nil {
@@ -649,6 +654,24 @@ func Ungenerated(key string, current *umpirespb.Model) (*umpirespb.Model, error)
 		return nil, err
 	}
 	return delta.Ungenerated(key, current)
+}
+
+// Underived gives a frozen input and a current Model of an original-baseline key without the waits
+// the original baseline's delta lists as derived for it: each listed command the frozen input writes a
+// wait of, and the current Model writes none of (Waits.Baseline, Waits.Current).
+func Underived(key string, frozen, current *umpirespb.Model) (underivedFrozen, underivedCurrent *umpirespb.Model, err error) {
+	delta, err := OriginalDelta()
+	if err != nil {
+		return nil, nil, err
+	}
+	waits := delta.Waits(key)
+	if underivedFrozen, err = waits.Baseline(frozen); err != nil {
+		return nil, nil, fmt.Errorf("%s: %w", key, err)
+	}
+	if underivedCurrent, err = waits.Current(current); err != nil {
+		return nil, nil, fmt.Errorf("%s: %w", key, err)
+	}
+	return underivedFrozen, underivedCurrent, nil
 }
 
 // Retired gives a mapped original whose source names no retired root.

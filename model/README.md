@@ -933,8 +933,8 @@ expectations.
 What every Temporal realization says alike is declared once, in the kit `model/temporal/realize`
 (`Kit.scala`, over the vocabulary of its `Realize.scala`): the roles (`workflowService`,
 `caseWorker`, `taskQueue`, `handlerTaskQueue`, `nexusEndpoint`) and the environment bindings a run
-supplies for them, the correlation window, the controller script, the one interval a read polls at
-(`await`), the helpers that declare evidence from the Run's own record (`answered`, `answeredAs`,
+supplies for them, the correlation window, the controller script, the one form a read waits in
+(`await`, which writes no interval and no deadline), the helpers that declare evidence from the Run's own record (`answered`, `answeredAs`,
 `delivered`), the deadlines a request sets, and `temporalRealization`, which takes what a feature
 says differently. The standalone activity and the Nexus caller realizations both use it. A feature
 that reads a status back declares what each fact reads as once, `statusTable(fact -> value, …)`
@@ -966,13 +966,20 @@ CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000))
 
 A realization names the steps no command performs and the kind of cause each is,
 `serverSteps = Vector(ServerStep(attemptStart, CauseKind.delivery), ServerStep(scheduleToStart,
-CauseKind.timer, deadlineMs))`, a timer with the kit's deadline its request sets. A hint names only
+CauseKind.timer, deadlineMs))`, a timer with the kit's deadline its request sets (an activity's
+retry `backoff` names the kit's `firstRetryBackoffMs`, the server's default first retry interval). A hint names only
 generated method constants, so one the API does not have does not compile, and the IR generator refuses a
 method that is no generated constant at its line; the Go reader refuses a missing or non-positive
 bound at the hint's line. A read written with no interval waits as the lowering derives from both:
 once after a write of its own script visible at once, and otherwise within the declared bounds of
 what it waits for; a read after a write with no declared visibility is refused, naming both methods
-(SEMANTICS.md, Realizations).
+(SEMANTICS.md, Realizations). No Temporal realization writes an interval or a deadline of its own:
+every read is written with `await` and its wait is derived. A poll that writes its own interval in a
+realization that declares a behavior is lint's `explicit-wait` finding, kept only where
+`model/ir/<file>.lint.json` accepts it with the reason no hint covers its wait. The waits that stay
+explicit are no reads: the Driver's own awaits (`AwaitLearned`, `AwaitCommand`, its controls) and the
+Nexus caller's closing long poll keep the Profile's default instruction limit
+(.plans/API_BEHAVIOR_HINTS.md, "As built by task 5").
 
 ### Naming protobuf data in a Model
 

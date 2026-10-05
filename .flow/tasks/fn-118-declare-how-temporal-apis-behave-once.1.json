@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-118-declare-how-temporal-apis-behave-once",
   "spec_path": ".flow/tasks/fn-118-declare-how-temporal-apis-behave-once.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Inventory every wait and settle the hint-aware helper interface for the shared kit",
   "updated_at": "2026-10-03T19:46:28.714118Z"
 }

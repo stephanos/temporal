@@ -29,8 +29,8 @@ import (
 // Every later change of the author surface is compared with it, never with the change before.
 //
 // What may differ from it is the closed delta of original.json (Delta): inert fields, entity
-// attachments and, since fn-122, the claims the lifter generates from the laws a Model's
-// capabilities bring. A law replacement names one generated claim of one IR file; the expected Model
+// attachments, since fn-122 the claims the lifter generates from the laws a Model's capabilities
+// bring, and since fn-118.5 the waits a realization leaves to the API behavior (waits.go). A law replacement names one generated claim of one IR file; the expected Model
 // is the baseline with each replacement's retired Queries removed and its renamed Property under the
 // generated name, every Query that read it reading it so; the current Model is compared without the
 // listed generated claims (Ungenerated). What is compared after that is compared exactly: tables,
@@ -67,8 +67,9 @@ type Delta struct {
 	// metadata no table, ID, fingerprint, answer or Case reads: Query.total, named-choice names. A
 	// realization's required settings are listed too: no table, ID, fingerprint or answer reads them,
 	// and the Cases that carry them are compared on their own as new Cases. So are a realization's API
-	// behavior hints and server steps: no table, ID, fingerprint or answer reads them, and a Case
-	// ignores them until fn-118.4 lowers its waits from them.
+	// behavior hints and server steps: no table, ID, fingerprint, answer or Contract reads them. Since
+	// fn-118.4 a Case's waits are lowered from them, and the waits they shape are compared through
+	// DerivedWaits.
 	InertFields []string `json:"inert_fields"`
 	// Attachments are the entity attachments of fn-112's R20 task-queue entity. Each sets one field the
 	// baseline left empty, so whatever reads it is derived again from the baseline plus the attachment.
@@ -95,6 +96,17 @@ type Delta struct {
 	// lifter's own tests against its expected file; a retired one is not, so the inventory does not
 	// require it. Each stays archived, and the archive stays frozen.
 	Reduced []string `json:"reduced_fixtures"`
+	// DerivedWaits are the commands whose wait a realization leaves to the API behavior since fn-118.5,
+	// each a command of a script of a realization of an archived IR file: "derived_waits": [{"model":
+	// "ir/nexus-caller.json", "script": "handler", "command": "respond-async"}]. The baseline command
+	// writes a positive poll interval or timeout, and the current one writes neither. The expected
+	// Model keeps the wait, since a baseline has no behavior to derive one from; the IR comparison
+	// reads the listed commands without their waits on both sides (Waits.Baseline, Waits.Current), and
+	// the Case comparisons each instruction a Case carries a listed command as without the wait the
+	// lowering derives (Waits.Case). Each must apply, so the list is closed: one whose command the
+	// baseline lacks or writes no wait of, or whose current command still writes its wait, fails, and
+	// a wait of a command it does not list stays compared.
+	DerivedWaits []DerivedWait `json:"derived_waits"`
 }
 
 // Attachment attaches the machine of a name, or the action of an ID, to an entity.
@@ -206,7 +218,7 @@ func (d Delta) check() error {
 		}
 		reduced[key] = true
 	}
-	return nil
+	return d.checkWaits(newFiles)
 }
 
 // valid reports whether the attachment sets exactly one field the baseline may leave empty: a
@@ -343,8 +355,18 @@ type Applied map[string]bool
 // Expected is the baseline Model of a key with the attachments and the key's law replacements
 // applied: what the current Model, without its generated claims (Ungenerated), must equal. An
 // attachment must find its declaration in some baseline Model, so applied records each it applied. A
-// replacement finds its renamed Property and its retired Queries in its own file, or fails.
+// replacement finds its renamed Property and its retired Queries in its own file, or fails. So does a
+// derived wait its command, writing a wait, which the expected Model keeps.
 func (d Delta) Expected(key string, baseline *umpirespb.Model, applied Applied) (*umpirespb.Model, error) {
+	for i, w := range d.DerivedWaits {
+		if w.Model != key {
+			continue
+		}
+		if err := w.writtenIn(baseline); err != nil {
+			return nil, fmt.Errorf("%s: %w", key, err)
+		}
+		applied[fmt.Sprint("derived wait ", i)] = true
+	}
 	m := proto.CloneOf(baseline)
 	for i, a := range d.Attachments {
 		attached, err := a.attach(m)
@@ -451,7 +473,7 @@ func readsDeclaredProperties(m *umpirespb.Model) error {
 }
 
 // Unapplied names the attachments no baseline Model had a declaration for, and the law replacements
-// whose IR file no baseline Model was.
+// and derived waits whose IR file no baseline Model was.
 func (d Delta) Unapplied(applied Applied) error {
 	var errs []error
 	for i, a := range d.Attachments {
@@ -462,6 +484,11 @@ func (d Delta) Unapplied(applied Applied) error {
 	for i, r := range d.Replacements {
 		if !applied[fmt.Sprint("replacement ", i)] {
 			errs = append(errs, fmt.Errorf("law replacement %+v names no baseline Model", r))
+		}
+	}
+	for i, w := range d.DerivedWaits {
+		if !applied[fmt.Sprint("derived wait ", i)] {
+			errs = append(errs, fmt.Errorf("derived wait %+v names no baseline Model", w))
 		}
 	}
 	return errors.Join(errs...)
@@ -531,9 +558,9 @@ func (r Replacement) ungenerate(m *umpirespb.Model) error {
 	return nil
 }
 
-// ProjectBaseline gives an expected Model as the comparison reads it: without source positions or
-// Functions.
-func (d Delta) ProjectBaseline(expected *umpirespb.Model) (*umpirespb.Model, error) {
+// ProjectBaseline gives an expected Model of a key as the comparison reads it: without source
+// positions, Functions or the waits the key's derived waits name.
+func (d Delta) ProjectBaseline(key string, expected *umpirespb.Model) (*umpirespb.Model, error) {
 	m := proto.CloneOf(expected)
 	for _, name := range d.InertFields {
 		field, err := inertField(name)
@@ -549,13 +576,21 @@ func (d Delta) ProjectBaseline(expected *umpirespb.Model) (*umpirespb.Model, err
 			return nil, err
 		}
 	}
+	m, err := d.Waits(key).Baseline(m)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
 	return m, sourceless(m)
 }
 
-// ProjectCurrent gives a current Model as the comparison reads it: without source positions,
-// Functions or the inert fields.
-func (d Delta) ProjectCurrent(current *umpirespb.Model) (*umpirespb.Model, error) {
-	m := proto.CloneOf(current)
+// ProjectCurrent gives a current Model of a key as the comparison reads it: without source positions,
+// Functions, the inert fields or the waits the key's derived waits name.
+func (d Delta) ProjectCurrent(key string, current *umpirespb.Model) (*umpirespb.Model, error) {
+	m, err := d.Waits(key).Current(current)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", key, err)
+	}
+	m = proto.CloneOf(m)
 	for _, name := range d.InertFields {
 		field, err := inertField(name)
 		if err != nil {
@@ -628,13 +663,18 @@ func functionless(m *umpirespb.Model) error {
 	})
 }
 
-// MatchOriginal checks a current Model against its baseline under the delta.
+// MatchOriginal is MatchOriginalAt of no key: what no derived wait names.
 func (d Delta) MatchOriginal(expected, current *umpirespb.Model) error {
-	want, err := d.ProjectBaseline(expected)
+	return d.MatchOriginalAt("", expected, current)
+}
+
+// MatchOriginalAt checks a current Model of a key against its baseline under the delta.
+func (d Delta) MatchOriginalAt(key string, expected, current *umpirespb.Model) error {
+	want, err := d.ProjectBaseline(key, expected)
 	if err != nil {
 		return err
 	}
-	got, err := d.ProjectCurrent(current)
+	got, err := d.ProjectCurrent(key, current)
 	if err != nil {
 		return err
 	}

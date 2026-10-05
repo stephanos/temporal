@@ -1,11 +1,12 @@
 package lower
 
 // How a Case's reads wait, derived from the API behavior the kit declares (fn-118 R3, R7). The
-// fixtures are the checked-in Model IR with every poll's interval cleared, which is the form fn-118.5
-// migrates the realizations to: each read then waits as the hints derive, and each hint the Cases
-// need is shown to be needed by the Case its removal refuses.
+// fixtures are the checked-in Model IR, whose reads write no interval since fn-118.5: each read waits
+// as the hints derive, and each hint the Cases need is shown to be needed by the Case or Query its
+// removal refuses.
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 	"strings"
@@ -23,14 +24,12 @@ import (
 
 const workflowService = "/temporal.api.workflowservice.v1.WorkflowService/"
 
-// derivedModel is a Model's checked-in IR with every poll left to derive its wait, then edited.
+// derivedModel is a Model's checked-in IR, whose every poll leaves its wait to derive, then edited.
 func derivedModel(t *testing.T, name string, edits ...func(*umpirespb.Model)) *umpirespb.Model {
 	t.Helper()
 	m := loaded(t, name)
 	for _, c := range commandsOfModel(m) {
-		if poll := c.GetPoll(); poll != nil {
-			poll.IntervalMs = 0
-		}
+		require.Zero(t, c.GetPoll().GetIntervalMs(), "command %s writes no interval", c.GetId())
 	}
 	for _, edit := range edits {
 		edit(m)
@@ -84,6 +83,8 @@ var derivedWaits = map[string]map[string]map[string]wait{
 		"terminate":                          {"controller/await-terminated": readOnce},
 		"activityProtocol.terminateSettles":  {"controller/await-terminated": readOnce},
 		"activityProtocol.cancelIsRequested": {},
+		"retry": {"controller/await-completed": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityAnswer=2000",
+			"deadline.backoff=1000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}},
 	},
 	"activity-race": {
 		"heldAdmission.staleDelivery":     {"controller/await-paused": readOnce},
@@ -161,14 +162,13 @@ func preparedAsIs(t *testing.T, c *testpilotspb.Case) {
 	require.True(t, proto.Equal(source, prepared.Snapshot()), "preparation carries the Case unchanged")
 }
 
-// With every poll's wait derived, each read of an existing Case reads once after a write of its own
-// script that is visible at once, and otherwise polls within the bounds of the causes it waits for:
-// a pause or a terminate is read back once, an answered attempt within a delivery and an answer, a
-// timed-out one within the deadline and the timer's slack, the scheduled event within a workflow
-// task, and a retryable handler error within the reply and its eventual visibility. Each hint names
-// the line that declares it, the timeout is their sum, and Testpilot prepares every Case unchanged.
-// activity-retry is not here: its path waits across the backoff timer, which no server step
-// declares yet (TestAStepNoServerStepDeclaresIsRefused).
+// Each read of an existing Case reads once after a write of its own script that is visible at once,
+// and otherwise polls within the bounds of the causes it waits for: a pause or a terminate is read
+// back once, an answered attempt within a delivery and an answer, a retried one across both
+// attempts and the backoff timer between them, a timed-out one within the deadline and the timer's
+// slack, the scheduled event within a workflow task, and a retryable handler error within the reply
+// and its eventual visibility. Each hint names the line that declares it, the timeout is their sum,
+// and Testpilot prepares every Case unchanged.
 func TestReadsWaitAsTheApiBehaviorDerives(t *testing.T) {
 	for model, queries := range derivedWaits {
 		m := derivedModel(t, model)
@@ -215,7 +215,7 @@ func TestDerivedWaitsCoverEveryLoweredQuery(t *testing.T) {
 			}
 			l, err := p.Lower(q.GetName(), cp.IdentityFor("temporal.case", "derived", q.GetName()))
 			require.NoError(t, err)
-			if l.Standing == Lowered && (model != "activity" || q.GetName() != "retry") {
+			if l.Standing == Lowered {
 				lowered = append(lowered, q.GetName())
 			}
 		}
@@ -294,6 +294,8 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 	unseen := func(write, read string) string {
 		return fmt.Sprintf("and the realization declares no visibility of %s to %s", write, read)
 	}
+	// standing is a Query's standing with the hint, where it is no Case: cancel lowers to its gaps.
+	standing := map[string]Standing{"visibility.requestCancelActivityExecution.describeActivityExecution": NotSupported}
 	for _, tc := range []struct {
 		model, hint, query string
 		refusal            []string
@@ -307,6 +309,9 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 			[]string{"command controller/await-completed reads " + describeActivity, unseen(workflowService+"UnpauseActivityExecution", describeActivity)}},
 		{"activity", "visibility.terminateActivityExecution.describeActivityExecution", "terminate",
 			[]string{"command controller/await-terminated reads " + describeActivity, unseen(workflowService+"TerminateActivityExecution", describeActivity)}},
+		{"activity", "visibility.requestCancelActivityExecution.describeActivityExecution", "cancel",
+			[]string{"command controller/await-canceled reads " + describeActivity + " after command controller/request-cancel-activity",
+				unseen(workflowService+"RequestCancelActivityExecution", describeActivity)}},
 		{"activity", "visibility.activityAnswer.describeActivityExecution", "completion",
 			[]string{"command controller/await-completed reads " + describeActivity + " after command activity/complete-attempt",
 				"which is an activity answer, " + unseen("an activity answer", describeActivity)}},
@@ -338,7 +343,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		t.Run(tc.hint, func(t *testing.T) {
 			kept, err := lowerDerived(t, derivedModel(t, tc.model), tc.query)
 			require.NoError(t, err)
-			require.Equal(t, Lowered, kept.Standing)
+			require.Equal(t, cmp.Or(standing[tc.hint], Lowered), kept.Standing)
 			_, err = lowerDerived(t, derivedModel(t, tc.model, without(tc.hint)), tc.query)
 			require.Error(t, err)
 			for _, says := range tc.refusal {
@@ -349,6 +354,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 	for _, tc := range []struct{ step, query, refused string }{
 		{"attemptStart", "completion", "command controller/await-completed waits for step attemptStart, which no command performs"},
 		{"scheduleToStart", "scheduleToStartTimeout", "command controller/await-timed-out waits for step scheduleToStart, which no command performs"},
+		{"backoff", "retry", "command controller/await-completed waits for step backoff, which no command performs"},
 	} {
 		t.Run("server step "+tc.step, func(t *testing.T) {
 			_, err := lowerDerived(t, derivedModel(t, "activity", withoutStep(tc.step)), tc.query)
@@ -371,30 +377,13 @@ func TestARefusalIsLocatedAtTheRead(t *testing.T) {
 	require.ErrorContains(t, err, fmt.Sprintf("%s:%d: command controller/await-paused", at.GetFile(), at.GetLine()))
 }
 
-// activity-retry waits across the activity's backoff timer, a step no command performs: until a
-// server step declares what kind of cause it is (fn-118.5), its read is refused; declared, the read
-// waits for each cause on the path in turn.
-func TestAStepNoServerStepDeclaresIsRefused(t *testing.T) {
-	_, err := lowerDerived(t, derivedModel(t, "activity"), "retry")
-	require.ErrorContains(t, err, "command controller/await-completed waits for step backoff, which no command performs and no server step declares the kind of cause of")
-
-	declared := derivedModel(t, "activity", func(m *umpirespb.Model) {
-		for _, r := range m.GetRealizations() {
-			for _, s := range r.GetServerSteps() {
-				if strings.HasSuffix(s.GetStep().GetAction(), ".attemptStart") {
-					backoff := proto.CloneOf(s)
-					backoff.Step.Action = strings.TrimSuffix(s.GetStep().GetAction(), "attemptStart") + "backoff"
-					r.ServerSteps = append(r.ServerSteps, backoff)
-					break
-				}
-			}
+// explicitly is a Model whose polls each write an interval of their own, as before fn-118.5.
+func explicitly(m *umpirespb.Model) {
+	for _, c := range commandsOfModel(m) {
+		if poll := c.GetPoll(); poll != nil {
+			poll.IntervalMs = 250
 		}
-	})
-	l, err := lowerDerived(t, declared, "retry")
-	require.NoError(t, err)
-	require.Equal(t, map[string]wait{"controller/await-completed": {interval: 250, hints: []string{"cause.delivery=3000",
-		"cause.activityAnswer=2000", "cause.delivery=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}}, waitsOf(l.Case))
-	preparedAsIs(t, l.Case)
+	}
 }
 
 // The inventory says which hints a Case's waits read: each in the instructions whose wait it shapes,
@@ -422,7 +411,7 @@ func TestTheInventoryAccountsForTheHintsAWaitReads(t *testing.T) {
 	require.Equal(t, []string{string(Unread)}, got["cause.timer"])
 	require.Equal(t, []string{string(Unread)}, got["scheduleToStart"])
 
-	p, err := NewProducer(loaded(t, "activity"))
+	p, err := NewProducer(derivedModel(t, "activity", explicitly))
 	require.NoError(t, err)
 	l, err = p.Lower("pauseResume", activityIdentity("pauseResume"))
 	require.NoError(t, err)
@@ -486,10 +475,11 @@ func TestACallThatReadsIsCheckedAndNeverWaits(t *testing.T) {
 	require.ErrorContains(t, err, "which is visible to it only eventually (visibility.handlerReply.describeWorkflowExecution): a read that waits is a poll")
 }
 
-// A poll that writes its own interval keeps it, its timeout and no hint: the checked-in Cases lower
-// as before. A poll left to derive its wait writes no deadline, which the reader refuses.
+// A poll that writes its own interval keeps it, its timeout and no hint, as Cases lowered before
+// fn-118.5 did; lint's explicit-wait finding asks why it is explicit. A poll left to derive its wait
+// writes no deadline, which the reader refuses.
 func TestAnExplicitPollKeepsItsInterval(t *testing.T) {
-	p, err := NewProducer(loaded(t, "activity"))
+	p, err := NewProducer(derivedModel(t, "activity", explicitly))
 	require.NoError(t, err)
 	l, err := p.Lower("completion", activityIdentity("completion"))
 	require.NoError(t, err)
@@ -528,15 +518,12 @@ func TestNoBehaviorDerivesNoWait(t *testing.T) {
 				Message: "temporal.api.workflow.v1.WorkflowExecutionInfo"})
 		}
 		for _, c := range commandsOfModel(m) {
-			switch {
-			case c.GetId() == "inspect-workflow":
+			if c.GetId() == "inspect-workflow" {
 				c.GetRpc().Reads = []*umpirespb.ResponseRead{{Path: "workflow_execution_info", Cardinality: umpirespb.ResponseRead_CARDINALITY_ONE,
 					Targets: []*umpirespb.Target{{Target: &umpirespb.Target_Observe{Observe: "described"}}}}}
-			case c.GetPoll() != nil:
-				c.GetPoll().IntervalMs = 250
-			default:
 			}
 		}
+		explicitly(m)
 	})
 	l, err := lowerDerived(t, unhinted, "forgedCompletion")
 	require.NoError(t, err)

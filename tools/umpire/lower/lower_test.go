@@ -258,8 +258,32 @@ var offPathKinds = map[string][]string{
 //
 // The provenance also says where the Model was written, and the comparative Model names its Lean
 // counterpart where the IR names the Scala file, which is not behaviour. The test gives the comparative
-// Case the Scala source and compares the rest whole.
+// Case the Scala source and compares the rest whole. Since fn-118.5 the Scala realization also leaves
+// how its reads wait to the API behavior and writes no limit on its handler's replies and its
+// workflow's finish, where the comparative realization writes a 250 ms interval and 5,000 ms limits:
+// those nodes, the derived waits the original baseline lists, are compared with the waits the IR's
+// Case derives, and everything else of them whole.
 func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
+	delta, err := golden.OriginalDelta()
+	require.NoError(t, err)
+	derived := delta.Waits(golden.OriginalIR + "nexus-caller.json").Names
+	// waitingAs gives want's derived nodes the waits got's carry.
+	waitingAs := func(want, got *testpilotspb.Case) *testpilotspb.Case {
+		for _, e := range want.GetProgram().GetEntrypoints() {
+			for _, n := range e.GetInstructions() {
+				if !derived(e.GetEntrypointId(), n.GetInstructionId()) {
+					continue
+				}
+				g := instruction(t, got, e.GetEntrypointId(), n.GetInstructionId())
+				n.Limits, n.WaitHints = g.GetLimits(), g.GetWaitHints()
+				if read := n.GetInstruction().GetReadEvidence(); read != nil {
+					read.PollIntervalMilliseconds, read.Once = g.GetInstruction().GetReadEvidence().GetPollIntervalMilliseconds(),
+						g.GetInstruction().GetReadEvidence().GetOnce()
+				}
+			}
+		}
+		return want
+	}
 	written := &testpilotspb.SourceLocation{Path: "model/temporal/features/nexuscaller/Queries.scala", Line: 1, Column: 1,
 		Provenance: "scala-model"}
 	rewritten := func(c *testpilotspb.Case) *testpilotspb.Case {
@@ -305,7 +329,7 @@ func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 			got := lowered(t, p, q.Name)
 			want, err := cp.Produce(q, nexusIdentity(q.Name), exhaustive, source)
 			require.NoError(t, err)
-			require.Empty(t, cmp.Diff(rewritten(want), got, protocmp.Transform()))
+			require.Empty(t, cmp.Diff(waitingAs(rewritten(want), got), got, protocmp.Transform()))
 
 			// What the declaration adds to the comparative Model's own Case, and nothing else of the
 			// Contract: the kinds off the path, each with no meaning.

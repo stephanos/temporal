@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-118-declare-how-temporal-apis-behave-once",
   "spec_path": ".flow/tasks/fn-118-declare-how-temporal-apis-behave-once.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate realizations to derived waits and close fn-118 with Contract-freeze evidence",
   "updated_at": "2026-10-03T19:46:30.469711Z"
 }

@@ -55,7 +55,7 @@ object ActivityRealization:
     ProtocolFact.statusTimedOut -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
   )
 
-  /** Polls the activity's description until it reads the status the fact's evidence names. */
+  /** Reads the activity's description until it reports the status the fact's evidence names. */
   private def awaitStatus(fact: Fact) =
     await(status(fact), workflowService)(
       Condition.equal(Field(_.status), Operand.enumValue(activityStatus(fact)))
@@ -216,10 +216,14 @@ object ActivityRealization:
         Taking(control(Control.unpause), 1)
       )
     ),
-    // An attempt starts when the server delivers it, and a timeout class fires at the deadline its
-    // start sets. No start sets a schedule-to-close deadline, so no path waits for that class.
+    // An attempt starts when the server delivers it, a retry waits out its backoff, and a timeout
+    // class fires at the deadline its start sets. The backoff is a timer at the server's first retry
+    // interval, after which the retried attempt is dispatched (chasm/lib/activity/attempt.go:72-82,
+    // statemachine.go:393-420). No start sets a schedule-to-close deadline, so no path waits for that
+    // class.
     serverSteps = Vector(
       ServerStep(attemptStart, CauseKind.delivery),
+      ServerStep(backoff, CauseKind.timer, firstRetryBackoffMs),
       ServerStep(scheduleToStart, CauseKind.timer, deadlineMs),
       ServerStep(startToClose, CauseKind.timer, deadlineMs)
     )

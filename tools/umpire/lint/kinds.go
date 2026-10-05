@@ -375,6 +375,35 @@ func unreadObservations(m *Model) ([]Tally, error) {
 	return t.list(), nil
 }
 
+// explicitWaits is each poll that writes its own interval in a realization that declares an API
+// behavior, where the lowering would derive the poll's wait from the hints and leaves a written one as
+// it is. A realization that declares none has nothing to derive a wait from, so its polls are not
+// counted.
+func explicitWaits(m *Model) ([]Tally, error) {
+	t := tally(ExplicitWait)
+	for _, r := range m.IR.GetRealizations() {
+		if r.GetBehavior() == nil {
+			continue
+		}
+		for _, s := range r.GetScripts() {
+			for _, item := range s.GetItems() {
+				cs := []*umpirespb.Command{item.GetCommand()}
+				for _, p := range item.GetPerforms() {
+					cs = append(cs, p.GetCommand())
+				}
+				for _, c := range cs {
+					if poll := c.GetPoll(); poll != nil {
+						t.add(r.GetMachine(), poll.GetIntervalMs() == 0, s.GetId()+"/"+c.GetId(), c.GetPosition(),
+							"command %s/%s of %s polls every %d milliseconds, though its realization declares the API behavior a read's wait is derived from",
+							s.GetId(), c.GetId(), r.GetName(), poll.GetIntervalMs())
+					}
+				}
+			}
+		}
+	}
+	return t.list(), nil
+}
+
 // unreachableValues is each value of each field of a machine's state that no reachable state holds.
 // A state of an enum type is one field, named after its type. Each field is read on its own: a
 // combination of values no reachable state holds is no finding.

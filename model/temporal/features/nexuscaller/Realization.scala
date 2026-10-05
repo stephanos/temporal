@@ -381,7 +381,7 @@ object NexusRealization:
   // The workflow closes on every path: a failed or timed-out operation is the await's recorded
   // outcome, not a reason to leave the workflow open.
   private val finishWorkflow =
-    command(Finish(Operand.Literal(ProtoValue.Text("done"))), timeoutMs = 5000, regardless = true)
+    command(Finish(Operand.Literal(ProtoValue.Text("done"))), regardless = true)
 
   private val workflowScript =
     script("workflow", WorkerActivation.Workflow(workflowType, caseWorker, taskQueue))(
@@ -411,9 +411,6 @@ object NexusRealization:
 
   // ### The handler
 
-  /** A handler's answer to the start request, within the one deadline its reply has. */
-  private def replying(answer: Instruction) = command(answer, timeoutMs = 5000)
-
   private def response(variant: TypedProtoField[StartOperationResponse, ?]) =
     Proto[StartOperationResponse](variant)
 
@@ -435,58 +432,48 @@ object NexusRealization:
       )
     )
 
-  private val respondAsync = replying(
-    NexusReply(
-      response(
-        ProtoField.typed(
-          Field[StartOperationResponse, StartOperationResponse.Async](_.getAsyncSuccess),
-          ProtoValue.message(Proto[StartOperationResponse.Async]())
-        )
-      ),
-      completionAuthority.id
-    )
+  private val respondAsync = NexusReply(
+    response(
+      ProtoField.typed(
+        Field[StartOperationResponse, StartOperationResponse.Async](_.getAsyncSuccess),
+        ProtoValue.message(Proto[StartOperationResponse.Async]())
+      )
+    ),
+    completionAuthority.id
   )
-  private val respondSync = replying(
-    NexusReply(
-      response(
-        ProtoField.typed(
-          Field[StartOperationResponse, StartOperationResponse.Sync](_.getSyncSuccess),
-          ProtoValue.message(
-            Proto[StartOperationResponse.Sync](
-              ProtoField.typed(
-                Field[StartOperationResponse.Sync, Payload](_.getPayload),
-                ProtoValue.message(textPayload("completed"))
-              )
+  private val respondSync = NexusReply(
+    response(
+      ProtoField.typed(
+        Field[StartOperationResponse, StartOperationResponse.Sync](_.getSyncSuccess),
+        ProtoValue.message(
+          Proto[StartOperationResponse.Sync](
+            ProtoField.typed(
+              Field[StartOperationResponse.Sync, Payload](_.getPayload),
+              ProtoValue.message(textPayload("completed"))
             )
           )
         )
       )
     )
   )
-  private val respondFailed = replying(
-    NexusReply(
-      response(
-        ProtoField.typed(
-          Field[StartOperationResponse, ApiFailure](_.getFailure),
-          ProtoValue.message(handlerFailure)
-        )
+  private val respondFailed = NexusReply(
+    response(
+      ProtoField.typed(
+        Field[StartOperationResponse, ApiFailure](_.getFailure),
+        ProtoValue.message(handlerFailure)
       )
     )
   )
-  private val respondErrorRetryable = replying(
-    NexusReply(
-      handlerError(
-        "INTERNAL",
-        NexusHandlerErrorRetryBehavior.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE
-      )
+  private val respondErrorRetryable = NexusReply(
+    handlerError(
+      "INTERNAL",
+      NexusHandlerErrorRetryBehavior.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE
     )
   )
-  private val respondError = replying(
-    NexusReply(
-      handlerError(
-        "BAD_REQUEST",
-        NexusHandlerErrorRetryBehavior.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE
-      )
+  private val respondError = NexusReply(
+    handlerError(
+      "BAD_REQUEST",
+      NexusHandlerErrorRetryBehavior.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE
     )
   )
 

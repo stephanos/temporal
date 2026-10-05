@@ -5088,7 +5088,7 @@
     "name": "forgedCompletion",
     "position": {
       "file": "model/temporal/features/nexuscaller/Realization.scala",
-      "line": 533
+      "line": 520
     },
     "machine": "forgedCompletion",
     "producer": "temporal.nexus.caller.testpilot",
@@ -5154,7 +5154,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 108
+        "line": 116
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -5250,7 +5250,7 @@
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 115
+        "line": 123
       },
       "projection": "temporal.nexus.caller.projection",
       "run": "temporal.nexus.caller.scope.run",
@@ -5267,7 +5267,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 169
+        "line": 177
       },
       "controller": { },
       "items": [ {
@@ -5372,7 +5372,7 @@
           "id": "await-scheduled",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 181
+            "line": 188
           },
           "poll": {
             "evidence": "temporal.nexus.caller.evidence.scheduled",
@@ -5419,19 +5419,18 @@
                   }
                 }
               }
-            },
-            "intervalMs": "250"
+            }
           }
         }
       }, {
         "position": {
           "file": "model/temporal/features/nexuscaller/Realization.scala",
-          "line": 535
+          "line": 522
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/Realization.scala",
-            "line": 535
+            "line": 522
           },
           "step": {
             "action": "temporal.nexuscaller.Control$.inspect"
@@ -5476,7 +5475,7 @@
           "id": "pending-attempts",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 181
+            "line": 188
           },
           "poll": {
             "evidence": "temporal.nexus.caller.evidence.pendingAttempts",
@@ -5532,8 +5531,7 @@
                   }
                 }
               }
-            },
-            "intervalMs": "250"
+            }
           }
         },
         "when": [ {
@@ -6269,7 +6267,6 @@
             "file": "model/temporal/features/nexuscaller/Realization.scala",
             "line": 384
           },
-          "timeoutMs": "5000",
           "regardless": true,
           "finish": {
             "result": {
@@ -6288,7 +6285,7 @@
       "id": "handler",
       "position": {
         "file": "model/temporal/features/nexuscaller/Realization.scala",
-        "line": 494
+        "line": 481
       },
       "nexusHandler": {
         "service": "umpire.case.service",
@@ -6299,12 +6296,12 @@
       "items": [ {
         "position": {
           "file": "model/temporal/features/nexuscaller/Realization.scala",
-          "line": 498
+          "line": 485
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/Realization.scala",
-            "line": 499
+            "line": 486
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -6319,14 +6316,13 @@
             "id": "respond-async",
             "position": {
               "file": "model/temporal/features/nexuscaller/Realization.scala",
-              "line": 415
+              "line": 435
             },
-            "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/Realization.scala",
-                  "line": 418
+                  "line": 415
                 },
                 "message": "temporal.api.nexus.v1.StartOperationResponse",
                 "fields": [ {
@@ -6335,7 +6331,7 @@
                     "message": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/Realization.scala",
-                        "line": 443
+                        "line": 439
                       },
                       "message": "temporal.api.nexus.v1.StartOperationResponse.Async"
                     }
@@ -6348,7 +6344,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/Realization.scala",
-            "line": 500
+            "line": 487
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -6363,14 +6359,13 @@
             "id": "respond-sync",
             "position": {
               "file": "model/temporal/features/nexuscaller/Realization.scala",
-              "line": 415
+              "line": 444
             },
-            "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/Realization.scala",
-                  "line": 418
+                  "line": 415
                 },
                 "message": "temporal.api.nexus.v1.StartOperationResponse",
                 "fields": [ {
@@ -6379,7 +6374,7 @@
                     "message": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/Realization.scala",
-                        "line": 455
+                        "line": 449
                       },
                       "message": "temporal.api.nexus.v1.StartOperationResponse.Sync",
                       "fields": [ {
@@ -6421,7 +6416,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/Realization.scala",
-            "line": 501
+            "line": 488
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -6436,14 +6431,13 @@
             "id": "respond-failed",
             "position": {
               "file": "model/temporal/features/nexuscaller/Realization.scala",
-              "line": 415
+              "line": 459
             },
-            "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/Realization.scala",
-                  "line": 418
+                  "line": 415
                 },
                 "message": "temporal.api.nexus.v1.StartOperationResponse",
                 "fields": [ {
@@ -6492,7 +6486,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/Realization.scala",
-            "line": 502
+            "line": 489
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -6510,14 +6504,13 @@
             "id": "respond-error-retryable",
             "position": {
               "file": "model/temporal/features/nexuscaller/Realization.scala",
-              "line": 415
+              "line": 467
             },
-            "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/Realization.scala",
-                  "line": 421
+                  "line": 418
                 },
                 "message": "temporal.api.nexus.v1.HandlerError",
                 "fields": [ {
@@ -6531,7 +6524,7 @@
                     "message": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/Realization.scala",
-                        "line": 426
+                        "line": 423
                       },
                       "message": "temporal.api.nexus.v1.Failure",
                       "fields": [ {
@@ -6554,7 +6547,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/Realization.scala",
-            "line": 503
+            "line": 490
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -6572,14 +6565,13 @@
             "id": "respond-error",
             "position": {
               "file": "model/temporal/features/nexuscaller/Realization.scala",
-              "line": 415
+              "line": 473
             },
-            "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/Realization.scala",
-                  "line": 421
+                  "line": 418
                 },
                 "message": "temporal.api.nexus.v1.HandlerError",
                 "fields": [ {
@@ -6593,7 +6585,7 @@
                     "message": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/Realization.scala",
-                        "line": 426
+                        "line": 423
                       },
                       "message": "temporal.api.nexus.v1.Failure",
                       "fields": [ {
@@ -6622,7 +6614,7 @@
         "id": "visibility.startActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 19
+          "line": 20
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -6630,7 +6622,7 @@
         "id": "visibility.pauseActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 23
+          "line": 24
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/PauseActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -6638,7 +6630,7 @@
         "id": "visibility.unpauseActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 27
+          "line": 28
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/UnpauseActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -6646,15 +6638,23 @@
         "id": "visibility.terminateActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 30
+          "line": 31
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.requestCancelActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 38
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
       }, {
         "id": "visibility.activityAnswer.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 37
+          "line": 45
         },
         "cause": "CAUSE_KIND_ACTIVITY_ANSWER",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -6662,7 +6662,7 @@
         "id": "visibility.startNexusOperationExecution.describeNexusOperationExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 41
+          "line": 49
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartNexusOperationExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
@@ -6670,7 +6670,7 @@
         "id": "visibility.terminateNexusOperationExecution.describeNexusOperationExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 48
+          "line": 56
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateNexusOperationExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
@@ -6678,7 +6678,7 @@
         "id": "visibility.startWorkflowExecution.getWorkflowExecutionHistory",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 54
+          "line": 62
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -6686,7 +6686,7 @@
         "id": "visibility.workflowTask.getWorkflowExecutionHistory",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 61
+          "line": 69
         },
         "cause": "CAUSE_KIND_WORKFLOW_TASK",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -6694,14 +6694,14 @@
         "id": "visibility.handlerReply.describeWorkflowExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 67
+          "line": 75
         },
         "cause": "CAUSE_KIND_HANDLER_REPLY",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution",
         "eventuallyWithin": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 69
+            "line": 77
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -6711,13 +6711,13 @@
         "id": "cause.delivery",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 77
+          "line": 83
         },
         "kind": "CAUSE_KIND_DELIVERY",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 77
+            "line": 83
           },
           "intervalMs": "250",
           "atMostMs": "3000"
@@ -6726,13 +6726,13 @@
         "id": "cause.activityAnswer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 81
+          "line": 87
         },
         "kind": "CAUSE_KIND_ACTIVITY_ANSWER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 81
+            "line": 87
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -6741,13 +6741,13 @@
         "id": "cause.workflowTask",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 84
+          "line": 90
         },
         "kind": "CAUSE_KIND_WORKFLOW_TASK",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 84
+            "line": 90
           },
           "intervalMs": "250",
           "atMostMs": "5000"
@@ -6756,13 +6756,13 @@
         "id": "cause.handlerReply",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 89
+          "line": 95
         },
         "kind": "CAUSE_KIND_HANDLER_REPLY",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 89
+            "line": 95
           },
           "intervalMs": "250",
           "atMostMs": "5000"
@@ -6771,13 +6771,13 @@
         "id": "cause.timer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 94
+          "line": 100
         },
         "kind": "CAUSE_KIND_TIMER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 94
+            "line": 100
           },
           "intervalMs": "250",
           "atMostMs": "3000"
@@ -6787,7 +6787,7 @@
     "serverSteps": [ {
       "position": {
         "file": "model/temporal/features/nexuscaller/Realization.scala",
-        "line": 526
+        "line": 513
       },
       "step": {
         "action": "temporal.nexuscaller.Model$package$.scheduleToStart"
@@ -6797,7 +6797,7 @@
     }, {
       "position": {
         "file": "model/temporal/features/nexuscaller/Realization.scala",
-        "line": 527
+        "line": 514
       },
       "step": {
         "action": "temporal.nexuscaller.Model$package$.startToClose"

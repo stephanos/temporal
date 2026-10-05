@@ -3,10 +3,10 @@
  * A Temporal Case runs against a deployment the run sets up: the frontend's WorkflowService, the
  * Case's own worker and the task queues it polls, each a role with the environment bindings the run
  * supplies for it. Its evidence is lifted into one correlated record, keyed by the run and by the
- * operation, and checked within one window. Its controller is one script, and a read it waits on
- * polls at the kit's one interval. What a feature says differently is a parameter: its family, which
- * names its Definition IDs, the roles it addresses, the operation its evidence is keyed by, its
- * scripts and its evidence.
+ * operation, and checked within one window. Its controller is one script, whose reads wait as the
+ * kit's API behavior derives (Behavior.scala). What a feature says differently is a parameter: its
+ * family, which names its Definition IDs, the roles it addresses, the operation its evidence is
+ * keyed by, its scripts and its evidence.
  *
  * The standalone activity and the Nexus caller realizations build on it. Everything here is a
  * declaration the lifter reads, by value, into the realizations that use it.
@@ -86,6 +86,14 @@ val deadlineMs: Long = deadlineSeconds * 1000
 
 /** `unreachedDeadlineSeconds` as a request field's value. */
 val unreachedDeadline = Operand.number(unreachedDeadlineSeconds)
+
+/**
+ * The backoff, in milliseconds, before a failed activity attempt is retried for the first time: no
+ * request sets a retry policy, so the server's default initial interval of 1 s applies, without
+ * jitter (common/retrypolicy/retry_policy.go:76-81, common/backoff/retry.go:198-209). A timer step
+ * names it as its deadline.
+ */
+val firstRetryBackoffMs: Long = 1000
 
 // ### Evidence: Definition IDs, the correlated record and the window
 
@@ -168,17 +176,16 @@ val controllerScript = "controller"
 /** The controller's script: the calls and controls of a Case, in the order its path makes them. */
 def controller(items: Item*) = script(controllerScript, Activation.Controller)(items*)
 
-/** How often a read polls until it sees what it waits for. No call site writes an interval. */
-private val pollIntervalMs: Long = 250
-
 /**
  * Reads `evidence` on `role` until an element satisfies `until`, the request's fields assigned in
- * the scope it opens: the one form a realization waits in, so the interval it polls at is the kit's.
+ * the scope it opens: the one form a realization waits in. It writes no interval and no deadline:
+ * the lowering derives from the API behavior (Behavior.scala) whether the read reads once or polls,
+ * and within which bound (tools/umpire/lower/waits.go).
  */
 def await[Req, Projected](evidence: EvidenceRef[Req, Projected], role: Role)(
     until: Condition[Projected]
 )(assign: RequestScope[Req] ?=> Unit) =
-  poll(evidence, role, until, pollIntervalMs)(assign)
+  poll(evidence, role, until, intervalMs = 0)(assign)
 
 /** That a command of the controller succeeded, as the Run records its outcome. */
 val succeeded = Condition.equal(

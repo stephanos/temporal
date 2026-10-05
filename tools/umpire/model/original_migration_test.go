@@ -133,7 +133,7 @@ func TestOriginalBaselineModel(t *testing.T) {
 	}
 	in := readOriginal(t)
 	for _, key := range slices.Sorted(maps.Keys(in.expected)) {
-		require.NoError(t, in.delta.MatchOriginal(in.expected[key], in.current[key]), key)
+		require.NoError(t, in.delta.MatchOriginalAt(key, in.expected[key], in.current[key]), key)
 	}
 	expected, err := golden.ReadDerived(in.root, originalModelOutputs)
 	require.NoError(t, err)
@@ -377,7 +377,8 @@ func TestOriginalBaselineDerivesRenamedClaimsFromTheBaseline(t *testing.T) {
 			q.Property.Name = "activityProtocol.completes"
 		}
 	}
-	require.Error(t, in.delta.MatchOriginal(in.expected[key], unrecorded))
+	require.NoError(t, in.delta.MatchOriginalAt(key, in.expected[key], in.current[key]))
+	require.Error(t, in.delta.MatchOriginalAt(key, in.expected[key], unrecorded))
 	require.NotEqual(t, digest("declarations", in.expected[key]), digest("declarations", unrecorded))
 	repointed := proto.CloneOf(in.current[key])
 	for _, q := range repointed.GetQueries() {
@@ -385,6 +386,6 @@ func TestOriginalBaselineDerivesRenamedClaimsFromTheBaseline(t *testing.T) {
 			q.Property.Name = "retryCompletes"
 		}
 	}
-	require.Error(t, in.delta.MatchOriginal(in.expected[key], repointed))
+	require.Error(t, in.delta.MatchOriginalAt(key, in.expected[key], repointed))
 	require.NotEqual(t, digest("semantics", in.expected[key]), digest("semantics", repointed))
 }

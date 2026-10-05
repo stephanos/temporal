@@ -64,7 +64,7 @@ func TestOriginalBaselineInputs(t *testing.T) {
 		require.NoError(t, err, key)
 		ungenerated, err := delta.Ungenerated(key, models[key])
 		require.NoError(t, err, key)
-		require.NoError(t, delta.MatchOriginal(expected, ungenerated), key)
+		require.NoError(t, delta.MatchOriginalAt(key, expected, ungenerated), key)
 	}
 	require.NoError(t, delta.Unapplied(applied))
 }
@@ -188,7 +188,7 @@ func TestOriginalMatchAdmitsOnlyTheRecordedDelta(t *testing.T) {
 	require.NoError(t, inert.check())
 	require.NoError(t, inert.MatchOriginal(baseline, labelled), "an inert name is admitted")
 	require.Error(t, Delta{}.MatchOriginal(baseline, labelled), "a name no inert field lists")
-	_, err := inert.ProjectBaseline(labelled)
+	_, err := inert.ProjectBaseline("", labelled)
 	require.ErrorContains(t, err, "is set in the baseline")
 
 	// Functions are not compared here: what they mean is compared on the outputs derived from the
@@ -352,8 +352,8 @@ func TestOriginalBaselineAdmitsChoiceNamesOnEveryModel(t *testing.T) {
 		require.NoError(t, err, key)
 		named = proto.CloneOf(named)
 		require.Positive(t, nameSteps(t, named, func(i int) string { return fmt.Sprintf("alternative-%d", i) }), key)
-		require.NoError(t, delta.MatchOriginal(expected, named), key)
-		require.ErrorContains(t, delta.MatchOriginal(named, named), "is set in the baseline", key)
+		require.NoError(t, delta.MatchOriginalAt(key, expected, named), key)
+		require.ErrorContains(t, delta.MatchOriginalAt(key, named, named), "is set in the baseline", key)
 	}
 }
 
@@ -733,7 +733,7 @@ func TestOriginalReducedFixturesAreClosed(t *testing.T) {
 	digests := func(d Delta, models map[string]*umpirespb.Model) Derived {
 		out := Derived{}
 		for key, m := range models {
-			projected, err := d.ProjectCurrent(m)
+			projected, err := d.ProjectCurrent(key, m)
 			require.NoError(t, err)
 			out["semantics/"+key], err = ProjectedDigest(projected)
 			require.NoError(t, err)
