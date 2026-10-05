@@ -80,8 +80,8 @@ Gate: never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes
 | --- | --- | --- |
 | fn-126.1 | ✅ done | Standalone activity as one feature file per folder; `record/`, `withTaskQueue/`; declaration-order lint |
 | fn-126.2 | ✅ done | Nexus folders and shared Models as feature files; shared bounds; per-kind file names retired |
-| fn-126.3 | 🔄 in progress | Actions grouped by actor in section objects that keep Definition IDs |
-| fn-126.4 | ⬜ todo | Machine objects with effects, rules and sections; lifter reshaped; standalone activity converted |
+| fn-126.3 | ✅ done | Actions grouped by actor in section objects that keep Definition IDs |
+| fn-126.4 | 🔄 in progress | Machine objects with effects, rules and sections; lifter reshaped; standalone activity converted |
 | fn-126.5 | ⬜ todo | Remaining Models as machine objects; builder forms retired |
 | fn-126.6 | ⬜ todo | One rename batch: Product and System, history record, actions and designs; close |
 
