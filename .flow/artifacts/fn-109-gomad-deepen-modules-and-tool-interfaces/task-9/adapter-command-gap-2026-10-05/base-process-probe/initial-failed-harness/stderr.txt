@@ -1,0 +1,10 @@
+panic: mkdir /tmp/fn109-adapter-base-probe-mgHPol/nonexecutable: file exists
+
+goroutine 1 [running]:
+main.must(...)
+	/tmp/fn109-adapter-base-probe-mgHPol/probe.go:32
+main.probe({{0xffffc94d2c9c, 0x24}, {0x1721c9, 0xd}, {0x0, 0x0}, {0x8023c8e6060, 0x5c}, {_, _}, ...}, ...)
+	/tmp/fn109-adapter-base-probe-mgHPol/probe.go:53 +0x14bc
+main.main()
+	/tmp/fn109-adapter-base-probe-mgHPol/probe.go:114 +0xe1c
+exit status 2

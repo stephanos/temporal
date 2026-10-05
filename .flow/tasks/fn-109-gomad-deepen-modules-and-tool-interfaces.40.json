@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T09:36:43.090707Z",
+  "depends_on": [],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.40",
+  "priority": null,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md",
+  "status": "todo",
+  "title": "Preserve adapter command errors through bounded execution",
+  "updated_at": "2026-10-05T09:48:28.546671Z"
+}

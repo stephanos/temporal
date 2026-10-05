@@ -1,0 +1,7 @@
+{
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "go_version": "go1.27.1",
+  "goarch": "arm64",
+  "goos": "linux",
+  "self": "/home/agent/.cache/codex-build/tmp/go-build1406078181/b001/exe/probe"
+}

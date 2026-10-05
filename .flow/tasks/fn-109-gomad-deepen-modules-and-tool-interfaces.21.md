@@ -59,6 +59,9 @@ flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces
 ### Target lint corrective ownership
 
 Tasks 38 and 39 own the eight target digest/import findings and nine target cleanup findings respectively. Retain their independent source evidence in the final R18/R19 matrix without treating committed source progress as qualification. Both are direct acceptance dependencies of this final gate; neither requires task21 completion for source admission. The original final-gate requirements and historical evidence remain unchanged.
+### Adapter command correction evidence owner, 2026-10-05
+
+Task40 supplies the bounded shared-command compatibility mechanism and actual BASE process controls for task9's omitted adapter listing. Task9 retains helper integration and its task8/task40 dependencies; task21 consumes both evidence sets through the existing chain. Preserve original predecessor and qualification requirements. The 29-case stock-Go BASE probe establishes ordinary error/cancellation/cwd observations only; overflow, descendants, nonempty platform source selection, pin reproduction and all original native/full/formal/matched-first-baseline gates remain required where unproved. Historical task9 checked acceptance is not current complete R10 coverage.
 ## Acceptance
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
 

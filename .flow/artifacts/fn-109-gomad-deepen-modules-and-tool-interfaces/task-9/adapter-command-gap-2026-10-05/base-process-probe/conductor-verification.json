@@ -1,0 +1,95 @@
+{
+  "source_head": "0c2e091b73325368b22ec142e76da5ed5ab4cad2",
+  "production_change": false,
+  "observations": {
+    "research": {
+      "cases": 29,
+      "exit": 0,
+      "started_children": 18,
+      "all_observed_children_gone": true,
+      "all_observed_gopaths_removed": true
+    },
+    "conductor": {
+      "cases": 29,
+      "exit": 0,
+      "elapsed_seconds": 2.670957502,
+      "started_children": 18,
+      "all_observed_children_gone": true,
+      "all_observed_gopaths_removed": true
+    }
+  },
+  "archive_copies_verified": 26,
+  "protected_sections": [
+    {
+      "id": "fn-109.9",
+      "acceptance_and_historical_done_evidence_unchanged": true,
+      "exit_code": 0
+    },
+    {
+      "id": "fn-109.21",
+      "acceptance_and_historical_done_evidence_unchanged": true,
+      "exit_code": 0
+    },
+    {
+      "section": "API Contracts",
+      "unchanged": true
+    },
+    {
+      "section": "Edge Cases & Constraints",
+      "unchanged": true
+    },
+    {
+      "section": "Acceptance Criteria",
+      "unchanged": true
+    },
+    {
+      "section": "Boundaries",
+      "unchanged": true
+    }
+  ],
+  "hashes": {
+    "probe_go": "54af6ab429167b059e0f951068154a34e0015186efbc880d92d137228be783a0",
+    "research_stdout": "b2781abed4579ca76597734e70412ccd46c775b870c5c56373884c3e137b256b",
+    "conductor_stdout": "c07cc6573bd8cc015fd6a25dfdb3387624b9906035d688e633fd33b746a273a8"
+  },
+  "plan": {
+    "new_task": "fn-109-gomad-deepen-modules-and-tool-interfaces.40",
+    "size": "M",
+    "new_task_source_files": 5,
+    "task9_dependencies_preserved_and_extended": [
+      "fn-109-gomad-deepen-modules-and-tool-interfaces.8",
+      "fn-109-gomad-deepen-modules-and-tool-interfaces.40"
+    ],
+    "review_verdict": "SHIP",
+    "review_session": "01a10b70-220e-7fa1-b56e-12ad58d3e7a6",
+    "review_backend": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "same_family": true,
+    "completion_deadlock_fixed": true,
+    "original_requirements_waived": false,
+    "validation": {
+      "valid": true,
+      "spec_tasks": 40,
+      "all_specs": 21,
+      "all_tasks": 185,
+      "all_errors": 0,
+      "existing_all_warnings": 2
+    }
+  },
+  "stages": [
+    "stage: plan-review - ran (model: gpt-6.1-sol at high; same-family, same receipt fix loop, SHIP)",
+    "stage: impl-review - skipped(policy: production implementation has not started)",
+    "stage: plan-sync - skipped(config: disabled; no task completed)"
+  ],
+  "tracker_sync": "n/a (bridge inactive)",
+  "limitations": [
+    "Developmental linux/arm64 stock Go1.27.1 only",
+    "Empty-source JSON success only; no nonempty platform-source/pin/listing-size proof",
+    "No overflow, descendant or native qualification",
+    "Cases without a started marker do not expose GOPATH or child lifetime",
+    "First harness collision is not production RED; its original preimage was not retained",
+    "Long relative-path case converges at root and does not isolate child-versus-parent resolution",
+    "No task completed; all original owned acceptance remains required"
+  ]
+}

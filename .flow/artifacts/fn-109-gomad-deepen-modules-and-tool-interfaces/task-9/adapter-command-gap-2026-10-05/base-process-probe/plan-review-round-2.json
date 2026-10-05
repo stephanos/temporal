@@ -1,0 +1,90 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "headSha": "0c2e091b73325368b22ec142e76da5ed5ab4cad2",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "0c2e091b73325368b22ec142e76da5ed5ab4cad2",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md",
+          "side": "head",
+          "startLine": 54
+        },
+        "body": "Task 40 requires the original R10 requirements to be proved before completion, but task 9 owns the missing adapter integration and depends on task 40 completing. The helper still uses unbounded `exec.CommandContext` at `target/adapter_source_set.go:46`. Read literally, task 40 cannot complete until task 9 integrates the mechanism, and task 9 cannot start until task 40 completes. The explicit prohibition on treating source-progress commits as dependency readiness prevents that escape.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-e6ff44c6ef1501a94d015b352c74de561514cd6910b215d38827676ea4cec2dc",
+        "id": "finding-f8274fd84c4e8fca756014d2c42782c5",
+        "lastSeenReceiptId": "review-6e1ef20a16d611ab22bd2fda177d8ce1c66ef6b4395e0e4cbb768a4afae01066",
+        "ordinal": 1,
+        "rIds": [
+          "R10"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Explicitly scope task 40 completion to its mechanism-owned contracts and required verification. Leave aggregate adapter integration, source-set/pin evidence and complete R10 fulfillment with tasks 9/21. Preserve the existing dependencies and all required tests.",
+        "title": "Task 40 requires the original R10 requirements to be proved before completion, but task 9 owns the missing adapter integration and depends on task 40 completing"
+      },
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "0c2e091b73325368b22ec142e76da5ed5ab4cad2",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md",
+          "side": "head",
+          "startLine": 13
+        },
+        "body": "FYI: tasks 29/31 both declare `artifact/store.go` and `store_test.go`; tasks 30/33 both declare `artifact/opened_test.go`; tasks 23/24 overlap in `cmd/tools/lintcode`; tasks 26/34 overlap in CLI characterization tests; tasks 1/22 overlap in coordinator transport tests. These pairs require serial dispatch despite having no dependency ordering. The stated single-writer and source-progress admission rules already mitigate this, so it is nonblocking.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e6ff44c6ef1501a94d015b352c74de561514cd6910b215d38827676ea4cec2dc",
+        "id": "finding-f9395f3cf92443a6c4a33131b19d86c3",
+        "lastSeenReceiptId": "review-6e1ef20a16d611ab22bd2fda177d8ce1c66ef6b4395e0e4cbb768a4afae01066",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "not_fixed",
+        "suggestion": "Retain the explicit serial admission order for these overlapping pairs.",
+        "title": "FYI: tasks 29/31 both declare `artifact/store"
+      },
+      {
+        "anchor": {
+          "baseSha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+          "headSha": "0c2e091b73325368b22ec142e76da5ed5ab4cad2",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md",
+          "side": "head",
+          "startLine": 13
+        },
+        "body": "FYI: pairs 29/31, 30/33, 23/24, 26/34 and 1/22 retain their overlaps without dependency edges. The existing single-writer and serial admission rules mitigate this; it remains nonblocking.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-6e1ef20a16d611ab22bd2fda177d8ce1c66ef6b4395e0e4cbb768a4afae01066",
+        "id": "finding-1ae0809c8172c8461816ccd7f3b5e964",
+        "lastSeenReceiptId": "review-6e1ef20a16d611ab22bd2fda177d8ce1c66ef6b4395e0e4cbb768a4afae01066",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Continue serial admission for these pairs.",
+        "title": "FYI: pairs 29/31, 30/33, 23/24, 26/34 and 1/22 retain their overlaps without dependency edges"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-6e1ef20a16d611ab22bd2fda177d8ce1c66ef6b4395e0e4cbb768a4afae01066",
+    "supersedesReceiptId": "review-e6ff44c6ef1501a94d015b352c74de561514cd6910b215d38827676ea4cec2dc"
+  },
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding #1: fixed\nPrior finding #2: not-fixed\n\nTask 40 now explicitly completes its mechanism-owned contracts independently of task 9. The epic matches this clarification; aggregate integration and qualification remain with tasks 9/fn113/21. The completion deadlock is resolved without dropping verification requirements.\n\nSeverity: P2\nConfidence: 100\nClassification: pre_existing\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md:13\nR-IDs: []\nLocation: Overlapping Touches in dependency-independent task pairs.\nProblem: FYI: pairs 29/31, 30/33, 23/24, 26/34 and 1/22 retain their overlaps without dependency edges. The existing single-writer and serial admission rules mitigate this; it remains nonblocking.\nSuggestion: Continue serial admission for these pairs.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict> - The blocking finding is fixed; only the nonblocking serialization advisory remains.\n",
+  "review_reservation_id": "c83d81fc278b4cf1b28a6e619d8666a5",
+  "session_id": "01a10b70-220e-7fa1-b56e-12ad58d3e7a6",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-05T09:50:22.882092Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}
