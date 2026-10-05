@@ -22,6 +22,7 @@ import umpire.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, Pr
 import umpire.realize.{Reason, RunExpectation}
 import temporal.capabilities.{given, *}
 import temporal.realize.satisfied
+import shared.Bounds.{four, three}
 import SystemFamily.given
 
 // First written in System.scala: it keeps the Definition IDs and type names it was checked with.

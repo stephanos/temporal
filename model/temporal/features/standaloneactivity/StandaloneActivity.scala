@@ -20,6 +20,7 @@ import umpire.*
 import umpire.realize.Reason
 import temporal.capabilities.{given, *}
 import temporal.realize.{inconclusive, satisfied}
+import shared.Bounds.{four, three}
 import shared.worker.{serve, workerStop, Phase as WorkerPhase, State as WorkerState}
 import io.temporal.api.workflowservice.v1.*
 import ActivityFamily.given
@@ -159,9 +160,7 @@ val scheduleToClose = timer
 val scheduleToStart = timer
 val startToClose = timer
 
-// The bounds, for these Queries and the system contract's.
-val three = Limits(steps = 3, actions = 3, search = 4096)
-val four = Limits(steps = 4, actions = 4, search = 32768)
+// The bounds of these Queries and the system contract's, beside three and four (shared.Bounds).
 val five = Limits(steps = 5, actions = 5, search = 65536)
 val six = Limits(steps = 6, actions = 6, search = 262144)
 val eight = Limits(steps = 8, actions = 8, search = 262144)
@@ -653,7 +652,7 @@ object Protocol:
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 
 object ActivityWorker:
-  val activityWorker = shared.worker.polling.restrict(workerStop, serve)
+  val activityWorker = shared.worker.Polling.polling.restrict(workerStop, serve)
 
 // ### With the worker of its task queue, the stop is the worker's own phase change and every
 // attempt start is the worker serving, so an attempt has a row only while the worker polls.
@@ -678,7 +677,7 @@ object StandaloneActivity:
     /**
      * The first attempt fails retryably and backs off, then the worker stops, so the retry is never
      * dispatched; the attempt start makes the verification exercise the claim. The start is stated:
-     * a default would take the worker's from worker/Model.scala; fn-115's golden compares positions.
+     * a default would take the worker's from shared/worker/Worker.scala; fn-115's golden compares positions.
      */
     val stoppedBeforeRetry = standaloneActivity.scenario
       .starts(StandaloneActivityState(Protocol.unstarted, WorkerState(WorkerPhase.polling)))
@@ -717,11 +716,11 @@ object Files:
     record.Admission.queries.currentQueries,
     record.StaleAdmission.queries.staleQueries,
     Protocol.queries.competingTimers,
-    shared.taskqueue.matchingQueueQueries,
-    shared.taskqueue.forgetfulQueueQueries,
-    shared.taskqueue.volatileQueueQueries,
-    shared.taskqueue.lossyMatchingQueueQueries,
-    shared.taskqueue.storageLossQuery,
+    shared.taskqueue.MatchingQueue.queries.matchingQueueQueries,
+    shared.taskqueue.MatchingQueue.queries.forgetfulQueueQueries,
+    shared.taskqueue.MatchingQueue.queries.volatileQueueQueries,
+    shared.taskqueue.MatchingQueue.queries.lossyMatchingQueueQueries,
+    shared.taskqueue.MatchingQueue.queries.storageLossQuery,
     withTaskQueue.CurrentOverQueue.queries.currentOverQueueQueries,
     withTaskQueue.StaleOverQueue.queries.staleOverQueueQueries,
     withTaskQueue.CurrentOverMatching.queries.currentOverMatchingQueries,

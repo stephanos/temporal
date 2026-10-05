@@ -1,10 +1,10 @@
 {
-  "source": "model: temporal.features.nexusoperation.Capabilities$package$.operationCapabilities, temporal.features.nexusoperation.Model$package$.nexusOperation, temporal.features.nexusoperation.OperationRealization$.standalone",
+  "source": "model: temporal.features.nexusoperation.Operation$.laws$.operationCapabilities, temporal.features.nexusoperation.Operation$.nexusOperation, temporal.features.nexusoperation.OperationRealization$.standalone",
   "types": [ {
     "name": "temporal.nexusoperation.OperationFact",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 67
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 58
     },
     "enum": {
       "cases": [ {
@@ -26,8 +26,8 @@
   }, {
     "name": "temporal.nexusoperation.OperationState",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 64
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 55
     },
     "record": {
       "fields": [ {
@@ -45,8 +45,8 @@
   }, {
     "name": "temporal.nexusoperation.Outcome",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 54
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 47
     },
     "enum": {
       "cases": [ {
@@ -58,8 +58,8 @@
   }, {
     "name": "temporal.nexusoperation.Phase",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 60
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 51
     },
     "enum": {
       "cases": [ {
@@ -81,8 +81,8 @@
   }, {
     "name": "temporal.nexusoperation.Reply",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 31
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 35
     },
     "enum": {
       "cases": [ {
@@ -98,8 +98,8 @@
   }, {
     "name": "temporal.nexusoperation.Resolution",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 35
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 39
     },
     "enum": {
       "cases": [ {
@@ -114,8 +114,8 @@
   "functions": [ {
     "name": "nexusOperation.evidence",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 133
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 149
     },
     "params": [ {
       "name": "operationFact",
@@ -125,14 +125,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 133
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 149
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 133
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 149
           },
           "var": "operationFact"
         },
@@ -147,8 +147,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/nexusoperation/Model.scala",
-              "line": 133
+              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+              "line": 149
             },
             "literal": {
               "text": "statusScheduled"
@@ -165,8 +165,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/nexusoperation/Model.scala",
-              "line": 133
+              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+              "line": 149
             },
             "literal": {
               "text": "statusStarted"
@@ -183,8 +183,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/nexusoperation/Model.scala",
-              "line": 133
+              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+              "line": 149
             },
             "literal": {
               "text": "statusCancelRequested"
@@ -201,8 +201,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/nexusoperation/Model.scala",
-              "line": 133
+              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+              "line": 149
             },
             "literal": {
               "text": "statusSucceeded"
@@ -219,8 +219,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/nexusoperation/Model.scala",
-              "line": 133
+              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+              "line": 149
             },
             "literal": {
               "text": "statusFailed"
@@ -237,8 +237,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/nexusoperation/Model.scala",
-              "line": 133
+              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+              "line": 149
             },
             "literal": {
               "text": "statusCanceled"
@@ -255,8 +255,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/features/nexusoperation/Model.scala",
-              "line": 133
+              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+              "line": 149
             },
             "literal": {
               "text": "statusTerminated"
@@ -286,8 +286,8 @@
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-            "line": 41
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 219
           },
           "literal": {
             "enum": {
@@ -317,8 +317,8 @@
   }, {
     "name": "nexusOperation.property.nexusOperation.closedIsRejectedUniformly",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Properties.scala",
-      "line": 19
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 177
     },
     "params": [ {
       "name": "before",
@@ -333,36 +333,36 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Properties.scala",
-        "line": 20
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 178
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Properties.scala",
-            "line": 20
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 178
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Properties.scala",
-                "line": 20
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 178
               },
               "call": {
                 "function": "temporal.features.nexusoperation.Operation$.terminal",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Properties.scala",
-                    "line": 20
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 178
                   },
                   "call": {
                     "function": "temporal.features.nexusoperation.Operation$.phase",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Properties.scala",
-                        "line": 20
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 178
                       },
                       "var": "before"
                     } ]
@@ -374,28 +374,28 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Properties.scala",
-            "line": 21
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 179
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Properties.scala",
-                "line": 21
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 179
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Properties.scala",
-                    "line": 21
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 179
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Properties.scala",
-                        "line": 21
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 179
                       },
                       "var": "after"
                     },
@@ -404,8 +404,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Properties.scala",
-                    "line": 21
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 179
                   },
                   "var": "before"
                 }
@@ -413,28 +413,28 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Properties.scala",
-                "line": 21
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 179
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Properties.scala",
-                    "line": 21
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 179
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Properties.scala",
-                        "line": 21
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 179
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Properties.scala",
-                            "line": 21
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 179
                           },
                           "var": "after"
                         },
@@ -443,8 +443,8 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-                        "line": 31
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 209
                       },
                       "literal": {
                         "enum": {
@@ -457,28 +457,28 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Properties.scala",
-                    "line": 21
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 179
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Properties.scala",
-                        "line": 21
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 179
                       },
                       "binary": {
                         "op": "OP_EQ",
                         "left": {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Properties.scala",
-                            "line": 21
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 179
                           },
                           "field": {
                             "base": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Properties.scala",
-                                "line": 21
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 179
                               },
                               "var": "after"
                             },
@@ -487,8 +487,8 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Properties.scala",
-                            "line": 21
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 179
                           },
                           "literal": {
                             "enum": {
@@ -501,21 +501,21 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Properties.scala",
-                        "line": 22
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 180
                       },
                       "binary": {
                         "op": "OP_OR",
                         "left": {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Properties.scala",
-                            "line": 22
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 180
                           },
                           "field": {
                             "base": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Properties.scala",
-                                "line": 22
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 180
                               },
                               "var": "before"
                             },
@@ -524,22 +524,22 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Properties.scala",
-                            "line": 22
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 180
                           },
                           "binary": {
                             "op": "OP_EQ",
                             "left": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Properties.scala",
-                                "line": 22
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 180
                               },
                               "call": {
                                 "function": "temporal.features.nexusoperation.Operation$.phase",
                                 "args": [ {
                                   "position": {
-                                    "file": "model/temporal/features/nexusoperation/Properties.scala",
-                                    "line": 22
+                                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                    "line": 180
                                   },
                                   "var": "before"
                                 } ]
@@ -547,8 +547,8 @@
                             },
                             "right": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Properties.scala",
-                                "line": 22
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 180
                               },
                               "literal": {
                                 "enum": {
@@ -700,8 +700,8 @@
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-            "line": 35
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 213
           },
           "literal": {
             "enum": {
@@ -729,10 +729,10 @@
       }
     }
   }, {
-    "name": "temporal.features.nexusoperation.Operation$.closed",
+    "name": "temporal.features.nexusoperation.Operation$.effects$.closed",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 81
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 97
     },
     "params": [ {
       "name": "s",
@@ -742,21 +742,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 82
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 98
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 82
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 98
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 82
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 98
               },
               "literal": {
                 "enum": {
@@ -766,20 +766,20 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 82
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 98
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 82
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 98
               },
               "list": { }
             }, {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 82
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 98
               },
               "literal": {
                 "text": ""
@@ -790,10 +790,10 @@
       }
     }
   }, {
-    "name": "temporal.features.nexusoperation.Operation$.complete",
+    "name": "temporal.features.nexusoperation.Operation$.effects$.complete",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 103
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 119
     },
     "params": [ {
       "name": "s",
@@ -808,27 +808,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 104
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 120
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 104
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 120
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 104
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 120
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 104
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 120
                   },
                   "var": "s"
                 },
@@ -837,8 +837,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 104
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 120
               },
               "literal": {
                 "enum": {
@@ -851,21 +851,21 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 104
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 120
           },
           "list": { }
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 106
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 122
           },
           "match": {
             "scrutinee": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 106
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 122
               },
               "var": "r"
             },
@@ -880,21 +880,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                  "line": 107
+                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                  "line": 123
                 },
                 "list": {
                   "items": [ {
                     "position": {
-                      "file": "model/temporal/features/nexusoperation/Model.scala",
-                      "line": 107
+                      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                      "line": 123
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 57
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 83
                         },
                         "literal": {
                           "enum": {
@@ -904,14 +904,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 107
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 123
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 107
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 123
                             },
                             "var": "s"
                           },
@@ -919,8 +919,8 @@
                             "name": "phase",
                             "value": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 107
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 123
                               },
                               "literal": {
                                 "enum": {
@@ -933,14 +933,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 107
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 123
                         },
                         "list": {
                           "items": [ {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 107
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 123
                             },
                             "literal": {
                               "enum": {
@@ -952,8 +952,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 107
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 123
                         },
                         "literal": {
                           "text": ""
@@ -974,21 +974,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                  "line": 108
+                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                  "line": 124
                 },
                 "list": {
                   "items": [ {
                     "position": {
-                      "file": "model/temporal/features/nexusoperation/Model.scala",
-                      "line": 108
+                      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                      "line": 124
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 57
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 83
                         },
                         "literal": {
                           "enum": {
@@ -998,14 +998,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 108
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 124
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 108
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 124
                             },
                             "var": "s"
                           },
@@ -1013,8 +1013,8 @@
                             "name": "phase",
                             "value": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 108
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 124
                               },
                               "literal": {
                                 "enum": {
@@ -1027,14 +1027,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 108
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 124
                         },
                         "list": {
                           "items": [ {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 108
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 124
                             },
                             "literal": {
                               "enum": {
@@ -1046,8 +1046,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 108
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 124
                         },
                         "literal": {
                           "text": ""
@@ -1068,21 +1068,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                  "line": 109
+                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                  "line": 125
                 },
                 "list": {
                   "items": [ {
                     "position": {
-                      "file": "model/temporal/features/nexusoperation/Model.scala",
-                      "line": 109
+                      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                      "line": 125
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 57
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 83
                         },
                         "literal": {
                           "enum": {
@@ -1092,14 +1092,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 109
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 125
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 109
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 125
                             },
                             "var": "s"
                           },
@@ -1107,8 +1107,8 @@
                             "name": "phase",
                             "value": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 109
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 125
                               },
                               "literal": {
                                 "enum": {
@@ -1121,14 +1121,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 109
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 125
                         },
                         "list": {
                           "items": [ {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 109
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 125
                             },
                             "literal": {
                               "enum": {
@@ -1140,8 +1140,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 109
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 125
                         },
                         "literal": {
                           "text": ""
@@ -1157,47 +1157,10 @@
       }
     }
   }, {
-    "name": "temporal.features.nexusoperation.Operation$.ends",
+    "name": "temporal.features.nexusoperation.Operation$.effects$.handlerReply",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 79
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.nexusoperation.OperationState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 79
-      },
-      "call": {
-        "function": "temporal.features.nexusoperation.Operation$.terminal",
-        "args": [ {
-          "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 79
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 79
-              },
-              "var": "s"
-            },
-            "field": "phase"
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.nexusoperation.Operation$.handlerReply",
-    "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 93
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 109
     },
     "params": [ {
       "name": "s",
@@ -1212,27 +1175,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 94
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 110
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 94
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 110
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 94
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 110
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 94
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 110
                   },
                   "var": "s"
                 },
@@ -1241,8 +1204,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 94
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 110
               },
               "literal": {
                 "enum": {
@@ -1255,21 +1218,21 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 94
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 110
           },
           "list": { }
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 96
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 112
           },
           "match": {
             "scrutinee": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 96
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 112
               },
               "var": "r"
             },
@@ -1284,21 +1247,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                  "line": 97
+                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                  "line": 113
                 },
                 "list": {
                   "items": [ {
                     "position": {
-                      "file": "model/temporal/features/nexusoperation/Model.scala",
-                      "line": 97
+                      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                      "line": 113
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 57
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 83
                         },
                         "literal": {
                           "enum": {
@@ -1308,14 +1271,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 97
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 113
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 97
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 113
                             },
                             "var": "s"
                           },
@@ -1323,8 +1286,8 @@
                             "name": "phase",
                             "value": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 97
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 113
                               },
                               "literal": {
                                 "enum": {
@@ -1337,14 +1300,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 97
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 113
                         },
                         "list": {
                           "items": [ {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 97
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 113
                             },
                             "literal": {
                               "enum": {
@@ -1356,8 +1319,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 97
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 113
                         },
                         "literal": {
                           "text": ""
@@ -1378,21 +1341,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                  "line": 98
+                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                  "line": 114
                 },
                 "list": {
                   "items": [ {
                     "position": {
-                      "file": "model/temporal/features/nexusoperation/Model.scala",
-                      "line": 98
+                      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                      "line": 114
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 57
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 83
                         },
                         "literal": {
                           "enum": {
@@ -1402,14 +1365,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 98
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 114
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 98
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 114
                             },
                             "var": "s"
                           },
@@ -1417,8 +1380,8 @@
                             "name": "phase",
                             "value": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 98
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 114
                               },
                               "literal": {
                                 "enum": {
@@ -1431,14 +1394,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 98
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 114
                         },
                         "list": {
                           "items": [ {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 98
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 114
                             },
                             "literal": {
                               "enum": {
@@ -1450,8 +1413,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 98
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 114
                         },
                         "literal": {
                           "text": ""
@@ -1472,21 +1435,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                  "line": 99
+                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                  "line": 115
                 },
                 "list": {
                   "items": [ {
                     "position": {
-                      "file": "model/temporal/features/nexusoperation/Model.scala",
-                      "line": 99
+                      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                      "line": 115
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 57
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 83
                         },
                         "literal": {
                           "enum": {
@@ -1496,14 +1459,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 99
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 115
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 99
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 115
                             },
                             "var": "s"
                           },
@@ -1511,8 +1474,8 @@
                             "name": "phase",
                             "value": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 99
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 115
                               },
                               "literal": {
                                 "enum": {
@@ -1525,14 +1488,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 99
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 115
                         },
                         "list": {
                           "items": [ {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 99
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 115
                             },
                             "literal": {
                               "enum": {
@@ -1544,8 +1507,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 99
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 115
                         },
                         "literal": {
                           "text": ""
@@ -1566,21 +1529,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                  "line": 100
+                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                  "line": 116
                 },
                 "list": {
                   "items": [ {
                     "position": {
-                      "file": "model/temporal/features/nexusoperation/Model.scala",
-                      "line": 100
+                      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                      "line": 116
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 57
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 83
                         },
                         "literal": {
                           "enum": {
@@ -1590,14 +1553,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 100
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 116
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 100
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 116
                             },
                             "var": "s"
                           },
@@ -1605,8 +1568,8 @@
                             "name": "phase",
                             "value": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 100
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 116
                               },
                               "literal": {
                                 "enum": {
@@ -1619,14 +1582,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 100
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 116
                         },
                         "list": {
                           "items": [ {
                             "position": {
-                              "file": "model/temporal/features/nexusoperation/Model.scala",
-                              "line": 100
+                              "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                              "line": 116
                             },
                             "literal": {
                               "enum": {
@@ -1638,8 +1601,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/features/nexusoperation/Model.scala",
-                          "line": 100
+                          "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                          "line": 116
                         },
                         "literal": {
                           "text": ""
@@ -1655,10 +1618,10 @@
       }
     }
   }, {
-    "name": "temporal.features.nexusoperation.Operation$.phase",
+    "name": "temporal.features.nexusoperation.Operation$.effects$.repeated",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 77
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 99
     },
     "params": [ {
       "name": "s",
@@ -1668,49 +1631,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 77
-      },
-      "field": {
-        "base": {
-          "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 77
-          },
-          "var": "s"
-        },
-        "field": "phase"
-      }
-    }
-  }, {
-    "name": "temporal.features.nexusoperation.Operation$.repeated",
-    "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 83
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.nexusoperation.OperationState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 83
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 99
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 83
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 99
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 83
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 99
               },
               "literal": {
                 "enum": {
@@ -1720,20 +1655,20 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 83
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 99
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 83
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 99
               },
               "list": { }
             }, {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 83
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 99
               },
               "literal": {
                 "text": ""
@@ -1744,10 +1679,10 @@
       }
     }
   }, {
-    "name": "temporal.features.nexusoperation.Operation$.requestCancel",
+    "name": "temporal.features.nexusoperation.Operation$.effects$.requestCancel",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 116
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 132
     },
     "params": [ {
       "name": "s",
@@ -1757,27 +1692,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 117
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 133
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 117
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 133
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 117
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 133
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 117
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 133
                   },
                   "var": "s"
                 },
@@ -1786,8 +1721,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 117
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -1800,27 +1735,27 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 117
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 133
           },
           "list": { }
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 118
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 134
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 118
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 134
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 118
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 134
                   },
                   "var": "s"
                 },
@@ -1829,15 +1764,15 @@
             },
             "then": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 118
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 134
               },
               "call": {
-                "function": "temporal.features.nexusoperation.Operation$.repeated",
+                "function": "temporal.features.nexusoperation.Operation$.effects$.repeated",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 118
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 134
                   },
                   "var": "s"
                 } ]
@@ -1845,27 +1780,27 @@
             },
             "else": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 119
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 135
               },
               "if": {
                 "condition": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 119
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 135
                   },
                   "call": {
                     "function": "temporal.features.nexusoperation.Operation$.terminal",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 119
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 135
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 119
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 135
                           },
                           "var": "s"
                         },
@@ -1876,15 +1811,15 @@
                 },
                 "then": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 119
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 135
                   },
                   "call": {
-                    "function": "temporal.features.nexusoperation.Operation$.closed",
+                    "function": "temporal.features.nexusoperation.Operation$.effects$.closed",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 119
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 135
                       },
                       "var": "s"
                     } ]
@@ -1892,21 +1827,21 @@
                 },
                 "else": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 120
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 136
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 120
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 136
                       },
                       "construct": {
                         "type": "umpire.Step",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 57
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 83
                           },
                           "literal": {
                             "enum": {
@@ -1916,14 +1851,14 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 120
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 136
                           },
                           "copy": {
                             "base": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 120
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 136
                               },
                               "var": "s"
                             },
@@ -1931,8 +1866,8 @@
                               "name": "cancelRequested",
                               "value": {
                                 "position": {
-                                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                                  "line": 120
+                                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                  "line": 136
                                 },
                                 "literal": {
                                   "bool": true
@@ -1942,14 +1877,14 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 120
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 136
                           },
                           "list": {
                             "items": [ {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 120
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 136
                               },
                               "literal": {
                                 "enum": {
@@ -1961,8 +1896,8 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 120
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 136
                           },
                           "literal": {
                             "text": ""
@@ -1979,10 +1914,10 @@
       }
     }
   }, {
-    "name": "temporal.features.nexusoperation.Operation$.start",
+    "name": "temporal.features.nexusoperation.Operation$.effects$.start",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 85
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 101
     },
     "params": [ {
       "name": "s",
@@ -1992,27 +1927,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 86
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 102
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 86
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 102
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 86
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 102
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 86
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 102
                   },
                   "var": "s"
                 },
@@ -2021,8 +1956,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 86
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 102
               },
               "literal": {
                 "enum": {
@@ -2035,28 +1970,28 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 86
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 102
           },
           "list": { }
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 87
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 103
           },
           "list": {
             "items": [ {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 87
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 103
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 57
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 83
                   },
                   "literal": {
                     "enum": {
@@ -2066,15 +2001,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 87
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 103
                   },
                   "construct": {
                     "type": "temporal.nexusoperation.OperationState",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 87
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 103
                       },
                       "literal": {
                         "enum": {
@@ -2084,8 +2019,8 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 87
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 103
                       },
                       "literal": {
                         "bool": false
@@ -2094,14 +2029,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 87
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 103
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 87
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 103
                       },
                       "literal": {
                         "enum": {
@@ -2113,8 +2048,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 87
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 103
                   },
                   "literal": {
                     "text": ""
@@ -2127,91 +2062,10 @@
       }
     }
   }, {
-    "name": "temporal.features.nexusoperation.Operation$.terminal",
+    "name": "temporal.features.nexusoperation.Operation$.effects$.terminate",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 78
-    },
-    "params": [ {
-      "name": "p",
-      "type": {
-        "named": "temporal.nexusoperation.Phase"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 78
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 78
-          },
-          "var": "p"
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 78
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 78
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.nexusoperation.Phase",
-                  "case": "succeeded"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 78
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.nexusoperation.Phase",
-                  "case": "failed"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 78
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.nexusoperation.Phase",
-                  "case": "canceled"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 78
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.nexusoperation.Phase",
-                  "case": "terminated"
-                }
-              }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.nexusoperation.Operation$.terminate",
-    "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 127
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 143
     },
     "params": [ {
       "name": "s",
@@ -2221,27 +2075,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 128
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 144
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 128
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 144
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 128
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 144
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 128
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 144
                   },
                   "var": "s"
                 },
@@ -2250,8 +2104,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 128
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 144
               },
               "literal": {
                 "enum": {
@@ -2264,34 +2118,34 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 128
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 144
           },
           "list": { }
         },
         "else": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 129
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 145
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 129
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 145
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 129
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 145
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 129
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 145
                       },
                       "var": "s"
                     },
@@ -2300,8 +2154,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 129
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 145
                   },
                   "literal": {
                     "enum": {
@@ -2314,15 +2168,15 @@
             },
             "then": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 129
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 145
               },
               "call": {
-                "function": "temporal.features.nexusoperation.Operation$.repeated",
+                "function": "temporal.features.nexusoperation.Operation$.effects$.repeated",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 129
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 145
                   },
                   "var": "s"
                 } ]
@@ -2330,27 +2184,27 @@
             },
             "else": {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 130
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 146
               },
               "if": {
                 "condition": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 130
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 146
                   },
                   "call": {
                     "function": "temporal.features.nexusoperation.Operation$.terminal",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 130
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 146
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 130
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 146
                           },
                           "var": "s"
                         },
@@ -2361,15 +2215,15 @@
                 },
                 "then": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 130
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 146
                   },
                   "call": {
-                    "function": "temporal.features.nexusoperation.Operation$.closed",
+                    "function": "temporal.features.nexusoperation.Operation$.effects$.closed",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 130
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 146
                       },
                       "var": "s"
                     } ]
@@ -2377,21 +2231,21 @@
                 },
                 "else": {
                   "position": {
-                    "file": "model/temporal/features/nexusoperation/Model.scala",
-                    "line": 131
+                    "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                    "line": 147
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/features/nexusoperation/Model.scala",
-                        "line": 131
+                        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                        "line": 147
                       },
                       "construct": {
                         "type": "umpire.Step",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 57
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 83
                           },
                           "literal": {
                             "enum": {
@@ -2401,14 +2255,14 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 131
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 147
                           },
                           "copy": {
                             "base": {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 131
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 147
                               },
                               "var": "s"
                             },
@@ -2416,8 +2270,8 @@
                               "name": "phase",
                               "value": {
                                 "position": {
-                                  "file": "model/temporal/features/nexusoperation/Model.scala",
-                                  "line": 131
+                                  "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                  "line": 147
                                 },
                                 "literal": {
                                   "enum": {
@@ -2430,14 +2284,14 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 131
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 147
                           },
                           "list": {
                             "items": [ {
                               "position": {
-                                "file": "model/temporal/features/nexusoperation/Model.scala",
-                                "line": 131
+                                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                                "line": 147
                               },
                               "literal": {
                                 "enum": {
@@ -2449,8 +2303,8 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/temporal/features/nexusoperation/Model.scala",
-                            "line": 131
+                            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                            "line": 147
                           },
                           "literal": {
                             "text": ""
@@ -2466,13 +2320,159 @@
         }
       }
     }
+  }, {
+    "name": "temporal.features.nexusoperation.Operation$.end",
+    "position": {
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 92
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.nexusoperation.OperationState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 92
+      },
+      "call": {
+        "function": "temporal.features.nexusoperation.Operation$.terminal",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 92
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 92
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.nexusoperation.Operation$.phase",
+    "position": {
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 90
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.nexusoperation.OperationState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 90
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 90
+          },
+          "var": "s"
+        },
+        "field": "phase"
+      }
+    }
+  }, {
+    "name": "temporal.features.nexusoperation.Operation$.terminal",
+    "position": {
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 91
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "temporal.nexusoperation.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 91
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 91
+          },
+          "var": "p"
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 91
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 91
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexusoperation.Phase",
+                  "case": "succeeded"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 91
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexusoperation.Phase",
+                  "case": "failed"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 91
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexusoperation.Phase",
+                  "case": "canceled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 91
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexusoperation.Phase",
+                  "case": "terminated"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
   } ],
   "actions": [ {
     "id": "temporal.nexusoperation.Model$package$.complete",
     "name": "complete",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 47
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 81
     },
     "party": "handler",
     "inputs": [ {
@@ -2486,8 +2486,8 @@
     "id": "temporal.nexusoperation.Model$package$.handlerReply",
     "name": "handlerReply",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 46
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 80
     },
     "party": "handler",
     "inputs": [ {
@@ -2501,8 +2501,8 @@
     "id": "temporal.nexusoperation.Model$package$.requestCancel",
     "name": "requestCancel",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 44
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 78
     },
     "party": "caller",
     "on": "operation",
@@ -2511,8 +2511,8 @@
     "id": "temporal.nexusoperation.Model$package$.start",
     "name": "start",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 42
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 76
     },
     "party": "caller",
     "creates": "operation",
@@ -2521,8 +2521,8 @@
     "id": "temporal.nexusoperation.Model$package$.terminate",
     "name": "terminate",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 45
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 79
     },
     "party": "caller",
     "on": "operation",
@@ -2532,8 +2532,8 @@
     "family": "temporal.nexusoperation.standalone",
     "name": "nexusOperation",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Model.scala",
-      "line": 133
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 149
     },
     "entity": "operation",
     "stateType": "temporal.nexusoperation.OperationState",
@@ -2541,15 +2541,15 @@
     "factType": "temporal.nexusoperation.OperationFact",
     "starts": [ {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 135
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 151
       },
       "construct": {
         "type": "temporal.nexusoperation.OperationState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "enum": {
@@ -2559,8 +2559,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "bool": false
@@ -2570,8 +2570,8 @@
     } ],
     "ends": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 136
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 152
       },
       "lambda": {
         "params": [ {
@@ -2582,15 +2582,15 @@
         } ],
         "body": {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 136
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 152
           },
           "call": {
-            "function": "temporal.features.nexusoperation.Operation$.ends",
+            "function": "temporal.features.nexusoperation.Operation$.end",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/nexusoperation/Model.scala",
-                "line": 136
+                "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+                "line": 152
               },
               "var": "s"
             } ]
@@ -2600,38 +2600,38 @@
     },
     "steps": [ {
       "action": "temporal.nexusoperation.Model$package$.start",
-      "function": "temporal.features.nexusoperation.Operation$.start",
+      "function": "temporal.features.nexusoperation.Operation$.effects$.start",
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 138
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 154
       }
     }, {
       "action": "temporal.nexusoperation.Model$package$.handlerReply",
-      "function": "temporal.features.nexusoperation.Operation$.handlerReply",
+      "function": "temporal.features.nexusoperation.Operation$.effects$.handlerReply",
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 139
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 155
       }
     }, {
       "action": "temporal.nexusoperation.Model$package$.complete",
-      "function": "temporal.features.nexusoperation.Operation$.complete",
+      "function": "temporal.features.nexusoperation.Operation$.effects$.complete",
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 140
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 156
       }
     }, {
       "action": "temporal.nexusoperation.Model$package$.requestCancel",
-      "function": "temporal.features.nexusoperation.Operation$.requestCancel",
+      "function": "temporal.features.nexusoperation.Operation$.effects$.requestCancel",
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 141
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 157
       }
     }, {
       "action": "temporal.nexusoperation.Model$package$.terminate",
-      "function": "temporal.features.nexusoperation.Operation$.terminate",
+      "function": "temporal.features.nexusoperation.Operation$.effects$.terminate",
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 142
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 158
       }
     } ],
     "evidence": "nexusOperation.evidence"
@@ -2651,8 +2651,8 @@
     "machine": "nexusOperation",
     "name": "nexusOperation.closedIsRejectedUniformly",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Properties.scala",
-      "line": 19
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 177
     },
     "holds": "nexusOperation.property.nexusOperation.closedIsRejectedUniformly",
     "transition": true
@@ -2681,20 +2681,20 @@
     "machine": "nexusOperation",
     "name": "nexusOperation.cancelIsRequested",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 39
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 217
     },
     "start": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 135
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 151
       },
       "construct": {
         "type": "temporal.nexusoperation.OperationState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "enum": {
@@ -2704,8 +2704,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "bool": false
@@ -2722,20 +2722,20 @@
     "machine": "nexusOperation",
     "name": "nexusOperation.closedIsRejectedUniformly",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 28
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 206
     },
     "start": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 135
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 151
       },
       "construct": {
         "type": "temporal.nexusoperation.OperationState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "enum": {
@@ -2745,8 +2745,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "bool": false
@@ -2759,20 +2759,20 @@
     "machine": "nexusOperation",
     "name": "nexusOperation.terminalStatesAreFinal",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 28
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 206
     },
     "start": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 135
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 151
       },
       "construct": {
         "type": "temporal.nexusoperation.OperationState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "enum": {
@@ -2782,8 +2782,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "bool": false
@@ -2796,20 +2796,20 @@
     "machine": "nexusOperation",
     "name": "nexusOperation.terminateSettles",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 33
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 211
     },
     "start": {
       "position": {
-        "file": "model/temporal/features/nexusoperation/Model.scala",
-        "line": 135
+        "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+        "line": 151
       },
       "construct": {
         "type": "temporal.nexusoperation.OperationState",
         "args": [ {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "enum": {
@@ -2819,8 +2819,8 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/features/nexusoperation/Model.scala",
-            "line": 135
+            "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+            "line": 151
           },
           "literal": {
             "bool": false
@@ -2837,8 +2837,8 @@
   "queries": [ {
     "name": "nexusOperation.cancelIsRequested",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 39
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 217
     },
     "form": "FORM_FIND",
     "property": {
@@ -2867,8 +2867,8 @@
   }, {
     "name": "nexusOperation.closedIsRejectedUniformly",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 28
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 206
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2889,8 +2889,8 @@
   }, {
     "name": "nexusOperation.terminalStatesAreFinal",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 28
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 206
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2911,8 +2911,8 @@
   }, {
     "name": "nexusOperation.terminateSettles",
     "position": {
-      "file": "model/temporal/features/nexusoperation/Capabilities.scala",
-      "line": 33
+      "file": "model/temporal/features/nexusoperation/NexusOperation.scala",
+      "line": 211
     },
     "form": "FORM_FIND",
     "property": {

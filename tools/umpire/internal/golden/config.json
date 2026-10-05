@@ -137,28 +137,32 @@
     {
       "old": "model/temporal/taskqueue/Queries.scala",
       "new": "model/temporal/standaloneactivity/System.scala"
+    },
+    {
+      "old": "model/temporal/taskqueue/TaskQueue.scala",
+      "new": "model/temporal/standaloneactivity/System.scala"
     }
   ],
   "source_root_moves": [
     {
       "old": "temporal.standaloneactivity.System$package$.matchingQueueQueries",
-      "new": "temporal.taskqueue.Queries$package$.matchingQueueQueries"
+      "new": "temporal.taskqueue.MatchingQueue$.queries$.matchingQueueQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.forgetfulQueueQueries",
-      "new": "temporal.taskqueue.Queries$package$.forgetfulQueueQueries"
+      "new": "temporal.taskqueue.MatchingQueue$.queries$.forgetfulQueueQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.volatileQueueQueries",
-      "new": "temporal.taskqueue.Queries$package$.volatileQueueQueries"
+      "new": "temporal.taskqueue.MatchingQueue$.queries$.volatileQueueQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.lossyMatchingQueueQueries",
-      "new": "temporal.taskqueue.Queries$package$.lossyMatchingQueueQueries"
+      "new": "temporal.taskqueue.MatchingQueue$.queries$.lossyMatchingQueueQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.storageLossQuery",
-      "new": "temporal.taskqueue.Queries$package$.storageLossQuery"
+      "new": "temporal.taskqueue.MatchingQueue$.queries$.storageLossQuery"
     },
     {
       "old": "temporal.standaloneactivity.Claims$package$.functionalQueries",
@@ -230,99 +234,115 @@
     },
     {
       "old": "temporal.nexuscaller.Claims$package$.functionalQueries",
-      "new": "temporal.nexuscaller.Queries$package$.functionalQueries"
+      "new": "temporal.nexuscaller.Protocol$.queries$.functionalQueries"
     },
     {
       "old": "temporal.nexuscaller.Claims$package$.terminalHolds",
-      "new": "temporal.nexuscaller.Queries$package$.terminalHolds"
+      "new": "temporal.nexuscaller.Protocol$.queries$.terminalHolds"
     },
     {
       "old": "temporal.nexuscaller.Claims$package$.stoppedWorkerRepliesNothing",
-      "new": "temporal.nexuscaller.Queries$package$.stoppedWorkerRepliesNothing"
+      "new": "temporal.nexuscaller.NexusCaller$.queries$.stoppedWorkerRepliesNothing"
     },
     {
       "old": "temporal.nexuscaller.Control$.forgedCompletion",
-      "new": "temporal.nexuscaller.Queries$package$.forgedCompletion"
+      "new": "temporal.nexuscaller.Control$.queries$.forgedCompletion"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.rejectAfterCloseQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.rejectAfterCloseQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.ackByOriginalQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.ackByOriginalQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.retainAndRouteQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.retainAndRouteQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.forgetsCancelOnResetQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.forgetsCancelOnResetQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.forgetsCancelOnResetQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.truncatesOnResetQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.truncatesOnResetQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.truncatesOnResetQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.retainAndRouteBoundedRetryQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.retainAndRouteBoundedRetryQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.rejectAfterCloseWithDeadlineQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.rejectAfterCloseWithDeadlineQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.ackByOriginalWithDeadlineQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.ackByOriginalWithDeadlineQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineQueries",
-      "new": "temporal.nexuscaller.closepolicy.Queries$package$.retainAndRouteWithDeadlineQueries"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.queries$.retainAndRouteWithDeadlineQueries"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseProgress",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.rejectAfterCloseProgress"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.rejectAfterCloseProgress"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalProgress",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.ackByOriginalProgress"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.ackByOriginalProgress"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteProgress",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainAndRouteProgress"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.retainAndRouteProgress"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryProgress",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainAndRouteBoundedRetryProgress"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.retainAndRouteBoundedRetryProgress"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineProgress",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.rejectAfterCloseWithDeadlineProgress"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.rejectAfterCloseWithDeadlineProgress"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineProgress",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.ackByOriginalWithDeadlineProgress"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.ackByOriginalWithDeadlineProgress"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineProgress",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainAndRouteWithDeadlineProgress"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.retainAndRouteWithDeadlineProgress"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwner",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainedReachesOwner"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.retainedReachesOwner"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainedWaitsWithoutRecovery",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainedWaitsWithoutRecovery"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.retainedWaitsWithoutRecovery"
     },
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwnerBoundedRetry",
-      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainedReachesOwnerBoundedRetry"
+      "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.retainedReachesOwnerBoundedRetry"
     },
     {
       "old": "temporal.worker.Worker$package$.polling",
-      "new": "temporal.worker.Model$package$.polling"
+      "new": "temporal.worker.Polling$.polling"
+    },
+    {
+      "old": "temporal.nexuscaller.Model$package$.nexusProduct",
+      "new": "temporal.nexuscaller.Product$.nexusProduct"
+    },
+    {
+      "old": "temporal.nexuscaller.Model$package$.nexusProtocol",
+      "new": "temporal.nexuscaller.Protocol$.nexusProtocol"
+    },
+    {
+      "old": "temporal.nexuscaller.Model$package$.handlerWorker",
+      "new": "temporal.nexuscaller.HandlerWorker$.handlerWorker"
+    },
+    {
+      "old": "temporal.nexuscaller.Model$package$.nexusCaller",
+      "new": "temporal.nexuscaller.NexusCaller$.nexusCaller"
     }
   ],
   "source_root_retirements": [
@@ -376,6 +396,10 @@
     },
     {
       "old": "model/temporal/nexuscaller/Queries.scala",
+      "new": "model/temporal/nexuscaller"
+    },
+    {
+      "old": "model/temporal/nexuscaller/NexusCaller.scala",
       "new": "model/temporal/nexuscaller"
     },
     {
@@ -444,11 +468,11 @@
     "function_name_substitutions": [
       {
         "old": "temporal.nexuscaller.kernel.Product$.completeStep",
-        "new": "temporal.nexuscaller.Product$.completeStep"
+        "new": "temporal.nexuscaller.Product$.effects$.completeStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Product$.handlerReplyStep",
-        "new": "temporal.nexuscaller.Product$.handlerReplyStep"
+        "new": "temporal.nexuscaller.Product$.effects$.handlerReplyStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Product$.productStep",
@@ -460,27 +484,27 @@
       },
       {
         "old": "temporal.nexuscaller.kernel.Product$.timeoutStep",
-        "new": "temporal.nexuscaller.Product$.timeoutStep"
+        "new": "temporal.nexuscaller.Product$.effects$.timeoutStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Product$.transportFaultStep",
-        "new": "temporal.nexuscaller.Product$.transportFaultStep"
+        "new": "temporal.nexuscaller.Product$.effects$.transportFaultStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Product$.workerStopStep",
-        "new": "temporal.nexuscaller.Product$.workerStopStep"
+        "new": "temporal.nexuscaller.Product$.effects$.workerStopStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.backoffStep",
-        "new": "temporal.nexuscaller.Protocol$.backoffStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.backoffStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.completeStep",
-        "new": "temporal.nexuscaller.Protocol$.completeStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.completeStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.handlerReplyStep",
-        "new": "temporal.nexuscaller.Protocol$.handlerReplyStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.handlerReplyStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.moves",
@@ -500,19 +524,19 @@
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.scheduleStep",
-        "new": "temporal.nexuscaller.Protocol$.scheduleStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.scheduleStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.scheduleToCloseStep",
-        "new": "temporal.nexuscaller.Protocol$.scheduleToCloseStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.scheduleToCloseStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.scheduleToStartStep",
-        "new": "temporal.nexuscaller.Protocol$.scheduleToStartStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.scheduleToStartStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.startToCloseStep",
-        "new": "temporal.nexuscaller.Protocol$.startToCloseStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.startToCloseStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
@@ -520,7 +544,7 @@
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.transportFaultStep",
-        "new": "temporal.nexuscaller.Protocol$.transportFaultStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.transportFaultStep"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
@@ -528,51 +552,51 @@
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.workerStopStep",
-        "new": "temporal.nexuscaller.Protocol$.workerStopStep"
+        "new": "temporal.nexuscaller.Protocol$.effects$.workerStopStep"
       },
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.closedHistoryIsFrozen",
-        "new": "temporal.nexuscaller.closepolicy.Properties$package$.closedHistoryIsFrozen"
+        "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.closedHistoryIsFrozen"
       },
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.knownIsTheHandlersOutcome",
-        "new": "temporal.nexuscaller.closepolicy.Properties$package$.knownIsTheHandlersOutcome"
+        "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.knownIsTheHandlersOutcome"
       },
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.knows",
-        "new": "temporal.nexuscaller.closepolicy.Properties$package$.knows"
+        "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.knows"
       },
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.knowledgeIsFinal",
-        "new": "temporal.nexuscaller.closepolicy.Properties$package$.knowledgeIsFinal"
+        "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.knowledgeIsFinal"
       },
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.nothingOwed",
-        "new": "temporal.nexuscaller.closepolicy.Properties$package$.nothingOwed"
+        "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.nothingOwed"
       },
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.noUnnecessaryWait",
-        "new": "temporal.nexuscaller.closepolicy.Properties$package$.noUnnecessaryWait"
+        "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.noUnnecessaryWait"
       },
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.awaitingOwner",
-        "new": "temporal.nexuscaller.closepolicy.Properties$package$.awaitingOwner"
+        "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.awaitingOwner"
       },
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.ownerKnowsOutcome",
-        "new": "temporal.nexuscaller.closepolicy.Properties$package$.ownerKnowsOutcome"
+        "new": "temporal.nexuscaller.closepolicy.RejectAfterClose$.properties$.ownerKnowsOutcome"
       },
       {
         "old": "temporal.worker.Worker$package$.resumeStep",
-        "new": "temporal.worker.Model$package$.resumeStep"
+        "new": "temporal.worker.Polling$.effects$.resumeStep"
       },
       {
         "old": "temporal.worker.Worker$package$.serveStep",
-        "new": "temporal.worker.Model$package$.serveStep"
+        "new": "temporal.worker.Polling$.effects$.serveStep"
       },
       {
         "old": "temporal.worker.Worker$package$.stopStep",
-        "new": "temporal.worker.Model$package$.stopStep"
+        "new": "temporal.worker.Polling$.effects$.stopStep"
       }
     ],
     "inert_fields": [

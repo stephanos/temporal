@@ -752,7 +752,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		})
 	}
 	t.Run("position in an unlisted file", func(t *testing.T) {
-		changed := migrationRewrite(t, admitted, rename("model/temporal/features/nexuscaller/Queries.scala", "model/temporal/features/nexuscaller/Query.scala"))
+		changed := migrationRewrite(t, admitted, rename("model/temporal/features/nexuscaller/NexusCaller.scala", "model/temporal/features/nexuscaller/Caller.scala"))
 		_, err := cfg.MatchAt(key, original, changed)
 		require.Error(t, err)
 	})
