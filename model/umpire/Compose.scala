@@ -99,8 +99,8 @@ type Move[S] = S => (Any, Action[?])
 final class Composed private[umpire] (val composition: Model, val selected: Any)
 
 /**
- * A member's def read from the composed state: `through(_.activity, Admission.paused)` is
- * `s => Admission.paused(s.activity)`. A composition's capability field or a declaring function's
+ * A member's def read from the composed state: `through(_.order, Order.held)` is
+ * `s => Order.held(s.order)`. A composition's capability field or a declaring function's
  * function-valued argument names it where it would name a def, so a law reads a member's status
  * set without a def that restates it for the composition. The IR generator lifts it as one function
  * of the composed state, named after the state, the path and the def, and refuses a selector that is
