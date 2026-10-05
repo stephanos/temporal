@@ -97,7 +97,7 @@ Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reade
 | fn-124.4 | ✅ done | Verdict aggregation defined once; judge rules documented |
 | fn-124.5 | ✅ done | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ✅ done | Model assessment as the command-line judge; Evaluation Profile derived or retired |
-| fn-124.7 | 🔄 in progress | Migration harness and frozen snapshots retired |
+| fn-124.7 | ✅ done | Migration harness and frozen snapshots retired |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
 
