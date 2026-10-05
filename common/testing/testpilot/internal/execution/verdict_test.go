@@ -64,40 +64,51 @@ func TestConclude(t *testing.T) {
 	}
 }
 
-// The recorder concludes the Monitor's answer against the Run's disposition through Conclude:
-// incompleteness turns anything short of a violation inconclusive, a violation stops the Run, and
-// a Monitor that stopped the Run but answers satisfied is recorded inconclusive.
-func TestRecorderClosesThroughConclude(t *testing.T) {
-	answers := map[testpilotspb.VerdictStatus]testpilotspb.RuleVerdictStatus{
-		testpilotspb.VERDICT_STATUS_SATISFIED:    testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
-		testpilotspb.VERDICT_STATUS_VIOLATED:     testpilotspb.RULE_VERDICT_STATUS_VIOLATED,
-		testpilotspb.VERDICT_STATUS_INCONCLUSIVE: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE,
-	}
-	for answer, rule := range answers {
-		for _, disposition := range terminalDispositions[1:] {
-			for _, stopped := range []bool{false, true} {
-				for _, incomplete := range []bool{false, true} {
-					t.Run(fmt.Sprintf("%s/%s/stopped=%t/incomplete=%t", answer, disposition, stopped, incomplete), func(t *testing.T) {
-						input := disposition
-						if stopped {
-							input = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
-						}
-						if incomplete || disposition == testpilotspb.RUN_DISPOSITION_INCOMPLETE {
-							input = testpilotspb.RUN_DISPOSITION_INCOMPLETE
-						}
-						r, _ := recorderFixture(t, &recorderMonitor{close: func(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, error) {
-							return &testpilotspb.Verdict{Status: answer}, nil
-						}})
-						r.stopped = stopped
-						r.incomplete = incomplete
-						run, verdict, err := r.close(context.Background(), disposition, &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED})
-						require.NoError(t, err)
-						wantStatus, wantDisposition := Conclude(input, []testpilotspb.RuleVerdictStatus{rule})
-						require.Equal(t, wantStatus, verdict.GetStatus())
-						require.Equal(t, wantDisposition, run.GetDisposition())
-					})
-				}
-			}
-		}
+// A Run's disposition is decided at close, strongest first: a violated Verdict stops the Run by its
+// Monitor, even one found at closure or beside a failure; otherwise incompleteness makes it
+// incomplete, even when the Monitor stopped it; otherwise the Monitor's stop or the completion
+// stands, and a stopped Run without a violation is inconclusive. The cleanup outcome is no input.
+func TestRunDispositionPrecedence(t *testing.T) {
+	const (
+		completed  = testpilotspb.RUN_DISPOSITION_COMPLETED
+		stopped    = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
+		incomplete = testpilotspb.RUN_DISPOSITION_INCOMPLETE
+		satisfied  = testpilotspb.VERDICT_STATUS_SATISFIED
+		violated   = testpilotspb.VERDICT_STATUS_VIOLATED
+		unsettled  = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
+		succeeded  = testpilotspb.CLEANUP_STATUS_SUCCEEDED
+		failed     = testpilotspb.CLEANUP_STATUS_FAILED
+	)
+	for _, tc := range []struct {
+		name                string
+		disposition         testpilotspb.RunDisposition
+		stopped, incomplete bool
+		answer              testpilotspb.VerdictStatus
+		cleanup             testpilotspb.CleanupStatus
+		wantDisposition     testpilotspb.RunDisposition
+		wantStatus          testpilotspb.VerdictStatus
+	}{
+		{"completed", completed, false, false, satisfied, succeeded, completed, satisfied},
+		{"a failed cleanup leaves completion", completed, false, false, satisfied, failed, completed, satisfied},
+		{"incompleteness over completion", completed, false, true, satisfied, succeeded, incomplete, unsettled},
+		{"an incomplete disposition", incomplete, false, false, satisfied, succeeded, incomplete, unsettled},
+		{"a violation found at closure", completed, false, false, violated, succeeded, stopped, violated},
+		{"a violation over incompleteness and a failed cleanup", incomplete, true, true, violated, failed, stopped, violated},
+		{"incompleteness over a stop without a violation", stopped, true, true, unsettled, succeeded, incomplete, unsettled},
+		{"a stop without a violation", stopped, true, false, unsettled, succeeded, stopped, unsettled},
+		{"a stopped Run is never satisfied", stopped, true, false, satisfied, succeeded, stopped, unsettled},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r, _ := recorderFixture(t, &recorderMonitor{close: func(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, error) {
+				return &testpilotspb.Verdict{Status: tc.answer}, nil
+			}})
+			r.stopped = tc.stopped
+			r.incomplete = tc.incomplete
+			run, verdict, err := r.close(context.Background(), tc.disposition, &testpilotspb.CleanupOutcome{Status: tc.cleanup})
+			require.NoError(t, err)
+			require.Equal(t, tc.wantStatus, verdict.GetStatus())
+			require.Equal(t, tc.wantDisposition, run.GetDisposition())
+			require.Equal(t, tc.cleanup, run.GetCleanup().GetStatus())
+		})
 	}
 }
