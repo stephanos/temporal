@@ -215,6 +215,15 @@ artifacts bound to another Runner build.
   validation, unexplained baseline regression, changed canonical projections,
   or weakened expectations is recorded as incomplete acceptance.
 
+  **Owner waiver (2026-10-04):** The user explicitly requested, "close fn-108
+  without linux check". The outstanding linux/amd64 execution requirement is
+  waived for this spec only; existing darwin/arm64 acceptance is retained.
+  Close R9 and task 8 under this amended scope, not as a successful Linux
+  qualification. No Linux check was run or passed, no Linux support claim is
+  strengthened, and D12 and other specs' native-platform gates remain unchanged.
+  The [waiver record](../artifacts/fn-108-gomad-reduce-code-size-without-removing/linux-acceptance-waiver.md)
+  supplements the immutable final evidence.
+
 ## Boundaries
 
 - Feature retirement, package deletion, compatibility retirement, and public
