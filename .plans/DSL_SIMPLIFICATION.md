@@ -22,7 +22,7 @@ All approved. Where each one went:
 | 7 | request helper, `perform(… , then = await)` | later, not planned | — |
 | 8 | deadline step helper, `UpTo.succ`, enum status methods | later, if still felt after fn-126 | — |
 
-The owner went beyond the study on one point. The study's "defer: `object X extends Machine`" (section 2) was reversed, so the machine object is the machine. Its name comes from the object (`ActivitySystem` → `activitySystem`). Its members are `start`, `end`, and the section objects `effects`, `monitors`, `rules`, `properties`, `laws` and `queries`. Derived machines and compositions are objects too (fn-126 R15). That form removes the `worker.poll ~> poll` line the study kept (section 2, "Honest answer"): a rule names the action and the effect, and nothing else binds it.
+The owner went beyond the study on one point. The study's "defer: `object X extends Machine`" (section 2) was reversed, so the machine object is the machine. Its name comes from the object (`ActivitySystem` → `activitySystem`). Its members are `init`, `end`, and the section objects `states`, `refinement`, `effects`, `monitors`, `rules`, `properties`, `implements` and `queries` (decisions 11-14). Derived machines and compositions are objects too (fn-126 R15). This **landed**: the standalone activity in fn-126.4, every other Model in fn-126.5, which retired the `machine[S, O, F] { … }` builder; rank 2's guard sugar is the rules' `when` and `in` headings. That form removes the `worker.poll ~> poll` line the study kept (section 2, "Honest answer"): a rule names the action and the effect, and nothing else binds it.
 
 ## Findings
 

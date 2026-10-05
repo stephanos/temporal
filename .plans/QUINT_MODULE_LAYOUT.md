@@ -149,4 +149,16 @@ Later the same day, the owner widened fn-126 beyond layout. See `.plans/DSL_SIMP
   `shared/worker`. No Model folder holds a per-kind file any more, the layout test keeps them
   retired, and the lint refuses a Model in a folder whose file is not named after it.
 
-The machine objects, rules and sections of the owner's later decisions are fn-126's tasks 3 to 5.
+The owner's later decisions landed next:
+
+- fn-126.3: actions grouped by actor, in actor and section objects transparent to Definition IDs;
+- fn-126.4: the machine object is the machine (`object ActivityProduct extends Machine[…]`, `Derived`,
+  `Composition`), with `init`, `end`, `states`, `refinement`, `effects`, `monitors`, `rules`,
+  `properties`, `implements` and `queries`, rules that say when an action fires and effects what it
+  does, and the section lint; the standalone activity converted;
+- fn-126.5: every other Model converted (the Nexus caller and its close policy, whose nine designs are
+  `Derived` objects with their own Queries, the Nexus operation, the task queue and the worker), the
+  `FailureModel` and `NegativeControl` markers, and the `machine[S, O, F] { … }` builder, `steps`,
+  `starts`/`ends` and the `compose(…)` value form retired, so the IR generator reads one shape.
+
+The Product and System renames and folders per level are fn-126's last task.

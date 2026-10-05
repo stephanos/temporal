@@ -52,7 +52,7 @@ or `extension` whose tree shape the lifter recognises; no runtime semantics, no 
 
 | Operator | Where | Meaning | Verdict |
 | --- | --- | --- | --- |
-| `action ~> stepFunction` | `steps(...)`, fn-112 `rebind`/`extend` | bind an action to its step function | **Keep.** The one symbol that earns its place: it names a relation no English word does better, appears in every machine, and is typed per arity. Add `@targetName("binds")`. Never reuse it for anything else, in particular not for leads-to (TLA+'s `~>`); see Do-not-do. |
+| `action ~> stepFunction` | a rule in `object rules extends Rules` (`a ~> effects.x`), `rebind`/`extend`, the core `Bindings(...)` (fn-126; the builder's `steps(...)` is retired) | bind an action to its effect or step function | **Keep.** The one symbol that earns its place: it names a relation no English word does better, appears in every machine, and is typed per arity. Add `@targetName("binds")`. Never reuse it for anything else, in particular not for leads-to (TLA+'s `~>`); see Do-not-do. |
 | `"member" -> machine`, `"member" -> action`, fn-112 `_.member -> action`, `perform(action -> command)`, fn-120 `name -> steps` | compositions, syncs, scripts, `choose` | key paired with its value | **Keep.** Scala's own tuple arrow; readers know it from `Map(...)`. Rule: left is always the key, right its value; never "transition to". |
 | `token := value` (fn-112.5) | named inputs `start(scheduleToStart := expires)` | give a named slot a value | **Keep (settled).** The sbt survivor; universal "set". Add `@targetName("set")`. The only symbol fn-112 adds. |
 | `m.property(...) when c holds f`, `holdsAcross` | Properties | restrict, then state the predicate | **Keep.** Reads as a sentence. `whenAction("...")` is replaced by the typed form fn-112.4 settles; `holdsAcross` stays (renaming churns frozen goldens for no gain). |
@@ -206,6 +206,11 @@ field path or a `read` that is not a def; one lifting fixture and one refusal fi
   completes them.
 - **`disabled unless cond`** or `guard(cond) { ... }`: `if cond then ... else disabled` is plain Scala
   and lifts as `if`.
+  *Reversed by the owner (fn-126, decisions 7 and R16):* a step function no longer mixes when an
+  action fires with what it does. `when(g) { action ~> effects.x }` and `in(p1, p2) { … }` are rule
+  headings in a machine's `object rules extends Rules`, which lower to the guarded step function
+  (`model/SEMANTICS.md`, Rules); an effect never returns `disabled`. `when` and `in` are rule
+  headings only, never a guard inside a step or an effect, and there is no standalone guard helper.
 
 ## Do not do
 
