@@ -6,7 +6,7 @@
       "subjects": [
         "workerStop"
       ],
-      "because": "The product machine does not feel a worker stopping (StandaloneActivity.scala, ActivityProduct.rules disables workerStop); the protocol and worker machines step it."
+      "because": "The product machine does not feel a worker stopping (product/Product.scala, ActivityProduct.rules disables workerStop); the protocol and worker machines step it."
     },
     {
       "kind": "silent-rejection",

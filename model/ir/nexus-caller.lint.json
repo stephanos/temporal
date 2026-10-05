@@ -14,7 +14,7 @@
       "subjects": [
         "handlerReply-handlerError-true"
       ],
-      "because": "A retryable handler error leaves the operation where it is: the product machine does not know about backing off, which is the whole of what the protocol machine adds (NexusCaller.scala, NexusProduct.rules fires no retryable handlerError)."
+      "because": "A retryable handler error leaves the operation where it is: the product machine does not know about backing off, which is the whole of what the protocol machine adds (product/Product.scala, NexusProduct.rules fires no retryable handlerError)."
     },
     {
       "kind": "never-enabled",
@@ -30,7 +30,7 @@
       "subjects": [
         "workerStop"
       ],
-      "because": "The product machine does not feel a worker stopping (NexusCaller.scala, NexusProduct.rules disables workerStop); the protocol and worker machines step it."
+      "because": "The product machine does not feel a worker stopping (product/Product.scala, NexusProduct.rules disables workerStop); the protocol and worker machines step it."
     },
     {
       "kind": "unproduced",
