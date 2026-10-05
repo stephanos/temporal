@@ -2,7 +2,6 @@ package golden
 
 import (
 	"fmt"
-	"regexp"
 	"slices"
 	"strings"
 )
@@ -24,18 +23,18 @@ type Declared []string
 // Declared gives the Case members the delta lists as declared by a realization's API behavior.
 func (d Delta) Declared() Declared { return d.DeclaredMembers }
 
-// declaredMember is a path of lowerCamel JSON members under the Case's Program, any of them but the
-// last read through each element of the array it is ("[*]").
-var declaredMember = regexp.MustCompile(`^program(\.[a-z][A-Za-z0-9]*(\[\*\])?)*\.[a-z][A-Za-z0-9]*$`)
+// declarable are the only Case members a realization's API behavior writes since fn-124.3: the
+// Program's instruction defaults and causal run order, and each activity entrypoint's attempt
+// numbering. No Contract member is one: no Contract reads the API behavior.
+var declarable = []string{"program.instructionDefaults", "program.runOrderIsCausal", "program.entrypoints[*].activity.attemptNumbering"}
 
-// checkDeclared checks each declared member: a member of the Program, listed once. A Contract member
-// is never one: no Contract reads the API behavior.
+// checkDeclared checks each declared member: one of declarable, listed once.
 func (d Delta) checkDeclared() error {
 	seen := map[string]bool{}
 	for _, path := range d.DeclaredMembers {
 		switch {
-		case !declaredMember.MatchString(path):
-			return fmt.Errorf("declared Case member %q is no member of the Program", path)
+		case !slices.Contains(declarable, path):
+			return fmt.Errorf("declared Case member %q is none the API behavior declares: %s", path, strings.Join(declarable, ", "))
 		case seen[path]:
 			return fmt.Errorf("declared Case member %q is listed twice", path)
 		}

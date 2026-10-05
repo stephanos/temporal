@@ -113,17 +113,19 @@ func TestDeclaredMembersProjectOnlyTheDeclaredMembers(t *testing.T) {
 	require.Equal(t, programOf(base), string(kept))
 }
 
-// TestOriginalDeclaredMembersAreClosed refuses an entry that is no one member of the Program.
+// TestOriginalDeclaredMembersAreClosed admits the three members the API behavior declares and
+// refuses any other entry, a fourth Program member among them.
 func TestOriginalDeclaredMembersAreClosed(t *testing.T) {
-	require.NoError(t, Delta{DeclaredMembers: []string{"program.a", "program.b[*].c.d"}}.check())
+	require.NoError(t, Delta{DeclaredMembers: []string{"program.instructionDefaults", "program.runOrderIsCausal",
+		"program.entrypoints[*].activity.attemptNumbering"}}.check())
 	for name, path := range map[string][]string{
-		"the Program":         {"program"},
-		"a Contract member":   {"contract.state"},
-		"a Case member":       {"caseId"},
-		"an array's elements": {"program.entrypoints[*]"},
-		"an empty member":     {"program..a"},
-		"not lowerCamel":      {"program.Run"},
-		"listed twice":        {"program.a", "program.a"},
+		"a fourth Program member": {"program.requiredSettings"},
+		"another activity member": {"program.entrypoints[*].activity.activityType"},
+		"the Program":             {"program"},
+		"a Contract member":       {"contract.state"},
+		"a Case member":           {"caseId"},
+		"an array's elements":     {"program.entrypoints[*]"},
+		"listed twice":            {"program.runOrderIsCausal", "program.runOrderIsCausal"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Error(t, Delta{DeclaredMembers: path}.check())
