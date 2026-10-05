@@ -6554,14 +6554,14 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 108
+        "line": 116
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 115
+        "line": 123
       },
       "projection": "fixture.hints.projection",
       "run": "fixture.hints.scope.run",
@@ -6578,7 +6578,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 169
+        "line": 177
       },
       "controller": { }
     } ],
@@ -6588,7 +6588,7 @@
         "id": "visibility.startActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 19
+          "line": 20
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -6596,7 +6596,7 @@
         "id": "visibility.pauseActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 23
+          "line": 24
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/PauseActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -6604,7 +6604,7 @@
         "id": "visibility.unpauseActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 27
+          "line": 28
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/UnpauseActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -6612,15 +6612,23 @@
         "id": "visibility.terminateActivityExecution.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 30
+          "line": 31
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.requestCancelActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 38
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
       }, {
         "id": "visibility.activityAnswer.describeActivityExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 37
+          "line": 45
         },
         "cause": "CAUSE_KIND_ACTIVITY_ANSWER",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
@@ -6628,7 +6636,7 @@
         "id": "visibility.startNexusOperationExecution.describeNexusOperationExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 41
+          "line": 49
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartNexusOperationExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
@@ -6636,7 +6644,7 @@
         "id": "visibility.terminateNexusOperationExecution.describeNexusOperationExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 48
+          "line": 56
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateNexusOperationExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
@@ -6644,7 +6652,7 @@
         "id": "visibility.startWorkflowExecution.getWorkflowExecutionHistory",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 54
+          "line": 62
         },
         "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -6652,7 +6660,7 @@
         "id": "visibility.workflowTask.getWorkflowExecutionHistory",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 61
+          "line": 69
         },
         "cause": "CAUSE_KIND_WORKFLOW_TASK",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
@@ -6660,14 +6668,14 @@
         "id": "visibility.handlerReply.describeWorkflowExecution",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 67
+          "line": 75
         },
         "cause": "CAUSE_KIND_HANDLER_REPLY",
         "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution",
         "eventuallyWithin": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 69
+            "line": 77
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -6677,13 +6685,13 @@
         "id": "cause.delivery",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 77
+          "line": 83
         },
         "kind": "CAUSE_KIND_DELIVERY",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 77
+            "line": 83
           },
           "intervalMs": "250",
           "atMostMs": "3000"
@@ -6692,13 +6700,13 @@
         "id": "cause.activityAnswer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 81
+          "line": 87
         },
         "kind": "CAUSE_KIND_ACTIVITY_ANSWER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 81
+            "line": 87
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -6707,13 +6715,13 @@
         "id": "cause.workflowTask",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 84
+          "line": 90
         },
         "kind": "CAUSE_KIND_WORKFLOW_TASK",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 84
+            "line": 90
           },
           "intervalMs": "250",
           "atMostMs": "5000"
@@ -6722,13 +6730,13 @@
         "id": "cause.handlerReply",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 89
+          "line": 95
         },
         "kind": "CAUSE_KIND_HANDLER_REPLY",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 89
+            "line": 95
           },
           "intervalMs": "250",
           "atMostMs": "5000"
@@ -6737,13 +6745,13 @@
         "id": "cause.timer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 94
+          "line": 100
         },
         "kind": "CAUSE_KIND_TIMER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 94
+            "line": 100
           },
           "intervalMs": "250",
           "atMostMs": "3000"
@@ -6801,14 +6809,14 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 108
+        "line": 116
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 115
+        "line": 123
       },
       "projection": "fixture.hints.projection",
       "run": "fixture.hints.scope.run",
@@ -6825,7 +6833,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 169
+        "line": 177
       },
       "controller": { }
     } ],

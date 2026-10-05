@@ -292,5 +292,122 @@
     "lifts/admission.json",
     "lifts/closereset.json",
     "lifts/realizations.json"
+  ],
+  "derived_waits": [
+    {
+      "model": "ir/activity.json",
+      "script": "controller",
+      "command": "await-paused"
+    },
+    {
+      "model": "ir/activity.json",
+      "script": "controller",
+      "command": "await-completed"
+    },
+    {
+      "model": "ir/activity.json",
+      "script": "controller",
+      "command": "await-failed"
+    },
+    {
+      "model": "ir/activity.json",
+      "script": "controller",
+      "command": "await-canceled"
+    },
+    {
+      "model": "ir/activity.json",
+      "script": "controller",
+      "command": "await-terminated"
+    },
+    {
+      "model": "ir/activity.json",
+      "script": "controller",
+      "command": "await-timed-out"
+    },
+    {
+      "model": "ir/activity-race.json",
+      "script": "controller",
+      "command": "await-paused"
+    },
+    {
+      "model": "ir/nexus-caller.json",
+      "script": "controller",
+      "command": "await-scheduled"
+    },
+    {
+      "model": "ir/nexus-caller.json",
+      "script": "controller",
+      "command": "pending-attempts"
+    },
+    {
+      "model": "ir/nexus-caller.json",
+      "script": "workflow",
+      "command": "finish-workflow"
+    },
+    {
+      "model": "ir/nexus-caller.json",
+      "script": "handler",
+      "command": "respond-async"
+    },
+    {
+      "model": "ir/nexus-caller.json",
+      "script": "handler",
+      "command": "respond-sync"
+    },
+    {
+      "model": "ir/nexus-caller.json",
+      "script": "handler",
+      "command": "respond-failed"
+    },
+    {
+      "model": "ir/nexus-caller.json",
+      "script": "handler",
+      "command": "respond-error-retryable"
+    },
+    {
+      "model": "ir/nexus-caller.json",
+      "script": "handler",
+      "command": "respond-error"
+    },
+    {
+      "model": "ir/nexus-control.json",
+      "script": "controller",
+      "command": "await-scheduled"
+    },
+    {
+      "model": "ir/nexus-control.json",
+      "script": "controller",
+      "command": "pending-attempts"
+    },
+    {
+      "model": "ir/nexus-control.json",
+      "script": "workflow",
+      "command": "finish-workflow"
+    },
+    {
+      "model": "ir/nexus-control.json",
+      "script": "handler",
+      "command": "respond-async"
+    },
+    {
+      "model": "ir/nexus-control.json",
+      "script": "handler",
+      "command": "respond-sync"
+    },
+    {
+      "model": "ir/nexus-control.json",
+      "script": "handler",
+      "command": "respond-failed"
+    },
+    {
+      "model": "ir/nexus-control.json",
+      "script": "handler",
+      "command": "respond-error-retryable"
+    },
+    {
+      "model": "ir/nexus-control.json",
+      "script": "handler",
+      "command": "respond-error"
+    }
   ]
 }

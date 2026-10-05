@@ -18,9 +18,10 @@ package lower
 //     asynchronous cause in its window, plus the visibility's bound where the write that performs
 //     the step is visible only eventually.
 //   - A closing read checks nothing, and a closing poll with no interval reads once: its
-//     realization declares it is made after its sources report nothing more. A poll that writes its own interval keeps it and checks nothing (fn-118.5 then
-//     requires the reason it is explicit). A call that reads, in a realization that declares no
-//     behavior at all, is taken as written.
+//     realization declares it is made after its sources report nothing more. A poll that writes its
+//     own interval keeps it and checks nothing; in a realization that declares a behavior it is
+//     lint's explicit-wait finding, kept only where an acceptance records why. A call that reads, in
+//     a realization that declares no behavior at all, is taken as written.
 
 import (
 	"fmt"

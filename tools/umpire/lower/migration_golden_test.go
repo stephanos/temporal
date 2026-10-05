@@ -462,9 +462,10 @@ func clearPositionFields(m protoreflect.Message) {
 // TestMigrationProjectionKeepsLoweredCases checks that the current IR of every Model, which MatchAt
 // admits, without the generated claims the original baseline's delta lists, lowers to the mapped
 // goldens' Cases: every Query Case byte for byte, every exploration Case
-// except its IDs, which carry the digest of the whole candidate Model. It checks it again for the
-// Nexus caller changed the way the IR-changing tasks change it. A changed step passes the IR
-// comparison, which reads no Function, and fails on its Cases.
+// except its IDs, which carry the digest of the whole candidate Model, and each Case of an IR file
+// with derived waits without the waits of the instructions they name (golden.Waits). It checks it
+// again for the Nexus caller changed the way the IR-changing tasks change it. A changed step passes
+// the IR comparison, which reads no Function, and fails on its Cases.
 func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 	const path, key = "model/scalav2/ir/nexus-caller.json", "mapped/ir/nexus-caller.json"
 	const kernel = "temporal.nexuscaller.kernel.Protocol$.completeStep"
@@ -479,7 +480,7 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 			ungenerated, err := golden.Ungenerated(golden.OriginalKey(input), inputs[input])
 			require.NoError(t, err)
 			actual, ids := lowerMigrationCases(t, ikey, ungenerated)
-			require.NoError(t, compareLoweredCases(cfg, expected, actual, ids, ikey))
+			require.NoError(t, compareLoweredCases(cfg, derivedWaits(t, input), expected, actual, ids, ikey))
 		})
 	}
 
@@ -510,20 +511,22 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 	text = strings.ReplaceAll(strings.ReplaceAll(text, `"_$1"`, `"placeholder"`), strconv.Quote(kernel), strconv.Quote(moved))
 	admitted := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal([]byte(text), admitted))
-	mapped, err := cfg.Match(original, admitted)
+	mapped, err := cfg.MatchAt(golden.OriginalKey(path), original, admitted)
 	require.NoError(t, err)
 	require.True(t, mapped, "the projected IR selects the mapped variant")
+	waits := derivedWaits(t, path)
+	require.NotEmpty(t, waits)
 	actual, ids := lowerMigrationCases(t, key, admitted)
 	require.Contains(t, ids, key+"/queries/retry")
 	require.Contains(t, ids, key+"/explorations/nexusDeadlines/000")
-	require.NoError(t, compareLoweredCases(cfg, expected, actual, ids, key))
+	require.NoError(t, compareLoweredCases(cfg, waits, expected, actual, ids, key))
 
 	t.Run("exploration Case with a changed byte", func(t *testing.T) {
 		changed := maps.Clone(actual)
 		name := key + "/explorations/nexusDeadlines/000/case.json"
 		require.Contains(t, string(changed[name]), `"major":1`)
 		changed[name] = []byte(strings.Replace(string(changed[name]), `"major":1`, `"major":2`, 1))
-		require.Error(t, compareLoweredCases(cfg, expected, changed, ids, key))
+		require.Error(t, compareLoweredCases(cfg, waits, expected, changed, ids, key))
 	})
 	t.Run("Query Case with a changed ID", func(t *testing.T) {
 		changed, changedIDs := maps.Clone(actual), maps.Clone(ids)
@@ -532,7 +535,43 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 		require.Contains(t, string(changed[name]), id)
 		changed[name] = []byte(strings.ReplaceAll(string(changed[name]), id, id+"Again"))
 		changedIDs[key+"/queries/retry"] = "retryAgain"
-		require.Error(t, compareLoweredCases(cfg, expected, changed, changedIDs, key))
+		require.Error(t, compareLoweredCases(cfg, waits, expected, changed, changedIDs, key))
+	})
+	// A Query Case is compared without the waits of the instructions the derived waits name, its
+	// identity derived again from those bytes on both sides, and with every other byte.
+	retry := key + "/queries/retry"
+	scheduled := `"pollIntervalMilliseconds":"250"}},"limits":{"timeoutMilliseconds":"5000"}`
+	for name, c := range map[string]struct {
+		old, new string
+		files    []string
+		admitted bool
+	}{
+		"Query Case with changed derived waits": {old: scheduled, new: `"pollIntervalMilliseconds":"500","once":true}},"limits":{"timeoutMilliseconds":"9000"}`,
+			files: []string{"case.json", "program.json"}, admitted: true},
+		"Query Case with a changed Contract byte": {old: `"contractId":"temporal.case.scala.nexus-caller.retry.contract"`,
+			new: `"contractId":"temporal.case.scala.nexus-caller.retried.contract"`, files: []string{"case.json", "contract.json"}},
+		"Query Case with a changed listed read": {old: `"evidenceId":"evidence.scheduled","endpointRoleId"`,
+			new: `"evidenceId":"evidence.started","endpointRoleId"`, files: []string{"case.json", "program.json"}},
+		"Query Case with an unlisted instruction's limits": {old: `{"instructionId":"await-close",`,
+			new: `{"instructionId":"await-close","limits":{"timeoutMilliseconds":"5000"},`, files: []string{"case.json", "program.json"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := maps.Clone(actual)
+			for _, file := range c.files {
+				require.Contains(t, string(changed[retry+"/"+file]), c.old, file)
+				changed[retry+"/"+file] = []byte(strings.Replace(string(changed[retry+"/"+file]), c.old, c.new, 1))
+			}
+			// The changed Case keeps its recorded identity, which the comparison derives again.
+			err := compareLoweredCases(cfg, waits, expected, changed, ids, key)
+			if c.admitted {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
+	}
+	t.Run("Query Case without the derived waits listed", func(t *testing.T) {
+		require.Error(t, compareLoweredCases(cfg, nil, expected, actual, ids, key))
 	})
 	// The IR comparison reads no Function, so a flipped guard passes it; the Queries whose Cases it
 	// changes no longer lower to the goldens' Cases.
@@ -545,11 +584,20 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 				guard.Then, guard.Else = guard.Else, guard.Then
 			}
 		}
-		_, err := cfg.Match(original, changed)
+		_, err := cfg.MatchAt(golden.OriginalKey(path), original, changed)
 		require.NoError(t, err)
 		lowered, loweredIDs := lowerMigrationCases(t, key, changed)
-		require.Error(t, compareLoweredCases(cfg, expected, lowered, loweredIDs, key))
+		require.Error(t, compareLoweredCases(cfg, waits, expected, lowered, loweredIDs, key))
 	})
+}
+
+// derivedWaits are the waits the original baseline's delta lists as derived for the Model of an IR
+// inventory path.
+func derivedWaits(t *testing.T, path string) golden.Waits {
+	t.Helper()
+	delta, err := golden.OriginalDelta()
+	require.NoError(t, err)
+	return delta.Waits(golden.OriginalKey(path))
 }
 
 // lowerMigrationCases lowers every Query and every exploration candidate of m as the goldens do, keyed
@@ -593,10 +641,12 @@ func lowerMigrationCases(t *testing.T, key string, m *umpirespb.Model) (actual m
 
 // compareLoweredCases compares the Case, Program and Contract files of each lowered Case in actual,
 // keyed by its directory in ids with the varying part of its IDs, with the goldens' under the
-// projection and the source path renames, and requires the goldens to hold no other Case under key.
-// A Query Case's identity is compared too, derived again from the golden Case when a rename changed it. An exploration Case's identity must exist on both sides; both of its fields digest
-// the Case's bytes, IDs included, so neither is compared.
-func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, ids map[string]string, key string) error {
+// projection and the source path renames, each Case and Program without the waits of the instructions
+// the IR file's derived waits name, and requires the goldens to hold no other Case under key. A Query
+// Case's identity is compared too, derived again from the Case's compared bytes on a side where a
+// rename or the derived waits changed them. An exploration Case's identity must exist on both sides;
+// both of its fields digest the Case's bytes, IDs included, so neither is compared.
+func compareLoweredCases(cfg golden.Config, waits golden.Waits, expected, actual map[string][]byte, ids map[string]string, key string) error {
 	want, got := map[string][]byte{}, map[string][]byte{}
 	for dir, id := range ids {
 		kind, wantID := golden.QueryCase, id
@@ -622,18 +672,37 @@ func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, 
 			var err error
 			current := actual[name]
 			// A path under a moved directory names the old one, a path under a merged directory names
-			// the directory on both sides, a file split out of another names that file, and a Case whose
-			// paths that changes is identified as putCase identifies it.
+			// the directory on both sides, a file split out of another names that file, a listed
+			// instruction has no derived waits, and a Case whose bytes that changes is identified as
+			// putCase identifies it.
+			wanted := func(file string) ([]byte, error) {
+				return underived(waits, file, cfg.MergeSources(cfg.RenameSources(expected[dir+"/"+file])))
+			}
+			lowered := func(file string) ([]byte, error) {
+				return underived(waits, file, cfg.MergeSources(cfg.UnsplitSources(cfg.UnmoveSources(actual[dir+"/"+file]))))
+			}
 			if file != "identity.json" {
-				original = cfg.MergeSources(cfg.RenameSources(original))
-				current = cfg.MergeSources(cfg.UnsplitSources(cfg.UnmoveSources(current)))
+				if original, err = wanted(file); err != nil {
+					return fmt.Errorf("%s: %w", name, err)
+				}
+				if current, err = lowered(file); err != nil {
+					return fmt.Errorf("%s: %w", name, err)
+				}
 			} else {
-				if renamed := cfg.MergeSources(cfg.RenameSources(expected[dir+"/case.json"])); !bytes.Equal(renamed, expected[dir+"/case.json"]) {
+				renamed, err := wanted("case.json")
+				if err != nil {
+					return fmt.Errorf("%s: %w", name, err)
+				}
+				if !bytes.Equal(renamed, expected[dir+"/case.json"]) {
 					if original, err = renamedIdentity(renamed); err != nil {
 						return fmt.Errorf("%s: %w", name, err)
 					}
 				}
-				if merged := cfg.MergeSources(cfg.UnsplitSources(cfg.UnmoveSources(actual[dir+"/case.json"]))); !bytes.Equal(merged, actual[dir+"/case.json"]) {
+				merged, err := lowered("case.json")
+				if err != nil {
+					return fmt.Errorf("%s: %w", name, err)
+				}
+				if !bytes.Equal(merged, actual[dir+"/case.json"]) {
 					if current, err = renamedIdentity(merged); err != nil {
 						return fmt.Errorf("%s: %w", name, err)
 					}
@@ -657,8 +726,21 @@ func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, 
 	return golden.Compare(want, got)
 }
 
-// renamedIdentity is the identity putCase records for a Case whose source paths were renamed, merged
-// or unsplit.
+// underived gives a lowered Case or Program file without the waits of the instructions the derived
+// waits name. A Contract or an identity is kept as it is.
+func underived(waits golden.Waits, file string, encoded []byte) ([]byte, error) {
+	switch file {
+	case "case.json":
+		return waits.Case(encoded)
+	case "program.json":
+		return waits.Program(encoded)
+	default:
+		return encoded, nil
+	}
+}
+
+// renamedIdentity is the identity putCase records for a Case whose source paths were renamed, merged,
+// unsplit or read without derived waits.
 func renamedIdentity(encoded []byte) ([]byte, error) {
 	identity, err := recordedrun.CaseIdentity(encoded)
 	if err != nil {

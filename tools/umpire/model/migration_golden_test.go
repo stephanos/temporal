@@ -369,6 +369,56 @@ func TestMigrationGoldensAdmitOnlyTheLawReplacements(t *testing.T) {
 	}
 }
 
+// TestMigrationGoldensAdmitOnlyTheDerivedWaits compares the Nexus caller, whose realization leaves the
+// listed waits to the API behavior, with its frozen input: at its original-baseline key exactly those
+// waits are admitted. A listed command that writes its wait again, or an unlisted one whose wait
+// changes, fails.
+func TestMigrationGoldensAdmitOnlyTheDerivedWaits(t *testing.T) {
+	const path = "model/scalav2/ir/nexus-caller.json"
+	frozen, err := golden.Read(filepath.Join("testdata", "migration", "inputs"))
+	require.NoError(t, err)
+	original := new(umpirespb.Model)
+	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
+	cfg, models := migrationInputs(t)
+	current, key := models[path], golden.OriginalKey(path)
+	_, err = cfg.MatchAt(key, original, current)
+	require.NoError(t, err)
+	_, err = cfg.Match(original, current)
+	require.Error(t, err, "without the key no derived wait applies")
+	command := func(m *umpirespb.Model, script, id string) *umpirespb.Command {
+		for _, r := range m.GetRealizations() {
+			for _, s := range r.GetScripts() {
+				for _, item := range s.GetItems() {
+					commands := []*umpirespb.Command{item.GetCommand()}
+					for _, p := range item.GetPerforms() {
+						commands = append(commands, p.GetCommand())
+					}
+					for _, c := range commands {
+						if s.GetId() == script && c.GetId() == id {
+							return c
+						}
+					}
+				}
+			}
+		}
+		require.FailNow(t, "no command "+script+"/"+id)
+		return nil
+	}
+	for name, change := range map[string]func(*umpirespb.Model){
+		"listed timeout written again":  func(m *umpirespb.Model) { command(m, "handler", "respond-async").TimeoutMs = 5000 },
+		"listed interval written again": func(m *umpirespb.Model) { command(m, "controller", "await-scheduled").GetPoll().IntervalMs = 250 },
+		"listed command changed":        func(m *umpirespb.Model) { command(m, "controller", "await-scheduled").GetPoll().Evidence = "other" },
+		"unlisted timeout":              func(m *umpirespb.Model) { command(m, "controller", "await-close").TimeoutMs = 5000 },
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := proto.CloneOf(current)
+			change(changed)
+			_, err := cfg.MatchAt(key, original, changed)
+			require.Error(t, err)
+		})
+	}
+}
+
 // migrationOriginals are the frozen inputs of the models, by path.
 func migrationOriginals(t *testing.T, expected map[string][]byte, models map[string]*umpirespb.Model) map[string]*umpirespb.Model {
 	t.Helper()
@@ -626,7 +676,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
 	cfg, models := migrationInputs(t)
-	current := models[path]
+	current, key := models[path], golden.OriginalKey(path)
 	require.NotNil(t, functionNamed(original, kernel))
 	moved := "temporal.features.nexuscaller.Protocol$.completeStep"
 	if i := slices.IndexFunc(cfg.Projection.Functions, func(s golden.Substitution) bool { return s.Old == kernel }); i >= 0 {
@@ -659,7 +709,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 	encoded, err := golden.Proto(admitted)
 	require.NoError(t, err)
 	require.NotContains(t, string(encoded), "_$1")
-	_, err = cfg.Match(original, admitted)
+	_, err = cfg.MatchAt(key, original, admitted)
 	require.NoError(t, err)
 	project := locationProjection(cfg)
 	want := projectedMeaning(t, migrationBinding(t, original), project)
@@ -674,7 +724,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		branch := firstIf(step.ProtoReflect())
 		require.NotNil(t, branch)
 		branch.Then, branch.Else = branch.Else, branch.Then
-		_, err := cfg.Match(original, changed)
+		_, err := cfg.MatchAt(key, original, changed)
 		require.NoError(t, err)
 		require.NotEqual(t, string(want), string(projectedMeaning(t, migrationBinding(t, changed), project)))
 	})
@@ -688,7 +738,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		}
 		branch.Condition = not(not(branch.GetCondition()))
 		changed = migrationRewrite(t, changed, rename(step.GetName(), step.GetName()+"Restructured"))
-		_, err := cfg.Match(original, changed)
+		_, err := cfg.MatchAt(key, original, changed)
 		require.NoError(t, err)
 		require.Equal(t, string(want), string(projectedMeaning(t, migrationBinding(t, changed), project)))
 	})
@@ -697,13 +747,13 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		"listed function rename unmade": rename(moved, kernel),
 	} {
 		t.Run(name, func(t *testing.T) {
-			_, err := cfg.Match(original, migrationRewrite(t, admitted, rewrite))
+			_, err := cfg.MatchAt(key, original, migrationRewrite(t, admitted, rewrite))
 			require.NoError(t, err, "the IR comparison reads every Function reference as one token")
 		})
 	}
 	t.Run("position in an unlisted file", func(t *testing.T) {
 		changed := migrationRewrite(t, admitted, rename("model/temporal/features/nexuscaller/Queries.scala", "model/temporal/features/nexuscaller/Query.scala"))
-		_, err := cfg.Match(original, changed)
+		_, err := cfg.MatchAt(key, original, changed)
 		require.Error(t, err)
 	})
 	t.Run("Function reference removed", func(t *testing.T) {
@@ -711,7 +761,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		i := slices.IndexFunc(changed.GetMachines(), func(m *umpirespb.Machine) bool { return m.GetEvidence() != "" })
 		require.GreaterOrEqual(t, i, 0)
 		changed.GetMachines()[i].Evidence = ""
-		_, err := cfg.Match(original, changed)
+		_, err := cfg.MatchAt(key, original, changed)
 		require.Error(t, err, "an empty reference stays empty")
 	})
 	t.Run("parameters swapped over an unchanged body", func(t *testing.T) {
@@ -735,7 +785,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		require.NotNil(t, swapped)
 		params := swapped.GetParams()
 		params[0].Name, params[1].Name = params[1].GetName(), params[0].GetName()
-		_, err := cfg.Match(original, changed)
+		_, err := cfg.MatchAt(key, original, changed)
 		require.NoError(t, err, swapped.GetName())
 		require.NotEqual(t, string(want), string(projectedMeaning(t, migrationBinding(t, changed), project)), swapped.GetName())
 	})
