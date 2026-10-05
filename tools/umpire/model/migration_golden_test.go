@@ -678,7 +678,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 	cfg, models := migrationInputs(t)
 	current, key := models[path], golden.OriginalKey(path)
 	require.NotNil(t, functionNamed(original, kernel))
-	moved := "temporal.features.nexuscaller.Protocol$.completeStep"
+	moved := "temporal.features.nexuscaller.Protocol$.effects$.completeStep"
 	if i := slices.IndexFunc(cfg.Projection.Functions, func(s golden.Substitution) bool { return s.Old == kernel }); i >= 0 {
 		moved = cfg.Projection.Functions[i].New
 	} else {

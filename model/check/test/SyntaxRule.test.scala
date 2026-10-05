@@ -161,16 +161,16 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |""".stripMargin
     val found = findings(
       "model/umpire/Steps.scala" -> umpire,
-      "model/temporal/features/standaloneactivity/Model.scala" -> temporal,
+      "model/temporal/features/standaloneactivity/StandaloneActivity.scala" -> temporal,
       "model/irgen/Matching.scala" -> lifter
     )
     assertEquals(
       found.map(_.takeWhile(_ != ' ')),
       Vector(
         "model/irgen/Matching.scala:5:",
-        "model/temporal/features/standaloneactivity/Model.scala:5:",
-        "model/temporal/features/standaloneactivity/Model.scala:6:",
-        "model/temporal/features/standaloneactivity/Model.scala:8:",
+        "model/temporal/features/standaloneactivity/StandaloneActivity.scala:5:",
+        "model/temporal/features/standaloneactivity/StandaloneActivity.scala:6:",
+        "model/temporal/features/standaloneactivity/StandaloneActivity.scala:8:",
         "model/umpire/Steps.scala:3:",
         "model/umpire/Steps.scala:7:",
         "model/umpire/Steps.scala:8:",

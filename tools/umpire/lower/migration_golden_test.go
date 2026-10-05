@@ -489,7 +489,7 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(expected["original/inputs/ir/nexus-caller.json"], original))
-	moved := "temporal.features.nexuscaller.Protocol$.completeStep"
+	moved := "temporal.features.nexuscaller.Protocol$.effects$.completeStep"
 	if i := slices.IndexFunc(cfg.Projection.Functions, func(s golden.Substitution) bool { return s.Old == kernel }); i >= 0 {
 		moved = cfg.Projection.Functions[i].New
 	} else {
