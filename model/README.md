@@ -342,7 +342,7 @@ declares, by extending the framework's open traits `Addressee`, `Activation`, `I
 instructions `WorkerInstruction.{AttemptFailure, AttemptCanceled, Fault, WorkflowCommand,
 NexusReply, NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, the
 dynamic-configuration `RequiredSetting`, and the API behavior hints `ApiBehavior` and `ServerStep`
-with `WaitBound`, `Visible` and `CauseKind`. `TestFrameworkNamesNoTemporal` in `tools/umpire/model`
+with `WaitBound`, `Visible`, `CauseKind`, `AttemptNumbering` and `InstructionLimit`. `TestFrameworkNamesNoTemporal` in `tools/umpire/model`
 fails when a file under `model/umpire` names a Temporal term, the six capability kinds among them; a
 mention stays only under an allowance that states its reason, and none has one today. The
 tooling downstream of the DSL is Temporal's driver tooling by design: the IR generator matches the kit's
@@ -978,8 +978,27 @@ every read is written with `await` and its wait is derived. A poll that writes i
 realization that declares a behavior is lint's `explicit-wait` finding, kept only where
 `model/ir/<file>.lint.json` accepts it with the reason no hint covers its wait. The waits that stay
 explicit are no reads: the Driver's own awaits (`AwaitLearned`, `AwaitCommand`, its controls) and the
-Nexus caller's closing long poll keep the Profile's default instruction limit
+Nexus caller's closing long poll take the instruction defaults the kit declares
 (.plans/API_BEHAVIOR_HINTS.md, "As built by task 5").
+
+`temporalBehavior` also declares, once for every Temporal realization, what Testpilot and
+conformance would otherwise assume about Temporal (fn-124.3):
+
+- `attemptNumbering = Some(AttemptNumbering(first = 1, oneRun = true))`: the server numbers an
+  activity's attempts from 1, every one of its one run. The lowering writes it on each activity
+  entrypoint (`ActivityActivation.attempt_numbering`); Testpilot judges each reservation's attempt by
+  it and refuses an activity entrypoint that declares none, and conformance holds one operation's
+  evidence to one activity run only where it is declared.
+- `instructionDefaults = Some(InstructionLimit(timeoutMs = 10000, attempts = 1))`: the limits of an
+  instruction that writes none. The lowering writes them into the Program
+  (`Program.instruction_defaults`); a Temporal Profile has none of its own.
+- `runOrderIsCausal = true`: the Run's record order is the order of one operation's evidence across
+  its sources. The lowering writes it into the Program (`Program.run_order_is_causal`), and only then
+  does Testpilot name the operation's previous evidence from another source as a causal parent.
+
+A history kind's recorded message is whatever the realization's own read that lifts history reads
+(its method's response at its path), and its kind is a member of that message's oneof, so neither
+the lowering nor Testpilot names a history message.
 
 ### Naming protobuf data in a Model
 

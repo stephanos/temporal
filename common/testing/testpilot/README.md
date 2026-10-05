@@ -10,8 +10,8 @@ Profile; a resource-free Program references none. The Case owns the IDs and rela
 owns their physical values. Symbolic endpoint IDs are not transport addresses, and bindings grant no
 capabilities. Preparation also derives what a Case no longer writes: an instruction's outcome fields
 follow from its instruction, the worker activations a reservation carrier reserves follow from the
-Profile's carriers, and an instruction limit the Case omits takes the Profile's
-`InstructionDefaults`.
+Profile's carriers, and an instruction limit the Case omits takes the Program's declared
+`instruction_defaults`, or else the Profile's `InstructionDefaults`.
 
 `Prepare` performs static admission without Driver I/O, snapshots the Case and Profile, resolves
 private prepared resources, and includes the complete binding fingerprint in Prepared Case identity.
@@ -75,9 +75,9 @@ Correlated Contract that admits no evidence answers inconclusive: silence is not
 
 A Program declares each kind of that evidence once, in `Program.evidence`: the recorded data it is
 read from, the Run coordinates that scope it, the path of its operation key and the fields it
-exposes. The source is one of three. A history event kind is an arm of the recorded `HistoryEvent`'s
-attributes oneof, lifted by a history read whose rule names the declaration (`evidence_id`) and
-spells nothing else. A Run Event kind is lifted by the runtime as it records the event, out of the
+exposes. The source is one of three. A history event kind is a member of the oneof of the event the
+Program's history read yields, lifted by a history read whose rule names the declaration
+(`evidence_id`) and spells nothing else. A Run Event kind is lifted by the runtime as it records the event, out of the
 event's payload: an injected fault becomes `faultInjected` evidence keyed by the role it stopped. A
 read is a repeated field in the response of a unary RPC, polled from a controller by a
 `ReadEvidence` instruction until an element satisfies its `until` or the instruction times out, and

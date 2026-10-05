@@ -474,9 +474,14 @@ read, a method, at once or eventually within a wait bound; a **cause bound** say
 cause may take, as an interval a wait looks at and the most it waits. A server step names a class of
 the machine that no command performs, such as an activity's delivery or a timeout, with the kind of
 cause it is and, for a timer, the deadline the realization set. Each hint has an id, derived from
-what it relates (`visibility.<write>.<read>`, `cause.<kind>`), and its declaration's position. No
-table, ID, fingerprint, Query answer or Contract reads either; they shape only how a lowered Case
-waits. Admission refuses a hint with no id or one another hint took, a
+what it relates (`visibility.<write>.<read>`, `cause.<kind>`), and its declaration's position. The
+behavior also says how the system numbers an activity's attempts (from a positive first number, and
+whether every attempt is of the activity's one run), the limits of an instruction that writes none,
+and whether a run's record order is the causal order of one operation's evidence across sources;
+the lowering writes each into the Case's Program as declared, and admission refuses a first attempt
+number or a limit of zero or less. No table, ID, fingerprint, Query answer or Contract reads
+either; they shape only a lowered Case's Program, and conformance reads whether attempts are of one
+run. Admission refuses a hint with no id or one another hint took, a
 visibility that names no write or no read or a pair another names, a cause bound of no known kind or
 of a kind another bounds, a cause bound with no bound, a bound or interval of zero or less, an
 interval greater than its bound, and a server step that names no class of the machine, a class
