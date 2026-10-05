@@ -457,20 +457,8 @@ final private[irgen] class Order(index: Index):
     case Kind.Laws if inObjectForm  => "the `implements` object of its machine's object"
     case _                          => k.belongs
 
-  /**
-   * The sections of a machine or composition object, in R2's order: its vocabulary, its refinement,
-   * then its declarations by kind; a composition's `syncs` takes the place of `rules`.
-   */
-  private val formSections = Seq(
-    "states",
-    "refinement",
-    "effects",
-    "monitors",
-    "rules",
-    "properties",
-    "implements",
-    "queries"
-  )
+  /** The sections of a machine or composition object, in R2's order (Structure.formSections). */
+  private val formSections = Structure.formSections
   private def plain(name: String) = name.stripSuffix("$")
 
   /** The section of a machine or composition object an object is named as, `syncs` as `rules`. */

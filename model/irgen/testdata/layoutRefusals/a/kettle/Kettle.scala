@@ -2,8 +2,10 @@
 // so the kettle keeps its levels in product/Product.scala and system/System.scala. It has no
 // system/System.scala, refused at the refinement (system/Heater.scala); a machine object in this
 // root feature file, which holds the types, the signature and exports alone; and one in a folder
-// below system/ (system/element/Element.scala). The tap has one level and still a product/ folder,
-// refused at its file's first declaration (tap/product/Product.scala).
+// below system/ (system/element/Element.scala). The tap has one level and still a product/ folder
+// and a valve/ one, each refused at its file's first declaration, and a source whose package does
+// not mirror its folder (tap/fittings/Washer.scala). The urn misses its root feature file and its
+// product/Product.scala (urn/system/System.scala).
 package fixture.features.kettle
 
 import umpire.*

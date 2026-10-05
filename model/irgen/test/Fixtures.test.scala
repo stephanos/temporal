@@ -1822,8 +1822,9 @@ class Fixtures extends munit.FunSuite:
     for machine <- Seq("lampProduct", "lampSystem", "bulb") do
       assert(lifted.contains(s"\"$machine\""), s"lamp.json lifts no machine $machine")
 
-  // R20 (a): the folders of a feature with two levels, and a feature of one level with a level
-  // folder (layoutRefusals/a).
+  // R20 (a): the folders of a feature with two levels, a missing root feature file or level file,
+  // a feature of one level with a subfolder, and a package that does not mirror its folder
+  // (layoutRefusals/a).
   concurrently("the structure lint refuses a feature's levels out of their folders"):
     val jar = packaged("layoutRefusals-a", materializeTree("layoutRefusals/a"))
     val out = scratch.resolve("layoutRefusals-a-out")
@@ -1835,10 +1836,12 @@ class Fixtures extends munit.FunSuite:
       "the Product in product/Product.scala, the System in system/System.scala, beside the root " +
       "feature file named after the feature's folder, which holds the types, the signature and " +
       "object exports (model/irgen/testdata/layout/lamp is the template)"
+    val urn = two.replace("KettleSystem refines KettleProduct, so kettle", "UrnSystem refines " +
+      "UrnProduct, so urn")
     assertEquals(
       refused(result),
       Seq(
-        s"lift: ${at}kettle/Kettle.scala:28: Stray is a machine object in kettle's root folder, " +
+        s"lift: ${at}kettle/Kettle.scala:30: Stray is a machine object in kettle's root folder, " +
           s"${at}kettle/, whose feature file holds the types, the signature and object exports " +
           "alone: a feature with two levels declares its machines in product/ and system/",
         s"lift: ${at}kettle/system/Heater.scala:12: $two; ${at}kettle/system/System.scala is " +
@@ -1847,9 +1850,17 @@ class Fixtures extends munit.FunSuite:
           s"${at}kettle/system/element/, which is no level folder of kettle: a feature with two " +
           "levels keeps its Models in product/ and system/, one file per subject beside the " +
           "level's own file, with no folder below them",
+        s"lift: ${at}tap/fittings/Washer.scala:5: ${at}tap/fittings/Washer.scala declares package " +
+          s"fixture.features.tap, which its folder, ${at}tap/fittings/, does not mirror: a " +
+          "feature's subpackages are its folders, named alike, since the structure lint reads a " +
+          "source's package and the order lint its path",
         s"lift: ${at}tap/product/Product.scala:6: tap has no machine that refines another of its " +
           "own, so it has one level, whose Models sit in its feature file: it has no product/ " +
-          "folder"
+          "folder",
+        s"lift: ${at}tap/valve/Valve.scala:8: tap has no machine that refines another of its " +
+          "own, so it has one level, whose Models sit in its feature file: it has no valve/ folder",
+        s"lift: ${at}urn/system/System.scala:11: $urn; ${at}urn/ has no root feature file",
+        s"lift: ${at}urn/system/System.scala:11: $urn; ${at}urn/product/Product.scala is missing"
       )
     )
 

@@ -16,8 +16,12 @@ import scala.collection.mutable
  *     `Composition` object in the root folder, whose feature file holds the types, the signature
  *     and `object exports` alone; and one in any folder but `product/` and `system/`, deeper ones
  *     included. A level folder holds one file per subject beside the level's own, which is named
- *     after the folder. In a feature with no refinement pair, each file of a `product/` or
- *     `system/` folder, at its first declaration: a single-level feature has neither folder.
+ *     after the folder. In a feature with no refinement pair, each file of any subfolder, at its
+ *     first declaration: a single-level feature keeps its Models in its feature file and has
+ *     neither level folder nor any other. And, in every feature, a source whose package does not
+ *     mirror its folder (`package features.lamp; package system` in `lamp/system/`), at its first
+ *     declaration: this lint reads a source's package, the order lint its path, and the two must
+ *     agree.
  *   - (c) in a machine or composition object, a nested object whose name is none of the sections',
  *     `states`, `refinement`, `effects`, `monitors`, `rules`, `syncs`, `properties`, `implements`
  *     and `queries`, with or without `extends Section`: the name is what makes it a section. The
@@ -75,6 +79,10 @@ final private[irgen] class Structure(index: Index):
       case c: ClassDef if c.symbol.flags.is(Flags.Module) => c
     }
     def level: Boolean = sub.sizeIs == 1 && Structure.levels(sub.head)
+    /** Whether its folders end with the feature's and its subpackage's, as its package names them. */
+    def mirrors: Boolean =
+      folder.split('/').filter(_.nonEmpty).toList.takeRight(sub.size + 1) ==
+        feature.split('.').last :: sub
 
   private def source(path: String, trees: List[Tree]): Option[Source] =
     val top = topLevel(trees)
@@ -159,9 +167,18 @@ final private[irgen] class Structure(index: Index):
     val pkg = sources.head.feature
     val name = pkg.split('.').last
     val shared = pkg.split('.').reverse(1) == "shared"
+    // A source's package mirrors its folder, which the order lint reads.
+    for s <- sources if !s.mirrors; first <- s.top.headOption do
+      refuse(
+        first,
+        s"${s.path} declares package ${(s.feature :: s.sub).mkString(".")}, which its folder, " +
+          s"${s.folder}, does not mirror: a feature's subpackages are its folders, named alike, " +
+          "since the structure lint reads a source's package and the order lint its path"
+      )
     // The root folder: a source's folder less the folders of its subpackage.
     val root =
-      val s = sources.minBy(_.sub.size)
+      val mirroring = sources.filter(_.mirrors)
+      val s = (if mirroring.isEmpty then sources else mirroring).minBy(_.sub.size)
       s.folder.split('/').dropRight(s.sub.size).map(_ + "/").mkString
     val rootFile =
       sources.find(s => s.sub.isEmpty && s.file.stripSuffix(".scala").equalsIgnoreCase(name))
@@ -199,11 +216,11 @@ final private[irgen] class Structure(index: Index):
                 "file per subject beside the level's own file, with no folder below them"
             )
       case None =>
-        for s <- sources if s.level; first <- s.top.headOption do
+        for s <- sources if s.sub.nonEmpty; first <- s.top.headOption do
           refuse(
             first,
             s"$name has no machine that refines another of its own, so it has one level, whose " +
-              s"Models sit in its feature file: it has no ${s.sub.head}/ folder"
+              s"Models sit in its feature file: it has no ${s.sub.mkString("/")}/ folder"
           )
 
     // (b), fn-126.8: here, once the renames give the levels' machines their names.
@@ -237,18 +254,25 @@ object Structure:
   /** A feature's level folders, by audience (fn-126 decision 16). */
   val levels = Set("product", "system")
 
-  /** The sections of a machine or composition object, in R2's order. */
-  val sections = Seq(
+  /**
+   * The sections of a machine or composition object, in R2's order: its vocabulary, its refinement,
+   * then its declarations by kind; a composition's `syncs` takes the place of `rules`. The order
+   * lint ranks them by this list.
+   */
+  val formSections = Seq(
     "states",
     "refinement",
     "effects",
     "monitors",
     "rules",
-    "syncs",
     "properties",
     "implements",
     "queries"
   )
+
+  /** Every section name a machine or composition object may hold (R20 (c)): `syncs` with `rules`. */
+  val sections: Seq[String] =
+    formSections.flatMap(n => if n == "rules" then Seq(n, "syncs") else Seq(n))
 
   /**
    * Whether a source sits in a level folder, `product/` or `system/`, so the order lint reads it
