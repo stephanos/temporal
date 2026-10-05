@@ -2,6 +2,32 @@
 
 **Plan date:** 2026-09-30
 
+## Owner-approved closure scope
+
+On 2026-10-04 the owner approved closing fn-107's implementation scope with
+downstream qualification explicitly deferred. Task 5 now satisfies administrative closure criterion R13 rather than the
+original final consumer requirements R7/R8/R9/R10/R12; those remain deferred.
+
+Tasks 1–4 and 6–7 retain their existing implementation acceptance. Final
+consumer support, workflow repeatability and exact replay on darwin/arm64 and
+linux/amd64, final source/native reconciliation and reviews, packs/driver
+verification, and qualification-bound documentation remain deferred. This
+closure neither supplies missing evidence nor establishes qualified downstream
+support on either platform.
+
+The original requirements below remain the acceptance reference for resumed
+qualification; completion dependencies requiring D8/D9/D10 to pass before
+fn-107.5 closes are superseded only for this implementation-scope closure.
+Existing owners remain open: [fn-105.8](../tasks/fn-105-gomad-follow-ups-deferred-scope.8.md)
+owns exact adapters and supported analyses; [fn-105.9](../tasks/fn-105-gomad-follow-ups-deferred-scope.9.md)
+owns packs, final consumer/source/native reconciliation and both-platform
+workflow/replay qualification; [fn-105.10](../tasks/fn-105-gomad-follow-ups-deferred-scope.10.md)
+owns guidance and documentation tied to measured qualification.
+Their acceptance criteria and D12's separate replay obligation are not waived.
+
+The [closure record](../artifacts/fn-107-gomad-finish-downstream-cell/implementation-scope-closure.md)
+supplements the immutable implementation checkpoint and blocked gate evidence.
+
 ## Goal & Context
 
 Run a Storage-backed Temporal cell in one process under Gomad, with matching
@@ -268,6 +294,14 @@ remain visible failures and cannot satisfy a `qualified` expectation.
   their fulfillment here. Errors: a command depending on unrecorded local edits
   or reporting a classified failure as passing is not acceptable. This fulfills
   fn-105 D10. [paraphrase]
+
+- **R13 (implementation-scope closure):** Record the owner's approval to close
+  the accepted implementation checkpoint while deferring the original final
+  consumer gate. Retain unverified qualifications as such, keep the original
+  requirements available to fn-105 D8/D9/D10, leave those owners open, and
+  remove the closed spec from milestone task tracking. Completing this record
+  does not satisfy deferred R7/R8/R9/R10/R12 or establish passing support,
+  native tests, workflow repeatability, or exact replay.
 
 ## Boundaries
 

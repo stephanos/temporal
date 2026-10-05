@@ -1,14 +1,32 @@
 ---
-satisfies: [R7, R8, R9, R10, R12]
+satisfies: [R13]
 ---
-# fn-107-gomad-finish-downstream-cell.5 Reconcile dual-platform qualification evidence and completion requirements
+# fn-107-gomad-finish-downstream-cell.5 Record implementation-scope closure and defer downstream qualification
 
 ## Description
-Consume existing D8/D9/D10 work, without duplicate implementation. Required external prerequisites: fn105.8 adapter/closure support, fn105.9 platform packs/qualification and fn105.10 generic guide. Do not claim until those obligations pass. Validate final manifest on both hosts, closure/linked supported analysis, seeds 11/17 repeat 2 and exact success replay with choice/I/O evidence. Reconcile native tests, consumer requests/reviews/packs/driver, docs and findings. Quick: per-platform gomad qualify-set, final flowctl requirement coverage, relevant native checks.
 
-Actual linked analysis requires paired downstream source seams: Storage Gomad listeners use modeled net.Listen with literal configured endpoints; native port-handoff retry remains in !gomad helpers. CDS WAL endpoint DNS and Temporal automatic ListenIP discovery visibly refuse in gomad helpers while original native bodies/comments remain preserved. Verify configured loopback and injected WAL paths still run the real workflow; never claim host discovery support. External compatibility authoring generation must produce a standalone compilable Go inventory while preserving core generated mutation coverage. Root owns shared integration and final source freeze; dependency-specific exact adapters belong to fn105.8.
+Record the owner's 2026-10-04 approval to close fn-107's implementation scope
+and explicitly defer its final downstream qualification. Preserve the existing
+accepted implementation tasks and historical checkpoint/gate evidence.
+
+Final closure/linked supported analysis, actual Storage-backed workflow
+repeatability and exact success replay on both native platforms, final
+source/native reconciliation and reviews, dependency/pack/driver verification,
+and qualification-bound documentation are not claimed complete. Their original
+requirements remain the acceptance reference when the consumer checkout and
+qualified hosts are available.
+
+Keep fn-105.8 (D8) open for adapters and supported analyses, fn-105.9 (D9) open
+for packs, final consumer/source/native reconciliation and both-platform
+workflow/replay evidence, and fn-105.10 (D10) open for measured-support guidance.
+D12 and all other specs' qualification gates remain unchanged.
+
 ## Acceptance
-Both platforms analyze supported in both modes and final manifest qualifies both seeds with exact replay of each successful repetition. R7/R8/R12 obligations from existing fn105 tasks are met with verified evidence. No unsupported/intermittent expectation substitutes for success. Native regressions/docs and reproducible dependency identities are verified.
+
+- Record the explicit owner-approved implementation-only closure in fn-107 and a linked decision record.
+- Preserve the existing six accepted implementation tasks and immutable checkpoint/blocked gate evidence; make no new qualified downstream support or passing native/replay claim.
+- Retain all deferred final consumer obligations with fn-105.8/.9/.10 and their original acceptance references, without completing or waiving those tasks.
+- Close fn-107 under the amended scope and remove its task table from MILESTONES.md; keep deferred work visible under fn-105.
 
 ## Done summary
 TBD
