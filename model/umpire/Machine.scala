@@ -440,7 +440,10 @@ object Machine:
 
   /** The machine object or derived machine of this name initialized so far, if any. */
   private[umpire] def named(name: String): Option[Machine[?, ?, ?]] =
-    made.synchronized(made.find(m => m.name == name && !m.isInstanceOf[Built[?, ?, ?]]))
+    made.synchronized(made.find {
+      case _: Built[?, ?, ?] => false
+      case m                 => m.name == name
+    })
 
 /**
  * A machine derived from another, declared as an object that is it:

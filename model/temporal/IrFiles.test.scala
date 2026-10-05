@@ -38,33 +38,30 @@ class IrFilesTest extends munit.FunSuite:
    */
   def liftedMachines(file: String): Set[String] =
     val json = Files.readString(Path.of(s"model/ir/$file.json"))
-    val start = json.indexOf("\"machines\": [")
-    if start < 0 then Set.empty
-    else
-      val names = Set.newBuilder[String]
-      val name = "\"name\": \""
-      var depth = 0 // scalafix:ok DisableSyntax.var
-      var i = json.indexOf('[', start) + 1 // scalafix:ok DisableSyntax.var
-      var inString = false // scalafix:ok DisableSyntax.var
-      var done = false // scalafix:ok DisableSyntax.var
-      while !done && i < json.length do
+    val name = "\"name\": \""
+    // Reads from `i` at nesting depth `depth` of the array, inside a string or not, to its end.
+    @scala.annotation.tailrec
+    def scan(i: Int, depth: Int, inString: Boolean, names: List[String]): List[String] =
+      if i >= json.length then names
+      else
         val c = json.charAt(i)
         if inString then
-          if c == '\\' then i += 1
-          else if c == '"' then inString = false
+          if c == '\\' then scan(i + 2, depth, true, names)
+          else scan(i + 1, depth, c != '"', names)
         else if depth == 1 && json.startsWith(name, i) then
           val from = i + name.length
-          names += json.substring(from, json.indexOf('"', from))
-          i = json.indexOf('"', from)
+          val to = json.indexOf('"', from)
+          scan(to + 1, depth, false, json.substring(from, to) :: names)
         else
           c match
-            case '"'       => inString = true
-            case '{' | '[' => depth += 1
-            case '}'       => depth -= 1
-            case ']'       => if depth == 0 then done = true else depth -= 1
-            case _         => ()
-        i += 1
-      names.result()
+            case '"'               => scan(i + 1, depth, true, names)
+            case '{' | '['         => scan(i + 1, depth + 1, false, names)
+            case '}'               => scan(i + 1, depth - 1, false, names)
+            case ']' if depth == 0 => names
+            case ']'               => scan(i + 1, depth - 1, false, names)
+            case _                 => scan(i + 1, depth, false, names)
+    val start = json.indexOf("\"machines\": [")
+    if start < 0 then Set.empty else scan(json.indexOf('[', start) + 1, 0, false, Nil).toSet
 
   test("every IR file is declared by a feature's exports, and every root of each constructs") {
     assertEquals(declaring.size, 4)

@@ -709,7 +709,7 @@ final private[irgen] class Order(index: Index):
       )
     for m <- members(c) do
       objectOf(m) match
-        case Some(s) if sectionNamed(s).nonEmpty => section(c, s, formed = true)
+        case Some(s) if sectionNamed(s).nonEmpty => section(c, s)
         // A section of its own, such as a machine's own timers, is refused if misplaced by
         // `placesAndIdentities`, and holds no Model declaration; any other object is vocabulary.
         case Some(o) =>
@@ -770,7 +770,7 @@ final private[irgen] class Order(index: Index):
         case _ => super.traverseTree(t)(o)
     bindings.traverseTree(c)(c.symbol)
 
-  private def section(machineObject: ClassDef, s: ClassDef, formed: Boolean = false): Unit =
+  private def section(machineObject: ClassDef, s: ClassDef): Unit =
     val name = sectionNamed(s).getOrElse(plain(s.name))
     val owner = nameOf(machineObject.symbol)
     val allowed: Set[Kind] = name match
@@ -803,12 +803,12 @@ final private[irgen] class Order(index: Index):
         refuse(
           m,
           s"${plain(m.name)} is ${k.written}, declared in $owner.$written: it belongs in " +
-            belongs(k, formed)
+            belongs(k, true)
         )
       else
         // A declaration over a machine sits with that machine's object, and a Query with its
         // Scenario.
-        for (named, home, where) <- over(m, machineObject.symbol, s.symbol, formed) do
+        for (named, home, where) <- over(m, machineObject.symbol, s.symbol) do
           val declaring =
             if objectForm(named) then s"${nameOf(named)}, a machine object"
             else s"${named.name}, which ${nameOf(named.maybeOwner)} declares"
@@ -821,8 +821,7 @@ final private[irgen] class Order(index: Index):
   private def over(
       d: Definition,
       machineObject: Symbol,
-      section: Symbol,
-      formed: Boolean
+      section: Symbol
   ): List[(Symbol, Symbol, String)] =
     val found = mutable.ArrayBuffer.empty[(Symbol, Symbol, String)]
     // A member of an object, not a parameter or a local of a declaring function.
@@ -841,7 +840,7 @@ final private[irgen] class Order(index: Index):
           case Select(m, "property") => machine(m, ".properties")
           case Select(m, "scenario") => machine(m, ".queries")
           case Apply(fn, (m: Ref) :: _) if fn.symbol.name == "capabilities" =>
-            machine(m, if formed then ".implements" else ".laws")
+            machine(m, ".implements")
           case r: Ref
               if kindOf(d).contains(Kind.Query) && declared(r, Kind.Scenario) &&
                 r.symbol.maybeOwner != section =>
