@@ -101,15 +101,14 @@ Gate: started before fn-114 closed (its remaining tasks are cleanup).
 | fn-118.4 | ⬜ todo | Lowering derives Case waits from hints; undeclared visibility refused |
 | fn-118.5 | ⬜ todo | Realizations migrated to derived waits; close |
 
-### fn-120: Adopt what Quint does well
+### fn-120: Adopt what Quint does well (named choices and model lint)
 
 | Task | Status | What |
 | --- | --- | --- |
 | fn-120.1 | ✅ done | Named choices, inert IR names, Quint export |
 | fn-120.2 | ✅ done | Unnamed branching refused; `choose` accepts helper calls |
 | fn-120.3 | ✅ done | Model lint, specification holes, coverage summary, accepted findings |
-| fn-120.4 | ⏸️ deferred | IR explorer |
-| fn-120.5 | ⬜ todo | Close |
+| fn-120.5 | 🔄 in progress | SEMANTICS levels and Modalities paragraph; README lint; close |
 
 ### fn-122: Capabilities and their laws
 
@@ -162,7 +161,7 @@ fn-118.5; task 9 after fn-118.4. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 
 Deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution):
 fn-119 (Go SDK workflow showcase; tasks 1-2 done, 3-6 blocked), fn-122.7, fn-123 (faults as environment
-actions, not planned), fn-120.4 and fn-125.4. Also deferred: `make umpire-check-backends` in CI (it runs
+actions, not planned) and fn-125.4. The IR explorer (fn-120.4) was removed. Also deferred: `make umpire-check-backends` in CI (it runs
 locally after `make umpire-install-backends`). fn-112 and fn-121 are closed.
 
 ## Open for the owner

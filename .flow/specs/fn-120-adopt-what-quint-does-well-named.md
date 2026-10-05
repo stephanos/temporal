@@ -1,4 +1,4 @@
-# Adopt what Quint does well: named choices, a model linter and an explorer
+# Adopt what Quint does well: named choices and a model linter
 
 ## Goal & Context
 <!-- scope: business -->
@@ -19,7 +19,7 @@ So this spec adopts the three suggestions that add something Umpire lacks and th
 | 6 | A Query states the question, a backend answers it | Later, with its own spec |
 | 7 | A standard trace format | Not adopted. The owner withdrew ITF interchange on 2026-10-04; Umpire's own trace stays the only witness format |
 | 8 | Reproducible failure artifacts with seeds | Mostly covered. The Go search is deterministic and has no seed, recorded Runs replay, and fn-107 task 11 owns reproduction and minimization |
-| 9 | A REPL over the model | **Adopt (Part C)**, as an explorer over the IR |
+| 9 | A REPL over the model | **Removed by the owner (2026-10-05)**; no explorer is built |
 | 10 | A linter for model quality | **Adopt (Part B)** |
 
 The reader this spec serves is the model author: the person who wants to know why an action is disabled, whether a branch they wrote is ever taken, and whether a Property they declared is ever asked.
@@ -37,7 +37,7 @@ Lint also prints a coverage summary, after Ivy's coverage check: a structural co
 
 One finding kind is about the API surface a realization reads. An enum value of a Temporal API field, or a member of its oneof, is in scope only where a realization's poll condition or Run Event guard tests that field. The value is unmodeled when no such test maps it to an evidence kind, and so to a Model fact. The field's full set of values comes from the descriptor linked into Go; the zero `*_UNSPECIFIED` value is not counted.
 
-**Part C. Explorer.** One Go command steps through a machine from the IR: the classes enabled in a state, the results of taking one, and why a class is disabled. "Why" is the list of branch decisions the evaluator took in the step function, each with its Scala position. An interactive loop is a thin shell over the same commands.
+**Part C. Explorer.** Removed by the owner on 2026-10-05 (deferred 2026-10-04): no explorer command is built. The reader's decision trace from fn-120.3 stays, used by the lint.
 
 Lint and the explorer are commands under `tools/umpire/cmd/`, the one place that may import both the reader and `tools/umpire/lower` (`tools/umpire/model/ownership_test.go`). The explorer needs only the reader. `tools/umpire/explore`, which fn-115's module map reserved for it, is the campaign-exploration package and is not used.
 
@@ -116,11 +116,11 @@ umpire explore model/ir/activity.json activityProtocol
 - **R5:** A lint command reads an IR file and reports each finding with a stable kind, the machine, a message and a Scala position. It has at least these kinds: an enum case or field value no reachable state holds; an action class with no enabled row; an outcome or fact no step produces; a named choice no reachable state takes; a Property no Query names; a verify Query whose Property never fired; a fact with no evidence in a realization that covers its machine; a non-system action (party other than `system`) of a machine a realization covers that no performance binds and no activity script starts with; a find Query with no realization; a refinement no Query reads through (`Query.through`); an observation nothing reads; an enum value or oneof member of a Temporal API field that a realization's poll condition or Run Event guard tests, which no such test maps to an evidence kind (the zero value and the `HistoryEvent` attributes oneof excluded); and the specification-hole kinds of `.plans/MODALITIES.md`: H1 `disabled-by-default` (a state-class pair whose empty result comes from a wildcard `match` arm or a guard naming no state field), H2 `silent-rejection` (a disabled pair of a party action, neither `timer` nor `internal`, in a reachable non-end state), H3 `unconstrained-result` (an enabled pair of a class no same-step Property names, no transition Property or monitor of the machine or of its product through the refinement constrains, and no progress claim reaches), H4 `witness-only` (a same-step Property asked only by `find` Queries over pinned Scenarios) and, behind a flag and off by default, H5 `must-not-pinned` (a disabled pair of a system action no `never`/transition Property pins). Hole kinds aggregate by class and by the value of the state record's first enum-typed field (`phase` in the activity; by class alone in a machine without one), never per state, and are computed by joining the table, the R9 decision trace and the claim index; no second evaluator. Lint prints the per-operation modality table of a machine (the table grouped by class and by the named predicates the step function evaluated, each cell MAY with its results, MUST NOT with its guard, or `?` for H1/H2, with the Properties and laws that pin it). Errors: a malformed IR file is reported by the reader as today and produces no lint findings.
 - **R6:** Each lint kind has a fixture that triggers it and one that does not. The unmodeled-API-value kind also has a fixture where a request field the realization only writes holds an unmapped value and is not reported. Errors: a kind with no fixture is not shipped.
 - **R7:** The model gate runs lint over every checked-in IR file and fails on a finding that is neither fixed nor recorded as accepted with a reason, and on an acceptance that matches no finding. It never fails on an R15 count. The done summary lists the findings the first run produced and what was done about each, and the first run's coverage summary.
-- **R8:** An explorer command lists a machine's start states, the classes enabled in a given state, and the results of taking a class, each with its choice name, outcome, facts and next state; `state <key>` prints the per-state modality report (each class as MAY with its results and the Properties that pin them, MUST NOT with the guard at its line, or `?` for an H1/H2 hole) and `rules <class>` the per-operation table grouped by the predicates the decision trace called and by the machine's capability parameters where fn-122 declares them, with gap, overlap and conflict lines for the guards' coverage of the state catalog. Both views are produced from the same table, trace and claim index lint uses. Errors: an unknown machine, state or class is refused with the nearest valid names; a fixture Model with a wildcard arm shows `?`.
-- **R9:** The explorer answers why a class is disabled in a state with the branch decisions that produced the empty result, each at its Scala position, and says whether the last decision was a wildcard arm. Errors: a class that is enabled says so; a class disabled because the action is not bound says that.
-- **R10:** The explorer runs as single commands and as an interactive session over the same commands, and both are covered by tests on a fixture Model.
+- **R8:** Removed by the owner on 2026-10-05 with the explorer.
+- **R9:** Removed by the owner on 2026-10-05 with the explorer.
+- **R10:** Removed by the owner on 2026-10-05 with the explorer.
 - **R13:** `SEMANTICS.md` names the semantic levels and which declaration takes which, states that any temporal operator Umpire adds takes its meaning from TLA, and carries one paragraph "Modalities" under Machines: a row is permission with fixed results; a disabled pair is prohibition for a system action and silence for a party action; obligations are same-step Properties, progress claims and fairness; refinement narrows permission and does not by itself preserve obligation. The lifter has a refusal fixture for an expression at the wrong level for each declaration kind. Errors: a level the Scala types already make impossible to violate is listed as such instead of given a fixture.
-- **R14:** The model gate, `make lint-model`, the Go tests of the Umpire tooling and `make lint-code-fast` pass at the closing task. The model's README mentions lint and the explorer where it describes how an author works (no error surface beyond the gates).
+- **R14:** The model gate, `make lint-model`, the Go tests of the Umpire tooling and `make lint-code-fast` pass at the closing task. The model's README mentions lint where it describes how an author works (no error surface beyond the gates).
 - **R15:** The lint command prints a coverage summary per IR file and machine or composition, with at least these counts: Properties declared and named by a Query; verify Queries and those whose Property fired; non-system actions of a realized machine and those a realization performs; facts and those with evidence; refinements declared and those a Query reads through; named choices and those a reachable state takes; observations and those read; tested API enum values and oneof members and those mapped to a fact. Each count is the population and satisfied part of one R5 kind, computed by the same function. Output is byte-stable for one IR file; a golden test pins the summary over the lint fixtures, and the model gate prints it for every checked-in IR file without comparing it to anything. Errors: a count whose difference disagrees with its kind's findings fails the test; a count with no R5 kind is not added.
 
 ## Boundaries
@@ -180,10 +180,10 @@ go test -tags test_dep ./tools/umpire/...
 | R5 | fn-120.3 |
 | R6 | fn-120.3 |
 | R7 | fn-120.3 |
-| R8 | fn-120.4 |
-| R9 | fn-120.3, fn-120.4 |
-| R10 | fn-120.4 |
-| R13 | fn-120.4 |
+| R8 | removed |
+| R9 | removed (the decision trace is in fn-120.3) |
+| R10 | removed |
+| R13 | fn-120.5 |
 | R14 | fn-120.5 |
 | R15 | fn-120.3 |
 
