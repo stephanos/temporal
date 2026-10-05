@@ -843,6 +843,25 @@ func (c Config) FunctionsRenamed(originals map[string]*umpirespb.Model) error {
 	return nil
 }
 
+// FunctionsCurrent checks that each function-name substitution renames to a Function the current
+// IR declares, under the package moves. The comparison reads every Function reference as one token,
+// so a substitution whose new name names nothing would otherwise pass unnoticed.
+func (c Config) FunctionsCurrent(current map[string]*umpirespb.Model) error {
+	declared := map[string]bool{}
+	for _, m := range current {
+		for _, f := range m.GetFunctions() {
+			declared[f.GetName()] = true
+		}
+	}
+	var unknown []error
+	for _, s := range c.Projection.Functions {
+		if !declared[c.MovedPackage(s.New)] {
+			unknown = append(unknown, fmt.Errorf("function-name substitution of %q to %q, which no current Function is", s.Old, s.New))
+		}
+	}
+	return errors.Join(unknown...)
+}
+
 // TypesRenamed checks each listed source against the frozen declarations and rejects ambiguous targets.
 func (c Config) TypesRenamed(originals map[string]*umpirespb.Model) error {
 	declared := map[string]bool{}

@@ -333,6 +333,8 @@ func TestMigrationGoldensAdmitOnlyTheLawReplacements(t *testing.T) {
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
 	cfg, models := migrationInputs(t)
+	// Every listed rename is to a Function the current IR declares.
+	require.NoError(t, cfg.FunctionsCurrent(models))
 	current, key := models[path], golden.OriginalKey(path)
 	_, err = cfg.MatchAt(key, original, current)
 	require.NoError(t, err)
@@ -380,6 +382,8 @@ func TestMigrationGoldensAdmitOnlyTheDerivedWaits(t *testing.T) {
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
 	cfg, models := migrationInputs(t)
+	// Every listed rename is to a Function the current IR declares.
+	require.NoError(t, cfg.FunctionsCurrent(models))
 	current, key := models[path], golden.OriginalKey(path)
 	_, err = cfg.MatchAt(key, original, current)
 	require.NoError(t, err)
@@ -676,6 +680,8 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
 	cfg, models := migrationInputs(t)
+	// Every listed rename is to a Function the current IR declares.
+	require.NoError(t, cfg.FunctionsCurrent(models))
 	current, key := models[path], golden.OriginalKey(path)
 	require.NotNil(t, functionNamed(original, kernel))
 	moved := "temporal.features.nexuscaller.Protocol$.effects$.completeStep"

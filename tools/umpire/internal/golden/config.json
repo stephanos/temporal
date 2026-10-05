@@ -475,10 +475,6 @@
         "new": "temporal.nexuscaller.Product$.effects$.handlerReplyStep"
       },
       {
-        "old": "temporal.nexuscaller.kernel.Product$.productStep",
-        "new": "temporal.nexuscaller.Product$.productStep"
-      },
-      {
         "old": "temporal.nexuscaller.kernel.Product$.productTerminal",
         "new": "temporal.nexuscaller.Product$.productTerminal"
       },
@@ -505,10 +501,6 @@
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.handlerReplyStep",
         "new": "temporal.nexuscaller.Protocol$.effects$.handlerReplyStep"
-      },
-      {
-        "old": "temporal.nexuscaller.kernel.Protocol$.moves",
-        "new": "temporal.nexuscaller.Protocol$.moves"
       },
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.productOf",
