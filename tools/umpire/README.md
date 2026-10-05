@@ -16,7 +16,6 @@ terms; this page says what each package is for.
 | `lint` | Model lint: reports what a Model declares that nothing reaches, takes, asks, evidences or realizes, and its specification holes, with a coverage count per kind and each machine's per-operation modality table. It reads lowering only through what its command hands it |
 | `explore` | Enumerates the candidates a Query's exploration declares, lowers each one, and serves them over the campaign and replay bridge protocol |
 | `internal/cli` | What the commands share at their edge: interruption, output lines, and the rule that nothing is written under the model |
-| `internal/golden` | Test support for the frozen migration goldens in `model/testdata/migration` and `lower/testdata/migration` |
 
 The module map, [.plans/UMPIRE_MODULES.md](../../.plans/UMPIRE_MODULES.md), states each package's
 public interface and what it may import. `model/ownership_test.go` enforces those import rules: the
@@ -58,6 +57,6 @@ A finding is accepted in `<file>.lint.json` beside its IR file, by its kind, its
 composition and its subject, each acceptance with the reason it is accepted. The IR generator writes no
 such file; an author does, and one beside no IR file fails the run.
 
-The tests under `model/testdata/migration` and `lower/testdata/migration` hold the reader's and the
-lowering's output to 1,411 frozen snapshots. A change that moves one of them changes what a Model
-means or what a Case contains, and has to be intended.
+The reader's tests pin what each Model of `model/ir` means, and `umpire-check-cases` holds every
+managed Case tree to what lowering produces, byte for byte. A change that moves either changes what
+a Model means or what a Case contains, and has to be intended.
