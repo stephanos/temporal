@@ -1,5 +1,6 @@
 package umpire
 
+import scala.collection.mutable
 import umpire.realize.Realization
 
 /**
@@ -17,7 +18,38 @@ import umpire.realize.Realization
  * file names stays out of model/ir, so a design can be kept out of the checked files. The file's
  * `source` lists its roots' fully qualified names.
  */
-final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot])
+final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot]):
+  /**
+   * Constructs every root and what it reaches, as the gate does for every IR file (a Model test
+   * beside the Models): each machine's rules, so an overlap of two of them is refused
+   * here, the members of each composition, and the machines each Query, capability declaration,
+   * progress claim and realization names.
+   */
+  def construct(): Unit =
+    val seen = mutable.Set.empty[AnyRef]
+    def model(m: Model): Unit =
+      if seen.add(m) then
+        m match
+          case machine: Machine[?, ?, ?] => machine.bindings: Unit
+          case c: Composition[?]         => c.members.foreach(model)
+          case _                         => ()
+    roots.foreach:
+      case m: Machine[?, ?, ?] => model(m)
+      case c: Composition[?]   => model(c)
+      case q: Query            => Seq(q.scenario.machine, q.property.machine).foreach(model)
+      case qs: Seq[?]          =>
+        qs.foreach:
+          case q: Query => Seq(q.scenario.machine, q.property.machine).foreach(model)
+          case _        => ()
+      case p: Progress[?]     => model(p.machine)
+      case r: Realization     => model(r.machine)
+      case c: Capabilities[?] => model(c.model)
+
+object IrFile:
+  private[umpire] val made = mutable.ArrayBuffer.empty[IrFile]
+
+  /** Every IR file declared so far: each `irFile` val of an object that has initialized. */
+  def declared: Seq[IrFile] = made.synchronized(made.toSeq)
 
 /**
  * What an IR file names as a root: a machine, a composition, a Query, a list of Queries, a progress
@@ -27,4 +59,7 @@ type IrRoot = Machine[?, ?, ?] | Composition[?] | Query | Seq[Query] | Progress[
   Capabilities[?]
 
 /** Declares the IR file `model/ir/<name>.json` and its roots. */
-def irFile(name: String)(roots: IrRoot*): IrFile = IrFile(name, roots)
+def irFile(name: String)(roots: IrRoot*): IrFile =
+  val file = IrFile(name, roots)
+  IrFile.made.synchronized(IrFile.made += file)
+  file
