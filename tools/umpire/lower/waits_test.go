@@ -534,6 +534,7 @@ func TestNoBehaviorDerivesNoWait(t *testing.T) {
 					Targets: []*umpirespb.Target{{Target: &umpirespb.Target_Observe{Observe: "described"}}}}}
 			case c.GetPoll() != nil:
 				c.GetPoll().IntervalMs = 250
+			default:
 			}
 		}
 	})
