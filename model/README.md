@@ -25,11 +25,11 @@ A **Model** is the description of one feature: its state machines and everything
 them. A **machine** is a finite state machine: its states, the actions that can happen, and a step
 function per action that says what the next state is and which facts the step records. The Nexus
 caller Model is in `model/temporal/features/nexuscaller`, and its machine `nexusProtocol` is declared in
-its feature file, `NexusCaller.scala`, as the object `NexusProtocol`, which is the machine: its rules
-say when each action fires and its effects what it does.
+its System level's file, `system/System.scala`, as the object `NexusProtocol`, which is the machine:
+its rules say when each action fires and its effects what it does.
 
 A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/features/nexuscaller/NexusCaller.scala`, line 476, in
+example's Property (`model/temporal/features/nexuscaller/system/System.scala`, line 205, in
 `NexusProtocol.properties`), named after its `val`; inside the machine's object, `property` is the
 machine's own:
 
@@ -50,7 +50,7 @@ The path starts where the machine does, in `unscheduled`, the state before the o
 `unset`; `caller.schedule(scheduleToStart := expires)` sets one by name.
 
 A **Query** is a bounded question that joins the two: find a path of this Scenario on which the
-Property is put to work, or verify that the Property holds on every path of it (line 559, in
+Property is put to work, or verify that the Property holds on every path of it (line 288, in
 `NexusProtocol.queries`, without its exploration settings). A Scenario one Query uses is written
 inside it, under its name:
 
@@ -228,8 +228,8 @@ entry there, without the `exploration` field:
 {
   "name": "syncCompletion",
   "position": {
-    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-    "line": 585
+    "file": "model/temporal/features/nexuscaller/system/System.scala",
+    "line": 288
   },
   "form": "FORM_FIND",
   "property": {
@@ -988,9 +988,9 @@ citations and the one `given Catalog` live in `model/temporal/capabilities`:
 | `Describable` | `status`, the realization's fact-to-status table | none of its own: the generated finds' awaits read its table |
 
 **The worked example.** The standalone activity declares its capabilities in two declarations, the
-`implements` objects of its `ActivityProduct` and `ActivityProtocol` in
-`model/temporal/features/standaloneactivity/StandaloneActivity.scala`, each `capabilities(limits)(…)`
-of the machine it sits in:
+`implements` objects of its `ActivityProduct` in
+`model/temporal/features/standaloneactivity/product/Product.scala` and its `ActivityProtocol` in
+`system/System.scala`, each `capabilities(limits)(…)` of the machine it sits in:
 
 ```scala
 import temporal.capabilities.{given, *}
@@ -1105,13 +1105,13 @@ adds, removes or rewrites a row:
 
 ```text
 laws model/ir/activity.json activityProduct
-  activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/StandaloneActivity.scala:274
+  activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/product/Product.scala:133
     promises: while an entity is paused no work is handed to a worker: no step from paused lands in running
     does not promise: what a pause of held work does (…), what a second pause or an unpause of a live entity answers, …
     attemptStart (Pollable.dispatch)    paused  MUST NOT  cell: ? s.phase != scheduled
     control-pause (Pausable.pause)      paused  MUST NOT  cell: ? !pausable(s)
     control-unpause (Pausable.unpause)  paused  MUST NOT of its results  cell: MAY accepted -> scheduled [statusScheduled]
-  activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/StandaloneActivity.scala:269
+  activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/product/Product.scala:128
     …
     every class  completed, failed, canceled, terminated, timedOut  MUST NOT
   no law pins
@@ -1343,7 +1343,7 @@ Runs reproduce the same failure again. An incomplete or unreproduced failure pro
 `TestTestpilotNexusControlReplaysThroughTheCommand` run both against an in-process server; set
 `UMPIRE_EXPLORATION_DIR` to keep their Cases, Runs, reports and HTML traces.
 
-The control machine `ForgedCompletion` (`forgedCompletion`, `model/temporal/features/nexuscaller/NexusCaller.scala`)
+The control machine `ForgedCompletion` (`forgedCompletion`, `model/temporal/features/nexuscaller/system/ForgedCompletion.scala`)
 deliberately admits a forged success beside the real failed callback. It is a negative control,
 marked `NegativeControl`, that shows a violated Verdict being found and replayed, not a server
 defect.
