@@ -28,7 +28,7 @@ const (
 	// The fields no frozen migration input sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
-	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
+	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
 		`"behavior":{"visibility":[{"id":"v","position":{"file":"f"},"method":"/s/W","read":"/s/R","eventuallyWithin":{"position":{"file":"f"},"intervalMs":"1","atMostMs":"2"}},{"cause":"CAUSE_KIND_TIMER"}],` +
 		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}],` +
 		`"attemptNumbering":{"position":{"file":"f"},"first":"1","oneRun":true},` +
@@ -55,6 +55,30 @@ type schemaAddedMessage struct {
 type schemaAddedEnum struct {
 	after string
 	enum  *descriptorpb.EnumDescriptorProto
+}
+
+// schemaAddedNestedEnum is an enum the schema gained after the capture inside a captured message, by
+// the message's name in the file, declared after the enums it had.
+type schemaAddedNestedEnum struct {
+	message string
+	enum    *descriptorpb.EnumDescriptorProto
+}
+
+// schemaReplacedField is a captured field the schema replaced after the capture by a field of another
+// type: the captured field's number is reserved, and the replacement takes its place in the message.
+type schemaReplacedField struct {
+	message     string
+	replaced    string
+	replacement *descriptorpb.FieldDescriptorProto
+}
+
+// schemaEnumOf is the descriptor protoc gives an enum, its values numbered from 0 in order.
+func schemaEnumOf(name string, values ...string) *descriptorpb.EnumDescriptorProto {
+	enum := &descriptorpb.EnumDescriptorProto{Name: proto.String(name)}
+	for i, value := range values {
+		enum.Value = append(enum.Value, &descriptorpb.EnumValueDescriptorProto{Name: proto.String(value), Number: proto.Int32(int32(i))})
+	}
+	return enum
 }
 
 // schemaFieldOf is the descriptor protoc gives a field added since the capture. A message's or an
@@ -106,6 +130,23 @@ var (
 		// How the APIs a realization calls behave between calls, and its server steps (fn-118.2).
 		{message: "Realization", field: schemaFieldOf("behavior", 16, schemaOptional, schemaMessage, "ApiBehavior", "behavior")},
 		{message: "Realization", field: schemaFieldOf("server_steps", 17, schemaRepeated, schemaMessage, "ServerStep", "serverSteps")},
+		// How an expected Run ends and how its cleanup ends, declared (fn-124.5).
+		{message: "RunExpectation", field: schemaFieldOf("disposition", 6, schemaOptional, schemaEnum, "RunExpectation.Disposition", "disposition")},
+		{message: "RunExpectation", field: schemaFieldOf("cleanup", 7, schemaOptional, schemaEnum, "RunExpectation.Cleanup", "cleanup")},
+	}
+	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5. The frozen
+	// migration inputs were declared in the new schema then (golden.DeclaredRuns), so the captured wire
+	// bytes no longer encode their expected Runs; TestSchemaRenameKeepsTheWireBytes reads both without.
+	schemaReplacedFields = []schemaReplacedField{
+		{message: "RunExpectation", replaced: "reason", replacement: schemaFieldOf("reason", 8, schemaOptional, schemaEnum, "RunExpectation.Reason", "reason")},
+		{message: "MonitorExpectation", replaced: "reason", replacement: schemaFieldOf("reason", 4, schemaOptional, schemaEnum, "RunExpectation.Reason", "reason")},
+	}
+	schemaAddedNestedEnums = []schemaAddedNestedEnum{
+		{message: "RunExpectation", enum: schemaEnumOf("Disposition", "DISPOSITION_UNSPECIFIED", "DISPOSITION_COMPLETED", "DISPOSITION_STOPPED_BY_MONITOR",
+			"DISPOSITION_INCOMPLETE")},
+		{message: "RunExpectation", enum: schemaEnumOf("Cleanup", "CLEANUP_UNSPECIFIED", "CLEANUP_SUCCEEDED", "CLEANUP_FAILED", "CLEANUP_TIMED_OUT")},
+		{message: "RunExpectation", enum: schemaEnumOf("Reason", "REASON_UNSPECIFIED", "REASON_NO_EVIDENCE", "REASON_INCOMPLETE", "REASON_HOLE",
+			"REASON_UNEXPLAINED", "REASON_EXPLANATIONS_DISAGREE", "REASON_NEVER_EVALUATED", "REASON_UNREADABLE", "REASON_EVERY_EXPLANATION_VIOLATES")},
 	}
 	schemaAddedMessages = []schemaAddedMessage{
 		// Realization.required_settings' entry.
@@ -244,14 +285,33 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 		}
 		file.EnumType = slices.Insert(enums, i+1, proto.CloneOf(added.enum))
 	}
-	for _, added := range schemaAddedFields {
+	message := func(name string) *descriptorpb.DescriptorProto {
 		messages := file.GetMessageType()
 		var message *descriptorpb.DescriptorProto
-		for _, name := range strings.Split(added.message, ".") {
-			i := slices.IndexFunc(messages, func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == name })
-			require.NotEqual(t, -1, i, "no message %s", added.message)
+		for _, part := range strings.Split(name, ".") {
+			i := slices.IndexFunc(messages, func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == part })
+			require.NotEqual(t, -1, i, "no message %s", name)
 			message, messages = messages[i], messages[i].GetNestedType()
 		}
+		return message
+	}
+	for _, added := range schemaAddedNestedEnums {
+		m := message(added.message)
+		require.False(t, slices.ContainsFunc(m.GetEnumType(), func(e *descriptorpb.EnumDescriptorProto) bool { return e.GetName() == added.enum.GetName() }),
+			"%s.%s was captured", added.message, added.enum.GetName())
+		m.EnumType = append(m.EnumType, proto.CloneOf(added.enum))
+	}
+	for _, replaced := range schemaReplacedFields {
+		m := message(replaced.message)
+		i := slices.IndexFunc(m.GetField(), func(f *descriptorpb.FieldDescriptorProto) bool { return f.GetName() == replaced.replaced })
+		require.NotEqual(t, -1, i, "%s.%s was not captured", replaced.message, replaced.replaced)
+		require.NotEqual(t, m.GetField()[i].GetType(), replaced.replacement.GetType(), "a replacement changes the type")
+		number := m.GetField()[i].GetNumber()
+		m.ReservedRange = append(m.ReservedRange, &descriptorpb.DescriptorProto_ReservedRange{Start: proto.Int32(number), End: proto.Int32(number + 1)})
+		m.Field[i] = proto.CloneOf(replaced.replacement)
+	}
+	for _, added := range schemaAddedFields {
+		message := message(added.message)
 		for _, field := range message.GetField() {
 			require.NotEqual(t, added.field.GetName(), field.GetName(), "%s.%s was captured", added.message, field.GetName())
 			require.NotEqual(t, added.field.GetNumber(), field.GetNumber(), "%s.%s was captured", added.message, field.GetName())
@@ -274,21 +334,38 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 	delete(captured, "descriptor.binpb")
 	require.Equal(t, slices.Sorted(maps.Keys(sources)), slices.Sorted(maps.Keys(captured)))
 
+	// Each side is read without its expected Runs (schemaReplacedFields), and the captured side then
+	// re-encodes byte for byte to the source's encoding.
+	withoutExpectedRuns := func(m *umpirespb.Model) []byte {
+		bare := proto.CloneOf(m)
+		for _, q := range bare.GetQueries() {
+			q.ExpectedRun = nil
+		}
+		encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(bare)
+		require.NoError(t, err)
+		return encoded
+	}
 	historical := map[protoreflect.FullName]bool{}
 	for name, wire := range captured {
 		expected := new(umpirespb.Model)
 		require.NoError(t, protojson.Unmarshal(sources[name], expected), name)
 		decoded := new(umpirespb.Model)
 		require.NoError(t, proto.Unmarshal(wire, decoded), name)
-		protorequire.ProtoEqual(t, expected, decoded)
-		encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(expected)
-		require.NoError(t, err, name)
-		require.Equal(t, golden.Digest(wire), golden.Digest(encoded), name)
+		if !slices.ContainsFunc(expected.GetQueries(), func(q *umpirespb.Query) bool { return q.GetExpectedRun() != nil }) {
+			protorequire.ProtoEqual(t, expected, decoded)
+			encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(expected)
+			require.NoError(t, err, name)
+			require.Equal(t, golden.Digest(wire), golden.Digest(encoded), name)
+		}
+		require.Equal(t, golden.Digest(withoutExpectedRuns(expected)), golden.Digest(withoutExpectedRuns(decoded)), name)
 		schemaFieldsSet(decoded.ProtoReflect(), historical)
 	}
 	var added []protoreflect.FullName
 	for _, a := range schemaAddedFields {
 		added = append(added, protoreflect.FullName(schemaPackage+"."+a.message+"."+a.field.GetName()))
+	}
+	for _, r := range schemaReplacedFields {
+		added = append(added, protoreflect.FullName(schemaPackage+"."+r.message+"."+r.replacement.GetName()))
 	}
 	for _, a := range schemaAddedMessages {
 		for _, field := range a.message.GetField() {
