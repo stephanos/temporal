@@ -119,7 +119,7 @@ Gate: started before fn-114 closed (its remaining tasks are cleanup).
 | fn-122.3 | ✅ done | Activity capabilities; authored twins retired |
 | fn-122.4 | ✅ done | Standalone Nexus operation Model; required settings |
 | fn-122.8 | ✅ done | Capability vocabulary moved to `model/temporal/capabilities` |
-| fn-122.5 | 🔄 in progress | Law lint kinds; waiver reasons in the accepted-findings file |
+| fn-122.5 | ✅ done | Law lint kinds; waiver reasons in the accepted-findings file |
 | fn-122.6 | ⬜ todo | Docs, authored vs generated counts; close |
 | fn-122.7 | ⏸️ deferred | Pausable on fn-119's example |
 
