@@ -13,11 +13,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/umpire/internal/golden"
 )
 
 func TestCheckerAndProducerHaveOneLiveOwner(t *testing.T) {
-	root, err := golden.Root()
+	root, err := filepath.Abs(repoRoot)
 	require.NoError(t, err)
 	base := filepath.Join(root, "tools", "umpire")
 	require.NoError(t, filepath.WalkDir(base, func(path string, entry fs.DirEntry, err error) error {
@@ -152,7 +151,7 @@ func modelImportProblem(file string, external bool, imported string) string {
 }
 
 func TestLiveModelDependencyGraph(t *testing.T) {
-	root, err := golden.Root()
+	root, err := filepath.Abs(repoRoot)
 	require.NoError(t, err)
 	require.NoDirExists(t, filepath.Join(root, "model", "scalav2"))
 	scanned := 0
@@ -229,7 +228,7 @@ func toolingCallerProblem(directory, name string, importers []string, commands s
 }
 
 func TestEveryToolingPackageHasALiveCaller(t *testing.T) {
-	root, err := golden.Root()
+	root, err := filepath.Abs(repoRoot)
 	require.NoError(t, err)
 	var commands strings.Builder
 	for _, file := range []string{"Makefile", ".github/workflows/umpire.yml"} {
