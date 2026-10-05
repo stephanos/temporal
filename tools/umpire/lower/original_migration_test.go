@@ -308,10 +308,10 @@ func TestOriginalBaselineCasesRejectChanges(t *testing.T) {
 		}
 		return compareOriginalCases(want, got)
 	}
-	replaced := func(old, new string) func(map[string][]byte) {
+	replaced := func(old, replacement string) func(map[string][]byte) {
 		return func(m map[string][]byte) {
 			require.Contains(t, string(m[nexus]), old)
-			m[nexus] = bytes.Replace(m[nexus], []byte(old), []byte(new), 1)
+			m[nexus] = bytes.Replace(m[nexus], []byte(old), []byte(replacement), 1)
 		}
 	}
 	scheduled := `"pollIntervalMilliseconds":"250"}},"limits":{"timeoutMilliseconds":"5000"}`

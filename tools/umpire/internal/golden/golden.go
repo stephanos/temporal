@@ -659,19 +659,19 @@ func Ungenerated(key string, current *umpirespb.Model) (*umpirespb.Model, error)
 // Underived gives a frozen input and a current Model of an original-baseline key without the waits
 // the original baseline's delta lists as derived for it: each listed command the frozen input writes a
 // wait of, and the current Model writes none of (Waits.Baseline, Waits.Current).
-func Underived(key string, frozen, current *umpirespb.Model) (*umpirespb.Model, *umpirespb.Model, error) {
+func Underived(key string, frozen, current *umpirespb.Model) (underivedFrozen, underivedCurrent *umpirespb.Model, err error) {
 	delta, err := OriginalDelta()
 	if err != nil {
 		return nil, nil, err
 	}
 	waits := delta.Waits(key)
-	if frozen, err = waits.Baseline(frozen); err != nil {
+	if underivedFrozen, err = waits.Baseline(frozen); err != nil {
 		return nil, nil, fmt.Errorf("%s: %w", key, err)
 	}
-	if current, err = waits.Current(current); err != nil {
+	if underivedCurrent, err = waits.Current(current); err != nil {
 		return nil, nil, fmt.Errorf("%s: %w", key, err)
 	}
-	return frozen, current, nil
+	return underivedFrozen, underivedCurrent, nil
 }
 
 // Retired gives a mapped original whose source names no retired root.
