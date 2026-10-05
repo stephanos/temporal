@@ -1,0 +1,36 @@
+{
+  "stage": "FINAL",
+  "freeze": "../source-freeze.json#FINAL",
+  "head": "4695a9ad18de1aa49e032dad82154f73635e9c8d",
+  "command": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "validate"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-05T20:46:23.296Z",
+  "finished_at": "2026-10-05T20:47:10.645Z",
+  "elapsed_seconds": 46.325164105000006,
+  "exit_code": 0,
+  "signal": null,
+  "source_before": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_after": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_and_tool_inputs_stable": true,
+  "test_counts": {
+    "run": 0,
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "top_level_tests": [],
+  "skips": [],
+  "stdout_sha256": "451cb2130b7731606442e249f278bc297e1d3f3bfc8e04f9e1b530afe4035834",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

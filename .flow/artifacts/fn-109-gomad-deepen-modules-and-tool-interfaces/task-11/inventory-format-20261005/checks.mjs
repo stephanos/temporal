@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = '/Users/stephan/Workspace/skunkworks/gomad/temporal';
+const artifacts = dirname(fileURLToPath(import.meta.url));
+const freeze = JSON.parse(readFileSync(resolve(artifacts, 'source-freeze.json')));
+const path = 'tools/gomad3/internal/sourceinventory/inventory.go';
+const baseResult = spawnSync('git', ['show', freeze.BASE.head + ':' + path], { cwd: root, encoding: 'utf8' });
+assert.equal(baseResult.status, 0, baseResult.stderr);
+const base = baseResult.stdout;
+const final = readFileSync(resolve(root, path), 'utf8');
+const oldWrite = '\t\t_, _ = hasher.Write([]byte(fmt.Sprintf("sha256:%x", digest)))';
+const newWrite = '\t\t_, _ = fmt.Fprintf(hasher, "sha256:%x", digest)';
+assert.equal(base.split(oldWrite).length - 1, 1);
+assert.equal(final, base.replace(oldWrite, newWrite));
+const hash = value => createHash('sha256').update(value).digest('hex');
+assert.equal(hash(base), freeze.BASE.files[path]);
+assert.equal(hash(final), freeze.FINAL.files[path]);
+const changedResult = spawnSync('git', ['diff', '--name-only', freeze.BASE.head, '--', 'tools/gomad3', 'tools/gomad3sim', 'tools/gomad3integration', 'Makefile', '.github/.golangci.yml'], { cwd: root, encoding: 'utf8' });
+assert.equal(changedResult.status, 0, changedResult.stderr);
+assert.deepEqual(changedResult.stdout.trim().split('\n'), [path]);
+for (const key of Object.keys(freeze.BASE.files)) {
+  if (key !== path) assert.equal(freeze.BASE.files[key], freeze.FINAL.files[key]);
+}
+assert.deepEqual(freeze.BASE.tools, freeze.FINAL.tools);
+const events = label => readFileSync(resolve(artifacts, label, 'stdout.log'), 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line));
+const terminal = label => events(label).filter(event => event.Test && ['pass', 'fail', 'skip'].includes(event.Action)).map(event => [event.Package, event.Test, event.Action]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+for (const suite of ['inventory', 'target', 'adapters']) assert.deepEqual(terminal('base-' + suite), terminal('final-' + suite));
+const errors = label => events(label).filter(event => event.OutputType === 'error').map(event => [event.Test, event.Output]);
+assert.deepEqual(errors('base-adapters'), errors('final-adapters'));
+const lintBase = readFileSync(resolve(artifacts, 'base-lint/stdout.log'), 'utf8');
+const lintFinal = readFileSync(resolve(artifacts, 'final-lint/stdout.log'), 'utf8');
+assert.equal(lintBase, 'tools/gomad3/internal/sourceinventory/inventory.go:82:10: QF1012: Use fmt.Fprintf(...) instead of Write([]byte(fmt.Sprintf(...))) (staticcheck)\n\t\t_, _ = hasher.Write([]byte(fmt.Sprintf("sha256:%x", digest)))\n\t\t       ^\n1 issues:\n* staticcheck: 1\n');
+assert.equal(lintFinal, '0 issues.\n');
+for (const label of ['base-lint', 'final-lint']) assert.equal(readFileSync(resolve(artifacts, label, 'stderr.log'), 'utf8'), '');
+const inventoryTest = readFileSync(resolve(root, 'tools/gomad3/internal/sourceinventory/inventory_test.go'), 'utf8');
+assert.ok(inventoryTest.includes('sha256:624ffd10d3b0e4126993be4d4c60de5dba62a7bc08df9a1b9f4db1a0260c07b3'));
+console.log(JSON.stringify({ exact_one_line_reconstruction: true, only_selected_tracked_source_changed: path, other_frozen_files_and_tools_unchanged: true, base_final_test_terminal_events_identical: true, base_final_adapter_failure_messages_identical: true, literal_inventory_digest: 'sha256:624ffd10d3b0e4126993be4d4c60de5dba62a7bc08df9a1b9f4db1a0260c07b3', scoped_lint: { base_exit: 1, base_findings: 1, final_exit: 0, final_findings: 0, resolved: ['QF1012'], introduced: 0 }, base_source_sha256: freeze.BASE.source.sha256, final_source_sha256: freeze.FINAL.source.sha256, final_inventory_sha256: hash(final) }, null, 2));

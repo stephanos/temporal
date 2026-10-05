@@ -1,0 +1,38 @@
+{
+  "stage": "BASE",
+  "freeze": "../source-freeze.json#BASE",
+  "head": "4695a9ad18de1aa49e032dad82154f73635e9c8d",
+  "command": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--config",
+    "../../.github/.golangci.yml",
+    "--fix=false",
+    "./internal/sourceinventory"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-05T20:42:13.276Z",
+  "finished_at": "2026-10-05T20:42:21.418Z",
+  "elapsed_seconds": 7.418240503999999,
+  "exit_code": 1,
+  "signal": null,
+  "source_before": {
+    "sha256": "b9384ef916cea7a2ba907008e3efea9ef46e75f75d93ab28ead3e1c37786bfd5",
+    "tracked_path_count": 1052
+  },
+  "source_after": {
+    "sha256": "b9384ef916cea7a2ba907008e3efea9ef46e75f75d93ab28ead3e1c37786bfd5",
+    "tracked_path_count": 1052
+  },
+  "source_and_tool_inputs_stable": true,
+  "test_counts": {
+    "run": 0,
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "top_level_tests": [],
+  "skips": [],
+  "stdout_sha256": "96d3f59ebfcad2180137539b5f719144ce893835a65bc3b5a0dd2cbbf75896fc",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

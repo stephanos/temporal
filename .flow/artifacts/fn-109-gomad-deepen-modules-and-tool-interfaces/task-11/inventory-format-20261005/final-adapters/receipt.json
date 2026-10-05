@@ -1,0 +1,45 @@
+{
+  "stage": "FINAL",
+  "freeze": "../source-freeze.json#FINAL",
+  "head": "4695a9ad18de1aa49e032dad82154f73635e9c8d",
+  "command": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./deterministicio",
+    "-run",
+    "TestPinnedAdapterModuleInventories|TestPrepareGRPCReturnsTypedInventoryCapacityError|TestRewrittenModuleInventoriesMatchPinnedModules"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-05T20:43:00.136Z",
+  "finished_at": "2026-10-05T20:43:02.621Z",
+  "elapsed_seconds": 1.968825418,
+  "exit_code": 1,
+  "signal": null,
+  "source_before": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_after": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_and_tool_inputs_stable": true,
+  "test_counts": {
+    "run": 3,
+    "pass": 1,
+    "fail": 2,
+    "skip": 0
+  },
+  "top_level_tests": [
+    "TestRewrittenModuleInventoriesMatchPinnedModules",
+    "TestPinnedAdapterModuleInventories",
+    "TestPrepareGRPCReturnsTypedInventoryCapacityError"
+  ],
+  "skips": [],
+  "stdout_sha256": "088652cb6684c47d186ced9b73c81c8944b2f95d5bdaece77b3892ae7bce2d14",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

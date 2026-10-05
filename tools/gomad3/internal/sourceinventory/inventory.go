@@ -79,7 +79,7 @@ func digest(root string, maximumFiles int, maximumBytes uint64) (string, error) 
 		digest := sha256.Sum256(contents)
 		_, _ = hasher.Write([]byte(filepath.ToSlash(relative)))
 		_, _ = hasher.Write([]byte{0})
-		_, _ = hasher.Write([]byte(fmt.Sprintf("sha256:%x", digest)))
+		_, _ = fmt.Fprintf(hasher, "sha256:%x", digest)
 		_, _ = hasher.Write([]byte{0})
 		return nil
 	})

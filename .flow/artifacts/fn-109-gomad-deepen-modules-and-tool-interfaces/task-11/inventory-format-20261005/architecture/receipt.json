@@ -1,0 +1,45 @@
+{
+  "stage": "FINAL",
+  "freeze": "../source-freeze.json#FINAL",
+  "head": "4695a9ad18de1aa49e032dad82154f73635e9c8d",
+  "command": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    ".",
+    "-run",
+    "TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-05T20:43:12.795Z",
+  "finished_at": "2026-10-05T20:45:35.584Z",
+  "elapsed_seconds": 139.56709498299998,
+  "exit_code": 0,
+  "signal": null,
+  "source_before": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_after": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_and_tool_inputs_stable": true,
+  "test_counts": {
+    "run": 3,
+    "pass": 3,
+    "fail": 0,
+    "skip": 0
+  },
+  "top_level_tests": [
+    "TestPackageArchitecture",
+    "TestPureModulesHaveNoHostEffects",
+    "TestExactModuleEdges"
+  ],
+  "skips": [],
+  "stdout_sha256": "1828bb8a9f5b7d97f5ce7f483d95cc47196bdb0c660a7b739461e4930704aabc",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

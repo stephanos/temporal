@@ -1,0 +1,18 @@
+{
+  "previous": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/root-integrated-lint/stdout.txt",
+  "current": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-11/inventory-format-20261005/root-integrated-lint/stdout.log",
+  "before": 319,
+  "after": 318,
+  "removed": "tools/gomad3/internal/sourceinventory/inventory.go:82:10: QF1012: Use fmt.Fprintf(...) instead of Write([]byte(fmt.Sprintf(...))) (staticcheck)\n\t\t_, _ = hasher.Write([]byte(fmt.Sprintf(\"sha256:%x\", digest)))\n\t\t       ^\n",
+  "introduced": [],
+  "unchanged_complete_blocks": 318,
+  "counts": {
+    "forbidigo": 11,
+    "staticcheck": 52,
+    "errcheck": 252,
+    "exhaustive": 3
+  },
+  "integrated_errortype": "UNREACHED",
+  "make_exit": 2,
+  "elapsed_seconds": 99.518307631
+}

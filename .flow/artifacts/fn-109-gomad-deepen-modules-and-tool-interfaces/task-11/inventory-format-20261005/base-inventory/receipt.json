@@ -1,0 +1,43 @@
+{
+  "stage": "BASE",
+  "freeze": "../source-freeze.json#BASE",
+  "head": "4695a9ad18de1aa49e032dad82154f73635e9c8d",
+  "command": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./internal/sourceinventory"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-05T20:41:46.484Z",
+  "finished_at": "2026-10-05T20:41:48.421Z",
+  "elapsed_seconds": 1.1946922919999998,
+  "exit_code": 0,
+  "signal": null,
+  "source_before": {
+    "sha256": "b9384ef916cea7a2ba907008e3efea9ef46e75f75d93ab28ead3e1c37786bfd5",
+    "tracked_path_count": 1052
+  },
+  "source_after": {
+    "sha256": "b9384ef916cea7a2ba907008e3efea9ef46e75f75d93ab28ead3e1c37786bfd5",
+    "tracked_path_count": 1052
+  },
+  "source_and_tool_inputs_stable": true,
+  "test_counts": {
+    "run": 8,
+    "pass": 8,
+    "fail": 0,
+    "skip": 0
+  },
+  "top_level_tests": [
+    "TestDigestPinsInventoryEncoding",
+    "TestDigestReturnsTypedCapacityError",
+    "TestDigestRejectsUnsafeOrEmptyInventories"
+  ],
+  "skips": [],
+  "stdout_sha256": "f0e027b5d33f6099b7b48c05abed029a6142d19bcd26b2bf1abfc96b8f7875c8",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,39 @@
+{
+  "stage": "FINAL",
+  "freeze": "../source-freeze.json#FINAL",
+  "head": "4695a9ad18de1aa49e032dad82154f73635e9c8d",
+  "command": [
+    "make",
+    "--trace",
+    "lint-code-gomad3",
+    "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-05T20:49:23.865Z",
+  "finished_at": "2026-10-05T20:51:04.344Z",
+  "elapsed_seconds": 99.518307631,
+  "exit_code": 2,
+  "signal": null,
+  "source_before": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_after": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_and_tool_inputs_stable": true,
+  "test_counts": {
+    "run": 0,
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "top_level_tests": [],
+  "skips": [],
+  "stdout_sha256": "b209ce0668f11a821ad094020ce3f0cb926d327b6a9a67818b424c62230e9464",
+  "stderr_sha256": "dc6230ba0063fe4a8768176838fa4a119c03bf0ba63b623be6c1580f6984714a"
+}

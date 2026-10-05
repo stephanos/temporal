@@ -193,7 +193,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.8](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.8.md) | ⛔ Blocked | Move analysis and compatibility review onto the preparation owner's inspection operation |
 | [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⛔ Blocked | Bounded adapter listing integrated; original acceptance gates remain open |
 | [fn-109.10](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.10.md) | ⛔ Blocked | Supply build, cache and adapter locations from one validated installation description |
-| [fn-109.11](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md) | ⛔ Blocked | Separate capability collection, pure evaluation and linked projection, with one source-inventory owner |
+| [fn-109.11](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md) | ⛔ Blocked | Capability/source-inventory owners integrated; inventory lint fixed, qualification pending |
 | [fn-109.12](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md) | ⛔ Blocked | Separate detached Artifact references from owned opened handles |
 | [fn-109.13](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.13.md) | ⛔ Blocked | Generate host and runtime simulation-time codecs from one versioned definition |
 | [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | ⛔ Blocked | Hide generic model-wire slots behind typed network and volume commands |

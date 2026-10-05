@@ -1,0 +1,21 @@
+{
+  "exact_one_line_reconstruction": true,
+  "only_selected_tracked_source_changed": "tools/gomad3/internal/sourceinventory/inventory.go",
+  "other_frozen_files_and_tools_unchanged": true,
+  "base_final_test_terminal_events_identical": true,
+  "base_final_adapter_failure_messages_identical": true,
+  "literal_inventory_digest": "sha256:624ffd10d3b0e4126993be4d4c60de5dba62a7bc08df9a1b9f4db1a0260c07b3",
+  "scoped_lint": {
+    "base_exit": 1,
+    "base_findings": 1,
+    "final_exit": 0,
+    "final_findings": 0,
+    "resolved": [
+      "QF1012"
+    ],
+    "introduced": 0
+  },
+  "base_source_sha256": "b9384ef916cea7a2ba907008e3efea9ef46e75f75d93ab28ead3e1c37786bfd5",
+  "final_source_sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+  "final_inventory_sha256": "5df9e8cbf6f11f90ee804acf502b8b7dca45f83fdebcb88da9f4992253da53f4"
+}

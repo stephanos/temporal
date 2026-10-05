@@ -9,6 +9,16 @@ Owner amendment (2026-10-04): this task transfers every remaining native Linux e
 
 Stage 3, R17 (S5). `target/capability.go` (1,350 lines) mixes host evidence collection, validation, policy evaluation and linked projection, and adapter source-inventory hashing is exported from `target` only so `deterministicio` can wrap it. Separate the three concerns internally behind the unchanged review interface and give inventory hashing one neutral private owner.
 
+### Source-inventory lint revival (2026-10-05)
+
+Revive only the remaining QF1012 formatted hash-write correction from reviewed integrated source `4695a9ad18de1aa49e032dad82154f73635e9c8d`. This source-progress exception permits starting while task10 acceptance remains open; preserve that dependency and every original completion criterion. Only the formatted per-file digest write in `internal/sourceinventory/inventory.go` may change. Preserve all other bytes, comments, tests, signatures, framing, traversal, limits, validation/error order, consumer mappings, pins and generated output. Retain explicit infallible SHA-256 write-result handling; add no error branch or production seam.
+
+Before editing, run existing literal inventory/capacity/refusal controls and focused target/adapter consumer controls on unchanged BASE, and reproduce actual pinned unfiltered package lint. Run the same controls on final source, ownership/purity/architecture checks, errortype, formatting and the actual integrated lint gate with original comparison `951c5516e9e7b3066e7e069adda9565cfd68844c` and fix disabled. Inspect generator ownership. Record complete measured diagnostic delta and unreached stages, not subtraction-based claims. Keep historical evidence immutable; retain compact command/source/tool receipts under `task-11/inventory-format-20261005/`.
+
+Root owns Flow, review and commits; one source/cache writer. Fresh independent source-progress review precedes a separate commit. Current-source scoped checks cannot complete original predecessor/preservation/matched-first-baseline/full/default/affected/functional/formal/native Darwin acceptance. Linux remains deferred and nonblocking under fn-128. Existing historical host and no-commit text below is superseded only by current evidence and MILESTONES instruction 5; original task scope/acceptance is retained.
+
+Current correction progress: the sole formatted write is repaired with all other source bytes and existing assertions preserved. BASE/FINAL inventory 8/8 and target 10/10 pass; adapter controls retain the same one pass and two early missing-patched-toolchain failures. Scoped lint reproduces one QF1012 before the edit and reports zero afterward. Architecture/purity/edges, standalone errortype, formatting and check-only validation pass. Root's actual integrated 55-package gate reports 318 findings, with exactly QF1012 removed from the previous 319 and all remaining complete blocks byte-identical; Make exits 2 and integrated errortype is unreached. See [current progress](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-11/inventory-format-20261005/progress.md). Original completion and adapter inventory proof gaps remain open; historical claims below retain their historical source meaning.
+
 **External ordering:** after `fn-108-gomad-reduce-code-size-without-removing.2` (local cleanup of `target/capability.go`; it deletes `validateGoCapabilityClosure`, `:184`).
 
 **Size:** M
@@ -59,7 +69,6 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Golden canonical reviews (ordered findings, live and eliminated blockers, inventories) and embedded-adapter inventory digests are byte-identical before and after.
 - [ ] Source drift, invalid overlays or replacements, unsafe bridge directives, capacity exhaustion and malformed linked evidence still fail closed with their existing error types.
 - [ ] Exact first-party simulation pins and the allowed bridge directives are unchanged; `make validate-compatibility` passes.
-
 ## Done summary
 Blocked:
 Blocked: R17 is implemented and reviewed (SHIP). Only native darwin/arm64 and linux/amd64 gates remain, and they belong to task 21.
@@ -83,6 +92,19 @@ Local evidence (linux/arm64, developmental only, with the uncommitted shim; deta
 Pre-existing, not fixed by design: `TestBuiltInSimulationLinknamesPinCurrentFirstPartySources` and `TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests` fail at base. `tools/gomad3sim/runtime_time_toolchain.go` gained a `gomadSimulationTimeCurrent` directive in ad90b462e0 without a pin update, and acceptance keeps the pins unchanged.
 
 Remaining native gates: on darwin/arm64 and linux/amd64 hosts (task 21), full `make -C tools/gomad3 test-host`, the task Quick commands, `make validate-compatibility`, `make test-live-capability` and scoped golangci-lint.
+
+Blocked:
+ORIGINAL_QUALIFICATION_OPEN: sourceinventory QF1012 has reviewed source progress;
+scoped lint is clean and literal inventory/target, architecture, errortype,
+formatting and check-only validation controls pass. Actual integrated lint
+still reports 318 findings and Make exits 2, leaving integrated errortype
+unreached. Two BASE/FINAL adapter inventory controls fail before hashing because
+the patched Go executable is absent. Original predecessor, matched-first-baseline,
+complete preservation, full/default/functional/affected-consumer/formal/native
+Darwin acceptance remains open where unproved. Linux belongs to fn-128 and
+does not block this task. See task-11/inventory-format-20261005/progress.md.
+Revive for a separately admitted source correction or changed original-gate
+prerequisite; preserve every original requirement.
 ## Evidence
 - Commits:
 - Tests:

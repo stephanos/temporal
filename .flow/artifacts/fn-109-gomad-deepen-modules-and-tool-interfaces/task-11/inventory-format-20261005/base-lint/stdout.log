@@ -1,0 +1,5 @@
+tools/gomad3/internal/sourceinventory/inventory.go:82:10: QF1012: Use fmt.Fprintf(...) instead of Write([]byte(fmt.Sprintf(...))) (staticcheck)
+		_, _ = hasher.Write([]byte(fmt.Sprintf("sha256:%x", digest)))
+		       ^
+1 issues:
+* staticcheck: 1

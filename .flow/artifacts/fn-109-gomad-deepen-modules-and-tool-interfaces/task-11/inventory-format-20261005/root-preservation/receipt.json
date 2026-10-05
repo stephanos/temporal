@@ -1,0 +1,34 @@
+{
+  "stage": "FINAL",
+  "freeze": "../source-freeze.json#FINAL",
+  "head": "4695a9ad18de1aa49e032dad82154f73635e9c8d",
+  "command": [
+    "node",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-11/inventory-format-20261005/checks.mjs"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-05T20:49:55.411Z",
+  "finished_at": "2026-10-05T20:49:56.506Z",
+  "elapsed_seconds": 0.3728390409999999,
+  "exit_code": 0,
+  "signal": null,
+  "source_before": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_after": {
+    "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+    "tracked_path_count": 1052
+  },
+  "source_and_tool_inputs_stable": true,
+  "test_counts": {
+    "run": 0,
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "top_level_tests": [],
+  "skips": [],
+  "stdout_sha256": "5fd16e4ae1e3c27634c0d438fa0cbacf4add50dfeb56951521f9ad6d1707de7c",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
