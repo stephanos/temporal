@@ -115,6 +115,28 @@ a reference to an undeclared kind, the same recorded kind declared twice under a
 path, or a source the Run and an instruction would both count, rejects at preparation. A Program
 that declares nothing keeps the spelled-out lift rules, which slot-bound reads still use.
 
+Where one operation's evidence comes from more than one source, only a causal parent orders it
+across them. The runtime names the operation's previously lifted evidence from another source as
+that parent only where the Program declares `run_order_is_causal`, the Producer's claim that the
+Run's record order is causal; a Program that does not declare it orders its evidence by each
+source's ordinals alone.
+
+## What the Case declares about the system it runs against
+
+Testpilot assumes nothing about the system beyond what a Case declares. Besides the evidence
+declarations and the causal run order above:
+
+- **Attempt numbering.** An activity entrypoint declares how the system numbers its attempts in
+  `ActivityActivation.attempt_numbering`: the reservation at position N, counted from 0, is the
+  attempt numbered `first + N`, and with `one_run` every attempt names the run the first one named.
+  Each reservation's outcome is judged by it, and preparation refuses an activity entrypoint that
+  declares none, or a first number below 1. A Driver may refuse a numbering it cannot route: the
+  Temporal Driver routes only attempts numbered from 1 in one run.
+- **Instruction limits.** An instruction's timeout and attempts are each its own `limits`, else the
+  Program's declared `instruction_defaults`, else the Profile's `InstructionDefaults`; an
+  instruction none of them covers is refused at preparation. A Temporal Case declares its defaults,
+  and a Temporal Profile has none of its own.
+
 ## How a Run is judged
 
 These are the judge's generic rules. They hold for every Contract, whichever Model its Case came
