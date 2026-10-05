@@ -170,6 +170,22 @@ word; nothing it lowers to changed, so the IR, the Cases and the Contracts are t
 | `always` | `everyCase(command)` | `always` is the temporal operator Do-not-do 7 reserves with its TLA meaning; the item is a command every Case carries. |
 | `umpire.realize.Outcome` | `umpire.realize.PropertyOutcome` | Each Model declares its own `enum Outcome`, so a Queries file imported the realization's one renamed (`Outcome as RunOutcome`). It is the outcome a Run gives a Property. |
 
+### 7. `through(_.member, def)` (accept as a word; fn-127, 2026-10-05)
+
+A law over a composition reads a member's status set: `paused = through(_.activity,
+Admission.paused)` is `s => Admission.paused(s.activity)`. It replaced the forwarding objects each
+composition kept only to restate its member's defs (`OverQueue.paused`, `OverMatching.paused`, …),
+which every new composition would have grown again. No operator: function composition (`andThen`,
+`compose`, `∘`) reads backwards to anyone who is not a functional programmer, and `>>>` is a legend.
+`through` is the word a reader already uses for it ("the record's paused set, read through its
+`activity` member"), and it means what the IR's Query `through` means for a refinement: a value read
+on another state by way of a projection to it. Both arguments share one parameter list, because
+Scala 3 infers the composed state from where the function is passed only then; the curried
+`through(_.activity)(Admission.paused)` this note first sketched does not compile without naming the
+state. Lifter cost **medium**: the lifter folds the field path and the def into one function of the
+composed state, accepted wherever a def is and refused, as a lambda is, for a selector that is not a
+field path or a `read` that is not a def; one lifting fixture and one refusal fixture. Risk **low**.
+
 ### Rejected candidates (real temptations, each fails the legend test)
 
 - **Scenario sequencing** `start() >> attemptStart >> attemptResult(completed)` or `andThen`: a

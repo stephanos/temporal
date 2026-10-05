@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-127-simplify-the-dsls-words",
   "spec_path": ".flow/tasks/fn-127-simplify-the-dsls-words.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename the DSL words that collide with Temporal's",
   "updated_at": "2026-10-05T02:58:29.908098Z"
 }

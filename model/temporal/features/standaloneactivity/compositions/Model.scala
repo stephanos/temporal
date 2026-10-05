@@ -27,13 +27,6 @@ val staleRecord = staleAdmission.unmonitored
 
 final case class OverQueue(activity: AdmissionState, queue: QueueView)
 
-/** The record's status sets, read through the composition's `activity` member. */
-object OverQueue:
-  def paused(s: OverQueue) = Admission.paused(s.activity)
-  def running(s: OverQueue) = Admission.running(s.activity)
-  def twoActive(s: OverQueue) = Admission.twoActive(s.activity)
-  def phase(s: OverQueue) = s.activity.phase
-
 val currentOverQueue =
   compose[OverQueue](_.activity -> currentRecord, _.queue -> dispatchQueue)
     .sync(_.activity -> dispatch, _.queue -> enqueue)
@@ -48,13 +41,6 @@ val staleOverQueue = currentOverQueue.withMember(_.activity -> staleRecord)
 // that provider. Each later design swaps one member of the first for a provider of its interface.
 
 final case class OverMatching(activity: AdmissionState, queue: QueueDetail)
-
-/** The record's status sets, read through the composition's `activity` member. */
-object OverMatching:
-  def paused(s: OverMatching) = Admission.paused(s.activity)
-  def running(s: OverMatching) = Admission.running(s.activity)
-  def twoActive(s: OverMatching) = Admission.twoActive(s.activity)
-  def phase(s: OverMatching) = s.activity.phase
 
 val currentOverMatching =
   compose[OverMatching](_.activity -> currentRecord, _.queue -> matchingQueue)

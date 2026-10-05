@@ -115,6 +115,25 @@ final private[irgen] class Context(val index: Index):
   // class, which an expression or a class reads in its place.
   var boundValues = Map.empty[Symbol, Term] // scalafix:ok DisableSyntax.var
 
+  /**
+   * A member's def read from the composed state, `through(select, read)`: the function
+   * `s => read(s.<path>)` lifted under `name`, over `state`, written at `at`.
+   */
+  final case class Through(
+      name: String,
+      state: TypeRepr,
+      path: List[String],
+      read: Symbol,
+      at: Term
+  )
+  // Each `through` by its name, as the symbol that stands for its function where a def is bound or
+  // named, and that symbol's `through`; the function is lifted on its first call.
+  val throughs = mutable.Map.empty[String, Symbol]
+  val throughOf = mutable.Map.empty[Symbol, Through]
+
+  /** The name of the function a def or a `through` is lifted under. */
+  def functionName(sym: Symbol): String = throughOf.get(sym).fold(sym.fullName)(_.name)
+
   /** `body`, with the bindings of one call of a declaring function added to those around it. */
   def binding[A](
       functions: Map[Symbol, Symbol],

@@ -13,12 +13,12 @@ All approved. Where each one went:
 
 | Rank | Change | Decision | Spec |
 | --- | --- | --- | --- |
-| 1 | `accept` → `enter`, `Accepted` → `Ok`, realize `poll` → `readUntil`, `.setting` → `.withFields`, `always` → `everyCase`, realize `Outcome` → `PropertyOutcome`; Model `Outcome.accepted` stays | adopted | fn-127 (Simplify the DSL's words) |
+| 1 | `accept` → `enter`, `Accepted` → `Ok`, realize `poll` → `readUntil`, `.setting` → `.withFields`, `always` → `everyCase`, realize `Outcome` → `PropertyOutcome`; Model `Outcome.accepted` stays | adopted, **done** (fn-127.1) | fn-127 (Simplify the DSL's words) |
 | 2 | `when(g) { steps }` guard sugar | **superseded**: guards became fn-126's rules, a `rules` block that says only when an action fires (`when(g) { action ~> effects.x }`, `in(phases) { … }`), with unguarded effects. `when` is a rule heading only, never a guard inside a step | fn-126 R16 |
 | 3 | actions in per-actor objects; `admission/` → `record/`, `compositions/` → `withTaskQueue/` | adopted, IDs kept by transparent section objects | fn-126 R12, R14 |
 | 4 | inline single-use Scenarios (name string kept); one shared `Limits` source | adopted | fn-126 R13 |
 | 5 | one batch of val renames, new Definition IDs, one golden re-capture | adopted as fn-126's last task, together with the level rename Product/Protocol → Product/System and the "system contract" → "history record" rename | fn-126 R18, R19 |
-| 6 | `through(selector)(predicate)` for composition law parameters | adopted | fn-127 |
+| 6 | `through(selector, read)` for composition law parameters | adopted, **done** (fn-127.2): one parameter list, since the curried form infers no composed state; the forwarding objects are gone | fn-127 |
 | 7 | request helper, `perform(… , then = await)` | later, not planned | — |
 | 8 | deadline step helper, `UpTo.succ`, enum status methods | later, if still felt after fn-126 | — |
 
@@ -181,12 +181,12 @@ Vision rules (`.plans/UMPIRE4_VISION.md:86-101`): every proposal keeps knowledge
 
 | Rank | Change | Saves / effect | Lifter | IR / Case | Risk | Spec |
 |---|---|---|---|---|---|---|
-| 1 | verb rename `accept`→`enter`, `Accepted`→`Ok`; `poll`→`readUntil`, `.setting`→`.withFields`, `always`→`everyCase`, realize `Outcome`→`PropertyOutcome` | readability; removes 4 collisions | name matches + fixtures | none | low | separate "DSL simplification" spec, before fn-125 |
+| 1 | verb rename `accept`→`enter`, `Accepted`→`Ok`; `poll`→`readUntil`, `.setting`→`.withFields`, `always`→`everyCase`, realize `Outcome`→`PropertyOutcome` | readability; removes 4 collisions | name matches + fixtures | none | low | **done**: fn-127.1 |
 | 2 | `when(g) { steps }` guard sugar | 45 inverted guards read forward | low | none | low | same spec |
 | 3 | per-actor action objects + package renames (`record/`, `withTaskQueue/`), names kept | actor visible at every call site; `Inputs.` prefix gone | none (pins) | positions, function names | low-medium (pin fixture) | module-per-machine spec |
 | 4 | inline single-use Scenarios; shared `Limits` | ~35 lines SA, cohesion | none | positions | none | module-per-machine spec |
 | 5 | val renames (actions, machines, designs) in one batch | names say actor and subject | none | IDs, Cases, golden re-capture | medium | its own task at the end of the layout spec, one regeneration |
-| 6 | `through(selector)(predicate)` for composition law parameters | 16 lines now, scales | medium | none | low | DSL simplification spec |
+| 6 | `through(selector)(predicate)` for composition law parameters | 16 lines now, scales | medium | none | low | **done**: fn-127.2, as `through(selector, read)` |
 | 7 | `activityCall(method)` request helper; `perform(… , then = await)` | ~50 lines in realizations | medium (realization fold) | none | medium | after fn-118.5 |
 | 8 | deadline step helper, `UpTo.succ`, enum status methods | ~35 lines | medium | function names | medium | later, if still felt after layout |
 | — | `object X extends Machine`, by-name bindings, annotations, inline, named tuples, shared protocol template | — | high / unsound | — | high | not recommended |
