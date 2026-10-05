@@ -1,0 +1,135 @@
+{
+  "checked_at": "2026-10-05T19:27:05.585Z",
+  "selected_files": 1264,
+  "protected_files": 1261,
+  "selected_binaries": 5,
+  "candidate_hashes": {
+    "tools/gomad3/internal/compatibilitypack/schema.go": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed",
+    "tools/gomad3/internal/compatibilitypack/mutation_test.go": "b6552e443ae5df2b1c6e3e8f97e52a96a06ea61a6afaead86103549c8b3ba185",
+    "tools/gomad3/internal/compatibilitypack/schema_timezone_test.go": "5a055e7ce61f18b9fbd3fb16f68daddbe7cb1a66c6fa039973aecebf9b53c2eb"
+  },
+  "generated_or_pin_count": 51,
+  "current_selected_inputs_match_final": true,
+  "observations": [
+    {
+      "label": "baseline-packages",
+      "exit_code": 0,
+      "test_counts": {
+        "pass": 469,
+        "fail": 0,
+        "skip": 1
+      },
+      "elapsed_seconds": 0.6118215419999999,
+      "skips": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+          "test": "TestHostPacksBindCurrentProfile"
+        }
+      ]
+    },
+    {
+      "label": "baseline-target-consumers",
+      "exit_code": 1,
+      "test_counts": {
+        "pass": 38,
+        "fail": 1,
+        "skip": 0
+      },
+      "elapsed_seconds": 0.56515875,
+      "skips": []
+    },
+    {
+      "label": "baseline-target-controls",
+      "exit_code": 0,
+      "test_counts": {
+        "pass": 37,
+        "fail": 0,
+        "skip": 0
+      },
+      "elapsed_seconds": 0.269458167,
+      "skips": []
+    },
+    {
+      "label": "final-validate",
+      "exit_code": 0,
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "elapsed_seconds": 6.045493918999999,
+      "skips": []
+    },
+    {
+      "label": "final-packages",
+      "exit_code": 0,
+      "test_counts": {
+        "pass": 469,
+        "fail": 0,
+        "skip": 1
+      },
+      "elapsed_seconds": 1.038801,
+      "skips": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+          "test": "TestHostPacksBindCurrentProfile"
+        }
+      ]
+    },
+    {
+      "label": "final-target-controls",
+      "exit_code": 0,
+      "test_counts": {
+        "pass": 37,
+        "fail": 0,
+        "skip": 0
+      },
+      "elapsed_seconds": 0.944342376,
+      "skips": []
+    },
+    {
+      "label": "architecture-purity",
+      "exit_code": 0,
+      "test_counts": {
+        "pass": 6,
+        "fail": 0,
+        "skip": 0
+      },
+      "elapsed_seconds": 46.061185855000005,
+      "skips": []
+    },
+    {
+      "label": "formatting",
+      "exit_code": 0,
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "elapsed_seconds": 0.018118457999999976,
+      "skips": []
+    },
+    {
+      "label": "errortype",
+      "exit_code": 0,
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "elapsed_seconds": 1.1097713759999999,
+      "skips": []
+    },
+    {
+      "label": "final-lint",
+      "exit_code": 1,
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "elapsed_seconds": 2.7277049179999997,
+      "skips": []
+    }
+  ]
+}

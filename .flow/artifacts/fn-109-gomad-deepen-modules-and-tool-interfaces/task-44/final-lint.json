@@ -1,0 +1,61 @@
+{
+  "head": "6f7631ac560a117f1300c1e64b0a9fd5d3e22e63",
+  "command": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--config=../../.github/.golangci.yml",
+    "--build-tags=test_dep",
+    "--timeout=10m",
+    "--fix=false",
+    "./internal/compatibilitypack",
+    "./internal/compatibilitypack/authoring"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-05T19:26:04.986Z",
+  "finished_at": "2026-10-05T19:26:07.783Z",
+  "elapsed_seconds": 2.7277049179999997,
+  "exit_code": 1,
+  "signal": null,
+  "before": {
+    "files": {
+      "tools/gomad3/internal/compatibilitypack/schema.go": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed",
+      "tools/gomad3/internal/compatibilitypack/mutation_test.go": "b6552e443ae5df2b1c6e3e8f97e52a96a06ea61a6afaead86103549c8b3ba185",
+      "tools/gomad3/internal/compatibilitypack/schema_timezone_test.go": "5a055e7ce61f18b9fbd3fb16f68daddbe7cb1a66c6fa039973aecebf9b53c2eb",
+      "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+      "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+      ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+    },
+    "binaries": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+      "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+      "/usr/bin/node": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+    }
+  },
+  "after": {
+    "files": {
+      "tools/gomad3/internal/compatibilitypack/schema.go": "449fb233c61b6a3691c913dde04e1630cfb1f4e9b2fffea82dacfeb18251f0ed",
+      "tools/gomad3/internal/compatibilitypack/mutation_test.go": "b6552e443ae5df2b1c6e3e8f97e52a96a06ea61a6afaead86103549c8b3ba185",
+      "tools/gomad3/internal/compatibilitypack/schema_timezone_test.go": "5a055e7ce61f18b9fbd3fb16f68daddbe7cb1a66c6fa039973aecebf9b53c2eb",
+      "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+      "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+      ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+    },
+    "binaries": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+      "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+      "/usr/bin/node": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+    }
+  },
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "skips": [],
+  "stdout": "tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source inventory is not sorted and unique\")\n\t\t       ^\ntools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source name is invalid\")\n\t\t       ^\ntools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"Go source identity is invalid: %w\", err)\n\t\t       ^\n3 issues:\n* staticcheck: 3\n",
+  "stderr": ""
+}

@@ -289,7 +289,7 @@ func validatePackRule(rule PackRule) error {
 	}
 	sources := make([]Source, 0, len(rule.GoSources)+len(rule.ForeignSources))
 	for _, source := range rule.GoSources {
-		sources = append(sources, Source{Name: source.Name, SHA256: source.SHA256})
+		sources = append(sources, Source(source))
 	}
 	for _, source := range rule.ForeignSources {
 		sources = append(sources, Source{Name: source.Kind + ":" + source.Name, SHA256: source.SHA256})

@@ -2,10 +2,11 @@ package compatibility
 
 import (
 	"bytes"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-	"go.temporal.io/server/tools/gomad3/record"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/record"
 )
 
 func TestGovernanceReviewTimePreservesGrammarAndPrecedence(t *testing.T) {

@@ -95,11 +95,11 @@ func generatedExactPackages(pack Pack) []Package {
 	for _, rule := range pack.Rules {
 		goSources := make([]Source, len(rule.GoSources))
 		for index, source := range rule.GoSources {
-			goSources[index] = Source{Name: source.Name, SHA256: source.SHA256}
+			goSources[index] = Source(source)
 		}
 		foreignSources := make([]ForeignSource, len(rule.ForeignSources))
 		for index, source := range rule.ForeignSources {
-			foreignSources[index] = ForeignSource{Kind: source.Kind, Name: source.Name, SHA256: source.SHA256}
+			foreignSources[index] = ForeignSource(source)
 		}
 		packages = append(packages, Package{
 			ImportPath: rule.ImportPath, Module: generatedActualModule(rule.Module), SourceSetSHA256: rule.SourceSetSHA256,

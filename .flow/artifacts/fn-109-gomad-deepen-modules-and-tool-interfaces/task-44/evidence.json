@@ -1,0 +1,40 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.44",
+  "status": "bounded_source_checkpoint",
+  "source_base": "13df4f16f90d49938ea123a29859da62ad2cab9f",
+  "admission_head": "6f7631ac56",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "make -C tools/gomad3 validate: exit0; first check after source edits",
+    "go test -count=1 -tags test_dep -json ./internal/compatibilitypack ./internal/compatibilitypack/authoring ./internal/canonicaljson: BASE/final exit0,469 pass,1 unsupported-profile skip",
+    "go test -count=1 -tags test_dep -json -run 'Test(Evaluate|BuiltInSimulation|CapabilityReviewGoldenCanonicalBytes|PreparedCacheDigest)' ./target ./target/internal/capabilitypolicy: BASE/final exit0,37 pass",
+    "go test -count=1 -tags test_dep -json -run 'Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases|DomainModulesDoNotExportWireFraming|RunnerExecutionInjectionIsPrivate)$' .: exit0,6 pass",
+    "gofmt -l internal/compatibilitypack/schema.go internal/compatibilitypack/mutation_test.go internal/compatibilitypack/schema_timezone_test.go: exit0,empty output",
+    "errortype -test=true ./internal/compatibilitypack ./internal/compatibilitypack/authoring: exit0,empty output",
+    "golangci-lint run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/compatibilitypack ./internal/compatibilitypack/authoring: BASE/final exit1,7 to3; exactly3 S1016 and1 gci removed;3 residual ST1005 blocks byte-identical",
+    "initial broad BASE target regex Evaluate|Simulation|Canonical|PreparedCacheDigest: exit1,38 pass,1 missing patched-toolchain failure; raw failure retained",
+    "git diff --check over three candidates and task44 evidence: exit0",
+    "verify.mjs proof: all13 checks true;1261 protected selected inputs,51 generated/pin paths unchanged; package and bounded target terminal-event multisets match"
+  ],
+  "captures": [
+    "baseline-lint.json", "baseline-packages.json", "baseline-target-consumers.json",
+    "baseline-target-controls.json", "final-validate.json", "final-packages.json",
+    "final-target-controls.json", "architecture-purity.json", "formatting.json",
+    "errortype.json", "final-lint.json", "source-diff-check.json", "terminal-processes.json"
+  ],
+  "manifests": ["before.json", "final.json", "preservation-proof.json"],
+  "runner": "capture.mjs",
+  "verification": "verify.mjs",
+  "handover": "handover.md",
+  "protected_input_count": 1261,
+  "generated_pin_count": 51,
+  "gci_binding": "embedded configured analyzer in hashed golangci-lint executable",
+  "original_gate_owner": "root",
+  "original_gate_command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+  "integrated_lint": "pending root actual run;319 is unmeasured",
+  "formal_review": "deferred while required lint is red",
+  "progress_reviews": "root pending fresh independent source/evidence reviews",
+  "acceptance": "open; task11/R17,task42 exhaustive,task43/R21,task21 aggregate owners unchanged; native Linux remains fn128",
+  "stage_lines": ["stage: impl-review - skipped(policy: required scoped lint remains red; root retains bounded progress reviews)"]
+}

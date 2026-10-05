@@ -1,0 +1,27 @@
+{
+  "baseline": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/root-integrated.log",
+    "sha256": "358ea9f49ea93999fc2f6fca63ebad6d8beda3cd81731b12851f509facbd3cd7",
+    "count": 323
+  },
+  "candidate": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-44/root-integrated.json",
+    "stdout_sha256": "3fb126eb1e38a595c2812cdf0e01e9eb87704585f560ec6fb1adce5263e7ba8f",
+    "count": 319
+  },
+  "counts": {
+    "forbidigo": 11,
+    "staticcheck": 53,
+    "errcheck": 252,
+    "exhaustive": 3
+  },
+  "removed": [
+    "tools/gomad3/internal/compatibilitypack/mutation_test.go:98:23: S1016: should convert source (type PackSource) to Source instead of using struct literal (staticcheck)",
+    "tools/gomad3/internal/compatibilitypack/mutation_test.go:102:28: S1016: should convert source (type PackForeignSource) to ForeignSource instead of using struct literal (staticcheck)",
+    "tools/gomad3/internal/compatibilitypack/schema.go:292:29: S1016: should convert source (type PackSource) to Source instead of using struct literal (staticcheck)",
+    "tools/gomad3/internal/compatibilitypack/schema_timezone_test.go:5:1: File is not properly formatted (gci)"
+  ],
+  "added": [],
+  "exact_unchanged_blocks": 319,
+  "before_after_capture_inputs_identical": true
+}
