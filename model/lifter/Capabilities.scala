@@ -4,13 +4,17 @@ import scala.collection.mutable
 import io.temporal.server.api.umpire.v1 as ir
 import org.json4s.JsonAST.*
 
-/** A claim a capability declaration generated, as the law sidecar records it. */
+/**
+ * A claim a capability declaration generated, as the law sidecar records it: with its bindings, by
+ * the law's parameter names, the server code each binding written with `cited` names.
+ */
 final private[lift] case class LawClaim(
     machine: String,
     name: String,
     law: String,
     by: Seq[String],
     bindings: Seq[(String, String)],
+    cites: Seq[(String, Seq[String])],
     overriddenBy: Option[String],
     position: String
 )
@@ -26,8 +30,9 @@ final private[lift] case class LawWaiver(
 )
 
 /**
- * A law of the catalog the capability declarations of one IR file read: what it says, and each
- * machine that declares the capabilities bringing it, with the state type it owns.
+ * A law of the catalog the capability declarations of one IR file read: what it says, the
+ * parameters each entity backs with a citation, each machine that declares the capabilities bringing
+ * it, with the state type it owns, and where the catalog names it.
  */
 final private[lift] case class LawEntry(
     law: String,
@@ -35,15 +40,18 @@ final private[lift] case class LawEntry(
     cites: Seq[String],
     promises: String,
     doesNotPromise: String,
-    instantiating: Vector[(String, String)]
+    parameters: Seq[String],
+    instantiating: Vector[(String, String)],
+    position: String
 )
 
 /**
  * The law sidecar of one IR file (`model/ir/<file>.laws.json`), or none where no capability
- * declaration was lifted: each generated claim with its law and bindings, each waiver with its
- * reason, and the catalog's laws, each with what it says and its instantiating machines, one machine
- * per state type, since a machine derived from another shares its state type. A composition is no
- * instantiating entity: it reads its members' capabilities through their projections.
+ * declaration was lifted: each generated claim with its law, bindings and their citations, each
+ * waiver with its reason, and the catalog's laws, each with what it says and its instantiating
+ * machines with their state types, one machine per state type, since a machine derived from another
+ * shares its state type. A composition is no instantiating entity: it reads its members'
+ * capabilities through their projections.
  */
 private[lift] def lawSidecar(ctx: Context): Option[JValue] =
   def text(s: String) = JString(s)
@@ -57,7 +65,8 @@ private[lift] def lawSidecar(ctx: Context): Option[JValue] =
           "name" -> text(c.name),
           "law" -> text(c.law),
           "capabilities" -> texts(c.by),
-          "bindings" -> JObject(c.bindings.map((k, v) => k -> text(v)).toList)
+          "bindings" -> JObject(c.bindings.map((k, v) => k -> text(v)).toList),
+          "cites" -> JObject(c.cites.map((k, vs) => k -> texts(vs)).toList)
         ) ++ c.overriddenBy.map("overriddenBy" -> text(_)) :+ ("position" -> text(c.position))
       )
     }
@@ -74,14 +83,22 @@ private[lift] def lawSidecar(ctx: Context): Option[JValue] =
       )
     }
     val catalog = ctx.lawCatalog.values.toSeq.sortBy(_.law).map { e =>
-      val machines = e.instantiating.groupBy(_._2).values.map(_.map(_._1).min).toSeq.sorted
+      val machines = e.instantiating
+        .groupBy(_._2)
+        .map((state, ms) => ms.map(_._1).min -> state)
+        .toSeq
+        .sorted
       JObject(
         "law" -> text(e.law),
         "capabilities" -> texts(e.by),
         "cites" -> texts(e.cites),
         "promises" -> text(e.promises),
         "doesNotPromise" -> text(e.doesNotPromise),
-        "instantiating" -> texts(machines)
+        "parameters" -> texts(e.parameters),
+        "instantiating" -> JArray(
+          machines.map((m, state) => JObject("machine" -> text(m), "state" -> text(state))).toList
+        ),
+        "position" -> text(e.position)
       )
     }
     Some(
@@ -99,13 +116,17 @@ private[lift] trait Capabilities:
 
   // ### Capabilities: a declaration expanded through its catalog into generated claims
 
-  /** A law of a catalog: its object's name, its `apply`, what it says, and where it is named. */
+  /**
+   * A law of a catalog: its object's name, its `apply`, what it says, the parameters each entity
+   * backs with a citation, and where it is named.
+   */
   final private case class LawRef(
       name: String,
       statement: DefDef,
       cites: Seq[String],
       promises: String,
       doesNotPromise: String,
+      parameters: Seq[String],
       at: Term
   )
 
@@ -116,14 +137,15 @@ private[lift] trait Capabilities:
   final private case class Kind(key: String, name: String)
 
   /**
-   * A declared capability: its kind's name and key, each field's argument and type, and its type
-   * arguments.
+   * A declared capability: its kind's name and key, each field's argument and type, the citations
+   * of each field written with `cited`, and its type arguments.
    */
   final private case class Declared(
       kind: String,
       key: String,
       fields: Map[String, Term],
       fieldTypes: Map[String, TypeRepr],
+      cites: Map[String, Seq[String]],
       types: Map[String, TypeRepr],
       at: Term
   )
@@ -247,7 +269,9 @@ private[lift] trait Capabilities:
           law.cites,
           law.promises,
           law.doesNotPromise,
-          Vector()
+          law.parameters,
+          Vector(),
+          where(law.at)
         )
       )
       // An instantiating entity is a machine with its own state type: a composition reading its
@@ -338,14 +362,43 @@ private[lift] trait Capabilities:
       case other => fail(other, s"a capability is built by its constructor, not ${other.show}")
     val names = cls.caseFields.map(_.name)
     val typeParams = cls.primaryConstructor.paramSymss.headOption.toList.flatten.filter(_.isType)
+    // A field written with `cited` binds its value alone, so the law and the IR read the same term
+    // as without it; its citations go to the sidecar only.
+    val written = names.zip(args).map((field, a) => (field, a, citedOf(a)))
     Declared(
       cls.name,
       cls.companionModule.fullName,
-      names.zip(args).toMap,
+      written.map((field, a, c) => field -> c.fold(a)(_._1)).toMap,
       fieldTypes(cls).toMap,
+      written.collect { case (field, _, Some((_, cites))) => field -> cites }.toMap,
       typeParams.map(_.name).zip(term.tpe.widen.dealias.typeArgs).toMap,
       t
     )
+
+  /**
+   * `cited(value, cites*)`: the value a field binds and the server code it cites, each citation a
+   * string literal or a val of one; refused at its call without one.
+   */
+  private def citedOf(a: Term): Option[(Term, Seq[String])] = arguments(a) match
+    case c: Apply
+        if c.symbol.name == "cited" &&
+          c.symbol.maybeOwner.fullName.startsWith("umpire.Capabilities$package") =>
+      def citation(t: Term): String = resolve(plain(t)) match
+        case Literal(StringConstant(s)) => s
+        case _                          =>
+          fail(t, s"cited names its server code as a string literal or a val of one, not ${t.show}")
+      val (value, cites) = c.args match
+        case List(value, cites) => (value, varargs(plain(cites)).map(citation))
+        case List(value)        => (value, Nil)
+        case _                  => fail(c, s"cited takes a value and its citations, not ${c.show}")
+      if cites.isEmpty || cites.exists(_.trim.isEmpty) then
+        fail(
+          c,
+          "cited names the server code that answers the value so, as a path from the " +
+            "repository's root: cite at least one, and none blank"
+        )
+      Some(plain(value) -> cites)
+    case _ => None
 
   /**
    * Refuses a capability whose function-valued field is not a def of the lifted sources, and one
@@ -440,12 +493,30 @@ private[lift] trait Capabilities:
     val apply = cls.declaredMethod("apply").flatMap(defs.get).collectFirst {
       case d: DefDef if d.rhs.nonEmpty => d
     }
+    val statement =
+      apply.getOrElse(fail(t, s"${sym.name} states no law: write it as the object's `apply`"))
+    // Left out, `parameters` is the constructor's default getter: no parameter is cited.
+    val parameters = byName.get("parameters").orElse(args.lift(3)).map(plain) match
+      case None                                                                     => Nil
+      case Some(p) if p.symbol.name.contains("$default$") || p.symbol.name == "Nil" => Nil
+      case Some(p)                                                                  =>
+        call(p) match
+          case Some((_, as)) if as.nonEmpty => as.last.flatMap(varargs).map(lawText)
+          case _ => fail(p, s"${sym.name} names its cited parameters as `Seq(...)`")
+    val takes = statement.termParamss.flatMap(_.params).drop(1).map(_.name)
+    for p <- parameters if !takes.contains(p) do
+      fail(
+        arg("parameters", 3),
+        s"${sym.name} names $p among its cited parameters, which its apply does not take: it " +
+          s"takes ${takes.mkString(", ")}"
+      )
     LawRef(
       sym.name,
-      apply.getOrElse(fail(t, s"${sym.name} states no law: write it as the object's `apply`")),
+      statement,
       cites,
       lawText(arg("promises", 1)),
       lawText(arg("doesNotPromise", 2)),
+      parameters,
       t
     )
 
@@ -517,7 +588,7 @@ private[lift] trait Capabilities:
     val bound = params.tail.map { p =>
       val holders = bringing.filter(_.fields.contains(p.name))
       holders match
-        case Seq(d) => p -> d.fields(p.name)
+        case Seq(d) => (p, d.fields(p.name), d.cites.get(p.name))
         case Seq()  =>
           fail(
             at,
@@ -535,7 +606,8 @@ private[lift] trait Capabilities:
     val types = statement.leadingTypeParams.flatMap { tp =>
       bringing.flatMap(_.types.get(tp.name)).headOption.map(tp.symbol -> _)
     }.toMap
-    generating(name)(bodyOf(statement, (modelParam -> model) :: bound, types, env, None)) match
+    val bindings = (modelParam -> model) :: bound.map((p, a, _) => p -> a)
+    generating(name)(bodyOf(statement, bindings, types, env, None)) match
       case Decl.Claim(ref) if ref.machine == machine && ref.name == name => ()
       case other                                                         =>
         fail(
@@ -578,7 +650,8 @@ private[lift] trait Capabilities:
       name,
       law.name,
       bringing.map(_.kind).sorted,
-      bound.map((p, a) => p.name -> bindingText(a)),
+      bound.map((p, a, _) => p.name -> bindingText(a)),
+      bound.collect { case (p, _, Some(cites)) => p.name -> cites },
       overriding.map(_._1.fullName),
       where(at)
     )

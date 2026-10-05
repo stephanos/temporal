@@ -258,7 +258,8 @@ class Fixtures extends munit.FunSuite:
     "foreignFact"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
-  // The refusals of fn-122.2's capability declarations (lifts/CapabilityRejects.scala).
+  // The refusals of fn-122.2's capability declarations and fn-122.5's citations
+  // (lifts/CapabilityRejects.scala).
   private val capabilityRejects: Seq[String] = Seq(
     "unboundAction",
     "lambdaField",
@@ -271,7 +272,10 @@ class Fixtures extends munit.FunSuite:
     "waivedClaim",
     "unkinded",
     "sameName",
-    "lambdaQuery"
+    "lambdaQuery",
+    "uncited",
+    "computedCitation",
+    "unknownParameter"
   ).map("fixture.capabilityrejects.CapabilityRejects$package$." + _)
 
   private val rejected = Seq(

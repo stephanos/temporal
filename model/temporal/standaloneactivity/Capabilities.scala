@@ -7,16 +7,16 @@ package standaloneactivity
 import umpire.*
 import temporal.capabilities.{given, *}
 import worker.workerStop
+import Product.{phase, terminal}
 
 /**
- * What the product machine is, as the laws of model/temporal/capabilities read it: it closes, and a control
- * of an activity that is over is not found; it pauses; and its work is handed out by a worker's poll.
- * It receives terminalStatesAreFinal and closedIsRejectedUniformly, and pausedIsNotDispatched for
- * pausing and polling together, each named `activityProduct.<law>` and read on the protocol machine
- * through the map. The bound is the one the product's laws were verified under on the protocol.
+ * What the product machine is: it closes, and a control of an activity that is over is not found,
+ * by the code `notFoundCode` cites; it pauses; and a worker's poll hands out its work. It receives
+ * terminalStatesAreFinal, closedIsRejectedUniformly and pausedIsNotDispatched (pause with poll),
+ * each `activityProduct.<law>`, read on the protocol through the map under the bound held there.
  */
 val productCapabilities = capabilities(activityProduct, limits = three)(
-  Closable(status = Product.phase, terminal = Product.terminal, rejected = Outcome.notFound),
+  Closable(status = phase, terminal = terminal, rejected = cited(Outcome.notFound, notFoundCode)),
   Pausable(
     pause = control(Control.pause),
     unpause = control(Control.unpause),
@@ -48,3 +48,9 @@ val protocolCapabilities = capabilities(activityProtocol, limits = three)(
   ),
   Describable(status = ActivityRealization.activityStatus)
 )
+
+/**
+ * The server code that answers a control of an activity that is over NotFound (activity.go:106).
+ * Declared last, so the IR's positions above stay; only the lifter reads a citation.
+ */
+val notFoundCode = "chasm/lib/activity/activity.go"

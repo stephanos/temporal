@@ -24,7 +24,7 @@ val operationCapabilities = capabilities(nexusOperation, limits = three)(
   Closable(
     status = Operation.phase,
     terminal = Operation.terminal,
-    rejected = Outcome.alreadyCompleted
+    rejected = cited(Outcome.alreadyCompleted, "chasm/lib/nexusoperation/operation.go")
   ),
   Terminable(
     terminate = terminate,

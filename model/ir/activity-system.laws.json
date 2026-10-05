@@ -9,6 +9,9 @@
       "terminal": "temporal.standaloneactivity.Product$.terminal",
       "rejected": "temporal.standaloneactivity.Outcome.notFound"
     },
+    "cites": {
+      "rejected": [ "chasm/lib/activity/activity.go" ]
+    },
     "position": "model/temporal/standaloneactivity/Capabilities.scala:19"
   }, {
     "machine": "activityProduct",
@@ -19,6 +22,7 @@
       "paused": "temporal.standaloneactivity.Product$.paused",
       "running": "temporal.standaloneactivity.Product$.running"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/Capabilities.scala:20"
   }, {
     "machine": "activityProduct",
@@ -29,6 +33,7 @@
       "status": "temporal.standaloneactivity.Product$.phase",
       "terminal": "temporal.standaloneactivity.Product$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/Capabilities.scala:19"
   }, {
     "machine": "currentAdmission",
@@ -39,6 +44,7 @@
       "paused": "temporal.standaloneactivity.admission.Admission$.paused",
       "running": "temporal.standaloneactivity.admission.Admission$.running"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/admission/Capabilities.scala:20"
   }, {
     "machine": "currentAdmission",
@@ -49,6 +55,7 @@
       "status": "temporal.standaloneactivity.admission.Admission$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/admission/Capabilities.scala:19"
   }, {
     "machine": "currentOverLossyMatching",
@@ -59,6 +66,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverMatching$.paused",
       "running": "temporal.standaloneactivity.compositions.OverMatching$.running"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:47"
   }, {
     "machine": "currentOverLossyMatching",
@@ -69,6 +77,7 @@
       "status": "temporal.standaloneactivity.compositions.OverMatching$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:46"
   }, {
     "machine": "currentOverMatching",
@@ -79,6 +88,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverMatching$.paused",
       "running": "temporal.standaloneactivity.compositions.OverMatching$.running"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:47"
   }, {
     "machine": "currentOverMatching",
@@ -89,6 +99,7 @@
       "status": "temporal.standaloneactivity.compositions.OverMatching$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:46"
   }, {
     "machine": "currentOverQueue",
@@ -99,6 +110,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverQueue$.paused",
       "running": "temporal.standaloneactivity.compositions.OverQueue$.running"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:33"
   }, {
     "machine": "currentOverQueue",
@@ -109,6 +121,7 @@
       "status": "temporal.standaloneactivity.compositions.OverQueue$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:32"
   }, {
     "machine": "staleAdmission",
@@ -119,6 +132,7 @@
       "paused": "temporal.standaloneactivity.admission.Admission$.paused",
       "running": "temporal.standaloneactivity.admission.Admission$.running"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/admission/Capabilities.scala:20"
   }, {
     "machine": "staleAdmission",
@@ -129,6 +143,7 @@
       "status": "temporal.standaloneactivity.admission.Admission$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/admission/Capabilities.scala:19"
   }, {
     "machine": "staleOverMatching",
@@ -139,6 +154,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverMatching$.paused",
       "running": "temporal.standaloneactivity.compositions.OverMatching$.running"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:47"
   }, {
     "machine": "staleOverMatching",
@@ -149,6 +165,7 @@
       "status": "temporal.standaloneactivity.compositions.OverMatching$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:46"
   }, {
     "machine": "staleOverQueue",
@@ -159,6 +176,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverQueue$.paused",
       "running": "temporal.standaloneactivity.compositions.OverQueue$.running"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:33"
   }, {
     "machine": "staleOverQueue",
@@ -169,6 +187,7 @@
       "status": "temporal.standaloneactivity.compositions.OverQueue$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
+    "cites": { },
     "position": "model/temporal/standaloneactivity/compositions/Capabilities.scala:32"
   } ],
   "waivers": [ {
@@ -220,20 +239,44 @@
     "cites": [ "chasm/lib/activity/activity.go", "chasm/lib/nexusoperation/operation.go", "chasm/lib/scheduler/scheduler.go" ],
     "promises": "every step from a terminal status keeps the state and answers the entity's rejecting outcome",
     "doesNotPromise": "which outcome rejects (a parameter: the activity answers NotFound, the Nexus operation and the schedule FailedPrecondition), or that a repeated request with the same request id is rejected: the server answers it as the first",
-    "instantiating": [ "activityProduct", "currentAdmission" ]
+    "parameters": [ "rejected" ],
+    "instantiating": [ {
+      "machine": "activityProduct",
+      "state": "temporal.standaloneactivity.ProductState"
+    }, {
+      "machine": "currentAdmission",
+      "state": "temporal.standaloneactivity.AdmissionState"
+    } ],
+    "position": "model/temporal/capabilities/Catalog.scala:9"
   }, {
     "law": "pausedIsNotDispatched",
     "capabilities": [ "Pausable", "Pollable" ],
     "cites": [ "chasm/lib/activity/statemachine.go", "chasm/lib/activity/tasks.go", "chasm/lib/scheduler/scheduler.go" ],
     "promises": "while an entity is paused no work is handed to a worker: no step from paused lands in running",
     "doesNotPromise": "what a pause of held work does (the activity waits for the worker as pause-requested), what a second pause or an unpause of a live entity answers, or that an unpause resumes the work",
-    "instantiating": [ "activityProduct", "currentAdmission" ]
+    "parameters": [ ],
+    "instantiating": [ {
+      "machine": "activityProduct",
+      "state": "temporal.standaloneactivity.ProductState"
+    }, {
+      "machine": "currentAdmission",
+      "state": "temporal.standaloneactivity.AdmissionState"
+    } ],
+    "position": "model/temporal/capabilities/Catalog.scala:12"
   }, {
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
     "cites": [ "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation_statemachine.go" ],
     "promises": "no step moves an entity out of a terminal status, or from one terminal status to another",
     "doesNotPromise": "that a closed entity answers a mutation by rejecting it (closedIsRejectedUniformly), that its status is reported, or that the close is recorded once",
-    "instantiating": [ "activityProduct", "currentAdmission" ]
+    "parameters": [ ],
+    "instantiating": [ {
+      "machine": "activityProduct",
+      "state": "temporal.standaloneactivity.ProductState"
+    }, {
+      "machine": "currentAdmission",
+      "state": "temporal.standaloneactivity.AdmissionState"
+    } ],
+    "position": "model/temporal/capabilities/Catalog.scala:9"
   } ]
 }

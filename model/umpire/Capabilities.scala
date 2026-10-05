@@ -63,6 +63,14 @@ final class Capabilities[S] private[umpire] (
     )
 
 /**
+ * A capability field's value, backed by the server code that answers it so, e.g.
+ * `rejected = cited(Answer.gone, "server/jobs.go")`: each citation is a file path from the
+ * repository's root, as a law's `cites` are. The lifter binds the value alone and records the
+ * citations in the law sidecar beside each claim that binds the field.
+ */
+def cited[A](value: A, cites: String*): A = value
+
+/**
  * Declares the capabilities of `m`, whose generated `verify` Queries run under `limits`, and receives
  * the laws the given catalog brings for them.
  */

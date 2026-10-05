@@ -6,9 +6,9 @@
 //   - a composition's law read through its members' projections (the cross-entity form);
 //   - a law waived with `except` and one replaced with `overriding`, each with its reason.
 //   - a rogue job whose poll dispatches a paused job, which breaks the pair's law (R11);
-//   - a fixture's own catalog, given explicitly, whose law keeps `status`: a bound def whose body is
-//     a field path, `Jobs.phase`, is its `keeps` projection.
-// Every function-valued field names a def.
+//   - a fixture's own catalog, given explicitly, whose law keeps `status` (`terminal` a cited
+//     parameter): a bound def whose body is a field path, `Jobs.phase`, is its `keeps` projection.
+// Every function-valued field names a def; a `cited` binding names its server code as well.
 package fixture.capabilities
 
 import umpire.*
@@ -112,7 +112,7 @@ val settles = realize.RunExpectation(realize.Conformance.conformant, realize.Out
 
 // Free verify Queries: 5 states x 6 classes x 3 steps = 90; finds: 5 states x min(3, 2) = 10.
 val jobCapabilities = capabilities(job, limits = three)(
-  Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone),
+  Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = cited(Answer.gone, jobsCode)),
   Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
   Pollable(dispatch = poll, running = Jobs.running),
   Terminable(terminate = kill, settled = Note.killedNote, reach = Seq(poll), expect = settles),
@@ -157,13 +157,13 @@ val pairCapabilities = capabilities(pair, limits = three)(
 )
 
 // ### A catalog of the fixture's own, whose law reads a bound field-path def as its `keeps`
-
 /** Once closed, the status stays: `once(...).keeps(status)` over the bound `status`. */
 object statusStaysClosed
     extends Law(
       cites = Seq("model/lifter/testdata/lifts/Capabilities.scala"),
       promises = "a closed job keeps its status",
-      doesNotPromise = "anything a fixture does not need"
+      doesNotPromise = "anything a fixture does not need",
+      parameters = Seq("terminal")
     ):
   def apply[S, P](m: Declares[S])(status: S => P, terminal: P => Boolean): Property[S] =
     m.property.once(s => terminal(status(s))).keeps(status)
@@ -179,7 +179,7 @@ val keptJob = machine[Job, Answer, Note] {
 
 // 5 states x 3 classes x 3 steps = 45.
 val keptCapabilities = capabilities(keptJob, limits = three)(
-  Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
+  Closable(status = Jobs.phase, terminal = cited(Jobs.terminal, jobsCode), rejected = Answer.gone)
 )(using keptCatalog)
 
 // ### A Query of the job's own reading a generated Property by its law
@@ -202,3 +202,6 @@ val rogueCapabilities = capabilities(rogueJob, limits = three)(
   Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
   Pollable(dispatch = poll, running = Jobs.running)
 )
+
+/** The server code the jobs' cited bindings name: a closed job's answer, and which phases close. */
+val jobsCode = "model/lifter/testdata/lifts/Capabilities.scala"
