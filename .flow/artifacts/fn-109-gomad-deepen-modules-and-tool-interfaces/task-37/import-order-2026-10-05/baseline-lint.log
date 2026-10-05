@@ -1,0 +1,5 @@
+tools/gomad3/qualification/diagnostics_test.go:11:1: File is not properly formatted (gci)
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+^
+1 issues:
+* gci: 1

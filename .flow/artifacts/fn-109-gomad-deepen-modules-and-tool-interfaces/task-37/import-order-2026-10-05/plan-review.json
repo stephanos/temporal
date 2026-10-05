@@ -1,0 +1,64 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "9728756b2e4c81c7f5b322862ca4acd523b85a30",
+    "headSha": "9728756b2e4c81c7f5b322862ca4acd523b85a30",
+    "items": [
+      {
+        "body": "Tasks 23/24 overlap in lintcode tests; 26/34 overlap in CLI characterization; 29/31 overlap in artifact store code; 30/33 overlap in opened-handle tests. Their dependency lists do not enforce serialization. This is FYI: the recorded single-writer decision already prevents concurrent edits.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-8913b0fb3b31d04321b8542d63ce472707fe4160949048298682f7fde131a868",
+        "id": "finding-42cd1c40dbbbad808cd44d6319ce35e4",
+        "lastSeenReceiptId": "review-a4102ec3b7ef13352978e280cd4b61354a3d03ef652676bed95d930b468ff530",
+        "ordinal": 1,
+        "rIds": [
+          "R19"
+        ],
+        "severity": "P2",
+        "status": "not_fixed",
+        "suggestion": "Preserve explicit serial admission for these pairs, including when resuming their remaining acceptance work.",
+        "title": "Tasks 23/24 overlap in lintcode tests; 26/34 overlap in CLI characterization; 29/31 overlap in artifact store code; 30/33 overlap in opened-handle tests"
+      },
+      {
+        "anchor": {
+          "baseSha": "9728756b2e4c81c7f5b322862ca4acd523b85a30",
+          "headSha": "9728756b2e4c81c7f5b322862ca4acd523b85a30",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md",
+          "side": "head",
+          "startLine": 13
+        },
+        "body": "Their Touches still overlap without dependency edges. This remains FYI: the current spec explicitly preserves single-writer admission.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-a4102ec3b7ef13352978e280cd4b61354a3d03ef652676bed95d930b468ff530",
+        "id": "finding-399e55354801a093fb3dbb8cc4309216",
+        "lastSeenReceiptId": "review-a4102ec3b7ef13352978e280cd4b61354a3d03ef652676bed95d930b468ff530",
+        "ordinal": 2,
+        "rIds": [
+          "R19"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Continue serial admission for these pairs.",
+        "title": "Their Touches still overlap without dependency edges"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-a4102ec3b7ef13352978e280cd4b61354a3d03ef652676bed95d930b468ff530",
+    "supersedesReceiptId": "review-8913b0fb3b31d04321b8542d63ce472707fe4160949048298682f7fde131a868"
+  },
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding: not-fixed\n\nSeverity: P2\nConfidence: 100\nClassification: pre_existing\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md:13\nR-IDs: [R19]\nLocation: Task pairs 23/24, 26/34, 29/31 and 30/33.\nProblem: Their Touches still overlap without dependency edges. This remains FYI: the current spec explicitly preserves single-writer admission.\nSuggestion: Continue serial admission for these pairs.\n\nNo new blocking finding. The task37 import-only amendment is synchronized with the epic, preserves fixture bodies and historical evidence, specifies fresh verification, and retains task21\u2019s dependency and original completion gates.\n\nmaintainability:\n  duplication: Tasks 28\u201331, 35, 37, 39 and 40 still repeat the nil-cleanup/direct-sole-error/primary-first-join decision.\n  structure: hostexec.Run contains the four admitted deferred cleanup-error branches.\n\n```json\n{\"classification_counts\":{\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "1d8add96b8714cedae62bd93d635b1ca",
+  "session_id": "01a10bbb-15ae-7fe0-8a42-9356a64a8756",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-05T11:34:37.843007Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

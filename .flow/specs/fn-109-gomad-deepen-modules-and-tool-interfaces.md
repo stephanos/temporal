@@ -397,6 +397,8 @@ interface does not fulfill a depth requirement.
 
 ## Decision Context
 
+The 2026-10-05 task37 amendment admits only diagnostic-fixture import ordering/grouping after its reviewed cleanup source. It explicitly preserves test bodies and historical evidence while removing the remaining package gci finding. Reuse this existing correction owner instead of adding another task; original completion gates and task21's dependency remain unchanged.
+
 A deep module removes caller knowledge about order, state and validation.
 Moving files or adding a constructor around the same obligations does not
 satisfy the goal. Use concrete private functions for pure computation and
