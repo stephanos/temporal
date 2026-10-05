@@ -29,7 +29,9 @@ lift: model/irgen/testdata/lifts/Rejects.scala:1304: endedTwice is derived from 
 lift: model/irgen/testdata/lifts/Rejects.scala:1293: endless declares no end: a composition object declares `def end(s: S) = ...`
 lift: model/irgen/testdata/lifts/Rejects.scala:1273: extendedBare extends ruled, whose actions are bound by rules, by a bare binding: extend takes rules, `extend(when(...) { action ~> effect })`
 lift: model/irgen/testdata/lifts/Rejects.scala:1261: in sits under a heading of headingTwice's rules: a heading holds rules alone
+lift: model/irgen/testdata/lifts/CollidingRejects.scala:11: fixture.rejects.Lookalike and fixture.rejects.elsewhere.Lookalike are both named lookalike, and claims name a machine or composition by its name
 lift: model/irgen/testdata/lifts/Rejects.scala:1310: toProduct is a member of looseRefinement's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
+lift: model/irgen/testdata/lifts/Rejects.scala:1332: brighten is an effect and gives no step here: an effect says what an action does, never whether, so it returns no `disabled` or `Nil`; the rules say where it fires
 lift: model/irgen/testdata/lifts/Rejects.scala:257: fixture.rejects.PinnedTwice$ pins its Definition IDs twice, at model/irgen/testdata/lifts/Rejects.scala:256 and here: an owner has one DefinitionScope
 lift: model/irgen/testdata/lifts/Rejects.scala:269: fixture.rejects.PinsOuter$.PinsInner$ pins its Definition IDs inside fixture.rejects.PinsOuter$, which pins its own: a DefinitionScope pins the declarations of one owner, not of the owners nested in it
 lift: model/irgen/testdata/lifts/Rejects.scala:1276: rebindSeveral rebinds squeeze, which ruled binds by 2 rules with different effects, to one effect: rebind its rules with `when(...) { ... }`, which replace them

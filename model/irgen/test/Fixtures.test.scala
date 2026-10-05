@@ -403,7 +403,9 @@ class Fixtures extends munit.FunSuite:
     "CollidingPair",
     "Endless",
     "EndedTwice",
-    "LooseRefinement"
+    "LooseRefinement",
+    "LookalikePair",
+    "NilEffect"
   ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
@@ -881,7 +883,10 @@ class Fixtures extends munit.FunSuite:
         s"lift: $f:139: the section more sits in the section effects: a section sits at the top " +
           "level of a Model file or directly in a machine's object, never in another",
         s"lift: $f:154: armed is read while Guarded.rules initializes, before it is declared at " +
-          s"$f:155, so it is still null here: declare it before the declaration that reads it"
+          s"$f:155, so it is still null here: declare it before the declaration that reads it",
+        s"lift: $f:160: a step function is bound by hand, `action ~> step`, in Escaped: a " +
+          "machine object says when each action fires in its `rules`, " +
+          "`when(g) { action ~> effects.x }`, and a derivation binds one in `rebind`"
       )
     )
 

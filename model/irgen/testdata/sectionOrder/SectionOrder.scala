@@ -1,11 +1,11 @@
-// The feature file of a fixture feature in the object forms (fn-126 R2, R4, R14, R17). Switch, the
-// machine Dimmer that refines it, the derivation Kept and the composition Twins read as a feature
-// file is read; the rest do not, at the lines the lint refuses: sections out of order; vocabulary
-// outside `states`, a refinement's member outside `refinement`, a monitor in the wrong section, an
-// effect and a monitor outside their sections, and a Property over another machine object; a step
-// function bound by hand; a section in a section, a section in an object of the signature and a
-// machine's section at the top level; two sections' timers that would share one Definition ID,
-// each read by a machine of its own; and a guard that reads a val its rules declare after it,
+// A fixture feature's file in the object forms (fn-126 R2, R4, R14, R17). Switch, the machine
+// Dimmer that refines it, the derivation Kept and the composition Twins read as a feature file is
+// read; the rest do not, at the lines the lint refuses: sections out of order; vocabulary outside
+// `states`, a refinement's member outside `refinement`, a monitor in the wrong section, an effect
+// and a monitor outside their sections, a Property over another machine object; a step function
+// bound by hand, in a machine and in a rebind's source; a section in a section, one in an object of
+// the signature and a machine's section at the top level; two sections' timers that would share an
+// ID, each read by a machine of its own; and a guard that reads a val its rules declare after it,
 // which the rules' disjointness check calls while they initialize.
 package fixture.features.sectionorder
 
@@ -153,6 +153,12 @@ object Guarded extends Machine[Lamp, Outcome, Nothing]:
   object rules extends Rules:
     when(s => s.lit == armed)(hand.flip ~> effects.flipped)
     val armed = true
+
+/** A bare binding in the source a rebind derives from, which no rebind keeps: bound by hand. */
+object Escaped
+    extends Derived(
+      Switch.extend(hand.tap ~> Switch.effects.kept).rebind(hand.flip ~> Switch.effects.kept)
+    )
 
 object exports:
   val switchFile = irFile("switch")(Switch)

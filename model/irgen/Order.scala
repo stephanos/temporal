@@ -783,8 +783,15 @@ final private[irgen] class Order(index: Index):
         (s.name == "when" && s.maybeOwner.fullName == "umpire.Syntax$package$"))
     object bindings extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit = t match
-        case Apply(fn, _) if derivation(fn.symbol) => ()
-        case Apply(fn, _) if core(fn.symbol)       =>
+        // The rebind's own bindings keep rules; whatever it is applied to is still read.
+        case Apply(fn, _) if derivation(fn.symbol) =>
+          def receiver(t: Tree): Option[Tree] = t match
+            case Apply(f, _)     => receiver(f)
+            case TypeApply(f, _) => receiver(f)
+            case Select(q, _)    => Some(q)
+            case _               => None
+          receiver(fn).foreach(traverseTree(_)(o))
+        case Apply(fn, _) if core(fn.symbol) =>
           refuse(
             t,
             s"a step function is bound by hand, `action ~> step`, in $owner: a machine object " +

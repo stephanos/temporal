@@ -672,7 +672,11 @@ private[irgen] trait Declarations:
     val owner = sym.maybeOwner
     isSection(owner) && owner.name.stripSuffix("$") == "effects"
 
-  /** Refuses an effect that gives no step where it is reached: the rules say where it fires. */
+  /**
+   * Refuses an effect that gives no step where it is reached: the rules say where it fires. It reads
+   * the effect's own result positions (`disabled`, `Nil`, `List()`); a helper the effect calls that
+   * gives none is not followed.
+   */
   def givesNoEmpty(f: DefDef): Unit =
     def empty(t: Term): List[Term] = t match
       case Typed(e, _)        => empty(e)

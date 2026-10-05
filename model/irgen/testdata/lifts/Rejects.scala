@@ -1310,3 +1310,25 @@ object LooseRefinement extends Machine[Bulb, Outcome, Nothing]:
   def toProduct(s: Bulb) = s
   object rules extends Rules:
     when(_ => true)(bulbHand.squeeze ~> Ruled.effects.brighten)
+
+/** A machine object whose name another package's object has too (CollidingRejects.scala). */
+object Lookalike extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: State) = true
+  object rules extends Rules:
+    when(_ => true)(bulbHand.squeeze ~> Ruled.effects.darken)
+
+object LookalikePair extends Composition[Bulbs](_.a -> Lookalike, _.b -> elsewhere.Lookalike):
+  def end(s: State) = true
+  object syncs extends Syncs:
+    sync(_.a -> bulbHand.squeeze, _.b -> bulbHand.squeeze)
+
+/** An effect that gives no step, `Nil`, in one branch. */
+object NilEffect extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: State) = true
+  object effects extends Section:
+    def brighten(s: State) =
+      if s.glow == Glow.bright then Nil else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
+  object rules extends Rules:
+    when(_ => true)(bulbHand.squeeze ~> effects.brighten)
