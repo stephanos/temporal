@@ -115,9 +115,31 @@ Gate: started before fn-114 closed (its remaining tasks are cleanup).
 | fn-122.6 | ⬜ todo | Docs, authored vs generated counts; close |
 | fn-122.7 | ⏸️ deferred | Pausable on fn-119's example |
 
+### fn-127: Simplify the DSL's words
+
+Gate: starts after fn-114, fn-118 and fn-122 close; never alongside fn-124.8; closes before fn-126 starts and before fn-125 resumes.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-127.1 | ⬜ todo | `accept`/`Accepted` → `enter`/`Ok`; realize `poll` → `readUntil`, `.setting` → `.withFields`, `always` → `everyCase`, `Outcome` → `PropertyOutcome`; no IR change |
+| fn-127.2 | ⬜ todo | `through(selector)(predicate)` replaces the compositions' forwarding objects; close |
+
+### fn-126: Read each feature top to bottom: one object per machine
+
+Gate: starts after fn-114, fn-118, fn-122 and fn-127 close; never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-126.1 | ⬜ todo | Standalone activity as one feature file per folder; `record/`, `withTaskQueue/`; declaration-order lint |
+| fn-126.2 | ⬜ todo | Nexus folders and shared Models as feature files; shared bounds; per-kind file names retired |
+| fn-126.3 | ⬜ todo | Actions grouped by actor in section objects that keep Definition IDs |
+| fn-126.4 | ⬜ todo | Machine objects with effects, rules and sections; lifter reshaped; standalone activity converted |
+| fn-126.5 | ⬜ todo | Remaining Models as machine objects; builder forms retired |
+| fn-126.6 | ⬜ todo | One rename batch: Product and System, history record, actions and designs; close |
+
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 3 after fn-118; task 7 after fn-114 and fn-122 close (fn-120 is closed); task 8 last.
+Gates: task 3 after fn-118; task 7 after fn-114, fn-122 and fn-126 close (fn-120 is closed); task 8 last, never alongside fn-126 or fn-127.
 
 | Task | Status | What |
 | --- | --- | --- |
