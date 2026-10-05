@@ -8,7 +8,8 @@ As of 2026-10-05.
 ## Keeping this page current
 
 - This page describes the present. Rewrite a status in place; do not append dated entries.
-- List each open spec's tasks with ID, status and a brief description; set a task's status in place
+- List each open spec's tasks with ID, status (✅ done, 🔄 in progress, ⬜ todo, ⏸️ deferred) and a brief
+  description; set a task's status in place
   when it changes. Keep completed tasks listed until the whole spec is complete, then remove the spec.
   Flow and git keep the history.
 - Close a cancelled or abandoned spec in Flow (tasks blocked, a "Closed: won't do" note in the
@@ -75,18 +76,18 @@ Gate: task 9 runs after fn-118.2 and fn-120.3 have merged (both done); task 8 cl
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-114.1 | done | IR-file roots declared in Scala, one lifter run |
-| fn-114.2 | done | Nexus caller Model restated (captured names, derivation, four files) |
-| fn-114.3 | done | Nexus caller realization by value with the shared kit |
-| fn-114.4 | done | Close-policy declarations in the final DSL (`sticky`) |
-| fn-114.5 | done | Close-policy Model split into the four-file layout |
-| fn-114.6 | done | Worker Model and lifter fixtures restated |
-| fn-114.7 | done | String-named declaration forms retired |
-| fn-114.10 | done | Lifter fixtures reduced to fixture-local Models |
-| fn-114.11 | done | Redundant type annotations dropped |
-| fn-114.12 | done | `model/umpire` Temporal-agnostic, guarded by a test |
-| fn-114.9 | todo | Rename tool folders (`irgen`, `check`, `build`); group `model/temporal` into `features/` and `shared/` |
-| fn-114.8 | todo | Close: counts and full gates |
+| fn-114.1 | ✅ done | IR-file roots declared in Scala, one lifter run |
+| fn-114.2 | ✅ done | Nexus caller Model restated (captured names, derivation, four files) |
+| fn-114.3 | ✅ done | Nexus caller realization by value with the shared kit |
+| fn-114.4 | ✅ done | Close-policy declarations in the final DSL (`sticky`) |
+| fn-114.5 | ✅ done | Close-policy Model split into the four-file layout |
+| fn-114.6 | ✅ done | Worker Model and lifter fixtures restated |
+| fn-114.7 | ✅ done | String-named declaration forms retired |
+| fn-114.10 | ✅ done | Lifter fixtures reduced to fixture-local Models |
+| fn-114.11 | ✅ done | Redundant type annotations dropped |
+| fn-114.12 | ✅ done | `model/umpire` Temporal-agnostic, guarded by a test |
+| fn-114.9 | ⬜ todo | Rename tool folders (`irgen`, `check`, `build`); group `model/temporal` into `features/` and `shared/` |
+| fn-114.8 | ⬜ todo | Close: counts and full gates |
 
 ### fn-118: Declare how Temporal APIs behave once
 
@@ -94,34 +95,34 @@ Gate: started before fn-114 closed (its remaining tasks are cleanup).
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-118.1 | done | Wait inventory and hint-aware helper interface |
-| fn-118.2 | done | Hints declared in the kit, lifted to the IR, validated in Go |
-| fn-118.3 | done | Testpilot waits by condition within declared bounds |
-| fn-118.4 | todo | Lowering derives Case waits from hints; undeclared visibility refused |
-| fn-118.5 | todo | Realizations migrated to derived waits; close |
+| fn-118.1 | ✅ done | Wait inventory and hint-aware helper interface |
+| fn-118.2 | ✅ done | Hints declared in the kit, lifted to the IR, validated in Go |
+| fn-118.3 | ✅ done | Testpilot waits by condition within declared bounds |
+| fn-118.4 | ⬜ todo | Lowering derives Case waits from hints; undeclared visibility refused |
+| fn-118.5 | ⬜ todo | Realizations migrated to derived waits; close |
 
 ### fn-120: Adopt what Quint does well
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-120.1 | done | Named choices, inert IR names, Quint export |
-| fn-120.2 | done | Unnamed branching refused; `choose` accepts helper calls |
-| fn-120.3 | done | Model lint, specification holes, coverage summary, accepted findings |
-| fn-120.4 | deferred | IR explorer |
-| fn-120.5 | todo | Close |
+| fn-120.1 | ✅ done | Named choices, inert IR names, Quint export |
+| fn-120.2 | ✅ done | Unnamed branching refused; `choose` accepts helper calls |
+| fn-120.3 | ✅ done | Model lint, specification holes, coverage summary, accepted findings |
+| fn-120.4 | ⏸️ deferred | IR explorer |
+| fn-120.5 | ⬜ todo | Close |
 
 ### fn-122: Capabilities and their laws
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-122.1 | done | Law bodies and catalog with server citations |
-| fn-122.2 | done | `capabilities` declaration, `except`/`overriding`, lifting |
-| fn-122.3 | done | Activity capabilities; authored twins retired |
-| fn-122.4 | done | Standalone Nexus operation Model; required settings |
-| fn-122.8 | done | Capability vocabulary moved to `model/temporal/capabilities` |
-| fn-122.5 | in progress | Law lint kinds; waiver reasons in the accepted-findings file |
-| fn-122.6 | todo | Docs, authored vs generated counts; close |
-| fn-122.7 | deferred | Pausable on fn-119's example |
+| fn-122.1 | ✅ done | Law bodies and catalog with server citations |
+| fn-122.2 | ✅ done | `capabilities` declaration, `except`/`overriding`, lifting |
+| fn-122.3 | ✅ done | Activity capabilities; authored twins retired |
+| fn-122.4 | ✅ done | Standalone Nexus operation Model; required settings |
+| fn-122.8 | ✅ done | Capability vocabulary moved to `model/temporal/capabilities` |
+| fn-122.5 | 🔄 in progress | Law lint kinds; waiver reasons in the accepted-findings file |
+| fn-122.6 | ⬜ todo | Docs, authored vs generated counts; close |
+| fn-122.7 | ⏸️ deferred | Pausable on fn-119's example |
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
@@ -129,14 +130,14 @@ Gates: task 3 after fn-118; task 7 after fn-114, fn-120 and fn-122 close; task 8
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-124.1 | done | `tools/umpire0`, `model0` and the empty command deleted |
-| fn-124.2 | done | Duplicate refinement and test-only APIs removed |
-| fn-124.3 | todo | Temporal facts the judge hard-codes declared in the realization |
-| fn-124.4 | todo | Verdict aggregation defined once; judge rules documented |
-| fn-124.5 | todo | Generated-Case outcomes compared by declared ids |
-| fn-124.6 | todo | Model assessment as the command-line judge; Evaluation Profile derived or retired |
-| fn-124.7 | todo | Migration harness and frozen snapshots retired |
-| fn-124.8 | todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
+| fn-124.1 | ✅ done | `tools/umpire0`, `model0` and the empty command deleted |
+| fn-124.2 | ✅ done | Duplicate refinement and test-only APIs removed |
+| fn-124.3 | ⬜ todo | Temporal facts the judge hard-codes declared in the realization |
+| fn-124.4 | ⬜ todo | Verdict aggregation defined once; judge rules documented |
+| fn-124.5 | ⬜ todo | Generated-Case outcomes compared by declared ids |
+| fn-124.6 | ⬜ todo | Model assessment as the command-line judge; Evaluation Profile derived or retired |
+| fn-124.7 | ⬜ todo | Migration harness and frozen snapshots retired |
+| fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
 ### fn-125: Represent dynamic configuration in the Models
 
@@ -145,17 +146,17 @@ fn-118.5; task 9 after fn-118.4. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-125.1 | done | HSM/CHASM switch fixed; schedule-to-close no longer from the Profile |
-| fn-125.2 | todo | `setting[T]` over finite domains in the framework, lifted |
-| fn-125.3 | todo | Query `under`: one Query per valuation |
-| fn-125.4 | deferred | Settings in the Quint/P exports |
-| fn-125.5 | todo | Dynamic-config keys declared once in the kit, pinned to the server registry |
-| fn-125.6 | todo | API preconditions; derived required settings; ShutdownWorker precondition |
-| fn-125.7 | todo | Nexus implementation encoded; one Case per valuation; switch retired |
-| fn-125.8 | todo | Caller attempt semantics as the owner chooses |
-| fn-125.9 | todo | Bound assumptions on server durations checked at preparation |
-| fn-125.10 | todo | Disposition for every implicit assumption |
-| fn-125.11 | todo | Docs; close |
+| fn-125.1 | ✅ done | HSM/CHASM switch fixed; schedule-to-close no longer from the Profile |
+| fn-125.2 | ⬜ todo | `setting[T]` over finite domains in the framework, lifted |
+| fn-125.3 | ⬜ todo | Query `under`: one Query per valuation |
+| fn-125.4 | ⏸️ deferred | Settings in the Quint/P exports |
+| fn-125.5 | ⬜ todo | Dynamic-config keys declared once in the kit, pinned to the server registry |
+| fn-125.6 | ⬜ todo | API preconditions; derived required settings; ShutdownWorker precondition |
+| fn-125.7 | ⬜ todo | Nexus implementation encoded; one Case per valuation; switch retired |
+| fn-125.8 | ⬜ todo | Caller attempt semantics as the owner chooses |
+| fn-125.9 | ⬜ todo | Bound assumptions on server durations checked at preparation |
+| fn-125.10 | ⬜ todo | Disposition for every implicit assumption |
+| fn-125.11 | ⬜ todo | Docs; close |
 
 ## Deferred
 
