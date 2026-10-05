@@ -1095,8 +1095,8 @@ type DeliveryAdmission struct {
 	// The delivery: the attempt stamp the dispatch message carried, as decimal text.
 	DeliveryId string                    `protobuf:"bytes,3,opt,name=delivery_id,json=deliveryId,proto3" json:"delivery_id,omitempty"`
 	Decision   DeliveryAdmissionDecision `protobuf:"varint,4,opt,name=decision,proto3,enum=temporal.server.api.testpilot.v1.DeliveryAdmissionDecision" json:"decision,omitempty"`
-	// The attempt number Temporal counts, from 1, of the attempt admission committed. Unset when the
-	// delivery was rejected.
+	// The attempt number the server gave the attempt admission committed. Unset when the delivery was
+	// rejected.
 	Attempt       int32 `protobuf:"varint,5,opt,name=attempt,proto3" json:"attempt,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1177,9 +1177,10 @@ type ActivityAttempt struct {
 	// The run of the activity the attempt belongs to, as the server named it when the activity started.
 	// An activity a workflow scheduled has no run of its own; its attempts name the workflow's run.
 	ActivityRunId string `protobuf:"bytes,1,opt,name=activity_run_id,json=activityRunId,proto3" json:"activity_run_id,omitempty"`
-	// The attempt number Temporal counts, from 1, of the attempt the worker was delivered. Unset when
-	// no attempt was delivered: the Run Event's source then names the reserved position alone, and
-	// Temporal may never have created an attempt for it.
+	// The attempt number the server gave the attempt the worker was delivered, as the activity
+	// entrypoint's attempt_numbering counts attempts. Unset when no attempt was delivered: the Run
+	// Event's source then names the reserved position alone, and the server may never have created an
+	// attempt for it.
 	SdkAttempt int32 `protobuf:"varint,2,opt,name=sdk_attempt,json=sdkAttempt,proto3" json:"sdk_attempt,omitempty"`
 	// The delivery of the attempt the worker ran, a digest of its task token. Unset when no attempt
 	// was delivered.

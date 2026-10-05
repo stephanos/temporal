@@ -63,8 +63,9 @@ message EvidenceDeclaration {
   repeated EvidenceFieldDeclaration fields = 8;
 }
 
-// HistoryEventSource is one recorded history event kind: the attributes arm of
-// temporal.api.history.v1.HistoryEvent that a history read lifts, guarded by the arm's presence.
+// HistoryEventSource is one recorded history event kind: a member of a oneof of the event the
+// Program's history read yields, the read whose lift rule names the declaration, guarded by the
+// member's presence.
 message HistoryEventSource { string attributes_field = 1; }
 
 // RunEventSource is the Run's own record of one Run Event kind that carries a payload; the runtime

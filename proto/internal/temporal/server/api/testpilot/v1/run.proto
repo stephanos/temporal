@@ -95,8 +95,8 @@ message DeliveryAdmission {
   // The delivery: the attempt stamp the dispatch message carried, as decimal text.
   string delivery_id = 3;
   DeliveryAdmissionDecision decision = 4;
-  // The attempt number Temporal counts, from 1, of the attempt admission committed. Unset when the
-  // delivery was rejected.
+  // The attempt number the server gave the attempt admission committed. Unset when the delivery was
+  // rejected.
   int32 attempt = 5;
 }
 
@@ -121,9 +121,10 @@ message ActivityAttempt {
   // The run of the activity the attempt belongs to, as the server named it when the activity started.
   // An activity a workflow scheduled has no run of its own; its attempts name the workflow's run.
   string activity_run_id = 1;
-  // The attempt number Temporal counts, from 1, of the attempt the worker was delivered. Unset when
-  // no attempt was delivered: the Run Event's source then names the reserved position alone, and
-  // Temporal may never have created an attempt for it.
+  // The attempt number the server gave the attempt the worker was delivered, as the activity
+  // entrypoint's attempt_numbering counts attempts. Unset when no attempt was delivered: the Run
+  // Event's source then names the reserved position alone, and the server may never have created an
+  // attempt for it.
   int32 sdk_attempt = 2;
   // The delivery of the attempt the worker ran, a digest of its task token. Unset when no attempt
   // was delivered.
