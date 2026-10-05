@@ -96,14 +96,14 @@ Gate: starts after fn-114, fn-118, fn-122 and fn-127 close; never alongside fn-1
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 3 after fn-118; task 7 after fn-114, fn-122 and fn-126 close (fn-120 is closed); task 8 last, never alongside fn-126 or fn-127.
+Gates: task 3 after fn-118; task 4 beside task 3; task 5 after fn-127.1 and before fn-126.1 starts; task 7 after fn-114, fn-122 and fn-126 close (fn-120 is closed); task 8 last, never alongside fn-126 or fn-127.
 
 | Task | Status | What |
 | --- | --- | --- |
 | fn-124.1 | ✅ done | `tools/umpire0`, `model0` and the empty command deleted |
 | fn-124.2 | ✅ done | Duplicate refinement and test-only APIs removed |
 | fn-124.3 | 🔄 in progress | Temporal facts the judge hard-codes declared in the realization |
-| fn-124.4 | ⬜ todo | Verdict aggregation defined once; judge rules documented |
+| fn-124.4 | 🔄 in progress | Verdict aggregation defined once; judge rules documented |
 | fn-124.5 | ⬜ todo | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ⬜ todo | Model assessment as the command-line judge; Evaluation Profile derived or retired |
 | fn-124.7 | ⬜ todo | Migration harness and frozen snapshots retired |
