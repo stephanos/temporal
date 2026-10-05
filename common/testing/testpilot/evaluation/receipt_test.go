@@ -122,17 +122,17 @@ func TestDecodeReceiptIsStrict(t *testing.T) {
 		encoded string
 		detail  string
 	}{
-		"an unknown key":         {strings.Replace(valid, `{"version":2,`, `{"version":2,"extra":1,`, 1), "unknown field"},
-		"a repeated key":         {strings.Replace(valid, `"decision":`, `"decision":"rejected","decision":`, 1), "canonical form"},
-		"a case-folded key":      {strings.Replace(valid, `"decision":`, `"Decision":`, 1), "canonical form"},
-		"a trailing document":    {valid + valid, "canonical form"},
-		"other spacing":          {strings.Replace(valid, `{"version":2,`, `{"version": 2,`, 1), "canonical form"},
-		"a null list":            {strings.Replace(valid, `"knownGaps":[]`, `"knownGaps":null`, 1), "canonical form"},
-		"a null assessment list": {strings.Replace(assessedValid, `"properties":[]`, `"properties":null`, 1), "canonical form"},
+		"an unknown key":                  {strings.Replace(valid, `{"version":2,`, `{"version":2,"extra":1,`, 1), "unknown field"},
+		"a repeated key":                  {strings.Replace(valid, `"decision":`, `"decision":"rejected","decision":`, 1), "canonical form"},
+		"a case-folded key":               {strings.Replace(valid, `"decision":`, `"Decision":`, 1), "canonical form"},
+		"a trailing document":             {valid + valid, "canonical form"},
+		"other spacing":                   {strings.Replace(valid, `{"version":2,`, `{"version": 2,`, 1), "canonical form"},
+		"a null list":                     {strings.Replace(valid, `"knownGaps":[]`, `"knownGaps":null`, 1), "canonical form"},
+		"a null assessment list":          {strings.Replace(assessedValid, `"properties":[]`, `"properties":null`, 1), "canonical form"},
 		"a null assessment sequence list": {strings.Replace(assessedValid, `"supportingEventSequences":[8,27]`, `"supportingEventSequences":null`, 1), "canonical form"},
-		"another format version": {strings.Replace(valid, `{"version":2,`, `{"version":1,`, 1), "format version 1"},
-		"not JSON":               {"{", "decode receipt"},
-		"over the cap":           {valid + strings.Repeat(" ", MaxReceiptBytes+1-len(valid)), "receipt-oversized"},
+		"another format version":          {strings.Replace(valid, `{"version":2,`, `{"version":1,`, 1), "format version 1"},
+		"not JSON":                        {"{", "decode receipt"},
+		"over the cap":                    {valid + strings.Repeat(" ", MaxReceiptBytes+1-len(valid)), "receipt-oversized"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			_, err := DecodeReceipt([]byte(probe.encoded))

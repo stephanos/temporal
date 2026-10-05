@@ -222,8 +222,8 @@ func TestAssessDecidesTheModelAssessmentBesideTheVerdict(t *testing.T) {
 		outcome    string
 		reasons    []string
 	}{
-		"no assessment":                       {satisfy, nil, DecisionAccepted, nil},
-		"a conformant, satisfied assessment":  {satisfy, assessment(nil), DecisionAccepted, nil},
+		"no assessment":                      {satisfy, nil, DecisionAccepted, nil},
+		"a conformant, satisfied assessment": {satisfy, assessment(nil), DecisionAccepted, nil},
 		"a violated property, Verdict satisfied": {satisfy, assessment(func(a *testpilot.Assessment) {
 			a.Properties[0].Status, a.Properties[0].Reason = testpilot.PropertyViolated, "every_explanation_violates"
 		}), DecisionRejected, []string{"property-violated"}},
