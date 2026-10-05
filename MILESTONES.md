@@ -125,11 +125,49 @@ Gates: task 3 after fn-118; task 7 after fn-114, fn-122 and fn-126 close (fn-120
 
 ## Deferred
 
-Deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution):
-fn-119 (Go SDK workflow showcase; tasks 1-2 done, 3-6 blocked), fn-122.7, fn-123 (faults as environment
-actions, not planned). Deferred on 2026-10-05: fn-125 (dynamic configuration in the Models; task 1, the
-HSM/CHASM switch fixes, is done; evidence in `.plans/DYNAMIC_CONFIG.md`). The IR explorer (fn-120.4) was removed. Also deferred: `make umpire-check-backends` in CI (it runs
-locally after `make umpire-install-backends`). fn-112, fn-114, fn-120, fn-121 and fn-122 are closed.
+Specs the owner deferred as not needed for the current code deliverable (the DSL and its execution).
+They keep their tasks so they can be revived as planned.
+
+### fn-119: Show one Go SDK workflow driven end to end from the IRs
+
+Deferred 2026-10-04.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-119.1 | ✅ done | Driver's workflow schedules an activity, awaits it, completes with its result |
+| fn-119.2 | ✅ done | Workflow-scheduled activity attempts routed to the Driver's interpreter |
+| fn-119.3 | ⏸️ deferred | Workflow-scheduled activities and awaited outcomes in the realization DSL, lifter and lowering |
+| fn-119.4 | ⏸️ deferred | Activity workflow example modeled; its Queries run live from the gate |
+| fn-119.5 | ⏸️ deferred | Faulty variant and the zero-Go check |
+| fn-119.6 | ⏸️ deferred | Walkthrough, one-command entry point; close |
+
+### fn-123: Declare faults as the environment's actions
+
+Deferred 2026-10-04 before task planning; the spec has no tasks yet.
+
+### fn-125: Represent dynamic configuration in the Models
+
+Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-125.1 | ✅ done | HSM/CHASM switch fixed; schedule-to-close no longer from the Profile |
+| fn-125.2 | ⏸️ deferred | `setting[T]` over finite domains in the framework, lifted |
+| fn-125.3 | ⏸️ deferred | Query `under`: one Query per valuation |
+| fn-125.4 | ⏸️ deferred | Settings in the Quint/P exports |
+| fn-125.5 | ⏸️ deferred | Dynamic-config keys declared once in the kit, pinned to the server registry |
+| fn-125.6 | ⏸️ deferred | API preconditions; derived required settings; ShutdownWorker precondition |
+| fn-125.7 | ⏸️ deferred | Nexus implementation encoded; one Case per valuation; switch retired |
+| fn-125.8 | ⏸️ deferred | Caller attempt semantics as the owner chooses |
+| fn-125.9 | ⏸️ deferred | Bound assumptions on server durations checked at preparation |
+| fn-125.10 | ⏸️ deferred | Disposition for every implicit assumption |
+| fn-125.11 | ⏸️ deferred | Docs; close |
+
+### Other deferred items
+
+- fn-122.7 (Pausable on fn-119's example) waits for fn-119; fn-122 itself is closed.
+- `make umpire-check-backends` in CI; it runs locally after `make umpire-install-backends`.
+- The IR explorer (fn-120.4) was removed. fn-112, fn-114, fn-120, fn-121 and fn-122 are closed.
 
 ## Open for the owner
 
