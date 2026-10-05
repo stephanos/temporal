@@ -76,7 +76,7 @@ func TestManifestRejectsInvalidMetadata(t *testing.T) {
 		"an unknown reason": expecting(func(e *ExpectedRun) {
 			e.Properties[0].Status, e.Properties[0].Reason = "inconclusive", "Explanations Disagree"
 		}),
-		// Conformance short of conformant may name the judge's reason, spelled as a claim's is.
+		// Conformance short of conformant names the judge's reason, spelled as a claim's is.
 		"conformant with a conformance reason": expecting(func(e *ExpectedRun) {
 			e.Conformance, e.ConformanceReason = "conformant", "hole"
 		}),
@@ -85,6 +85,12 @@ func TestManifestRejectsInvalidMetadata(t *testing.T) {
 		}),
 		"a mixed-case conformance reason": expecting(func(e *ExpectedRun) {
 			e.Conformance, e.ConformanceReason = "inconclusive", "Incomplete"
+		}),
+		"inconclusive conformance without a reason": expecting(func(e *ExpectedRun) {
+			e.Conformance, e.ConformanceReason = "inconclusive", ""
+		}),
+		"nonconformant without a reason": expecting(func(e *ExpectedRun) {
+			e.Conformance, e.ConformanceReason = "nonconformant", ""
 		}),
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -140,8 +146,8 @@ func TestGeneratingRefusesAnExpectationTheJudgeCannotConclude(t *testing.T) {
 		query.GetPosition().GetFile(), query.GetPosition().GetLine()))
 }
 
-// A Query's declared conformance reason reaches its manifest entry as ExpectationID spells it; a
-// Query that declares none leaves the entry's empty.
+// A Query's declared conformance reason reaches its manifest entry as ExpectationID spells it, and
+// generating refuses an expectation short of conformant that declares none.
 func TestGeneratingCarriesADeclaredConformanceReason(t *testing.T) {
 	m := loaded(t, "nexus-control")
 	p, err := NewProducer(m)
@@ -151,15 +157,14 @@ func TestGeneratingCarriesADeclaredConformanceReason(t *testing.T) {
 	query := m.GetQueries()[at]
 	entry, _, err := generateCase(p, "nexus-control.json", query)
 	require.NoError(t, err)
-	require.Empty(t, entry.Expected.ConformanceReason)
-	query.GetExpectedRun().ConformanceReason = umpirespb.RunExpectation_REASON_INCOMPLETE
-	entry, _, err = generateCase(p, "nexus-control.json", query)
-	require.NoError(t, err)
 	require.Equal(t, "incomplete", entry.Expected.ConformanceReason)
+	query.GetExpectedRun().ConformanceReason = umpirespb.RunExpectation_REASON_UNSPECIFIED
+	_, _, err = generateCase(p, "nexus-control.json", query)
+	require.ErrorContains(t, err, "invalid expected conformance reason")
 }
 
-// A declared conformance reason is held to the Assessment's by equality; one undeclared is not
-// compared.
+// The conformance reason is held to the Assessment's by equality: a conformant expectation names
+// none, and an Assessment that gives one differs from it.
 func TestExpectedRunChecksADeclaredConformanceReason(t *testing.T) {
 	expected := &ExpectedRun{Contract: "satisfied", Disposition: "completed", Cleanup: "succeeded", Conformance: "inconclusive",
 		ConformanceReason: "incomplete", Properties: []ExpectedClaim{{ID: "settles", Status: "satisfied"}}}
@@ -172,14 +177,17 @@ func TestExpectedRunChecksADeclaredConformanceReason(t *testing.T) {
 	}
 	require.NoError(t, expected.Check(run, verdict, assessed("incomplete")))
 	require.EqualError(t, expected.Check(run, verdict, assessed("hole")), "the conformance reason is hole, expected incomplete: the prose")
-	expected.ConformanceReason = ""
-	require.NoError(t, expected.Check(run, verdict, assessed("hole")))
+	expected.Conformance, expected.ConformanceReason = "conformant", ""
+	conformant := assessed("")
+	conformant.Conformance.Status = runtime.ConformanceConformant
+	require.NoError(t, expected.Check(run, verdict, conformant))
+	require.ErrorContains(t, expected.Check(run, verdict, assessed("hole")), "the conformance reason is hole, expected none: the prose")
 }
 
 // Check holds a Run, its Verdict and its Assessment to the expectation by equality, and names each
 // thing that differs; prose is never compared.
 func TestExpectedRunChecksEachDeclaredValueByEquality(t *testing.T) {
-	expected := &ExpectedRun{Contract: "violated", Disposition: "stopped_by_monitor", Cleanup: "succeeded", Conformance: "inconclusive",
+	expected := &ExpectedRun{Contract: "violated", Disposition: "stopped_by_monitor", Cleanup: "succeeded", Conformance: "inconclusive", ConformanceReason: "incomplete",
 		Properties: []ExpectedClaim{{ID: "forgedSuccess", Status: "violated", Reason: "every_explanation_violates"}, {ID: "watch", Status: "satisfied"}}}
 	run := func() *testpilotspb.Run {
 		return &testpilotspb.Run{Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
@@ -219,6 +227,9 @@ func TestExpectedRunChecksEachDeclaredValueByEquality(t *testing.T) {
 		"conformance": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
 			a.Conformance.Status = runtime.ConformanceConformant
 		}, "the conformance is conformant, expected inconclusive"},
+		"conformance reason": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Conformance.Reason = "hole"
+		}, "the conformance reason is hole, expected incomplete: any prose"},
 		"status": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
 			a.Properties[1].Status = runtime.PropertyInconclusive
 		}, "forgedSuccess's status is inconclusive, expected violated: other prose"},

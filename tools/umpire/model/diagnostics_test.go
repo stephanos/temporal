@@ -167,6 +167,12 @@ func TestValidateRejectsInvalidRunExpectations(t *testing.T) {
 		"unknown conformance reason": declared(func(e *umpirespb.RunExpectation) {
 			e.Conformance, e.ConformanceReason = umpirespb.RunExpectation_CONFORMANCE_INCONCLUSIVE, 99
 		}),
+		"inconclusive conformance without reason": declared(func(e *umpirespb.RunExpectation) {
+			e.Conformance = umpirespb.RunExpectation_CONFORMANCE_INCONCLUSIVE
+		}),
+		"nonconformant without reason": declared(func(e *umpirespb.RunExpectation) {
+			e.Conformance = umpirespb.RunExpectation_CONFORMANCE_NONCONFORMANT
+		}),
 		"unknown monitor": declared(func(e *umpirespb.RunExpectation) {
 			e.Monitors = []*umpirespb.MonitorExpectation{{Name: "missing", Outcome: umpirespb.RunExpectation_OUTCOME_SATISFIED}}
 		}),
@@ -184,11 +190,11 @@ func TestValidateRejectsInvalidRunExpectations(t *testing.T) {
 		e.Property, e.Reason = umpirespb.RunExpectation_OUTCOME_INCONCLUSIVE, umpirespb.RunExpectation_REASON_EXPLANATIONS_DISAGREE
 	})
 	require.NoError(t, Validate(m))
-	// Conformance short of conformant may name the judge's reason.
-	for _, why := range []umpirespb.RunExpectation_Reason{umpirespb.RunExpectation_REASON_INCOMPLETE, umpirespb.RunExpectation_REASON_UNSPECIFIED} {
+	// Conformance short of conformant names the judge's reason.
+	for _, conformance := range []umpirespb.RunExpectation_Conformance{umpirespb.RunExpectation_CONFORMANCE_INCONCLUSIVE, umpirespb.RunExpectation_CONFORMANCE_NONCONFORMANT} {
 		m := load(t)
 		m.Queries[0].ExpectedRun = declared(func(e *umpirespb.RunExpectation) {
-			e.Conformance, e.ConformanceReason = umpirespb.RunExpectation_CONFORMANCE_INCONCLUSIVE, why
+			e.Conformance, e.ConformanceReason = conformance, umpirespb.RunExpectation_REASON_INCOMPLETE
 		})
 		require.NoError(t, Validate(m))
 	}

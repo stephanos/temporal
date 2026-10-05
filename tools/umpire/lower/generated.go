@@ -306,7 +306,7 @@ func validateExpectedRun(expected *ExpectedRun, key string) error {
 	if expected.Conformance != "conformant" && expected.Conformance != "nonconformant" && expected.Conformance != "inconclusive" {
 		return fmt.Errorf("invalid expected conformance for %s", key)
 	}
-	if expected.ConformanceReason != "" && (!reasonID(expected.ConformanceReason) || expected.Conformance == "conformant") {
+	if (expected.ConformanceReason != "" && !reasonID(expected.ConformanceReason)) || (expected.Conformance == "conformant") != (expected.ConformanceReason == "") {
 		return fmt.Errorf("invalid expected conformance reason for %s", key)
 	}
 	claims := map[string]bool{}
@@ -356,9 +356,8 @@ func concludable(verdict testpilotspb.VerdictStatus, disposition testpilotspb.Ru
 }
 
 // Check compares a closed Run, its Verdict and its Assessment with what the Query declared, each by
-// equality: the Run's disposition and cleanup, the Contract's Verdict, the conformance and, when the
-// Query declares one, the conformance's reason id, and every claim's status and reason id. The
-// Assessment's prose is shown, never compared.
+// equality: the Run's disposition and cleanup, the Contract's Verdict, the conformance and its reason
+// id, and every claim's status and reason id. The Assessment's prose is shown, never compared.
 func (e *ExpectedRun) Check(run *testpilotspb.Run, verdict *testpilotspb.Verdict, assessment *runtime.Assessment) error {
 	if run == nil || verdict == nil || assessment == nil {
 		return errors.New("a Run, its Verdict and its Assessment are required")
@@ -391,9 +390,7 @@ func (e *ExpectedRun) Check(run *testpilotspb.Run, verdict *testpilotspb.Verdict
 		problems = append(problems, fmt.Errorf("the assessment failed: %s %s", failure.Code, failure.Detail))
 	}
 	differs("the conformance", e.Conformance, string(assessment.Conformance.Status), assessment.Conformance.Detail)
-	if e.ConformanceReason != "" {
-		differs("the conformance reason", e.ConformanceReason, assessment.Conformance.Reason, assessment.Conformance.Detail)
-	}
+	differs("the conformance reason", e.ConformanceReason, assessment.Conformance.Reason, assessment.Conformance.Detail)
 	if len(assessment.Properties) != len(e.Properties) {
 		problems = append(problems, fmt.Errorf("the assessment concludes %d claims, expected %d", len(assessment.Properties), len(e.Properties)))
 	}

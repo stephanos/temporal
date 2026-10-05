@@ -833,12 +833,11 @@ admission error, as are unknown statuses, missing monitor names and duplicate na
 inconclusive or violated outcome names its reason, a satisfied one none; a reason is the judge's id
 (`RunExpectation.Reason`), whose wording only the judge has. `conformance_reason` is the judge's
 reason for the conformance, from the same ids, set exactly when conformance is not conformant: the
-reader refuses one on a conformant expectation and an unknown id, at the Query's position; requiring
-one on every expectation that is not conformant awaits declaring `forgedCompletion`'s. Lowering
-refuses a contract and disposition `testpilot.ConcludeVerdict` cannot conclude together, at the
-Query's position. The live checker retains its own independent semantics; an expectation cannot
-change its result. A live Run is compared with it value by value, each reason by id (the
-conformance's when one is declared), never by the assessment's prose.
+reader refuses one on a conformant expectation, none on an expectation that is not conformant, and
+an unknown id, at the Query's position. Lowering refuses a contract and disposition
+`testpilot.ConcludeVerdict` cannot conclude together, at the Query's position. The live checker retains its own independent semantics; an expectation cannot
+change its result. A live Run is compared with it value by value, each reason by id, never by the
+assessment's prose.
 
 The version-1 Case manifest lists every Query and its lowering standing, names the canonical Case
 file of each lowered Query, and carries its declared expected assessment. Readers reject unknown

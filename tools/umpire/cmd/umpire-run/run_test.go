@@ -621,6 +621,7 @@ func TestRunWithAModelReportsTheAssessmentAndExitsByTheWorse(t *testing.T) {
 		}, exitViolated, []string{
 			"conformance nonconformant unexplained", "property completes inconclusive unexplained",
 			"expected differs: the conformance is nonconformant, expected conformant",
+			"expected differs: the conformance reason is unexplained, expected none",
 			"expected differs: completes's status is inconclusive, expected satisfied",
 			"expected differs: completes's reason is unexplained, expected none",
 		}},

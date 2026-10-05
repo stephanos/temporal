@@ -308,10 +308,10 @@ explains all the evidence in the Run (conformance: `conformant`, `nonconformant`
 declared expectation is a completed Run with a succeeded cleanup and a satisfied Contract, assessed
 `conformant` and `satisfied`, and `TestTestpilotGeneratedCases` requires exactly that of a live
 Run and of its replay, each value by equality (`lower.ExpectedRun.Check`). Conformance short of
-`conformant` names the judge's reason the same way, `conformanceReason = Some(Reason.incomplete)`,
-set exactly when conformance is not conformant: the reader refuses one on a conformant
-expectation, and `Check` compares a declared one by id. Requiring it on every expectation that is
-not conformant awaits declaring `forgedCompletion`'s.
+`conformant` names the judge's reason the same way, as `forgedCompletion` declares
+`conformanceReason = Some(Reason.incomplete)`: it is set exactly when conformance is not
+conformant, the reader refuses an expectation that breaks that either way, and `Check` compares it
+by id.
 
 **What is not supported.** These limits are current and recorded, not hidden:
 
