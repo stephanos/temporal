@@ -20,6 +20,10 @@ final private[irgen] class Index(using val quotes: Quotes)(
 
   // The directory, relative to the repository, that each source's build-relative path is under.
   val sourceRoots = mutable.Map.empty[String, String]
+
+  // Each inspected file's typed tree, in the order the files were given, for the declaration-order
+  // lint (Order.scala), which reads whole files rather than declarations.
+  val trees: List[Tree] = tastys.map(_.ast)
   for t <- tastys do
     object index extends TreeTraverser:
       override def traverseTree(tree: Tree)(owner: Symbol): Unit =

@@ -723,6 +723,49 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
+  // fn-126 R4: the declaration-order lint, before anything is lifted. Each kind at its line, and
+  // none of the reads beside them that initialize nothing yet (initOrder/Forward.scala). Every other
+  // lift of these tests, and the gate's of the Models, runs it too and is refused nothing.
+  concurrently(
+    "the declaration-order lint refuses a read before its declaration, a cycle, an order and a place"
+  ):
+    val jar = packaged("initOrder", materialize("initOrder"))
+    val out = scratch.resolve("initOrder-out")
+    val at = stored("initOrder")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    val forward = (line: Int) =>
+      s"lift: ${at}Forward.scala:$line: late is read while Forward initializes, before it is " +
+        s"declared at ${at}Forward.scala:18, so it is still null here: declare it before the " +
+        "declaration that reads it"
+    val feature = s"${at}InitOrder.scala"
+    assertEquals(
+      refused(result),
+      Seq(
+        // (a)
+        forward(7),
+        forward(17),
+        // (b)
+        s"lift: $feature:37: an initialization cycle: Switch.laws -> SwitchRealization -> " +
+          "Switch.laws, each read while the one before it initializes, so one of them is read " +
+          "half made: read it in a def, a lambda or a lazy val, or move what is read into an " +
+          "object of its own",
+        // (c)
+        s"lift: $feature:52: properties belongs before queries at $feature:49: object Backwards " +
+          "reads its vocabulary, then effects, then its monitors, then its machine, then " +
+          "properties, then laws, then queries",
+        s"lift: $feature:55: Late belongs before Backwards at $feature:43: a feature file reads " +
+          "its header, then its types, then its signature, then its machine and composition " +
+          "objects, then object Files",
+        // (d)
+        s"lift: $feature:63: lit is a Property, and belongs in the `properties` object of its " +
+          "machine's object, not in Misplaced",
+        s"lift: $feature:66: switchLit is declared over switch, which Switch declares: it " +
+          "belongs in Switch.properties"
+      )
+    )
+
   concurrently("the lifter refuses a mapped read ending at a singular message"):
     val out = lifted("typedMapped")
     val result = lift(
