@@ -61,6 +61,7 @@ final private[irgen] class Order(index: Index):
     // A source is compiled to a tree per top-level type and one for its top-level definitions.
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1)
     sources.foreach((path, trees) => layout(path, trees, sources.map(_._1)))
+    refused ++= Structure(index).refusals(exempt) // R20, the folders and sections of a feature
     refused.toSeq.sortBy((file, line, e) => (file, line, e.message)).map(_._3).distinct
 
   // ### Positions
@@ -585,7 +586,8 @@ final private[irgen] class Order(index: Index):
     val folder = path.take(path.lastIndexOf('/') + 1)
     def inFolder(other: String) =
       other.startsWith(folder) && !other.drop(folder.length).contains('/')
-    if featureFile(path, trees) then
+    // A file of a level folder, product/ or system/, reads as a feature file (R20).
+    if featureFile(path, trees) || Structure.levelFile(path) && modelPackage(trees) then
       featureLayout(topLevel(trees))
       for c <- companions(trees) do noModelIn(c, s"${plain(c.name)}, the companion of a type")
     else
