@@ -262,7 +262,11 @@ var offPathKinds = map[string][]string{
 // how its reads wait to the API behavior and writes no limit on its handler's replies and its
 // workflow's finish, where the comparative realization writes a 250 ms interval and 5,000 ms limits:
 // those nodes, the derived waits the original baseline lists, are compared with the waits the IR's
-// Case derives, and everything else of them whole.
+// Case derives, and everything else of them whole. Since fn-124.3 the Scala realization's API behavior
+// also declares the limits an instruction that writes none runs under, that the order of a run is
+// causal and how attempts are numbered, which the comparative realization does not declare: those
+// Case members, the declared members the original baseline lists, are given the comparative Case as
+// the IR's Case carries them, and must be carried by it.
 func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 	delta, err := golden.OriginalDelta()
 	require.NoError(t, err)
@@ -279,6 +283,26 @@ func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 				if read := n.GetInstruction().GetReadEvidence(); read != nil {
 					read.PollIntervalMilliseconds, read.Once = g.GetInstruction().GetReadEvidence().GetPollIntervalMilliseconds(),
 						g.GetInstruction().GetReadEvidence().GetOnce()
+				}
+			}
+		}
+		return want
+	}
+	require.Equal(t, golden.Declared{"program.instructionDefaults", "program.runOrderIsCausal",
+		"program.entrypoints[*].activity.attemptNumbering"}, delta.Declared(), "declaringAs gives the declared members")
+	// declaringAs gives want the declared members got carries, each of which it must not carry already.
+	declaringAs := func(want, got *testpilotspb.Case) *testpilotspb.Case {
+		require.Nil(t, want.GetProgram().GetInstructionDefaults())
+		require.False(t, want.GetProgram().GetRunOrderIsCausal())
+		want.Program.InstructionDefaults = got.GetProgram().GetInstructionDefaults()
+		want.Program.RunOrderIsCausal = got.GetProgram().GetRunOrderIsCausal()
+		for _, e := range want.GetProgram().GetEntrypoints() {
+			if activity := e.GetActivity(); activity != nil {
+				require.Nil(t, activity.GetAttemptNumbering())
+				for _, g := range got.GetProgram().GetEntrypoints() {
+					if g.GetEntrypointId() == e.GetEntrypointId() {
+						activity.AttemptNumbering = g.GetActivity().GetAttemptNumbering()
+					}
 				}
 			}
 		}
@@ -329,7 +353,9 @@ func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 			got := lowered(t, p, q.Name)
 			want, err := cp.Produce(q, nexusIdentity(q.Name), exhaustive, source)
 			require.NoError(t, err)
-			require.Empty(t, cmp.Diff(waitingAs(rewritten(want), got), got, protocmp.Transform()))
+			require.NotNil(t, got.GetProgram().GetInstructionDefaults(), "the IR's Case carries the declared members")
+			require.True(t, got.GetProgram().GetRunOrderIsCausal(), "the IR's Case carries the declared members")
+			require.Empty(t, cmp.Diff(declaringAs(waitingAs(rewritten(want), got), got), got, protocmp.Transform()))
 
 			// What the declaration adds to the comparative Model's own Case, and nothing else of the
 			// Contract: the kinds off the path, each with no meaning.

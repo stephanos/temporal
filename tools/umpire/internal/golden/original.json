@@ -409,5 +409,10 @@
       "script": "handler",
       "command": "respond-error"
     }
+  ],
+  "declared_case_members": [
+    "program.instructionDefaults",
+    "program.runOrderIsCausal",
+    "program.entrypoints[*].activity.attemptNumbering"
   ]
 }

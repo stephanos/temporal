@@ -116,6 +116,8 @@ type Projection struct {
 	// and server steps are read by no table, ID, fingerprint, answer or Contract. Since fn-118.4 a
 	// Case's waits are lowered from them, and the waits they shape are compared through the original
 	// baseline's derived waits (Delta.DerivedWaits), which MatchAt and the lowered Cases' comparison read.
+	// Since fn-124.3 the behavior also declares Case members, which the lowered Cases' comparison reads
+	// through the original baseline's declared members (Delta.DeclaredMembers).
 	InertFields []string `json:"inert_fields"`
 	// CaseIDs are the kinds of lowered Case compared without their ID. An exploration Case's IDs carry
 	// the digest of its whole candidate Model, which the changes above alter; its other bytes do not.
