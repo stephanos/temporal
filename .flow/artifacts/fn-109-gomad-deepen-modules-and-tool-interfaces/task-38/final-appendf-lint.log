@@ -1,0 +1,29 @@
+tools/gomad3/target/adapter_source_set.go:36:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(gopath)
+	                  ^
+tools/gomad3/target/target.go:890:18: Error return value of `file.Close` is not checked (errcheck)
+	defer file.Close()
+	                ^
+tools/gomad3/target/target.go:913:19: Error return value of `input.Close` is not checked (errcheck)
+	defer input.Close()
+	                 ^
+tools/gomad3/target/target.go:922:15: Error return value of `output.Close` is not checked (errcheck)
+		output.Close()
+		            ^
+tools/gomad3/target/target.go:926:15: Error return value of `output.Close` is not checked (errcheck)
+		output.Close()
+		            ^
+tools/gomad3/target/target.go:941:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/target/target.go:945:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/target/target.go:949:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/target/target_test.go:518:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+9 issues:
+* errcheck: 9

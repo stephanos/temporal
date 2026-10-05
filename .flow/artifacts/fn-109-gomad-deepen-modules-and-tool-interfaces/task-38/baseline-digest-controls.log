@@ -1,0 +1,48 @@
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-findings
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-sources
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-adapter
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/linked
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/guarded
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/recorded-closure
+--- PASS: TestCapabilityReviewGoldenCanonicalBytes (0.04s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-findings (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-sources (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-adapter (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/linked (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/guarded (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/recorded-closure (0.00s)
+=== RUN   TestCompatibilityPackProjectionPreservesCompleteEvidence
+--- PASS: TestCompatibilityPackProjectionPreservesCompleteEvidence (0.00s)
+=== RUN   TestCompatibilityPackProjectionPreservesNilAndEmpty
+--- PASS: TestCompatibilityPackProjectionPreservesNilAndEmpty (0.00s)
+=== RUN   TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage
+--- PASS: TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage (0.00s)
+=== RUN   TestPreparedCacheDigestOverlayEmpty
+--- PASS: TestPreparedCacheDigestOverlayEmpty (0.00s)
+=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs
+=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs/reverse_map_order_and_unclean_original
+=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs/sorted_map_order_and_clean_original
+--- PASS: TestPreparedCacheDigestOverlayCanonicalInputs (0.00s)
+    --- PASS: TestPreparedCacheDigestOverlayCanonicalInputs/reverse_map_order_and_unclean_original (0.00s)
+    --- PASS: TestPreparedCacheDigestOverlayCanonicalInputs/sorted_map_order_and_clean_original (0.00s)
+=== RUN   TestPreparedCacheDigestOverlayReadFailure
+--- PASS: TestPreparedCacheDigestOverlayReadFailure (0.00s)
+=== RUN   TestPreparedCacheDigestModuleInputs
+=== RUN   TestPreparedCacheDigestModuleInputs/present
+=== RUN   TestPreparedCacheDigestModuleInputs/absent_go.sum
+=== RUN   TestPreparedCacheDigestModuleInputs/empty_go.sum
+=== RUN   TestPreparedCacheDigestModuleInputs/argument_order
+=== RUN   TestPreparedCacheDigestModuleInputs/basename_framing
+--- PASS: TestPreparedCacheDigestModuleInputs (0.00s)
+    --- PASS: TestPreparedCacheDigestModuleInputs/present (0.00s)
+    --- PASS: TestPreparedCacheDigestModuleInputs/absent_go.sum (0.00s)
+    --- PASS: TestPreparedCacheDigestModuleInputs/empty_go.sum (0.00s)
+    --- PASS: TestPreparedCacheDigestModuleInputs/argument_order (0.00s)
+    --- PASS: TestPreparedCacheDigestModuleInputs/basename_framing (0.00s)
+=== RUN   TestPreparedCacheDigestModuleEmptyInputs
+--- PASS: TestPreparedCacheDigestModuleEmptyInputs (0.00s)
+=== RUN   TestPreparedCacheDigestModuleReadFailure
+--- PASS: TestPreparedCacheDigestModuleReadFailure (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/target	0.044s

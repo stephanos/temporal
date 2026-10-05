@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/record"
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
 	"go.temporal.io/server/tools/gomad3/target/internal/capabilitypolicy"

@@ -1,0 +1,39 @@
+tools/gomad3/target/adapter_source_set.go:36:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(gopath)
+	                  ^
+tools/gomad3/target/prepared_cache.go:245:10: QF1012: Use fmt.Fprintf(...) instead of Write([]byte(fmt.Sprintf(...))) (staticcheck)
+		_, _ = hasher.Write([]byte(fmt.Sprintf("%s\x00%x\n", original, digest)))
+		       ^
+tools/gomad3/target/prepared_cache.go:257:11: QF1012: Use fmt.Fprintf(...) instead of Write([]byte(fmt.Sprintf(...))) (staticcheck)
+			_, _ = hasher.Write([]byte(fmt.Sprintf("%s\x00absent\n", filepath.Base(path))))
+			       ^
+tools/gomad3/target/prepared_cache.go:264:10: QF1012: Use fmt.Fprintf(...) instead of Write([]byte(fmt.Sprintf(...))) (staticcheck)
+		_, _ = hasher.Write([]byte(fmt.Sprintf("%s\x00%x\n", filepath.Base(path), digest)))
+		       ^
+tools/gomad3/target/target.go:890:18: Error return value of `file.Close` is not checked (errcheck)
+	defer file.Close()
+	                ^
+tools/gomad3/target/target.go:913:19: Error return value of `input.Close` is not checked (errcheck)
+	defer input.Close()
+	                 ^
+tools/gomad3/target/target.go:922:15: Error return value of `output.Close` is not checked (errcheck)
+		output.Close()
+		            ^
+tools/gomad3/target/target.go:926:15: Error return value of `output.Close` is not checked (errcheck)
+		output.Close()
+		            ^
+tools/gomad3/target/target.go:941:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/target/target.go:945:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/target/target.go:949:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/target/target_test.go:518:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+12 issues:
+* errcheck: 9
+* staticcheck: 3

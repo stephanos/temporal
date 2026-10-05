@@ -1,0 +1,89 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.38",
+  "result": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "base": "9f66d05bc8f7f49f18135a53525006198a675036",
+  "source_manifest": "final-appendf-controls.before.sha256",
+  "source_manifest_sha256": "a5eb12d3228b6fe5b829532d784229a2c8bdcfe7df61d53f81cba5646dbec7af",
+  "manifest_verified_before_and_after": true,
+  "protected_comparison": {
+    "baseline": 1038,
+    "final": 1039,
+    "unchanged": 1032,
+    "changed": 6,
+    "added": 1,
+    "missing": 0
+  },
+  "retained_raw_log_hashes_verified": 12,
+  "pinned_tools_and_configuration_verified": true,
+  "review": {
+    "artifact": "independent-source-review.md",
+    "sha256": "bfa72e1339ad537f9bfea00d1c45f8f6eebef61a74fe1b1a496c3747bc7faff9",
+    "assessment": "SOURCE_PROGRESS_COMMIT_ONLY",
+    "actual_model_attestation": "not exposed",
+    "same_family": true
+  },
+  "fresh_commands": [
+    {
+      "name": "controls",
+      "command": "go test -v -count=1 -tags test_dep ./target -run 'TestPreparedCacheDigest|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves'",
+      "environment": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS= ",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05 08:52:24 UTC",
+      "end": "2026-10-05 08:52:24 UTC",
+      "chunk_id": "0f3c12",
+      "wall_time_seconds": 0.08174225,
+      "exit_code": 0,
+      "original_token_count": 791,
+      "output": "=== RUN   TestCapabilityReviewGoldenCanonicalBytes\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-findings\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-sources\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-adapter\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/linked\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/guarded\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/recorded-closure\n--- PASS: TestCapabilityReviewGoldenCanonicalBytes (0.04s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-findings (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-sources (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-adapter (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/linked (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/guarded (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/recorded-closure (0.00s)\n=== RUN   TestCompatibilityPackProjectionPreservesCompleteEvidence\n--- PASS: TestCompatibilityPackProjectionPreservesCompleteEvidence (0.00s)\n=== RUN   TestCompatibilityPackProjectionPreservesNilAndEmpty\n--- PASS: TestCompatibilityPackProjectionPreservesNilAndEmpty (0.00s)\n=== RUN   TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage\n--- PASS: TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage (0.00s)\n=== RUN   TestPreparedCacheDigestOverlayEmpty\n--- PASS: TestPreparedCacheDigestOverlayEmpty (0.00s)\n=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs\n=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs/reverse_map_order_and_unclean_original\n=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs/sorted_map_order_and_clean_original\n--- PASS: TestPreparedCacheDigestOverlayCanonicalInputs (0.00s)\n    --- PASS: TestPreparedCacheDigestOverlayCanonicalInputs/reverse_map_order_and_unclean_original (0.00s)\n    --- PASS: TestPreparedCacheDigestOverlayCanonicalInputs/sorted_map_order_and_clean_original (0.00s)\n=== RUN   TestPreparedCacheDigestOverlayReadFailure\n--- PASS: TestPreparedCacheDigestOverlayReadFailure (0.00s)\n=== RUN   TestPreparedCacheDigestModuleInputs\n=== RUN   TestPreparedCacheDigestModuleInputs/present\n=== RUN   TestPreparedCacheDigestModuleInputs/absent_go.sum\n=== RUN   TestPreparedCacheDigestModuleInputs/empty_go.sum\n=== RUN   TestPreparedCacheDigestModuleInputs/argument_order\n=== RUN   TestPreparedCacheDigestModuleInputs/basename_framing\n--- PASS: TestPreparedCacheDigestModuleInputs (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/present (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/absent_go.sum (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/empty_go.sum (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/argument_order (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/basename_framing (0.00s)\n=== RUN   TestPreparedCacheDigestModuleEmptyInputs\n--- PASS: TestPreparedCacheDigestModuleEmptyInputs (0.00s)\n=== RUN   TestPreparedCacheDigestModuleReadFailure\n--- PASS: TestPreparedCacheDigestModuleReadFailure (0.00s)\nPASS\nok  \tgo.temporal.io/server/tools/gomad3/target\t0.042s\n"
+    },
+    {
+      "name": "architecture",
+      "command": "go test -v -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+      "environment": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS= ",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05 08:52:24 UTC",
+      "end": "2026-10-05 08:52:25 UTC",
+      "chunk_id": "06e7cc",
+      "wall_time_seconds": 0.8409745,
+      "exit_code": 0,
+      "original_token_count": 32,
+      "output": "=== RUN   TestPackageArchitecture\n--- PASS: TestPackageArchitecture (0.86s)\nPASS\nok  \tgo.temporal.io/server/tools/gomad3\t0.865s\n"
+    },
+    {
+      "name": "lint",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./target",
+      "environment": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS= ",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05 08:52:25 UTC",
+      "end": "2026-10-05 08:52:25 UTC",
+      "chunk_id": "c8f9a4",
+      "wall_time_seconds": 0.033443375,
+      "exit_code": 1,
+      "original_token_count": 313,
+      "output": "tools/gomad3/target/adapter_source_set.go:36:20: Error return value of `os.RemoveAll` is not checked (errcheck)\n\tdefer os.RemoveAll(gopath)\n\t                  ^\ntools/gomad3/target/target.go:890:18: Error return value of `file.Close` is not checked (errcheck)\n\tdefer file.Close()\n\t                ^\ntools/gomad3/target/target.go:913:19: Error return value of `input.Close` is not checked (errcheck)\n\tdefer input.Close()\n\t                 ^\ntools/gomad3/target/target.go:922:15: Error return value of `output.Close` is not checked (errcheck)\n\t\toutput.Close()\n\t\t            ^\ntools/gomad3/target/target.go:926:15: Error return value of `output.Close` is not checked (errcheck)\n\t\toutput.Close()\n\t\t            ^\ntools/gomad3/target/target.go:941:13: Error return value of `file.Close` is not checked (errcheck)\n\t\tfile.Close()\n\t\t          ^\ntools/gomad3/target/target.go:945:13: Error return value of `file.Close` is not checked (errcheck)\n\t\tfile.Close()\n\t\t          ^\ntools/gomad3/target/target.go:949:13: Error return value of `file.Close` is not checked (errcheck)\n\t\tfile.Close()\n\t\t          ^\ntools/gomad3/target/target_test.go:518:13: Error return value of `file.Close` is not checked (errcheck)\n\t\tfile.Close()\n\t\t          ^\n9 issues:\n* errcheck: 9\n"
+    },
+    {
+      "name": "errortype",
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype ./target",
+      "environment": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS= ",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05 08:52:25 UTC",
+      "end": "2026-10-05 08:52:25 UTC",
+      "chunk_id": "ef2eac",
+      "wall_time_seconds": 0.000009083,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ],
+  "formatting": "gofmt -l over seven Touches produced no output",
+  "diff_check": "Product and Flow documentation diff passes; full staged diff reports 12 trailing spaces in retained raw receipt command lines. Raw receipt bytes are intentionally preserved, not reformatted.",
+  "generator_validation": "not applicable: changed files excluded from generator input lists; no generated outputs changed",
+  "completion": false,
+  "open_acceptance": [
+    "Nine task39 cleanup lint findings",
+    "Original R18/R19 and predecessor/task21 acceptance",
+    "Matched first-baseline/full/default/functional/affected-consumer/formal/native Darwin gates where unproved"
+  ],
+  "linux": "Deferred fn128 execution is nonblocking"
+}

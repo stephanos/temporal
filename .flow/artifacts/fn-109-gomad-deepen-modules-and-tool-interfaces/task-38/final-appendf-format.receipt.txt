@@ -1,0 +1,14 @@
+cwd=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3
+command=bash -c unformatted=\$\(gofmt\ -l\ target/capability.go\ target/capability_collection.go\ target/capability_evaluation.go\ target/capability_golden_test.go\ target/capability_review_test.go\ target/prepared_cache.go\ target/prepared_cache_digest_test.go\)\;\ printf\ \"%s\"\ \"\$unformatted\"\;\ test\ -z\ \"\$unformatted\" 
+start=1791189553.038499322
+GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS=
+unset GOMADSEED GOMAD3_CHILD_SEED GOMAD3_SEED
+PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+go version go1.27.1 linux/arm64
+end=1791189553.146042239
+exit=0
+source_binding_exit=0
+elapsed_seconds=0.107543
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-38/final-appendf-format.log
+a5eb12d3228b6fe5b829532d784229a2c8bdcfe7df61d53f81cba5646dbec7af  /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-38/final-appendf-format.before.sha256
+a5eb12d3228b6fe5b829532d784229a2c8bdcfe7df61d53f81cba5646dbec7af  /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-38/final-appendf-format.after.sha256

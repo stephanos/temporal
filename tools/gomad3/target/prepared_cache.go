@@ -242,7 +242,7 @@ func overlayDigest(path, commandDirectory string) (record.SHA256, error) {
 			return "", fmt.Errorf("read target build overlay replacement: %w", err)
 		}
 		digest := sha256.Sum256(contents)
-		fmt.Fprintf(hasher, "%s\x00%x\n", original, digest)
+		_, _ = hasher.Write(fmt.Appendf(nil, "%s\x00%x\n", original, digest))
 	}
 	return record.SHA256("sha256:" + hex.EncodeToString(hasher.Sum(nil))), nil
 }
@@ -254,14 +254,14 @@ func filesDigest(paths ...string) (record.SHA256, error) {
 	for _, path := range paths {
 		contents, err := hostfs.ReadBounded(path, maximumCapabilitySourceBytes)
 		if errors.Is(err, os.ErrNotExist) {
-			fmt.Fprintf(hasher, "%s\x00absent\n", filepath.Base(path))
+			_, _ = hasher.Write(fmt.Appendf(nil, "%s\x00absent\n", filepath.Base(path)))
 			continue
 		}
 		if err != nil {
 			return "", fmt.Errorf("read target module file: %w", err)
 		}
 		digest := sha256.Sum256(contents)
-		fmt.Fprintf(hasher, "%s\x00%x\n", filepath.Base(path), digest)
+		_, _ = hasher.Write(fmt.Appendf(nil, "%s\x00%x\n", filepath.Base(path), digest))
 	}
 	return record.SHA256("sha256:" + hex.EncodeToString(hasher.Sum(nil))), nil
 }

@@ -42,6 +42,19 @@ Run pinned errortype, formatting and generator validation where input ownership 
 
 Root commits reviewed source progress before admitting the cleanup writer. Original R18/R19, task21/predecessor acceptance, matched first-baseline identities, complete/full/default/functional/affected-consumer/formal and native Darwin gates remain open wherever unproved. Native Linux execution remains with fn-128 and does not block this source owner.
 
+### Source progress, 2026-10-05
+
+The frozen candidate repairs exactly five compatibility import aliases and three infallible SHA-256 record writes. Six new literal digest tests pass on unchanged production and the final source. Formats, arguments, order, error wrapping and input bytes are preserved. Actual unfiltered target lint improves from 17 findings to nine unchanged task39 cleanup findings; it is still red.
+
+The fresh independent same-family source review returned SOURCE_PROGRESS_COMMIT_ONLY with no actionable introduced defects. Its requested Sol6.1/high pin has no exposed executed-model attestation. Root independently reran the focused controls (10 top-level tests/20 leaves), architecture and errortype successfully and reproduced all nine unfiltered residuals. The final 1,039-entry manifest matches; exactly six existing inputs change, one test is added and 1,032 protected entries are unchanged. Pinned tools/configuration and all 12 retained raw-log bindings match.
+
+Evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-38/handover.md, source-bindings.md, independent-source-review.md and conductor-verification.json. The handover/evidence.json retain the worker's pre-review snapshot; this later progress record supersedes their pending-review statement only. Root commits this source progress before admitting task39.
+
+Acceptance remains open: task39 cleanup keeps target lint red, and original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin requirements remain unproved where recorded. No original acceptance is waived or narrowed. Linux execution remains transferred to fn128 and nonblocking.
+
+stage: source-review - ran (same-family source-progress review; no formal verdict)
+stage: impl-review - skipped(policy: actual unfiltered target lint remains red)
+stage: plan-sync - skipped(config: disabled; no task completed)
 ## Acceptance
 - [ ] Literal digest and error controls pass on unchanged BASE and final source, covering every named case with independent expectations; all five capability alias changes preserve public projection/canonical behavior.
 - [ ] Exactly three hash-write statements change, with unchanged formats/arguments/order and no new possible failure, full-stream copy or module mutation; original logic/comments/assertions outside scope remain intact.
@@ -51,8 +64,8 @@ Root commits reviewed source progress before admitting the cleanup writer. Origi
 
 
 ## Done summary
-TBD
-
+Blocked:
+Reviewed source progress repairs eight target lint findings; nine unchanged cleanup findings remain owned by fn109.39. Original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin gates remain required and unproved wherever recorded. Native Darwin and full qualification are unavailable on this developmental linux/arm64 host. Do not repeat unchanged host failures. Native Linux execution is deferred under fn128 and is not this task's blocker. Resume acceptance after task39 and the required source-bound supported-host evidence; source progress is not task completion.
 ## Evidence
 - Commits:
 - Tests:

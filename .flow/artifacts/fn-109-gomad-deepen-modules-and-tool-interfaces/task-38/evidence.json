@@ -1,0 +1,47 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.38",
+  "status": "in_progress",
+  "result": "SOURCE_PROGRESS_ONLY",
+  "commits": [],
+  "base_commit": "9f66d05bc8f7f49f18135a53525006198a675036",
+  "tests": [
+    "go test -count=1 -tags test_dep ./target -run 'TestPreparedCacheDigest|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves'",
+    "go test -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+    "go test -v -count=1 -tags test_dep ./target -run 'TestPreparedCacheDigest|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves'",
+    "go test -v -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./target",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype ./target",
+    "gofmt -l target/capability.go target/capability_collection.go target/capability_evaluation.go target/capability_golden_test.go target/capability_review_test.go target/prepared_cache.go target/prepared_cache_digest_test.go (empty-output check)",
+    "git diff --check"
+  ],
+  "prs": [],
+  "baseline": "red: actual unfiltered pinned target lint exit 1 before edits (17 findings: 12 errcheck, 5 goimports); original focused controls and architecture pass; added literal controls pass on unchanged production",
+  "review": "conductor-deferred",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "environment": "cached stock Go1.27.1.linux-arm64 first PATH; GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS=; unset GOMADSEED GOMAD3_CHILD_SEED GOMAD3_SEED",
+  "final_source_manifest": "final-appendf-controls.before.sha256",
+  "final_source_manifest_sha256": "a5eb12d3228b6fe5b829532d784229a2c8bdcfe7df61d53f81cba5646dbec7af",
+  "source_bindings": "source-bindings.md",
+  "gate_results": {
+    "final_controls": {"exit": 0, "top_level_tests": 10, "leaf_cases": 20, "receipt": "final-appendf-controls.receipt.txt"},
+    "final_architecture": {"exit": 0, "tests": 1, "receipt": "final-appendf-architecture.receipt.txt"},
+    "final_unfiltered_lint": {"exit": 1, "issues": 9, "errcheck": 9, "introduced_findings": 0, "receipt": "final-appendf-lint.receipt.txt"},
+    "final_errortype": {"exit": 0, "receipt": "final-appendf-errortype.receipt.txt"},
+    "final_formatting": {"exit": 0, "receipt": "final-appendf-format.receipt.txt"},
+    "diff_check": {"exit": 0},
+    "generator_validation": {"status": "not required", "reason": "Touches excluded from inspected Makefile and protocol generator inputs; no generator/schema/template/runtime overlay changes"}
+  },
+  "superseded_attempt": {"lint_exit": 1, "issues": 12, "introduced_staticcheck_qf1012": 3, "receipt": "final-lint.receipt.txt", "resolution": "Use fmt.Appendf(nil, unchanged format/arguments) only at the three infallible hash writes"},
+  "pins": {
+    "golangci_lint_sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "errortype_sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+    "lint_config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+  },
+  "open_acceptance": [
+    "Nine task39 cleanup lint findings remain",
+    "Root independent source review and source-progress commit pending",
+    "Original R18/R19 and task21/predecessor acceptance",
+    "Matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin gates where unproved",
+    "Native Linux execution transferred to fn128"
+  ]
+}

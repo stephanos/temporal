@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/sourceinventory"
 	"go.temporal.io/server/tools/gomad3/target/internal/livecap"
 )
