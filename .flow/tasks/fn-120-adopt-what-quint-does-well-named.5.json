@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-120-adopt-what-quint-does-well-named",
   "spec_path": ".flow/tasks/fn-120-adopt-what-quint-does-well-named.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Close the Quint-inspired tools",
   "updated_at": "2026-10-03T17:42:15.834679Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-120-adopt-what-quint-does-well-named",
   "spec_path": ".flow/tasks/fn-120-adopt-what-quint-does-well-named.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add named-choice declarations, inert IR names and Quint export",
   "updated_at": "2026-10-03T17:36:01.004624Z"
 }
