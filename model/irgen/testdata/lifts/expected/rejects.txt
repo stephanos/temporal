@@ -172,4 +172,4 @@ lift: model/irgen/testdata/lifts/MarkerRejects.scala:43: faultlessFailure is a f
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:49: hopelessFailure is a failure model, and every Query of it expects its Run to violate the promise: a failure model's promise holds under its fault; a design the checks must refuse is a negative control
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:105: systemicControl is a negative control, and declares a refinement of its own, as a feature's System does: a deliberately wrong design derives from the design it gets wrong
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:125: tornMarkers is marked a failure model and a negative control: it is one
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:72: unrefutedControl is a negative control that no Query lifted with it can refute: ask a `verify` of it, whose answer may be a counterexample, or a Query whose Run is expected violated
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:72: unrefutedControl is a negative control that no Query of the run can refute: ask a `verify` of it, whose answer may be a counterexample, or a Query whose Run is expected violated

@@ -777,7 +777,9 @@ private[irgen] trait Declarations:
   def derivedMachine(rhs: Term, family: String, name: String): ir.Machine =
     // Each item a bare binding, `action ~> function`, or a group of rules, `when(g) { ... }`: the
     // step it binds, and the rules it lowers from where it binds rules. A bare binding of an action
-    // the source binds by rules keeps their guards and replaces their effect.
+    // the source binds by rules keeps their guards, and their classes, and replaces their effect:
+    // refused where whole-action rules have several effects, and not where each rule fires one
+    // class, whose input the new effect reads.
     def bound(src: ir.Machine, items: Term, op: String): Seq[(ir.StepBinding, Term)] =
       val bindings = varargs(items).flatMap { item =>
         val b = contextBody(item)
@@ -800,7 +802,10 @@ private[irgen] trait Declarations:
             rulesOf.get(src.name).flatMap(_.get(id)) match
               case Some(kept) if op == "rebind" =>
                 val effects = kept.map(r => forwardedDef(r.effect).fold(r.effect.show)(_.fullName))
-                if effects.distinct.size > 1 then
+                // Rules that each fire one class may differ in effect: the new effect reads the
+                // class's inputs, so each rule keeps its guard and class and takes it, and nothing
+                // two whole-action rules told apart is merged.
+                if effects.distinct.size > 1 && !kept.forall(_.cls.nonEmpty) then
                   fail(
                     b,
                     s"$name rebinds ${actions(id).name}, which ${src.name} binds by ${kept.size} " +

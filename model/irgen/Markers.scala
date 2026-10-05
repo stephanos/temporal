@@ -20,14 +20,44 @@ import io.temporal.server.api.umpire.v1 as ir
  *
  * A fault an action is bound to is one some state enables: an action `disabled` binds no fault.
  */
+/**
+ * A negative control's call on a run's Queries: its name, where its object is, and whether a Query
+ * of one lift can refute it.
+ */
+final private[irgen] case class Refutation(control: String, at: String, refuted: Boolean)
+
+/**
+ * The refusal of each negative control no Query of the run can refute, once.
+ */
+private[irgen] def unrefuted(all: Seq[Refutation]): Seq[LiftError] =
+  all
+    .groupBy(_.control)
+    .toSeq
+    .sortBy(_._1)
+    .collect {
+      case (name, rs) if !rs.exists(_.refuted) =>
+        LiftError(
+          rs.head.at,
+          s"$name is a negative control that no Query of the run can refute: ask a `verify` of it, " +
+            "whose answer may be a counterexample, or a Query whose Run is expected violated"
+        )
+    }
+
 private[irgen] trait Markers:
   self: Lifting =>
   import ctx.*
   import ctx.quotes.reflect.*
 
-  /** Each refusal of the markers of what this lift lifted, at the declaring object's position. */
-  def markerRefusals(): Seq[LiftError] =
+  /**
+   * Each refusal of the markers of what this lift lifted, at the declaring object's position, and
+   * what each negative control asks of the run's Queries: whether a Query this lift lifted can
+   * refute it. A run holds the whole run's Queries to it (Lift.scala): the gate's, every negative
+   * control any IR file lifts; a lift of roots, the ones its Queries ask about, since a fixture may
+   * lift a control as a composition's member alone.
+   */
+  def markerRefusals(everyLifted: Boolean): (Seq[LiftError], Seq[Refutation]) =
     val refused = Seq.newBuilder[LiftError]
+    val refutations = Seq.newBuilder[Refutation]
     def refuse(at: Option[ir.Position], message: String): Unit =
       val p = at.getOrElse(ir.Position())
       refused += LiftError(s"${p.file}:${p.line}", message)
@@ -56,12 +86,9 @@ private[irgen] trait Markers:
     def refutable(q: ir.Query): Boolean = q.form == ir.Query.Form.FORM_VERIFY || violated(q)
 
     def negativeControl(name: String, at: Option[ir.Position], cls: Option[Symbol]): Unit =
-      if !over(name).exists(refutable) then
-        refuse(
-          at,
-          s"$name is a negative control that no Query lifted with it can refute: ask a `verify` of " +
-            "it, whose answer may be a counterexample, or a Query whose Run is expected violated"
-        )
+      if everyLifted || over(name).nonEmpty then
+        val p = at.getOrElse(ir.Position())
+        refutations += Refutation(name, s"${p.file}:${p.line}", over(name).exists(refutable))
       for m <- machines.values if m.refines.exists(_.product == name) do
         refuse(
           at,
@@ -118,7 +145,7 @@ private[irgen] trait Markers:
         refuse(c.position, s"${c.name} is marked a failure model and a negative control: it is one")
       if negative then negativeControl(c.name, c.position, None)
       if failure then failureModel(c.name, c.position, compositionFaults(c))
-    refused.result()
+    (refused.result(), refutations.result())
 
   /**
    * The Definition IDs of the faults: the actions of the party `fault`, and every action declared in

@@ -52,6 +52,9 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
   /** Every refusal, with the IR file it was lifting: "" for a lift of roots, or for none. */
   val errors = mutable.ArrayBuffer.empty[(String, LiftError)]
 
+  /** What each negative control of every file lifted asks of the run's Queries. */
+  private val refutations = mutable.ArrayBuffer.empty[Refutation]
+
   // A lift error is kept rather than thrown through the compiler, which would report it as a crash.
   def inspect(using Quotes)(tastys: List[Tasty[quotes.type]]): Unit =
     try
@@ -77,6 +80,7 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
               // Each file is lifted over the one index, with state of its own.
               val chosen = declared.filter((name, _) => only.isEmpty || only.contains(name))
               for (name, roots) <- chosen.sortBy(_._1) do liftFile(index, name, roots)
+        errors ++= unrefuted(refutations.toSeq).map("" -> _)
     catch case e: LiftError => errors += "" -> e
 
   private def liftFile(index: Index, file: String, roots: Seq[String]): Unit =
@@ -108,8 +112,11 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
           errors += file -> e
           lifting.clear()
 
-    // What a machine is for, as its markers say, is held to what this file lifted with it.
-    errors ++= concerns.markerRefusals().map(file -> _)
+    // What a machine is for, as its markers say, is held to what this file lifted with it, and a
+    // negative control to the Queries of the whole run.
+    val (marked, asked) = concerns.markerRefusals(everyLifted = file.nonEmpty)
+    errors ++= marked.map(file -> _)
+    refutations ++= asked
 
     def sorted[K: Ordering, V](m: collection.Map[K, V]): Seq[V] = m.toSeq.sortBy(_._1).map(_._2)
     models(file) = ir.Model(

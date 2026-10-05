@@ -469,9 +469,10 @@ abstract class Machine[S, O, F](using
   /**
    * A machine that binds other step functions or rules to actions this one binds, each in its
    * place, and keeps everything else this machine declares. `action ~> effect` keeps that action's
-   * rules and replaces their effect, which the lifter refuses where its rules have several effects;
-   * `when(g) { action ~> effect }` replaces its rules. The lifter refuses an action this machine
-   * does not bind.
+   * rules, each with its guard and class, and replaces their effect, which the lifter refuses where
+   * its whole-action rules have several effects (rules that each fire one class may differ, as the
+   * new effect reads the class's inputs); `when(g) { action ~> effect }` replaces its rules. The
+   * lifter refuses an action this machine does not bind.
    */
   def rebind(replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*)(using
       family: Family
