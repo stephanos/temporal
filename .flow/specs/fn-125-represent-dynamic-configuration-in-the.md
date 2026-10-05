@@ -189,3 +189,7 @@ make umpire-check-live-tests
 | .11 docs and close | R13 | after all |
 
 R9 is split because deleting the switch before the caller's encoding exists would run its Cases on server defaults.
+
+## Status
+
+Deferred by the owner on 2026-10-05. Task 1 (HSM/CHASM switch fixes, schedule-to-close no longer from the Profile) is done and merged; tasks 2-11 are blocked until the spec is revived. The evidence stays in `.plans/DYNAMIC_CONFIG.md`.

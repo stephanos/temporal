@@ -45,8 +45,8 @@ go test -count=1 -tags test_dep -p 2 ./tools/umpire/... ./common/testing/testpil
 
 
 ## Done summary
-TBD
-
+Blocked:
+Blocked: deferred by the owner on 2026-10-05 together with the whole of fn-125 (dynamic configuration in the Models). Task 1 (the HSM/CHASM switch fixes) is done and merged; revive the spec to continue.
 ## Evidence
 - Commits:
 - Tests:

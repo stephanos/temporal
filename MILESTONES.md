@@ -138,41 +138,24 @@ Gates: task 3 after fn-118; task 7 after fn-114, fn-120 and fn-122 close; task 8
 | fn-124.7 | ⬜ todo | Migration harness and frozen snapshots retired |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
-### fn-125: Represent dynamic configuration in the Models
-
-Gates: tasks 2-3 after fn-114 closes, not alongside fn-124.8; tasks 5-6 after fn-118.2 (done); task 7 after
-fn-118.5; task 9 after fn-118.4. Evidence: `.plans/DYNAMIC_CONFIG.md`.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-125.1 | ✅ done | HSM/CHASM switch fixed; schedule-to-close no longer from the Profile |
-| fn-125.2 | ⬜ todo | `setting[T]` over finite domains in the framework, lifted |
-| fn-125.3 | ⬜ todo | Query `under`: one Query per valuation |
-| fn-125.4 | ⏸️ deferred | Settings in the Quint/P exports |
-| fn-125.5 | ⬜ todo | Dynamic-config keys declared once in the kit, pinned to the server registry |
-| fn-125.6 | ⬜ todo | API preconditions; derived required settings; ShutdownWorker precondition |
-| fn-125.7 | ⬜ todo | Nexus implementation encoded; one Case per valuation; switch retired |
-| fn-125.8 | ⬜ todo | Caller attempt semantics as the owner chooses |
-| fn-125.9 | ⬜ todo | Bound assumptions on server durations checked at preparation |
-| fn-125.10 | ⬜ todo | Disposition for every implicit assumption |
-| fn-125.11 | ⬜ todo | Docs; close |
 
 ## Deferred
 
 Deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution):
 fn-119 (Go SDK workflow showcase; tasks 1-2 done, 3-6 blocked), fn-122.7, fn-123 (faults as environment
-actions, not planned) and fn-125.4. The IR explorer (fn-120.4) was removed. Also deferred: `make umpire-check-backends` in CI (it runs
+actions, not planned). Deferred on 2026-10-05: fn-125 (dynamic configuration in the Models; task 1, the
+HSM/CHASM switch fixes, is done; evidence in `.plans/DYNAMIC_CONFIG.md`). The IR explorer (fn-120.4) was removed. Also deferred: `make umpire-check-backends` in CI (it runs
 locally after `make umpire-install-backends`). fn-112 and fn-121 are closed.
 
 ## Open for the owner
 
 - The matching ShutdownWorker race (`service/matching/matching_engine.go`, upstream #9424) makes the Cases
   that stop a worker INCONCLUSIVE under both Nexus implementations; with
-  `frontend.enableMatchingFanOutForPollCancellation=false` they pass. fn-125.6 declares that as a `workerStop`
-  precondition and drafts the upstream report.
+  `frontend.enableMatchingFanOutForPollCancellation=false` they pass. The planned `workerStop` precondition
+  (fn-125.6) is deferred with fn-125, so these Cases stay INCONCLUSIVE until the server is fixed or fn-125 resumes.
 - 691 lint findings accepted with reasons in `model/ir/*.lint.json` (fn-120.3); review the H2 reasons first.
 - Behavior-freeze follow-ups from fn-112: the witness-only Properties `terminated` and
   `cancelRequestedWhileStarted`, and seven pause/unpause rows the server rejects.
-- Whether HSM and CHASM may count Nexus `attempt` differently (fn-125.8); no current Query shows a difference.
+- Whether HSM and CHASM may count Nexus `attempt` differently; no current Query shows a difference (fn-125, deferred).
 - The canary policy's `workflowPath` names the deleted production-canary workflow, so production dispatch
   fails closed.
