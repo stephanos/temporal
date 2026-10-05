@@ -1,0 +1,186 @@
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-characterization.log: OK
+{
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./internal/canonicaljson"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+      "pass": 81,
+      "top_pass": 12
+    }
+  },
+  "skipped_tests": []
+}
+raw test event counts match metadata: amended-final-characterization
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-lint.log: OK
+{
+  "argv": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--config=../../.github/.golangci.yml",
+    "--build-tags=test_dep",
+    "--timeout=10m",
+    "--fix=false",
+    "./internal/canonicaljson"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": []
+}
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-errortype.log: OK
+{
+  "argv": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "-test=true",
+    "./internal/canonicaljson"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": []
+}
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-gofmt.log: OK
+{
+  "argv": [
+    "gofmt",
+    "-l",
+    "internal/canonicaljson/canonical.go",
+    "internal/canonicaljson/canonical_characterization_test.go"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": []
+}
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-consumers.log: OK
+{
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./record",
+    "./world",
+    "./internal/compatibilitypack",
+    "./internal/compatibilitypack/authoring"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/record": {
+      "pass": 41,
+      "top_pass": 26
+    },
+    "go.temporal.io/server/tools/gomad3/world": {
+      "pass": 77,
+      "top_pass": 38
+    },
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+      "pass": 244,
+      "top_pass": 18,
+      "skip": 1,
+      "top_skip": 1
+    },
+    "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+      "pass": 30,
+      "top_pass": 20
+    }
+  },
+  "skipped_tests": [
+    "TestHostPacksBindCurrentProfile"
+  ]
+}
+raw test event counts match metadata: amended-final-consumers
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-architecture.log: OK
+{
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./internal/gomadtool/architecture"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+      "pass": 180,
+      "top_pass": 26
+    }
+  },
+  "skipped_tests": []
+}
+raw test event counts match metadata: amended-final-architecture
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-boundaries.log: OK
+{
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    ".",
+    "-run",
+    "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3": {
+      "pass": 3,
+      "top_pass": 3
+    }
+  },
+  "skipped_tests": []
+}
+raw test event counts match metadata: amended-final-boundaries
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-target.log: OK
+{
+  "argv": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-json",
+    "./target",
+    "-run",
+    "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {
+    "go.temporal.io/server/tools/gomad3/target": {
+      "pass": 25,
+      "top_pass": 12
+    }
+  },
+  "skipped_tests": []
+}
+raw test event counts match metadata: amended-final-target
+/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-validate.log: OK
+{
+  "argv": [
+    "make",
+    "validate"
+  ],
+  "exit": 0,
+  "source_stable": true,
+  "counts": {},
+  "skipped_tests": []
+}
+source reconstruction and existing tests: unchanged

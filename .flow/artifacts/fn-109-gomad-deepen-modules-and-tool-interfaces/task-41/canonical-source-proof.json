@@ -1,0 +1,45 @@
+{
+  "production_base": "a683e64af560322014e14f3a1ef3953b27cad96a",
+  "admission_commit": "5c7ad90bf54746b0efc3b38b77ed63c32b785f71",
+  "amended_admission_commit": "deb4330663",
+  "source": "tools/gomad3/internal/canonicaljson/canonical.go",
+  "production_before_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+  "production_after_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+  "reconstruction_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+  "exact_single_grouped_case_reconstruction": true,
+  "added_bytes": "\tcase reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,\n\t\treflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,\n\t\treflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.UnsafePointer:\n\t\treturn nil\n",
+  "omitted_kind_count": 20,
+  "root_manifest_sha256": "35139285c61f78e99e826e833c0e1703939571c450ae129ac7887d99a00ce575",
+  "root_manifest_entries": 995,
+  "protected_entries": 994,
+  "protected_tracked_entries": 990,
+  "executable_pins": [
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "unchanged": true
+    },
+    {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+      "unchanged": true
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "unchanged": true
+    },
+    {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+      "unchanged": true
+    }
+  ],
+  "protected_all_unchanged": true,
+  "existing_tests_unchanged": true,
+  "new_test": {
+    "path": "tools/gomad3/internal/canonicaljson/canonical_characterization_test.go",
+    "sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+  },
+  "diff_sha256": "3e74a59ee5e49f28357701bfbfd573b16b411cf3ebec159f515150de97c70950"
+}

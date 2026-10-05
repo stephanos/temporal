@@ -1,0 +1,5 @@
+{
+  "format": "Exact unified Git diff; raw preserves whitespace and final newline",
+  "sha256": "3e74a59ee5e49f28357701bfbfd573b16b411cf3ebec159f515150de97c70950",
+  "raw": "diff --git a/tools/gomad3/internal/canonicaljson/canonical.go b/tools/gomad3/internal/canonicaljson/canonical.go\nindex f23ec7adc8..7d4117dcb1 100644\n--- a/tools/gomad3/internal/canonicaljson/canonical.go\n+++ b/tools/gomad3/internal/canonicaljson/canonical.go\n@@ -181,6 +181,10 @@ func validateStrings(value reflect.Value, visited map[visit]struct{}) error {\n \t\tif !utf8.ValidString(value.String()) {\n \t\t\treturn fmt.Errorf(\"JSON string is not valid UTF-8\")\n \t\t}\n+\tcase reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,\n+\t\treflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,\n+\t\treflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.UnsafePointer:\n+\t\treturn nil\n \t}\n \treturn nil\n }\n"
+}

@@ -223,7 +223,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⛔ Blocked | Target and pure-policy lint clean; original qualification remains open |
 | [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⛔ Blocked | Cleanup lint repaired; fault, pin and original qualification remain open |
 | [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | ⛔ Blocked | Bounded commands and cleanup reviewed; lint clean, original qualification open |
-| [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⬜ Todo | Preserve canonical JSON traversal and error bytes while repairing exhaustive lint |
+| [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⛔ Blocked | Canonical JSON exhaustive lint repaired; original qualification remains open |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 

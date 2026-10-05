@@ -1,0 +1,2 @@
+tools/gomad3/internal/canonicaljson/canonical.go: OK
+tools/gomad3/internal/canonicaljson/canonical_characterization_test.go: OK

@@ -1,0 +1,1462 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.41",
+  "status": "in_progress",
+  "scope": "source progress only; conductor owns commits, integrated gate, formal review and Flow state",
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "base_commit": "5c7ad90bf54746b0efc3b38b77ed63c32b785f71",
+  "production_base": "a683e64af560322014e14f3a1ef3953b27cad96a",
+  "amended_admission_commit": "deb4330663e83c669f365d2428fdbb65e1ff2a68",
+  "worker_commits": [],
+  "requested_implementer": "gpt-6.1-sol/high",
+  "actual_model_metadata": "unavailable; requested model is not evidence of execution metadata",
+  "tier": "Tier: session (jev-unavailable(no_key)); explicit AGENTS implementer gpt-6.1-sol/high preserved.",
+  "proof": {
+    "production_base": "a683e64af560322014e14f3a1ef3953b27cad96a",
+    "admission_commit": "5c7ad90bf54746b0efc3b38b77ed63c32b785f71",
+    "amended_admission_commit": "deb4330663",
+    "source": "tools/gomad3/internal/canonicaljson/canonical.go",
+    "production_before_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+    "production_after_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+    "reconstruction_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+    "exact_single_grouped_case_reconstruction": true,
+    "added_bytes": "\tcase reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,\n\t\treflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,\n\t\treflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.UnsafePointer:\n\t\treturn nil\n",
+    "omitted_kind_count": 20,
+    "root_manifest_sha256": "35139285c61f78e99e826e833c0e1703939571c450ae129ac7887d99a00ce575",
+    "root_manifest_entries": 995,
+    "protected_entries": 994,
+    "protected_tracked_entries": 990,
+    "executable_pins": [
+      {
+        "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "unchanged": true
+      },
+      {
+        "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+        "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+        "unchanged": true
+      },
+      {
+        "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+        "unchanged": true
+      },
+      {
+        "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+        "unchanged": true
+      }
+    ],
+    "protected_all_unchanged": true,
+    "existing_tests_unchanged": true,
+    "new_test": {
+      "path": "tools/gomad3/internal/canonicaljson/canonical_characterization_test.go",
+      "sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+    },
+    "diff_sha256": "3e74a59ee5e49f28357701bfbfd573b16b411cf3ebec159f515150de97c70950"
+  },
+  "final_commands": [
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:29:55.443288+00:00",
+      "end": "2026-10-05T13:29:55.623958+00:00",
+      "elapsed_seconds": 0.18064791700453497,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-characterization.log",
+      "log_sha256": "769b8a8374f8ba315537362498c3d475d41047ac3617afa49560ad5c672ff0e2",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 81,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-characterization.json",
+      "complete_metadata_sha256": "673798feff0401187a68b96e4e9c658d762974557282a47e476af8b18e00f97b",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:30:02.143263+00:00",
+      "end": "2026-10-05T13:30:02.521576+00:00",
+      "elapsed_seconds": 0.37829550000606105,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-lint.log",
+      "log_sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-lint.json",
+      "complete_metadata_sha256": "21816360596d4fccf34874f82a567adee7d68d94c1c622e9ed4bd71701e7bb21",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-test=true",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:30:11.957646+00:00",
+      "end": "2026-10-05T13:30:12.395636+00:00",
+      "elapsed_seconds": 0.4379690840141848,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-errortype.json",
+      "complete_metadata_sha256": "0606fa6d67a8a1495165fcc7d6f0f251d1d97688911911c357f875fd447b66c3",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "gofmt",
+        "-l",
+        "internal/canonicaljson/canonical.go",
+        "internal/canonicaljson/canonical_characterization_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:30:32.482860+00:00",
+      "end": "2026-10-05T13:30:32.487577+00:00",
+      "elapsed_seconds": 0.004696291987784207,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-gofmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-gofmt.json",
+      "complete_metadata_sha256": "69bfc16fc0d344ce21ba9110ae977e96c1d96bcdf4e92795849c04d9aa90d9ed",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./record",
+        "./world",
+        "./internal/compatibilitypack",
+        "./internal/compatibilitypack/authoring"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:30:32.752038+00:00",
+      "end": "2026-10-05T13:30:33.884219+00:00",
+      "elapsed_seconds": 1.1321580419898964,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-consumers.log",
+      "log_sha256": "efe2479e63661680626c0a4aede7bae6e95519cf93137fd4aeb2c7e10f9e148f",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/record": {
+          "pass": 41,
+          "top_pass": 26
+        },
+        "go.temporal.io/server/tools/gomad3/world": {
+          "pass": 77,
+          "top_pass": 38
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 244,
+          "top_pass": 18,
+          "skip": 1,
+          "top_skip": 1
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+          "pass": 30,
+          "top_pass": 20
+        }
+      },
+      "skipped_tests": [
+        "TestHostPacksBindCurrentProfile"
+      ],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-consumers.json",
+      "complete_metadata_sha256": "b37cf8842e84a199b1eedada78042e9b76de3d21dd7771fe3178ffe07a1949a5",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/gomadtool/architecture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:31:00.527117+00:00",
+      "end": "2026-10-05T13:32:45.600729+00:00",
+      "elapsed_seconds": 105.07358571598888,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-architecture.log",
+      "log_sha256": "a3c6ae9f2321d2a60eb3525fe18bf92f32fc01e1883296660996cc798e666646",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+          "pass": 180,
+          "top_pass": 26
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-architecture.json",
+      "complete_metadata_sha256": "51485ff5cdb5c3274f70458781e2cd27134df3beb1feef11437a9a2dce4c30c7",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:33:07.719266+00:00",
+      "end": "2026-10-05T13:33:31.700771+00:00",
+      "elapsed_seconds": 23.98148097001831,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-boundaries.log",
+      "log_sha256": "56e2f43559c8882a8ea924859beb039d1c914c4228ccdd0d2f263c76db874c9d",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3": {
+          "pass": 3,
+          "top_pass": 3
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-boundaries.json",
+      "complete_metadata_sha256": "315d9e82a75092903dfef826a32f0bf101e275b42c19444fd59e05b77eaeabad",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./target",
+        "-run",
+        "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:36:20.733159+00:00",
+      "end": "2026-10-05T13:36:21.330891+00:00",
+      "elapsed_seconds": 0.597671208990505,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-target.log",
+      "log_sha256": "22355857d10c42c36843751fe272fa2cda9204f4783aa82daeae3527c6dcbdf6",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/target": {
+          "pass": 25,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-target.json",
+      "complete_metadata_sha256": "147c1b132751bd1e8d59120df99b76e62360a4ccea7c5e4111128c806d35c080",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "make",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:36:26.246737+00:00",
+      "end": "2026-10-05T13:36:30.478007+00:00",
+      "elapsed_seconds": 4.231249834992923,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-validate.log",
+      "log_sha256": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364",
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/amended-final-validate.json",
+      "complete_metadata_sha256": "a52c4e8246dcfdd5573c86404798b4a5f200006ad571434c04ac4343ce476297",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5e51c9bd505807b8e582bf5fb7d003b1fe97d017b41860db5594cc3d17b4b86d",
+        "canonical_sha256": "738375708f711bb44094f57a346ec9131159f5ef61da402b3a62ec82b15f9a41",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    }
+  ],
+  "historical_commands_not_current_final": [
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./target",
+        "-run",
+        "^(TestCapabilityReviewGoldenCanonicalBytes|TestPreparedCacheDigest.*|TestCompatibilityPackProjectionPreserves.*|TestPreparedRecordProjectionDefensivelyCopiesIdentity|TestProjectBuildInfoCanonicalizesModuleAndSettings)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:08:22.699124+00:00",
+      "end": "2026-10-05T13:08:22.916712+00:00",
+      "elapsed_seconds": 0.21756637599901296,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/base-target.log",
+      "log_sha256": "2cac64e3382d37c89a29958012e74140de13028cc6f9f656eaea16ef0806c242",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/target": {
+          "pass": 25,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/base-target.json",
+      "complete_metadata_sha256": "a76f0183ea29b333e31402f71dabf168c83febc48e61e212399046b1e2b742f3",
+      "source_before": {
+        "entries": 995,
+        "snapshot_sha256": "f442b68ac794201cc1c5d99e8591b8e13aa9ef72c6de0d2d458607c75573b4d1",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": null
+      },
+      "source_after": {
+        "entries": 995,
+        "snapshot_sha256": "f442b68ac794201cc1c5d99e8591b8e13aa9ef72c6de0d2d458607c75573b4d1",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": null
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:11:02.469708+00:00",
+      "end": "2026-10-05T13:11:02.640502+00:00",
+      "elapsed_seconds": 0.1707637500076089,
+      "exit": 1,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/base-characterization.log",
+      "log_sha256": "1e4174e147699cfb2e85c02b5c93afbcf633c631ccf302a277b1bd205c7ac673",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 44,
+          "top_pass": 2,
+          "fail": 2,
+          "top_fail": 1
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/base-characterization.json",
+      "complete_metadata_sha256": "837bb5d5ff0e4c8d3c2e40e88d570eb52199f94e605a55dd6c616609aa684435",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "5dd5fb59145f0f860870069ff99b14361d8a9627b02e83f59db123dd49f8b428",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "3b0b77bc5203c8e39c4f0d635eafc48fef39e1f28549ca8f90c8b5b6f9ba44c3"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "5dd5fb59145f0f860870069ff99b14361d8a9627b02e83f59db123dd49f8b428",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "3b0b77bc5203c8e39c4f0d635eafc48fef39e1f28549ca8f90c8b5b6f9ba44c3"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:11:41.153401+00:00",
+      "end": "2026-10-05T13:11:42.207679+00:00",
+      "elapsed_seconds": 1.054240833997028,
+      "exit": 1,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/base-characterization-corrected.log",
+      "log_sha256": "44c2860be9ef3d53011f0f32aa98d27603a26f8d8cad67a84c299a3b9e66bdb9",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 62,
+          "top_pass": 4
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/base-characterization-corrected.json",
+      "complete_metadata_sha256": "e8e44f5bde3461fd1441ce42077e9695736149857d3bfaf8fe630f6ba7705eee",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "2a907f863d06afc5877f97dd7347260e14ee8092244819b5cf755bc762af13fd",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "014d44dc44e93632cf814b123dc6b0f2c373bcdad4171360f2828fb752f51a30"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "2a907f863d06afc5877f97dd7347260e14ee8092244819b5cf755bc762af13fd",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "014d44dc44e93632cf814b123dc6b0f2c373bcdad4171360f2828fb752f51a30"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:12:27.533805+00:00",
+      "end": "2026-10-05T13:12:27.717669+00:00",
+      "elapsed_seconds": 0.18384462501853704,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/base-characterization-final.log",
+      "log_sha256": "52ed0ab3845690954a63f5ac91dab91f9adc7fae8ee11100a286e2e18048cb7c",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 81,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/base-characterization-final.json",
+      "complete_metadata_sha256": "c082be174b0bae2992e5d07f1dcea56abca1b6b8d3ed6a02094e4a7b61437d4d",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "c0e5bcd28c8da2b424712d2ae4569aa55a65272e82640d76beeeefc11092a61e",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "c0e5bcd28c8da2b424712d2ae4569aa55a65272e82640d76beeeefc11092a61e",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:12:35.108840+00:00",
+      "end": "2026-10-05T13:12:35.484891+00:00",
+      "elapsed_seconds": 0.3760335000115447,
+      "exit": 1,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/base-lint-with-tests.log",
+      "log_sha256": "d955fd840365446b5d7765eeed9c398e1efa9adca7e6b4ef6711ef5b83f1656b",
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/base-lint-with-tests.json",
+      "complete_metadata_sha256": "3e01f6e93d9dfe94c7af67cd0ff9f13dff453afb66e4ca372c9fc7ff953b2fde",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "c0e5bcd28c8da2b424712d2ae4569aa55a65272e82640d76beeeefc11092a61e",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "c0e5bcd28c8da2b424712d2ae4569aa55a65272e82640d76beeeefc11092a61e",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-test=true",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:12:42.501535+00:00",
+      "end": "2026-10-05T13:12:42.953735+00:00",
+      "elapsed_seconds": 0.45217558299191296,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/base-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/base-errortype.json",
+      "complete_metadata_sha256": "f471d3309a6944381482dd26db50e8729cd666e9d526788beb2a3f88b5b61bb6",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "c0e5bcd28c8da2b424712d2ae4569aa55a65272e82640d76beeeefc11092a61e",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "c0e5bcd28c8da2b424712d2ae4569aa55a65272e82640d76beeeefc11092a61e",
+        "canonical_sha256": "879038120b0fbdc7e88a2de2a4f8644718ab521c8b512afdf68899ce949e3c31",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:13:08.450039+00:00",
+      "end": "2026-10-05T13:13:08.617961+00:00",
+      "elapsed_seconds": 0.16790320799918845,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/final-characterization.log",
+      "log_sha256": "1671f39d600a97b22d995ae9f27b4aaa34bcbdd47c82da87ae580d5b76acd558",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+          "pass": 81,
+          "top_pass": 12
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/final-characterization.json",
+      "complete_metadata_sha256": "f1ba81b6a4176435c02e4939f38bc47a9deb78c616bd5c60c89f69943c16fe57",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "036458678b45640976e3c944ab5ad2e4dd77f7125b2cbb1a66d57f5905eb7924",
+        "canonical_sha256": "a515dfb5ecc15a6d5348ddf5ec6aa251d3451f2594c6cc6a4622c7accdb271d9",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "036458678b45640976e3c944ab5ad2e4dd77f7125b2cbb1a66d57f5905eb7924",
+        "canonical_sha256": "a515dfb5ecc15a6d5348ddf5ec6aa251d3451f2594c6cc6a4622c7accdb271d9",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./internal/canonicaljson"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:13:15.470274+00:00",
+      "end": "2026-10-05T13:13:15.839285+00:00",
+      "elapsed_seconds": 0.3689896250143647,
+      "exit": 1,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/final-lint.log",
+      "log_sha256": "6024d4dbba92e061797fd49be0dc57f62c56f8db918b4d26079434c2b61681a6",
+      "source_stable": true,
+      "counts": {},
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/final-lint.json",
+      "complete_metadata_sha256": "8d4ccd8c75a4ffe27b9b0acec32a511919992d565f7e6aef88dffc7e90dbfa24",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "036458678b45640976e3c944ab5ad2e4dd77f7125b2cbb1a66d57f5905eb7924",
+        "canonical_sha256": "a515dfb5ecc15a6d5348ddf5ec6aa251d3451f2594c6cc6a4622c7accdb271d9",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "036458678b45640976e3c944ab5ad2e4dd77f7125b2cbb1a66d57f5905eb7924",
+        "canonical_sha256": "a515dfb5ecc15a6d5348ddf5ec6aa251d3451f2594c6cc6a4622c7accdb271d9",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./record",
+        "./world",
+        "./internal/compatibilitypack",
+        "./internal/compatibilitypack/authoring"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:13:44.982027+00:00",
+      "end": "2026-10-05T13:13:46.123989+00:00",
+      "elapsed_seconds": 1.141942251008004,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/final-consumers.log",
+      "log_sha256": "7aa0f4bc83df8e7dfdb7c9409967e686cb7e8b0013d58c0418a75ba414dba835",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/record": {
+          "pass": 41,
+          "top_pass": 26
+        },
+        "go.temporal.io/server/tools/gomad3/world": {
+          "pass": 77,
+          "top_pass": 38
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+          "pass": 244,
+          "top_pass": 18,
+          "skip": 1,
+          "top_skip": 1
+        },
+        "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+          "pass": 30,
+          "top_pass": 20
+        }
+      },
+      "skipped_tests": [
+        "TestHostPacksBindCurrentProfile"
+      ],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/final-consumers.json",
+      "complete_metadata_sha256": "5399cc3abee1db4fe7a1984a15e8309de3b91bd57fde16e9e5f5c7f1fb7d6511",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "036458678b45640976e3c944ab5ad2e4dd77f7125b2cbb1a66d57f5905eb7924",
+        "canonical_sha256": "a515dfb5ecc15a6d5348ddf5ec6aa251d3451f2594c6cc6a4622c7accdb271d9",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "036458678b45640976e3c944ab5ad2e4dd77f7125b2cbb1a66d57f5905eb7924",
+        "canonical_sha256": "a515dfb5ecc15a6d5348ddf5ec6aa251d3451f2594c6cc6a4622c7accdb271d9",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./internal/gomadtool/architecture"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "pins": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "start": "2026-10-05T13:14:08.685322+00:00",
+      "end": "2026-10-05T13:15:51.601689+00:00",
+      "elapsed_seconds": 102.91634784001508,
+      "exit": 0,
+      "log": "/tmp/fn109-canonical-worker.f61ARZ5A/final-architecture.log",
+      "log_sha256": "b5fe10bdab41a9eac58e1990281ca344599bed962616070213e3830c37cb8424",
+      "source_stable": true,
+      "counts": {
+        "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+          "pass": 180,
+          "top_pass": 26
+        }
+      },
+      "skipped_tests": [],
+      "complete_metadata": "/tmp/fn109-canonical-worker.f61ARZ5A/final-architecture.json",
+      "complete_metadata_sha256": "f02ca54e61f8aeae75754e6d5e9e582ecbb5bcffca9b4d4432775f9419533054",
+      "source_before": {
+        "entries": 996,
+        "snapshot_sha256": "036458678b45640976e3c944ab5ad2e4dd77f7125b2cbb1a66d57f5905eb7924",
+        "canonical_sha256": "a515dfb5ecc15a6d5348ddf5ec6aa251d3451f2594c6cc6a4622c7accdb271d9",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      },
+      "source_after": {
+        "entries": 996,
+        "snapshot_sha256": "036458678b45640976e3c944ab5ad2e4dd77f7125b2cbb1a66d57f5905eb7924",
+        "canonical_sha256": "a515dfb5ecc15a6d5348ddf5ec6aa251d3451f2594c6cc6a4622c7accdb271d9",
+        "new_test_sha256": "274b979156bd6f4ff47c6d5daa454dee51a670d65c3ba694ebed87e647bff747"
+      }
+    }
+  ],
+  "historical_eight_substitution_proof": {
+    "path": "/tmp/fn109-canonical-worker.f61ARZ5A/proof.json",
+    "sha256": "b4200c37b84ac0eeada40f96e55b028bf7ef49a0f8c6ffd5a75846a217dcd008",
+    "current_final": false
+  },
+  "matched_comparisons": {
+    "characterization_counts": true,
+    "characterization_literal_records": true,
+    "literal_records": 67,
+    "consumer_counts": true,
+    "architecture_counts": true,
+    "target_counts": true,
+    "root_boundary_counts_combined": true
+  },
+  "literal_records_asserted_identically_on_base_and_final": {
+    "TestCanonicalJSONCharacterizesKinds/nil": [
+      "bytes=\"null\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/nil-interface-field": [
+      "bytes=\"{\\\"Value\\\":null}\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/nil-pointer": [
+      "bytes=\"null\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/nil-map": [
+      "bytes=\"null\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/nil-slice": [
+      "bytes=\"null\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/string": [
+      "bytes=\"\\\"<>&雪\\\"\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/pointer": [
+      "bytes=\"\\\"<>&雪\\\"\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/nested-interface": [
+      "bytes=\"{\\\"Value\\\":\\\"<>&雪\\\"}\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/empty-map": [
+      "bytes=\"{}\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/map": [
+      "bytes=\"{\\\"a\\\":\\\"<>&雪\\\",\\\"z\\\":\\\"last\\\"}\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/empty-slice": [
+      "bytes=\"[]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/slice": [
+      "bytes=\"[\\\"first\\\",\\\"<>&雪\\\"]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/empty-array": [
+      "bytes=\"[]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/array": [
+      "bytes=\"[\\\"first\\\",\\\"<>&雪\\\"]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/struct": [
+      "bytes=\"{\\\"a\\\":\\\"<>&雪\\\",\\\"z\\\":\\\"last\\\"}\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/bool": [
+      "bytes=\"[false,true]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/int": [
+      "bytes=\"[-9223372036854775808,9223372036854775807]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/int8": [
+      "bytes=\"[-128,127]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/int16": [
+      "bytes=\"[-32768,32767]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/int32": [
+      "bytes=\"[-2147483648,2147483647]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/int64": [
+      "bytes=\"[-9223372036854775808,9223372036854775807]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/uint": [
+      "bytes=\"[0,18446744073709551615]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/uint8": [
+      "bytes=\"[0,255]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/uint16": [
+      "bytes=\"[0,65535]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/uint32": [
+      "bytes=\"[0,4294967295]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/uint64": [
+      "bytes=\"[0,18446744073709551615]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/uintptr": [
+      "bytes=\"[0,18446744073709551615]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/float32-integral": [
+      "bytes=\"2\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesKinds/float64-integral": [
+      "bytes=\"2\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/string": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/pointer": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/interface": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/map-key": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/map-value": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/slice": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/array": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/struct-exported": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/struct-unexported": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/struct-ignored": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesInvalidStrings/before-unsupported-field": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/float32-fractional": [
+      "bytes=\"\" error=floating-point JSON values are forbidden"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/float64-fractional": [
+      "bytes=\"\" error=floating-point JSON values are forbidden"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/float32-nan": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: NaN"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/float64-nan": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: NaN"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/float32-positive-inf": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: +Inf"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/float64-positive-inf": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: +Inf"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/float32-negative-inf": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: -Inf"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/float64-negative-inf": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: -Inf"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/complex64": [
+      "bytes=\"\" error=encode JSON: json: unsupported type: complex64"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/complex128": [
+      "bytes=\"\" error=encode JSON: json: unsupported type: complex128"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/channel": [
+      "bytes=\"\" error=encode JSON: json: unsupported type: chan int"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/nil-channel": [
+      "bytes=\"\" error=encode JSON: json: unsupported type: chan int"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/function": [
+      "bytes=\"\" error=encode JSON: json: unsupported type: func()"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/nil-function": [
+      "bytes=\"\" error=encode JSON: json: unsupported type: func()"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/unsafe-pointer": [
+      "bytes=\"\" error=encode JSON: json: unsupported type: unsafe.Pointer"
+    ],
+    "TestCanonicalJSONCharacterizesEncoderErrors/nil-unsafe-pointer": [
+      "bytes=\"\" error=encode JSON: json: unsupported type: unsafe.Pointer"
+    ],
+    "TestCanonicalJSONCharacterizesMarshalerPrecedence/valid": [
+      "bytes=\"\" error=encode JSON: json: error calling MarshalJSON for type *canonicaljson.characterizationMarshaler: sentinel callbacks=1"
+    ],
+    "TestCanonicalJSONCharacterizesMarshalerPrecedence/invalid": [
+      "bytes=\"\" error=JSON string is not valid UTF-8 callbacks=0"
+    ],
+    "TestCanonicalJSONCharacterizesCyclesAndSharedAliases/pointer-cycle": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: encountered a cycle via *canonicaljson.characterizationNode"
+    ],
+    "TestCanonicalJSONCharacterizesCyclesAndSharedAliases/map-cycle": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: encountered a cycle via map[string]interface {}"
+    ],
+    "TestCanonicalJSONCharacterizesCyclesAndSharedAliases/slice-cycle": [
+      "bytes=\"\" error=encode JSON: json: unsupported value: encountered a cycle via []interface {}"
+    ],
+    "TestCanonicalJSONCharacterizesCyclesAndSharedAliases/shared-pointer": [
+      "bytes=\"[\\\"ok\\\",\\\"ok\\\"]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesCyclesAndSharedAliases/shared-map": [
+      "bytes=\"[{\\\"value\\\":\\\"ok\\\"},{\\\"value\\\":\\\"ok\\\"}]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesCyclesAndSharedAliases/shared-slice": [
+      "bytes=\"[[\\\"ok\\\"],[\\\"ok\\\"]]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesSliceVisitWithoutLength/short-before-long": [
+      "bytes=\"[[\\\"ok\\\"],[\\\"ok\\\",\\\"�\\\"]]\" error=<nil>"
+    ],
+    "TestCanonicalJSONCharacterizesSliceVisitWithoutLength/long-before-short": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ],
+    "TestCanonicalJSONCharacterizesSliceVisitWithoutLength/different-named-types": [
+      "bytes=\"\" error=JSON string is not valid UTF-8"
+    ]
+  },
+  "reused_root_baseline": {
+    "receipt": "baseline-consumers.md",
+    "actual_argv_cwd_pins": [
+      "baseline-command.sh",
+      "baseline-consumer-command.sh"
+    ],
+    "manifest": "/tmp/fn109-canonical-base.aMBIU3D3/source.sha256",
+    "manifest_sha256": "35139285c61f78e99e826e833c0e1703939571c450ae129ac7887d99a00ce575",
+    "original_entries": 995,
+    "pre_edit_all_matched": true,
+    "final_unchanged_except_allowed_source": 994,
+    "tracked_unchanged": 990,
+    "executable_pins_unchanged": 4,
+    "raw_streams": [
+      {
+        "path": "/tmp/fn109-canonical-base.aMBIU3D3/tests.jsonl",
+        "sha256": "b091ba987979592a0ca1ea33713c2f92330645db1d27fb4c64d5983c79052320",
+        "counts": {
+          "go.temporal.io/server/tools/gomad3/internal/canonicaljson": {
+            "pass": 8,
+            "top_pass": 6
+          }
+        }
+      },
+      {
+        "path": "/tmp/fn109-canonical-base.aMBIU3D3/consumer-tests.jsonl",
+        "sha256": "a77ebbfe292c6e275f49984d64ab948a5c2164af277ae64311a17b8f07e3375a",
+        "counts": {
+          "go.temporal.io/server/tools/gomad3/record": {
+            "pass": 41,
+            "top_pass": 26
+          },
+          "go.temporal.io/server/tools/gomad3/world": {
+            "pass": 77,
+            "top_pass": 38
+          },
+          "go.temporal.io/server/tools/gomad3/internal/compatibilitypack": {
+            "pass": 244,
+            "top_pass": 18,
+            "skip": 1,
+            "top_skip": 1
+          },
+          "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring": {
+            "pass": 30,
+            "top_pass": 20
+          }
+        }
+      },
+      {
+        "path": "/tmp/fn109-canonical-base.aMBIU3D3/architecture-tests.jsonl",
+        "sha256": "871f508b40c49d73d525858c3c89356c6ee0e405c6abe89cd44a46e6482c876f",
+        "counts": {
+          "go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture": {
+            "pass": 180,
+            "top_pass": 26
+          }
+        }
+      },
+      {
+        "path": "/tmp/fn109-canonical-base.aMBIU3D3/boundary-tests.jsonl",
+        "sha256": "0e5763594adc008ddd20a839768b31520f7a2e9b5a431165b50558f5f6b709aa",
+        "counts": {
+          "go.temporal.io/server/tools/gomad3": {
+            "pass": 2,
+            "top_pass": 2
+          }
+        }
+      },
+      {
+        "path": "/tmp/fn109-canonical-base.aMBIU3D3/exact-edges.jsonl",
+        "sha256": "c54ced694c3b2708c05af0a632e01eac0c9c27374d888af5f8c9cf29e1bdf9ec",
+        "counts": {
+          "go.temporal.io/server/tools/gomad3": {
+            "pass": 1,
+            "top_pass": 1
+          }
+        }
+      }
+    ],
+    "validate": {
+      "path": "/tmp/fn109-canonical-base.aMBIU3D3/validate.log",
+      "sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679",
+      "exit": 0
+    }
+  },
+  "durable_raw_characterization": [
+    {
+      "path": "base-characterization.jsonl",
+      "sha256": "52ed0ab3845690954a63f5ac91dab91f9adc7fae8ee11100a286e2e18048cb7c"
+    },
+    {
+      "path": "amended-final-characterization.jsonl",
+      "sha256": "769b8a8374f8ba315537362498c3d475d41047ac3617afa49560ad5c672ff0e2"
+    }
+  ],
+  "fixture_development_caveats": [
+    "base-characterization exit 1: test author assumed UnsupportedValueError.Value was populated; pinned encoding/json v2 deliberately leaves it invalid. Final typed-cause and exact wrapped text assertions passed on unchanged BASE and final.",
+    "base-characterization-corrected exit 1: pointer-to-interface self-cycle caused preexisting encoding/json/v2 stack overflow. Fatal raw stack remains local, SHA bound above. Final ordinary recursive-struct pointer/map/slice cycle controls pass on BASE and final; no claim all pointer cycles are encoder-safe.",
+    "These fixture-development failures are not the lint regression RED; actual causal RED is baseline unfiltered exhaustive finding, with unchanged tests adding no findings."
+  ],
+  "cached_primary_sources": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/encoding/json/v2_inject.go:43-54",
+    "/home/agent/go/pkg/mod/honnef.co/go/tools@v0.8.0-rc.1/quickfix/qf1002/qf1002.go"
+  ],
+  "preserved_behavior_limits": [
+    "Visited slice identity omits length: short-then-long aliases encode [[\"ok\"],[\"ok\",\"�\"]]; reverse order and differently named slice types reject invalid UTF-8. This task does not fix that omission or prove complete UTF-8 rejection.",
+    "Pointer-to-interface encoder self-cycle fatal behavior remains preexisting and unrepaired."
+  ],
+  "skip_disclosure": {
+    "test": "TestHostPacksBindCurrentProfile",
+    "package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+    "reason": "no deterministic profile for linux/arm64",
+    "consumer_skips_base_and_final": 1,
+    "validate": "Invokes the same skipping host-profile test; plain make output is not JSON and does not enumerate the skip. Exit 0 is not supported-host qualification."
+  },
+  "generation": "Check-only make validate required and passed. Canonical codec serializes generated requests/packs/state, but is not a generator-owned version/protocol/profile-identity input. No regeneration, output or pin changes.",
+  "conductor_reported_integrated_gate": {
+    "direct_worker_observation": false,
+    "session": 72200,
+    "exit": 2,
+    "start": "2026-10-05T13:37:09Z",
+    "end": "2026-10-05T13:37:41Z",
+    "elapsed_seconds": 32.356986182,
+    "findings": {
+      "errcheck": 252,
+      "exhaustive": 4,
+      "forbidigo": 11,
+      "gci": 1,
+      "staticcheck": 56
+    },
+    "total_findings": 324,
+    "comparison_to_prior_325": "Only canonical.go:120 exhaustive diagnostic header removed; no introduced headers.",
+    "log_sha256": "1bb1271a13e1ab87cf3ec0fadedd8ffb22e8064046c5ec5cf590678cdfac7544",
+    "errortype": "Unreached because golangci-lint exited 1.",
+    "authority": "Conductor owns the direct raw log and distinct integrated/root-verification/review artifacts."
+  },
+  "remaining_open": [
+    "Conductor integrated gate remains red with 324 inherited findings; conductor source-progress review disposition and checkpoint commit are authoritative.",
+    "Original task21/R18/R19 admission, matched first baseline, predecessor/default/full/functional/affected gates, formal implementation review and native Darwin qualification remain open; no task done or acceptance completion is claimed.",
+    "Qualified Linux execution transferred to fn128; stock Linux arm64 is developmental evidence, not native Darwin or patched-toolchain evidence."
+  ],
+  "source_and_cache_frozen": true,
+  "live_worker_handles": []
+}
