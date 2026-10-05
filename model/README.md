@@ -887,9 +887,9 @@ forwards each waiver's reason into `<file>.lint.json` and reports a binding left
 **How a new entity gets its laws.**
 
 1. Give its machine object a `laws` object (in a Model not yet one feature file, its folder a
-   `Capabilities.scala`) whose file imports `temporal.capabilities.{given, *}` and that declares `capabilities(m, limits)(…)` with the capabilities the machine has, each field a def or
-   an action class of the Model, and each parameter its law lists under `parameters` written with
-   `cited`.
+   `Capabilities.scala`) whose file imports `temporal.capabilities.{given, *}` and that declares
+   `capabilities(m, limits)(…)` with the capabilities the machine has, each field a def or an action
+   class of the Model, and each parameter its law lists under `parameters` written with `cited`.
 2. Name the declaration as a root of the folder's `irFile`, as `nexusOperationFile` names
    `operationCapabilities`.
 3. Run `make umpire-gen-model`: it writes the generated claims, the Cases of the generated finds and
