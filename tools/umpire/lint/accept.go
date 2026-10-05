@@ -135,3 +135,16 @@ func (a *Accepted) Judge(findings []Finding) Verdict {
 	}
 	return v
 }
+
+// Encode is the accepted findings as their file holds them: indented JSON, ending in a newline,
+// with no character escaped that a reader would not escape.
+func (a *Accepted) Encode() ([]byte, error) {
+	var out bytes.Buffer
+	encoder := json.NewEncoder(&out)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(a); err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
+}

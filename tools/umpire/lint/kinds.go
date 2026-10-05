@@ -21,6 +21,11 @@ func tally(k Kind) tallies { return tallies{kind: k, owner: map[string]*Tally{}}
 
 // add counts one thing of an owner, and a finding of it where it does not satisfy the kind.
 func (t tallies) add(owner string, satisfied bool, subject string, at *umpirespb.Position, format string, args ...any) {
+	t.addAt(owner, satisfied, subject, where(at), format, args...)
+}
+
+// addAt is add at a position already spelled `file:line`, as the law sidecar records one.
+func (t tallies) addAt(owner string, satisfied bool, subject, position string, format string, args ...any) {
 	x, ok := t.owner[owner]
 	if !ok {
 		x = &Tally{Kind: t.kind, Owner: owner}
@@ -29,7 +34,7 @@ func (t tallies) add(owner string, satisfied bool, subject string, at *umpirespb
 	x.Population++
 	if !satisfied {
 		x.Findings = append(x.Findings, Finding{Kind: t.kind, Owner: owner, Subject: subject,
-			Message: fmt.Sprintf(format, args...), Position: where(at)})
+			Message: fmt.Sprintf(format, args...), Position: position})
 	}
 }
 

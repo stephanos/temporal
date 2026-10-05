@@ -1,0 +1,109 @@
+{
+  "claims": [
+    {
+      "machine": "door",
+      "name": "door.lockedRefuses",
+      "law": "lockedRefuses",
+      "capabilities": [
+        "Lockable"
+      ],
+      "bindings": {
+        "locked": "fixture.Door$.locked",
+        "refused": "fixture.Outcome.refused"
+      },
+      "cites": {
+        "refused": [
+          "server/door.go"
+        ]
+      },
+      "position": "fixture/Door.scala:10",
+      "citation": "server/door.go"
+    },
+    {
+      "machine": "gate",
+      "name": "gate.lockedRefuses",
+      "law": "lockedRefuses",
+      "capabilities": [
+        "Lockable"
+      ],
+      "bindings": {
+        "locked": "fixture.Gate$.locked",
+        "refused": "fixture.Outcome.closed"
+      },
+      "cites": {
+        "refused": [
+          "server/gate.go"
+        ]
+      },
+      "overriddenBy": "fixture.Gate$.refusesOrRepeats",
+      "position": "fixture/Gate.scala:12"
+    }
+  ],
+  "waivers": [
+    {
+      "machine": "gate",
+      "law": "lockedRefuses",
+      "waiver": "overriding",
+      "by": "fixture.Gate$.refusesOrRepeats",
+      "because": "a gate answers a repeated request as the first: server/gate.go Open",
+      "position": "fixture/Gate.scala:14"
+    },
+    {
+      "machine": "shed",
+      "law": "lockedStaysLocked",
+      "waiver": "except",
+      "because": "a shed's lock is a latch: server/shed.go Unlatch",
+      "position": "fixture/Shed.scala:8"
+    }
+  ],
+  "catalog": [
+    {
+      "law": "lockedRefuses",
+      "capabilities": [
+        "Lockable"
+      ],
+      "cites": [
+        "server/door.go"
+      ],
+      "promises": "a locked entity refuses alike",
+      "doesNotPromise": "which outcome refuses",
+      "parameters": [
+        "refused"
+      ],
+      "instantiating": [
+        {
+          "machine": "door",
+          "state": "fixture.DoorState"
+        },
+        {
+          "machine": "gate",
+          "state": "fixture.GateState"
+        }
+      ],
+      "position": "fixture/Catalog.scala:4"
+    },
+    {
+      "law": "lockedStaysLocked",
+      "capabilities": [
+        "Lockable"
+      ],
+      "cites": [
+        "server/door.go"
+      ],
+      "promises": "no step unlocks a locked entity",
+      "doesNotPromise": "who may unlock it",
+      "parameters": [],
+      "instantiating": [
+        {
+          "machine": "door",
+          "state": "fixture.DoorState"
+        },
+        {
+          "machine": "shed",
+          "state": "fixture.ShedState"
+        }
+      ],
+      "position": "fixture/Catalog.scala:5"
+    }
+  ]
+}
