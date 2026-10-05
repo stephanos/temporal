@@ -103,13 +103,14 @@ No Driver code configures a gRPC retry policy (`temporal/server/driver.go:72-79`
 1. **W-16, W-17: the two `timeoutMs = 5000`.** They bound nothing at runtime and no comment or commit
    states a reason. Recommendation: delete them in fn-118.5 (a listed Program difference: the
    `limits` of `finish-workflow` and the `respond-*` nodes go; no Contract changes). No per-command
-   instruction-timeout hint is adopted, because no Case needs one.
+   instruction-timeout hint is adopted, because no Case needs one. Resolved by fn-118.5: deleted.
 2. **`worker/typed.go:68`: the Nexus schedule-to-close timer is the Profile's default instruction
    timeout** when the schedule command sets none, so a Profile change, or fn-118 R5's bound scale
    factor, changes server behavior. Recommendation: the Nexus realization sets schedule-to-close
    explicitly, or the Driver stops deriving it; the owner decides which. Resolved by fn-125.1: the
    Driver passes the carried timeouts only, an unset one left unset.
-3. **W-18: `wait_new_event` on the closing `history` read** is inert.
+3. **W-18: `wait_new_event` on the closing `history` read** is inert. fn-118.5 left it, for the
+   owner to decide.
 4. **W-10 rests on two server facts beyond visibility.** The poll sees `attempt == 1` only inside the
    retry backoff (at least 0.8 s), so its interval must stay well below that. And `attempt`
    increments when an attempt fails only in the HSM implementation, the default
@@ -523,6 +524,84 @@ them. Adjustments to the rules above:
   Queries (unsupported today) read after RequestCancelActivityExecution, which no visibility names;
   with derived polls their refusal is an error that comes before their gaps, so fn-118.5 declares
   the pair or keeps their polls explicit.
+
+### As built by task 5 (2026-10-05)
+
+The realizations write no interval, no deadline and no explicit poll; every read waits as derived.
+
+- **The kit.** `await` passes no interval (`intervalMs = 0`), so every Temporal read derives its
+  wait. The kit's 250 ms `pollIntervalMs` is gone.
+- **The two 5,000 ms limits** (W-16, W-17) are deleted: the Nexus handler's replies are bare
+  `NexusReply` instructions and `finish-workflow` writes no `timeoutMs`. They bounded nothing.
+- **activity-retry.** The Model's `backoff` step is declared a server step,
+  `ServerStep(backoff, CauseKind.timer, firstRetryBackoffMs)`. It is a timer because the server
+  schedules the retried dispatch at the failed attempt's completion plus the retry interval
+  (`chasm/lib/activity/attempt.go:72-82`, `statemachine.go:393-420`). No request sets a retry policy,
+  so the deadline is the server's default first interval, 1 s without jitter
+  (`common/retrypolicy/retry_policy.go:76-81`), the kit value `firstRetryBackoffMs`. The delivery
+  bound's citation no longer covers the backoff. The read waits for delivery + answer +
+  `deadline.backoff` + `cause.timer` + delivery + answer = 14,000 ms. fn-118.4 proposed declaring it a
+  delivery (13,000 ms). The timer form was taken because it is what the Model says the step is.
+- **RequestCancelActivityExecution -> DescribeActivityExecution, at once.** This pair is declared
+  (`chasm/lib/activity/handler.go:352-375`, `operator_commands.go:236-286`, `statemachine.go:176-190`,
+  `:552-564`). The `cancel` and `cancelRequest` Queries read after a cancel request. Without the pair,
+  their lowering would end in a refusal before their recorded gaps; with it, they lower to those gaps
+  as before (`unsupported`). Its R7 test removes the pair and requires the `cancel` Query to be
+  refused, naming both methods. No Case needs it yet, but an existing Query's path does.
+- **The recorded reason for an explicit poll** is a lint acceptance, not an IR field. A poll that
+  writes its own interval in a realization that declares a behavior is lint's `explicit-wait`
+  finding (`tools/umpire/lint`). It is kept only where `model/ir/<file>.lint.json` accepts it with a
+  `because`. No realization writes one, so nothing is accepted. An IR field would have changed the
+  schema for a value no realization sets. The lowering still keeps such a poll as written: the lint,
+  not the lowering, refuses it.
+- **Waits that stay explicit, and why.** None of them is a read. The Nexus caller's `await-close` is
+  a long poll the request writes, which resolves when the workflow closes (W-11; candidate "blocking
+  read", not adopted). `await-completion-authority` (`AwaitLearned`, W-14) and `await-nexus-operation`
+  (`AwaitCommand`, W-15) are Driver waits that read no API. The `Fault`, `Hold` and `Release`
+  controls (W-19, W-20) are Driver controls. Each keeps the Profile's default instruction limit.
+  `wait_new_event` on the closing `history` read (W-18) stays as it was: it is inert, and dropping it
+  is the owner's call.
+- **Contracts.** Every Case's Contract, provenance and every non-Program byte is unchanged. The
+  original-baseline and migration harnesses admit exactly the derived waits listed in
+  `tools/umpire/internal/golden/original.json` (`derived_waits`), projecting those commands' interval
+  and timeout out of the IR comparison, and those instructions' waits out of the Case comparison.
+  The canary Case's identity moved with its Program: the policy pins the new identity, and its pinned
+  Run was recorded again live.
+
+Program differences, by instruction (before -> after):
+
+| Case | Instruction | Before | After |
+| --- | --- | --- | --- |
+| activity-terminate, activity-activityProtocol.terminateSettles, nexus-operation-nexusOperation.terminateSettles | `controller/await-terminated` | poll every 250 ms, 10,000 ms Profile default | read once |
+| activity-pauseResume, activity-race-heldAdmission.staleDelivery | `controller/await-paused` | poll every 250 ms, 10,000 ms | read once |
+| activity-completion, activity-pauseResume | `controller/await-completed` | poll every 250 ms, 10,000 ms | poll every 250 ms within `cause.delivery` 3,000 + `cause.activityAnswer` 2,000 = 5,000 ms |
+| activity-nonRetryableFailure | `controller/await-failed` | as above | as above, 5,000 ms |
+| activity-retry | `controller/await-completed` | poll every 250 ms, 10,000 ms | within delivery 3,000 + answer 2,000 + `deadline.backoff` 1,000 + `cause.timer` 3,000 + delivery 3,000 + answer 2,000 = 14,000 ms |
+| activity-scheduleToStartTimeout | `controller/await-timed-out` | poll every 250 ms, 10,000 ms | within `deadline.scheduleToStart` 2,000 + `cause.timer` 3,000 = 5,000 ms |
+| the 7 nexus-caller Cases and nexus-control-forgedCompletion | `controller/await-scheduled` | poll every 250 ms, 10,000 ms | within `cause.workflowTask` 5,000 ms |
+| nexus-caller-retry | `controller/pending-attempts` | poll every 250 ms, 10,000 ms | within `cause.handlerReply` 5,000 + `visibility.handlerReply.describeWorkflowExecution` 2,000 = 7,000 ms |
+| the same 8 Nexus Cases | `workflow/finish-workflow` and each `handler/respond-*` the Case carries | limit 5,000 ms | no limit (inert either way) |
+
+After-numbers (R8), counted with the before command above, extended to skip a read-once
+`ReadEvidence` (`.flow/tmp/fn118-5/wait-budget.jq`), over the 20 Cases checked in at `567f757410`:
+
+| | Polls | Reads once | Most poll RPCs | Waits | Budget (ms) | Of it, explicit 5,000 ms |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Before | 19 | 0 | 779 | 54 | 460,000 | 80,000 |
+| After | 14 | 5 | 338 | 33 | 271,000 | 0 |
+
+The budget after splits into 14 polls (81,000 ms), 8 close long polls (80,000), 3 slot awaits
+(30,000) and 8 operation awaits (80,000). Before, it split into 19 polls (190,000), the same 190,000
+of long polls and awaits, and 16 explicit limits (80,000). Task 1's 16-Case counts (17 polls,
+440,000 ms) predate the four Cases fn-122 added.
+
+Candidates not adopted, with the Case that would need each: not-yet errors (none: no Case tolerates
+an error); an instruction timeout per command kind (none: the two limits it would have carried are
+deleted); a `retry` cause (a Nexus Case that reads across `backoff`; the activity's backoff is a timer
+server step); repeatable call (none); blocking read (the eight Nexus Cases' `await-close`, and every
+activity status poll, to wait once); read-only call (none: the HTTP binding says it); cost of a call
+(none); cause bounds for Driver awaits (the Nexus Cases' `await-completion-authority` and
+`await-nexus-operation`).
 
 ## Helper interface for fn-112.9
 

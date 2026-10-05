@@ -500,7 +500,9 @@ lowering refuses, at the read, a write in that window with no declared visibilit
 method, naming both; a step no command performs and no server step declares; and a cause whose kind
 the realization bounds not. A call that reads is checked the same way but never waits: one after an
 eventually visible write is refused. A closing read and a poll that writes its own interval check
-nothing; a poll left to derive its wait that writes a deadline is refused. A realization that
+nothing; in a realization that declares a behavior, such a poll is lint's `explicit-wait` finding,
+kept only where an acceptance records why no hint covers its wait. A poll left to derive its wait
+that writes a deadline is refused. A realization that
 declares no behavior has its calls that read taken as written.
 
 A realization carries no Case and decides nothing a Query's path decides. Lowering a find Query
