@@ -368,7 +368,7 @@ object NexusRealization:
   private val startNexusOperation = scheduling()
 
   /** The duration a deadline a path sets realizes as; the backoff is the server's own. */
-  private val deadline =
+  private val requestDeadline =
     ProtoValue.message(
       Proto[Duration](
         ProtoField.typed(Field[Duration, Long](_.seconds), ProtoValue.number(deadlineSeconds))
@@ -391,13 +391,13 @@ object NexusRealization:
         caller.schedule(scheduleToStart := expires) -> scheduling(
           ProtoField.typed(
             Field[ScheduleNexusOperationCommandAttributes, Duration](_.getScheduleToStartTimeout),
-            deadline
+            requestDeadline
           )
         ),
         caller.schedule(startToClose := expires) -> scheduling(
           ProtoField.typed(
             Field[ScheduleNexusOperationCommandAttributes, Duration](_.getStartToCloseTimeout),
-            deadline
+            requestDeadline
           )
         )
       ),
@@ -510,8 +510,8 @@ object NexusRealization:
     // A timeout class fires at the deadline its schedule command sets. No command sets a
     // schedule-to-close deadline, so no path waits for that class.
     serverSteps = Vector(
-      ServerStep(features.nexuscaller.deadline.scheduleToStart, CauseKind.timer, deadlineMs),
-      ServerStep(features.nexuscaller.deadline.startToClose, CauseKind.timer, deadlineMs)
+      ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs),
+      ServerStep(deadline.startToClose, CauseKind.timer, deadlineMs)
     )
   )
 
