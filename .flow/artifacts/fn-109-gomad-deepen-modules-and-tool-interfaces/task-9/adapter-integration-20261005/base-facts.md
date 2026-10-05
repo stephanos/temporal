@@ -2,7 +2,7 @@
 
 The unchanged public helper and focused baseline controls pass at `d2e0e035519f1385b9acf630a70152655b113f61`. These results support the separately reviewed helper integration admission. They establish no completed R10, prepared-adapter pin reproduction or native qualification.
 
-Execution used stock Go1.27.1 on Linux arm64 with network disabled. The Go executable SHA-256 is `1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64`. `run-base.cjs` retains the exact serial commands and environment. Each command directory contains its receipt, raw stdout/stderr and before/after source/input hashes. All 987 tracked nested-module files remained unchanged. The source freeze covers that selected tree, not every repository or toolchain input. The conductor's later Flow admission edits appear in the final status check and do not change those sources.
+Execution used stock Go1.27.1 on Linux arm64 with Go module downloads and checksum lookups disabled through `GOPROXY=off` and `GOSUMDB=off`. These settings establish no physical network isolation. The Go executable SHA-256 is `1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64`. `run-base.cjs` retains the exact serial commands and environment. Each command directory contains its receipt, raw stdout/stderr and before/after source/input hashes. All 987 tracked nested-module files remained unchanged. The source freeze covers that selected tree, not every repository or toolchain input. The conductor's later Flow admission edits appear in the final status check and do not change those sources.
 
 | Command evidence | Exit | Elapsed | Observed result |
 | --- | --- | --- | --- |

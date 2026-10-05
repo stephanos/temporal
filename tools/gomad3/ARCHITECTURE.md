@@ -849,6 +849,13 @@ finite watchdogs, process-group cleanup, and command exit classification.
 stream's overflow before parsing. `Diagnostic` keeps bounded head/tail output
 with complete byte counts and hashes, so truncation remains usable diagnostic
 evidence. Truncated diagnostics cannot stand in for structured package data.
+Adapter prepared-source listing uses `Compatibility`, retaining raw Go-command
+errors and bounded stderr through the existing public helper. It refuses either
+stream above 4 MiB before decoding and uses the 15-minute watchdog, bounded by
+an earlier caller deadline. The measured stock-Go listings reached 4,075 bytes;
+that sample establishes headroom, not qualification of every prepared adapter.
+Command infrastructure/cleanup errors precede stdout overflow, stderr overflow,
+watchdog and raw command outcomes; failed stdout never reaches source projection.
 
 `toolchain/installation.Layout` names locations for the builder, while
 `Description` validates the executable launcher, build key, and pinned build

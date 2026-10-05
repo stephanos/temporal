@@ -1,0 +1,83 @@
+{
+  "command": [
+    "/usr/bin/make",
+    "--trace",
+    "lint-code-gomad3",
+    "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started": "2026-10-05T20:15:30.118Z",
+  "finished": "2026-10-05T20:18:43.084Z",
+  "elapsed_ms": 192965.901925,
+  "status": 2,
+  "signal": null,
+  "host": {
+    "platform": "linux",
+    "arch": "arm64",
+    "release": "7.0.14"
+  },
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOMODCACHE": null,
+    "GOCACHE": null,
+    "GOROOT": null,
+    "GOEXPERIMENT": null,
+    "CGO_ENABLED": null
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "executable_sha256": "b12eeb672d64e798b84f297c116651ccbb3ca726a108c74ffe9a60d85547315d",
+  "executable_unchanged": true,
+  "before": {
+    "head": "34a958a61a6dac4315c3b5e912e1dcbe9a3e7665",
+    "source_count": 990,
+    "source_manifest_sha256": "bcd764726baa150e469b20d764a5b8c6b8d0caa400c11b17664e5ed0568091d8",
+    "edited_sources": {
+      "tools/gomad3/target/adapter_source_set.go": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+      "tools/gomad3/target/adapter_source_set_test.go": "39613c9c1510def7aef69b191792f4d6590249e4ddb486f0918c07dc506a946c",
+      "tools/gomad3/ARCHITECTURE.md": "13f5fbeffe0f17a68073e00bb380facdd970f7131d6358e39af7ceedc4b39043"
+    },
+    "tools": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+      "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+      "/usr/bin/node": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+    },
+    "runner_sha256": "67678a91583b702a0117da5a4fda05db41d8eca5d8d4af0207e57f49132723da"
+  },
+  "after": {
+    "head": "34a958a61a6dac4315c3b5e912e1dcbe9a3e7665",
+    "source_count": 990,
+    "source_manifest_sha256": "bcd764726baa150e469b20d764a5b8c6b8d0caa400c11b17664e5ed0568091d8",
+    "edited_sources": {
+      "tools/gomad3/target/adapter_source_set.go": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+      "tools/gomad3/target/adapter_source_set_test.go": "39613c9c1510def7aef69b191792f4d6590249e4ddb486f0918c07dc506a946c",
+      "tools/gomad3/ARCHITECTURE.md": "13f5fbeffe0f17a68073e00bb380facdd970f7131d6358e39af7ceedc4b39043"
+    },
+    "tools": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+      "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+      "/usr/bin/node": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+    },
+    "runner_sha256": "67678a91583b702a0117da5a4fda05db41d8eca5d8d4af0207e57f49132723da"
+  },
+  "inputs_unchanged": true,
+  "stdout_sha256": "3fb126eb1e38a595c2812cdf0e01e9eb87704585f560ec6fb1adce5263e7ba8f",
+  "stderr_sha256": "cf4f1528440a7da68279f0e9b2944f935d0b3531fd82b8aea0f8663672248934"
+}

@@ -1,0 +1,46 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.9",
+  "status": "in_progress",
+  "base_commit": "34a958a61a6dac4315c3b5e912e1dcbe9a3e7665",
+  "commits": [],
+  "tests": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep ./target -run ^TestAdapterSourceSet => exit 0; 2703.938002ms; adapter-focused-final",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep ./target -run ^TestAdapterSourceSet => exit 0; 4745.025294ms; adapter-focused-green",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep . -run ^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects)$ => exit 0; 109120.001385ms; architecture-source-sets",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep ./target -run ^(TestTargetFileCleanup.*|TestPreparedCacheDigest.*|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves.*|TestReadToolchainIdentityRejectsMalformedAndOverflowedEnvironment|TestGoCommandQueriesRejectMalformedData)$ => exit 0; 742.133667ms; bounded-target-controls",
+    "git diff --check => exit 0; 5389.82642ms; diff-check-final",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview => exit 0; 4376.198293ms; focused-command-packages",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l target/adapter_source_set.go target/adapter_source_set_test.go => exit 0; 338.114917ms; format-final",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go run -tags test_dep /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/base-process-probe/probe.go /tmp/fn109-task9-final-process.Dirh0T => exit 0; 3004.392543ms; process-probe-final",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep ./target -run ^TestAdapterSourceSetPublicStreamBounds$ => exit 1; 2364.24671ms; public-bounds-red",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false . ./target/... ./internal/hostexec/... => exit 1; 5040.472544ms; scoped-lint",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false . ./target/... ./internal/hostexec/... => exit 1; 3534.530543ms; scoped-lint-final",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go run -tags test_dep /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/source-selection-final.go /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go /tmp/fn109-task9-final-selection.fYRXEO => exit 0; 682.049834ms; source-selection-final",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype . ./target/... ./internal/hostexec/... => exit 0; 2138.269918ms; standalone-errortype",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype . ./target/... ./internal/hostexec/... => exit 0; 2129.123126ms; standalone-errortype-final",
+    "make -C /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 validate => exit 0; 17085.017091ms; validate-after-integration"
+  ],
+  "prs": [],
+  "summary_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/handover.md",
+  "verification_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/verification.json",
+  "source_listing_comparison_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/source-listing-comparison.json",
+  "source_sha256": {
+    "tools/gomad3/target/adapter_source_set.go": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+    "tools/gomad3/ARCHITECTURE.md": "13f5fbeffe0f17a68073e00bb380facdd970f7131d6358e39af7ceedc4b39043",
+    "tools/gomad3/target/adapter_source_set_test.go": "39613c9c1510def7aef69b191792f4d6590249e4ddb486f0918c07dc506a946c"
+  },
+  "baseline": {
+    "focused": "green via conductor-retained fresh BASE with identical nested-module source",
+    "original_quick_and_acceptance": "red/unavailable retained; no qualification waiver"
+  },
+  "review": "not dispatched; conductor owns source/evidence progress reviews and original formal gates remain open",
+  "integrated_lint": "pending conductor execution after worker lane release",
+  "source_freeze": "No further worker source/Go/cache changes after handover; all worker-started sessions terminal",
+  "scope_note": "Architecture, shared command controls, process/source-selection and generator receipts predate the final test-only raw-nonzero fixture and two table entries. Production and every existing source remained identical; final helper suite, lint, errortype and formatting bind the final new test SHA.",
+  "tool_sha256": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  }
+}

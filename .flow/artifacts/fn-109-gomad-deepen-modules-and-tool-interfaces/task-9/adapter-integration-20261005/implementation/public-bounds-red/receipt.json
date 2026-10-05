@@ -1,0 +1,48 @@
+{
+  "label": "public-bounds-red",
+  "command": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "test",
+    "-json",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./target",
+    "-run",
+    "^TestAdapterSourceSetPublicStreamBounds$"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started": "2026-10-05T20:03:48.969Z",
+  "finished": "2026-10-05T20:03:51.387Z",
+  "elapsed_ms": 2364.24671,
+  "status": 1,
+  "signal": null,
+  "host": {
+    "platform": "linux",
+    "arch": "arm64",
+    "release": "7.0.14"
+  },
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOMODCACHE": null,
+    "GOCACHE": null,
+    "GOROOT": null,
+    "GOEXPERIMENT": null,
+    "CGO_ENABLED": null
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "inputs_unchanged": true,
+  "stdout_sha256": "cbffc718e6f9571390ee1638091254d6f02e9c01f925b352fe3163557e71443e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,18 +1,17 @@
 package target
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
 	"go.temporal.io/server/tools/gomad3/target/internal/capabilityreview"
+	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
 )
 
 // AdapterPreparedSourceSetSHA256 computes the prepared source-set identity
@@ -29,6 +28,12 @@ import (
 // import comment check that mode applies is the only error accepted, and only
 // when the comment names importPath.
 func AdapterPreparedSourceSetSHA256(ctx context.Context, goCommand, packageDirectory, importPath, goos, goarch string) (digest string, retErr error) {
+	return adapterPreparedSourceSetSHA256With(ctx, goCommand, packageDirectory, importPath, goos, goarch, gocommand.Default())
+}
+
+const maximumAdapterListingBytes = 4 << 20
+
+func adapterPreparedSourceSetSHA256With(ctx context.Context, goCommand, packageDirectory, importPath, goos, goarch string, runner gocommand.Runner) (digest string, retErr error) {
 	gopath, err := os.MkdirTemp("", "gomad3-source-set-gopath-")
 	if err != nil {
 		return "", fmt.Errorf("create source-set GOPATH: %w", err)
@@ -43,19 +48,18 @@ func AdapterPreparedSourceSetSHA256(ctx context.Context, goCommand, packageDirec
 			}
 		}
 	}()
-	command := exec.CommandContext(ctx, goCommand, "list", "-e", "-find", "-json", ".")
-	command.Dir = packageDirectory
-	command.Env = append(targetbuild.Environment(), "GO111MODULE=off", "GOPATH="+gopath, "GOOS="+goos, "GOARCH="+goarch)
-	var stdout, stderr bytes.Buffer
-	command.Stdout, command.Stderr = &stdout, &stderr
-	if err := command.Run(); err != nil {
-		return "", fmt.Errorf("list prepared package %s for %s/%s: %w: %s", importPath, goos, goarch, err, strings.TrimSpace(stderr.String()))
+	result, err := runner.Compatibility(ctx, gocommand.Request{
+		Command: []string{goCommand, "list", "-e", "-find", "-json", "."}, Dir: packageDirectory,
+		Env: append(targetbuild.Environment(), "GO111MODULE=off", "GOPATH="+gopath, "GOOS="+goos, "GOARCH="+goarch), OutputLimit: maximumAdapterListingBytes,
+	})
+	if err != nil {
+		return "", fmt.Errorf("list prepared package %s for %s/%s: %w: %s", importPath, goos, goarch, err, strings.TrimSpace(string(result.Stderr)))
 	}
 	var listed struct {
 		capabilityreview.Package
 		Error *struct{ Err string }
 	}
-	if err := json.Unmarshal(stdout.Bytes(), &listed); err != nil {
+	if err := json.Unmarshal(result.Stdout, &listed); err != nil {
 		return "", fmt.Errorf("decode prepared package %s listing: %w", importPath, err)
 	}
 	if listed.Error != nil && !strings.HasSuffix(listed.Error.Err, " expects import "+strconv.Quote(importPath)) {

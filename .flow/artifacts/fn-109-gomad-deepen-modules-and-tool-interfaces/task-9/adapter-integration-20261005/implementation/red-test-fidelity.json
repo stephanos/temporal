@@ -1,0 +1,7 @@
+{
+  "public_boundary_identical_tokens": true,
+  "child_identical_tokens": true,
+  "comparison": "Ignore whitespace and explicit struct-field semicolons outside string/rune literals only. Preserve every literal byte, identifier, operator, delimiter and assertion.",
+  "red_sha256": "4398a439879a34b3d75958ffc67264e23f827a8053302a580d7d6914130c3e1b",
+  "final_sha256": "39613c9c1510def7aef69b191792f4d6590249e4ddb486f0918c07dc506a946c"
+}

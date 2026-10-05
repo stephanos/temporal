@@ -1,0 +1,14 @@
+[
+  {
+    "platform": "darwin/arm64",
+    "raw_listing_equal_after_only_fixture_directory_replacement": true,
+    "base_stdout_bytes": 634,
+    "final_stdout_bytes": 572
+  },
+  {
+    "platform": "linux/amd64",
+    "raw_listing_equal_after_only_fixture_directory_replacement": true,
+    "base_stdout_bytes": 634,
+    "final_stdout_bytes": 572
+  }
+]

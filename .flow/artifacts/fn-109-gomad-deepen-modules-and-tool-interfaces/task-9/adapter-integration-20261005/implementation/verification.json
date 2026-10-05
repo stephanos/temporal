@@ -1,0 +1,917 @@
+{
+  "processComparison": {
+    "cases": 29,
+    "differences": [],
+    "started": 18,
+    "all_started_reaped_and_gopaths_removed": true,
+    "normalization": "Exact probe executable, scratch root, relative scratch-root spelling, missing-command generated PID, Started.PID/At/GOPATH and ExitError.pid only. Keep every concrete error type, ordered chain, errno/op, signal/exit, context Is, stderr, quoting, digest and cleanup observation.",
+    "normalizer_sha256": "bff8a60ca4172cf1083d7924f2a14bcf913811881d4f628af6bd97717a042631"
+  },
+  "sourceSelection": {
+    "fixture_bytes_equal": true,
+    "fixture_hashes_equal": true,
+    "platforms": [
+      {
+        "platform": "darwin/arm64",
+        "digest": "sha256:2eeca986c81436b15fed9df5b22be9aa11d1b3a6349917817fe26497fe6527f0",
+        "digest_equal": true,
+        "inventory_equal": true,
+        "selected_hashes_equal": true,
+        "command_exit": 0,
+        "helper_error": null,
+        "stdout_bytes": 572,
+        "stderr_bytes": 0
+      },
+      {
+        "platform": "linux/amd64",
+        "digest": "sha256:f07021259f831522a922eb7f5e36a72d58a7d5efcd96c5197945d79484579191",
+        "digest_equal": true,
+        "inventory_equal": true,
+        "selected_hashes_equal": true,
+        "command_exit": 0,
+        "helper_error": null,
+        "stdout_bytes": 572,
+        "stderr_bytes": 0
+      }
+    ]
+  },
+  "sourcePreservation": {
+    "base_commit": "34a958a61a6dac4315c3b5e912e1dcbe9a3e7665",
+    "tracked_source_count": 987,
+    "changed_tracked_sources": [
+      "tools/gomad3/ARCHITECTURE.md",
+      "tools/gomad3/target/adapter_source_set.go"
+    ],
+    "only_admitted_sources_changed": true,
+    "exact_inverse_transport_transform": true,
+    "public_comment_and_signature_preserved": true,
+    "exact_doc_addition_only": true,
+    "files": {
+      "tools/gomad3/target/adapter_source_set.go": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+      "tools/gomad3/ARCHITECTURE.md": "13f5fbeffe0f17a68073e00bb380facdd970f7131d6358e39af7ceedc4b39043",
+      "tools/gomad3/target/adapter_source_set_test.go": "39613c9c1510def7aef69b191792f4d6590249e4ddb486f0918c07dc506a946c"
+    },
+    "test_declared_new": true
+  },
+  "lintEvidence": {
+    "command_exit": 1,
+    "complete_stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/scoped-lint-final/stdout.txt",
+    "complete_stderr_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/scoped-lint-final/stderr.txt",
+    "findings": [
+      "tools/gomad3/target/internal/build/context.go:40:21: ST1005: error strings should not be capitalized (staticcheck)",
+      "tools/gomad3/target/internal/build/context.go:59:20: ST1005: error strings should not be capitalized (staticcheck)"
+    ],
+    "introduced": 0,
+    "resolved": 0,
+    "inherited_source_sha256": "c998794068b981697124b63a8a8c544bc678d08bdb94e6873ae6cfc5356febed",
+    "inherited_source_matches_BASE": true,
+    "scope_note": "This fresh unfiltered command observes two unchanged ST1005 sites. It is not a freshly executed pre-edit scoped lint result or the integrated root gate."
+  },
+  "commands": [
+    {
+      "label": "adapter-focused-final",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./target",
+        "-run",
+        "^TestAdapterSourceSet"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:11:38.207Z",
+      "finished": "2026-10-05T20:11:40.914Z",
+      "elapsed_ms": 2703.938002,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "tool_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "dcb8f65e573f1468fd362427759bd99d3ab56b1e950f10995bca77942d194eee",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 35,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 5
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/adapter-focused-final/receipt.json"
+    },
+    {
+      "label": "adapter-focused-green",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./target",
+        "-run",
+        "^TestAdapterSourceSet"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:06:00.882Z",
+      "finished": "2026-10-05T20:06:05.628Z",
+      "elapsed_ms": 4745.025294,
+      "status": 0,
+      "signal": null,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "b991b8103e832641504b46a576304d1bb3f45efde7a721388edfbe2f8e31993a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 33,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 5
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/adapter-focused-green/receipt.json"
+    },
+    {
+      "label": "architecture-source-sets",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:08:29.384Z",
+      "finished": "2026-10-05T20:10:18.512Z",
+      "elapsed_ms": 109120.001385,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "tool_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "910638051fa6152adaf13e77ece68ae35fd5e3cc8d398e57e0b6eb7925c23363",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 3,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 3
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/architecture-source-sets/receipt.json"
+    },
+    {
+      "label": "bounded-target-controls",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./target",
+        "-run",
+        "^(TestTargetFileCleanup.*|TestPreparedCacheDigest.*|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves.*|TestReadToolchainIdentityRejectsMalformedAndOverflowedEnvironment|TestGoCommandQueriesRejectMalformedData)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:07:45.959Z",
+      "finished": "2026-10-05T20:07:46.701Z",
+      "elapsed_ms": 742.133667,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "tool_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "dc982a582c37452174a8efd0c379103141b824415fb0447c374c30cc3dbe4232",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 43,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 16
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/bounded-target-controls/receipt.json"
+    },
+    {
+      "label": "diff-check-final",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:12:45.867Z",
+      "finished": "2026-10-05T20:12:51.257Z",
+      "elapsed_ms": 5389.82642,
+      "status": 0,
+      "signal": null,
+      "executable": "/usr/bin/git",
+      "tool_sha256": "89fbabe92d1e190036a9b15e8e30efc16643beb7562329592855e622c59c3e00",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/diff-check-final/receipt.json"
+    },
+    {
+      "label": "focused-command-packages",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./internal/hostexec",
+        "./target/internal/gocommand",
+        "./target/internal/capabilityreview"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:07:29.660Z",
+      "finished": "2026-10-05T20:07:34.037Z",
+      "elapsed_ms": 4376.198293,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "tool_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "d67c00c9902008bcb7bd02370bef9a80fa10b0e2a30461c11d7b3180ebf36ad5",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 57,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 33
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/focused-command-packages/receipt.json"
+    },
+    {
+      "label": "format-final",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+        "-l",
+        "target/adapter_source_set.go",
+        "target/adapter_source_set_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:12:44.969Z",
+      "finished": "2026-10-05T20:12:45.308Z",
+      "elapsed_ms": 338.114917,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "tool_sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/format-final/receipt.json"
+    },
+    {
+      "label": "process-probe-final",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "run",
+        "-tags",
+        "test_dep",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/base-process-probe/probe.go",
+        "/tmp/fn109-task9-final-process.Dirh0T"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:06:54.556Z",
+      "finished": "2026-10-05T20:06:57.616Z",
+      "elapsed_ms": 3004.392543,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "tool_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "b1c46b581a34d33f00e8cafc937d8711fce0f988e3b32ea1a9c783d1194ae3d2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/process-probe-final/receipt.json"
+    },
+    {
+      "label": "public-bounds-red",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./target",
+        "-run",
+        "^TestAdapterSourceSetPublicStreamBounds$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:03:48.969Z",
+      "finished": "2026-10-05T20:03:51.387Z",
+      "elapsed_ms": 2364.24671,
+      "status": 1,
+      "signal": null,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "cbffc718e6f9571390ee1638091254d6f02e9c01f925b352fe3163557e71443e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 2,
+        "fail": 4,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/public-bounds-red/receipt.json"
+    },
+    {
+      "label": "scoped-lint",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        ".",
+        "./target/...",
+        "./internal/hostexec/..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:07:56.720Z",
+      "finished": "2026-10-05T20:08:01.761Z",
+      "elapsed_ms": 5040.472544,
+      "status": 1,
+      "signal": null,
+      "executable": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "tool_sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "c4edef37f44494e464e007ee8874fdd1bd0e976891c00b9aca608de931f8c36f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/scoped-lint/receipt.json"
+    },
+    {
+      "label": "scoped-lint-final",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        ".",
+        "./target/...",
+        "./internal/hostexec/..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:12:02.816Z",
+      "finished": "2026-10-05T20:12:06.352Z",
+      "elapsed_ms": 3534.530543,
+      "status": 1,
+      "signal": null,
+      "executable": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "tool_sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "c4edef37f44494e464e007ee8874fdd1bd0e976891c00b9aca608de931f8c36f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/scoped-lint-final/receipt.json"
+    },
+    {
+      "label": "source-selection-final",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "run",
+        "-tags",
+        "test_dep",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/source-selection-final.go",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "/tmp/fn109-task9-final-selection.fYRXEO"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:07:22.831Z",
+      "finished": "2026-10-05T20:07:23.513Z",
+      "elapsed_ms": 682.049834,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "tool_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "3f3a0439da8895006a8125c80d7dff4c6a47497d93688fee3589e13ff5872d88",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/source-selection-final/receipt.json"
+    },
+    {
+      "label": "standalone-errortype",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        ".",
+        "./target/...",
+        "./internal/hostexec/..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:08:21.665Z",
+      "finished": "2026-10-05T20:08:23.804Z",
+      "elapsed_ms": 2138.269918,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "tool_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/standalone-errortype/receipt.json"
+    },
+    {
+      "label": "standalone-errortype-final",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        ".",
+        "./target/...",
+        "./internal/hostexec/..."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:12:18.044Z",
+      "finished": "2026-10-05T20:12:20.243Z",
+      "elapsed_ms": 2129.123126,
+      "status": 0,
+      "signal": null,
+      "executable": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "tool_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "tool_unchanged": true,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/standalone-errortype-final/receipt.json"
+    },
+    {
+      "label": "validate-after-integration",
+      "command": [
+        "make",
+        "-C",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-05T20:04:19.494Z",
+      "finished": "2026-10-05T20:04:36.580Z",
+      "elapsed_ms": 17085.017091,
+      "status": 0,
+      "signal": null,
+      "host": {
+        "platform": "linux",
+        "arch": "arm64",
+        "release": "7.0.14"
+      },
+      "environment": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2",
+        "GOMODCACHE": null,
+        "GOCACHE": null,
+        "GOROOT": null,
+        "GOEXPERIMENT": null,
+        "CGO_ENABLED": null
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "inputs_unchanged": true,
+      "stdout_sha256": "ca1f08f535101bfaf648098c91fa899ee177df49419a8d45df63b4551e445d13",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tests": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0,
+        "top_level_pass": 0
+      },
+      "receipt_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-integration-20261005/implementation/validate-after-integration/receipt.json"
+    }
+  ],
+  "tool_sha256": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "verification_script_sha256": "dedf909163e7f19af86ed6650b3dc279ed609a49373abb8029af2a6c9035eef9"
+}

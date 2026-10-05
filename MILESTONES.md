@@ -191,7 +191,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.6](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md) | ⬜ Todo | Move public executor injection behind private dependencies (D3). |
 | [fn-109.7](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.7.md) | ⬜ Todo | Introduce the complete preparation owner and migrate explore and portable planning |
 | [fn-109.8](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.8.md) | ⛔ Blocked | Move analysis and compatibility review onto the preparation owner's inspection operation |
-| [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⬜ Todo | Finish bounded Go-command routing, including adapter source-set listings |
+| [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⛔ Blocked | Bounded adapter listing integrated; original acceptance gates remain open |
 | [fn-109.10](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.10.md) | ⛔ Blocked | Supply build, cache and adapter locations from one validated installation description |
 | [fn-109.11](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md) | ⛔ Blocked | Separate capability collection, pure evaluation and linked projection, with one source-inventory owner |
 | [fn-109.12](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md) | ⛔ Blocked | Separate detached Artifact references from owned opened handles |

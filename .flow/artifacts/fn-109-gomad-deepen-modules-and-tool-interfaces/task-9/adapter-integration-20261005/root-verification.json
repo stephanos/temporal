@@ -1,0 +1,164 @@
+{
+  "verified_at": "2026-10-05T20:21:08.737Z",
+  "head": "34a958a61a6dac4315c3b5e912e1dcbe9a3e7665",
+  "current_worker_input_hashes_verified": 988,
+  "red_test_fidelity": {
+    "recovered_initial_sha256": "4398a439879a34b3d75958ffc67264e23f827a8053302a580d7d6914130c3e1b",
+    "entire_public_boundary_and_child_functions_byte_identical_after_stock_gofmt": true,
+    "assertions_and_payloads_unchanged": true
+  },
+  "raw_worker_command_records": [
+    {
+      "label": "adapter-focused-final",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 2703.938002,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "adapter-focused-green",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 4745.025294,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "architecture-source-sets",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 109120.001385,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "bounded-target-controls",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 742.133667,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "diff-check-final",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 5389.82642,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "focused-command-packages",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 4376.198293,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "format-final",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 338.114917,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "process-probe-final",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 3004.392543,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "public-bounds-red",
+      "status": 1,
+      "signal": null,
+      "elapsed_ms": 2364.24671,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "scoped-lint",
+      "status": 1,
+      "signal": null,
+      "elapsed_ms": 5040.472544,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "scoped-lint-final",
+      "status": 1,
+      "signal": null,
+      "elapsed_ms": 3534.530543,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "source-selection-final",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 682.049834,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "standalone-errortype",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 2138.269918,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "standalone-errortype-final",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 2129.123126,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    },
+    {
+      "label": "validate-after-integration",
+      "status": 0,
+      "signal": null,
+      "elapsed_ms": 17085.017091,
+      "raw_hashes_match": true,
+      "input_interval_stable": true
+    }
+  ],
+  "integrated_lint": {
+    "status": 2,
+    "elapsed_ms": 192965.901925,
+    "selected_inputs": 990,
+    "findings": 319,
+    "counts": {
+      "forbidigo": 11,
+      "staticcheck": 53,
+      "errcheck": 252,
+      "exhaustive": 3
+    },
+    "entire_stdout_byte_identical_to_task44": true,
+    "stdout_sha256": "3fb126eb1e38a595c2812cdf0e01e9eb87704585f560ec6fb1adce5263e7ba8f",
+    "integrated_errortype": "UNREACHED"
+  },
+  "root_focused": {
+    "status": 0,
+    "elapsed_ms": 2557.170918,
+    "test_counts": {
+      "pass": 35,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "source_hashes": {
+    "tools/gomad3/target/adapter_source_set.go": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+    "tools/gomad3/target/adapter_source_set_test.go": "39613c9c1510def7aef69b191792f4d6590249e4ddb486f0918c07dc506a946c",
+    "tools/gomad3/ARCHITECTURE.md": "13f5fbeffe0f17a68073e00bb380facdd970f7131d6358e39af7ceedc4b39043"
+  },
+  "source_manifest_sha256": "bcd764726baa150e469b20d764a5b8c6b8d0caa400c11b17664e5ed0568091d8",
+  "native_patched_toolchain_available": false,
+  "scope": "Developmental stock Go1.27.1 Linux arm64 focused source-progress evidence; no native/full/formal qualification claim."
+}
