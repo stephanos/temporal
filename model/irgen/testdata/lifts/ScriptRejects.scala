@@ -9,13 +9,13 @@ import temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
 import temporal.features.standaloneactivity.{
   activity,
-  activityProtocol,
   control,
   Control,
   Inputs,
   ProtocolFact,
   Timeout
 }
+import temporal.features.standaloneactivity.Protocol.activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus
 

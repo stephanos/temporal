@@ -1,8 +1,8 @@
 package lower
 
 // The Cases of the standalone activity Model. Every expectation is read off
-// model/temporal/features/standaloneactivity: Queries.scala's Scenarios say which classes a path
-// takes, Model.scala's protocol machine what each step records, and Realization.scala which command
+// model/temporal/features/standaloneactivity: StandaloneActivity.scala's Scenarios say which classes
+// a path takes, its protocol machine what each step records, and Realization.scala which command
 // performs a class, which command a Case carries for one, and which kind of evidence confirms a step.
 
 import (
@@ -78,7 +78,7 @@ var activityCases = map[string]activityCase{
 	// scheduleToStartExpires: start(unset, expires, unset), workerStop, scheduleToStart.
 	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "await-timed-out"}, []string{},
 		map[string][]string{"statusScheduled": {"start-unset-expires-unset"}, "statusTimedOut": {"workerStop", "scheduleToStart"}}, []string{"workerStop"}},
-	// The finds Properties.scala's protocol capabilities generate, each over the Scenario its law's
+	// The finds the protocol's capabilities generate, each over the Scenario its law's
 	// `reach` writes before the control: start, workerStop, then the control. Terminable's takes
 	// terminatedWhileScheduled's path and the same instructions as terminate's Case, but is a Case of
 	// its own (its Property and fingerprints differ), so `terminated` and `terminate` stay authored.

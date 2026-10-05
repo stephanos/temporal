@@ -15,14 +15,8 @@ import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.standaloneactivity.{
-  activity,
-  activityProtocol,
-  attemptStart,
-  control,
-  Control,
-  ProtocolFact
-}
+import temporal.features.standaloneactivity.{activity, attemptStart, control, Control, ProtocolFact}
+import temporal.features.standaloneactivity.Protocol.activityProtocol
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus

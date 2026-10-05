@@ -723,6 +723,70 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
+  // fn-126 R4: the declaration-order lint, before anything is lifted. Each kind at its line, and
+  // none of the reads beside them that initialize nothing yet (initOrder/Forward.scala). Every other
+  // lift of these tests, and the gate's of the Models, runs it too and is refused nothing.
+  concurrently(
+    "the declaration-order lint refuses a read before its declaration, a cycle, an order and a place"
+  ):
+    val jar = packaged("initOrder", materialize("initOrder"))
+    val out = scratch.resolve("initOrder-out")
+    val at = stored("initOrder")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    val forward = (line: Int) =>
+      s"lift: ${at}Forward.scala:$line: late is read while Forward initializes, before it is " +
+        s"declared at ${at}Forward.scala:18, so it is still null here: declare it before the " +
+        "declaration that reads it"
+    val feature = s"${at}InitOrder.scala"
+    assertEquals(
+      refused(result),
+      Seq(
+        // (a)
+        forward(7),
+        forward(17),
+        // (d): a Model declaration beside the feature file
+        s"lift: ${at}Forward.scala:23: stray is a Scenario, which a feature declares in its " +
+          s"feature file, $feature: in the `queries` object of its machine's object there",
+        // (d): a machine in a type's companion, a Property at the top level, a machine object in
+        // an object of the signature
+        s"lift: $feature:24: bulb is a machine or composition, declared inside Bulb, the " +
+          "companion of a type: it belongs in an object of its own",
+        s"lift: $feature:30: loose is a Property, declared at the top level of a feature file: " +
+          "it belongs in the `properties` object of its machine's object",
+        s"lift: $feature:34: Inner holds a Model declaration inside Holder, an object of the " +
+          "signature: a machine object sits at the top level of a feature file, and its " +
+          "sections directly in it",
+        // (b)
+        s"lift: $feature:54: an initialization cycle: Switch.laws -> SwitchRealization -> " +
+          "Switch.laws, each read while the one before it initializes, so one of them is read " +
+          "half made: read it in a def, a lambda or a lazy val, or move what is read into an " +
+          "object of its own",
+        // (c)
+        s"lift: $feature:69: properties belongs before queries at $feature:66: object Backwards " +
+          "reads its vocabulary, then effects, then its monitors, then its machine, then " +
+          "properties, then laws, then queries",
+        s"lift: $feature:72: Late belongs before Backwards at $feature:60: a feature file reads " +
+          "its header, then its types, then its signature, then its machine and composition " +
+          "objects, then object Files",
+        // (d)
+        s"lift: $feature:75: extras holds a Model declaration in Misplaced, and is none of its " +
+          "sections, effects, properties, laws, queries: its declarations belong in them",
+        s"lift: $feature:83: lit is a Property, and belongs in the `properties` object of its " +
+          "machine's object, not in Misplaced",
+        s"lift: $feature:86: switchLit is declared over switch, which Switch declares: it " +
+          "belongs in Switch.properties",
+        // (c): a Scenario after a Query; (d): a Query over another object's Scenario
+        s"lift: $feature:97: late belongs before first at $feature:96: Asked.queries reads its " +
+          "Scenarios, then its Queries",
+        s"lift: $feature:98: borrowed is declared over flipped, which Switch.queries declares: " +
+          "it belongs in Switch.queries",
+        // (d): a val in Files that is no IR file
+        s"lift: $feature:102: note is declared in Files, which holds the feature's IR files alone"
+      )
+    )
+
   concurrently("the lifter refuses a mapped read ending at a singular message"):
     val out = lifted("typedMapped")
     val result = lift(
@@ -768,6 +832,11 @@ class Fixtures extends munit.FunSuite:
       for d <- declared.elements().asScala do
         val id = d.path("id").asText()
         assert(id.startsWith(owner), s"$id is not pinned to $owner")
+    // Two owners pin the one former owner, the file and `object Watched`: each keeps its ID.
+    assertEquals(
+      model.path("monitors").elements().asScala.map(_.path("id").asText()).toList.sorted,
+      List("storedOnce", "storedTwice").map(owner + _)
+    )
     val types = model.path("types").elements().asScala.map(_.path("name").asText()).toList
     assert(types.nonEmpty, "Captured.scala declares no types")
     for name <- types do assert(name.startsWith("fixture.spelled."), s"$name left fixture.spelled")
@@ -1158,13 +1227,15 @@ class Fixtures extends munit.FunSuite:
   // spelled alike.
   concurrently("typed members, syncs, replaces, withMember, synced and own keep the composed keys"):
     import com.fasterxml.jackson.databind.JsonNode
-    val queries = "temporal.features.standaloneactivity.compositions.Queries$package$."
-    val models = "temporal.features.standaloneactivity.compositions.Model$package$."
+    // Each design's object, named as its val is with the first letter raised: its Queries in its
+    // `queries`, or the design itself where no Query runs over it.
+    val designs = "temporal.features.standaloneactivity.withTaskQueue."
+    def designObject(d: String) = designs + d.head.toUpper + d.tail + "$."
     val overQueue = Seq("currentOverQueue", "staleOverQueue")
     val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")
     val unqueried = Seq("currentOverForgetful", "currentOverVolatile")
-    val roots = (overQueue ++ overMatching).map(d => s"$queries${d}Queries") ++
-      unqueried.map(models + _) ++ Seq("switchQueries", "flickedBothOnce")
+    val roots = (overQueue ++ overMatching).map(d => s"${designObject(d)}queries$$.${d}Queries") ++
+      unqueried.map(d => designObject(d) + d) ++ Seq("switchQueries", "flickedBothOnce")
     val (model, _, _) = declarations("members", roots)
     def all(kind: String) = model.path(kind).elements().asScala.toList
     def named(name: String)(n: JsonNode) = n.path("name").asText() == name

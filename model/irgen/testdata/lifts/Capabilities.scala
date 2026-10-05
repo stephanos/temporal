@@ -108,6 +108,9 @@ val three = Limits(steps = 3, actions = 3, search = 512)
 
 val jobStatus = statusTable(Note.started -> "RUNNING", Note.killedNote -> "TERMINATED")
 
+/** The server code the jobs' cited bindings name: a closed job's answer, and which phases close. */
+val jobsCode = "model/irgen/testdata/lifts/Capabilities.scala"
+
 /** The Run a server is expected to give the job's functional laws, a hole of the Model in reach. */
 val settles = RunExpectation(
   Conformance.inconclusive,
@@ -210,9 +213,6 @@ val rogueCapabilities = capabilities(rogueJob, limits = three)(
   Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
   Pollable(dispatch = poll, running = Jobs.running)
 )
-
-/** The server code the jobs' cited bindings name: a closed job's answer, and which phases close. */
-val jobsCode = "model/irgen/testdata/lifts/Capabilities.scala"
 
 // ### A declaring function's function-valued argument read with `through`
 

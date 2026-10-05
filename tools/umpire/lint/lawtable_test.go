@@ -133,7 +133,7 @@ func TestLawTablesAreWritten(t *testing.T) {
 	require.NoError(t, WriteTables(&out, r))
 	text := out.String()
 	require.Contains(t, text, "\nlaws ../../../model/ir/activity.json activityProduct\n")
-	require.Regexp(t, `\n  activityProduct\.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  model/temporal/features/standaloneactivity/Capabilities\.scala:\d+\n`, text)
+	require.Regexp(t, `\n  activityProduct\.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  model/temporal/features/standaloneactivity/StandaloneActivity\.scala:\d+\n`, text)
 	require.Contains(t, text, "\n    promises: while an entity is paused no work is handed to a worker")
 	require.Regexp(t, `\n    attemptStart \(Pollable\.dispatch\) +paused +MUST NOT +cell: \? s\.phase != scheduled\n`, text)
 	require.Regexp(t, `\n    control-unpause \(Pausable\.unpause\) +paused +MUST NOT of its results +cell: MAY accepted -> scheduled`, text)

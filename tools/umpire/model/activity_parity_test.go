@@ -40,15 +40,14 @@ func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 	}
 }
 
-// The activity's claims are declared in Properties.scala, Queries.scala and Capabilities.scala,
-// beside the system contract's that are written there once: the scheduleToClose deadline's, the
-// competing timers', and the promises each admission design and composition declares. Every declaration there is lifted,
-// into the activity root or the system contract's, and every claim the activity root lifts is
-// declared there. A capability declaration declares, for each law of the catalog whose capabilities
+// The activity's claims are declared in its feature file, StandaloneActivity.scala, in the
+// `properties`, `laws` and `queries` objects of its machine objects, beside the system contract's that
+// are written there once: the competing timers'. Every declaration there is lifted, into the activity
+// root or the system contract's, and every claim the activity root lifts is declared there. A capability declaration declares, for each law of the catalog whose capabilities
 // it names, the law's Property, Scenario and Query, each named `<machine>.<law>`.
 func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	dir := filepath.Join("..", "..", "..", "model", "temporal", "features", "standaloneactivity")
-	files := []string{"Properties.scala", "Queries.scala", "Capabilities.scala"}
+	files := []string{"StandaloneActivity.scala"}
 	var source []byte
 	at := map[string]bool{}
 	for _, file := range files {
@@ -92,7 +91,7 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(encoded, &catalog))
 	require.NotEmpty(t, catalog.Catalog)
-	capabilityDeclarations := regexp.MustCompile(`(?m)^val \w+\s*=\s*capabilities\((\w+)\b[^)]*\)\(`).FindAllStringSubmatchIndex(string(source), -1)
+	capabilityDeclarations := regexp.MustCompile(`(?m)^[ \t]*val \w+\s*=\s*capabilities\((\w+)\b[^)]*\)\(`).FindAllStringSubmatchIndex(string(source), -1)
 	require.Len(t, capabilityDeclarations, 2, "the product's and the protocol's")
 	for _, at := range capabilityDeclarations {
 		machine := string(source[at[2]:at[3]])
@@ -129,8 +128,8 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	require.NoError(t, err)
 	lifted := map[string]bool{}
 	for _, m := range []*umpirespb.Model{activityModel(t), system} {
-		// The system contract's claims declared elsewhere, in admission/, compositions/ and the task
-		// queue, are not these files'.
+		// The system contract's claims declared elsewhere, in record/, withTaskQueue/ and the task
+		// queue, are not this file's.
 		here := func(p *umpirespb.Position) bool { return m != system || at[p.GetFile()] }
 		for _, p := range m.GetProperties() {
 			if here(p.GetPosition()) {

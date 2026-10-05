@@ -278,7 +278,7 @@ func TestOriginalBaselineCasesRejectChanges(t *testing.T) {
 	archived := casesOf(in.archived)
 	moved := maps.Clone(archived)
 	const retry = golden.OriginalCases + "activity-retry-case.json"
-	moved[retry] = bytes.ReplaceAll(moved[retry], []byte("standaloneactivity/Claims.scala"), []byte("standaloneactivity/Queries.scala"))
+	moved[retry] = bytes.ReplaceAll(moved[retry], []byte("standaloneactivity/Claims.scala"), []byte("standaloneactivity/StandaloneActivity.scala"))
 	require.NoError(t, compareOriginalCases(archived, moved), "a Case names its Query's new file")
 	for name, change := range map[string]func(map[string][]byte){
 		"Case byte": func(m map[string][]byte) {
