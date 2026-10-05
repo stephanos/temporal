@@ -309,9 +309,9 @@ func reportAssessment(stdout io.Writer, assessment *testpilot.Assessment, expect
 // established before failing included), else 3 when the assessment failed, else 2 when anything is
 // inconclusive, else 0.
 func assessedExitCode(verdict *testpilotspb.Verdict, assessment *testpilot.Assessment) int {
-	conformance := assessment.Conformance.Status
-	violated := verdict.GetStatus() == testpilotspb.VERDICT_STATUS_VIOLATED || conformance == testpilot.ConformanceNonconformant
-	open := verdict.GetStatus() != testpilotspb.VERDICT_STATUS_SATISFIED || conformance != testpilot.ConformanceConformant
+	explained := assessment.Conformance.Status
+	violated := verdict.GetStatus() == testpilotspb.VERDICT_STATUS_VIOLATED || explained == testpilot.ConformanceNonconformant
+	open := verdict.GetStatus() != testpilotspb.VERDICT_STATUS_SATISFIED || explained != testpilot.ConformanceConformant
 	for _, property := range assessment.Properties {
 		violated = violated || property.Status == testpilot.PropertyViolated
 		open = open || property.Status != testpilot.PropertySatisfied
