@@ -114,7 +114,7 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 		}
 		return report(stdout, stderr, summary{Status: statusRejectedSubject, Rejection: rejection.Reason, Detail: rejection.Detail}, exitFailed)
 	}
-	decision := evaluation.Assess(subject, *configuration.Profile)
+	decision := evaluation.Assess(subject, *configuration.Profile, nil)
 	rendered, err := evaluation.Render(subject, *configuration.Profile, decision)
 	var oversized *evaluation.ReceiptOversizedError
 	if errors.As(err, &oversized) {
@@ -143,7 +143,7 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 
 	var reasons []string
 	for _, reason := range decision.Reasons {
-		reasons = append(reasons, reason.Name)
+		reasons = append(reasons, string(reason))
 	}
 	return report(stdout, stderr, summary{
 		Status: decision.Outcome, Reasons: reasons, Receipt: identity,

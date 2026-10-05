@@ -10,9 +10,9 @@ import (
 
 // productionCanaryIdentity is the canary profile identity this test pins; changing it is a deliberate
 // profile change.
-const productionCanaryIdentity = "sha256:3da213bcca87cf29ab7b1e9bcb264aa5f10f850008b6a94949200e484c1944a5"
+const productionCanaryIdentity = "sha256:6265dc08b1e426948cd6e619e7ea830a57a0ca1e3a351b3fdf910e1cb721263c"
 
-func TestTheCanaryProfileIsLeansAndOnlyTheCanarys(t *testing.T) {
+func TestTheCanaryProfileIsTheCanarysOwn(t *testing.T) {
 	committed, err := policy.Embedded()
 	require.NoError(t, err)
 	profile, err := LoadProfile(committed.EvaluationProfile)
@@ -20,6 +20,7 @@ func TestTheCanaryProfileIsLeansAndOnlyTheCanarys(t *testing.T) {
 	require.Equal(t, productionCanaryIdentity, profile.Identity)
 	require.Equal(t, "dedicated-production-canary", profile.Trust)
 	require.Equal(t, []string{"capability", "input", "interpretation", "claim"}, profile.BlockingKnownGaps)
+	require.Equal(t, evaluation.DecisionRejected, profile.UnsupportedRule)
 
 	for _, name := range []string{"canary-harness", "local-ephemeral", "../profiles/production-canary", ""} {
 		_, err := LoadProfile(name)

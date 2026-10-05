@@ -100,6 +100,6 @@ func TestTestpilotAssessRecordedRuns(t *testing.T) {
 	code, control := assess(t, ctx, assessBinary, controlCase, controlRun, root, modelRoot)
 	require.Equal(t, 1, code, "%+v", control)
 	require.Equal(t, evaluation.DecisionRejected, control.Status)
-	require.Equal(t, []string{"verdict-violated", "monitor-stopped", "known-gap-blocking"}, control.Reasons)
+	require.Equal(t, []string{"verdict-violated", "known-gap-blocking"}, control.Reasons)
 	require.NotEqual(t, first.Receipt, control.Receipt)
 }

@@ -25,7 +25,7 @@ import (
 // pausePoll is how often a paused harness looks for its file.
 const pausePoll = 50 * time.Millisecond
 
-// The Lean-rendered canary-harness Profile, which only this build embeds.
+// The canary-harness Profile, which only this build embeds.
 //
 //go:embed profiles/*.json
 var profiles embed.FS

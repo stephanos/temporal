@@ -199,7 +199,7 @@ func decidedAs(t *testing.T, canary *policy.Policy, edit func(*evaluation.Subjec
 		subject, err := assessment.Admit(canary, decoded.Driver, run)
 		require.NoError(t, err)
 		edit(subject)
-		decision := evaluation.Assess(subject, *profile)
+		decision := evaluation.Assess(subject, *profile, nil)
 		receipt, err := evaluation.Render(subject, *profile, decision)
 		require.NoError(t, err)
 		return Outcome{Status: decision.Outcome, Receipt: receipt}

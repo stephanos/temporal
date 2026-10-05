@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -46,7 +47,7 @@ func withGap(kind testpilotspb.KnownGapKind) func(*testpilotspb.Case) {
 func reasonNames(decision Decision) []string {
 	var names []string
 	for _, reason := range decision.Reasons {
-		names = append(names, reason.Name)
+		names = append(names, string(reason))
 	}
 	return names
 }
@@ -55,14 +56,16 @@ func TestAssessRetainsTheRecordedControlsAuthoredGap(t *testing.T) {
 	c := loadControl(t)
 	subject, err := Admit(c.caseBytes, c.recorded, c.catalog())
 	require.NoError(t, err)
-	decision := Assess(subject, localEphemeral(t))
+	decision := Assess(subject, localEphemeral(t), nil)
 	require.Equal(t, DecisionRejected, decision.Outcome)
-	require.Equal(t, []string{"verdict-violated", "monitor-stopped", "known-gap-blocking"}, reasonNames(decision))
+	require.Equal(t, []string{"verdict-violated", "known-gap-blocking"}, reasonNames(decision))
 	require.Equal(t, []KnownGapRef{{Kind: "capability", Code: "temporal.nexus.control.action.forgedCompletion.inspect.unobserved"}}, decision.KnownGaps)
 }
 
-// Every condition of the local table decides as the plan fixes it, every reason that holds is
-// listed in the table's order, and nothing but a clean satisfied Run is accepted.
+// Every reason decides as the fixed precedence says, every reason that holds is listed in the fixed
+// order, and nothing but a clean satisfied Run is accepted. A Run stopped by its Monitor is its
+// violated Verdict, and a Run that did not close complete its inconclusive one: neither is a reason
+// of its own.
 func TestAssessUnderTheLocalProfile(t *testing.T) {
 	c := loadControl(t)
 	profile := localEphemeral(t)
@@ -77,13 +80,13 @@ func TestAssessUnderTheLocalProfile(t *testing.T) {
 		reasons  []string
 	}{
 		"a satisfied Run":                     {nil, satisfy, DecisionAccepted, nil},
-		"the violated control":                {nil, nil, DecisionRejected, []string{"verdict-violated", "monitor-stopped"}},
-		"a violated Run whose cleanup failed": {nil, func(run *testpilotspb.Run) { run.Cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED }, DecisionRejected, []string{"verdict-violated", "monitor-stopped", "cleanup-unclosed"}},
+		"the violated control":                {nil, nil, DecisionRejected, []string{"verdict-violated"}},
+		"a violated Run whose cleanup failed": {nil, func(run *testpilotspb.Run) { run.Cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED }, DecisionRejected, []string{"verdict-violated", "cleanup-unclosed"}},
 		"an inconclusive incomplete Run": {nil, func(run *testpilotspb.Run) {
 			satisfy(run)
 			run.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
 			run.Verdict.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
-		}, DecisionIncomplete, []string{"verdict-inconclusive", "run-incomplete"}},
+		}, DecisionIncomplete, []string{"verdict-inconclusive"}},
 		"an inconclusive completed Run": {nil, func(run *testpilotspb.Run) {
 			satisfy(run)
 			run.Verdict.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
@@ -100,11 +103,11 @@ func TestAssessUnderTheLocalProfile(t *testing.T) {
 		"everything at once": {withGap(testpilotspb.KNOWN_GAP_KIND_CAPABILITY), func(run *testpilotspb.Run) {
 			run.Cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED
 			run.Verdict.Rules[0].SupportingEventSequences = nil
-		}, DecisionRejected, []string{"verdict-violated", "monitor-stopped", "cleanup-unclosed", "known-gap-blocking", "rule-unsupported"}},
+		}, DecisionRejected, []string{"verdict-violated", "cleanup-unclosed", "known-gap-blocking", "rule-unsupported"}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			subject := c.admitted(t, probe.editCase, probe.editRun)
-			decision := Assess(subject, profile)
+			decision := Assess(subject, profile, nil)
 			require.Equal(t, probe.outcome, decision.Outcome)
 			require.Equal(t, probe.reasons, reasonNames(decision))
 		})
@@ -118,7 +121,7 @@ func TestAssessKeepsTheRecordedFactsApart(t *testing.T) {
 		run.Cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED
 		run.Verdict.Rules[0].SupportingEventSequences = nil
 	})
-	decision := Assess(subject, localEphemeral(t))
+	decision := Assess(subject, localEphemeral(t), nil)
 	require.Equal(t, DecisionRejected, decision.Outcome)
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, decision.Verdict)
 	require.Equal(t, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, decision.Disposition)
@@ -146,13 +149,13 @@ func TestAssessIsPureAndProfilesAreIndependent(t *testing.T) {
 		gaps = append(gaps, proto.CloneOf(gap))
 	}
 
-	local := Assess(subject, localEphemeral(t))
-	require.Equal(t, local, Assess(subject, localEphemeral(t)))
-	strict := Assess(subject, localStrict(t))
+	local := Assess(subject, localEphemeral(t), nil)
+	require.Equal(t, local, Assess(subject, localEphemeral(t), nil))
+	strict := Assess(subject, localStrict(t), nil)
 	require.Equal(t, DecisionIncomplete, local.Outcome)
 	require.Equal(t, DecisionRejected, strict.Outcome, "the strict Profile rejects an unsupported rule")
 	require.NotEqual(t, local.ProfileIdentity, strict.ProfileIdentity)
-	require.Equal(t, local, Assess(subject, localEphemeral(t)), "assessing under another Profile changed nothing")
+	require.Equal(t, local, Assess(subject, localEphemeral(t), nil), "assessing under another Profile changed nothing")
 
 	require.True(t, proto.Equal(verdict, subject.Verdict))
 	require.Len(t, subject.KnownGaps, len(gaps))
@@ -162,21 +165,101 @@ func TestAssessIsPureAndProfilesAreIndependent(t *testing.T) {
 	require.Equal(t, before, *subject)
 }
 
-// The reader evaluates every condition a Profile can name, and a condition it could not evaluate
-// would hold rather than let a subject through.
-func TestAssessEvaluatesEveryConditionAndFailsClosed(t *testing.T) {
-	holds := conditionsHolding(Decision{}, false)
-	var known []string
-	for condition := range holds {
-		known = append(known, condition)
-	}
-	require.ElementsMatch(t, conditions, known)
-
+// A subject built by hand whose recorded Verdict disagrees with what testpilot.ConcludeVerdict
+// concludes from its rules, which admission refuses, is decided by the worse of the two.
+func TestAssessDecidesADisagreeingVerdictByTheWorse(t *testing.T) {
 	c := loadControl(t)
-	subject := c.admitted(t, nil, satisfy)
+	for name, probe := range map[string]struct {
+		edit    func(*Subject)
+		outcome string
+		reasons []string
+	}{
+		"recorded violated, rules satisfied": {func(s *Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED }, DecisionRejected, []string{"verdict-violated"}},
+		"recorded satisfied, a rule violated": {func(s *Subject) {
+			s.Verdict.Rules[0].Status = testpilotspb.RULE_VERDICT_STATUS_VIOLATED
+		}, DecisionRejected, []string{"verdict-violated"}},
+		"recorded inconclusive, rules satisfied": {func(s *Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE }, DecisionIncomplete, []string{"verdict-inconclusive"}},
+		"recorded satisfied, the Run incomplete": {func(s *Subject) { s.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE }, DecisionIncomplete, []string{"verdict-inconclusive"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			subject := c.admitted(t, nil, satisfy)
+			probe.edit(subject)
+			decision := Assess(subject, localEphemeral(t), nil)
+			require.Equal(t, probe.outcome, decision.Outcome)
+			require.Equal(t, probe.reasons, reasonNames(decision))
+		})
+	}
+}
+
+// assessment is a Model assessment of the control's Run: conformant, with every property satisfied,
+// until edit says otherwise.
+func assessment(edit func(*testpilot.Assessment)) *testpilot.Assessment {
+	assessed := &testpilot.Assessment{
+		Model:       "goir.model/v1:sha256:model",
+		Query:       "temporal.nexus.control/forgedCompletion/forgedCompletion#query",
+		Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceConformant, SupportingEventSequences: []int64{8, 27}},
+		Properties: []testpilot.PropertyAssessment{
+			{ID: "forgedSuccess", Status: testpilot.PropertySatisfied, SupportingEventSequences: []int64{27}},
+			{ID: "terminalFinality", Status: testpilot.PropertySatisfied},
+		},
+	}
+	if edit != nil {
+		edit(assessed)
+	}
+	return assessed
+}
+
+// A Model assessment, when one is supplied, decides beside the Verdict by the same precedence: a
+// nonconformant Run or a violated property rejects, even under a satisfied Verdict; an assessment
+// that failed or left anything inconclusive leaves the subject incomplete; a violation it
+// established stands although it then failed. Without one, nothing of it is read.
+func TestAssessDecidesTheModelAssessmentBesideTheVerdict(t *testing.T) {
+	c := loadControl(t)
 	profile := localEphemeral(t)
-	profile.Reasons = append(profile.Reasons, Reason{Name: "future", Condition: "a-condition-from-the-future", Decision: DecisionIncomplete})
-	decision := Assess(subject, profile)
-	require.Equal(t, DecisionIncomplete, decision.Outcome)
-	require.Equal(t, []string{"future"}, reasonNames(decision))
+	for name, probe := range map[string]struct {
+		editRun    func(*testpilotspb.Run)
+		assessment *testpilot.Assessment
+		outcome    string
+		reasons    []string
+	}{
+		"no assessment":                       {satisfy, nil, DecisionAccepted, nil},
+		"a conformant, satisfied assessment":  {satisfy, assessment(nil), DecisionAccepted, nil},
+		"a violated property, Verdict satisfied": {satisfy, assessment(func(a *testpilot.Assessment) {
+			a.Properties[0].Status, a.Properties[0].Reason = testpilot.PropertyViolated, "every_explanation_violates"
+		}), DecisionRejected, []string{"property-violated"}},
+		"a nonconformant Run": {satisfy, assessment(func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceNonconformant, Reason: "unexplained"}
+			for i := range a.Properties {
+				a.Properties[i].Status, a.Properties[i].Reason = testpilot.PropertyInconclusive, "unexplained"
+			}
+		}), DecisionRejected, []string{"nonconformant", "assessment-inconclusive"}},
+		"an inconclusive conformance": {satisfy, assessment(func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive, Reason: "hole"}
+		}), DecisionIncomplete, []string{"assessment-inconclusive"}},
+		"an inconclusive property": {satisfy, assessment(func(a *testpilot.Assessment) {
+			a.Properties[1].Status, a.Properties[1].Reason = testpilot.PropertyInconclusive, "never_evaluated"
+		}), DecisionIncomplete, []string{"assessment-inconclusive"}},
+		"a failed assessment": {satisfy, assessment(func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive}
+			a.Properties = nil
+			a.Failure = &testpilot.AssessmentFailure{Code: testpilot.AssessmentLimitExceeded, EventSequence: 12}
+		}), DecisionIncomplete, []string{"assessment-inconclusive", "assessment-failed"}},
+		"a violation established before the assessment failed": {satisfy, assessment(func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive}
+			a.Properties = []testpilot.PropertyAssessment{{ID: "forgedSuccess", Status: testpilot.PropertyViolated}}
+			a.Failure = &testpilot.AssessmentFailure{Code: testpilot.AssessmentObserveFailed, EventSequence: 30}
+		}), DecisionRejected, []string{"property-violated", "assessment-inconclusive", "assessment-failed"}},
+		"the violated control, its property violated": {nil, assessment(func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive, Reason: "incomplete"}
+			a.Properties = []testpilot.PropertyAssessment{{ID: "forgedSuccess", Status: testpilot.PropertyViolated, Reason: "every_explanation_violates"}}
+		}), DecisionRejected, []string{"verdict-violated", "property-violated", "assessment-inconclusive"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			subject := c.admitted(t, nil, probe.editRun)
+			decision := Assess(subject, profile, probe.assessment)
+			require.Equal(t, probe.outcome, decision.Outcome)
+			require.Equal(t, probe.reasons, reasonNames(decision))
+			require.Same(t, probe.assessment, decision.Assessment)
+		})
+	}
 }

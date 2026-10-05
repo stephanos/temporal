@@ -125,7 +125,7 @@ func TestAssessDecidesAndPublishesOnce(t *testing.T) {
 		reasons  []string
 	}{
 		"accepted": {nil, satisfy, exitAccepted, nil},
-		"rejected": {nil, nil, exitRejected, []string{"verdict-violated", "monitor-stopped", "known-gap-blocking"}},
+		"rejected": {nil, nil, exitRejected, []string{"verdict-violated", "known-gap-blocking"}},
 		"incomplete": {func(source *testpilotspb.Case) {
 			source.Provenance.KnownGaps = []*testpilotspb.KnownGap{{Kind: testpilotspb.KNOWN_GAP_KIND_CAPABILITY, Code: "umpire.gap.example"}}
 		}, satisfy, exitIncomplete, []string{"known-gap-blocking"}},
