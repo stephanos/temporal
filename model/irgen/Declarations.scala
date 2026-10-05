@@ -372,10 +372,6 @@ private[irgen] trait Declarations:
         functions(evidenceName) = defaultEvidence(evidenceName, f, at)
         folded.withEvidence(evidenceName)
     distinctActionNames(b, at)
-    if b.refines.isEmpty && visible.nonEmpty then
-      fail(at, s"$name names the facts a refined machine sees, and declares no refinement")
-    if b.refines.isEmpty && visibleOutcomes.nonEmpty then
-      fail(at, s"$name names the outcomes a refined machine sees, and declares no refinement")
     b.copy(refines =
       b.refines.map(r =>
         r.copy(

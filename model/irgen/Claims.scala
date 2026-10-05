@@ -623,20 +623,14 @@ private[irgen] trait Claims:
     case other => fail(at, s"expected a Scenario, got $other")
 
   /**
-   * The start of a Scenario that names none: its machine's one declared start, or for a composition
-   * the composed state of its members' starts.
+   * The start of a Scenario that names none: its machine's `init`, or for a composition the
+   * composed state of its members'.
    */
   def declaredStart(m: String, scenario: String, at: Tree): ir.Expr =
-    def only(machine: ir.Machine, of: String): ir.Expr = machine.starts match
-      case Seq(start) => start
-      case starts     =>
-        fail(
-          at,
-          s"Scenario $scenario of $m names no start, and $of declares ${starts.size} starts: name " +
-            "the one it starts in with `starts`"
-        )
+    // A machine object declares one start, its `init`.
+    def only(machine: ir.Machine): ir.Expr = machine.starts.head
     machineNamed(m) match
-      case Some(machine) => only(machine, m)
+      case Some(machine) => only(machine)
       case None          =>
         val c = compositions.values
           .find(_.name == m)
@@ -650,6 +644,6 @@ private[irgen] trait Claims:
             .getOrElse(
               fail(at, s"Scenario $scenario of $m names no start, and no member fills $field")
             )
-          only(machineNamed(member.machine).get, s"its member ${member.machine}")
+          only(machineNamed(member.machine).get)
         }
         expr(at)(ir.Expr.Kind.Construct(ir.Construct(`type` = c.stateType, args = starts)))
