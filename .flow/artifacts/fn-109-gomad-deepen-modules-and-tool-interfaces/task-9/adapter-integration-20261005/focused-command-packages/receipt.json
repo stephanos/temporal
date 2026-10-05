@@ -1,0 +1,48 @@
+{
+  "label": "focused-command-packages",
+  "command": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "test",
+    "-json",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./internal/hostexec",
+    "./target/internal/gocommand",
+    "./target/internal/capabilityreview"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started": "2026-10-05T19:52:49.169Z",
+  "finished": "2026-10-05T19:52:54.543Z",
+  "elapsed_ms": 5374,
+  "status": 0,
+  "signal": null,
+  "host": {
+    "platform": "linux",
+    "arch": "arm64",
+    "release": "7.0.14"
+  },
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOMODCACHE": null,
+    "GOCACHE": null,
+    "GOROOT": null,
+    "GOEXPERIMENT": null,
+    "CGO_ENABLED": null
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "inputs_unchanged": true,
+  "stdout_sha256": "76e68de13e8fc7ff19089d6cae46f6ed0db8c2f82faf487cab0fb67d8418d30a",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,9 @@
+{
+  "cases": 29,
+  "repeat_differences": [],
+  "historical_differences": [],
+  "started": 18,
+  "all_started_reaped_and_gopaths_removed": true,
+  "normalization": "Exact probe executable, scratch root, relative scratch-root spelling, missing-command generated PID, Started.PID/At/GOPATH and ExitError.pid only. Keep every concrete error type, ordered chain, errno/op, signal/exit, context Is, stderr, quoting, digest and cleanup observation.",
+  "prior_analysis": "verification.json did not normalize temporary GOPATH and therefore reported all 18 started cases as differing. Raw observations are unchanged."
+}

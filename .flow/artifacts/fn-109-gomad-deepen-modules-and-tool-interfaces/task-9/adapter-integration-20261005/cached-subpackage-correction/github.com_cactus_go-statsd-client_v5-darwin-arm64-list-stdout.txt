@@ -1,0 +1,33 @@
+{
+	"Dir": "/home/agent/go/pkg/mod/github.com/cactus/go-statsd-client/v5@v5.1.0/statsd",
+	"ImportPath": "_/home/agent/go/pkg/mod/github.com/cactus/go-statsd-client/v5@v5.1.0/statsd",
+	"Name": "statsd",
+	"Doc": "Package statsd provides a StatsD client implementation that is safe for concurrent use by multiple goroutines and for efficiency can be created and reused.",
+	"Match": [
+		"."
+	],
+	"Stale": true,
+	"StaleReason": "build ID mismatch",
+	"GoFiles": [
+		"buffer_pool.go",
+		"client.go",
+		"client_config.go",
+		"client_legacy.go",
+		"doc.go",
+		"sender.go",
+		"sender_buffered.go",
+		"sender_resolving.go",
+		"tags.go",
+		"validator.go"
+	],
+	"TestGoFiles": [
+		"bench_buffered_test.go",
+		"bench_client_test.go",
+		"bench_sender_test.go",
+		"client_buffered_test.go",
+		"client_substatter_test.go",
+		"client_test.go",
+		"sender_buffered_test.go",
+		"validator_test.go"
+	]
+}

@@ -1,0 +1,48 @@
+{
+  "label": "bounded-target-controls",
+  "command": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "test",
+    "-json",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./target",
+    "-run",
+    "^(TestTargetFileCleanup.*|TestPreparedCacheDigest.*|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves.*|TestReadToolchainIdentityRejectsMalformedAndOverflowedEnvironment|TestGoCommandQueriesRejectMalformedData)$"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started": "2026-10-05T19:52:55.276Z",
+  "finished": "2026-10-05T19:52:56.463Z",
+  "elapsed_ms": 1187,
+  "status": 0,
+  "signal": null,
+  "host": {
+    "platform": "linux",
+    "arch": "arm64",
+    "release": "7.0.14"
+  },
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOMODCACHE": null,
+    "GOCACHE": null,
+    "GOROOT": null,
+    "GOEXPERIMENT": null,
+    "CGO_ENABLED": null
+  },
+  "unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "inputs_unchanged": true,
+  "stdout_sha256": "351db687fd7a5d8cddb9c99dd5858fc9bef80b920ccc90f801a07848831f9ff6",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

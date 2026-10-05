@@ -1,0 +1,84 @@
+{
+  "head": "d2e0e035519f1385b9acf630a70152655b113f61",
+  "tracked_diff": ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json\n.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md\n.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.json\n.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md\n",
+  "tracked_source_count": 987,
+  "changed_tracked_sources": [],
+  "repeat_probe_differences": [
+    "success_valid_json",
+    "exit7_valid_json",
+    "exit7_malformed_json",
+    "exit7_listed_error",
+    "exit0_malformed_json",
+    "exit0_trailing_json",
+    "exit0_listed_error",
+    "exit0_missing_fields",
+    "ordinary_sigterm",
+    "canceled_after",
+    "deadline_after",
+    "empty_directory",
+    "dot_directory",
+    "relative_directory",
+    "relative_command_from_child_dir",
+    "relative_command_with_relative_dir",
+    "relative_command_resolves_child_not_parent",
+    "bare_command_absolute_path_entry"
+  ],
+  "historical_probe_differences": [
+    "success_valid_json",
+    "exit7_valid_json",
+    "exit7_malformed_json",
+    "exit7_listed_error",
+    "exit0_malformed_json",
+    "exit0_trailing_json",
+    "exit0_listed_error",
+    "exit0_missing_fields",
+    "ordinary_sigterm",
+    "canceled_after",
+    "deadline_after",
+    "empty_directory",
+    "dot_directory",
+    "relative_directory",
+    "relative_command_from_child_dir",
+    "relative_command_with_relative_dir",
+    "relative_command_resolves_child_not_parent",
+    "bare_command_absolute_path_entry"
+  ],
+  "normalization": "Only exact probe executable, scratch root, corresponding relative-root spelling, generated bare-missing-command PID, Started.PID/At and ExitError.pid. All concrete error types, ordered chains, errno/op, signal/exit, context Is, stderr, quoting, digest and cleanup observations retained.",
+  "receipts": {
+    "process-probe-1": {
+      "status": 0,
+      "elapsed_ms": 3507,
+      "inputs_unchanged": true,
+      "stdout_sha256": "29676f94e723bdd15d94fb529a132f29ae748596d741f8ab188ef3fb7d57fd42",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "process-probe-2": {
+      "status": 0,
+      "elapsed_ms": 2627,
+      "inputs_unchanged": true,
+      "stdout_sha256": "9f0800d7c4d28330b7dc6c3316a0616c0170feb7e63f47d11af948598213ccde",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "source-selection": {
+      "status": 0,
+      "elapsed_ms": 1920,
+      "inputs_unchanged": true,
+      "stdout_sha256": "f38934dfd5a31b8192d2b93504166ac6d72ad4630709a0c261649806b23d8653",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "focused-command-packages": {
+      "status": 0,
+      "elapsed_ms": 5374,
+      "inputs_unchanged": true,
+      "stdout_sha256": "76e68de13e8fc7ff19089d6cae46f6ed0db8c2f82faf487cab0fb67d8418d30a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "bounded-target-controls": {
+      "status": 0,
+      "elapsed_ms": 1187,
+      "inputs_unchanged": true,
+      "stdout_sha256": "351db687fd7a5d8cddb9c99dd5858fc9bef80b920ccc90f801a07848831f9ff6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

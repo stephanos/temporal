@@ -1,0 +1,7 @@
+{
+  "head": "d2e0e035519f1385b9acf630a70152655b113f61",
+  "manifest": "../bounded-target-controls/after.json",
+  "manifest_sha256": "eba52f47a3d438223cf894a198ce8536237f5ad83285c0ac6581ee9589d32608",
+  "helper_sha256": "6b860e178279fd400fcaa95896bf184bc1f4e891bc9af914aa030e04e2a4e5f9",
+  "go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+}
