@@ -64,6 +64,10 @@ Incidental: the per-kind file names themselves, the `Capabilities`/`IrFiles`/`Re
 
 **(a) Quint-like module object per machine, feature file as the module list**
 
+Study history (2026-10-05): the sketch below is in the declaration forms of that day, the
+`machine[S, O, F] { … }` builder and step functions, which fn-126.5 retired; `model/README.md`,
+"Writing a Model", has the forms that landed.
+
 ```scala
 // features/standaloneactivity/StandaloneActivity.scala — types stay top-level (keeps pkg.Type IR names)
 enum ProductPhase derives Finite: …
