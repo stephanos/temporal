@@ -30,6 +30,11 @@ type Evaluation struct {
 // still pending under a final ending.
 type RuleViolation = verification.Violation
 
+// ConcludeVerdict is the one aggregation of a closed Run's rule statuses into its Verdict status
+// and the disposition that Verdict leaves the Run in, the one the Monitor and the offline replay
+// conclude through. Readers of recorded Runs check a Verdict against it rather than restating it.
+var ConcludeVerdict = execution.Conclude
+
 // Evaluate replays a closed Run's events through the same prepared Contract the Monitor ran, with
 // no Driver and no target, and returns the Verdict that reading gives with its Evaluation. A Run
 // that is not closed, or that names another Program, errs.
