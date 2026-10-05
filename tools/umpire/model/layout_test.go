@@ -3,7 +3,9 @@ package model
 // model/'s folders say what they hold (fn-114.9): the IR generator is model/irgen, the model check
 // model/check, the check's build cache model/build, and the Temporal Models are grouped into
 // model/temporal/features and model/temporal/shared. The folders they replaced must not come back:
-// neither as a directory with sources nor as a path, package or target a live file names.
+// neither as a directory with sources nor as a path, package or target a live file names. Nor may
+// the per-kind files fn-126 folded into one feature file per folder: no Model folder holds one, and
+// no live file names one.
 
 import (
 	"fmt"
@@ -50,6 +52,48 @@ var retiredModelRelatives = regexp.MustCompile(
 var retiredScalaPackages = regexp.MustCompile(
 	`^\s*(?:package (?:temporal\.)?|import (?:temporal\.)?)(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)\b`)
 
+// retiredFeatureFileNames are the per-kind files a Model folder held before fn-126 laid each folder
+// out as one feature file named after it (model/README.md, "The reading order and its lint").
+var retiredFeatureFileNames = []string{"Model.scala", "Properties.scala", "Queries.scala", "Capabilities.scala", "IrFiles.scala"}
+
+// modelFolderRoots hold the Model folders. The kit's model/temporal/capabilities/Capabilities.scala
+// is no Model folder's file, and the IR generator's fixtures name their files as they like.
+var modelFolderRoots = []string{"model/temporal/features", "model/temporal/shared"}
+
+// retiredFeatureFilePaths matches a retired per-kind file of a Model folder named by its path: from
+// features/ or shared/, from a Model folder's name (`worker/Model.scala`), or joined from its parts.
+var retiredFeatureFilePaths = regexp.MustCompile(strings.Join([]string{
+	`\b(?:features|shared|standaloneactivity|record|withTaskQueue|admission|compositions|nexuscaller|closepolicy|nexusoperation|taskqueue|worker)/(?:[\w-]+/)*(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala\b`,
+	`"(?:features|shared)"(?:, "[\w-]+")*, "(?:Model|Properties|Queries|Capabilities|IrFiles)\.scala"`,
+}, "|"))
+
+// retiredFeatureFiles lists the files under root's Model folders that bear a retired per-kind name.
+func retiredFeatureFiles(root string) ([]string, error) {
+	var found []string
+	for _, dir := range modelFolderRoots {
+		err := filepath.WalkDir(filepath.Join(root, dir), func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if d.IsDir() && (d.Name() == ".scala-build" || d.Name() == ".bsp") {
+				return filepath.SkipDir
+			}
+			if !d.IsDir() && slices.Contains(retiredFeatureFileNames, d.Name()) {
+				rel, err := filepath.Rel(root, path)
+				if err != nil {
+					return err
+				}
+				found = append(found, filepath.ToSlash(rel))
+			}
+			return nil
+		})
+		if err != nil && !os.IsNotExist(err) {
+			return nil, err
+		}
+	}
+	return found, nil
+}
+
 // liveLayoutRoots are the live files and trees outside model/ that name model paths: the tools that
 // read the model, the build, CI, and the documents that describe the layout. The golden package and
 // the migration goldens record the old paths on purpose, as the moves they map back.
@@ -64,7 +108,7 @@ func retiredModelMentions(path, content string) []string {
 	scala, inModel := strings.HasSuffix(path, ".scala"), strings.HasPrefix(path, modelRoot+"/")
 	for i, line := range strings.Split(content, "\n") {
 		if retiredModelNames.MatchString(line) || inModel && retiredModelRelatives.MatchString(line) ||
-			scala && retiredScalaPackages.MatchString(line) {
+			scala && retiredScalaPackages.MatchString(line) || retiredFeatureFilePaths.MatchString(line) {
 			found = append(found, fmt.Sprintf("%s:%d", path, i+1))
 		}
 	}
@@ -130,6 +174,9 @@ func TestRetiredModelPathsStayRetired(t *testing.T) {
 		}
 	}
 	require.Empty(t, present, "these folders moved (fn-114.9): model/irgen, model/check and model/temporal/{features,shared} hold them")
+	retired, err := retiredFeatureFiles(repoRoot)
+	require.NoError(t, err)
+	require.Empty(t, retired, "a Model folder holds one feature file named after it (fn-126), not per-kind files")
 
 	scanned := 0
 	var mentions []string
@@ -172,6 +219,17 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"a word that starts like a stem":       {"model/generated, model/gates, lint-model-irgen-lifts", false},
 		"the IR generator's lifted files":      {"umpire.lifted", false},
 		"a relative import of a moved package": {"import worker.Phase as WorkerPhase", true},
+		"a retired Model.scala":                {"model/temporal/features/nexuscaller/Model.scala:424", true},
+		"a retired Properties.scala":           {"see `nexuscaller/Properties.scala`, line 22", true},
+		"a retired Queries.scala":              {"model/temporal/shared/taskqueue/Queries.scala", true},
+		"a retired Capabilities.scala":         {"its folder's features/nexusoperation/Capabilities.scala", true},
+		"a retired IrFiles.scala":              {"closepolicy/IrFiles.scala", true},
+		"a retired file from its folder":       {"from worker/Model.scala", true},
+		"a retired file joined from its parts": {`filepath.Join("model", "temporal", "features", "nexuscaller", "Queries.scala")`, true},
+		"a feature file":                       {"model/temporal/features/nexuscaller/NexusCaller.scala:424", false},
+		"the kit's capabilities":               {"model/temporal/capabilities/Capabilities.scala", false},
+		"the framework's capabilities":         {"model/umpire/Capabilities.scala", false},
+		"a fixture named like a retired file":  {"model/irgen/testdata/lifts/Capabilities.scala, irFileRefusals/IrFiles.scala", false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, test.found, len(retiredModelMentions("model/temporal/A.scala", test.content)) > 0, test.content)
@@ -181,6 +239,31 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 	// folder named from model/; neither is one.
 	require.Empty(t, retiredModelMentions("common/testing/testpilot/temporal/worker/api.go", "package worker"))
 	require.Empty(t, retiredModelMentions("common/testing/testpilot/README.md", "(`temporal/worker/outage.go`)"))
+}
+
+// Each retired per-kind name is found in a Model folder, at any depth, and nowhere else.
+func TestRetiredFeatureFilesAreFound(t *testing.T) {
+	for _, name := range retiredFeatureFileNames {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			files := []string{
+				"model/temporal/features/nexuscaller/NexusCaller.scala",
+				"model/temporal/features/nexuscaller/closepolicy/" + name,
+				"model/temporal/capabilities/" + name,
+				"model/irgen/testdata/lifts/" + name,
+			}
+			for _, rel := range files {
+				require.NoError(t, os.MkdirAll(filepath.Join(root, filepath.Dir(rel)), 0o755))
+				require.NoError(t, os.WriteFile(filepath.Join(root, rel), []byte("package x"), 0o644))
+			}
+			found, err := retiredFeatureFiles(root)
+			require.NoError(t, err)
+			require.Equal(t, []string{"model/temporal/features/nexuscaller/closepolicy/" + name}, found)
+		})
+	}
+	found, err := retiredFeatureFiles(t.TempDir())
+	require.NoError(t, err)
+	require.Empty(t, found, "a checkout without the Model folders has nothing retired")
 }
 
 // A build cache under model/, the current one or a stale one of the old name, is read by no check:
