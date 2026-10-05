@@ -1060,3 +1060,87 @@ val unnamedInHelper = machine[Lamp, Outcome, Nothing] {
   ends(_ => true)
   steps(flip ~> unnamedInHelperStep)
 }
+
+// ### Expressions at the wrong level (fn-120 R13): a step made where no step function is
+
+/** A start computed from a step. */
+val levelStart = machine[Lamp, Outcome, Nothing] {
+  starts(if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false))
+  ends(_ => true)
+  steps(flip ~> lampStep)
+}
+
+/** An `ends` that asks whether a step function gives a step. */
+val levelEnds = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(l => lampStep(l) == Nil)
+  steps(flip ~> lampStep)
+}
+
+/** Evidence that makes a step. */
+val levelEvidence = machine[Lamp, Outcome, Dropped] {
+  starts(Lamp(false))
+  ends(_ => true)
+  evidence {
+    case Dropped.kept    => if lampStep(Lamp(false)) == Nil then "keptData" else "keptAgain"
+    case Dropped.lost(_) => "lostData"
+  }
+}
+
+/** A refinement whose map reads a step. */
+val levelRefinement = machine[Lamp, Outcome, Nothing] {
+  refines(oneStart)(l => if lampStep(l) == Nil then l else Lamp(!l.lit))
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> lampStep)
+}
+
+/** A monitor whose next state asks which steps the step function gives. */
+val levelWatch: Monitor[Lamp, Outcome, Nothing, Boolean] =
+  monitor[Lamp, Outcome, Nothing, Boolean](false)((seen, before, after) =>
+    seen || !lampStep(before).contains(after)
+  )(seen => seen)
+val levelMonitor = machine[Lamp, Outcome, Nothing] {
+  monitors(levelWatch)
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> lampStep)
+}
+
+/** A step function whose precondition asks whether another step function gives a step. */
+def requiringStep(l: Lamp): List[LampStep] =
+  require(lampStep(l) != Nil)
+  lampStep(l)
+val levelRequire = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> requiringStep)
+}
+
+/** A same-step Property that asks what the step function gives after the step. */
+val levelHolds = oneStart.property holds (after => lampStep(after.state) == Nil)
+val levelProperty: Query = query verify levelHolds in lampFlips limits one total 2
+
+/** A transition Property that asks whether the step is one the step function gives. */
+val levelAcross =
+  oneStart.property holdsAcross ((before, after) => lampStep(before).contains(after))
+val levelTransition: Query = query verify levelAcross in lampFlips limits one total 2
+
+/** A claim pattern whose predicate makes a step. */
+def lampStepped(after: Step[Lamp, Outcome, Nothing]): Boolean = lampStep(after.state) == Nil
+val levelNever = oneStart.property.never(lampStepped)
+val levelPattern: Query = query verify levelNever in lampFlips limits one total 2
+
+/** A progress claim whose source asks whether a step function gives a step. */
+val levelProgress = oneStart.leadsTo("levelSettles")(l => lampStep(l) == Nil, l => l.lit, 2)
+
+/** A composition whose `ends` asks whether a member's step function gives a step. */
+val levelComposition = compose[Lamps](_.left -> oneStart, _.right -> oneStart)
+  .ends(c => lampStep(c.left) == Nil)
+
+/** A Scenario whose start is computed from a step. */
+val levelStarted =
+  oneStart.scenario.starts(if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false))
+val levelLit = oneStart.property holds (after => after.state.lit)
+val levelScenario: Query =
+  query verify levelLit in levelStarted.actions(flip) limits one total 2

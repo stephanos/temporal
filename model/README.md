@@ -368,6 +368,16 @@ gate; `make fmt-model` formats them and `make fix-model` applies the lint rewrit
 lint rule forbids where no rewrite keeps the behavior carries a line-scoped
 `// scalafix:ok <rule>`.
 
+Model lint reads what the lifter made of a Model, not its Scala. After `make umpire-gen-model`,
+`make umpire-check-lint` lints every file of `model/ir` as the gate does: each finding at its Scala
+line, then each machine's coverage summary. `go run ./tools/umpire/cmd/umpire-lint --tables
+model/ir/<file>.json` adds each machine's table by class in the terms of model/SEMANTICS.md
+("Modalities"), each cell MAY with its results, MUST NOT with its guard or `?` for a hole, beside the
+claims that pin it. Fix a finding in the Model, or accept it with an entry of
+`model/ir/<file>.lint.json` that names its `kind`, its `owner`, its `subjects` as lint prints them
+and, under `because`, the reason; the gate fails on a finding neither fixed nor accepted and on an
+acceptance that matches none.
+
 A Model writes a declaration's type only where inference would give a different one, such as a
 step function whose body is `disabled` or `stay(s)` (inferred with no facts), a `Long` written as
 an `Int` literal, or a call whose type argument or `given` the expected type decides, or where the
@@ -406,7 +416,10 @@ The lifter reads what an author wrote, as written:
   `val`s, `copy`, constructors, comparisons, arithmetic, list literals and `++`, and calls of other
   functions; `Step(…)` and `steps.because("…")` on steps written out, and named choices,
   `choose(committed -> …, redelivered -> …)` over tokens `val committed = choice`. `require`
-  becomes the function's precondition; `ensuring` is not lifted.
+  becomes the function's precondition; `ensuring` is not lifted. Only a step function, and a
+  function it calls that gives steps, makes a step: the lifter refuses `Step(…)`, `accept`, `stay`
+  or a call of a step function at its line in a start, an `ends`, evidence, a refinement, a
+  monitor, a Property, a progress claim or a Scenario's start (model/SEMANTICS.md, "Levels").
 - **Realization script helpers** (core, `umpire/realize/Scripts.scala`): `script(id, activation)`
   of `always(command)`, `onPath(classes*)(command)` and `perform(step -> command, …)` items;
   `command(instruction, …)`; `rpc(role, method) { … }`, `poll(…) { … }` and `call.setting { … }`,

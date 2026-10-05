@@ -159,6 +159,18 @@ final private[lift] class Context(val index: Index):
     try body
     finally choosing = was
 
+  // What is being lifted: whether it may make a step, being the body of a function that gives
+  // steps, a step function or one it calls (model/SEMANTICS.md, Levels), and where it is, for the
+  // refusal of a step made anywhere else. A declared value, such as a start, makes none.
+  var making: (Boolean, String) = (false, "a declared value") // scalafix:ok DisableSyntax.var
+
+  /** `body`, lifted where `where` says, making steps only when `steps` holds. */
+  def makingIn[A](steps: Boolean, where: String)(body: => A): A =
+    val was = making
+    making = (steps, where)
+    try body
+    finally making = was
+
   // Where each machine declared each of its capabilities, by kind: a machine declares each once.
   val capabilityKinds = mutable.Map.empty[(String, String), String]
   // What each capability declaration expanded into, for the law sidecar beside the IR file.

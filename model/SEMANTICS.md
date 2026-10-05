@@ -78,6 +78,55 @@ Patterns: a wildcard matches anything; `bind n p` matches what `p` matches and b
 matches an equal value; `case T.C(p1, …, pn)` matches a value of case `C` whose fields match the `pi`;
 alternatives match when any does.
 
+## Levels
+
+An expression is at one of five levels, by what it is computed from:
+
+- a **value** is computed from constants and its arguments, none of them a state or a step record;
+- a **reading of a state** is a value computed from one state of a machine or a composition;
+- a **step** is the list of step records one action class gives from one state: what may happen
+  next ([Machines](#machines) 3);
+- a **reading of a step** is a value computed from one step record, and from the state before it;
+- a **claim over a path** says what holds of the paths a check explores.
+
+A higher level reads the lower ones: a step reads its state, a reading of a step reads the step's
+`state`, and each calls functions of values. Each place of a declaration takes one level:
+
+| Level | Places |
+| --- | --- |
+| value | a machine's starts and a Scenario's start; a machine's evidence, of a fact; what a refinement names visible, of a fact or an outcome; a monitor's initial state, and its `violated`, of the monitor's state |
+| reading of a state | a machine's and a composition's `ends`; a refinement's map; a progress claim's `from` and `to` |
+| step | the function a step binding names, and each function it calls that gives steps |
+| reading of a step | a same-step Property's `holds` and a transition Property's; a monitor's `next` and `after` |
+| claim over a path | a Query, which reads a Property on the paths of a Scenario within Limits ([Claims](#claims)); a monitor's verdict ([Monitors](#monitors)); a progress claim ([Progress](#progress)) |
+
+Only a step makes a step record. A `construct` of `umpire.Step`, or a call of a function that gives
+step records, belongs to the function a step binding names and the functions it calls; anywhere
+else it is at the wrong level, as an `ends` that asks whether a step function gives a step, or a
+Property that calls the step function on the state after its step, would be. The IR does not mark
+levels; the lifter keeps them, refusing at its line an expression that makes a step in a function
+that gives anything else, in a function's precondition or in a declared value. Its fixtures hold one
+refusal for each place whose Scala type admits one: a machine's start, `ends`, evidence and
+refinement, a monitor, a precondition, a same-step Property, a transition Property, a claim
+pattern, a progress claim, a composition's `ends` and a Scenario's start (`level*` in
+`model/lifter/testdata/lifts/Rejects.scala`). The Scala types rule out every other wrong level, so
+it has no fixture:
+
+- a value reads no state and no step record: these enter an expression only as parameters of the
+  places that read them, and a start, evidence, what a refinement names visible and a monitor's
+  initial state and `violated` have none;
+- a reading of a state reads no step record: it has none as a parameter, and may not make one;
+- no expression reads a claim over a path: no Scala value of a Property, a Scenario, a Query, a
+  progress claim or a monitor holds whether it holds, and a Query's total and Limits are literals
+  ([Query totals](#query-totals)).
+
+Umpire's claims over a path are safety claims, a Query that asks whether a Property holds on every
+path of its Scenario or finds one on which it does and a monitor's verdict, and bounded progress:
+TLA's leads-to `from ~> to`, cut to `within` steps, on the paths the weak fairness (`WF`) of the
+classes its assumptions make fair admits. Any temporal operator Umpire adds takes its meaning from
+TLA, read over the paths of the machine's table, and an unbounded one takes the TLA operator's name:
+`eventually` is TLA's `<>`, never another spelling of a progress claim.
+
 ## Machines
 
 A machine's table is derived from its declaration:
@@ -112,6 +161,25 @@ A machine's table is derived from its declaration:
 
 Reachability, stuck states, Definition IDs and the Behavior Fingerprint are then those of the
 reader's table (`tools/umpire/model`, `Table`) over the derived keys.
+
+### Modalities
+
+A machine's table says what may happen, and the claims about it what must. A row is permission with
+fixed results: its class may happen in its state, with exactly the results the row lists, each named
+choice among them. A disabled pair is prohibition for an action the system takes, a timer or an
+internal action: the system does not take it there. For an action of a party, such as a caller's
+request, it is silence: the party can always try it, and the Model does not say what the system
+answers, as a row with a rejecting outcome and its `because` would. A hole row is neither
+([Holes](#holes)). Obligations are the claims: a same-step Property is a postcondition on the results
+of its class's rows, read only where a row exists; a progress claim says that a state must follow;
+and an assumption's fairness obliges a class that stays enabled to be taken. A refinement narrows
+permission, since every row of the refining machine is carried by a row of the machine it refines or
+is a stutter (Machines 6), and does not by itself preserve obligation: a Property of the refined
+machine holds of the refining one only where a verify Query reads it `through` the refinement, and a
+progress claim only where the refining machine declares its own. Lint (`tools/umpire/lint`) prints
+each machine's table in these terms and reports where they leave a gap as specification holes: a
+pair disabled by a wildcard arm, a party's request the Model is silent on, a result no claim
+constrains and a Property only a `find` asks.
 
 ### Named choices
 

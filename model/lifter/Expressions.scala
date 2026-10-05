@@ -229,8 +229,8 @@ private[lift] trait Expressions:
       name = name,
       position = Some(pos(at)),
       params = ps,
-      requires = requires.map(lift(_)),
-      body = Some(lift(rest))
+      requires = requires.map(r => makingIn(false, "the precondition of a function")(lift(r))),
+      body = Some(giving(rest.tpe)(lift(rest)))
     )
 
   /**
@@ -274,6 +274,9 @@ private[lift] trait Expressions:
     case _ => t
 
   def lift(t: Term, expected: Option[TypeRepr] = None): ir.Expr = t match
+    // A step made where no step function is: the expression is at the wrong level.
+    case _: Apply if makesSteps(t.tpe) && !making._1 => wrongLevel(t)
+
     // `accept`, `stay`, `disabled`, `in`, `implies` and `records`, as their core forms lift.
     case _ if sugared(t) => sugar(t)
 
@@ -447,7 +450,7 @@ private[lift] trait Expressions:
           _: Closure
         ) =>
       val ps = parameters(params, body)
-      expr(lambda)(E.Lambda(ir.Lambda(ps, Some(lift(body)))))
+      expr(lambda)(E.Lambda(ir.Lambda(ps, Some(giving(body.tpe)(lift(body))))))
 
     case other => fail(other, s"outside the liftable subset: ${other.show}")
 
@@ -569,6 +572,35 @@ private[lift] trait Expressions:
   def stepList(t: TypeRepr): Boolean =
     val list = t.widen.dealias
     isList(list.typeSymbol) && list.typeArgs.headOption.exists(isNamed(_, stepType))
+
+  /** Whether a type is a step or a list of steps, which only a step function makes. */
+  def makesSteps(t: TypeRepr): Boolean = isNamed(t, stepType) || stepList(t)
+
+  /** `body`, lifted as the body of a function that gives `result`: steps only where it gives them. */
+  def giving[A](result: TypeRepr)(body: => A): A =
+    // A function of literal results, such as `if c then "a" else "b"`, gives their union's type.
+    def named(r: TypeRepr): String = r.widen.dealias match
+      case OrType(a, b) => s"${named(a)} | ${named(b)}"
+      case w            => w.typeSymbol.name
+    val gives = named(result).split(" \\| ").distinct.mkString(" | ")
+    makingIn(makesSteps(result), s"a function that gives $gives")(body)
+
+  /**
+   * The refusal of a step made outside a step function: a start, an `ends`, evidence, a refinement,
+   * a monitor, a Property or a progress claim reads values, states and steps and makes none
+   * (model/SEMANTICS.md, Levels).
+   */
+  def wrongLevel(t: Term): Nothing =
+    def made(t: Term): String = t match
+      case Apply(fn, _)        => made(fn)
+      case TypeApply(fn, _)    => made(fn)
+      case Select(of, "apply") => of.symbol.name.stripSuffix("$")
+      case other               => other.symbol.name
+    fail(
+      t,
+      s"${made(t)}(...) makes a step in ${making._2}: only a step function, which gives its steps, " +
+        "makes one, and every other declaration reads a value, a state or a step"
+    )
 
   /**
    * The refusal of a step function's several results written without names: every branching of a

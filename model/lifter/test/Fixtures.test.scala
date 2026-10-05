@@ -241,6 +241,23 @@ class Fixtures extends munit.FunSuite:
   // The refusals of fn-120.2's unnamed branching: several results written without a choose.
   private val unnamedRejects: Seq[String] = Seq("unnamedList", "unnamedJoin", "unnamedInHelper")
 
+  // The refusals of fn-120.5's levels: a step made where no step function is, one per declaration
+  // kind whose Scala type admits one (model/SEMANTICS.md, Levels).
+  private val levelRejects: Seq[String] = Seq(
+    "levelStart",
+    "levelEnds",
+    "levelEvidence",
+    "levelRefinement",
+    "levelMonitor",
+    "levelRequire",
+    "levelProperty",
+    "levelTransition",
+    "levelPattern",
+    "levelProgress",
+    "levelComposition",
+    "levelScenario"
+  )
+
   // The refusals of fn-112.10's names taken by default.
   private val defaultRejects: Seq[String] =
     Seq(
@@ -338,7 +355,7 @@ class Fixtures extends munit.FunSuite:
     "explained"
   ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects ++
     inputRejects ++ totalRejects ++ choiceRejects ++ unnamedRejects ++ bundleRejects ++
-    defaultRejects).map(
+    defaultRejects ++ levelRejects).map(
     "fixture.rejects.Rejects$package$." + _
   ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in

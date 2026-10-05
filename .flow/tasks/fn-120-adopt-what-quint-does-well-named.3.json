@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-120-adopt-what-quint-does-well-named",
   "spec_path": ".flow/tasks/fn-120-adopt-what-quint-does-well-named.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add model lint after the Scala root inventory stabilizes",
   "updated_at": "2026-10-03T22:12:17.722070Z"
 }
