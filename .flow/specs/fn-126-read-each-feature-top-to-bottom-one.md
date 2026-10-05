@@ -196,7 +196,7 @@ The cost:
   - `object syncs extends Syncs`, whose statements are today's `sync(…)` calls, named syncs included;
   - their own `properties`, `laws` and `queries`.
 
-  `withMember` derivations are `Derived` objects.
+  `withMember` derivations are composition objects, `object TrustingOverQueue extends Composition(RecheckingOverQueue.withMember(_.activity -> TrustingMember))` (amended in task 4: one class cannot extend both `Machine` and `Composition`, and helpers over compositions need `synced` and `own`).
 
   **The lifter is reshaped once.** It reads an object extending `Machine`, `Derived` or `Composition` together with its member sections. The `machine[S, O, F] { … }` builder, `steps(…)`, `starts`/`ends` and `compose(…)` value forms are retired from `model/umpire` and the lifter once every Model and lifter fixture uses the object forms, so the lifter supports one declaration shape. IR files keep explicit roots: a root names a machine, composition, Query, `laws` declaration or realization as today. A machine root does not pull in its sections, because that would change what each IR file holds; `competingTimers` sits in `activity-system.json`, not in `activity.json`.
 
@@ -464,7 +464,7 @@ object RecheckingOverQueue extends Composition[OverQueue](
     val adopted = overQueueCapabilities(this)            // Pausable(paused = through(_.activity, RecheckingRecord.paused)), …
   object queries extends Section: …
 
-object TrustingOverQueue extends Derived(RecheckingOverQueue.withMember(_.activity -> TrustingMember))
+object TrustingOverQueue extends Composition(RecheckingOverQueue.withMember(_.activity -> TrustingMember))
 ```
 
 ## Boundaries / Non-goals
