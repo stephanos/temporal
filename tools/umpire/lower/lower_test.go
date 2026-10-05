@@ -3,7 +3,6 @@ package lower
 import (
 	"encoding/json"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
 
@@ -262,12 +261,12 @@ var offPathKinds = map[string][]string{
 // Case the Scala source and compares the rest whole. Since fn-118.5 the Scala realization also leaves
 // how its reads wait to the API behavior and writes no limit on its handler's replies and its
 // workflow's finish, where the comparative realization writes a 250 ms interval and 5,000 ms limits:
-// those nodes are compared with the waits the IR's Case derives, and everything else of them whole.
+// those nodes, the derived waits the original baseline lists, are compared with the waits the IR's
+// Case derives, and everything else of them whole.
 func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
-	derived := func(entrypoint, id string) bool {
-		return entrypoint == "handler" && strings.HasPrefix(id, "respond-") ||
-			slices.Contains([]string{"controller/await-scheduled", "controller/pending-attempts", "workflow/finish-workflow"}, entrypoint+"/"+id)
-	}
+	delta, err := golden.OriginalDelta()
+	require.NoError(t, err)
+	derived := delta.Waits(golden.OriginalIR + "nexus-caller.json").Names
 	// waitingAs gives want's derived nodes the waits got's carry.
 	waitingAs := func(want, got *testpilotspb.Case) *testpilotspb.Case {
 		for _, e := range want.GetProgram().GetEntrypoints() {

@@ -168,9 +168,9 @@ func (ws Waits) Current(current *umpirespb.Model) (*umpirespb.Model, error) {
 // ordinal is the suffix a command carried again in a Case takes after its id: `-<n>`, n from 2.
 var ordinal = regexp.MustCompile(`^-[1-9][0-9]*$`)
 
-// names reports whether an instruction of an entrypoint is a listed command's: the command's id, or
+// Names reports whether an instruction of an entrypoint is a listed command's: the command's id, or
 // that id under its ordinal.
-func (ws Waits) names(entrypoint, instruction string) bool {
+func (ws Waits) Names(entrypoint, instruction string) bool {
 	for _, w := range ws {
 		if w.Script != entrypoint {
 			continue
@@ -239,7 +239,7 @@ func (ws Waits) node(entrypoint string, encoded []byte) ([]byte, error) {
 		if err := stringMember(node, "instructionId", &id); err != nil {
 			return nil, err
 		}
-		if !ws.names(entrypoint, id) {
+		if !ws.Names(entrypoint, id) {
 			return node, nil
 		}
 		node = without(node, derivedNodeMembers...)

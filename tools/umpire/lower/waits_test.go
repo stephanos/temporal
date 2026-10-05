@@ -6,6 +6,7 @@ package lower
 // removal refuses.
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 	"strings"
@@ -293,6 +294,8 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 	unseen := func(write, read string) string {
 		return fmt.Sprintf("and the realization declares no visibility of %s to %s", write, read)
 	}
+	// standing is a Query's standing with the hint, where it is no Case: cancel lowers to its gaps.
+	standing := map[string]Standing{"visibility.requestCancelActivityExecution.describeActivityExecution": NotSupported}
 	for _, tc := range []struct {
 		model, hint, query string
 		refusal            []string
@@ -340,7 +343,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		t.Run(tc.hint, func(t *testing.T) {
 			kept, err := lowerDerived(t, derivedModel(t, tc.model), tc.query)
 			require.NoError(t, err)
-			require.Contains(t, []Standing{Lowered, NotSupported}, kept.Standing)
+			require.Equal(t, cmp.Or(standing[tc.hint], Lowered), kept.Standing)
 			_, err = lowerDerived(t, derivedModel(t, tc.model, without(tc.hint)), tc.query)
 			require.Error(t, err)
 			for _, says := range tc.refusal {
