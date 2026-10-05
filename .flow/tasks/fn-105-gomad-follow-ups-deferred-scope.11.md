@@ -14,9 +14,12 @@ Administrative handoff to [fn-128.3](../tasks/fn-128-gomad-deferred-linux-qualif
 - [x] The source task's milestone and completion record explicitly identify this as an administrative transfer.
 
 ## Done summary
-TBD
+Recorded the owner-authorized administrative transfer of D11 to fn-128.3. The receiving task retains the original bounded Linux audit, positive control, seeded core-linux evidence, patch-policy restrictions and completed D21 prerequisite. Its revival requires the owner decision and native linux/amd64 execution.
 
+The transfer manifest, source scope amendments, milestone/agent policy and seven deferred receiving tasks are committed in 76c0bdd667a2896b219756c01ced3356e49aa0e6. Structural/coverage validation, dependency/status/history checks and fresh reviews passed. The audit remains deferred under fn-128.3. No Linux execution, implemented audit or Linux qualification pass is claimed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 76c0bdd667a2896b219756c01ced3356e49aa0e6
+- Tests: /home/agent/.codex/scripts/flowctl validate --all --json, /home/agent/.codex/scripts/flowctl validate --spec fn-128 --coverage --json, node .flow/tmp/linux-scope-transfer/verify.mjs, git diff --check
 - PRs:
