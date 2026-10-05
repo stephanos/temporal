@@ -158,6 +158,8 @@ class Fixtures extends munit.FunSuite:
     // fn-118.2: API behavior hints and server steps (lifts/Hints.scala). The reader admits the
     // first and refuses each realization of the second at its line (tools/umpire/model).
     "hints" -> Seq("keptBehavior", "ownBehavior").map("fixture.hints.Hints$package$." + _),
+    // fn-126 R14: sections in a file that pins nothing (lifts/Sections.scala).
+    "sections" -> Seq("fixture.sections.Switch$.switch"),
     "hintsRefused" -> Seq(
       "zeroInterval",
       "nonPositiveBound",
@@ -895,6 +897,21 @@ class Fixtures extends munit.FunSuite:
     val types = model.path("types").elements().asScala.map(_.path("name").asText()).toList
     assert(types.nonEmpty, "Captured.scala declares no types")
     for name <- types do assert(name.startsWith("fixture.spelled."), s"$name left fixture.spelled")
+
+  // Sections.scala pins nothing: the member of a top-level section takes the ID of the file's
+  // package object, as the file's own top-level action does, and the member of an actor directly in
+  // the machine's object takes that object's (fn-126 R14).
+  test("a section's member takes its owner's ID in a file that pins nothing"):
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("sections"))
+    val actions = model
+      .path("actions")
+      .elements()
+      .asScala
+      .map(a => a.path("name").asText() -> (a.path("id").asText(), a.path("party").asText()))
+      .toMap
+    assertEquals(actions("reset"), ("fixture.sections.Sections$package$.reset", "system"))
+    assertEquals(actions("flip"), ("fixture.sections.Sections$package$.flip", "panel"))
+    assertEquals(actions("press"), ("fixture.sections.Switch$.press", "operator"))
 
   /**
    * The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each

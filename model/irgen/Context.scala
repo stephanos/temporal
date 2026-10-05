@@ -309,26 +309,42 @@ final private[irgen] class Context(val index: Index):
       fail(
         at,
         s"the section $name sits in the section ${enclosing.name.stripSuffix("$")}: a section " +
-          "sits at the top level of a Model file or directly in a machine's object, never in another"
+          "sits at the top level of a Model file or directly in a machine's object, never in " +
+          "another"
       )
     else if enclosing.isPackageDef then
-      val file = pos(at).file
-      val stem = scala.util
-        .Try(at.pos.sourceFile.name.stripSuffix(".scala"))
-        .getOrElse(fail(at, s"the section $name has no source file"))
-      scopes.keys
-        .find(o =>
-          o.maybeOwner == enclosing && o.name.endsWith("$package$") && scopeFile(o) == file
+      val owner = fileObject(enclosing, pos(at).file).getOrElse(
+        fail(
+          at,
+          s"the section $name sits at the top level of a file that declares nothing there, so " +
+            "the file has no package object whose Definition IDs its members could take: declare " +
+            "its actions directly, or the section in a machine's object"
         )
-        .flatMap(pinOf)
-        .getOrElse(s"${enclosing.fullName}.$stem$$package$$")
+      )
+      pinOf(owner).getOrElse(owner.fullName)
     else if machineObject(enclosing) then pinOf(enclosing).getOrElse(enclosing.fullName)
     else
       fail(
         at,
-        s"the section $name sits in ${enclosing.fullName}, which is no machine's object: a " +
-          "section sits at the top level of a Model file or directly in a machine's object"
+        s"the section $name sits in ${enclosing.fullName.stripSuffix("$")}, which is no machine's " +
+          "object: a section sits at the top level of a Model file or directly in a machine's object"
       )
+
+  /**
+   * The package object of the file `file` in the package `pkg`, `<File>$package$`, as the compiler
+   * named it: the owner of a top-level definition of that file among the lifted sources, rather
+   * than a name spelled from the file's.
+   */
+  private def fileObject(pkg: Symbol, file: String): Option[Symbol] =
+    defs.values.collectFirst {
+      case d
+          if d.symbol.maybeOwner.isClassDef && d.symbol.maybeOwner.flags.is(Flags.Module) &&
+            d.symbol.maybeOwner.name.endsWith(
+              "$package$"
+            ) && d.symbol.maybeOwner.maybeOwner == pkg &&
+            pos(d).file == file =>
+        d.symbol.maybeOwner
+    }
 
   /** Whether `owner` is a machine's object: an object at a file's top level holding a machine. */
   private def machineObject(owner: Symbol): Boolean =
