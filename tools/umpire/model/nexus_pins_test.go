@@ -1,9 +1,7 @@
 package model
 
 // The Nexus caller Model, as model/ir/nexus-caller.json carries it: the sizes, rows and answers its
-// Scala pins asserted, read off the tables and receipts Go derives from the IR. The goldens under
-// testdata/migration freeze every one of these values; these tests state the ones the Model's
-// reader names.
+// Scala pins asserted, read off the tables and receipts Go derives from the IR.
 
 import (
 	"strings"

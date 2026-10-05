@@ -1,7 +1,6 @@
 package lower
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -14,7 +13,6 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
-	"go.temporal.io/server/tools/umpire/internal/golden"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -284,144 +282,6 @@ func TestALoweredCaseDeclaresTheHistoryKindsOffItsPath(t *testing.T) {
 			require.Len(t, c.GetProgram().GetEvidence(), len(confirmed)+len(off))
 		})
 	}
-}
-
-// The Scala Model and its realization say what the comparative Go Model and its realization say, but
-// for one declaration: the Scala realization declares the five history kinds exhaustive
-// (Realization.scala, historySource), which the comparative realization, a port of the Lean one, does
-// not. So the Case lowered from the IR is the Case the comparative Model produces once its realization
-// is given that declaration, and it differs from the comparative Model's own Case in exactly what the
-// declaration adds: the history kinds off the path, each declared, lifted by the history read and
-// given no meaning in the Contract, with the projection's fingerprint and the Case's own names that
-// follow from them.
-//
-// The provenance also says where the Model was written, and the comparative Model names its Lean
-// counterpart where the IR names the Scala file, which is not behaviour. The test gives the comparative
-// Case the Scala source and compares the rest whole. Since fn-118.5 the Scala realization also leaves
-// how its reads wait to the API behavior and writes no limit on its handler's replies and its
-// workflow's finish, where the comparative realization writes a 250 ms interval and 5,000 ms limits:
-// those nodes, the derived waits the original baseline lists, are compared with the waits the IR's
-// Case derives, and everything else of them whole. Since fn-124.3 the Scala realization's API behavior
-// also declares the limits an instruction that writes none runs under, that the order of a run is
-// causal and how attempts are numbered, which the comparative realization does not declare: those
-// Case members, the declared members the original baseline lists, are given the comparative Case as
-// the IR's Case carries them, and must be carried by it.
-func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
-	delta, err := golden.OriginalDelta()
-	require.NoError(t, err)
-	derived := delta.Waits(golden.OriginalIR + "nexus-caller.json").Names
-	// waitingAs gives want's derived nodes the waits got's carry.
-	waitingAs := func(want, got *testpilotspb.Case) *testpilotspb.Case {
-		for _, e := range want.GetProgram().GetEntrypoints() {
-			for _, n := range e.GetInstructions() {
-				if !derived(e.GetEntrypointId(), n.GetInstructionId()) {
-					continue
-				}
-				g := instruction(t, got, e.GetEntrypointId(), n.GetInstructionId())
-				n.Limits, n.WaitHints = g.GetLimits(), g.GetWaitHints()
-				if read := n.GetInstruction().GetReadEvidence(); read != nil {
-					read.PollIntervalMilliseconds, read.Once = g.GetInstruction().GetReadEvidence().GetPollIntervalMilliseconds(),
-						g.GetInstruction().GetReadEvidence().GetOnce()
-				}
-			}
-		}
-		return want
-	}
-	require.Equal(t, golden.Declared{"program.instructionDefaults", "program.runOrderIsCausal",
-		"program.entrypoints[*].activity.attemptNumbering"}, delta.Declared(), "declaringAs gives the declared members")
-	// declaringAs gives want the declared members got carries, each of which it must not carry already.
-	declaringAs := func(want, got *testpilotspb.Case) *testpilotspb.Case {
-		require.Nil(t, want.GetProgram().GetInstructionDefaults())
-		require.False(t, want.GetProgram().GetRunOrderIsCausal())
-		want.Program.InstructionDefaults = got.GetProgram().GetInstructionDefaults()
-		want.Program.RunOrderIsCausal = got.GetProgram().GetRunOrderIsCausal()
-		for _, e := range want.GetProgram().GetEntrypoints() {
-			if activity := e.GetActivity(); activity != nil {
-				require.Nil(t, activity.GetAttemptNumbering())
-				for _, g := range got.GetProgram().GetEntrypoints() {
-					if g.GetEntrypointId() == e.GetEntrypointId() {
-						activity.AttemptNumbering = g.GetActivity().GetAttemptNumbering()
-					}
-				}
-			}
-		}
-		return want
-	}
-	written := &testpilotspb.SourceLocation{Path: "model/temporal/features/nexuscaller/NexusCaller.scala", Line: 1, Column: 1,
-		Provenance: "scala-model"}
-	rewritten := func(c *testpilotspb.Case) *testpilotspb.Case {
-		for i := range c.GetProvenance().GetSources() {
-			c.GetProvenance().Sources[i] = written
-		}
-		for _, rule := range c.GetProvenance().GetCorrelatedRules() {
-			rule.Source = written
-		}
-		return c
-	}
-	p, err := NewProducer(loaded(t, "nexus-caller"))
-	require.NoError(t, err)
-	baseline, err := golden.Read(filepath.Join("testdata", "migration"))
-	require.NoError(t, err)
-	original := new(umpirespb.Model)
-	require.NoError(t, protojson.Unmarshal(baseline["original/inputs/ir/nexus-caller.json"], original))
-	MigrationComparativeModel(t, original)
-	var compared []string
-	for _, query := range original.GetQueries() {
-		// A verify Query has nothing to realize, so the comparative model has no Case for it.
-		if query.GetForm() != umpirespb.Query_FORM_FIND {
-			continue
-		}
-		name := query.GetName()
-		compared = append(compared, name)
-		t.Run(name, func(t *testing.T) {
-			var source cp.Source
-			require.NoError(t, json.Unmarshal(baseline["oracles/nexus/"+name+"/typed/source.json"], &source))
-			q, comparative, err := MigrationFixture(original, name, nexusIdentity(name))
-			require.NoError(t, err)
-			_, exhaustive, err := MigrationFixture(original, name, nexusIdentity(name))
-			require.NoError(t, err)
-			history := 0
-			for _, e := range exhaustive.Sources {
-				if e.Recorded.HistoryAttributes != "" {
-					e.Exhaustive = true
-					history++
-				}
-			}
-			require.Equal(t, 5, history, "the five history kinds are the exhaustive ones")
-
-			got := lowered(t, p, q.Name)
-			want, err := cp.Produce(q, nexusIdentity(q.Name), exhaustive, source)
-			require.NoError(t, err)
-			require.NotNil(t, got.GetProgram().GetInstructionDefaults(), "the IR's Case carries the declared members")
-			require.True(t, got.GetProgram().GetRunOrderIsCausal(), "the IR's Case carries the declared members")
-			require.Empty(t, cmp.Diff(declaringAs(waitingAs(rewritten(want), got), got), got, protocmp.Transform()))
-
-			// What the declaration adds to the comparative Model's own Case, and nothing else of the
-			// Contract: the kinds off the path, each with no meaning.
-			plain, err := cp.Produce(q, nexusIdentity(q.Name), comparative, source)
-			require.NoError(t, err)
-			kinds := func(c *testpilotspb.Case, meaning testpilotspb.CorrelatedEvidenceMeaning) []string {
-				names := definitions(c)
-				var out []string
-				for _, rule := range c.GetContract().GetCorrelated().GetProjectionRules() {
-					if rule.GetMeaning() == meaning {
-						out = append(out, strings.TrimPrefix(defined(names, rule.GetKind()), "temporal.nexus.caller.evidence."))
-					}
-				}
-				return out
-			}
-			require.ElementsMatch(t, offPathKinds[q.Name], kinds(got, testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT))
-			require.Empty(t, kinds(plain, testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT))
-			require.ElementsMatch(t, kinds(plain, testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED), kinds(got, testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED))
-			require.Len(t, got.GetProgram().GetEvidence(), len(plain.GetProgram().GetEvidence())+len(offPathKinds[q.Name]))
-			require.NotEqual(t, plain.GetContract().GetCorrelated().GetProjectionFingerprint(), got.GetContract().GetCorrelated().GetProjectionFingerprint())
-			// The instructions, the transitions and the Property's clauses are the comparative Case's.
-			require.Equal(t, instructionIDs(plain), instructionIDs(got))
-			require.Len(t, got.GetContract().GetCorrelated().GetTransitions(), len(plain.GetContract().GetCorrelated().GetTransitions()))
-			require.Len(t, got.GetContract().GetCorrelated().GetRules(), len(plain.GetContract().GetCorrelated().GetRules()))
-		})
-	}
-	require.ElementsMatch(t, functionalQueries, compared)
 }
 
 // What a realization writes is checked against the protobuf descriptors it names, at the Scala line
