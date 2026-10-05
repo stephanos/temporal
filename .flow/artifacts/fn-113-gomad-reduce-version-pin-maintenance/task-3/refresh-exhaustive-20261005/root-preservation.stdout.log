@@ -1,0 +1,21 @@
+{
+  "exact_one_line_insertion": true,
+  "matched_test_identities": true,
+  "inherited_failure_unchanged": true,
+  "retained_log_bindings": 10,
+  "scoped": {
+    "before": 136,
+    "after": 135,
+    "unchanged_complete_blocks": 135,
+    "introduced": 0,
+    "removed": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:328:4: missing cases in switch of type pinimpact.Status: pinimpact.StatusUnaffected, pinimpact.StatusNotSelected (exhaustive)"
+  },
+  "integrated": {
+    "before": 318,
+    "after": 317,
+    "unchanged_complete_blocks": 317,
+    "introduced": 0,
+    "removed": "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go:328:4: missing cases in switch of type pinimpact.Status: pinimpact.StatusUnaffected, pinimpact.StatusNotSelected (exhaustive)"
+  },
+  "integrated_errortype": "UNREACHED"
+}

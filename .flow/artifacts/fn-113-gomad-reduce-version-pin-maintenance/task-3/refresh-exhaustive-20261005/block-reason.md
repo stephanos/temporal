@@ -1,0 +1,5 @@
+ORIGINAL_QUALIFICATION_OPEN. The refresh status exhaustive finding is repaired by one explicit no-op case. Focused refresh controls pass before and after, and the conductor recheck passes all 11 cases. The pin-impact control retains its exact pre-edit linux/arm64 preparation refusal (three pass, one fail); the build-pin proof is not satisfied here.
+
+Actual full-config scoped lint remains red with 135 errcheck findings. Integrated lint remains red with 317 findings (252 errcheck, two exhaustive, 11 forbidigo, 52 staticcheck); Make exits 2 and never reaches integrated errortype. Literal preservation and complete raw diagnostic comparison confirm only the selected exhaustive finding was removed.
+
+Task .1/.2 acceptance dependencies, full current-source R4 reconciliation including selected-v041 preservation, required native Darwin validate/pack and broader qualification, and formal review remain open. This checkpoint is verified source progress, not completed acceptance. Linux execution remains transferred and nonblocking under fn-128.4/.7.

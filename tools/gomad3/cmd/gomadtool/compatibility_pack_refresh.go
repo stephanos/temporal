@@ -332,6 +332,7 @@ func packPinImpact(ctx context.Context, root, goCommand, baselineRef string, dir
 				}
 			case pinimpact.StatusStale:
 				stale[pin.Pack] = true
+			case pinimpact.StatusUnaffected, pinimpact.StatusNotSelected:
 			}
 		}
 	}

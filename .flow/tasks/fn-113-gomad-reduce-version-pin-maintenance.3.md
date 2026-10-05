@@ -37,6 +37,19 @@ One command that runs `discover`, `review`, and `generate` for every request a b
 ### Key context
 - fn-109 task 8 edits `compatibility_pack.go`; check its state first.
 - Pack validation rejects any pack admitting `os/exec`, `os/signal`, `os/user`, `plugin`, or `runtime/cgo`; refresh changes none of that.
+
+### Source-progress revival (2026-10-05): refresh status exhaustiveness
+
+Revive only the existing `packPinImpact` status switch at committed candidate `765547c32d2f674993026743fadceb4319e641d8`: the retained integrated lint reports missing `StatusUnaffected` and `StatusNotSelected`. Add explicit no-op cases without changing evaluation, output, error precedence, approvals, pins, variant selection or retirement. Existing task Touches covers this correction; no new owner or requirement is introduced.
+
+Retain focused baseline/final refresh tests and the actual pinned lint before/after, followed by one integrated lint gate on frozen final source and independent source-progress review. Keep task .1/.2 dependencies, every original acceptance criterion, current-source R4 reconciliation (including selected-variant preservation), native Darwin gates and formal review open. Linux execution remains nonblocking under fn-128.4/.7. MILESTONES permits reviewed source progress before predecessor acceptance and requires its own progress commit; this does not qualify or complete the task.
+
+### Verified source checkpoint (2026-10-05)
+
+The refresh switch now explicitly ignores the two unchanged statuses. [The checkpoint](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-exhaustive-20261005/progress.md) links baseline/final controls, exact source preservation, raw lint and independent source review. Scoped lint changes from 136 to 135 findings and integrated lint from 318 to 317; every remaining diagnostic block is unchanged. Both gates remain red. The inherited pin-impact host refusal remains a failure, original acceptance stays open, and no native qualification or formal SHIP is claimed.
+
+stage: impl-review - skipped(policy: required lint/native/R4 gates remain open; independent source-progress review approved)
+stage: plan-sync - skipped(config: disabled; no task completion)
 ## Acceptance
 
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
@@ -86,6 +99,13 @@ Native linux/amd64 qualification was unavailable on this host; no cross-compile 
 Parent verified all16 current path bindings and the review patch digest. Independent same-family codex:gpt-6-sol:high review returned SHIP with R4 met and no findings (working-tree-review.json). The user owns commits; no files staged or committed.
 stage: plan-sync - skipped(config: planSync.enabled != true)
 Tracker sync: n/a (sync active=false).
+
+Blocked:
+ORIGINAL_QUALIFICATION_OPEN. The refresh status exhaustive finding is repaired by one explicit no-op case. Focused refresh controls pass before and after, and the conductor recheck passes all 11 cases. The pin-impact control retains its exact pre-edit linux/arm64 preparation refusal (three pass, one fail); the build-pin proof is not satisfied here.
+
+Actual full-config scoped lint remains red with 135 errcheck findings. Integrated lint remains red with 317 findings (252 errcheck, two exhaustive, 11 forbidigo, 52 staticcheck); Make exits 2 and never reaches integrated errortype. Literal preservation and complete raw diagnostic comparison confirm only the selected exhaustive finding was removed.
+
+Task .1/.2 acceptance dependencies, full current-source R4 reconciliation including selected-v041 preservation, required native Darwin validate/pack and broader qualification, and formal review remain open. This checkpoint is verified source progress, not completed acceptance. Linux execution remains transferred and nonblocking under fn-128.4/.7.
 ## Evidence
 - Commits:
 - Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade (focused-bound-final.log; exit0), go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade (vet-final.log; exit0), make -C tools/gomad3 validate compatibility-pack-qualification (8 Darwin requests; exit0), real CLI refresh in root and corpus mappings; approve one via generate --approve-review; rerun reports only other; Linux request unchanged; unmapped CLI exits2, selector audit:16Go modules, no remaining v041 selectors; retired pack/request/report/fixture and migrated same coverage to v047, codex implementation review: SHIP,R4met,16path bindings including6deletions and patch digest verified, gofmt and git diff --check clean; scopedlint17pre-existing findings none newrefresh files; nativeLinux unavailable, finalgates task4

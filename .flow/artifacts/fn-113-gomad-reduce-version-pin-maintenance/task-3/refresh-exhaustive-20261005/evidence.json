@@ -1,0 +1,25 @@
+{
+  "commits": [],
+  "base_commit": "765547c32d2f674993026743fadceb4319e641d8",
+  "tests": [
+    "go test -tags test_dep -count=1 -json -run '^(TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes|TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas|TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree|TestSavedReportCannotSuppressAnotherMappedModule)$' ./cmd/gomadtool (cwd tools/gomad3; BASE and FINAL exit 0; four top-level and 11 total passing tests each; zero skips)",
+    "go test -tags test_dep -count=1 -json -run '^(TestUnchangedModuleInvalidatesNothing|TestFixtureBumpMatchesBuildRejections|TestRemovedModules|TestUnknownPinsCountAsInvalidated)$' ./upgrade/pinimpact (cwd tools/gomad3; BASE and FINAL exit 1; three pass, TestFixtureBumpMatchesBuildRejections fails on unsupported linux/arm64 before sentry version rejection; inherited failure unchanged)",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomadtool (cwd tools/gomad3; BASE and FINAL exit 1; 136 findings -> 135; exhaustive 1 -> 0; errcheck remains 135)",
+    "gofmt -d cmd/gomadtool/compatibility_pack_refresh.go (cwd tools/gomad3; FINAL exit 0; empty stdout/stderr)",
+    "git diff --check (cwd repository root; FINAL exit 0; empty stdout/stderr)"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "checks": "checks.json",
+  "baseline": "red: inherited linux/arm64 pin-impact host refusal; scoped lint exhaustive finding plus 135 inherited errcheck findings",
+  "source_progress": "one added empty case line; uncommitted for conductor",
+  "native_qualification": false,
+  "review": "host-deferred; conductor owns integrated gate and independent review",
+  "remaining_owner_gates": [
+    "fn-113 task .1/.2 acceptance dependencies",
+    "current-source R4 reconciliation including selected-variant preservation",
+    "native Darwin validate and compatibility-pack qualification",
+    "formal review"
+  ]
+}

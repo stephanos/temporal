@@ -1,0 +1,450 @@
+{
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "removed_environment": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "host": {
+    "platform": "linux",
+    "arch": "arm64",
+    "native_qualification": false,
+    "patched_go_present": false
+  },
+  "freezes": {
+    "BASE": {
+      "head": "765547c32d2f674993026743fadceb4319e641d8",
+      "branch": "gomad",
+      "recorded_at": "2026-10-05T21:09:13.901Z",
+      "source": {
+        "sha256": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+        "tracked_path_count": 1052,
+        "scope": "All tracked tools/gomad3, tools/gomad3sim, tools/gomad3integration, root Makefile and .github/.golangci.yml paths, sorted; each path + NUL + file SHA256 + NUL"
+      },
+      "files": {
+        "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go": "cb09108ac1b0617ecf2f2251b825d8854cebf269edcae160371fef1a436aef3c",
+        "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_test.go": "2954a54008f0f12ff2b5f00325976c699e2a78288c0e3eb31a6dbcb5b305651e",
+        "tools/gomad3/upgrade/pinimpact/pinimpact.go": "c8d1bdc43e57e825bd66cfb7c269a674027a763d8266ff6d144e0c5501c825b5",
+        "tools/gomad3/upgrade/pinimpact/pinimpact_test.go": "f83535808d2996da0b88b04699e2e60327df7673c189ff7cf5e293ee9fd568c6",
+        "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+        "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+        ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+        "Makefile": "e9cc7d891eaa5fcedc5a3009db524d011471703f1a3d07debf89e5437ecd965c",
+        "tools/gomad3/Makefile": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd",
+        "tools/gomad3/toolchain/version/version.json": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+        "tools/gomad3/internal/compatibilitypack/generation.json": "683f038aab921b3fee562963639660b507643948e907e7ff7a6d6c83798f91f1"
+      },
+      "tools": {
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+        "/usr/bin/node": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+      }
+    },
+    "FINAL": {
+      "head": "765547c32d2f674993026743fadceb4319e641d8",
+      "branch": "gomad",
+      "recorded_at": "2026-10-05T21:10:20.711Z",
+      "source": {
+        "sha256": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+        "tracked_path_count": 1052,
+        "scope": "All tracked tools/gomad3, tools/gomad3sim, tools/gomad3integration, root Makefile and .github/.golangci.yml paths, sorted; each path + NUL + file SHA256 + NUL"
+      },
+      "files": {
+        "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go": "629d265734b20c9ffa5d80c4c9ec4ababc5258d6eeeb724a3e21c32f2e92f3cc",
+        "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_test.go": "2954a54008f0f12ff2b5f00325976c699e2a78288c0e3eb31a6dbcb5b305651e",
+        "tools/gomad3/upgrade/pinimpact/pinimpact.go": "c8d1bdc43e57e825bd66cfb7c269a674027a763d8266ff6d144e0c5501c825b5",
+        "tools/gomad3/upgrade/pinimpact/pinimpact_test.go": "f83535808d2996da0b88b04699e2e60327df7673c189ff7cf5e293ee9fd568c6",
+        "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+        "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+        ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+        "Makefile": "e9cc7d891eaa5fcedc5a3009db524d011471703f1a3d07debf89e5437ecd965c",
+        "tools/gomad3/Makefile": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd",
+        "tools/gomad3/toolchain/version/version.json": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+        "tools/gomad3/internal/compatibilitypack/generation.json": "683f038aab921b3fee562963639660b507643948e907e7ff7a6d6c83798f91f1"
+      },
+      "tools": {
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+        "/usr/bin/node": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+      }
+    }
+  },
+  "runs": [
+    {
+      "stage": "BASE",
+      "label": "baseline-refresh",
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes|TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas|TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree|TestSavedReportCannotSuppressAnotherMappedModule)$",
+        "./cmd/gomadtool"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started_at": "2026-10-05T21:09:22.465Z",
+      "finished_at": "2026-10-05T21:09:27.230Z",
+      "elapsed_seconds": 3.8949182110000002,
+      "exit_code": 0,
+      "signal": null,
+      "source_before": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+      "source_after": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 11,
+        "pass": 11,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [
+        "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes",
+        "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas",
+        "TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree",
+        "TestSavedReportCannotSuppressAnotherMappedModule"
+      ],
+      "stdout_sha256": "71af7ee20d643f29852424751fcd53af0e0328871724ab2420f1b03a0c44a8f6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "BASE",
+      "label": "baseline-pinimpact",
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestUnchangedModuleInvalidatesNothing|TestFixtureBumpMatchesBuildRejections|TestRemovedModules|TestUnknownPinsCountAsInvalidated)$",
+        "./upgrade/pinimpact"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started_at": "2026-10-05T21:09:34.175Z",
+      "finished_at": "2026-10-05T21:09:35.452Z",
+      "elapsed_seconds": 0.6089918339999999,
+      "exit_code": 1,
+      "signal": null,
+      "source_before": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+      "source_after": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 4,
+        "pass": 3,
+        "fail": 1,
+        "skip": 0
+      },
+      "top_level_tests": [
+        "TestUnchangedModuleInvalidatesNothing",
+        "TestFixtureBumpMatchesBuildRejections",
+        "TestRemovedModules",
+        "TestUnknownPinsCountAsInvalidated"
+      ],
+      "stdout_sha256": "2b03838f029d0a78ff296e7e998bf2c85cfbb6405c16bb40263e4fbfa9d7b97c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "BASE",
+      "label": "baseline-lint",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./cmd/gomadtool"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started_at": "2026-10-05T21:09:47.555Z",
+      "finished_at": "2026-10-05T21:09:53.808Z",
+      "elapsed_seconds": 5.61870267,
+      "exit_code": 1,
+      "signal": null,
+      "source_before": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+      "source_after": "8541e2f5e20623ba38928ce13b9312b717ac39d7d7b9de57614e5f898cb9e134",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 0,
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [],
+      "stdout_sha256": "d73dc25eacc7169f4b494c317dff386ad3ce398d4b5e94a766cefea1fb3fa32e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "FINAL",
+      "label": "final-refresh",
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes|TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas|TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree|TestSavedReportCannotSuppressAnotherMappedModule)$",
+        "./cmd/gomadtool"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started_at": "2026-10-05T21:10:21.993Z",
+      "finished_at": "2026-10-05T21:10:26.306Z",
+      "elapsed_seconds": 3.5561370429999997,
+      "exit_code": 0,
+      "signal": null,
+      "source_before": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_after": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 11,
+        "pass": 11,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [
+        "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes",
+        "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas",
+        "TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree",
+        "TestSavedReportCannotSuppressAnotherMappedModule"
+      ],
+      "stdout_sha256": "92e382e7dcf57f9034b92387622dee1c0291712e8eb41a29899c29b6c44140b2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "FINAL",
+      "label": "final-pinimpact",
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestUnchangedModuleInvalidatesNothing|TestFixtureBumpMatchesBuildRejections|TestRemovedModules|TestUnknownPinsCountAsInvalidated)$",
+        "./upgrade/pinimpact"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started_at": "2026-10-05T21:10:31.257Z",
+      "finished_at": "2026-10-05T21:10:32.258Z",
+      "elapsed_seconds": 0.5352802090000001,
+      "exit_code": 1,
+      "signal": null,
+      "source_before": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_after": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 4,
+        "pass": 3,
+        "fail": 1,
+        "skip": 0
+      },
+      "top_level_tests": [
+        "TestUnchangedModuleInvalidatesNothing",
+        "TestFixtureBumpMatchesBuildRejections",
+        "TestRemovedModules",
+        "TestUnknownPinsCountAsInvalidated"
+      ],
+      "stdout_sha256": "fb2a627c27032f407e766778ef447afaec938d8f8ae2e6b10b436b17f4adfc99",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "FINAL",
+      "label": "final-lint",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./cmd/gomadtool"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started_at": "2026-10-05T21:10:39.129Z",
+      "finished_at": "2026-10-05T21:10:41.424Z",
+      "elapsed_seconds": 1.905645251,
+      "exit_code": 1,
+      "signal": null,
+      "source_before": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_after": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 0,
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [],
+      "stdout_sha256": "0a9d37c66a0fe4f09a8effd791177e0db42d0a08c2080b599f2f108db9015acb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "FINAL",
+      "label": "final-gofmt",
+      "argv": [
+        "gofmt",
+        "-d",
+        "cmd/gomadtool/compatibility_pack_refresh.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started_at": "2026-10-05T21:10:56.279Z",
+      "finished_at": "2026-10-05T21:10:56.642Z",
+      "elapsed_seconds": 0.007832250000000044,
+      "exit_code": 0,
+      "signal": null,
+      "source_before": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_after": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 0,
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "FINAL",
+      "label": "final-diff-check",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "started_at": "2026-10-05T21:10:57.232Z",
+      "finished_at": "2026-10-05T21:10:57.735Z",
+      "elapsed_seconds": 0.042497749999999994,
+      "exit_code": 0,
+      "signal": null,
+      "source_before": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_after": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 0,
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "FINAL",
+      "label": "root-integrated-lint",
+      "argv": [
+        "make",
+        "--trace",
+        "lint-code-gomad3",
+        "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "started_at": "2026-10-05T21:12:42.648Z",
+      "finished_at": "2026-10-05T21:15:35.729Z",
+      "elapsed_seconds": 172.541001541,
+      "exit_code": 2,
+      "signal": null,
+      "source_before": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_after": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 0,
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [],
+      "stdout_sha256": "b32074e2a267eecceaefff1addd2944a3c9becf28ebc25b13dbb6802ad454d7c",
+      "stderr_sha256": "992b37774ec7a9ef007946759efa35d32c7b4743dd8e3c8dffbad2e765e9ee00"
+    },
+    {
+      "stage": "FINAL",
+      "label": "root-focused-recheck",
+      "argv": [
+        "go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes|TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas|TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree|TestSavedReportCannotSuppressAnotherMappedModule)$",
+        "./cmd/gomadtool"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started_at": "2026-10-05T21:15:59.455Z",
+      "finished_at": "2026-10-05T21:16:01.728Z",
+      "elapsed_seconds": 1.875716626,
+      "exit_code": 0,
+      "signal": null,
+      "source_before": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_after": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 11,
+        "pass": 11,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [
+        "TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes",
+        "TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas",
+        "TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree",
+        "TestSavedReportCannotSuppressAnotherMappedModule"
+      ],
+      "stdout_sha256": "23e047c459305906d63363b79fdb79edb58f17d98af45885dcf7f2da23dd188a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "FINAL",
+      "label": "root-preservation",
+      "argv": [
+        "node",
+        ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-exhaustive-20261005/root-verify.mjs"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "started_at": "2026-10-05T21:16:12.371Z",
+      "finished_at": "2026-10-05T21:16:13.401Z",
+      "elapsed_seconds": 0.44888625000000004,
+      "exit_code": 0,
+      "signal": null,
+      "source_before": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_after": "e58adc206eec497c941f7833968461890e577f807eeed79fdb23fa6e4d883a1a",
+      "source_and_tool_inputs_stable": true,
+      "test_counts": {
+        "run": 0,
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "top_level_tests": [],
+      "stdout_sha256": "9a8e82b22217f9d5216be49b6992747023f98e4cfed167e5e778a4f17515a5df",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
