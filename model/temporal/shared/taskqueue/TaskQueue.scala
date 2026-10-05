@@ -84,36 +84,42 @@ val taskQueueEntity = Entity("taskQueue", key = "taskQueue")
 /** The party of the faults the queue's providers suffer. */
 val fault = Party()
 
-// The interface: what a feature may rely on of the durable queue. An enqueue commits or fails; a
-// committed message is delivered up to twice before its acknowledgment; and no committed message is
-// lost. A crash shows at this interface only as that second delivery.
-
-val enqueue = internal on taskQueueEntity
-val deliver = internal on taskQueueEntity
-val acknowledge = internal on taskQueueEntity
-
 val enqueueCommits = choice
 val enqueueFails = choice
 
 /**
- * Committed storage may be lost. It is a fault of its own, apart from a crash, and only a machine
- * that assumes it has the step.
+ * The queue's own steps. A section is transparent, so each keeps the Definition ID the file's pin
+ * gives it.
+ *
+ * The interface: what a feature may rely on of the durable queue. An enqueue commits or fails; a
+ * committed message is delivered up to twice before its acknowledgment; and no committed message
+ * is lost. A crash shows at this interface only as that second delivery.
+ *
+ * The detailed queue: history's dispatch task and matching's custody. The route of one message:
+ * history durably schedules the dispatch task; its Execute invokes AddActivityTask; matching either
+ * persists the task or reserves it for a waiting poller; a poll hands it out; and once the consumer
+ * has answered, matching completes it. Each step is its own transition, so a crash can fall between
+ * any two.
  */
-val storageLoss = action(fault)
+object queue extends Section:
+  val enqueue = internal on taskQueueEntity
+  val deliver = internal on taskQueueEntity
+  val acknowledge = internal on taskQueueEntity
 
-// The detailed queue: history's dispatch task and matching's custody. The route of one message:
-// history durably schedules the dispatch task; its Execute invokes AddActivityTask; matching either
-// persists the task or reserves it for a waiting poller; a poll hands it out; and once the consumer
-// has answered, matching completes it. Each step is its own transition, so a crash can fall between
-// any two.
+  val addActivityTask = internal on taskQueueEntity
+  val persistTask = internal on taskQueueEntity
+  val syncMatch = internal on taskQueueEntity
 
-val addActivityTask = internal on taskQueueEntity
-val persistTask = internal on taskQueueEntity
-val syncMatch = internal on taskQueueEntity
+/** The faults the providers suffer, which name no entity, as the worker's stop and resume do not. */
+object faults extends Section:
+  /**
+   * Committed storage may be lost. It is a fault of its own, apart from a crash, and only a machine
+   * that assumes it has the step.
+   */
+  val storageLoss = action(fault)
 
-// The faults name no entity, as the worker's stop and resume name none.
-val crash = action(fault)
-val ackLoss = action(fault)
+  val crash = action(fault)
+  val ackLoss = action(fault)
 
 val seven = Limits(steps = 7, actions = 7, search = 262144)
 
@@ -192,15 +198,15 @@ object DispatchQueue:
     starts(emptyQueue)
     ends(q => q.outstanding == Outstanding.empty)
     steps(
-      enqueue ~> effects.enqueueView,
-      deliver ~> effects.deliverView,
-      acknowledge ~> effects.acknowledgeView
+      queue.enqueue ~> effects.enqueueView,
+      queue.deliver ~> effects.deliverView,
+      queue.acknowledge ~> effects.acknowledgeView
     )
   }
 
   /** The interface under the storage-loss assumption: a committed message may also vanish. */
   val dispatchQueueUnderStorageLoss =
-    dispatchQueue.extend(storageLoss ~> effects.storageLossView).assuming(storageLossAssumed)
+    dispatchQueue.extend(faults.storageLoss ~> effects.storageLossView).assuming(storageLossAssumed)
 
 // ### The detailed provider, and the providers derived from it. The violating providers each differ
 // from the detailed provider in what one ordinary crash does, and neither assumes storage loss. They
@@ -336,14 +342,14 @@ object MatchingQueue:
     starts(idleQueue)
     ends(queueEnds)
     steps(
-      enqueue ~> effects.enqueueDetail,
-      addActivityTask ~> effects.invokeDetail,
-      persistTask ~> effects.persistDetail,
-      syncMatch ~> effects.reserveDetail,
-      deliver ~> effects.deliverDetail,
-      acknowledge ~> effects.acknowledgeDetail,
-      ackLoss ~> effects.ackLossDetail,
-      crash ~> effects.crashDetail
+      queue.enqueue ~> effects.enqueueDetail,
+      queue.addActivityTask ~> effects.invokeDetail,
+      queue.persistTask ~> effects.persistDetail,
+      queue.syncMatch ~> effects.reserveDetail,
+      queue.deliver ~> effects.deliverDetail,
+      queue.acknowledge ~> effects.acknowledgeDetail,
+      faults.ackLoss ~> effects.ackLossDetail,
+      faults.crash ~> effects.crashDetail
     )
   }
 
@@ -352,13 +358,13 @@ object MatchingQueue:
    * the interface that allows the loss.
    */
   val lossyMatchingQueue = matchingQueue
-    .extend(storageLoss ~> effects.storageLossDetail)
+    .extend(faults.storageLoss ~> effects.storageLossDetail)
     .refining(DispatchQueue.dispatchQueueUnderStorageLoss)(viewOf)
     .assuming(DispatchQueue.storageLossAssumed)
 
-  val forgetfulQueue = matchingQueue.rebind(crash ~> effects.forgetfulCrash)
+  val forgetfulQueue = matchingQueue.rebind(faults.crash ~> effects.forgetfulCrash)
 
-  val volatileQueue = matchingQueue.rebind(crash ~> effects.volatileCrash)
+  val volatileQueue = matchingQueue.rebind(faults.crash ~> effects.volatileCrash)
 
   /** What a provider promises. */
   object properties:
@@ -368,7 +374,7 @@ object MatchingQueue:
      * instance keeps the name its checks read.
      */
     def queueLaws(m: Machine[QueueDetail, QueueOutcome, QueueFact]) = QueueLaws(
-      m.property("delivers") when deliver holds (after => after.records(QueueFact.delivered)),
+      m.property("delivers") when queue.deliver holds (after => after.records(QueueFact.delivered)),
       m.property("committedStays")
         .stays(_.custody != Custody.nowhere)
         .unless(_.records(QueueFact.acknowledged))
@@ -379,7 +385,7 @@ object MatchingQueue:
      * provider binds the loss, so this is its own Property, not a law of every provider.
      */
     val storageLossDrops =
-      lossyMatchingQueue.property when storageLoss holds { after =>
+      lossyMatchingQueue.property when faults.storageLoss holds { after =>
         after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost)
       }
 
@@ -389,7 +395,12 @@ object MatchingQueue:
    */
   object queries:
     val persistedThenLost =
-      lossyMatchingQueue.scenario.actions(enqueue, addActivityTask, persistTask, storageLoss)
+      lossyMatchingQueue.scenario.actions(
+        queue.enqueue,
+        queue.addActivityTask,
+        queue.persistTask,
+        faults.storageLoss
+      )
 
     /**
      * One crash after the invocation, after the sync match, after persistence and after a delivery.
@@ -402,15 +413,50 @@ object MatchingQueue:
     ) =
       val laws = properties.queueLaws(m)
       val crashAfterInvocation = m.scenario
-        .actions(enqueue, addActivityTask, crash, addActivityTask, persistTask, deliver)
+        .actions(
+          queue.enqueue,
+          queue.addActivityTask,
+          faults.crash,
+          queue.addActivityTask,
+          queue.persistTask,
+          queue.deliver
+        )
       val crashAfterSyncMatch = m.scenario
-        .actions(enqueue, addActivityTask, syncMatch, crash, addActivityTask, syncMatch, deliver)
+        .actions(
+          queue.enqueue,
+          queue.addActivityTask,
+          queue.syncMatch,
+          faults.crash,
+          queue.addActivityTask,
+          queue.syncMatch,
+          queue.deliver
+        )
       val crashAfterPersistence = m.scenario
-        .actions(enqueue, addActivityTask, persistTask, crash, deliver)
+        .actions(
+          queue.enqueue,
+          queue.addActivityTask,
+          queue.persistTask,
+          faults.crash,
+          queue.deliver
+        )
       val crashAfterDelivery = m.scenario
-        .actions(enqueue, addActivityTask, persistTask, deliver, crash, deliver)
+        .actions(
+          queue.enqueue,
+          queue.addActivityTask,
+          queue.persistTask,
+          queue.deliver,
+          faults.crash,
+          queue.deliver
+        )
       val crashAfterAcknowledgment = m.scenario
-        .actions(enqueue, addActivityTask, persistTask, deliver, acknowledge, crash)
+        .actions(
+          queue.enqueue,
+          queue.addActivityTask,
+          queue.persistTask,
+          queue.deliver,
+          queue.acknowledge,
+          faults.crash
+        )
       val any = m.scenario.free
       Vector(
         query(s"${m.name}.crashAfterInvocation") find laws.delivers in

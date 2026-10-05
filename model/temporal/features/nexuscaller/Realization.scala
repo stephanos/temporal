@@ -58,7 +58,7 @@ import io.temporal.api.enums.v1.{
 import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure as ApiFailure}
 import io.temporal.api.nexus.v1.{Failure as NexusFailure, HandlerError, StartOperationResponse}
 import com.google.protobuf.duration.Duration
-import shared.worker.workerStop
+import shared.worker.worker
 
 import CallerFamily.given
 import Timeout.expires
@@ -297,17 +297,17 @@ object NexusRealization:
 
   private def callerController(steps: Item*) = controller(
     (Vector(
-      perform(workerStop -> stopHandlerWorker),
+      perform(worker.workerStop -> stopHandlerWorker),
       everyCase(startWorkflow),
       everyCase(awaitScheduled)
     ) ++ steps ++ Vector(
-      onPath(handlerReply(Reply.handlerError(true)))(pendingAttempts),
-      onPath(complete(Resolution.succeeded), complete(Resolution.failed))(
+      onPath(handler.handlerReply(Reply.handlerError(true)))(pendingAttempts),
+      onPath(handler.complete(Resolution.succeeded), handler.complete(Resolution.failed))(
         awaitCompletionAuthority
       ),
       perform(
-        complete(Resolution.succeeded) -> completeNexusOperation,
-        complete(Resolution.failed) -> failNexusOperation
+        handler.complete(Resolution.succeeded) -> completeNexusOperation,
+        handler.complete(Resolution.failed) -> failNexusOperation
       ),
       everyCase(awaitClose),
       everyCase(history)
@@ -387,14 +387,14 @@ object NexusRealization:
     script("workflow", WorkerActivation.Workflow(workflowType, caseWorker, taskQueue))(
       // The schedule command once per class of deadline a path of the caller Model sets.
       perform(
-        schedule() -> startNexusOperation,
-        schedule(Inputs.scheduleToStart := expires) -> scheduling(
+        caller.schedule() -> startNexusOperation,
+        caller.schedule(scheduleToStart := expires) -> scheduling(
           ProtoField.typed(
             Field[ScheduleNexusOperationCommandAttributes, Duration](_.getScheduleToStartTimeout),
             deadline
           )
         ),
-        schedule(Inputs.startToClose := expires) -> scheduling(
+        caller.schedule(startToClose := expires) -> scheduling(
           ProtoField.typed(
             Field[ScheduleNexusOperationCommandAttributes, Duration](_.getStartToCloseTimeout),
             deadline
@@ -402,9 +402,9 @@ object NexusRealization:
         )
       ),
       onPath(
-        schedule(),
-        schedule(Inputs.scheduleToStart := expires),
-        schedule(Inputs.startToClose := expires)
+        caller.schedule(),
+        caller.schedule(scheduleToStart := expires),
+        caller.schedule(startToClose := expires)
       )(awaitNexusOperation),
       everyCase(finishWorkflow)
     )
@@ -483,11 +483,11 @@ object NexusRealization:
       WorkerActivation.NexusHandler(service, operation, caseWorker, handlerTaskQueue)
     )(
       perform(
-        handlerReply(Reply.async) -> respondAsync,
-        handlerReply(Reply.syncSuccess) -> respondSync,
-        handlerReply(Reply.operationFailed) -> respondFailed,
-        handlerReply(Reply.handlerError(true)) -> respondErrorRetryable,
-        handlerReply(Reply.handlerError(false)) -> respondError
+        handler.handlerReply(Reply.async) -> respondAsync,
+        handler.handlerReply(Reply.syncSuccess) -> respondSync,
+        handler.handlerReply(Reply.operationFailed) -> respondFailed,
+        handler.handlerReply(Reply.handlerError(true)) -> respondErrorRetryable,
+        handler.handlerReply(Reply.handlerError(false)) -> respondError
       )
     )
 
@@ -510,8 +510,8 @@ object NexusRealization:
     // A timeout class fires at the deadline its schedule command sets. No command sets a
     // schedule-to-close deadline, so no path waits for that class.
     serverSteps = Vector(
-      ServerStep(scheduleToStart, CauseKind.timer, deadlineMs),
-      ServerStep(startToClose, CauseKind.timer, deadlineMs)
+      ServerStep(features.nexuscaller.deadline.scheduleToStart, CauseKind.timer, deadlineMs),
+      ServerStep(features.nexuscaller.deadline.startToClose, CauseKind.timer, deadlineMs)
     )
   )
 
@@ -519,5 +519,5 @@ object NexusRealization:
 
   val forgedCompletion = realization(
     temporal.features.nexuscaller.Control.forgedCompletion,
-    perform(temporal.features.nexuscaller.Control.inspect -> inspectWorkflow)
+    perform(temporal.features.nexuscaller.Control.caller.inspect -> inspectWorkflow)
   )

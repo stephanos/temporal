@@ -84,9 +84,9 @@ object CurrentOverQueue:
 
   val currentOverQueue =
     compose[OverQueue](_.activity -> CurrentRecord.currentRecord, _.queue -> dispatchQueue)
-      .sync(_.activity -> dispatch, _.queue -> enqueue)
-      .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
-      .sync("settle", _.activity -> answerDelivery, _.queue -> acknowledge)
+      .sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
+      .sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
+      .sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
       .ends(s => Admission.end(s.activity))
 
   object properties:
@@ -115,12 +115,12 @@ object CurrentOverQueue:
         rejected = closedAnswer
       ),
       Pausable(
-        pause = c.own(_.activity, control(Control.pause)),
-        unpause = c.own(_.activity, control(Control.unpause)),
+        pause = c.own(_.activity, caller.control(Control.pause)),
+        unpause = c.own(_.activity, caller.control(Control.unpause)),
         paused = through(_.activity, Admission.paused)
       ),
       Pollable(
-        dispatch = c.synced(_.activity -> attemptStart),
+        dispatch = c.synced(_.activity -> worker.attemptStart),
         running = through(_.activity, Admission.running)
       )
     ).except(closedIsRejectedUniformly, because = queueStepsOn)
@@ -130,19 +130,19 @@ object CurrentOverQueue:
     def overQueueQueries(c: Composition[OverQueue]) =
       val claims = properties.overQueueClaims(c)
       val staleDeliveryAfterPause = c.scenario.actions(
-        c.synced(_.activity -> dispatch),
-        c.own(_.activity, control(Control.pause)),
-        c.synced(_.activity -> attemptStart)
+        c.synced(_.activity -> history.dispatch),
+        c.own(_.activity, caller.control(Control.pause)),
+        c.synced(_.activity -> worker.attemptStart)
       )
       val admittedBeforePause = c.scenario.actions(
-        c.synced(_.activity -> dispatch),
-        c.synced(_.activity -> attemptStart),
-        c.own(_.activity, control(Control.pause))
+        c.synced(_.activity -> history.dispatch),
+        c.synced(_.activity -> worker.attemptStart),
+        c.own(_.activity, caller.control(Control.pause))
       )
       val duplicateDelivery = c.scenario.actions(
-        c.synced(_.activity -> dispatch),
-        c.synced(_.activity -> attemptStart),
-        c.synced(_.activity -> attemptStart)
+        c.synced(_.activity -> history.dispatch),
+        c.synced(_.activity -> worker.attemptStart),
+        c.synced(_.activity -> worker.attemptStart)
       )
       val any = c.scenario.free
       Vector(
@@ -173,9 +173,9 @@ object StaleOverQueue:
 object CurrentOverMatching:
   val currentOverMatching =
     compose[OverMatching](_.activity -> CurrentRecord.currentRecord, _.queue -> matchingQueue)
-      .sync(_.activity -> dispatch, _.queue -> enqueue)
-      .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
-      .sync("settle", _.activity -> answerDelivery, _.queue -> acknowledge)
+      .sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
+      .sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
+      .sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
       .replaces(_.queue, dispatchQueue)
       .ends(s => Admission.end(s.activity))
 
@@ -199,12 +199,12 @@ object CurrentOverMatching:
         rejected = CurrentOverQueue.closedAnswer
       ),
       Pausable(
-        pause = c.own(_.activity, control(Control.pause)),
-        unpause = c.own(_.activity, control(Control.unpause)),
+        pause = c.own(_.activity, caller.control(Control.pause)),
+        unpause = c.own(_.activity, caller.control(Control.unpause)),
         paused = through(_.activity, Admission.paused)
       ),
       Pollable(
-        dispatch = c.synced(_.activity -> attemptStart),
+        dispatch = c.synced(_.activity -> worker.attemptStart),
         running = through(_.activity, Admission.running)
       )
     ).except(closedIsRejectedUniformly, because = CurrentOverQueue.queueStepsOn)
@@ -214,39 +214,39 @@ object CurrentOverMatching:
     def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int) =
       val claims = properties.overMatchingClaims(c)
       val staleDeliveryAfterPause = c.scenario.actions(
-        c.synced(_.activity -> dispatch),
-        c.own(_.queue, addActivityTask),
-        c.own(_.queue, persistTask),
-        c.own(_.activity, control(Control.pause)),
-        c.synced(_.activity -> attemptStart)
+        c.synced(_.activity -> history.dispatch),
+        c.own(_.queue, queue.addActivityTask),
+        c.own(_.queue, queue.persistTask),
+        c.own(_.activity, caller.control(Control.pause)),
+        c.synced(_.activity -> worker.attemptStart)
       )
       val admittedBeforePause = c.scenario.actions(
-        c.synced(_.activity -> dispatch),
-        c.own(_.queue, addActivityTask),
-        c.own(_.queue, persistTask),
-        c.synced(_.activity -> attemptStart),
-        c.own(_.activity, control(Control.pause))
+        c.synced(_.activity -> history.dispatch),
+        c.own(_.queue, queue.addActivityTask),
+        c.own(_.queue, queue.persistTask),
+        c.synced(_.activity -> worker.attemptStart),
+        c.own(_.activity, caller.control(Control.pause))
       )
       // The answer to the poller is lost after the commit, so the persisted task is handed out again.
       val deliveredAgainAfterLostAck = c.scenario.actions(
-        c.synced(_.activity -> dispatch),
-        c.own(_.queue, addActivityTask),
-        c.own(_.queue, persistTask),
-        c.synced(_.activity -> attemptStart),
-        c.own(_.queue, ackLoss),
-        c.synced(_.activity -> attemptStart)
+        c.synced(_.activity -> history.dispatch),
+        c.own(_.queue, queue.addActivityTask),
+        c.own(_.queue, queue.persistTask),
+        c.synced(_.activity -> worker.attemptStart),
+        c.own(_.queue, faults.ackLoss),
+        c.synced(_.activity -> worker.attemptStart)
       )
       // A crash after the admission commit, before the acknowledgment: history retries the sync
       // match.
       val crashAfterAdmissionCommit = c.scenario.actions(
-        c.synced(_.activity -> dispatch),
-        c.own(_.queue, addActivityTask),
-        c.own(_.queue, syncMatch),
-        c.synced(_.activity -> attemptStart),
-        c.own(_.queue, crash),
-        c.own(_.queue, addActivityTask),
-        c.own(_.queue, syncMatch),
-        c.synced(_.activity -> attemptStart)
+        c.synced(_.activity -> history.dispatch),
+        c.own(_.queue, queue.addActivityTask),
+        c.own(_.queue, queue.syncMatch),
+        c.synced(_.activity -> worker.attemptStart),
+        c.own(_.queue, faults.crash),
+        c.own(_.queue, queue.addActivityTask),
+        c.own(_.queue, queue.syncMatch),
+        c.synced(_.activity -> worker.attemptStart)
       )
       val any = c.scenario.free
       Vector(

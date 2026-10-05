@@ -176,7 +176,7 @@
     "name": "forgedCompletion.evidence",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 741
+      "line": 776
     },
     "params": [ {
       "name": "protocolFact",
@@ -187,13 +187,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 742
+        "line": 777
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 742
+            "line": 777
           },
           "var": "protocolFact"
         },
@@ -209,7 +209,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-              "line": 741
+              "line": 776
             },
             "literal": {
               "text": "nexusOperationScheduled"
@@ -227,7 +227,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-              "line": 741
+              "line": 776
             },
             "literal": {
               "text": "nexusOperationStarted"
@@ -245,7 +245,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-              "line": 741
+              "line": 776
             },
             "literal": {
               "text": "nexusOperationCompleted"
@@ -263,7 +263,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-              "line": 741
+              "line": 776
             },
             "literal": {
               "text": "nexusOperationFailed"
@@ -281,7 +281,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-              "line": 741
+              "line": 776
             },
             "literal": {
               "text": "nexusOperationCanceled"
@@ -300,7 +300,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-              "line": 742
+              "line": 777
             },
             "literal": {
               "text": "nexusOperationTimedOut"
@@ -318,7 +318,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-              "line": 743
+              "line": 778
             },
             "literal": {
               "text": "pendingAttempts"
@@ -331,7 +331,7 @@
     "name": "forgedCompletion.property.forgedSuccess",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 764
+      "line": 799
     },
     "params": [ {
       "name": "step",
@@ -342,14 +342,14 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 764
+        "line": 799
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 764
+            "line": 799
           },
           "literal": {
             "enum": {
@@ -361,13 +361,13 @@
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 764
+            "line": 799
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 764
+                "line": 799
               },
               "var": "step"
             },
@@ -380,7 +380,7 @@
     "name": "temporal.features.nexuscaller.Control$.effects$.forgedComplete",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 725
+      "line": 760
     },
     "params": [ {
       "name": "s",
@@ -396,27 +396,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 726
+        "line": 761
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 726
+            "line": 761
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 726
+                "line": 761
               },
               "var": "resolution"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 726
+                "line": 761
               },
               "literal": {
                 "enum": {
@@ -430,27 +430,27 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 727
+            "line": 762
           },
           "binary": {
             "op": "OP_CONCAT",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 728
+                "line": 763
               },
               "call": {
                 "function": "temporal.features.nexuscaller.Protocol$.effects$.completeStep$forged",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 728
+                    "line": 763
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 728
+                    "line": 763
                   },
                   "literal": {
                     "enum": {
@@ -464,20 +464,20 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 729
+                "line": 764
               },
               "call": {
                 "function": "temporal.features.nexuscaller.Protocol$.effects$.completeStep$sent",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 729
+                    "line": 764
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 729
+                    "line": 764
                   },
                   "var": "resolution"
                 } ]
@@ -488,20 +488,20 @@
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 731
+            "line": 766
           },
           "call": {
             "function": "temporal.features.nexuscaller.Protocol$.effects$.completeStep",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 731
+                "line": 766
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 731
+                "line": 766
               },
               "var": "resolution"
             } ]
@@ -513,7 +513,7 @@
     "name": "temporal.features.nexuscaller.Control$.effects$.inspectStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 721
+      "line": 756
     },
     "params": [ {
       "name": "s",
@@ -524,20 +524,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 721
+        "line": 756
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 721
+            "line": 756
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 165
+                "line": 169
               },
               "literal": {
                 "enum": {
@@ -548,19 +548,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 721
+                "line": 756
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 721
+                "line": 756
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 721
+                "line": 756
               },
               "literal": {
                 "text": ""
@@ -574,7 +574,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.effects$.backoffStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 417
+      "line": 423
     },
     "params": [ {
       "name": "s",
@@ -585,26 +585,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 418
+        "line": 424
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 418
+            "line": 424
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 418
+                "line": 424
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 418
+                    "line": 424
                   },
                   "var": "s"
                 },
@@ -614,7 +614,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 418
+                "line": 424
               },
               "literal": {
                 "enum": {
@@ -628,27 +628,27 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 418
+            "line": 424
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 418
+            "line": 424
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 418
+                "line": 424
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 165
+                    "line": 169
                   },
                   "literal": {
                     "enum": {
@@ -659,13 +659,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 418
+                    "line": 424
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 418
+                        "line": 424
                       },
                       "var": "s"
                     },
@@ -674,7 +674,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 418
+                          "line": 424
                         },
                         "literal": {
                           "enum": {
@@ -688,13 +688,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 418
+                    "line": 424
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 418
+                    "line": 424
                   },
                   "literal": {
                     "text": ""
@@ -710,7 +710,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.effects$.completeStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 399
+      "line": 405
     },
     "params": [ {
       "name": "s",
@@ -726,26 +726,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 400
+        "line": 406
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 400
+            "line": 406
           },
           "call": {
             "function": "temporal.features.nexuscaller.Protocol$.terminalPhase",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 400
+                "line": 406
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "var": "s"
                 },
@@ -757,20 +757,20 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 400
+            "line": 406
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 400
+                "line": 406
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "literal": {
                     "enum": {
@@ -781,19 +781,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "literal": {
                     "text": ""
@@ -806,26 +806,26 @@
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 401
+            "line": 407
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 401
+                "line": 407
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 401
+                    "line": 407
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 401
+                        "line": 407
                       },
                       "var": "s"
                     },
@@ -835,7 +835,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 401
+                    "line": 407
                   },
                   "literal": {
                     "enum": {
@@ -849,40 +849,40 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 401
+                "line": 407
               },
               "list": { }
             },
             "else": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 403
+                "line": 409
               },
               "let": {
                 "name": "startedFirst",
                 "value": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 404
+                    "line": 410
                   },
                   "if": {
                     "condition": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "binary": {
                         "op": "OP_NE",
                         "left": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                "line": 404
+                                "line": 410
                               },
                               "var": "s"
                             },
@@ -892,7 +892,7 @@
                         "right": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "literal": {
                             "enum": {
@@ -906,13 +906,13 @@
                     "then": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "literal": {
                             "enum": {
@@ -926,7 +926,7 @@
                     "else": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "list": { }
                     }
@@ -935,13 +935,13 @@
                 "body": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 405
+                    "line": 411
                   },
                   "match": {
                     "scrutinee": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 405
+                        "line": 411
                       },
                       "var": "resolution"
                     },
@@ -957,20 +957,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 407
+                          "line": 413
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 407
+                              "line": 413
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -981,13 +981,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "var": "s"
                                   },
@@ -996,7 +996,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 407
+                                        "line": 413
                                       },
                                       "literal": {
                                         "enum": {
@@ -1010,27 +1010,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 407
+                                          "line": 413
                                         },
                                         "literal": {
                                           "enum": {
@@ -1045,7 +1045,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "literal": {
                                   "text": ""
@@ -1067,20 +1067,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 409
+                          "line": 415
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 409
+                              "line": 415
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -1091,13 +1091,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "var": "s"
                                   },
@@ -1106,7 +1106,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 409
+                                        "line": 415
                                       },
                                       "literal": {
                                         "enum": {
@@ -1120,27 +1120,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 409
+                                          "line": 415
                                         },
                                         "literal": {
                                           "enum": {
@@ -1155,7 +1155,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "literal": {
                                   "text": ""
@@ -1177,20 +1177,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 411
+                          "line": 417
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 411
+                              "line": 417
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -1201,13 +1201,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "var": "s"
                                   },
@@ -1216,7 +1216,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 411
+                                        "line": 417
                                       },
                                       "literal": {
                                         "enum": {
@@ -1230,27 +1230,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 411
+                                          "line": 417
                                         },
                                         "literal": {
                                           "enum": {
@@ -1265,7 +1265,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "literal": {
                                   "text": ""
@@ -1288,7 +1288,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.effects$.completeStep$forged",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 399
+      "line": 405
     },
     "params": [ {
       "name": "s",
@@ -1304,26 +1304,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 400
+        "line": 406
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 400
+            "line": 406
           },
           "call": {
             "function": "temporal.features.nexuscaller.Protocol$.terminalPhase",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 400
+                "line": 406
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "var": "s"
                 },
@@ -1335,20 +1335,20 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 400
+            "line": 406
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 400
+                "line": 406
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "literal": {
                     "enum": {
@@ -1359,19 +1359,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "literal": {
                     "text": ""
@@ -1385,26 +1385,26 @@
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 401
+            "line": 407
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 401
+                "line": 407
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 401
+                    "line": 407
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 401
+                        "line": 407
                       },
                       "var": "s"
                     },
@@ -1414,7 +1414,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 401
+                    "line": 407
                   },
                   "literal": {
                     "enum": {
@@ -1428,40 +1428,40 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 401
+                "line": 407
               },
               "list": { }
             },
             "else": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 403
+                "line": 409
               },
               "let": {
                 "name": "startedFirst",
                 "value": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 404
+                    "line": 410
                   },
                   "if": {
                     "condition": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "binary": {
                         "op": "OP_NE",
                         "left": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                "line": 404
+                                "line": 410
                               },
                               "var": "s"
                             },
@@ -1471,7 +1471,7 @@
                         "right": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "literal": {
                             "enum": {
@@ -1485,13 +1485,13 @@
                     "then": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "literal": {
                             "enum": {
@@ -1505,7 +1505,7 @@
                     "else": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "list": { }
                     }
@@ -1514,13 +1514,13 @@
                 "body": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 405
+                    "line": 411
                   },
                   "match": {
                     "scrutinee": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 405
+                        "line": 411
                       },
                       "var": "resolution"
                     },
@@ -1536,20 +1536,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 407
+                          "line": 413
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 407
+                              "line": 413
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -1560,13 +1560,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "var": "s"
                                   },
@@ -1575,7 +1575,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 407
+                                        "line": 413
                                       },
                                       "literal": {
                                         "enum": {
@@ -1589,27 +1589,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 407
+                                          "line": 413
                                         },
                                         "literal": {
                                           "enum": {
@@ -1624,7 +1624,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "literal": {
                                   "text": ""
@@ -1647,20 +1647,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 409
+                          "line": 415
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 409
+                              "line": 415
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -1671,13 +1671,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "var": "s"
                                   },
@@ -1686,7 +1686,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 409
+                                        "line": 415
                                       },
                                       "literal": {
                                         "enum": {
@@ -1700,27 +1700,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 409
+                                          "line": 415
                                         },
                                         "literal": {
                                           "enum": {
@@ -1735,7 +1735,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "literal": {
                                   "text": ""
@@ -1758,20 +1758,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 411
+                          "line": 417
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 411
+                              "line": 417
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -1782,13 +1782,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "var": "s"
                                   },
@@ -1797,7 +1797,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 411
+                                        "line": 417
                                       },
                                       "literal": {
                                         "enum": {
@@ -1811,27 +1811,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 411
+                                          "line": 417
                                         },
                                         "literal": {
                                           "enum": {
@@ -1846,7 +1846,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "literal": {
                                   "text": ""
@@ -1870,7 +1870,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.effects$.completeStep$sent",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 399
+      "line": 405
     },
     "params": [ {
       "name": "s",
@@ -1886,26 +1886,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 400
+        "line": 406
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 400
+            "line": 406
           },
           "call": {
             "function": "temporal.features.nexuscaller.Protocol$.terminalPhase",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 400
+                "line": 406
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "var": "s"
                 },
@@ -1917,20 +1917,20 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 400
+            "line": 406
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 400
+                "line": 406
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "literal": {
                     "enum": {
@@ -1941,19 +1941,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 400
+                    "line": 406
                   },
                   "literal": {
                     "text": ""
@@ -1967,26 +1967,26 @@
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 401
+            "line": 407
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 401
+                "line": 407
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 401
+                    "line": 407
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 401
+                        "line": 407
                       },
                       "var": "s"
                     },
@@ -1996,7 +1996,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 401
+                    "line": 407
                   },
                   "literal": {
                     "enum": {
@@ -2010,40 +2010,40 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 401
+                "line": 407
               },
               "list": { }
             },
             "else": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 403
+                "line": 409
               },
               "let": {
                 "name": "startedFirst",
                 "value": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 404
+                    "line": 410
                   },
                   "if": {
                     "condition": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "binary": {
                         "op": "OP_NE",
                         "left": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                "line": 404
+                                "line": 410
                               },
                               "var": "s"
                             },
@@ -2053,7 +2053,7 @@
                         "right": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "literal": {
                             "enum": {
@@ -2067,13 +2067,13 @@
                     "then": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 404
+                            "line": 410
                           },
                           "literal": {
                             "enum": {
@@ -2087,7 +2087,7 @@
                     "else": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 404
+                        "line": 410
                       },
                       "list": { }
                     }
@@ -2096,13 +2096,13 @@
                 "body": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 405
+                    "line": 411
                   },
                   "match": {
                     "scrutinee": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 405
+                        "line": 411
                       },
                       "var": "resolution"
                     },
@@ -2118,20 +2118,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 407
+                          "line": 413
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 407
+                              "line": 413
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -2142,13 +2142,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "var": "s"
                                   },
@@ -2157,7 +2157,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 407
+                                        "line": 413
                                       },
                                       "literal": {
                                         "enum": {
@@ -2171,27 +2171,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 407
+                                      "line": 413
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 407
+                                          "line": 413
                                         },
                                         "literal": {
                                           "enum": {
@@ -2206,7 +2206,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 407
+                                  "line": 413
                                 },
                                 "literal": {
                                   "text": ""
@@ -2229,20 +2229,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 409
+                          "line": 415
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 409
+                              "line": 415
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -2253,13 +2253,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "var": "s"
                                   },
@@ -2268,7 +2268,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 409
+                                        "line": 415
                                       },
                                       "literal": {
                                         "enum": {
@@ -2282,27 +2282,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 409
+                                      "line": 415
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 409
+                                          "line": 415
                                         },
                                         "literal": {
                                           "enum": {
@@ -2317,7 +2317,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 409
+                                  "line": 415
                                 },
                                 "literal": {
                                   "text": ""
@@ -2340,20 +2340,20 @@
                       "body": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 411
+                          "line": 417
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 411
+                              "line": 417
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 165
+                                  "line": 169
                                 },
                                 "literal": {
                                   "enum": {
@@ -2364,13 +2364,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "var": "s"
                                   },
@@ -2379,7 +2379,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 411
+                                        "line": 417
                                       },
                                       "literal": {
                                         "enum": {
@@ -2393,27 +2393,27 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "binary": {
                                   "op": "OP_CONCAT",
                                   "left": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "var": "startedFirst"
                                   },
                                   "right": {
                                     "position": {
                                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                      "line": 411
+                                      "line": 417
                                     },
                                     "list": {
                                       "items": [ {
                                         "position": {
                                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                          "line": 411
+                                          "line": 417
                                         },
                                         "literal": {
                                           "enum": {
@@ -2428,7 +2428,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 411
+                                  "line": 417
                                 },
                                 "literal": {
                                   "text": ""
@@ -2452,7 +2452,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.effects$.handlerReplyStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 360
+      "line": 366
     },
     "params": [ {
       "name": "s",
@@ -2468,26 +2468,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 362
+        "line": 368
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 362
+            "line": 368
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 362
+                "line": 368
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 362
+                    "line": 368
                   },
                   "var": "s"
                 },
@@ -2497,7 +2497,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 362
+                "line": 368
               },
               "literal": {
                 "enum": {
@@ -2511,20 +2511,20 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 362
+            "line": 368
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 364
+            "line": 370
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 364
+                "line": 370
               },
               "var": "reply"
             },
@@ -2540,20 +2540,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                  "line": 365
+                  "line": 371
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 365
+                      "line": 371
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 165
+                          "line": 169
                         },
                         "literal": {
                           "enum": {
@@ -2564,13 +2564,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 365
+                          "line": 371
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 365
+                              "line": 371
                             },
                             "var": "s"
                           },
@@ -2579,7 +2579,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                "line": 365
+                                "line": 371
                               },
                               "literal": {
                                 "enum": {
@@ -2593,13 +2593,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 365
+                          "line": 371
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 365
+                              "line": 371
                             },
                             "literal": {
                               "enum": {
@@ -2612,7 +2612,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 365
+                          "line": 371
                         },
                         "literal": {
                           "text": ""
@@ -2634,20 +2634,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                  "line": 366
+                  "line": 372
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 366
+                      "line": 372
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 165
+                          "line": 169
                         },
                         "literal": {
                           "enum": {
@@ -2658,13 +2658,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 366
+                          "line": 372
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 366
+                              "line": 372
                             },
                             "var": "s"
                           },
@@ -2673,7 +2673,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                "line": 366
+                                "line": 372
                               },
                               "literal": {
                                 "enum": {
@@ -2687,13 +2687,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 366
+                          "line": 372
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 366
+                              "line": 372
                             },
                             "literal": {
                               "enum": {
@@ -2706,7 +2706,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 366
+                          "line": 372
                         },
                         "literal": {
                           "text": ""
@@ -2728,20 +2728,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                  "line": 367
+                  "line": 373
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 367
+                      "line": 373
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 165
+                          "line": 169
                         },
                         "literal": {
                           "enum": {
@@ -2752,13 +2752,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 367
+                          "line": 373
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 367
+                              "line": 373
                             },
                             "var": "s"
                           },
@@ -2767,7 +2767,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                "line": 367
+                                "line": 373
                               },
                               "literal": {
                                 "enum": {
@@ -2781,13 +2781,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 367
+                          "line": 373
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 367
+                              "line": 373
                             },
                             "literal": {
                               "enum": {
@@ -2800,7 +2800,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 367
+                          "line": 373
                         },
                         "literal": {
                           "text": ""
@@ -2822,20 +2822,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                  "line": 368
+                  "line": 374
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 368
+                      "line": 374
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 165
+                          "line": 169
                         },
                         "literal": {
                           "enum": {
@@ -2846,13 +2846,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 368
+                          "line": 374
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 368
+                              "line": 374
                             },
                             "var": "s"
                           },
@@ -2861,7 +2861,7 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                "line": 368
+                                "line": 374
                               },
                               "literal": {
                                 "enum": {
@@ -2875,13 +2875,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 368
+                          "line": 374
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 368
+                              "line": 374
                             },
                             "literal": {
                               "enum": {
@@ -2894,7 +2894,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 368
+                          "line": 374
                         },
                         "literal": {
                           "text": ""
@@ -2922,20 +2922,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                  "line": 370
+                  "line": 376
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 370
+                      "line": 376
                     },
                     "unary": {
                       "op": "OP_NOT",
                       "operand": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 370
+                          "line": 376
                         },
                         "var": "retryable"
                       }
@@ -2944,20 +2944,20 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 370
+                      "line": 376
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 370
+                          "line": 376
                         },
                         "construct": {
                           "type": "umpire.Step",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 165
+                              "line": 169
                             },
                             "literal": {
                               "enum": {
@@ -2968,13 +2968,13 @@
                           }, {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 370
+                              "line": 376
                             },
                             "copy": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 370
+                                  "line": 376
                                 },
                                 "var": "s"
                               },
@@ -2983,7 +2983,7 @@
                                 "value": {
                                   "position": {
                                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                    "line": 370
+                                    "line": 376
                                   },
                                   "literal": {
                                     "enum": {
@@ -2997,13 +2997,13 @@
                           }, {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 370
+                              "line": 376
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 370
+                                  "line": 376
                                 },
                                 "literal": {
                                   "enum": {
@@ -3016,7 +3016,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 370
+                              "line": 376
                             },
                             "literal": {
                               "text": ""
@@ -3029,20 +3029,20 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 372
+                      "line": 378
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 372
+                          "line": 378
                         },
                         "construct": {
                           "type": "umpire.Step",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 165
+                              "line": 169
                             },
                             "literal": {
                               "enum": {
@@ -3053,13 +3053,13 @@
                           }, {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 373
+                              "line": 379
                             },
                             "copy": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 373
+                                  "line": 379
                                 },
                                 "var": "s"
                               },
@@ -3068,7 +3068,7 @@
                                 "value": {
                                   "position": {
                                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                    "line": 373
+                                    "line": 379
                                   },
                                   "literal": {
                                     "enum": {
@@ -3082,20 +3082,20 @@
                                 "value": {
                                   "position": {
                                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                    "line": 373
+                                    "line": 379
                                   },
                                   "call": {
                                     "function": "temporal.features.nexuscaller.Protocol$.saturatingSucc",
                                     "args": [ {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                        "line": 373
+                                        "line": 379
                                       },
                                       "field": {
                                         "base": {
                                           "position": {
                                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                            "line": 373
+                                            "line": 379
                                           },
                                           "var": "s"
                                         },
@@ -3109,13 +3109,13 @@
                           }, {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 374
+                              "line": 380
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 374
+                                  "line": 380
                                 },
                                 "literal": {
                                   "enum": {
@@ -3128,7 +3128,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 372
+                              "line": 378
                             },
                             "literal": {
                               "text": ""
@@ -3148,20 +3148,20 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 361
+        "line": 367
       },
       "call": {
         "function": "temporal.features.nexuscaller.Protocol$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 361
+            "line": 367
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 361
+                "line": 367
               },
               "var": "s"
             },
@@ -3174,7 +3174,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.effects$.scheduleStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 341
+      "line": 347
     },
     "params": [ {
       "name": "s",
@@ -3200,26 +3200,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 347
+        "line": 353
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 347
+            "line": 353
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 347
+                "line": 353
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 347
+                    "line": 353
                   },
                   "var": "s"
                 },
@@ -3229,7 +3229,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 347
+                "line": 353
               },
               "literal": {
                 "enum": {
@@ -3243,27 +3243,27 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 347
+            "line": 353
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 349
+            "line": 355
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 349
+                "line": 355
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 165
+                    "line": 169
                   },
                   "literal": {
                     "enum": {
@@ -3274,14 +3274,14 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 350
+                    "line": 356
                   },
                   "construct": {
                     "type": "temporal.nexuscaller.ProtocolState",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 350
+                        "line": 356
                       },
                       "literal": {
                         "enum": {
@@ -3292,7 +3292,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 350
+                        "line": 356
                       },
                       "literal": {
                         "int": "0"
@@ -3300,19 +3300,19 @@
                     }, {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 350
+                        "line": 356
                       },
                       "var": "scheduleToClose"
                     }, {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 350
+                        "line": 356
                       },
                       "var": "scheduleToStart"
                     }, {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 350
+                        "line": 356
                       },
                       "var": "startToClose"
                     } ]
@@ -3320,13 +3320,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 351
+                    "line": 357
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 351
+                        "line": 357
                       },
                       "literal": {
                         "enum": {
@@ -3339,7 +3339,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 349
+                    "line": 355
                   },
                   "literal": {
                     "text": ""
@@ -3355,7 +3355,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.effects$.scheduleToCloseStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 424
+      "line": 430
     },
     "params": [ {
       "name": "s",
@@ -3366,33 +3366,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 425
+        "line": 431
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 425
+            "line": 431
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 425
+                "line": 431
               },
               "call": {
                 "function": "temporal.features.nexuscaller.Protocol$.running",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 425
+                    "line": 431
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 425
+                        "line": 431
                       },
                       "var": "s"
                     },
@@ -3404,20 +3404,20 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 425
+                "line": 431
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 425
+                    "line": 431
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 425
+                        "line": 431
                       },
                       "var": "s"
                     },
@@ -3427,7 +3427,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 425
+                    "line": 431
                   },
                   "literal": {
                     "enum": {
@@ -3443,20 +3443,20 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 426
+            "line": 432
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 426
+                "line": 432
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 165
+                    "line": 169
                   },
                   "literal": {
                     "enum": {
@@ -3467,13 +3467,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 426
+                    "line": 432
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 426
+                        "line": 432
                       },
                       "var": "s"
                     },
@@ -3482,7 +3482,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 426
+                          "line": 432
                         },
                         "literal": {
                           "enum": {
@@ -3496,13 +3496,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 426
+                    "line": 432
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 426
+                        "line": 432
                       },
                       "construct": {
                         "type": "temporal.nexuscaller.ProtocolFact",
@@ -3510,7 +3510,7 @@
                         "args": [ {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 426
+                            "line": 432
                           },
                           "literal": {
                             "enum": {
@@ -3525,7 +3525,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 426
+                    "line": 432
                   },
                   "literal": {
                     "text": ""
@@ -3538,7 +3538,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 427
+            "line": 433
           },
           "list": { }
         }
@@ -3546,230 +3546,6 @@
     }
   }, {
     "name": "temporal.features.nexuscaller.Protocol$.effects$.scheduleToStartStep",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 433
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 434
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 434
-          },
-          "binary": {
-            "op": "OP_AND",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 434
-              },
-              "binary": {
-                "op": "OP_CONTAINS",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 434
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 434
-                      },
-                      "var": "s"
-                    },
-                    "field": "phase"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 434
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 434
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.nexuscaller.Phase",
-                          "case": "scheduled"
-                        }
-                      }
-                    }, {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 434
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.nexuscaller.Phase",
-                          "case": "backingOff"
-                        }
-                      }
-                    } ]
-                  }
-                }
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 434
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 434
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 434
-                      },
-                      "var": "s"
-                    },
-                    "field": "scheduleToStart"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 434
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.nexuscaller.Timeout",
-                      "case": "expires"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 435
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 435
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 165
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.nexuscaller.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 435
-                  },
-                  "copy": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 435
-                      },
-                      "var": "s"
-                    },
-                    "updates": [ {
-                      "name": "phase",
-                      "value": {
-                        "position": {
-                          "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 435
-                        },
-                        "literal": {
-                          "enum": {
-                            "type": "temporal.nexuscaller.Phase",
-                            "case": "timedOut"
-                          }
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 435
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 435
-                      },
-                      "construct": {
-                        "type": "temporal.nexuscaller.ProtocolFact",
-                        "case": "nexusOperationTimedOut",
-                        "args": [ {
-                          "position": {
-                            "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                            "line": 435
-                          },
-                          "literal": {
-                            "enum": {
-                              "type": "temporal.nexuscaller.TimeoutType",
-                              "case": "scheduleToStart"
-                            }
-                          }
-                        } ]
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 435
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 436
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.Protocol$.effects$.startToCloseStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
       "line": 439
@@ -3799,7 +3575,7 @@
                 "line": 440
               },
               "binary": {
-                "op": "OP_EQ",
+                "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
@@ -3821,11 +3597,30 @@
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
                     "line": 440
                   },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.nexuscaller.Phase",
-                      "case": "started"
-                    }
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                        "line": 440
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.Phase",
+                          "case": "scheduled"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                        "line": 440
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.nexuscaller.Phase",
+                          "case": "backingOff"
+                        }
+                      }
+                    } ]
                   }
                 }
               }
@@ -3850,7 +3645,7 @@
                       },
                       "var": "s"
                     },
-                    "field": "startToClose"
+                    "field": "scheduleToStart"
                   }
                 },
                 "right": {
@@ -3885,7 +3680,7 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 165
+                    "line": 169
                   },
                   "literal": {
                     "enum": {
@@ -3944,7 +3739,7 @@
                           "literal": {
                             "enum": {
                               "type": "temporal.nexuscaller.TimeoutType",
-                              "case": "startToClose"
+                              "case": "scheduleToStart"
                             }
                           }
                         } ]
@@ -3974,10 +3769,10 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.Protocol$.effects$.transportFaultStep",
+    "name": "temporal.features.nexuscaller.Protocol$.effects$.startToCloseStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 378
+      "line": 445
     },
     "params": [ {
       "name": "s",
@@ -3988,26 +3783,231 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 380
+        "line": 446
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 380
+            "line": 446
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                "line": 446
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                    "line": 446
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                        "line": 446
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                    "line": 446
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.Phase",
+                      "case": "started"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                "line": 446
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                    "line": 446
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                        "line": 446
+                      },
+                      "var": "s"
+                    },
+                    "field": "startToClose"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                    "line": 446
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.Timeout",
+                      "case": "expires"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+            "line": 447
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                "line": 447
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                    "line": 169
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                    "line": 447
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                        "line": 447
+                      },
+                      "var": "s"
+                    },
+                    "updates": [ {
+                      "name": "phase",
+                      "value": {
+                        "position": {
+                          "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                          "line": 447
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.nexuscaller.Phase",
+                            "case": "timedOut"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                    "line": 447
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                        "line": 447
+                      },
+                      "construct": {
+                        "type": "temporal.nexuscaller.ProtocolFact",
+                        "case": "nexusOperationTimedOut",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                            "line": 447
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.nexuscaller.TimeoutType",
+                              "case": "startToClose"
+                            }
+                          }
+                        } ]
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                    "line": 447
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+            "line": 448
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.Protocol$.effects$.transportFaultStep",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+      "line": 384
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.ProtocolState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+        "line": 386
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+            "line": 386
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 380
+                "line": 386
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 380
+                    "line": 386
                   },
                   "var": "s"
                 },
@@ -4017,7 +4017,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 380
+                "line": 386
               },
               "literal": {
                 "enum": {
@@ -4031,27 +4031,27 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 380
+            "line": 386
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 382
+            "line": 388
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 382
+                "line": 388
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 165
+                    "line": 169
                   },
                   "literal": {
                     "enum": {
@@ -4062,13 +4062,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 383
+                    "line": 389
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 383
+                        "line": 389
                       },
                       "var": "s"
                     },
@@ -4077,7 +4077,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 383
+                          "line": 389
                         },
                         "literal": {
                           "enum": {
@@ -4091,20 +4091,20 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 383
+                          "line": 389
                         },
                         "call": {
                           "function": "temporal.features.nexuscaller.Protocol$.saturatingSucc",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                              "line": 383
+                              "line": 389
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                                  "line": 383
+                                  "line": 389
                                 },
                                 "var": "s"
                               },
@@ -4118,13 +4118,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 384
+                    "line": 390
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                        "line": 384
+                        "line": 390
                       },
                       "literal": {
                         "enum": {
@@ -4137,7 +4137,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 382
+                    "line": 388
                   },
                   "literal": {
                     "text": ""
@@ -4152,20 +4152,20 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 379
+        "line": 385
       },
       "call": {
         "function": "temporal.features.nexuscaller.Protocol$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 379
+            "line": 385
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 379
+                "line": 385
               },
               "var": "s"
             },
@@ -4178,7 +4178,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.effects$.workerStopStep",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 392
+      "line": 398
     },
     "params": [ {
       "name": "s",
@@ -4189,20 +4189,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 392
+        "line": 398
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 392
+            "line": 398
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 165
+                "line": 169
               },
               "literal": {
                 "enum": {
@@ -4213,19 +4213,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 392
+                "line": 398
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 392
+                "line": 398
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 392
+                "line": 398
               },
               "literal": {
                 "text": ""
@@ -4239,7 +4239,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.running",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 312
+      "line": 318
     },
     "params": [ {
       "name": "p",
@@ -4250,27 +4250,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 312
+        "line": 318
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 312
+            "line": 318
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 312
+            "line": 318
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 312
+                "line": 318
               },
               "literal": {
                 "enum": {
@@ -4281,7 +4281,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 312
+                "line": 318
               },
               "literal": {
                 "enum": {
@@ -4292,7 +4292,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 312
+                "line": 318
               },
               "literal": {
                 "enum": {
@@ -4309,7 +4309,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.saturatingSucc",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 304
+      "line": 310
     },
     "params": [ {
       "name": "a",
@@ -4320,27 +4320,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 306
+        "line": 312
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 306
+            "line": 312
           },
           "binary": {
             "op": "OP_LT",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 306
+                "line": 312
               },
               "var": "a"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 299
+                "line": 305
               },
               "literal": {
                 "int": "2"
@@ -4351,21 +4351,21 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 306
+            "line": 312
           },
           "binary": {
             "op": "OP_ADD",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 306
+                "line": 312
               },
               "var": "a"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 306
+                "line": 312
               },
               "literal": {
                 "int": "1"
@@ -4376,7 +4376,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 306
+            "line": 312
           },
           "var": "a"
         }
@@ -4385,14 +4385,14 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 305
+        "line": 311
       },
       "call": {
         "function": "temporal.features.nexuscaller.Protocol$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 305
+            "line": 311
           },
           "var": "a"
         } ]
@@ -4402,7 +4402,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.terminalPhase",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 309
+      "line": 315
     },
     "params": [ {
       "name": "p",
@@ -4413,27 +4413,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 309
+        "line": 315
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 309
+            "line": 315
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 309
+            "line": 315
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 309
+                "line": 315
               },
               "literal": {
                 "enum": {
@@ -4444,7 +4444,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 309
+                "line": 315
               },
               "literal": {
                 "enum": {
@@ -4455,7 +4455,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 309
+                "line": 315
               },
               "literal": {
                 "enum": {
@@ -4466,7 +4466,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 309
+                "line": 315
               },
               "literal": {
                 "enum": {
@@ -4483,7 +4483,7 @@
     "name": "temporal.features.nexuscaller.Protocol$.validAttempts",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 301
+      "line": 307
     },
     "params": [ {
       "name": "a",
@@ -4494,21 +4494,21 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 301
+        "line": 307
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 301
+            "line": 307
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 301
+                "line": 307
               },
               "literal": {
                 "int": "0"
@@ -4517,7 +4517,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 301
+                "line": 307
               },
               "var": "a"
             }
@@ -4526,21 +4526,21 @@
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 301
+            "line": 307
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 301
+                "line": 307
               },
               "var": "a"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 299
+                "line": 305
               },
               "literal": {
                 "int": "2"
@@ -4556,7 +4556,7 @@
     "name": "inspect",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 713
+      "line": 748
     },
     "party": "caller",
     "on": "operation"
@@ -4565,7 +4565,7 @@
     "name": "backoff",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 171
+      "line": 174
     },
     "party": "system",
     "timer": true
@@ -4574,7 +4574,7 @@
     "name": "complete",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 151
+      "line": 153
     },
     "party": "handler",
     "inputs": [ {
@@ -4590,7 +4590,7 @@
     "name": "handlerReply",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 138
+      "line": 140
     },
     "party": "handler",
     "inputs": [ {
@@ -4655,7 +4655,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 172
+      "line": 178
     },
     "party": "system",
     "timer": true
@@ -4664,7 +4664,7 @@
     "name": "scheduleToStart",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 173
+      "line": 179
     },
     "party": "system",
     "timer": true
@@ -4673,7 +4673,7 @@
     "name": "startToClose",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 174
+      "line": 180
     },
     "party": "system",
     "timer": true
@@ -4682,7 +4682,7 @@
     "name": "transportFault",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 153
+      "line": 157
     },
     "party": "network",
     "on": "operation"
@@ -4691,7 +4691,7 @@
     "name": "workerStop",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 64
+      "line": 63
     },
     "party": "worker"
   } ],
@@ -4700,7 +4700,7 @@
     "name": "forgedCompletion",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 736
+      "line": 771
     },
     "entity": "operation",
     "stateType": "temporal.nexuscaller.ProtocolState",
@@ -4709,14 +4709,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 331
+        "line": 337
       },
       "construct": {
         "type": "temporal.nexuscaller.ProtocolState",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "enum": {
@@ -4727,7 +4727,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "int": "0"
@@ -4735,7 +4735,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "enum": {
@@ -4746,7 +4746,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "enum": {
@@ -4757,7 +4757,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "enum": {
@@ -4771,7 +4771,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 739
+        "line": 774
       },
       "lambda": {
         "params": [ {
@@ -4783,20 +4783,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 739
+            "line": 774
           },
           "call": {
             "function": "temporal.features.nexuscaller.Protocol$.terminalPhase",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 739
+                "line": 774
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                    "line": 739
+                    "line": 774
                   },
                   "var": "s"
                 },
@@ -4812,70 +4812,70 @@
       "function": "temporal.features.nexuscaller.Protocol$.effects$.scheduleStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 746
+        "line": 781
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.handlerReply",
       "function": "temporal.features.nexuscaller.Protocol$.effects$.handlerReplyStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 747
+        "line": 782
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "temporal.features.nexuscaller.Control$.effects$.forgedComplete",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 748
+        "line": 783
       }
     }, {
       "action": "temporal.nexuscaller.Control$.inspect",
       "function": "temporal.features.nexuscaller.Control$.effects$.inspectStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 749
+        "line": 784
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.transportFault",
       "function": "temporal.features.nexuscaller.Protocol$.effects$.transportFaultStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 750
+        "line": 785
       }
     }, {
       "action": "temporal.worker.Worker$package$.workerStop",
       "function": "temporal.features.nexuscaller.Protocol$.effects$.workerStopStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 751
+        "line": 786
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.backoff",
       "function": "temporal.features.nexuscaller.Protocol$.effects$.backoffStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 752
+        "line": 787
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose",
       "function": "temporal.features.nexuscaller.Protocol$.effects$.scheduleToCloseStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 753
+        "line": 788
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.scheduleToStart",
       "function": "temporal.features.nexuscaller.Protocol$.effects$.scheduleToStartStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 754
+        "line": 789
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.startToClose",
       "function": "temporal.features.nexuscaller.Protocol$.effects$.startToCloseStep",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 755
+        "line": 790
       }
     } ],
     "evidence": "forgedCompletion.evidence",
@@ -4886,7 +4886,7 @@
     "name": "forgedSuccess",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 763
+      "line": 798
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.complete",
@@ -4904,19 +4904,19 @@
     "name": "inspectedFailure",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 768
+      "line": 803
     },
     "start": {
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 331
+        "line": 337
       },
       "construct": {
         "type": "temporal.nexuscaller.ProtocolState",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "enum": {
@@ -4927,7 +4927,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "int": "0"
@@ -4935,7 +4935,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "enum": {
@@ -4946,7 +4946,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "enum": {
@@ -4957,7 +4957,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 331
+            "line": 337
           },
           "literal": {
             "enum": {
@@ -5012,7 +5012,7 @@
     "name": "forgedCompletion",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 778
+      "line": 813
     },
     "form": "FORM_FIND",
     "property": {
@@ -5042,7 +5042,7 @@
       "name": "nexusControl",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 791
+        "line": 826
       },
       "variations": [ {
         "index": 1,
@@ -5056,7 +5056,7 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 797
+            "line": 832
           }
         }, {
           "name": "once",
@@ -5066,18 +5066,18 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 798
+            "line": 833
           }
         }, {
           "name": "none",
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 799
+            "line": 834
           }
         } ],
         "position": {
           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-          "line": 794
+          "line": 829
         }
       } ],
       "runs": 1,

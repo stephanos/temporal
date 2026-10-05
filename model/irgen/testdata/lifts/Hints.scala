@@ -15,7 +15,7 @@ package fixture.hints
 import umpire.*
 import umpire.realize.*
 import temporal.realize.*
-import temporal.features.standaloneactivity.{activity, attemptStart, scheduleToStart}
+import temporal.features.standaloneactivity.{activity, deadline, worker}
 import temporal.features.standaloneactivity.Protocol.activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
@@ -40,8 +40,8 @@ val keptBehavior: Realization = temporalRealization(
   scripts = Vector(controller()),
   evidence = Vector.empty,
   serverSteps = Vector(
-    ServerStep(attemptStart, CauseKind.delivery),
-    ServerStep(scheduleToStart, CauseKind.timer, deadlineMs)
+    ServerStep(worker.attemptStart, CauseKind.delivery),
+    ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs)
   )
 )
 
@@ -54,8 +54,8 @@ private val slowly = Visible.eventually(WaitBound(intervalMs = 100, atMostMs = 1
 /** A behavior of its own, which bounds each kind of its server steps. */
 val ownBehavior: Realization = realizing(
   Vector(
-    ServerStep(attemptStart, CauseKind.delivery),
-    ServerStep(scheduleToStart, CauseKind.timer, deadlineMs)
+    ServerStep(worker.attemptStart, CauseKind.delivery),
+    ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs)
   ),
   ApiBehavior(
     visibility = Vector(
@@ -110,7 +110,7 @@ val intervalOverBound: Realization = realizing(
 
 /** A delivery step, and a behavior that bounds only timers. */
 val unboundedStep: Realization = realizing(
-  Vector(ServerStep(attemptStart, CauseKind.delivery)),
+  Vector(ServerStep(worker.attemptStart, CauseKind.delivery)),
   ApiBehavior(
     visibility = Vector.empty,
     causes = Vector(CauseKind.timer.boundedBy(WaitBound(intervalMs = 100, atMostMs = 2000)))
@@ -119,8 +119,11 @@ val unboundedStep: Realization = realizing(
 
 /** A timer step that names no deadline. */
 val timerNoDeadline: Realization =
-  realizing(Vector(ServerStep(scheduleToStart, CauseKind.timer)), temporalBehavior)
+  realizing(Vector(ServerStep(deadline.scheduleToStart, CauseKind.timer)), temporalBehavior)
 
 /** A delivery step that names a deadline, which only a timer has. */
 val deliveryDeadline: Realization =
-  realizing(Vector(ServerStep(attemptStart, CauseKind.delivery, deadlineMs)), temporalBehavior)
+  realizing(
+    Vector(ServerStep(worker.attemptStart, CauseKind.delivery, deadlineMs)),
+    temporalBehavior
+  )

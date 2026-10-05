@@ -83,11 +83,13 @@ final case class AdmissionClaims(
 val admissionCommits = choice
 val admissionCommitFails = choice
 
-/** History's dispatch task: its Validate sends the message only while the activity can start. */
-val dispatch = internal
+/** History's internal steps. A section is transparent: each keeps the ID the file's pin gives. */
+object history extends Section:
+  /** History's dispatch task: its Validate sends the message only while the activity can start. */
+  val dispatch = internal
 
-/** Admission's answer reaches matching, which may then complete the task. */
-val answerDelivery = internal
+  /** Admission's answer reaches matching, which may then complete the task. */
+  val answerDelivery = internal
 
 val committedThenLost = choice
 val failedThenLost = choice
@@ -237,13 +239,13 @@ object Admission:
     ends(Admission.end)
     evidence { case AdmissionFact.statusTimedOut(_) => "statusTimedOut" }
     steps(
-      dispatch ~> effects.dispatch,
-      control ~> effects.control,
-      attemptStart ~> effects.admitCurrent,
-      answerDelivery ~> effects.answerDelivery,
-      attemptResult ~> effects.attemptResult,
-      scheduleToStart ~> effects.scheduleToStart,
-      scheduleToClose ~> effects.scheduleToClose
+      history.dispatch ~> effects.dispatch,
+      caller.control ~> effects.control,
+      worker.attemptStart ~> effects.admitCurrent,
+      history.answerDelivery ~> effects.answerDelivery,
+      worker.attemptResult ~> effects.attemptResult,
+      deadline.scheduleToStart ~> effects.scheduleToStart,
+      deadline.scheduleToClose ~> effects.scheduleToClose
     )
   }
 
@@ -258,10 +260,10 @@ object Admission:
 
     def admissionClaims(m: Machine[AdmissionState, Outcome, AdmissionFact]) =
       val declared = laws.admissionCapabilities(m)
-      val scheduleToStartTimesOut = m.property when scheduleToStart holds (after =>
+      val scheduleToStartTimesOut = m.property when deadline.scheduleToStart holds (after =>
         after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart))
       )
-      val scheduleToCloseTimesOut = m.property when scheduleToClose holds (after =>
+      val scheduleToCloseTimesOut = m.property when deadline.scheduleToClose holds (after =>
         after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToClose))
       )
       AdmissionClaims(
@@ -295,11 +297,11 @@ object Admission:
           rejected = Outcome.notFound
         ),
         Pausable(
-          pause = control(Control.pause),
-          unpause = control(Control.unpause),
+          pause = caller.control(Control.pause),
+          unpause = caller.control(Control.unpause),
           paused = Admission.paused
         ),
-        Pollable(dispatch = attemptStart, running = Admission.running)
+        Pollable(dispatch = worker.attemptStart, running = Admission.running)
       ).except(closedIsRejectedUniformly, because = deliveryAfterClose)
 
   object queries:
@@ -307,13 +309,20 @@ object Admission:
     def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]) =
       val claims = properties.admissionClaims(m)
       val staleDeliveryAfterPause =
-        m.scenario.actions(dispatch, control(Control.pause), attemptStart)
-      val admittedBeforePause = m.scenario.actions(dispatch, attemptStart, control(Control.pause))
-      val duplicateDelivery = m.scenario.actions(dispatch, attemptStart, attemptStart)
+        m.scenario.actions(history.dispatch, caller.control(Control.pause), worker.attemptStart)
+      val admittedBeforePause =
+        m.scenario.actions(history.dispatch, worker.attemptStart, caller.control(Control.pause))
+      val duplicateDelivery =
+        m.scenario.actions(history.dispatch, worker.attemptStart, worker.attemptStart)
       val startedAfterCompletion = m.scenario
-        .actions(dispatch, attemptStart, attemptResult(AttemptResult.completed), attemptStart)
-      val scheduleToStartFirst = m.scenario.actions(dispatch, scheduleToStart)
-      val scheduleToCloseFirst = m.scenario.actions(dispatch, scheduleToClose)
+        .actions(
+          history.dispatch,
+          worker.attemptStart,
+          worker.attemptResult(AttemptResult.completed),
+          worker.attemptStart
+        )
+      val scheduleToStartFirst = m.scenario.actions(history.dispatch, deadline.scheduleToStart)
+      val scheduleToCloseFirst = m.scenario.actions(history.dispatch, deadline.scheduleToClose)
       val any = m.scenario.free
       Vector(
         query(s"${m.name}.staleDelivery") verify claims.notPaused in
@@ -345,7 +354,7 @@ object Admission:
 
 object StaleAdmission:
   val staleAdmission =
-    Admission.currentAdmission.rebind(attemptStart ~> Admission.effects.admitStale)
+    Admission.currentAdmission.rebind(worker.attemptStart ~> Admission.effects.admitStale)
 
   object queries:
     val staleQueries = Admission.queries.admissionQueries(staleAdmission)
@@ -367,10 +376,10 @@ object HeldAdmission:
     ends(Admission.end)
     evidence { case AdmissionFact.statusTimedOut(_) => "statusTimedOut" }
     steps(
-      dispatch ~> Admission.effects.dispatch,
-      control ~> Admission.effects.control,
-      attemptStart ~> Admission.effects.admitHeld,
-      answerDelivery ~> Admission.effects.answerDelivery
+      history.dispatch ~> Admission.effects.dispatch,
+      caller.control ~> Admission.effects.control,
+      worker.attemptStart ~> Admission.effects.admitHeld,
+      history.answerDelivery ~> Admission.effects.answerDelivery
     )
   }
 
@@ -378,14 +387,20 @@ object HeldAdmission:
   object properties:
     /** Admission met the stale message and rejected it. */
     val staleDeliveryRejected =
-      heldAdmission.property when attemptStart holds (_.records(AdmissionFact.admissionRejected))
+      heldAdmission.property when worker.attemptStart holds (_.records(
+        AdmissionFact.admissionRejected
+      ))
 
   // The held race, as a server's Run is checked.
   object queries:
     val heldStaleDelivery =
       (query("heldAdmission.staleDelivery") find properties.staleDeliveryRejected in heldAdmission
         .scenario("heldStaleDelivery")
-        .actions(dispatch, control(Control.pause), attemptStart) limits three total 108).expect(
+        .actions(
+          history.dispatch,
+          caller.control(Control.pause),
+          worker.attemptStart
+        ) limits three total 108).expect(
         RunExpectation(
           Conformance.conformant,
           PropertyOutcome.satisfied,
@@ -430,19 +445,20 @@ object ResponseLoss:
     forEntity(activity)
     starts(responseLossInitial)
     ends(s => !s.lossAvailable)
-    steps(dispatch ~> effects.dispatch, shared.taskqueue.ackLoss ~> effects.ackLoss)
+    steps(history.dispatch ~> effects.dispatch, shared.taskqueue.faults.ackLoss ~> effects.ackLoss)
   }
 
   object properties:
     /** A lost response still leaves the attempt admitted when the update committed. */
     val committedDespiteLostResponse =
-      admissionResponseLoss.property when shared.taskqueue.ackLoss holds (after =>
+      admissionResponseLoss.property when shared.taskqueue.faults.ackLoss holds (after =>
         after.records(AdmissionResponseFact.attemptAdmitted)
       )
 
   // The lost response, as a server's Run is checked.
   object queries:
-    val oneLostResponse = admissionResponseLoss.scenario.actions(dispatch, shared.taskqueue.ackLoss)
+    val oneLostResponse =
+      admissionResponseLoss.scenario.actions(history.dispatch, shared.taskqueue.faults.ackLoss)
     val lostAdmissionResponseQuery =
       (query("admissionResponseLoss.committed") find properties.committedDespiteLostResponse in
         oneLostResponse limits three total 144)

@@ -7,8 +7,8 @@
  * The package declares no set, Case or Query: nothing here is realized on its own, and the
  * Properties about a worker are the cross-entity ones a composition states.
  *
- * Read top to bottom: the types; the signature (the worker party, the entity and its actions); then
- * Polling, the worker's one machine.
+ * Read top to bottom: the types; the signature (the entity, and the worker party with its
+ * actions); then Polling, the worker's one machine.
  */
 package temporal
 package shared.worker
@@ -41,9 +41,6 @@ type WorkerStep = Step[State, Outcome, Fact]
 
 // ### Signature
 
-/** The worker party, which stops and resumes the worker. */
-val party = Party("worker")
-
 /**
  * Named by the task queue it polls: the handler's worker and the workflow's worker are two
  * instances of this entity, told apart by their queue.
@@ -52,18 +49,20 @@ val entity = Entity("worker", key = "taskQueue")
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-// The two faults are the worker party's and name no entity, as the outage machine spells them. The
-// serve action is the worker's own and takes no input, so a composition may synchronize it with an
-// action of any class.
-//
-// The names keep their `worker` prefix although a feature could read them as `worker.stop`: an
-// action's Definition ID is its val's owner and name (umpire.DefinitionScope pins the owner, never
-// the name), and every Case that stops a worker carries these IDs. A feature imports them by name
-// (`import worker.{serve, workerStop}`) rather than writing `worker.workerStop` or an alias.
-
-val workerStop = action(party)
-val workerResume = action(party)
-val serve = action(party) on entity
+/**
+ * The worker party, which stops and resumes the worker, and serves its queue. Its two faults name
+ * no entity, as the outage machine spells them. The serve action is the worker's own and takes no
+ * input, so a composition may synchronize it with an action of any class.
+ *
+ * The actions keep the names they had as the file's top-level vals: an action's Definition ID is
+ * its val's owner and name, an actor object is transparent to it, and every Case that stops a
+ * worker carries these IDs. fn-126 R18 renames them. A feature that has actions of its own taken by this
+ * party imports it under another name (`import shared.worker.{worker as process}`).
+ */
+object worker extends Actor:
+  val workerStop = action(this)
+  val workerResume = action(this)
+  val serve = action(this) on entity
 
 // ### The machine
 
@@ -87,8 +86,8 @@ object Polling:
     starts(State(Phase.polling))
     ends(_ => true)
     steps(
-      workerStop ~> effects.stopStep,
-      workerResume ~> effects.resumeStep,
-      serve ~> effects.serveStep
+      worker.workerStop ~> effects.stopStep,
+      worker.workerResume ~> effects.resumeStep,
+      worker.serve ~> effects.serveStep
     )
   }

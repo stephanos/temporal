@@ -15,7 +15,7 @@ import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.standaloneactivity.{activity, attemptStart, control, Control, ProtocolFact}
+import temporal.features.standaloneactivity.{activity, caller, worker, Control, ProtocolFact}
 import temporal.features.standaloneactivity.Protocol.activityProtocol
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
@@ -71,7 +71,7 @@ private val awaitPaused = await(statusPaused, workflowService)(
 }
 
 private val dispatchHold =
-  Actuator("hold-dispatch", ControlKind.HoldDispatched(attemptStart), taskQueue)
+  Actuator("hold-dispatch", ControlKind.HoldDispatched(worker.attemptStart), taskQueue)
 
 private val releaseDispatch =
   command(Release(dispatchHold), regardless = true, closes = Vector(statusPaused))
@@ -82,15 +82,18 @@ val helpers: Realization = temporalRealization(
   roles = Vector(workflowService, caseWorker, taskQueue),
   scripts = Vector(
     controller(
-      perform(control(Control.pause) -> pauseActivity),
-      onPath(control(Control.pause))(awaitPaused),
+      perform(caller.control(Control.pause) -> pauseActivity),
+      onPath(caller.control(Control.pause))(awaitPaused),
       everyCase(startActivity.withFields {
         field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
       }),
-      perform(attemptStart -> releaseDispatch, control(Control.terminate) -> stopWorker),
+      perform(
+        worker.attemptStart -> releaseDispatch,
+        caller.control(Control.terminate) -> stopWorker
+      ),
       // A command written out under its own id, around a call written in its scope.
       perform(
-        control(Control.unpause) -> Command(
+        caller.control(Control.unpause) -> Command(
           "unpause-written-out",
           rpc(workflowService, METHOD_UNPAUSE_ACTIVITY_EXECUTION) {
             field(_.namespace) := workerNamespace
@@ -151,7 +154,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              control(Control.pause),
+              caller.control(Control.pause),
               Command(
                 "pause-activity",
                 Instruction.rpc(
@@ -197,7 +200,7 @@ val records: Realization = Realization(
               )
             )
           ),
-          when = Vector(control(Control.pause))
+          when = Vector(caller.control(Control.pause))
         ),
         Item(command =
           Some(
@@ -229,7 +232,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              attemptStart,
+              worker.attemptStart,
               Command(
                 "release-dispatch",
                 Instruction.Release("hold-dispatch"),
@@ -238,7 +241,7 @@ val records: Realization = Realization(
               )
             ),
             Performance(
-              control(Control.terminate),
+              caller.control(Control.terminate),
               Command("stop-worker", Fault("temporal.task-queue", FaultKind.workerStop))
             )
           )
@@ -246,7 +249,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              control(Control.unpause),
+              caller.control(Control.unpause),
               Command(
                 "unpause-written-out",
                 Instruction.rpc(
@@ -293,7 +296,7 @@ val records: Realization = Realization(
   controls = Vector(
     Actuator(
       "hold-dispatch",
-      ControlKind.HoldDispatched(attemptStart),
+      ControlKind.HoldDispatched(worker.attemptStart),
       role = "temporal.task-queue"
     )
   ),
