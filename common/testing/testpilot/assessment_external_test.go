@@ -538,6 +538,12 @@ func TestAssessmentFailureIsReportedAndKeepsEstablishedViolations(t *testing.T) 
 			close: outcome(conformant, testpilot.PropertyAssessment{ID: "early", Status: testpilot.PropertyInconclusive, Reason: "\xff"}), seen: all,
 			want: invalid(`property "early" reason is not an id`),
 		},
+		"established nonconformance reason is no id": {
+			establish: testpilot.Established{Nonconformance: &testpilot.ConformanceAssessment{Status: testpilot.ConformanceNonconformant, SupportingEventSequences: []int64{1},
+				Reason: strings.Repeat("r", 257)}},
+			close: outcome(conformant), seen: 1,
+			want: discarded(testpilot.AssessmentOutcomeInvalid, "conformance reason is not an id", 1),
+		},
 		"established reason is no id": {
 			establish: testpilot.Established{Violations: []testpilot.PropertyAssessment{{ID: "early", Status: testpilot.PropertyViolated, Reason: "\xff"}}},
 			close:     outcome(conformant), seen: 1,

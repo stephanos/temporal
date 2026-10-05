@@ -265,9 +265,11 @@ func validateExpectedRun(expected *ExpectedRun, key string) error {
 		return fmt.Errorf("missing expected claims for %s", key)
 	}
 	for _, claim := range expected.Properties {
+		// A reason is an id exactly as ExpectationID spells one, the one spelling rule.
 		reason, named := umpirespb.RunExpectation_Reason_value["REASON_"+strings.ToUpper(claim.Reason)]
+		spelled := named && reason != 0 && umpiremodel.ExpectationID(umpirespb.RunExpectation_Reason(reason)) == claim.Reason
 		if claim.ID == "" || claims[claim.ID] || (claim.Status != "satisfied" && claim.Status != "violated" && claim.Status != "inconclusive") ||
-			(claim.Reason != "" && (!named || reason == 0)) || (claim.Status == "satisfied") != (claim.Reason == "") {
+			(claim.Reason != "" && !spelled) || (claim.Status == "satisfied") != (claim.Reason == "") {
 			return fmt.Errorf("invalid expected claim for %s", key)
 		}
 		claims[claim.ID] = true
@@ -277,9 +279,12 @@ func validateExpectedRun(expected *ExpectedRun, key string) error {
 
 // testpilotValue is the Testpilot enum value an expected Run's id names, by the enum's prefix, and
 // whether it names one other than the unspecified.
-func testpilotValue[E ~int32](values map[string]int32, prefix, id string) (E, bool) {
+func testpilotValue[E interface {
+	~int32
+	protoreflect.Enum
+}](values map[string]int32, prefix, id string) (E, bool) {
 	n, ok := values[prefix+strings.ToUpper(id)]
-	return E(n), ok && n != 0 && id == strings.ToLower(id)
+	return E(n), ok && n != 0 && umpiremodel.EnumID(E(n), prefix) == id
 }
 
 // concludable reports whether testpilot.ConcludeVerdict concludes verdict and leaves a Run in
@@ -299,18 +304,26 @@ func concludable(verdict testpilotspb.VerdictStatus, disposition testpilotspb.Ru
 
 // Check compares a closed Run, its Verdict and its Assessment with what the Query declared, each by
 // equality: the Run's disposition and cleanup, the Contract's Verdict, the conformance, and every
-// claim's status and reason id. The Assessment's prose is shown, never compared.
+// claim's status and reason id. The Assessment's prose is shown, never compared. Conformance is
+// compared by its status only: an expected Run declares no conformance reason (fn-124.6).
 func (e *ExpectedRun) Check(run *testpilotspb.Run, verdict *testpilotspb.Verdict, assessment *runtime.Assessment) error {
 	if run == nil || verdict == nil || assessment == nil {
 		return errors.New("a Run, its Verdict and its Assessment are required")
 	}
 	var problems []error
 	differs := func(what, want, got, detail string) {
-		if want != got {
+		switch {
+		case want == got:
+		case detail == "":
+			problems = append(problems, fmt.Errorf("%s is %s, expected %s", what, got, want))
+		default:
 			problems = append(problems, fmt.Errorf("%s is %s, expected %s: %s", what, got, want, detail))
 		}
 	}
-	diagnostics := fmt.Sprint(run.GetDiagnostics())
+	diagnostics := ""
+	if len(run.GetDiagnostics()) > 0 {
+		diagnostics = fmt.Sprint(run.GetDiagnostics())
+	}
 	differs("the disposition", e.Disposition, testpilotID(run.GetDisposition(), "RUN_DISPOSITION_"), diagnostics)
 	differs("the cleanup", e.Cleanup, testpilotID(run.GetCleanup().GetStatus(), "CLEANUP_STATUS_"), diagnostics)
 	differs("the Contract's Verdict", e.Contract, testpilotID(verdict.GetStatus(), "VERDICT_STATUS_"), diagnostics)
@@ -334,10 +347,9 @@ func (e *ExpectedRun) Check(run *testpilotspb.Run, verdict *testpilotspb.Verdict
 	return errors.Join(problems...)
 }
 
-// testpilotID is a Testpilot enum value as an expected Run names it: its proto name, lower-cased,
-// without prefix.
+// testpilotID is a Testpilot enum value as an expected Run names it (umpiremodel.EnumID).
 func testpilotID(value protoreflect.Enum, prefix string) string {
-	return strings.ToLower(strings.TrimPrefix(string(value.Descriptor().Values().ByNumber(value.Number()).Name()), prefix))
+	return umpiremodel.EnumID(value, prefix)
 }
 
 func bareJSON(name string) bool {

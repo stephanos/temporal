@@ -68,6 +68,11 @@ func TestManifestRejectsInvalidMetadata(t *testing.T) {
 		"inconclusive without a reason": expecting(func(e *ExpectedRun) {
 			e.Properties[0].Status, e.Properties[0].Reason = "inconclusive", ""
 		}),
+		// ExpectationID is the one spelling of an id: a reason or a disposition spelled otherwise is none.
+		"a mixed-case reason": expecting(func(e *ExpectedRun) {
+			e.Properties[0].Status, e.Properties[0].Reason = "inconclusive", "Explanations_Disagree"
+		}),
+		"a mixed-case disposition": expecting(func(e *ExpectedRun) { e.Disposition = "Completed" }),
 		"an unknown reason": expecting(func(e *ExpectedRun) {
 			e.Properties[0].Status, e.Properties[0].Reason = "inconclusive", "Explanations Disagree"
 		}),
@@ -135,6 +140,10 @@ func TestExpectedRunChecksEachDeclaredValueByEquality(t *testing.T) {
 				{ID: "forgedSuccess", Status: runtime.PropertyViolated, Reason: "every_explanation_violates", Detail: "other prose"}}}
 	}
 	require.NoError(t, expected.Check(run(), verdict(), assessment()))
+	// A Run with no diagnostics says so by naming none.
+	moved := run()
+	moved.Disposition = testpilotspb.RUN_DISPOSITION_COMPLETED
+	require.EqualError(t, expected.Check(moved, verdict(), assessment()), "the disposition is completed, expected stopped_by_monitor")
 	for name, test := range map[string]struct {
 		change func(*testpilotspb.Run, *testpilotspb.Verdict, *runtime.Assessment)
 		says   string
@@ -142,6 +151,11 @@ func TestExpectedRunChecksEachDeclaredValueByEquality(t *testing.T) {
 		"disposition": {func(r *testpilotspb.Run, _ *testpilotspb.Verdict, _ *runtime.Assessment) {
 			r.Disposition = testpilotspb.RUN_DISPOSITION_COMPLETED
 		}, "the disposition is completed, expected stopped_by_monitor"},
+		// A Run decoded from newer bytes may hold a value its enum does not name.
+		"unknown disposition": {func(r *testpilotspb.Run, _ *testpilotspb.Verdict, _ *runtime.Assessment) {
+			r.Disposition = 99
+			r.Diagnostics = []*testpilotspb.RunDiagnostic{{Code: "late"}}
+		}, "the disposition is unknown(99), expected stopped_by_monitor: [code:\"late\"]"},
 		"cleanup": {func(r *testpilotspb.Run, _ *testpilotspb.Verdict, _ *runtime.Assessment) {
 			r.Cleanup.Status = testpilotspb.CLEANUP_STATUS_TIMED_OUT
 		}, "the cleanup is timed_out, expected succeeded"},

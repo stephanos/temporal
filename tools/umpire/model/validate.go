@@ -1197,11 +1197,21 @@ func (v *validator) expectedRun(q *umpirespb.Query) {
 
 // ExpectationID is the stable id of a value of one of an expected Run's enums, as the Case manifest
 // and an Assessment spell it: the value's name, lower-cased, without its enum's prefix, so
-// REASON_EXPLANATIONS_DISAGREE is explanations_disagree. An unspecified value has no id.
+// REASON_EXPLANATIONS_DISAGREE is explanations_disagree. An unspecified value has no id, and a number
+// the enum does not name, as one decoded from newer bytes may be, is unknown(N).
 func ExpectationID(value protoreflect.Enum) string {
 	if value.Number() == 0 {
 		return ""
 	}
-	name := string(value.Descriptor().Values().ByNumber(value.Number()).Name())
-	return strings.ToLower(strings.TrimPrefix(name, strings.ToUpper(string(value.Descriptor().Name()))+"_"))
+	return EnumID(value, strings.ToUpper(string(value.Descriptor().Name()))+"_")
+}
+
+// EnumID is an enum value's name, lower-cased, without prefix: how an expected Run names a value of
+// the IR's enums or of Testpilot's. A number the enum does not name is unknown(N).
+func EnumID(value protoreflect.Enum, prefix string) string {
+	named := value.Descriptor().Values().ByNumber(value.Number())
+	if named == nil {
+		return fmt.Sprintf("unknown(%d)", value.Number())
+	}
+	return strings.ToLower(strings.TrimPrefix(string(named.Name()), prefix))
 }
