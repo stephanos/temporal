@@ -1,0 +1,41 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.39",
+  "status": "in_progress",
+  "scope": "SOURCE_PROGRESS_ONLY",
+  "base_commit": "5c5c025adeabacd9f3217de2b9ab8f7171b0c33c",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "go test -v -count=1 -tags test_dep ./target -run 'TestTargetFileCleanup|TestPreparedCacheDigest|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves'",
+    "go test -v -count=1 -tags test_dep ./deterministicio -run '^TestAdapterPreparedSourceSetPinsReproduceOnEveryHost$'",
+    "go test -v -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./target",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype ./target",
+    "gofmt -l target/adapter_source_set.go target/target.go target/target_test.go target/cleanup_test.go (empty-output check)",
+    "git diff --check"
+  ],
+  "baseline": "red (unfiltered pinned target lint exit 1 with exactly 9 errcheck findings before source edits); corrected real-file controls green on unchanged production",
+  "final_manifest": "final-source-manifest.log",
+  "final_manifest_sha256": "f49d379db52a343ea61d5a0824a463dd66f0ff5f014ea774a8bc08099be52520",
+  "receipts": [
+    "baseline-lint.receipt.txt",
+    "baseline-controls.receipt.txt",
+    "baseline-controls-corrected.receipt.txt",
+    "final-controls.receipt.txt",
+    "final-lint.receipt.txt",
+    "final-adapter.receipt.txt",
+    "final-architecture.receipt.txt",
+    "final-errortype.receipt.txt",
+    "final-format.receipt.txt",
+    "final-diff-check.receipt.txt",
+    "final-source-manifest.receipt.txt",
+    "final-protected-inputs.receipt.txt"
+  ],
+  "adapter_pin_proof": "unavailable; command exits 0 with SKIP because tools/gomad3/.toolchain/bin/go does not exist",
+  "review": "conductor-owned, pending; no worker verdict",
+  "open": [
+    "genuine first-Close, simultaneous primary/cleanup, post-open Chmod/Write/Sync and RemoveAll fault execution",
+    "independent source review and conductor commit",
+    "all unproved original R18/R19, task21/predecessor, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin gates"
+  ]
+}

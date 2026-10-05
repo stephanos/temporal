@@ -55,6 +55,10 @@ Acceptance remains open: task39 cleanup keeps target lint red, and original R18/
 stage: source-review - ran (same-family source-progress review; no formal verdict)
 stage: impl-review - skipped(policy: actual unfiltered target lint remains red)
 stage: plan-sync - skipped(config: disabled; no task completed)
+
+### Later linked cleanup checkpoint, 2026-10-05
+
+Task39's independently reviewed source candidate resolves the nine inherited cleanup findings. Fresh combined focused controls and actual unfiltered target lint pass with zero target issues on its 1,040-entry source closure. This supersedes the earlier checkpoint's lint blocker only; its source-bound red receipts remain historical. Original unproved qualification requirements still keep task38 open. See task39's independent-source-review.md and conductor-verification.json; no task completion or formal/native proof is claimed.
 ## Acceptance
 - [ ] Literal digest and error controls pass on unchanged BASE and final source, covering every named case with independent expectations; all five capability alias changes preserve public projection/canonical behavior.
 - [ ] Exactly three hash-write statements change, with unchanged formats/arguments/order and no new possible failure, full-stream copy or module mutation; original logic/comments/assertions outside scope remain intact.
@@ -66,6 +70,9 @@ stage: plan-sync - skipped(config: disabled; no task completed)
 ## Done summary
 Blocked:
 Reviewed source progress repairs eight target lint findings; nine unchanged cleanup findings remain owned by fn109.39. Original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin gates remain required and unproved wherever recorded. Native Darwin and full qualification are unavailable on this developmental linux/arm64 host. Do not repeat unchanged host failures. Native Linux execution is deferred under fn128 and is not this task's blocker. Resume acceptance after task39 and the required source-bound supported-host evidence; source progress is not task completion.
+
+Blocked:
+Task39's independently reviewed linked source candidate repairs all nine inherited cleanup findings; combined focused controls and unfiltered target lint now pass with zero target issues. Source progress is committed without claiming task completion. Original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin requirements remain required and unproved wherever recorded. No original gate is waived. This developmental linux/arm64 host cannot provide supported native Darwin/full qualification; do not repeat unchanged host failures. Native Linux execution is deferred under fn128 and is not a blocker here.
 ## Evidence
 - Commits:
 - Tests:

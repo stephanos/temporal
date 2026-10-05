@@ -41,6 +41,19 @@ Use only available cached adapter inputs with network disabled, or retain the pr
 
 Root commits independently reviewed source progress before another writer. Original R18/R19, task21/predecessors, matched first-baseline identities and full/default/functional/affected-consumer/formal/native Darwin requirements remain open wherever unproved. Linux-native qualification remains owned by fn-128 and cannot block this task. No production policy, Go pin, compatibility grant, public API, prior acceptance or immutable qualification evidence changes.
 
+### Source progress, 2026-10-05
+
+All nine formerly ignored cleanup returns are checked at their original release boundaries, with destination before source, nil-cleanup primary identity preserved, sole cleanup returned directly and simultaneous failures joined primary first. Hash cleanup clears digest/size; GOPATH cleanup clears the adapter digest. Checking those failures exposes a bounded additional error surface, not universal byte equivalence. Original comments, operation order, modes, partial destinations and the mutation fixture's primary Write assertion remain intact.
+
+Four real-file controls with twelve subcases pass on unchanged production and final source. Actual unfiltered pinned target lint changes from nine errcheck findings to zero issues, with no new diagnostic or suppression. The mistaken initial directory-copy test expectation and its corrected BASE result are retained. Root and the fresh independent same-family reviewer each reran the fourteen focused tests and actual lint successfully; architecture, errortype, formatting and source/diff checks pass. The final 1,040-entry closure matches, with three existing files changed, one test added and 1,036 protected entries unchanged; all twelve receipt/log hashes match. The requested reviewer Sol6.1/high pin has no exposed execution-model attestation.
+
+Evidence: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-39/handover.md, evidence.json, independent-source-review.md and conductor-verification.json. The worker handover/evidence retain the pre-review snapshot; this later record supersedes their pending-review statement only. Root commits independently reviewed source progress before another writer.
+
+The adapter-pin command skipped because .toolchain/bin/go is absent; no pin qualification was executed. Genuine first-Close, simultaneous/multiple cleanup, post-open Chmod/Write/Sync and RemoveAll faults remain unexecuted, with source inspection rather than execution support. Every unproved original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin requirement stays open. Task9 still owns the distinct direct-exec adapter-listing transport gap. Linux execution remains deferred under fn128 and nonblocking.
+
+stage: source-review - ran (same-family SOURCE_PROGRESS_COMMIT_ONLY; no formal verdict)
+stage: impl-review - skipped(policy: original qualification and genuine fault evidence remain incomplete)
+stage: plan-sync - skipped(config: disabled; no task completed)
 ## Acceptance
 - [ ] All nine mapped cleanup returns are checked exactly once at original lifetimes; independent inspection verifies operation ordering, destination-before-source release, existing explicit-close messages, modes and partial-destination policy.
 - [ ] BASE/final real-file controls preserve literal contents/digests/size/modes and exact reachable validation/error/side-effect cases. Nil cleanup retains primary error identity; genuine cleanup failures follow the disclosed sole/direct or primary-first composition and clear derived digest/size results.
@@ -50,8 +63,8 @@ Root commits independently reviewed source progress before another writer. Origi
 
 
 ## Done summary
-TBD
-
+Blocked:
+Independently reviewed source progress removes all nine cleanup lint findings; target lint is now zero. Adapter pin proof is unavailable because the patched .toolchain/bin/go is absent. Genuine first-Close, simultaneous/multiple cleanup, post-open Chmod/Write/Sync and RemoveAll failure execution remains unproved. Original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin requirements remain open where recorded. This developmental linux/arm64 host cannot supply required native Darwin/full qualification. Do not repeat unchanged unsupported-host or missing-toolchain checks. Native Linux remains transferred to fn128 and is nonblocking. Resume acceptance only with the missing lawful fault/adapter and original source-bound qualification evidence.
 ## Evidence
 - Commits:
 - Tests:

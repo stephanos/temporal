@@ -879,7 +879,7 @@ func ProjectBuildInfo(info *debug.BuildInfo) record.BuildInfo {
 	return record.BuildInfo{GoVersion: info.GoVersion, Path: info.Path, MainModule: mainModule, Settings: settings}
 }
 
-func hashRegularFile(path string) (string, uint64, error) {
+func hashRegularFile(path string) (digest string, fileSize uint64, retErr error) {
 	file, info, err := hostfs.OpenPath(path)
 	if err != nil {
 		if errors.Is(err, hostfs.ErrSymbolicLink) {
@@ -887,7 +887,16 @@ func hashRegularFile(path string) (string, uint64, error) {
 		}
 		return "", 0, err
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			digest, fileSize = "", 0
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
 		return "", 0, fmt.Errorf("%s is not a regular executable", path)
 	}
@@ -902,7 +911,7 @@ func hashRegularFile(path string) (string, uint64, error) {
 	return "sha256:" + hex.EncodeToString(hasher.Sum(nil)), uint64(size), nil
 }
 
-func copyRegularFile(source, destination string) error {
+func copyRegularFile(source, destination string) (retErr error) {
 	input, info, err := hostfs.OpenPath(source)
 	if err != nil {
 		if errors.Is(err, hostfs.ErrSymbolicLink) {
@@ -910,7 +919,15 @@ func copyRegularFile(source, destination string) error {
 		}
 		return fmt.Errorf("stat exec target: %w", err)
 	}
-	defer input.Close()
+	defer func() {
+		if closeErr := input.Close(); closeErr != nil {
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
 		return fmt.Errorf("exec target is not a regular executable")
 	}
@@ -919,11 +936,15 @@ func copyRegularFile(source, destination string) error {
 		return fmt.Errorf("create prepared exec target: %w", err)
 	}
 	if err := output.Chmod(0o700); err != nil {
-		output.Close()
+		if closeErr := output.Close(); closeErr != nil {
+			return errors.Join(fmt.Errorf("set prepared exec target mode: %w", err), closeErr)
+		}
 		return fmt.Errorf("set prepared exec target mode: %w", err)
 	}
 	if _, err := io.Copy(output, input); err != nil {
-		output.Close()
+		if closeErr := output.Close(); closeErr != nil {
+			return errors.Join(fmt.Errorf("copy exec target: %w", err), closeErr)
+		}
 		return fmt.Errorf("copy exec target: %w", err)
 	}
 	if err := output.Close(); err != nil {
@@ -938,15 +959,21 @@ func writePreparedFile(path string, data []byte, mode os.FileMode) error {
 		return err
 	}
 	if err := file.Chmod(mode); err != nil {
-		file.Close()
+		if closeErr := file.Close(); closeErr != nil {
+			return errors.Join(err, closeErr)
+		}
 		return err
 	}
 	if _, err := file.Write(data); err != nil {
-		file.Close()
+		if closeErr := file.Close(); closeErr != nil {
+			return errors.Join(err, closeErr)
+		}
 		return err
 	}
 	if err := file.Sync(); err != nil {
-		file.Close()
+		if closeErr := file.Close(); closeErr != nil {
+			return errors.Join(err, closeErr)
+		}
 		return err
 	}
 	return file.Close()

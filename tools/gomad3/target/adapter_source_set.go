@@ -28,12 +28,21 @@ import (
 // adapter module's requirements nor a network connection are needed. The
 // import comment check that mode applies is the only error accepted, and only
 // when the comment names importPath.
-func AdapterPreparedSourceSetSHA256(ctx context.Context, goCommand, packageDirectory, importPath, goos, goarch string) (string, error) {
+func AdapterPreparedSourceSetSHA256(ctx context.Context, goCommand, packageDirectory, importPath, goos, goarch string) (digest string, retErr error) {
 	gopath, err := os.MkdirTemp("", "gomad3-source-set-gopath-")
 	if err != nil {
 		return "", fmt.Errorf("create source-set GOPATH: %w", err)
 	}
-	defer os.RemoveAll(gopath)
+	defer func() {
+		if cleanupErr := os.RemoveAll(gopath); cleanupErr != nil {
+			digest = ""
+			if retErr == nil {
+				retErr = cleanupErr
+			} else {
+				retErr = errors.Join(retErr, cleanupErr)
+			}
+		}
+	}()
 	command := exec.CommandContext(ctx, goCommand, "list", "-e", "-find", "-json", ".")
 	command.Dir = packageDirectory
 	command.Env = append(targetbuild.Environment(), "GO111MODULE=off", "GOPATH="+gopath, "GOOS="+goos, "GOARCH="+goarch)

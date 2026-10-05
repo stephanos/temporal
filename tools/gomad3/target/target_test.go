@@ -515,7 +515,9 @@ func TestPreparedVerifyRejectsMutation(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := file.Write([]byte("mutation")); err != nil {
-		file.Close()
+		if closeErr := file.Close(); closeErr != nil {
+			t.Error(closeErr)
+		}
 		t.Fatal(err)
 	}
 	if err := file.Close(); err != nil {

@@ -1,0 +1,5 @@
+=== RUN   TestAdapterPreparedSourceSetPinsReproduceOnEveryHost
+    adapter_regenerate_test.go:41: pinned toolchain is unavailable: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- SKIP: TestAdapterPreparedSourceSetPinsReproduceOnEveryHost (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	0.003s

@@ -1,0 +1,29 @@
+command=go test -v -count=1 -tags test_dep ./deterministicio -run '^TestAdapterPreparedSourceSetPinsReproduceOnEveryHost$'
+cwd=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3
+start=2026-10-05T09:03:24Z
+end=2026-10-05T09:03:25Z
+elapsed_seconds=1
+exit=0
+source_manifest_before=f49d379db52a343ea61d5a0824a463dd66f0ff5f014ea774a8bc08099be52520  -
+source_manifest_after=f49d379db52a343ea61d5a0824a463dd66f0ff5f014ea774a8bc08099be52520  -
+PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+GOENV=off
+GOWORK=off
+GOTOOLCHAIN=local
+GOPROXY=off
+GOSUMDB=off
+GOFLAGS=<empty>
+GOMADSEED/GOMAD3_CHILD_SEED/GOMAD3_SEED=unset
+go version go1.27.1 linux/arm64
+linux
+arm64
+/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64
+/home/agent/.cache/go-build
+/home/agent/go/pkg/mod
+
+1
+1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc  /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0
+db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc  /tmp/fn109-lint-tools.ZdNe1t50/errortype
+2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43  ../../.github/.golangci.yml
+de41da86da0c14c1d0a6e07574a6601e4dc82db22bc39cd07272f321f0c68ee9  /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-39/final-adapter.log

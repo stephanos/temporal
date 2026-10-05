@@ -1,0 +1,5 @@
+changed=tools/gomad3/target/adapter_source_set.go
+changed=tools/gomad3/target/target.go
+changed=tools/gomad3/target/target_test.go
+added=tools/gomad3/target/cleanup_test.go
+baseline_entries=1039 changed_existing=3 added=1 protected_unchanged=1036

@@ -1,0 +1,66 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.39",
+  "result": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "base": "5c5c025adeabacd9f3217de2b9ab8f7171b0c33c",
+  "source_manifest": "final-source-manifest.log",
+  "source_manifest_sha256": "f49d379db52a343ea61d5a0824a463dd66f0ff5f014ea774a8bc08099be52520",
+  "source_verified_before_and_after": true,
+  "protected_comparison": {
+    "baseline": 1039,
+    "final": 1040,
+    "unchanged": 1036,
+    "changed": 3,
+    "added": 1,
+    "missing": 0
+  },
+  "retained_raw_log_hashes_verified": 12,
+  "review": {
+    "artifact": "independent-source-review.md",
+    "sha256": "a72f0a568332f6603272f014c4cb0b8e79ec285f67b23b4df20f27c5d098fcd8",
+    "assessment": "SOURCE_PROGRESS_COMMIT_ONLY",
+    "same_family": true,
+    "execution_model_metadata": "not exposed"
+  },
+  "fresh_commands": [
+    {
+      "name": "controls",
+      "command": "go test -v -count=1 -tags test_dep ./target -run 'TestTargetFileCleanup|TestPreparedCacheDigest|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves'",
+      "environment": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS= ",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05 09:10:04 UTC",
+      "end": "2026-10-05 09:10:04 UTC",
+      "chunk_id": "86f439",
+      "wall_time_seconds": 0.077617041,
+      "exit_code": 0,
+      "original_token_count": 1296,
+      "output": "=== RUN   TestCapabilityReviewGoldenCanonicalBytes\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-findings\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-sources\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-adapter\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/linked\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/guarded\n=== RUN   TestCapabilityReviewGoldenCanonicalBytes/recorded-closure\n--- PASS: TestCapabilityReviewGoldenCanonicalBytes (0.04s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-findings (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-sources (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-adapter (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/linked (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/guarded (0.00s)\n    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/recorded-closure (0.00s)\n=== RUN   TestCompatibilityPackProjectionPreservesCompleteEvidence\n--- PASS: TestCompatibilityPackProjectionPreservesCompleteEvidence (0.00s)\n=== RUN   TestCompatibilityPackProjectionPreservesNilAndEmpty\n--- PASS: TestCompatibilityPackProjectionPreservesNilAndEmpty (0.00s)\n=== RUN   TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage\n--- PASS: TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage (0.00s)\n=== RUN   TestTargetFileCleanupExecutable\n--- PASS: TestTargetFileCleanupExecutable (0.00s)\n=== RUN   TestTargetFileCleanupSourceRejection\n=== RUN   TestTargetFileCleanupSourceRejection/missing\n=== RUN   TestTargetFileCleanupSourceRejection/symlink\n=== RUN   TestTargetFileCleanupSourceRejection/nonexecutable\n=== RUN   TestTargetFileCleanupSourceRejection/directory\n--- PASS: TestTargetFileCleanupSourceRejection (0.00s)\n    --- PASS: TestTargetFileCleanupSourceRejection/missing (0.00s)\n    --- PASS: TestTargetFileCleanupSourceRejection/symlink (0.00s)\n    --- PASS: TestTargetFileCleanupSourceRejection/nonexecutable (0.00s)\n    --- PASS: TestTargetFileCleanupSourceRejection/directory (0.00s)\n=== RUN   TestTargetFileCleanupDestinationRejection\n=== RUN   TestTargetFileCleanupDestinationRejection/copy/collision\n=== RUN   TestTargetFileCleanupDestinationRejection/copy/missing-parent\n=== RUN   TestTargetFileCleanupDestinationRejection/write/collision\n=== RUN   TestTargetFileCleanupDestinationRejection/write/missing-parent\n--- PASS: TestTargetFileCleanupDestinationRejection (0.00s)\n    --- PASS: TestTargetFileCleanupDestinationRejection/copy/collision (0.00s)\n    --- PASS: TestTargetFileCleanupDestinationRejection/copy/missing-parent (0.00s)\n    --- PASS: TestTargetFileCleanupDestinationRejection/write/collision (0.00s)\n    --- PASS: TestTargetFileCleanupDestinationRejection/write/missing-parent (0.00s)\n=== RUN   TestTargetFileCleanupPrivateWrite\n=== RUN   TestTargetFileCleanupPrivateWrite/0400/0-bytes\n=== RUN   TestTargetFileCleanupPrivateWrite/0400/18-bytes\n=== RUN   TestTargetFileCleanupPrivateWrite/0700/0-bytes\n=== RUN   TestTargetFileCleanupPrivateWrite/0700/18-bytes\n--- PASS: TestTargetFileCleanupPrivateWrite (0.00s)\n    --- PASS: TestTargetFileCleanupPrivateWrite/0400/0-bytes (0.00s)\n    --- PASS: TestTargetFileCleanupPrivateWrite/0400/18-bytes (0.00s)\n    --- PASS: TestTargetFileCleanupPrivateWrite/0700/0-bytes (0.00s)\n    --- PASS: TestTargetFileCleanupPrivateWrite/0700/18-bytes (0.00s)\n=== RUN   TestPreparedCacheDigestOverlayEmpty\n--- PASS: TestPreparedCacheDigestOverlayEmpty (0.00s)\n=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs\n=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs/reverse_map_order_and_unclean_original\n=== RUN   TestPreparedCacheDigestOverlayCanonicalInputs/sorted_map_order_and_clean_original\n--- PASS: TestPreparedCacheDigestOverlayCanonicalInputs (0.00s)\n    --- PASS: TestPreparedCacheDigestOverlayCanonicalInputs/reverse_map_order_and_unclean_original (0.00s)\n    --- PASS: TestPreparedCacheDigestOverlayCanonicalInputs/sorted_map_order_and_clean_original (0.00s)\n=== RUN   TestPreparedCacheDigestOverlayReadFailure\n--- PASS: TestPreparedCacheDigestOverlayReadFailure (0.00s)\n=== RUN   TestPreparedCacheDigestModuleInputs\n=== RUN   TestPreparedCacheDigestModuleInputs/present\n=== RUN   TestPreparedCacheDigestModuleInputs/absent_go.sum\n=== RUN   TestPreparedCacheDigestModuleInputs/empty_go.sum\n=== RUN   TestPreparedCacheDigestModuleInputs/argument_order\n=== RUN   TestPreparedCacheDigestModuleInputs/basename_framing\n--- PASS: TestPreparedCacheDigestModuleInputs (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/present (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/absent_go.sum (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/empty_go.sum (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/argument_order (0.00s)\n    --- PASS: TestPreparedCacheDigestModuleInputs/basename_framing (0.00s)\n=== RUN   TestPreparedCacheDigestModuleEmptyInputs\n--- PASS: TestPreparedCacheDigestModuleEmptyInputs (0.00s)\n=== RUN   TestPreparedCacheDigestModuleReadFailure\n--- PASS: TestPreparedCacheDigestModuleReadFailure (0.00s)\nPASS\nok  \tgo.temporal.io/server/tools/gomad3/target\t0.045s\n"
+    },
+    {
+      "name": "lint",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./target",
+      "environment": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS= ",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05 09:10:04 UTC",
+      "end": "2026-10-05 09:10:04 UTC",
+      "chunk_id": "1806e6",
+      "wall_time_seconds": 0.0304775,
+      "exit_code": 0,
+      "original_token_count": 3,
+      "output": "0 issues.\n"
+    }
+  ],
+  "reused_same_source_checks": "Fresh independent review architecture and errortype passed on the identical closure; no third broad rerun.",
+  "formatting": "empty gofmt -l output on four Touches",
+  "diff_check": "exit 0",
+  "adapter_pin": "SKIP because patched .toolchain/bin/go absent; zero execution proof",
+  "fault_execution": "Genuine first-Close/simultaneous/multiple/post-open Chmod/Write/Sync/RemoveAll failures unexecuted; inspection only",
+  "generator_validation": "not applicable: changed files excluded from generator input lists; protected generator inputs unchanged",
+  "native_ci": "Read-only bounded lookup retained in native-ci-availability.md: local base is unpublished, returned historical runs do not qualify this candidate, no currently running handle established. No push/dispatch/rerun authorized or performed.",
+  "completion": false,
+  "open_acceptance": [
+    "Genuine cleanup fault execution",
+    "Actual adapter pin proof",
+    "Original R18/R19, predecessor/task21, matched first-baseline/full/default/functional/affected/formal/native Darwin qualification where unproved"
+  ],
+  "linux": "fn128 native Linux execution is deferred and nonblocking"
+}
