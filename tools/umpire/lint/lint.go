@@ -27,6 +27,10 @@ const (
 	UnreachableValue Kind = "unreachable-value"
 	// NeverEnabled is an action class with no enabled row in a reachable state.
 	NeverEnabled Kind = "never-enabled"
+	// StuckState is a reachable state of a machine that is no end and in which no action class has an
+	// enabled row: nothing, not a timer nor an internal step, can happen there (fn-126 R21). A state
+	// with a hole row is not stuck: the hole declares that unmodeled behavior may happen there.
+	StuckState Kind = "stuck-state"
 	// Unproduced is an outcome or a fact no reachable row produces.
 	Unproduced Kind = "unproduced"
 	// UntakenChoice is a named choice no row of a reachable state takes.
@@ -211,6 +215,7 @@ func kinds() []kind {
 		{kind: UnmodeledAPIValue, run: unmodeledAPIValues, count: &count{"API values", "tested", "mapped to a fact"}},
 		{kind: UnreachableValue, run: unreachableValues},
 		{kind: NeverEnabled, run: neverEnabled},
+		{kind: StuckState, run: stuckStates},
 		{kind: Unproduced, run: unproduced},
 		{kind: UnrealizedFind, run: unrealizedFinds},
 		{kind: WaivedLaw, run: waivedLaws},
@@ -273,7 +278,7 @@ func sortFindings(fs []Finding) {
 }
 
 // order is every kind in the order findings are listed.
-var order = []Kind{UnreachableValue, NeverEnabled, Unproduced, UntakenChoice, UnaskedProperty, UnfiredVerify, UnevidencedFact,
+var order = []Kind{UnreachableValue, NeverEnabled, StuckState, Unproduced, UntakenChoice, UnaskedProperty, UnfiredVerify, UnevidencedFact,
 	UnperformedAction, UnrealizedFind, UnreadRefinement, UnreadObservation, ExplicitWait, UnmodeledAPIValue, DisabledByDefault, SilentRejection,
 	UnconstrainedResult, WitnessOnly, MustNotPinned, WaivedLaw, LawWaivedWithoutReason, ReasonNamesNoLaw, ParameterWithoutCitation,
 	LawWithOneInstance}

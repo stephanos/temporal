@@ -71,6 +71,16 @@ func (t *Table) pathTo(target string) (string, []edge, bool) {
 	return s, path, true
 }
 
+// PathTo is the shortest path from a start to a state as a witness, as pathTo finds it, or nil when
+// no start reaches the state.
+func (t *Table) PathTo(state string) *Trace {
+	start, path, ok := t.pathTo(state)
+	if !ok {
+		return nil
+	}
+	return t.trace(start, path)
+}
+
 // Replay checks that a witness is a path of this table: it starts in one of its states and each
 // step is a result of the row its action takes from the state before it.
 // Every value's Definition ID must be the one this table gives it.
