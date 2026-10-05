@@ -231,10 +231,10 @@ func TestAdmissionRejectsUnknownVersionsAndConstructs(t *testing.T) {
 		}, admChannelsAt + "16: channel " + admChannelsPkg + "wire has no known order"},
 		{"query form unspecified", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "durableStays").Form = umpirespb.Query_FORM_UNSPECIFIED
-		}, admDeclaredAt + "166: query durableStays has no known form"},
+		}, admDeclaredAt + "168: query durableStays has no known form"},
 		{"query form outside the enum", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "durableStays").Form = 3
-		}, admDeclaredAt + "166: query durableStays has no known form"},
+		}, admDeclaredAt + "168: query durableStays has no known form"},
 		{"monitor without an evaluation point", "declarations", func(m *umpirespb.Model) {
 			admMonitor(m, "endsDurable").Evaluate = nil
 		}, admDeclaredAt + "87: monitor endsDurable has no evaluation point"},
@@ -287,19 +287,19 @@ func TestAdmissionRejectsUndeclaredNamesAndArities(t *testing.T) {
 		}, admDeclaredAt + "129: sync putBoth of pair: store binds no action flush"},
 		{"property machine", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "store", "putStores").Machine = "nowhere"
-		}, admDeclaredAt + "144: no machine or composition nowhere"},
+		}, admDeclaredAt + "146: no machine or composition nowhere"},
 		{"scenario machine", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "store", "putOnce").Machine = "nowhere"
-		}, admDeclaredAt + "155: no machine or composition nowhere"},
+		}, admDeclaredAt + "157: no machine or composition nowhere"},
 		{"progress machine", "declarations", func(m *umpirespb.Model) {
 			m.GetProgress()[0].Machine = "nowhere"
 		}, admDeclaredAt + "118: no machine nowhere"},
 		{"query property", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "durableStays").GetProperty().Name = "nothing"
-		}, admDeclaredAt + "166: query durableStays: no Property nothing of disk"},
+		}, admDeclaredAt + "168: query durableStays: no Property nothing of disk"},
 		{"query scenario", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "durableStays").GetScenario().Name = "nothing"
-		}, admDeclaredAt + "166: query durableStays: no Scenario nothing of disk"},
+		}, admDeclaredAt + "168: query durableStays: no Scenario nothing of disk"},
 		{"monitor next arity", "declarations", func(m *umpirespb.Model) {
 			admMonitor(m, "storedOnce").Next = admDeclaredPkg + "storedOnce.violated"
 		}, admDeclaredAt + "84: storedOnce: " + admDeclaredPkg + "storedOnce.violated is not a function of three arguments"},
@@ -311,10 +311,10 @@ func TestAdmissionRejectsUndeclaredNamesAndArities(t *testing.T) {
 		}, admDeclaredAt + "92: stagedBeforeDurable: nowhere is not a function of one argument"},
 		{"same-step property arity", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "store", "putStores").Holds = "disk.property.durableStays"
-		}, admDeclaredAt + "144: store.putStores: disk.property.durableStays is not a function of one argument"},
+		}, admDeclaredAt + "146: store.putStores: disk.property.durableStays is not a function of one argument"},
 		{"transition property arity", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "disk", "durableStays").Holds = "disk.property.putAccepted"
-		}, admDeclaredAt + "140: disk.durableStays: disk.property.putAccepted is not a function of two arguments"},
+		}, admDeclaredAt + "142: disk.durableStays: disk.property.putAccepted is not a function of two arguments"},
 		{"progress from arity", "declarations", func(m *umpirespb.Model) {
 			m.GetProgress()[0].From = "disk.property.durableStays"
 		}, admDeclaredAt + "118: disk.durableEventually: disk.property.durableStays is not a function of one argument"},
@@ -403,13 +403,13 @@ func TestAdmissionRejectsDuplicates(t *testing.T) {
 		}, admDeclaredAt + "129: two compositions named pair"},
 		{"property", "declarations", func(m *umpirespb.Model) {
 			m.Properties = append(m.Properties, proto.Clone(admProperty(m, "store", "putStores")).(*umpirespb.Property))
-		}, admDeclaredAt + "144: two Properties named putStores on store"},
+		}, admDeclaredAt + "146: two Properties named putStores on store"},
 		{"scenario", "declarations", func(m *umpirespb.Model) {
 			m.Scenarios = append(m.Scenarios, proto.Clone(admScenario(m, "store", "putOnce")).(*umpirespb.Scenario))
-		}, admDeclaredAt + "155: two Scenarios named putOnce on store"},
+		}, admDeclaredAt + "157: two Scenarios named putOnce on store"},
 		{"query", "declarations", func(m *umpirespb.Model) {
 			m.Queries = append(m.Queries, proto.Clone(admQuery(m, "putStores")).(*umpirespb.Query))
-		}, admDeclaredAt + "168: two Queries named putStores"},
+		}, admDeclaredAt + "170: two Queries named putStores"},
 		{"progress", "declarations", func(m *umpirespb.Model) {
 			m.Progress = append(m.Progress, proto.Clone(m.GetProgress()[0]).(*umpirespb.Progress))
 		}, admDeclaredAt + "118: two progress claims named durableEventually on disk"},
@@ -465,13 +465,13 @@ func TestAdmissionRejectsInfiniteCatalogsAndBounds(t *testing.T) {
 		}, admChannelsAt + "16: channel " + admChannelsPkg + "wire has -1 duplicates, below 0"},
 		{"limits steps", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "durableStays").GetLimits().Steps = -1
-		}, admDeclaredAt + "166: query durableStays limits steps to -1, below 0"},
+		}, admDeclaredAt + "168: query durableStays limits steps to -1, below 0"},
 		{"limits actions", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "durableStays").GetLimits().Actions = -2
-		}, admDeclaredAt + "166: query durableStays limits actions to -2, below 0"},
+		}, admDeclaredAt + "168: query durableStays limits actions to -2, below 0"},
 		{"limits search", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "durableStays").GetLimits().Search = -3
-		}, admDeclaredAt + "166: query durableStays limits search to -3, below 0"},
+		}, admDeclaredAt + "168: query durableStays limits search to -3, below 0"},
 		{"progress within", "declarations", func(m *umpirespb.Model) {
 			m.GetProgress()[0].Within = 0
 		}, admDeclaredAt + "118: progress claim durableEventually of disk is within 0 steps, fewer than one"},
@@ -509,10 +509,10 @@ func TestAdmissionRejectsReadingsWithoutARefinement(t *testing.T) {
 		}, admDeclaredAt + "134: member back of detailedPair replaces disk, which disk does not refine"},
 		{"property of another machine", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "putStores").Scenario = &umpirespb.ClaimRef{Machine: "disk", Name: "putThenFlush"}
-		}, admDeclaredAt + "168: query putStores pairs a Property of store with a Scenario of disk"},
+		}, admDeclaredAt + "170: query putStores pairs a Property of store with a Scenario of disk"},
 		{"through what the scenario machine does not refine", "declarations", func(m *umpirespb.Model) {
 			admQuery(m, "putStoresThroughDisk").Scenario = &umpirespb.ClaimRef{Machine: "pair", Name: "any"}
-		}, admDeclaredAt + "169: query putStoresThroughDisk pairs a Property of store with a Scenario of pair"},
+		}, admDeclaredAt + "171: query putStoresThroughDisk pairs a Property of store with a Scenario of pair"},
 		{"product property without through", "admission", func(m *umpirespb.Model) {
 			admQuery(m, "currentAdmission.product.pausedIsNotDispatched").Through = false
 		}, admAdmissionAt + "391: query currentAdmission.product.pausedIsNotDispatched pairs a Property of activityProduct with a Scenario of currentAdmission"},
@@ -642,33 +642,33 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 	runAdmissionCases(t, []admissionCase{
 		{"when_class input the action does not take", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "store", "putStores").GetWhenClass().Inputs = []*umpirespb.Value{admIntValue(1)}
-		}, admDeclaredAt + "144: store.putStores: " + put + " takes 0 inputs, not 1"},
+		}, admDeclaredAt + "146: store.putStores: " + put + " takes 0 inputs, not 1"},
 		{"when_class of an action the machine does not bind", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "store", "putStores").GetWhenClass().Action = flush
-		}, admDeclaredAt + "144: store.putStores: store binds no action " + flush},
+		}, admDeclaredAt + "146: store.putStores: store binds no action " + flush},
 		{"when_action the machine does not bind", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "disk", "putAccepted").When = &umpirespb.Property_WhenAction{WhenAction: "nothing"}
-		}, admDeclaredAt + "146: disk.putAccepted: disk binds no action nothing"},
+		}, admDeclaredAt + "148: disk.putAccepted: disk binds no action nothing"},
 		// putBoth takes each member's put, so the composition has no class of an action put, and none
 		// of front's put either.
 		{"when_action of no class of a composition", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "detailedPair", "frontHeld").When = &umpirespb.Property_WhenAction{WhenAction: "put"}
-		}, admDeclaredAt + "150: detailedPair.frontHeld: detailedPair has no class of the action put"},
+		}, admDeclaredAt + "152: detailedPair.frontHeld: detailedPair has no class of the action put"},
 		{"when_action of a synced member action of a composition", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "detailedPair", "frontHeld").When = &umpirespb.Property_WhenAction{WhenAction: "front_put"}
-		}, admDeclaredAt + "150: detailedPair.frontHeld: detailedPair has no class of the action front_put"},
+		}, admDeclaredAt + "152: detailedPair.frontHeld: detailedPair has no class of the action front_put"},
 		{"when_action of an action no member binds on a composition", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "detailedPair", "frontHeld").When = &umpirespb.Property_WhenAction{WhenAction: "front_flush"}
-		}, admDeclaredAt + "150: detailedPair.frontHeld: detailedPair has no class of the action front_flush"},
+		}, admDeclaredAt + "152: detailedPair.frontHeld: detailedPair has no class of the action front_flush"},
 		{"when_class of no class of a composition", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "detailedPair", "frontHeld").When = &umpirespb.Property_WhenClass{WhenClass: &umpirespb.ActionClass{Action: put}}
-		}, admDeclaredAt + "150: detailedPair.frontHeld: detailedPair has no class put"},
+		}, admDeclaredAt + "152: detailedPair.frontHeld: detailedPair has no class put"},
 		{"when_class of an undeclared action on a composition", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "detailedPair", "frontHeld").When = &umpirespb.Property_WhenClass{WhenClass: &umpirespb.ActionClass{Action: "nowhere"}}
-		}, admDeclaredAt + "150: no action nowhere"},
+		}, admDeclaredAt + "152: no action nowhere"},
 		{"scenario input the action does not take", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "store", "putOnce").GetActions()[0].Inputs = []*umpirespb.Value{admIntValue(1)}
-		}, admDeclaredAt + "155: store.putOnce: " + put + " takes 0 inputs, not 1"},
+		}, admDeclaredAt + "157: store.putOnce: " + put + " takes 0 inputs, not 1"},
 		{"scenario input of a crossed type", "admission", func(m *umpirespb.Model) {
 			admScenario(m, "currentAdmission", "staleDeliveryAfterPause").GetActions()[1].Inputs[0] = admEnum(
 				"fixture.specimens.admission.AdmissionPhase", "paused")
@@ -678,29 +678,29 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 		}, "generic:1: tallying.counts: " + admChannelsPkg + "tally.deliver takes a 0..2 for message, not 3"},
 		{"scenario action the machine does not bind", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "store", "putOnce").GetActions()[0].Action = flush
-		}, admDeclaredAt + "155: store.putOnce: store binds no action " + flush},
+		}, admDeclaredAt + "157: store.putOnce: store binds no action " + flush},
 		{"machine scenario start of another type", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "store", "putOnce").Start = proto.Clone(admScenario(m, "disk", "putThenFlush").GetStart()).(*umpirespb.Expr)
-		}, admDeclaredAt + "155: store.putOnce starts at empty, which is no fixture.declarations.StoreState"},
+		}, admDeclaredAt + "157: store.putOnce starts at empty, which is no fixture.declarations.StoreState"},
 		{"composition scenario start of another type", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "detailedPair", "bothPut").Start = proto.Clone(admScenario(m, "pair", "any").GetStart()).(*umpirespb.Expr)
-		}, admDeclaredAt + "159: detailedPair.bothPut starts at nothing-nothing, which is no fixture.declarations.DetailedPairState"},
+		}, admDeclaredAt + "161: detailedPair.bothPut starts at nothing-nothing, which is no fixture.declarations.DetailedPairState"},
 		{"composition scenario key of no class", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "detailedPair", "bothPut").Keys = []string{"putNone"}
-		}, admDeclaredAt + "159: detailedPair.bothPut: detailedPair has no class putNone"},
+		}, admDeclaredAt + "161: detailedPair.bothPut: detailedPair has no class putNone"},
 		{"composition scenario key of an action its member does not bind", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "detailedPair", "bothPut").Keys = []string{"front_flush"}
-		}, admDeclaredAt + "159: detailedPair.bothPut: detailedPair has no class front_flush"},
+		}, admDeclaredAt + "161: detailedPair.bothPut: detailedPair has no class front_flush"},
 		// putBoth takes front's put, so front has no put class of its own.
 		{"composition scenario of a synced member action", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "detailedPair", "bothPut").Keys = []string{"front_put"}
-		}, admDeclaredAt + "159: detailedPair.bothPut: detailedPair has no class front_put"},
+		}, admDeclaredAt + "161: detailedPair.bothPut: detailedPair has no class front_put"},
 		{"composition scenario of actions", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "detailedPair", "bothPut").Actions = []*umpirespb.ActionClass{{Action: put}}
-		}, admDeclaredAt + "159: detailedPair.bothPut: a Scenario of a composition schedules its class keys, not actions"},
+		}, admDeclaredAt + "161: detailedPair.bothPut: a Scenario of a composition schedules its class keys, not actions"},
 		{"machine scenario of keys", "declarations", func(m *umpirespb.Model) {
 			admScenario(m, "store", "putOnce").Keys = []string{"put"}
-		}, admDeclaredAt + "155: store.putOnce: a Scenario of a machine schedules action classes, not keys"},
+		}, admDeclaredAt + "157: store.putOnce: a Scenario of a machine schedules action classes, not keys"},
 	})
 }
 
