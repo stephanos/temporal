@@ -178,6 +178,13 @@ the rule is broken.
    fails the evaluation. Test: `TestCorrelatedEvidenceIsDeduplicatedByIdentity`
    (`internal/verification/judge_test.go`).
 
+An Assessment, which a Case's attached Assessor makes beside the Verdict and never as part of it,
+reports each conclusion with a `Reason` and a `Detail`. The reason is the Assessor's stable id for
+why the conclusion is what it is, empty when it gives none; the detail is bounded prose and no
+stable API. Testpilot refuses an outcome whose reason is not an id (1 to 256 bytes of UTF-8) and
+carries each as the Assessor gave it, so an expectation of a Run compares reasons, never prose.
+Test: `TestAssessmentFailureIsReportedAndKeepsEstablishedViolations` (`assessment_external_test.go`).
+
 ## Field paths and enum literals
 
 A Case reads and writes protobuf fields through field paths: `PathExpression.path`, a request
