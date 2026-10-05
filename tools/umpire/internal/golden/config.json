@@ -20,7 +20,8 @@
     "model/scalav2/ir/nexus-operation.json",
     "model/scalav2/lifter/testdata/lifts/expected/hints.json",
     "model/scalav2/lifter/testdata/lifts/expected/hintsRefused.json",
-    "model/scalav2/lifter/testdata/lifts/expected/sections.json"
+    "model/scalav2/lifter/testdata/lifts/expected/sections.json",
+    "model/scalav2/lifter/testdata/lifts/expected/rules.json"
   ],
   "source_path_substitutions": [
     {
@@ -167,11 +168,11 @@
     },
     {
       "old": "temporal.standaloneactivity.Claims$package$.functionalQueries",
-      "new": "temporal.standaloneactivity.Protocol$.queries$.all"
+      "new": "temporal.standaloneactivity.ActivityProtocol$.queries$.all"
     },
     {
       "old": "temporal.standaloneactivity.Claims$package$.cancelRequest",
-      "new": "temporal.standaloneactivity.Protocol$.queries$.cancelRequest"
+      "new": "temporal.standaloneactivity.ActivityProtocol$.queries$.cancelRequest"
     },
     {
       "old": "temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing",
@@ -179,7 +180,7 @@
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentQueries",
-      "new": "temporal.standaloneactivity.admission.Admission$.queries$.currentQueries"
+      "new": "temporal.standaloneactivity.admission.CurrentAdmission$.queries$.currentQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.staleQueries",
@@ -191,11 +192,11 @@
     },
     {
       "old": "temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery",
-      "new": "temporal.standaloneactivity.admission.ResponseLoss$.queries$.lostAdmissionResponseQuery"
+      "new": "temporal.standaloneactivity.admission.AdmissionResponseLoss$.queries$.lostAdmissionResponseQuery"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.competingTimers",
-      "new": "temporal.standaloneactivity.Protocol$.queries$.competingTimers"
+      "new": "temporal.standaloneactivity.ActivityProtocol$.queries$.competingTimers"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverQueueQueries",
@@ -219,19 +220,19 @@
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverForgetful",
-      "new": "temporal.standaloneactivity.compositions.CurrentOverForgetful$.currentOverForgetful"
+      "new": "temporal.standaloneactivity.compositions.CurrentOverForgetful"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverVolatile",
-      "new": "temporal.standaloneactivity.compositions.CurrentOverVolatile$.currentOverVolatile"
+      "new": "temporal.standaloneactivity.compositions.CurrentOverVolatile"
     },
     {
       "old": "temporal.standaloneactivity.Model$package$.activityProduct",
-      "new": "temporal.standaloneactivity.Product$.activityProduct"
+      "new": "temporal.standaloneactivity.ActivityProduct"
     },
     {
       "old": "temporal.standaloneactivity.Model$package$.standaloneActivity",
-      "new": "temporal.standaloneactivity.StandaloneActivity$.standaloneActivity"
+      "new": "temporal.standaloneactivity.StandaloneActivity"
     },
     {
       "old": "temporal.nexuscaller.Claims$package$.functionalQueries",
@@ -351,8 +352,8 @@
     "temporal.standaloneactivity.Claims$package$.terminalHolds"
   ],
   "source_root_additions": [
-    "temporal.standaloneactivity.Product$.laws$.productCapabilities",
-    "temporal.standaloneactivity.Protocol$.laws$.protocolCapabilities"
+    "temporal.standaloneactivity.ActivityProduct$.implements$.all",
+    "temporal.standaloneactivity.ActivityProtocol$.implements$.all"
   ],
   "source_path_merges": [
     {
@@ -590,6 +591,106 @@
       {
         "old": "temporal.worker.Worker$package$.stopStep",
         "new": "temporal.worker.Polling$.effects$.stopStep"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.attemptStartStep",
+        "new": "activityProduct.rules.attemptStart"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.attemptResultStep",
+        "new": "activityProduct.rules.attemptResult"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.controlStep",
+        "new": "activityProduct.rules.control"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.workerStopStep",
+        "new": "activityProduct.rules.workerStop"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.timeoutStep",
+        "new": "activityProduct.rules.timeout"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.startStep",
+        "new": "activityProtocol.rules.start"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.protocolAttemptStartStep",
+        "new": "activityProtocol.rules.attemptStart"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.protocolAttemptResultStep",
+        "new": "activityProtocol.rules.attemptResult"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.protocolControlStep",
+        "new": "activityProtocol.rules.control"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.protocolWorkerStopStep",
+        "new": "activityProtocol.rules.workerStop"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.backoffStep",
+        "new": "activityProtocol.rules.backoff"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.scheduleToCloseStep",
+        "new": "activityProtocol.rules.scheduleToClose"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.scheduleToStartStep",
+        "new": "activityProtocol.rules.scheduleToStart"
+      },
+      {
+        "old": "temporal.standaloneactivity.Model$package$.startToCloseStep",
+        "new": "activityProtocol.rules.startToClose"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.dispatchStep",
+        "new": "currentAdmission.rules.dispatch"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.pauseStep",
+        "new": "currentAdmission.rules.control"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.admitCurrent",
+        "new": "currentAdmission.rules.attemptStart"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.answerStep",
+        "new": "currentAdmission.rules.answerDelivery"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.resultStep",
+        "new": "currentAdmission.rules.attemptResult"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.admissionScheduleToStart",
+        "new": "currentAdmission.rules.scheduleToStart"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.admissionScheduleToClose",
+        "new": "currentAdmission.rules.scheduleToClose"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.admitStale",
+        "new": "staleAdmission.rules.attemptStart"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.responseLossDispatch",
+        "new": "admissionResponseLoss.rules.dispatch"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.loseAdmissionAnswer",
+        "new": "admissionResponseLoss.rules.ackLoss"
+      },
+      {
+        "old": "temporal.standaloneactivity.System$package$.admitHeld",
+        "new": "heldAdmission.rules.attemptStart"
       }
     ],
     "inert_fields": [

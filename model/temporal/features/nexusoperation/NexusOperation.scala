@@ -8,7 +8,7 @@
  *
  * Read top to bottom: the types; the signature (the caller, the handler, the operation and their
  * actions); then Operation, the operation's one machine, with its own reading of closed rejection
- * and the capabilities it declares; and last Files, its IR file. Realization.scala realizes it.
+ * and the capabilities it declares; and last exports, its IR file. Realization.scala realizes it.
  */
 package temporal
 package features.nexusoperation
@@ -233,8 +233,8 @@ object Operation:
 
 // ### The checked-in IR file of the standalone Nexus operation Model (umpire.irFile).
 
-object Files:
-  val nexusOperationFile = irFile("nexus-operation")(
+object exports:
+  val nexusOperation = irFile("nexus-operation")(
     Operation.nexusOperation,
     Operation.laws.operationCapabilities,
     OperationRealization.standalone

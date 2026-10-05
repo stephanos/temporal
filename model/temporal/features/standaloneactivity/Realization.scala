@@ -28,10 +28,7 @@ import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 import ActivityFamily.given
 import Timeout.expires
 import shared.worker.worker as process
-import Protocol.activityProtocol
-import record.{history, AdmissionFact, AdmissionResponseFact}
-import record.HeldAdmission.heldAdmission
-import record.ResponseLoss.admissionResponseLoss
+import record.{history, AdmissionFact, AdmissionResponseFact, AdmissionResponseLoss, HeldAdmission}
 
 object ActivityRealization:
   // Moved from temporal.standaloneactivity; the pin keeps its Definition IDs.
@@ -190,7 +187,7 @@ object ActivityRealization:
 
   /** One standalone activity a controller starts and the Case's own worker runs. */
   val standalone = temporalRealization(
-    machine = activityProtocol,
+    machine = ActivityProtocol,
     operation = activity,
     roles = Vector(workflowService, caseWorker, taskQueue),
     scripts = Vector(standaloneController, attempts),
@@ -297,7 +294,7 @@ object ActivityRealization:
 
   /** The stale dispatch of one paused activity, held, then delivered to admission. */
   val heldDelivery = temporalRealization(
-    machine = heldAdmission,
+    machine = HeldAdmission,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
     scripts = Vector(
@@ -320,7 +317,7 @@ object ActivityRealization:
 
   /** One lost admission answer, with its durable decision observed before the response is replaced. */
   val lostAdmissionResponse = temporalRealization(
-    machine = admissionResponseLoss,
+    machine = AdmissionResponseLoss,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
     scripts = Vector(

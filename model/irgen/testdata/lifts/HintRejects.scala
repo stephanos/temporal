@@ -8,7 +8,7 @@ import umpire.*
 import umpire.realize.*
 import temporal.realize.*
 import temporal.features.standaloneactivity.activity
-import temporal.features.standaloneactivity.Protocol.activityProtocol
+import temporal.features.standaloneactivity.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 given Family = Family("fixture.hintrejects")
 

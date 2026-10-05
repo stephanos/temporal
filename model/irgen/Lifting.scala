@@ -26,7 +26,10 @@ final private[irgen] class Lifting(val ctx: Context)
       .find(s => s.isValDef && s.fullName == root)
       .getOrElse(throw LiftError(s"root $root", "names no declaration of the lifted sources"))
     val d = valDef(sym, sym.tree, "a declaration")
-    if isNamed(d.tpt.tpe, "umpire.Machine") then machineOf(sym, d)
+    // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
+    if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d)
+    else if objectForm(sym) then compositionOf(sym, d)
+    else if isNamed(d.tpt.tpe, "umpire.Machine") then machineOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.Composition") then compositionOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.realize.Realization") then realizationOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.Capabilities") then fold(Ref(sym), Map.empty): Unit

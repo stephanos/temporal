@@ -217,7 +217,22 @@ private[irgen] trait Claims:
 
   /** Whether a type is one a claim is declared on: a machine, a composition, or `Declares[S]`. */
   def declares(tpe: TypeRepr): Boolean =
-    Seq("umpire.Machine", "umpire.Composition", "umpire.Declares").exists(isNamed(tpe, _))
+    tpe.widen.dealias.derivesFrom(Symbol.requiredClass("umpire.Declares"))
+
+  /** An inherited member read without a receiver, read on the object it is inherited by. */
+  def onThis(t: Term): Term =
+    def of(tpe: TypeRepr): Option[Symbol] = tpe match
+      case TermRef(prefix, _) => of(prefix)
+      case ThisType(cls)      => Some(cls.typeSymbol)
+      case _                  => None
+    of(t.tpe) match
+      case Some(cls) => Select(This(cls), t.symbol)
+      case None => fail(t, s"${t.show} names no machine or composition object it is declared in")
+
+  /** The name of a machine or composition object, lifting it on first use. */
+  def modelOfObject(cls: Symbol, at: Tree): String =
+    val module = cls.companionModule
+    if isMachine(cls.typeRef) then machineOf(module, at).name else compositionOf(module, at).name
 
   /** Whether a call is one of `Declares`'s, `property` or `scenario`, which every model inherits. */
   def declared(t: Term): Boolean = t.symbol.maybeOwner.fullName == "umpire.Declares"
@@ -239,10 +254,13 @@ private[irgen] trait Claims:
         case (_, other) => fail(other, s"not a declaration: ${other.show}")
       }
       fold(e, inner, named)
-    case Literal(StringConstant(s))       => Decl.Text(s)
-    case Literal(IntConstant(i))          => Decl.Number(i)
-    case Literal(LongConstant(l))         => Decl.Number(l)
-    case r: Ref if env.contains(r.symbol) => env(r.symbol)
+    case This(_) if objectForm(t.symbol) => Decl.Model(modelOfObject(moduleClassOf(t.symbol), t))
+    case Ident(_) if declared(t)         => fold(onThis(t), env, named)
+    case Apply(fn: Ident, args) if declared(t) => fold(Apply(onThis(fn), args), env, named)
+    case Literal(StringConstant(s))            => Decl.Text(s)
+    case Literal(IntConstant(i))               => Decl.Number(i)
+    case Literal(LongConstant(l))              => Decl.Number(l)
+    case r: Ref if env.contains(r.symbol)      => env(r.symbol)
     // `s"..."`, with each argument folded to its text.
     case Apply(Select(Apply(Select(sc, "apply"), List(parts)), "s"), List(args))
         if sc.symbol.fullName == "scala.StringContext" =>
@@ -394,6 +412,7 @@ private[irgen] trait Claims:
       folded.getOrElseUpdate(
         sym,
         valDef(sym, r, "a declaration") match
+          case _ if objectForm(sym) => Decl.Model(modelOfObject(moduleClassOf(sym), r))
           case d if isNamed(d.tpt.tpe, "umpire.Machine")     => Decl.Model(machineOf(sym, r).name)
           case d if isNamed(d.tpt.tpe, "umpire.Composition") =>
             Decl.Model(compositionOf(sym, r).name)

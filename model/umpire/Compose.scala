@@ -1,7 +1,6 @@
 package umpire
 
-import scala.annotation.publicInBinary
-import scala.compiletime.constValueTuple
+import scala.annotation.unused
 import scala.deriving.Mirror
 
 /**
@@ -13,70 +12,98 @@ import scala.deriving.Mirror
  * A member is named by a selector of its field, `_.order -> currentRecord`; `->` pairs the
  * member with its value and never means a transition. The lifter reads the selectors from the
  * source, so what a composition holds here is what its author wrote.
+ *
+ * Declared as an object that is the composition, named after the object with its first letter
+ * lowered, with the states it may end in and its syncs:
+ *
+ * {{{
+ * object OrderOverQueue extends Composition[OverQueue](_.order -> OrderRecord, _.queue -> Queue):
+ *   def end(s: OverQueue) = OrderRecord.end(s.order)
+ *   object syncs extends Syncs:
+ *     sync(_.order -> clerk.dispatch, _.queue -> queue.enqueue)
+ * }}}
+ *
+ * then its `states`, `properties`, `implements` and `queries` sections. A composition with one member replaced is an
+ * object too, `object LateOverQueue extends Composition(OrderOverQueue.withMember(_.order ->
+ * LateRecord))`, and declares only its own sections. `end` and `syncs` are not members a declared
+ * composition must implement, since a derived one keeps its source's: the IR generator requires them
+ * of a declared composition object and refuses them in a derived one. At run time a composition is
+ * its members, which the gate constructs (IrFile.construct).
  */
-final class Composition[S <: Product] @publicInBinary private[umpire] (
+abstract class Composition[S <: Product] private (
+    private[umpire] val shape: Composition.Shape[S],
     val family: Family,
-    val name: String,
-    private[umpire] val fieldNames: Vector[String],
-    private[umpire] val members: Vector[S => (Any, Model)],
-    private[umpire] val syncs: Vector[(String, Move[S], Move[S])],
-    private[umpire] val isEnd: S => Boolean,
-    private[umpire] val replaced: Vector[(S => Any, Model)],
-    private[umpire] val withMembers: Vector[S => (Any, Model)] = Vector.empty
+    private[umpire] val mirror: Mirror.ProductOf[S]
 ) extends Declares[S]:
   type Outcome = String
   type Fact = String
 
-  private def copy(
-      family: Family = family,
-      name: String = name,
-      syncs: Vector[(String, Move[S], Move[S])] = syncs,
-      isEnd: S => Boolean = isEnd,
-      replaced: Vector[(S => Any, Model)] = replaced,
-      withMembers: Vector[S => (Any, Model)] = withMembers
-  ): Composition[S] =
-    Composition(family, name, fieldNames, members, syncs, isEnd, replaced, withMembers)
+  /** A composition of these members, each named by a selector of its field. */
+  def this(members: (S => (Any, Model))*)(using family: Family, mirror: Mirror.ProductOf[S]) =
+    this(Composition.Shape.Members(members.toVector), family, mirror)
+
+  /** The composition a derivation of another makes, such as `c.withMember(...)`. */
+  def this(derivation: Composition[S]) =
+    this(Composition.Shape.Of(derivation), derivation.family, derivation.mirror)
+
+  /** The object's name with its first letter lowered, or the builder's. */
+  def name: String = objectName(this)
+
+  /** The owner its `syncs` read the composed state type from. */
+  protected given compositionOwner: Composer[S] = Composer(this)
+
+  /** The members, each constructed: the machines and compositions it composes. */
+  private[umpire] def members: Vector[Model] = shape match
+    case Composition.Shape.Members(selectors) => selectors.map(Composition.selected(_, mirror))
+    case Composition.Shape.Of(derivation)     => derivation.members
+    case Composition.Shape.With(base, member) =>
+      base.members :+ Composition.selected(member, mirror)
+
+  private def chained: Composition[S] =
+    new Composition[S](Composition.Shape.Of(this), family, mirror) {}
 
   /**
-   * Pairs two members' actions into one step named `name`, each member by its field:
-   * `.sync("dispatch", _.order -> dispatch, _.queue -> enqueue)`.
+   * Pairs two members' actions into one step named `name`, each member by its field, in the
+   * builder's chain: `.sync("dispatch", _.order -> dispatch, _.queue -> enqueue)`. A composition
+   * object writes its syncs in `object syncs extends Syncs`.
    */
   def sync(
-      name: String,
-      first: S => (Any, Action[?]),
-      second: S => (Any, Action[?])
-  ): Composition[S] =
-    copy(syncs = syncs :+ (name, first, second))
+      @unused name: String,
+      @unused first: S => (Any, Action[?]),
+      @unused second: S => (Any, Action[?])
+  ): Composition[S] = chained
 
   /**
    * Pairs two members' actions into one step named after the first member's action, each member by
-   * its field: `.sync(_.order -> dispatch, _.queue -> enqueue)` is the sync `dispatch`. The
-   * lifter reads the name from the action's declaration, so it is empty here.
+   * its field, in the builder's chain: `.sync(_.order -> dispatch, _.queue -> enqueue)`.
    */
-  def sync(first: S => (Any, Action[?]), second: S => (Any, Action[?])): Composition[S] =
-    copy(syncs = syncs :+ ("", first, second))
+  def sync(
+      @unused first: S => (Any, Action[?]),
+      @unused second: S => (Any, Action[?])
+  ): Composition[S] =
+    chained
 
-  /** Which composed states the composition may end in. */
-  def ends(end: S => Boolean): Composition[S] = copy(isEnd = end)
+  /** Which composed states the composition may end in, in the builder's chain. */
+  def ends(@unused end: S => Boolean): Composition[S] = chained
 
   /**
    * Says the member a field selector names, `_.queue`, stands in for `opaque` within this
-   * composition: a detailed provider in place of an opaque one. The member must declare a refinement
-   * of `opaque` that holds, which is what makes the replacement scoped to this composition.
+   * composition, in the builder's chain: a detailed provider in place of an opaque one. The member
+   * must declare a refinement of `opaque` that holds, which is what makes the replacement scoped to
+   * this composition.
    */
-  def replaces(field: S => Any, opaque: Model): Composition[S] =
-    copy(replaced = replaced :+ (field -> opaque))
+  def replaces(@unused field: S => Any, @unused opaque: Model): Composition[S] = chained
 
   /**
    * This composition with one member replaced, `currentOverQueue.withMember(_.order ->
-   * staleRecord)`: the same syncs, ends and member order, named after the `val` that declares it in
-   * the `given Family`. A member that stands in for another machine here stands in for the one its
-   * new machine declares it refines; the lifter refuses a new machine of another state type, one that
-   * binds no action a sync of the member pairs, and one that refines nothing where the member
-   * replaces a machine.
+   * staleRecord)`: the same syncs, ends and member order, named after the object or val that
+   * declares it in the `given Family`. A member that stands in for another machine here stands in
+   * for the one its new machine declares it refines; the lifter refuses a new machine of another
+   * state type, one that binds no action a sync of the member pairs, and one that refines nothing
+   * where the member replaces a machine.
    */
   def withMember(member: S => (Any, Model))(using family: Family): Composition[S] =
-    copy(family = family, name = "", withMembers = withMembers :+ member)
+    new Composition[S](Composition.Shape.With(this, member), family, mirror) {}
 
   /**
    * The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
@@ -91,6 +118,51 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
    * the member pairs, since that action steps only with its pair.
    */
   def own(member: S => Any, action: Class | Action[?]): Composed = Composed(this, (member, action))
+
+object Composition:
+  /** How a composition is made: from its members, from another's derivation, or with a member. */
+  private[umpire] enum Shape[S <: Product]:
+    case Members(selectors: Vector[S => (Any, Model)])
+    case Of(derivation: Composition[S])
+    case With(base: Composition[S], member: S => (Any, Model))
+
+  // A selector reads one field of the composed state and names the member that fills it, so the
+  // member is read off a composed state of empty fields: a case class's constructor keeps them.
+  private object Empty extends Product:
+    def canEqual(that: Any): Boolean = false
+    def productArity: Int = 0
+    // An empty field is null, as a case class constructor keeps it.
+    def productElement(n: Int): Any = null // scalafix:ok DisableSyntax.null
+
+  private[umpire] def selected[S](selector: S => (Any, Model), m: Mirror.ProductOf[S]): Model =
+    selector(m.fromProduct(Empty))._2
+
+/** The owner of a composition's `syncs`, which read its composed state type. */
+final class Composer[S <: Product] private[umpire] (val composition: Composition[S])
+
+/**
+ * A composition's syncs, `object syncs extends Syncs`: each statement pairs two members' actions
+ * into one step, `sync(_.order -> clerk.dispatch, _.queue -> queue.enqueue)`, named after the
+ * first member's action or by the name it is given, `sync("admit", ...)`; `replaces(_.queue,
+ * DispatchQueue)` says a member stands in for an opaque machine. The IR generator reads them from the
+ * source, in order.
+ */
+abstract class Syncs[S <: Product](using @unused composer: Composer[S]) extends Section:
+  /** Pairs two members' actions into one step named after the first member's action. */
+  def sync(@unused first: S => (Any, Action[?]), @unused second: S => (Any, Action[?])): Unit = ()
+
+  /** Pairs two members' actions into one step named `name`. */
+  def sync(
+      @unused name: String,
+      @unused first: S => (Any, Action[?]),
+      @unused second: S => (Any, Action[?])
+  ): Unit = ()
+
+  /**
+   * The member a field selector names, `_.queue`, stands in for `opaque` within this composition:
+   * a detailed provider in place of an opaque one, which must declare a refinement of it.
+   */
+  def replaces(@unused field: S => Any, @unused opaque: Model): Unit = ()
 
 /** One member's action a sync pairs, by a selector of the member's field. */
 type Move[S] = S => (Any, Action[?])
@@ -116,9 +188,8 @@ def through[S, M, A](select: S => M, read: M => A): S => A = s => read(select(s)
  * each named by a selector of the field it fills: `compose[OverQueue](_.order -> currentRecord,
  * _.queue -> dispatchQueue)`.
  */
-inline def compose[S <: Product](members: (S => (Any, Model))*)(using
+def compose[S <: Product](members: (S => (Any, Model))*)(using
     m: Mirror.ProductOf[S],
     family: Family
 ): Composition[S] =
-  val labels = constValueTuple[m.MirroredElemLabels].toList.map(_.toString).toVector
-  Composition[S](family, "", labels, members.toVector, Vector.empty, _ => false, Vector.empty)
+  new Composition[S](members*) {}

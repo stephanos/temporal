@@ -47,10 +47,16 @@ func spell(x *umpirespb.Expr) string {
 		if k.Unary.GetOp() == umpirespb.Unary_OP_NEG {
 			return "-" + operand(k.Unary.GetOperand())
 		}
-		return "!" + operand(k.Unary.GetOperand())
+		return negated(k.Unary.GetOperand())
 	case *umpirespb.Expr_Binary:
 		left, right := operand(k.Binary.GetLeft()), operand(k.Binary.GetRight())
 		if k.Binary.GetOp() == umpirespb.Binary_OP_CONTAINS {
+			// `x.in(a, b)` lifts as `List(a, b).contains(x)`: it reads as written, one member as `==`.
+			if items, ok := listed(k.Binary.GetRight()); ok && len(items) == 1 {
+				return left + " == " + operand(items[0])
+			} else if ok {
+				return left + ".in(" + spellAll(items) + ")"
+			}
 			return right + ".contains(" + spell(k.Binary.GetLeft()) + ")"
 		}
 		return left + " " + binaryOps[k.Binary.GetOp()] + " " + right
@@ -70,6 +76,36 @@ func spell(x *umpirespb.Expr) string {
 	default:
 		return "…"
 	}
+}
+
+// negated spells `!x` as its author would: `a != b` for `a == b` and the reverse, `x != a` for
+// `x.in(a)`, and `!x.in(a, b)` without parentheses.
+func negated(x *umpirespb.Expr) string {
+	if b := x.GetBinary(); b != nil {
+		left := operand(b.GetLeft())
+		switch b.GetOp() {
+		case umpirespb.Binary_OP_EQ:
+			return left + " != " + operand(b.GetRight())
+		case umpirespb.Binary_OP_NE:
+			return left + " == " + operand(b.GetRight())
+		case umpirespb.Binary_OP_CONTAINS:
+			if items, ok := listed(b.GetRight()); ok && len(items) == 1 {
+				return left + " != " + operand(items[0])
+			} else if ok {
+				return "!" + spell(x)
+			}
+		default:
+		}
+	}
+	return "!" + operand(x)
+}
+
+// listed is the items of a list written out, `List(a, b)`, as `x.in(a, b)` lifts its members.
+func listed(x *umpirespb.Expr) ([]*umpirespb.Expr, bool) {
+	if l := x.GetList(); l != nil && len(l.GetItems()) > 0 {
+		return l.GetItems(), true
+	}
+	return nil, false
 }
 
 var binaryOps = map[umpirespb.Binary_Op]string{

@@ -46,7 +46,10 @@ private[check] object SyntaxRule:
     "sticky",
     "stickyAcross",
     ":=",
-    "field"
+    "field",
+    "when",
+    "Rules",
+    "PhasesOf"
   )
 
   final case class Finding(file: String, line: Int, reason: String):

@@ -64,12 +64,35 @@ func rewrite(function string, change func(c *umpirespb.MatchCase) bool, ifs func
 	}
 }
 
-// pauseOfCancelRequestedByDefault writes the pause arm for cancelRequested as `case _ => Nil`.
-var pauseOfCancelRequestedByDefault = rewrite("temporal.features.standaloneactivity.Protocol$.effects$.control", func(c *umpirespb.MatchCase) bool {
-	if c.GetPattern().GetLiteral().GetEnum().GetCase() != "cancelRequested" || c.GetBody().GetList() == nil {
+// pauseOfCancelRequestedByDefault decides a pause of a cancel-requested activity by a default arm,
+// as `s.phase match { case _ => Nil }` lifts, before the pause's rules are tried.
+var pauseOfCancelRequestedByDefault = rewrite("activityProtocol.rules.control", func(c *umpirespb.MatchCase) bool {
+	if c.GetPattern().GetLiteral().GetEnum().GetCase() != "pause" {
 		return false
 	}
-	c.Pattern = &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &umpirespb.Empty{}}}
+	phase := func() *umpirespb.Expr {
+		return &umpirespb.Expr{Kind: &umpirespb.Expr_Field{Field: &umpirespb.FieldAccess{
+			Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "s"}}, Field: "phase"}}}
+	}
+	cancelRequested := &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Enum{
+		Enum: &umpirespb.EnumValue{Type: "temporal.standaloneactivity.Phase", Case: "cancelRequested"}}}}}
+	none := &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
+	byDefault := &umpirespb.Expr{Position: c.GetBody().GetPosition(), Kind: &umpirespb.Expr_Match{Match: &umpirespb.Match{
+		Scrutinee: phase(),
+		Cases: []*umpirespb.MatchCase{{
+			Pattern: &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &umpirespb.Empty{}}},
+			Body:    none,
+		}},
+	}}}
+	c.Body = &umpirespb.Expr{Position: c.GetBody().GetPosition(), Kind: &umpirespb.Expr_If{If: &umpirespb.If{
+		Condition: &umpirespb.Expr{Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{
+			Op:    umpirespb.Binary_OP_CONTAINS,
+			Left:  phase(),
+			Right: &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{Items: []*umpirespb.Expr{cancelRequested}}}},
+		}}},
+		Then: byDefault,
+		Else: c.GetBody(),
+	}}}
 	return true
 }, nil)
 
@@ -91,14 +114,17 @@ func TestDisabledByDefault(t *testing.T) {
 	require.Contains(t, protocol.Rules[i].Holes, DisabledByDefault)
 
 	// An `if` whose condition names no field of the state decides by default too.
-	_, holes = holesOf(t, Options{}, rewrite("temporal.features.standaloneactivity.Protocol$.effects$.attemptResult", nil, func(x *umpirespb.If) bool {
-		if x.GetCondition().GetBinary().GetRight().GetLiteral().GetEnum().GetCase() != "cancelRequested" || x.GetElse().GetList() == nil {
+	_, holes = holesOf(t, Options{}, rewrite("activityProtocol.rules.attemptResult", nil, func(x *umpirespb.If) bool {
+		phases := x.GetCondition().GetBinary().GetRight().GetList().GetItems()
+		if len(phases) != 1 || phases[0].GetLiteral().GetEnum().GetCase() != "cancelRequested" || x.GetElse().GetList() == nil {
 			return false
 		}
 		x.Condition = &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: false}}}}
 		return true
 	}))
-	require.Equal(t, []string{"attemptResult-canceled in started, pauseRequested, cancelRequested"}, subjectsOf(holes[DisabledByDefault]["activityProtocol"]))
+	// The canceled answer's one rule now names nothing of the state, so every phase it is disabled in
+	// is decided by default.
+	require.Equal(t, []string{"attemptResult-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested, completed, failed, canceled, terminated, timedOut"}, subjectsOf(holes[DisabledByDefault]["activityProtocol"]))
 }
 
 func TestSilentRejection(t *testing.T) {

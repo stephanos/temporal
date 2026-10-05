@@ -180,11 +180,11 @@ The waivers' reasons have one source, the sidecar: `make umpire-gen-model` rewri
 `<file>.lint.json` that does not carry them, and on a forwarded acceptance whose waiver is gone.
 
 Each file of `model/ir` is declared once, in Scala, beside the Models it holds, in the feature
-file's `object Files`: its name and its roots, named by value.
+file's `object exports`: its name and its roots, named by value, in a `val` named after the file.
 
 ```scala
-object Files:
-  val nexusControlFile =
+object exports:
+  val nexusControl =
     irFile("nexus-control")(Control.queries.forgedCompletion, NexusRealization.forgedCompletion)
 ```
 
@@ -525,19 +525,19 @@ Model folder is laid out so, and the standalone activity is the example:
 ```text
 features/
   standaloneactivity/
-    StandaloneActivity.scala   types, signature; Product, Protocol, ActivityWorker, StandaloneActivity; Files
+    StandaloneActivity.scala   types, signature; ActivityProduct, ActivityProtocol, ActivityWorker, StandaloneActivity; exports
     Realization.scala          the realization
     record/
-      Record.scala             the record and its designs: Admission, StaleAdmission, HeldAdmission, ResponseLoss
+      Record.scala             the record and its designs: CurrentAdmission, StaleAdmission, HeldAdmission, AdmissionResponseLoss
     withTaskQueue/
       WithTaskQueue.scala      the designs over the task queue: CurrentRecord, StaleRecord, CurrentOverQueue, …
   nexuscaller/
-    NexusCaller.scala          Product, Protocol, HandlerWorker, NexusCaller, Control; Files
+    NexusCaller.scala          Product, Protocol, HandlerWorker, NexusCaller, Control; exports
     Realization.scala
     closepolicy/
-      ClosePolicy.scala        RejectAfterClose and the nine designs derived from it; Files
+      ClosePolicy.scala        RejectAfterClose and the nine designs derived from it; exports
   nexusoperation/
-    NexusOperation.scala       Operation; Files
+    NexusOperation.scala       Operation; exports
     Realization.scala
 shared/
   Bounds.scala                 the bounds more than one folder's Queries run under
@@ -563,22 +563,50 @@ A feature file reads in this order:
    timers, observations, choices, bounds and the top-level `given`s;
 4. one object per machine or composition, in dependency order: a refined machine before the one that
    refines it, a base machine before those derived from it, the members of a composition before it;
-5. `object Files`, its `irFile` roots.
+5. `object exports`, its `irFile` roots.
 
-Inside a machine object come its vocabulary (status sets and constants), then `object effects` (its
-step functions), its monitors, its machine `val`, then `object properties`, `object laws` (its
-capabilities) and `object queries` (its Scenarios, then its Queries). A machine object is today's
-vocabulary object (`Product`, `Protocol`, `Admission`), so its status sets keep their names
-(`Product.terminal`, `Protocol.held`), and its machine `val` keeps the machine's name
-(`Product.activityProduct`). Step functions sit in `effects` so they do not shadow the actions they
-answer (`worker.attemptStart ~> effects.attemptStart`). A machine object that holds a monitor, assumption,
-hole or channel pins its former owner, as `record/`'s `Admission` pins `…System$package$` beside its
-file's own pin of the same owner. A section object is initialized on first use: a `laws` that reads
+A machine object is the machine: `object ActivityProduct extends Machine[ProductState, Outcome,
+ProductFact]` (`umpire.Machine`), named after its object with the first letter lowered
+(`activityProduct`). It reads in this order:
+
+1. its header: `val init`, the state it starts in (`init` as Quint and TLA+ name it), `def end(s)`,
+   the states it may end in, and where declared `val entity` and `val evidence`;
+2. `object states`, its vocabulary: the named state sets and projections its guards, effects and
+   claims read (`states.terminal`, `states.held`) and its constants;
+3. `object refinement extends Refinement(ActivityProduct)`, where it refines another machine:
+   `toProduct`, the map onto the refined machine's states, and where declared `visible`,
+   `visibleOutcomes` and `unobservable`;
+4. `object effects`: what each action does, plain defs named for it (`startAttempt`, `complete`),
+   which never give `disabled` or `Nil`;
+5. `object monitors`: its monitors and assumptions;
+6. `object rules extends Rules(_.phase)` (`umpire.Rules`): when each action fires, one rule per line
+   under a heading, `in(scheduled) { worker.attemptStart ~> effects.startAttempt }` or `when(g) {
+   … }`; a rule fires a whole action or one class of it, `caller.control(Control.pause) ~>
+   effects.pause`, and `disabled(process.workerStop)` binds an action no state enables. The rules
+   of one action class hold in no common state: the rules object refuses an overlap as it is
+   constructed, over every state and class, naming the machine, the class, both rules and a
+   witness state, and the gate constructs every IR file's roots (`model/temporal/IrFiles.test.scala`).
+   Each action's rules lower to one step function, `<machine>.rules.<action>`;
+7. `object properties`, its claims, which name the machine implicitly: `property when … holds …`;
+8. `object implements`, its capabilities, `val all = capabilities(limits = three)(…)`;
+9. `object queries`, its Scenarios, then its Queries; a Scenario one Query uses is written inside it,
+   `scenario("completed").actions(…)`.
+
+A derived machine is an object too, `object StaleAdmission extends Derived(CurrentAdmission.rebind(
+…))`, and adds only its own `states`, `properties`, `implements` and `queries`; `rebind(action ~>
+effect)` keeps that action's rules and replaces their effect, and `rebind(when(g) { … })` replaces
+its rules. A composition is `object CurrentOverQueue extends Composition[OverQueue](_.activity ->
+CurrentRecord, _.queue -> dispatchQueue)` with its `def end(s)` and `object syncs extends Syncs`;
+one with a member replaced is `object StaleOverQueue extends Composition(CurrentOverQueue.withMember(
+_.activity -> StaleRecord))`. A machine object that holds a monitor, assumption, hole or channel
+pins its former owner, as `record/`'s `CurrentAdmission` pins `…System$package$` beside its file's
+own pin of the same owner. A section object is initialized on first use: an `implements` that reads
 the realization, as the protocol's `Describable` does, leaves the machine object free for the
-realization to read. A folder is a subpackage (`package standaloneactivity; package record`), so it
-reads its parent's vocabulary without imports. A section that declares Properties over a machine
-argument returns them as a bundle (below), so its Queries read them by field rather than declaring
-them.
+realization to read. The Nexus and shared Models are still written with the
+`machine[S, O, F] { … }` builder and per-kind vocabulary objects, which fn-126.5 converts. A folder
+is a subpackage (`package standaloneactivity; package record`), so it reads its parent's vocabulary
+without imports. A section that declares Properties over a machine argument returns them as a bundle
+(below), so its Queries read them by field rather than declaring them.
 
 Two families in one package cannot both be package-level givens, since each file would see both.
 Each then lives in an object of its own, `object SystemFamily: given family: Family = …`, and each
@@ -826,9 +854,9 @@ line, as `lift: <file>:<line>: …`:
 | Kind | Refused | Fix |
 | --- | --- | --- |
 | (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
-| (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the protocol's `laws` is |
-| (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's members and sections, or a Scenario after a Query in `queries` | move it |
-| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, a Property outside `properties`, capabilities outside `laws`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `Files`, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
+| (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the protocol's `implements` is |
+| (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's header and sections, or a Scenario after a Query in `queries` | move it |
+| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `implements`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, two section members of the whole Model that would share a Definition ID, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
 
 A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an object declared but never
 read while another initializes, initializes nothing and is not refused; a context function the DSL
@@ -837,8 +865,9 @@ applies at once, `machine[S, O, F] { … }`, is read where it is written. The li
 source named after its folder in a package under `features` or `shared`; the other files of a
 feature folder, its `Realization.scala` and tests, and the kit's files answer to (a) and (b) only. The lifter's refusal specimens (`*Rejects.scala` among its fixtures),
 which read a `val` before it is declared on purpose, are left to the refusals they are specimens of. Each
-kind has its refusal fixture, `model/irgen/testdata/initOrder/`, and a misnamed feature file its
-own, `model/irgen/testdata/misnamed/`.
+kind has its refusal fixture, `model/irgen/testdata/initOrder/` and, for the sections,
+`model/irgen/testdata/sectionOrder/`, and a misnamed feature file its own,
+`model/irgen/testdata/misnamed/`.
 
 The lint is the IR generator's own because neither of Scala's checkers serves (fn-126): `-Wsafe-init`
 checks classes and not objects, as of Scala 3.9, and every owner here is an object or a file's top
@@ -873,19 +902,22 @@ citations and the one `given Catalog` live in `model/temporal/capabilities`:
 | `Describable` | `status`, the realization's fact-to-status table | none of its own: the generated finds' awaits read its table |
 
 **The worked example.** The standalone activity declares its capabilities in two declarations, the
-`laws` objects of its `Product` and `Protocol` in
-`model/temporal/features/standaloneactivity/StandaloneActivity.scala`:
+`implements` objects of its `ActivityProduct` and `ActivityProtocol` in
+`model/temporal/features/standaloneactivity/StandaloneActivity.scala`, each `capabilities(limits)(…)`
+of the machine it sits in:
 
 ```scala
 import temporal.capabilities.{given, *}
 
-val productCapabilities = capabilities(activityProduct, limits = three)(
-  Closable(status = phase, terminal = terminal, rejected = cited(Outcome.notFound, notFoundCode)),
-  Pausable(pause = caller.control(Control.pause), unpause = caller.control(Control.unpause), paused = Product.paused),
-  Pollable(dispatch = worker.attemptStart, running = Product.running)
+// In ActivityProduct.implements:
+val all = capabilities(limits = three)(
+  Closable(status = states.phase, terminal = states.terminal, rejected = cited(Outcome.notFound, states.notFoundCode)),
+  Pausable(pause = caller.control(Control.pause), unpause = caller.control(Control.unpause), paused = states.paused),
+  Pollable(dispatch = worker.attemptStart, running = states.running)
 )
 
-val protocolCapabilities = capabilities(activityProtocol, limits = three)(
+// In ActivityProtocol.implements:
+val all = capabilities(limits = three)(
   Terminable(terminate = caller.control(Control.terminate), settled = ProtocolFact.statusTerminated,
     reach = Seq(caller.start(), process.workerStop), expect = inconclusive(explanationsDisagree)),
   Cancelable(requestCancel = caller.control(Control.requestCancel), requested = ProtocolFact.statusCancelRequested,
@@ -937,12 +969,12 @@ forwards each waiver's reason into `<file>.lint.json` and reports a binding left
 
 **How a new entity gets its laws.**
 
-1. Give its machine object a `laws` object, in a feature file that imports
+1. Give its machine object an `implements` object, in a feature file that imports
    `temporal.capabilities.{given, *}`, that declares
-   `capabilities(m, limits)(…)` with the capabilities the machine has, each field a def or an action
+   `capabilities(limits)(…)` with the capabilities the machine has, each field a def or an action
    class of the Model, and each parameter its law lists under `parameters` written with `cited`.
-2. Name the declaration as a root of the folder's `irFile`, as `nexusOperationFile` names
-   `Operation.laws.operationCapabilities`.
+2. Name the declaration as a root of the folder's `irFile`, as `exports.activity` names
+   `ActivityProduct.implements.all`.
 3. Run `make umpire-gen-model`: it writes the generated claims, the Cases of the generated finds and
    the law sidecar. A law the Model breaks shows as a counterexample of the Query `<machine>.<law>`.
    Where the server does not keep the law for this entity, waive it with `except` or `overriding`

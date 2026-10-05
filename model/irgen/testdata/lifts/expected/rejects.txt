@@ -18,11 +18,24 @@ lift: model/irgen/testdata/lifts/CapabilityRejects.scala:75: legacyJob generates
 lift: model/irgen/testdata/lifts/HintRejects.scala:33: the read of a visibility is a generated gRPC method constant, not io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
 lift: model/irgen/testdata/lifts/HintRejects.scala:29: the write of a visibility is a generated gRPC method constant, not io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
 lift: model/irgen/testdata/lifts/Rejects.scala:323: Limits takes its name from the val that declares it, and given_Limits is a name the compiler made up: declare it with a val of the name it has
+lift: model/irgen/testdata/lifts/Rejects.scala:1285: fixture.rejects.Colliding and fixture.rejects.Rejects$package$.colliding are both named colliding, and claims name a machine or composition by its name
 lift: model/irgen/testdata/lifts/Rejects.scala:304: a DefinitionScope names its former owner as a nonempty string literal, not umpire.DefinitionScope.apply("fixture.rejects.".+("Former$package$"))
 lift: model/irgen/testdata/lifts/Rejects.scala:314: a Family names its root as a string literal, not "fixture.".+("rejects")
 lift: model/irgen/testdata/lifts/Rejects.scala:560: enter answers the outcome a `given Ok[O] = Ok(o)` of the lifted sources names, not fixture.rejects.ComputedOk.given_Ok_Outcome
+lift: model/irgen/testdata/lifts/Rejects.scala:1270: squeeze is disabled and fired by a rule of disabledFired: a rule fires it
+lift: model/irgen/testdata/lifts/Rejects.scala:1236: brighten is an effect outside `effects`: a rule's effect is a def of a machine's `effects` section
+lift: model/irgen/testdata/lifts/Rejects.scala:1244: brighten is an effect and gives no step here: an effect says what an action does, never whether, so it returns no `disabled` or `Nil`; the rules say where it fires
+lift: model/irgen/testdata/lifts/Rejects.scala:1304: endedTwice is derived from another composition, whose end and syncs it keeps: it declares neither
+lift: model/irgen/testdata/lifts/Rejects.scala:1293: endless declares no end: a composition object declares `def end(s: S) = ...`
+lift: model/irgen/testdata/lifts/Rejects.scala:1273: extendedBare extends ruled, whose actions are bound by rules, by a bare binding: extend takes rules, `extend(when(...) { action ~> effect })`
+lift: model/irgen/testdata/lifts/Rejects.scala:1261: in sits under a heading of headingTwice's rules: a heading holds rules alone
+lift: model/irgen/testdata/lifts/CollidingRejects.scala:11: fixture.rejects.Lookalike and fixture.rejects.elsewhere.Lookalike are both named lookalike, and claims name a machine or composition by its name
+lift: model/irgen/testdata/lifts/Rejects.scala:1310: toProduct is a member of looseRefinement's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
+lift: model/irgen/testdata/lifts/Rejects.scala:1332: brighten is an effect and gives no step here: an effect says what an action does, never whether, so it returns no `disabled` or `Nil`; the rules say where it fires
 lift: model/irgen/testdata/lifts/Rejects.scala:257: fixture.rejects.PinnedTwice$ pins its Definition IDs twice, at model/irgen/testdata/lifts/Rejects.scala:256 and here: an owner has one DefinitionScope
 lift: model/irgen/testdata/lifts/Rejects.scala:269: fixture.rejects.PinsOuter$.PinsInner$ pins its Definition IDs inside fixture.rejects.PinsOuter$, which pins its own: a DefinitionScope pins the declarations of one owner, not of the owners nested in it
+lift: model/irgen/testdata/lifts/Rejects.scala:1276: rebindSeveral rebinds squeeze, which ruled binds by 2 rules with different effects, to one effect: rebind its rules with `when(...) { ... }`, which replace them
+lift: model/irgen/testdata/lifts/Rejects.scala:1280: rebindUnbound rebinds twist, which ruled does not bind: extend binds an action the source does not
 lift: model/irgen/testdata/lifts/Rejects.scala:533: aliasFirst is an alias of itself, through aliasFirst, aliasSecond: an alias names a value declared without it
 lift: model/irgen/testdata/lifts/Rejects.scala:372: Query asked is declared twice, and both would share one Definition ID
 lift: model/irgen/testdata/lifts/Rejects.scala:500: assumedAgain assumes lampOpaque twice: a machine names each assumption once
@@ -144,6 +157,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:607: withMember names spare, whic
 lift: model/irgen/testdata/lifts/Rejects.scala:621: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
 lift: model/irgen/testdata/lifts/Rejects.scala:626: tapLamp binds no action flip, which sync flipBoth of flipPair pairs for left: a member's new machine binds the actions its syncs pair
 lift: model/irgen/testdata/lifts/Rejects.scala:294: fixture.rejects.Self$ pins its Definition IDs to itself, which changes none of them: pin an owner only where its declarations came from another
+lift: model/irgen/testdata/lifts/Rejects.scala:1253: a rule of unheaded sits under no heading: write it under `when(...)` or `in(...)`
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:112: pause is a case of Control, and activityProtocol records facts of temporal.standaloneactivity.ProtocolFact: a realization names the facts its machine records
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:88: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:100: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request

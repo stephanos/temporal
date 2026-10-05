@@ -1,5 +1,6 @@
 package umpire
 
+import scala.annotation.unused
 import scala.collection.mutable
 
 /**
@@ -51,6 +52,14 @@ trait Model:
   def name: String
 
 /**
+ * The name an object form takes from its object: `object OrderProduct` is `orderProduct`. A
+ * law is named the same way (umpire.Law), and the lifter reads the same name from the source.
+ */
+private[umpire] def objectName(of: AnyRef): String =
+  val n = of.getClass.getSimpleName.stripSuffix("$")
+  n.take(1).toLowerCase + n.drop(1)
+
+/**
  * What a claim is declared on, by its state type `S`: a machine or a composition. A claim written once
  * over `Declares[S]`, such as a function over `m: Declares[S]` and the predicates it reads, declares
  * the same Property on either. `Outcome` and `Fact` are the types a step of it answers and records:
@@ -61,18 +70,80 @@ trait Declares[S] extends Model:
   type Fact
 
   /**
+   * The state type, which a machine or composition object's members name through it, `def end(s:
+   * State)`, so `extends Machine[S, O, F]` is the one place it is written. The IR generator reads it
+   * as the type it stands for. Its outcomes and facts are not given names here: inside an object
+   * they would hide the feature's own `Outcome` and fact types.
+   */
+  type State = S
+
+  /**
    * A Property or a Scenario is named after the `val` that declares it (`val completes =
    * orderProduct.property holds ...`), or by the name it is given where it is declared without
    * one, such as in a list or inside a function over a machine. A Scenario that names no start starts
-   * in its machine's one declared start, or for a composition in its members' starts.
+   * in its machine's one declared start, or for a composition in its members' starts. Inside a
+   * machine or composition object they name it implicitly: `property when c holds ...`,
+   * `scenario.actions(...)`.
    */
   def property: PropertyBuilder[S, Outcome, Fact] = PropertyBuilder("", this, None)
   def property(name: String): PropertyBuilder[S, Outcome, Fact] = PropertyBuilder(name, this, None)
   def scenario: ScenarioBuilder[S] = ScenarioBuilder("", this, None)
   def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, this, None)
 
+  /**
+   * Declares this machine's or composition's capabilities, whose generated `verify` Queries run under
+   * `limits`, in its `implements` section: `val all = capabilities(limits = three)(...)`. It is
+   * `capabilities(this, limits)(...)`.
+   */
+  def capabilities(limits: Limits)(declared: CapabilityOf[S, Outcome, Fact]*)(using
+      Catalog
+  ): Capabilities[S] = umpire.capabilities(this, limits)(declared*)
+
+  /**
+   * Declares the capabilities of another machine or composition `m`, as the top-level
+   * `capabilities(m, limits)(...)` does, from inside an object form, whose own `capabilities` hides
+   * that one.
+   */
+  def capabilities[T](m: Declares[T], limits: Limits)(
+      declared: CapabilityOf[T, m.Outcome, m.Fact]*
+  )(using Catalog): Capabilities[T] = umpire.capabilities(m, limits)(declared*)
+
+/**
+ * What a derivation binds in its source's place: one action's step function, `action ~> f`, or a
+ * group of rules, `when(g) { action ~> effect }` (model/umpire/Syntax.scala).
+ */
+sealed trait Rebinding[S, O, F]
+
 /** An action bound to its step function. */
-final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef)
+final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef) extends Rebinding[S, O, F]
+
+/**
+ * One rule of a machine's `rules` (model/umpire/Syntax.scala): the action, or one class of it, it
+ * fires, the condition under which it fires, and its effect, over the state and the class's inputs
+ * in declaration order. `index` is its place among its machine's rules, from 1, and `heading` and
+ * `action` are how a refusal names it and its action.
+ */
+final case class Rule[S, O, F] private[umpire] (
+    index: Int,
+    heading: String,
+    action: String,
+    decl: ActionDecl,
+    values: Option[List[Any]],
+    guard: S => Boolean,
+    effect: (S, List[Any]) => List[Step[S, O, F]]
+):
+  /** Whether it fires the class of the inputs `inputs`. */
+  def fires(inputs: List[Any]): Boolean = values.forall(_ == inputs)
+
+/** A group of rules under one heading, which a derivation binds in its source's place. */
+final case class RuleGroup[S, O, F] private[umpire] (rules: Vector[Rule[S, O, F]])
+    extends Rebinding[S, O, F]
+
+/** What a machine binds one action to: a step function, or the rules that lower to one. */
+private[umpire] enum Bound[S, O, F]:
+  case Function(f: AnyRef)
+  case Ruled(rules: Vector[Rule[S, O, F]])
+  case Disabled()
 
 /**
  * `action ~> stepFunction`. One extension per arity, each typed by the action's inputs, so a step
@@ -140,21 +211,12 @@ private def declare[S, O, F](family: Family, name: String, body: MachineScope[S,
 ): Machine[S, O, F] =
   val scope = MachineScope[S, O, F]()
   body(using scope)
-  Machine(
-    family,
+  Built(
     name,
-    scope.entity,
     scope.starts,
     scope.ends,
-    scope.evidence,
-    scope.unobservable.toSet,
-    scope.bindings.toList,
-    scope.refinement,
-    scope.visible,
-    scope.visibleOutcomes,
-    scope.monitors.toList,
-    scope.assumptions.toList
-  )
+    scope.bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function))
+  )(using family)
 
 /** Names the entity the machine keeps state for. */
 def forEntity(e: Entity)(using m: MachineScope[?, ?, ?]): Unit = m.entity = Some(e)
@@ -198,22 +260,154 @@ def visible[F](using m: MachineScope[?, ?, F])(sees: F => Boolean): Unit = m.vis
 def visibleOutcomes[O](using m: MachineScope[?, O, ?])(sees: O => Boolean): Unit =
   m.visibleOutcomes = Some(sees)
 
-/** A machine: its declaration, as the scope above recorded it. */
-final class Machine[S, O, F] private[umpire] (
+/**
+ * The owner of a machine's sections, which its `rules` read the machine's types from:
+ * `object rules extends Rules(_.phase)` in `object OrderProduct extends Machine[...]`.
+ */
+final class Owner[S, O, F] private[umpire] (val machine: Machine[S, O, F])
+
+/**
+ * What a machine binds each action to, in the order the first binding of each names it: a step
+ * function, rules, or nothing. A machine's `rules` (model/umpire/Syntax.scala) is the one a Model
+ * writes; the machines the builder declares or a derivation makes keep theirs as built.
+ */
+abstract class RuleBook[S, O, F] extends Section:
+  private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])]
+
+/**
+ * A step function's results for the state and one class's inputs in declaration order, whatever
+ * the function's arity: `f(s, inputs*)`, the function `action ~> f` binds.
+ */
+private[umpire] def effectOf[S, O, F](
+    decl: ActionDecl,
+    f: AnyRef
+): (S, List[Any]) => List[Step[S, O, F]] =
+  // scalafix:off DisableSyntax.asInstanceOf
+  type R = List[Step[S, O, F]]
+  decl.domains.size match
+    case 0 => (s, _) => f.asInstanceOf[S => R](s)
+    case 1 => (s, i) => f.asInstanceOf[(S, Any) => R](s, i(0))
+    case 2 => (s, i) => f.asInstanceOf[(S, Any, Any) => R](s, i(0), i(1))
+    case _ => (s, i) => f.asInstanceOf[(S, Any, Any, Any) => R](s, i(0), i(1), i(2))
+  // scalafix:on DisableSyntax.asInstanceOf
+
+/**
+ * The step function an action's binding lowers to, of the action's arity: its own, or for rules the
+ * effect of the first rule that fires, as `if g1(s) then e1(s) else if g2(s) then e2(s) else Nil`
+ * lifts, or none where it is disabled.
+ */
+private[umpire] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O, F]): AnyRef =
+  def run(s: S, inputs: List[Any]): List[Step[S, O, F]] = bound match
+    case Bound.Ruled(rules) =>
+      rules.find(r => r.fires(inputs) && r.guard(s)).fold(Nil)(_.effect(s, inputs))
+    case _ => Nil
+  bound match
+    case Bound.Function(f) => f
+    case _                 =>
+      decl.domains.size match
+        case 0 => (s: S) => run(s, Nil)
+        case 1 => (s: S, a: Any) => run(s, List(a))
+        case 2 => (s: S, a: Any, b: Any) => run(s, List(a, b))
+        case _ => (s: S, a: Any, b: Any, c: Any) => run(s, List(a, b, c))
+
+/** Every class of an action: each assignment of its inputs, in catalog order. */
+private[umpire] def classesOf(decl: ActionDecl): List[List[Any]] =
+  decl.domains.foldLeft(List(List.empty[Any])): (prefixes, domain) =>
+    for prefix <- prefixes; v <- domain.values.toList yield prefix :+ v
+
+/** A value as Umpire keys it in a class: a case by its name, followed by its fields, joined by `-`. */
+private[umpire] def valueKey(v: Any): String = v match
+  case p: Product if p.productArity > 0 =>
+    (p.productPrefix +: p.productIterator.map(valueKey).toList).mkString("-")
+  case other => other.toString
+
+/**
+ * The refusal of two rules of one action class of `machine` that both fire in some state, naming
+ * the class, both rules by their place and heading, and the first such state in catalog order: rules
+ * say when an action fires, so no two of one class fire together (intended alternatives are one
+ * effect's `choose`). `added` is checked against each rule of `rules`.
+ */
+private[umpire] def overlap[S, O, F](
+    machine: String,
+    states: Finite[S],
+    rules: Seq[Rule[S, O, F]],
+    added: Rule[S, O, F]
+): Option[String] =
+  val pairs = for
+    earlier <- rules.view if earlier.decl == added.decl
+    inputs <- classesOf(added.decl).view if earlier.fires(inputs) && added.fires(inputs)
+    s <- states.values.view if earlier.guard(s) && added.guard(s)
+  yield (earlier, inputs, s)
+  pairs.headOption.map: (earlier, inputs, s) =>
+    val cls = (added.action +: inputs.map(valueKey)).mkString("-")
+    s"$machine fires $cls by two rules in $s: rule ${earlier.index}, ${earlier.heading}, and rule " +
+      s"${added.index}, ${added.heading}: the rules of one action class hold in no common state, " +
+      "so write alternatives as one effect that names each with `choose`"
+
+/**
+ * The name of an action as its rule writes it, from the source the rule was given: the last name
+ * of `clerk.ship`, or of the action a class applies, `buyer.change(Change.hold)`.
+ */
+private[umpire] def writtenAction(code: String): String =
+  // The type arguments of a class written by name, `apply[(A, B)](action)(...)`, name no action.
+  val untyped = code.replaceAll("\\[[^\\]]*\\]", "")
+  val path = "[A-Za-z_][A-Za-z0-9_$]*(?:\\.[A-Za-z_][A-Za-z0-9_$]*)*".r
+  path
+    .findAllIn(untyped)
+    .map(_.stripSuffix(".apply"))
+    .find(p => p.nonEmpty && p != "umpire" && p != "apply")
+    .fold(code)(_.split('.').last)
+
+/**
+ * The actions of several bindings as `codeOf` writes a repeated argument, `[a ~> e, b ~> f : T]*`:
+ * each binding split at a top-level comma, the list's brackets and type left out.
+ */
+private[umpire] def writtenActions(code: String): List[String] =
+  def split(text: String, at: Char): List[String] =
+    text
+      .foldLeft((List(""), 0)) { case ((acc, depth), c) =>
+        c match
+          case `at` if depth == 0 => ("" :: acc, depth)
+          case '(' | '[' | '{'    => ((acc.head + c) :: acc.tail, depth + 1)
+          case ')' | ']' | '}'    => ((acc.head + c) :: acc.tail, depth - 1)
+          case _                  => ((acc.head + c) :: acc.tail, depth)
+      }
+      ._1
+      .reverse
+  // A repeated argument is written spliced, `[...]*`.
+  val trimmed = code.trim.stripSuffix("*")
+  val listed =
+    if trimmed.startsWith("[") && trimmed.endsWith("]") then
+      split(trimmed.drop(1).dropRight(1), ':').head
+    else trimmed
+  split(listed, ',').map(_.trim).filter(_.nonEmpty).map(writtenAction)
+
+/**
+ * A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.
+ * Declared as an object that is the machine, named after the object with its first letter lowered:
+ *
+ * {{{
+ * object OrderProduct extends Machine[OrderState, Outcome, OrderFact]:
+ *   val entity = order
+ *   val init = OrderState(placed)
+ *   def end(s: OrderState) = states.terminal(s.phase)
+ *   object states extends Section: ...
+ *   object effects extends Section: ...
+ *   object rules extends Rules(_.phase): ...
+ * }}}
+ *
+ * Its members are its header, the state it starts in, `init`, the states it may end in, `end`, and
+ * where it declares them, `entity` and `evidence`; then its sections, each an object extending
+ * `Section`, in this order: `states`, its vocabulary (the named sets and projections of its states);
+ * `refinement`, where it refines another machine (umpire.Refinement); `effects`; `monitors`;
+ * `rules`, which it must declare; `properties`; `implements`, its capabilities; and `queries`. The IR
+ * generator (model/irgen) reads them from the source. At run time a machine is its init, its end
+ * and the step function each action's rules lower to: `rules` is the one section the machine itself
+ * reads, through the member it implements, so no section is found by reflection, and a section
+ * object, which initializes on its first use, is never read while the machine initializes.
+ */
+abstract class Machine[S, O, F](using
     val family: Family,
-    val name: String,
-    val entity: Option[Entity],
-    private[umpire] val startStates: List[S],
-    private[umpire] val isEnd: S => Boolean,
-    private[umpire] val evidenceOf: Option[F => String],
-    private[umpire] val unobservableNames: Set[String],
-    private[umpire] val bindings: List[StepBinding[S, O, F]],
-    private[umpire] val refinement: Option[RefinementDecl[S]],
-    private[umpire] val visibleFacts: Option[F => Boolean],
-    private[umpire] val visibleOutcomeSet: Option[O => Boolean],
-    private[umpire] val monitorList: List[Monitor[S, O, F, ?]],
-    private[umpire] val assumptions: List[Assumption]
-)(using
     private[umpire] val fs: Finite[S],
     private[umpire] val fo: Finite[O],
     private[umpire] val ff: Finite[F]
@@ -221,90 +415,128 @@ final class Machine[S, O, F] private[umpire] (
   type Outcome = O
   type Fact = F
 
+  /** The state the machine starts in, named `init` as Quint and TLA+ name it. */
+  def init: S
+
+  /** Whether the machine may end in `s`. */
+  def end(s: S): Boolean
+
+  /** When each action fires, and what it does then: `object rules extends Rules`. */
+  def rules: RuleBook[S, O, F]
+
+  /** The object's name with its first letter lowered. */
+  def name: String = objectName(this)
+
+  /** The owner its `rules` and other sections read its types from. */
+  protected given machineOwner: Owner[S, O, F] = Owner(this)
+
+  /** What each action is bound to, in the order its first rule names it. */
+  private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] = rules.table
+
+  /** One step function per action: the rules of each, lowered (Rules.lowered). */
+  private[umpire] def bindings: List[StepBinding[S, O, F]] =
+    table.map((decl, bound) => StepBinding[S, O, F](decl, stepFunction(decl, bound))).toList
+
+  private def built(table: => Vector[(ActionDecl, Bound[S, O, F])])(using
+      family: Family
+  ): Machine[S, O, F] =
+    Built(objectName(this), List(init), end, table)(using family, fs, fo, ff)
+
   /**
-   * A machine that keeps the rows of the named actions and drops the rest, named after the `val`
-   * that declares it, in the `given Family`. It keeps the state type, starts and ends, owns its own
-   * name and Definition IDs, and does not inherit a refinement.
+   * A machine that keeps the rows of the named actions and drops the rest, named after the object
+   * that declares it, `object M extends Derived(m.restrict(...))`, in the `given Family`. It keeps
+   * the state type, starts and ends, owns its own name and Definition IDs, and does not inherit a
+   * refinement.
    */
   def restrict(keep: Action[?]*)(using family: Family): Machine[S, O, F] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
-    derived(
-      family,
-      "",
-      unobservableNames = Set.empty,
-      bindings = bindings.filter(b => decls(b.decl)),
-      refinement = None,
-      visibleFacts = None,
-      visibleOutcomeSet = None
+    built(table.filter((d, _) => decls(d)))
+
+  /**
+   * A machine that binds other step functions or rules to actions this one binds, each in its
+   * place, and keeps everything else this machine declares. `action ~> effect` keeps that action's
+   * rules and replaces their effect, which the lifter refuses where its rules have several effects;
+   * `when(g) { action ~> effect }` replaces its rules. The lifter refuses an action this machine
+   * does not bind.
+   */
+  def rebind(replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*)(using
+      family: Family
+  ): Machine[S, O, F] =
+    val by = replaced.foldLeft(Map.empty[ActionDecl, Bound[S, O, F]]): (by, r) =>
+      r(using machineOwner) match
+        case StepBinding(decl, f) =>
+          val kept = table.collectFirst { case (`decl`, Bound.Ruled(rs)) => rs }
+          by.updated(
+            decl,
+            kept.fold(Bound.Function[S, O, F](f))(rs =>
+              Bound.Ruled(rs.map(_.copy(effect = effectOf[S, O, F](decl, f))))
+            )
+          )
+        case RuleGroup(rules) =>
+          rules.groupBy(_.decl).foldLeft(by)((by, g) => by.updated(g._1, Bound.Ruled(g._2)))
+    built(table.map((d, b) => d -> by.getOrElse(d, b)))
+
+  /**
+   * A machine that also binds actions this one does not, after its own bindings, by rules:
+   * `extend(when(g) { action ~> effect })`. The lifter refuses an action this machine binds already,
+   * and a bare binding where this machine's actions are bound by rules.
+   */
+  def extend(added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*)(using
+      family: Family
+  ): Machine[S, O, F] =
+    val more = added.flatMap(r =>
+      r(using machineOwner) match
+        case StepBinding(decl, f) => Vector(decl -> Bound.Function[S, O, F](f))
+        case RuleGroup(rules) => rules.groupBy(_.decl).toVector.map((d, rs) => d -> Bound.Ruled(rs))
     )
-
-  /**
-   * A machine that binds other step functions to actions this one binds, each in its place. It keeps
-   * everything else this machine declares, and is named after the `val` that declares it, in the
-   * `given Family`. The lifter refuses an action this machine does not bind.
-   */
-  def rebind(replaced: StepBinding[S, O, F]*)(using family: Family): Machine[S, O, F] =
-    val by = replaced.map(b => b.decl -> b).toMap
-    derived(family, bindings = bindings.map(b => by.getOrElse(b.decl, b)))
-
-  /**
-   * A machine that also binds actions this one does not, after its own bindings. The lifter refuses
-   * an action this machine binds already.
-   */
-  def extend(added: StepBinding[S, O, F]*)(using family: Family): Machine[S, O, F] =
-    derived(family, bindings = bindings ++ added)
+    built(table ++ more)
 
   /**
    * A machine that refines `product` through `map` in place of the refinement this one declares,
    * and keeps the facts and outcomes that refinement lets the refined machine see.
    */
-  def refining[PS, PO, PF](product: Machine[PS, PO, PF])(map: S => PS)(using
+  def refining[PS, PO, PF](@unused product: Machine[PS, PO, PF])(@unused map: S => PS)(using
       family: Family
-  ): Machine[S, O, F] =
-    derived(family, refinement = Some(RefinementDecl[S](product, map)))
+  ): Machine[S, O, F] = built(table)
 
   /** A machine whose checks also make the assumptions named, each once, after this one's. */
-  def assuming(added: Assumption*)(using family: Family): Machine[S, O, F] =
-    derived(family, assumptions = assumptions ++ added)
+  def assuming(@unused added: Assumption*)(using family: Family): Machine[S, O, F] = built(table)
 
   /**
    * A machine without this one's monitors and refinement: the same transitions, for a composition
    * a member's monitors may not watch (model/SEMANTICS.md leaves that undefined).
    */
-  def unmonitored(using family: Family): Machine[S, O, F] =
-    derived(
-      family,
-      refinement = None,
-      visibleFacts = None,
-      visibleOutcomeSet = None,
-      monitorList = Nil
-    )
+  def unmonitored(using family: Family): Machine[S, O, F] = built(table)
 
-  // A derived machine takes its name from its val unless it is given one, as `machine { ... }` does.
-  private def derived(
-      family: Family,
-      name: String = "",
-      unobservableNames: Set[String] = unobservableNames,
-      bindings: List[StepBinding[S, O, F]] = bindings,
-      refinement: Option[RefinementDecl[S]] = refinement,
-      visibleFacts: Option[F => Boolean] = visibleFacts,
-      visibleOutcomeSet: Option[O => Boolean] = visibleOutcomeSet,
-      monitorList: List[Monitor[S, O, F, ?]] = monitorList,
-      assumptions: List[Assumption] = assumptions
-  ): Machine[S, O, F] =
-    Machine(
-      family,
-      name,
-      entity,
-      startStates,
-      isEnd,
-      evidenceOf,
-      unobservableNames,
-      bindings,
-      refinement,
-      visibleFacts,
-      visibleOutcomeSet,
-      monitorList,
-      assumptions
-    )
+/**
+ * A machine derived from another, declared as an object that is it:
+ * `object LateRecord extends Derived(OrderRecord.rebind(...))`, named after the object. The
+ * derivation is an expression of the core operations `rebind`, `extend`, `restrict`, `refining`,
+ * `assuming` and `unmonitored`; the object adds only the sections that are its own, `states`,
+ * `properties`, `implements` and `queries`, and reuses its source's effects by name.
+ */
+abstract class Derived[S, O, F](derivation: Machine[S, O, F])
+    extends Machine[S, O, F](using derivation.family, derivation.fs, derivation.fo, derivation.ff):
+  final def init: S = derivation.init
+  final def end(s: S): Boolean = derivation.end(s)
+  final def rules: RuleBook[S, O, F] = derivation.rules
+  final override private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
+    derivation.table
+
+/**
+ * A machine declared by the `machine[S, O, F] { ... }` builder, or derived from another: its name, its
+ * starts and ends and what it binds each action to. What else it declares only the lifter reads.
+ */
+final private[umpire] class Built[S, O, F](
+    override val name: String,
+    starts: List[S],
+    isEnd: S => Boolean,
+    bound: => Vector[(ActionDecl, Bound[S, O, F])]
+)(using Family, Finite[S], Finite[O], Finite[F])
+    extends Machine[S, O, F]:
+  def init: S = starts.head
+  def end(s: S): Boolean = isEnd(s)
+  object rules extends RuleBook[S, O, F]:
+    private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
+  final override private[umpire] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound
