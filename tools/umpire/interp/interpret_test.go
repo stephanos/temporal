@@ -395,7 +395,7 @@ func TestAStepResultMustBeStepRecords(t *testing.T) {
 			f := function(m, "Presence$package$.forgetStep")
 			step := f.GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct()
 			step.Args[0] = admLiteral(step.GetArgs()[0], admEnum("fixture.presence.Result", "failed"))
-		}, "Presence.scala:75: presence: row unsent-Some-succeeded-0-0-forget has outcome failed, which is no fixture.presence.Outcome"},
+		}, "Presence.scala:73: presence: row unsent-Some-succeeded-0-0-forget has outcome failed, which is no fixture.presence.Outcome"},
 		"a fact of another type": {"declarations", func(m *umpirespb.Model) {
 			f := function(m, "Declarations$package$.putStep")
 			facts := f.GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct().GetArgs()[2]
@@ -511,6 +511,6 @@ func TestAStateOfTheRightKeyButAnotherTypeIsOutsideTheDomain(t *testing.T) {
 	polls := f.GetBody().GetIf().GetThen().GetList().GetItems()[0].GetConstruct().GetArgs()[1].GetCopy().GetUpdates()[0]
 	polls.Value = admLiteral(polls.GetValue(), &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: "1"}})
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Presence.scala:75: presence: row unsent-None-0-0-poll lands in unsent-None-0-1, "+
+	require.ErrorContains(t, err, "Presence.scala:73: presence: row unsent-None-0-0-poll lands in unsent-None-0-1, "+
 		"which is outside the state domain")
 }
