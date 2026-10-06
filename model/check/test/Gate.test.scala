@@ -553,7 +553,9 @@ class GateSuite extends munit.FunSuite:
   test("the one lift reports every IR file that failed, each by name, and nothing is rewritten"):
     val repository = staleRepository()
     val failing =
-      repository.tools.withEnvironment("FAILING_LIFTS" -> "activity-standalone.json nexus-workflow-close.json")
+      repository.tools.withEnvironment(
+        "FAILING_LIFTS" -> "activity-standalone.json nexus-workflow-close.json"
+      )
     val answer = gate(failing, "--update", "--skip-go-checks")
     assertEquals(answer.status, 1)
     assert(
