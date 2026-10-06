@@ -32,7 +32,7 @@ val result = input[AttemptResult]
 // The shared worker's actions on an activity: its poll receives the task for the current attempt,
 // and its answer settles it. The worker's stop is the worker's own action, `process.stop`:
 // nothing it records names the activity, so the activity's machines keep their state. Each form
-// binds them to its activity, `worker.poll.on(activity)`.
+// binds them to its activity, as standalone/Standalone.scala does.
 object worker:
   val poll = action(process).schema[PollActivityTaskQueueResponse]
 
