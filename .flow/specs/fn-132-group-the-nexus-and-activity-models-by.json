@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-132-group-the-nexus-and-activity-models-by",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-06T19:36:44.682224Z",
   "created_at": "2026-10-06T00:04:45.755969Z",
   "default_impl": null,
   "default_review": null,
@@ -636,6 +636,41 @@
       "task": "fn-132-group-the-nexus-and-activity-models-by.7",
       "timestamp": "2026-10-06T19:32:03.011984Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5b3915f5b988b45bf82a17ee27ed56a860425d180decad73d28aaced1253c5f4",
+      "backend": "claude",
+      "base_sha": "35be01d541dbadda658085cdd3846e27ce8279f9",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7bb85e53d0817c8dd7775d3626c5150feca96357",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 7954,
+      "output_sha256": "125006e2cc0a51c1259bbfb1c5ccbdef59b33b6ea768c34b827be0074567adb2",
+      "reservation_id": "c87ae865a5044cde9e473d1081eae14e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-06T19:36:44.679564Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -648,11 +683,12 @@
     "impl:fn-132-group-the-nexus-and-activity-models-by.7": 1,
     "impl:fn-132-group-the-nexus-and-activity-models-by.8": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-132-group-the-nexus-and-activity-models-by.1": 0,
     "impl:fn-132-group-the-nexus-and-activity-models-by.2": 0,
     "impl:fn-132-group-the-nexus-and-activity-models-by.3": 0,
@@ -677,5 +713,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T19:32:03.017346Z"
+  "updated_at": "2026-10-06T19:36:44.682698Z"
 }
