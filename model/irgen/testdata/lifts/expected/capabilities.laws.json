@@ -156,7 +156,7 @@
       "machine": "job",
       "state": "fixture.capabilities.JobState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:11"
+    "position": "model/temporal/capabilities/Catalog.scala:10"
   }, {
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
@@ -168,7 +168,7 @@
       "machine": "job",
       "state": "fixture.capabilities.JobState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:9"
+    "position": "model/temporal/capabilities/Catalog.scala:8"
   }, {
     "law": "pausedIsNotDispatched",
     "capabilities": [ "Pausable", "Pollable" ],
@@ -180,7 +180,7 @@
       "machine": "job",
       "state": "fixture.capabilities.JobState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:12"
+    "position": "model/temporal/capabilities/Catalog.scala:11"
   }, {
     "law": "statusStaysClosed",
     "capabilities": [ "Closable" ],
@@ -204,7 +204,7 @@
       "machine": "job",
       "state": "fixture.capabilities.JobState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:9"
+    "position": "model/temporal/capabilities/Catalog.scala:8"
   }, {
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
@@ -216,6 +216,6 @@
       "machine": "job",
       "state": "fixture.capabilities.JobState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:10"
+    "position": "model/temporal/capabilities/Catalog.scala:9"
   } ]
 }

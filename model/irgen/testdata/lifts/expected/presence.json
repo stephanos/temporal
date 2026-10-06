@@ -87,7 +87,7 @@
     "name": "scala.Option[fixture.presence.Result]",
     "position": {
       "file": "model/irgen/testdata/lifts/Presence.scala",
-      "line": 70
+      "line": 68
     },
     "enum": {
       "cases": [ {
@@ -107,7 +107,7 @@
     "name": "fixture.presence.Presence$package$.forgetStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Presence.scala",
-      "line": 63
+      "line": 61
     },
     "params": [ {
       "name": "s",
@@ -118,19 +118,19 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 63
+        "line": 61
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 63
+            "line": 61
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 63
+                "line": 61
               },
               "var": "s"
             },
@@ -150,20 +150,20 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Presence.scala",
-              "line": 64
+              "line": 62
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Presence.scala",
-                  "line": 64
+                  "line": 62
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 64
+                      "line": 62
                     },
                     "literal": {
                       "enum": {
@@ -174,13 +174,13 @@
                   }, {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 64
+                      "line": 62
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Presence.scala",
-                          "line": 64
+                          "line": 62
                         },
                         "var": "s"
                       },
@@ -189,7 +189,7 @@
                         "value": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Presence.scala",
-                            "line": 64
+                            "line": 62
                           },
                           "literal": {
                             "enum": {
@@ -203,13 +203,13 @@
                   }, {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 64
+                      "line": 62
                     },
                     "list": { }
                   }, {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 64
+                      "line": 62
                     },
                     "literal": {
                       "text": ""
@@ -231,20 +231,20 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Presence.scala",
-              "line": 65
+              "line": 63
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Presence.scala",
-                  "line": 65
+                  "line": 63
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 65
+                      "line": 63
                     },
                     "literal": {
                       "enum": {
@@ -255,19 +255,19 @@
                   }, {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 65
+                      "line": 63
                     },
                     "var": "s"
                   }, {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 65
+                      "line": 63
                     },
                     "list": { }
                   }, {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 65
+                      "line": 63
                     },
                     "literal": {
                       "text": ""
@@ -284,7 +284,7 @@
     "name": "fixture.presence.Presence$package$.keepStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Presence.scala",
-      "line": 57
+      "line": 55
     },
     "params": [ {
       "name": "s",
@@ -295,26 +295,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 58
+        "line": 56
       },
       "let": {
         "name": "sent",
         "value": {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 58
+            "line": 56
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 58
+                "line": 56
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 58
+                    "line": 56
                   },
                   "var": "s"
                 },
@@ -341,7 +341,7 @@
               "body": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Presence.scala",
-                  "line": 59
+                  "line": 57
                 },
                 "construct": {
                   "type": "scala.Option[fixture.presence.Result]",
@@ -349,7 +349,7 @@
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Presence.scala",
-                      "line": 59
+                      "line": 57
                     },
                     "var": "r"
                   } ]
@@ -367,7 +367,7 @@
               "body": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Presence.scala",
-                  "line": 60
+                  "line": 58
                 },
                 "literal": {
                   "enum": {
@@ -382,34 +382,34 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 61
+            "line": 59
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 61
+                "line": 59
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 61
+                    "line": 59
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 61
+                        "line": 59
                       },
                       "var": "sent"
                     },
                     "right": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 61
+                        "line": 59
                       },
                       "literal": {
                         "enum": {
@@ -423,20 +423,20 @@
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 61
+                    "line": 59
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 61
+                        "line": 59
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Presence.scala",
-                            "line": 61
+                            "line": 59
                           },
                           "var": "s"
                         },
@@ -446,7 +446,7 @@
                     "right": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 61
+                        "line": 59
                       },
                       "var": "sent"
                     }
@@ -457,27 +457,27 @@
             "then": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 61
+                "line": 59
               },
               "list": { }
             },
             "else": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 61
+                "line": 59
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 61
+                    "line": 59
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 61
+                        "line": 59
                       },
                       "literal": {
                         "enum": {
@@ -488,13 +488,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 61
+                        "line": 59
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Presence.scala",
-                            "line": 61
+                            "line": 59
                           },
                           "var": "s"
                         },
@@ -503,7 +503,7 @@
                           "value": {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Presence.scala",
-                              "line": 61
+                              "line": 59
                             },
                             "var": "sent"
                           }
@@ -512,13 +512,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 61
+                        "line": 59
                       },
                       "list": { }
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 61
+                        "line": 59
                       },
                       "literal": {
                         "text": ""
@@ -536,7 +536,7 @@
     "name": "fixture.presence.Presence$package$.pollStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Presence.scala",
-      "line": 67
+      "line": 65
     },
     "params": [ {
       "name": "s",
@@ -547,26 +547,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 68
+        "line": 66
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 68
+            "line": 66
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 68
+                "line": 66
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 68
+                    "line": 66
                   },
                   "var": "s"
                 },
@@ -576,7 +576,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 68
+                "line": 66
               },
               "literal": {
                 "int": "0"
@@ -587,20 +587,20 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 68
+            "line": 66
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 68
+                "line": 66
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 68
+                    "line": 66
                   },
                   "literal": {
                     "enum": {
@@ -611,13 +611,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 68
+                    "line": 66
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Presence.scala",
-                        "line": 68
+                        "line": 66
                       },
                       "var": "s"
                     },
@@ -626,7 +626,7 @@
                       "value": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Presence.scala",
-                          "line": 68
+                          "line": 66
                         },
                         "literal": {
                           "int": "1"
@@ -637,13 +637,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 68
+                    "line": 66
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 68
+                    "line": 66
                   },
                   "literal": {
                     "text": ""
@@ -656,7 +656,7 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 68
+            "line": 66
           },
           "list": { }
         }
@@ -1144,21 +1144,21 @@
     "name": "presence",
     "position": {
       "file": "model/irgen/testdata/lifts/Presence.scala",
-      "line": 70
+      "line": 68
     },
     "stateType": "fixture.presence.State",
     "outcomeType": "fixture.presence.Outcome",
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 71
+        "line": 69
       },
       "construct": {
         "type": "fixture.presence.State",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 71
+            "line": 69
           },
           "literal": {
             "enum": {
@@ -1169,7 +1169,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 71
+            "line": 69
           },
           "literal": {
             "enum": {
@@ -1188,7 +1188,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 71
+            "line": 69
           },
           "literal": {
             "int": "0"
@@ -1199,7 +1199,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 72
+        "line": 70
       },
       "lambda": {
         "params": [ {
@@ -1211,20 +1211,20 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Presence.scala",
-            "line": 72
+            "line": 70
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 72
+                "line": 70
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Presence.scala",
-                    "line": 72
+                    "line": 70
                   },
                   "var": "s"
                 },
@@ -1234,7 +1234,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Presence.scala",
-                "line": 72
+                "line": 70
               },
               "literal": {
                 "enum": {
@@ -1252,28 +1252,28 @@
       "function": "fixture.presence.Presence$package$.sendStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 75
+        "line": 73
       }
     }, {
       "action": "fixture.presence.keep",
       "function": "fixture.presence.Presence$package$.keepStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 75
+        "line": 73
       }
     }, {
       "action": "fixture.presence.forget",
       "function": "fixture.presence.Presence$package$.forgetStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 75
+        "line": 73
       }
     }, {
       "action": "fixture.presence.poll",
       "function": "fixture.presence.Presence$package$.pollStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Presence.scala",
-        "line": 75
+        "line": 73
       }
     } ]
   } ]

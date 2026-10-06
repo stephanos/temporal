@@ -12,7 +12,7 @@
       "requested": "temporal.features.nexus.standalone.OperationFact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:217"
+    "position": "model/temporal/features/nexus/standalone/Standalone.scala:202"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.closedIsRejectedUniformly",
@@ -28,7 +28,7 @@
       "rejected": [ "chasm/lib/nexusoperation/operation.go" ]
     },
     "overriddenBy": "temporal.features.nexus.standalone.NexusOperation$.properties$.closedRejectsOrRepeats",
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:206"
+    "position": "model/temporal/features/nexus/standalone/Standalone.scala:191"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.terminalStatesAreFinal",
@@ -40,7 +40,7 @@
       "terminal": "temporal.features.nexus.standalone.NexusOperation$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:206"
+    "position": "model/temporal/features/nexus/standalone/Standalone.scala:191"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.terminateSettles",
@@ -54,7 +54,7 @@
       "settled": "temporal.features.nexus.standalone.OperationFact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:211"
+    "position": "model/temporal/features/nexus/standalone/Standalone.scala:196"
   } ],
   "waivers": [ {
     "machine": "nexusOperation",
@@ -62,7 +62,7 @@
     "waiver": "overriding",
     "by": "temporal.features.nexus.standalone.NexusOperation$.properties$.closedRejectsOrRepeats",
     "because": "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate",
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:234"
+    "position": "model/temporal/features/nexus/standalone/Standalone.scala:217"
   } ],
   "catalog": [ {
     "law": "cancelIsRequested",
@@ -75,7 +75,7 @@
       "machine": "nexusOperation",
       "state": "temporal.features.nexus.standalone.OperationState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:11"
+    "position": "model/temporal/capabilities/Catalog.scala:10"
   }, {
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
@@ -87,7 +87,7 @@
       "machine": "nexusOperation",
       "state": "temporal.features.nexus.standalone.OperationState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:9"
+    "position": "model/temporal/capabilities/Catalog.scala:8"
   }, {
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
@@ -99,7 +99,7 @@
       "machine": "nexusOperation",
       "state": "temporal.features.nexus.standalone.OperationState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:9"
+    "position": "model/temporal/capabilities/Catalog.scala:8"
   }, {
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
@@ -111,6 +111,6 @@
       "machine": "nexusOperation",
       "state": "temporal.features.nexus.standalone.OperationState"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:10"
+    "position": "model/temporal/capabilities/Catalog.scala:9"
   } ]
 }

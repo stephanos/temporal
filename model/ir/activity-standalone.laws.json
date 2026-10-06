@@ -13,7 +13,7 @@
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:134"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:119"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -29,7 +29,7 @@
       "running": "temporal.features.activity.standalone.product.ActivityProduct$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:139"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:124"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -41,7 +41,7 @@
       "terminal": "temporal.features.activity.standalone.product.ActivityProduct$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:134"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:119"
   }, {
     "machine": "activitySystem",
     "name": "activitySystem.cancelIsRequested",
@@ -55,7 +55,7 @@
       "requested": "temporal.features.activity.standalone.system.Fact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/System.scala:320"
+    "position": "model/temporal/features/activity/standalone/system/System.scala:309"
   }, {
     "machine": "activitySystem",
     "name": "activitySystem.terminateSettles",
@@ -69,7 +69,7 @@
       "settled": "temporal.features.activity.standalone.system.Fact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/System.scala:314"
+    "position": "model/temporal/features/activity/standalone/system/System.scala:303"
   } ],
   "waivers": [ ],
   "catalog": [ {
@@ -83,7 +83,7 @@
       "machine": "activitySystem",
       "state": "temporal.features.activity.standalone.system.State"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:11"
+    "position": "model/temporal/capabilities/Catalog.scala:10"
   }, {
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
@@ -95,7 +95,7 @@
       "machine": "activityProduct",
       "state": "temporal.features.activity.standalone.product.State"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:9"
+    "position": "model/temporal/capabilities/Catalog.scala:8"
   }, {
     "law": "pausedIsNotDispatched",
     "capabilities": [ "Pausable", "Pollable" ],
@@ -107,7 +107,7 @@
       "machine": "activityProduct",
       "state": "temporal.features.activity.standalone.product.State"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:12"
+    "position": "model/temporal/capabilities/Catalog.scala:11"
   }, {
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
@@ -119,7 +119,7 @@
       "machine": "activityProduct",
       "state": "temporal.features.activity.standalone.product.State"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:9"
+    "position": "model/temporal/capabilities/Catalog.scala:8"
   }, {
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
@@ -131,6 +131,6 @@
       "machine": "activitySystem",
       "state": "temporal.features.activity.standalone.system.State"
     } ],
-    "position": "model/temporal/capabilities/Catalog.scala:10"
+    "position": "model/temporal/capabilities/Catalog.scala:9"
   } ]
 }
