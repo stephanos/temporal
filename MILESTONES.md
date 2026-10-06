@@ -84,7 +84,7 @@ Gates: task 9 after fn-126 closes; task 8 last, after task 9, never alongside fn
 | fn-124.6 | ✅ done | Model assessment as the command-line judge; Evaluation Profile derived or retired |
 | fn-124.7 | ✅ done | Migration harness and frozen snapshots retired |
 | fn-124.9 | ✅ done | P export retired (Quint covers its one monitor check first) |
-| fn-124.8 | 🔄 in progress | Reader split into `tools/umpire/{ir,interp,check,realization}` |
+| fn-124.8 | ✅ done | Reader split into `tools/umpire/{ir,interp,check,realization}` |
 
 ### fn-132: Group the Nexus and activity Models by kind: workflow and standalone
 
