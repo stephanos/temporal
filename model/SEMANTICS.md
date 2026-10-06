@@ -446,7 +446,7 @@ states. A kind of violation ruled out while the check read a hole row is incompl
 
 ## Realizations
 
-The standalone activity's three realizations live in `features/standaloneactivity/system/Realization.scala`,
+The standalone activity's three realizations live in `features/activity/standalone/system/Realization.scala`,
 in the level of their subjects. Moving them changes their fully qualified IDs and the package-derived
 evidence, source and producer identities; it changes no transition, Query answer or evidence meaning.
 

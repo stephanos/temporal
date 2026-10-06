@@ -18,9 +18,9 @@ import (
 
 func TestModelCasesLowerForExistingConsumers(t *testing.T) {
 	for _, item := range []struct{ model, family, owner, set, query string }{
-		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "completion"},
-		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "retry"},
-		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "pauseResume"},
+		{"activity-standalone", "temporal.features.activity.standalone.system", "activitySystem", "standaloneActivityTests", "completion"},
+		{"activity-standalone", "temporal.features.activity.standalone.system", "activitySystem", "standaloneActivityTests", "retry"},
+		{"activity-standalone", "temporal.features.activity.standalone.system", "activitySystem", "standaloneActivityTests", "pauseResume"},
 		{"nexus-workflow", "temporal.features.nexus.workflow.system", "nexusSystem", "nexusCallerTests", "syncCompletion"},
 		{"nexus-workflow", "temporal.features.nexus.workflow.system", "nexusSystem", "nexusCallerTests", "asyncCompletion"},
 	} {
@@ -106,8 +106,8 @@ func TestGeneratedNexusOperationCasesRequireTheStandaloneFlag(t *testing.T) {
 // Run of it is assessed for, and names its durable kinds, so a harness can take the commit evidence
 // out of a recorded Run without knowing the Case.
 func TestTheHeldRaceIsLoadedWithItsClaimAndItsDurableKinds(t *testing.T) {
-	fixture, err := LoadModelCase(filepath.Join("..", "..", "..", "model", "ir", "activity-race.json"),
-		check.ClaimKey{Family: "temporal.features.standaloneactivity.system", Owner: "heldDispatch", Name: "heldDispatch.staleDelivery"}, "standaloneActivityRace")
+	fixture, err := LoadModelCase(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone-race.json"),
+		check.ClaimKey{Family: "temporal.features.activity.standalone.system", Owner: "heldDispatch", Name: "heldDispatch.staleDelivery"}, "standaloneActivityRace")
 	require.NoError(t, err)
 	require.Equal(t, "staleDeliveryRejected", fixture.Property)
 	require.Equal(t, []string{"evidence.admissionRejected", "evidence.attemptAdmitted"}, fixture.Durable)

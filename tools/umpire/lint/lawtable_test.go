@@ -36,7 +36,7 @@ func lawOf(t *testing.T, lt *LawTable, claim string) LawView {
 }
 
 func TestLawsPinTheCellsOfTheirCapabilitiesActions(t *testing.T) {
-	r := lawTablesOf(t, "../../../model/ir/activity.json")
+	r := lawTablesOf(t, "../../../model/ir/activity-standalone.json")
 	product := tableOf(t, r, "activityProduct")
 
 	// The pair law pins the paused cells of the dispatching action as MUST NOT, read from the
@@ -85,7 +85,7 @@ func TestLawsPinTheCellsOfTheirCapabilitiesActions(t *testing.T) {
 }
 
 func TestProtocolMarksTheProductsLawsInherited(t *testing.T) {
-	protocol := tableOf(t, lawTablesOf(t, "../../../model/ir/activity.json"), "activitySystem")
+	protocol := tableOf(t, lawTablesOf(t, "../../../model/ir/activity-standalone.json"), "activitySystem")
 
 	inherited := lawOf(t, protocol.Laws, "activityProduct.pausedIsNotDispatched")
 	require.True(t, inherited.Inherited)
@@ -104,7 +104,7 @@ func TestProtocolMarksTheProductsLawsInherited(t *testing.T) {
 }
 
 func TestLawTablesNameWaiversAndCompositions(t *testing.T) {
-	r := lawTablesOf(t, "../../../model/ir/activity-record.json")
+	r := lawTablesOf(t, "../../../model/ir/activity-standalone-record.json")
 	// The admission record waives closedIsRejectedUniformly with its reason.
 	record := tableOf(t, r, "activityRecord")
 	require.True(t, slices.ContainsFunc(record.Laws.Excepted, func(w check.LawWaiver) bool {
@@ -128,12 +128,12 @@ func TestLawTablesNameWaiversAndCompositions(t *testing.T) {
 }
 
 func TestLawTablesAreWritten(t *testing.T) {
-	r := lawTablesOf(t, "../../../model/ir/activity.json")
+	r := lawTablesOf(t, "../../../model/ir/activity-standalone.json")
 	var out strings.Builder
 	require.NoError(t, WriteTables(&out, r))
 	text := out.String()
-	require.Contains(t, text, "\nlaws ../../../model/ir/activity.json activityProduct\n")
-	require.Regexp(t, `\n  activityProduct\.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  model/temporal/features/standaloneactivity/product/Product\.scala:\d+\n`, text)
+	require.Contains(t, text, "\nlaws ../../../model/ir/activity-standalone.json activityProduct\n")
+	require.Regexp(t, `\n  activityProduct\.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  model/temporal/features/activity/standalone/product/Product\.scala:\d+\n`, text)
 	require.Contains(t, text, "\n    promises: while an entity is paused no work is handed to a worker")
 	require.Regexp(t, `\n    poll \(Pollable\.dispatch\) +paused +MUST NOT +cell: \? s\.phase != scheduled\n`, text)
 	require.Regexp(t, `\n    control-unpause \(Pausable\.unpause\) +paused +MUST NOT of its results +cell: MAY accepted -> scheduled`, text)

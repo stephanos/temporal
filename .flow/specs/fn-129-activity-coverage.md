@@ -4,6 +4,10 @@
 
 Model the standalone activity behaviour that upstream's Go model (`chasm/lib/activity/model`) covers and ours does not. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md` (recommendations P2-5, P2-6, P2-7, P3-13). Owner decision 2026-10-05.
 
+## Current source context
+
+Current source after fn-132.2: `model/temporal/features/activity/standalone/Standalone.scala` owns the form; `product/Product.scala` and `system/System.scala` each own their local `Phase`, `State` and `Fact`. Actions are `client.start` and `client.control` on the `activity` entity. All three System realizations remain in `system/Realization.scala`. The kind header `features/activity/Activity.scala` is package-only; fn-132.6 owns the later shared-declaration extraction. IR stems are `activity-standalone`, `activity-standalone-record` and `activity-standalone-race`.
+
 ## Requirements
 
 - **R1 Heartbeat.**

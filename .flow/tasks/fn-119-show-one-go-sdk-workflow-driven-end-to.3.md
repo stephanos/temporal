@@ -20,8 +20,8 @@ Give realizations the generic way to say "the workflow schedules this activity, 
 ### Investigation targets
 **Required:**
 - `model/umpire/realize/Realize.scala:320-490`
-- `model/temporal/features/nexuscaller/Realization.scala:383-548` - workflow-command realization example
-- `model/temporal/features/standaloneactivity/Realization.scala:500-530` - attempt answers
+- `model/temporal/features/nexus/workflow/Realization.scala` - workflow-command realization example
+- `model/temporal/features/activity/standalone/system/Realization.scala` - attempt answers
 - `tools/umpire/lower/realization.go:470-620`
 
 ### Quick commands

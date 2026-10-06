@@ -14,7 +14,7 @@
  * properties, implements and queries.
  */
 package temporal
-package features.standaloneactivity
+package features.activity.standalone
 package system
 
 import umpire.*

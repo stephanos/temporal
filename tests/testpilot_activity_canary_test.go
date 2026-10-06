@@ -20,8 +20,8 @@ import (
 
 func TestTestpilotActivitySharedWithCanary(t *testing.T) {
 	env := activityEnvironment(t)
-	functional := generatedFixture(t, "activity-completion-case.json")
-	canary := generatedFixture(t, "activity-completion-case.json")
+	functional := generatedFixture(t, "activity-standalone-completion-case.json")
+	canary := generatedFixture(t, "activity-standalone-completion-case.json")
 	require.Equal(t, functional.Bytes, canary.Bytes)
 	identity, err := recordedrun.CaseIdentity(functional.Bytes)
 	require.NoError(t, err)

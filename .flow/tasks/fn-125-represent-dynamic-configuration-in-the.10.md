@@ -9,7 +9,7 @@ Implements R11. Every implicit assumption in `.plans/DYNAMIC_CONFIG.md` section 
 **Cross-spec entry gate:** coordinate with fn-124.3 (activity attempts, timeouts in the realization); not concurrent with fn-124.8. Depends on task 7 and task 9.
 
 **Size:** M
-**Files:** `model/temporal/features/standaloneactivity/Realization.scala` (e.g. `retry_policy` in every start, replacing reliance on `history.defaultActivityRetryPolicy`); `model/temporal/features/nexuscaller/Realization.scala` (inert `timeoutMs`); the disposition table (in `model/README.md` or beside the kit declarations, decided here); regenerated `model/cases/**`.
+**Files:** `model/temporal/features/activity/standalone/system/Realization.scala` (e.g. `retry_policy` in every start, replacing reliance on `history.defaultActivityRetryPolicy`); `model/temporal/features/nexus/workflow/Realization.scala` (inert `timeoutMs`); the disposition table (in `model/README.md` or beside the kit declarations, decided here); regenerated `model/cases/**`.
 **Touches:** [model/temporal/features/**/Realization.scala, model/temporal/realize/**, model/ir/**, model/cases/**, model/README.md]
 
 ### Approach
@@ -21,7 +21,7 @@ Implements R11. Every implicit assumption in `.plans/DYNAMIC_CONFIG.md` section 
 ### Investigation targets
 **Required:**
 - `.plans/DYNAMIC_CONFIG.md` section 3
-- `model/temporal/features/standaloneactivity/{Model,Realization}.scala` (attempt bound, backoff); `nexuscaller/Realization.scala:373-413`
+- `model/temporal/features/activity/standalone/{Standalone.scala,system/System.scala,system/Realization.scala}` (attempt bound, backoff); `model/temporal/features/nexus/workflow/Realization.scala`
 **Optional:**
 - `tests/testcore/dynamic_config_overrides.go` (behavior-neutral by assumption; no audit beyond section 3)
 
@@ -34,7 +34,6 @@ go test -count=1 -tags 'test_dep integration' ./tests -run TestTestpilotGenerate
 
 ### Execution constraints
 - Case bytes change only by recorded request-field deltas.
-
 ## Acceptance
 - [ ] Every section-3 assumption has a recorded disposition with its carrying declaration or reason; any without one is listed for the owner.
 - [ ] Where a request field can state the value, the realization sets it; the Case-byte delta is recorded.

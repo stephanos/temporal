@@ -6,14 +6,14 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
-      "rejected": "temporal.features.standaloneactivity.Outcome.notFound"
+      "status": "temporal.features.activity.standalone.product.ActivityProduct$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.product.ActivityProduct$.states$.terminal",
+      "rejected": "temporal.features.activity.standalone.Outcome.notFound"
     },
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:134"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:134"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -25,11 +25,11 @@
       "Pollable.dispatch": "poll"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.paused",
-      "running": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.running"
+      "paused": "temporal.features.activity.standalone.product.ActivityProduct$.states$.paused",
+      "running": "temporal.features.activity.standalone.product.ActivityProduct$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:139"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:139"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -37,11 +37,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal"
+      "status": "temporal.features.activity.standalone.product.ActivityProduct$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.product.ActivityProduct$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:134"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:134"
   }, {
     "machine": "activityRecord",
     "name": "activityRecord.pausedIsNotDispatched",
@@ -53,11 +53,11 @@
       "Pollable.dispatch": "poll"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.paused",
-      "running": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.running"
+      "paused": "temporal.features.activity.standalone.system.ActivityRecord$.states$.paused",
+      "running": "temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/Record.scala:284"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:284"
   }, {
     "machine": "activityRecord",
     "name": "activityRecord.terminalStatesAreFinal",
@@ -65,11 +65,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal"
+      "status": "temporal.features.activity.standalone.system.ActivityRecord$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/Record.scala:279"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:279"
   }, {
     "machine": "recordOverLossyMatching",
     "name": "recordOverLossyMatching.pausedIsNotDispatched",
@@ -81,11 +81,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.paused",
-      "running": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.running"
+      "paused": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.paused",
+      "running": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:200"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:200"
   }, {
     "machine": "recordOverLossyMatching",
     "name": "recordOverLossyMatching.terminalStatesAreFinal",
@@ -93,11 +93,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal"
+      "status": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:195"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:195"
   }, {
     "machine": "recordOverMatching",
     "name": "recordOverMatching.pausedIsNotDispatched",
@@ -109,11 +109,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.paused",
-      "running": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.running"
+      "paused": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.paused",
+      "running": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:200"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:200"
   }, {
     "machine": "recordOverMatching",
     "name": "recordOverMatching.terminalStatesAreFinal",
@@ -121,11 +121,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal"
+      "status": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:195"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:195"
   }, {
     "machine": "recordOverQueue",
     "name": "recordOverQueue.pausedIsNotDispatched",
@@ -137,11 +137,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.system.OverQueue.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.paused",
-      "running": "temporal.features.standaloneactivity.system.OverQueue.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.running"
+      "paused": "temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.paused",
+      "running": "temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:112"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:112"
   }, {
     "machine": "recordOverQueue",
     "name": "recordOverQueue.terminalStatesAreFinal",
@@ -149,11 +149,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.system.OverQueue.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal"
+      "status": "temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:107"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:107"
   }, {
     "machine": "trustingActivityRecord",
     "name": "trustingActivityRecord.pausedIsNotDispatched",
@@ -165,11 +165,11 @@
       "Pollable.dispatch": "poll"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.paused",
-      "running": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.running"
+      "paused": "temporal.features.activity.standalone.system.ActivityRecord$.states$.paused",
+      "running": "temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/Record.scala:284"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:284"
   }, {
     "machine": "trustingActivityRecord",
     "name": "trustingActivityRecord.terminalStatesAreFinal",
@@ -177,11 +177,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal"
+      "status": "temporal.features.activity.standalone.system.ActivityRecord$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/Record.scala:279"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:279"
   }, {
     "machine": "trustingRecordOverMatching",
     "name": "trustingRecordOverMatching.pausedIsNotDispatched",
@@ -193,11 +193,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.paused",
-      "running": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.running"
+      "paused": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.paused",
+      "running": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:200"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:200"
   }, {
     "machine": "trustingRecordOverMatching",
     "name": "trustingRecordOverMatching.terminalStatesAreFinal",
@@ -205,11 +205,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.system.OverMatching.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal"
+      "status": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:195"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:195"
   }, {
     "machine": "trustingRecordOverQueue",
     "name": "trustingRecordOverQueue.pausedIsNotDispatched",
@@ -221,11 +221,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.system.OverQueue.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.paused",
-      "running": "temporal.features.standaloneactivity.system.OverQueue.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.running"
+      "paused": "temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.paused",
+      "running": "temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:112"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:112"
   }, {
     "machine": "trustingRecordOverQueue",
     "name": "trustingRecordOverQueue.terminalStatesAreFinal",
@@ -233,54 +233,54 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.system.OverQueue.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.phase",
-      "terminal": "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal"
+      "status": "temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.phase",
+      "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:107"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:107"
   } ],
   "waivers": [ {
     "machine": "activityRecord",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted",
-    "position": "model/temporal/features/standaloneactivity/system/Record.scala:290"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:290"
   }, {
     "machine": "recordOverLossyMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:209"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:209"
   }, {
     "machine": "recordOverMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:209"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:209"
   }, {
     "machine": "recordOverQueue",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:121"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:121"
   }, {
     "machine": "trustingActivityRecord",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted",
-    "position": "model/temporal/features/standaloneactivity/system/Record.scala:290"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:290"
   }, {
     "machine": "trustingRecordOverMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:209"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:209"
   }, {
     "machine": "trustingRecordOverQueue",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/system/WithTaskQueue.scala:121"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:121"
   } ],
   "catalog": [ {
     "law": "closedIsRejectedUniformly",
@@ -291,10 +291,10 @@
     "parameters": [ "rejected" ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.features.standaloneactivity.product.State"
+      "state": "temporal.features.activity.standalone.product.State"
     }, {
       "machine": "activityRecord",
-      "state": "temporal.features.standaloneactivity.system.AdmissionState"
+      "state": "temporal.features.activity.standalone.system.AdmissionState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:9"
   }, {
@@ -306,10 +306,10 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.features.standaloneactivity.product.State"
+      "state": "temporal.features.activity.standalone.product.State"
     }, {
       "machine": "activityRecord",
-      "state": "temporal.features.standaloneactivity.system.AdmissionState"
+      "state": "temporal.features.activity.standalone.system.AdmissionState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:12"
   }, {
@@ -321,10 +321,10 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.features.standaloneactivity.product.State"
+      "state": "temporal.features.activity.standalone.product.State"
     }, {
       "machine": "activityRecord",
-      "state": "temporal.features.standaloneactivity.system.AdmissionState"
+      "state": "temporal.features.activity.standalone.system.AdmissionState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:9"
   } ]

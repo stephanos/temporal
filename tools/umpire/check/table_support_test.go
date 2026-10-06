@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/server/tools/umpire/ir"
 )
 
-const activityIR = "../../../model/ir/activity.json"
+const activityIR = "../../../model/ir/activity-standalone.json"
 
 var activityBaseline = sync.OnceValues(func() (*umpirespb.Model, error) { return ir.Load(activityIR) })
 

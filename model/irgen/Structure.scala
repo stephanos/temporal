@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters.*
  * runs it over the same sources and reports its refusals with its own. It holds a feature's folders
  * and its machine objects' sections to the layout model/irgen/testdata/layout/lamp shows, the
  * template a new feature copies. A feature is a package under `features` or `shared` and its
- * subpackages, `temporal.features.standaloneactivity.*`; its root folder holds the files of the
+ * subpackages, `temporal.features.activity.standalone.*`; its root folder holds the files of the
  * package itself. It refuses, each at its line:
  *
  *   - (a) in a feature whose Models include a refinement pair, a machine that refines another of
@@ -79,7 +79,7 @@ final private[irgen] class Structure(index: Index):
   // ### A feature's sources
 
   /**
-   * A source of a feature: its path, the feature's package (`temporal.features.standaloneactivity`),
+   * A source of a feature: its path, the feature's package (`temporal.features.activity.standalone`),
    * the subpackage it sits in under it (`system`, or none in the root folder) and its declarations
    * at the top level, in order.
    */

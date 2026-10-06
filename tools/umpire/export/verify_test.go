@@ -65,7 +65,7 @@ func counterexampleOf(t *testing.T, s *Slice, c *QuintCheck, trace *check.Trace)
 // What the model checker reports is held to Go with no tool installed: its verdict against Go's
 // product, and its counterexample against a fresh interpretation and the reader's checker.
 func TestVerifiedVerdictsAreHeldToGo(t *testing.T) {
-	s := openNamed(t, "activity-record")
+	s := openNamed(t, "activity-standalone-record")
 	stale, current := checkOf(t, s, "trustingActivityRecord"), checkOf(t, s, "activityRecord")
 	require.Equal(t, []string{"atMostOneActiveAttempt", "terminalFinality"}, stale.Monitors)
 	const finality = 1
@@ -107,7 +107,7 @@ func TestQuintVerifyAgreesWithGo(t *testing.T) {
 	found := needs(t, VerifyTool)
 	t.Cleanup(StopVerifier)
 	cases := map[string]map[string][]string{
-		"activity-record": {
+		"activity-standalone-record": {
 			"activityRecord":         {"atMostOneActiveAttempt", "terminalFinality"},
 			"trustingActivityRecord": {"atMostOneActiveAttempt", "terminalFinality"},
 		},

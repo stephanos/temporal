@@ -75,7 +75,7 @@ var pauseOfCancelRequestedByDefault = rewrite("activitySystem.rules.control", fu
 			Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "s"}}, Field: "phase"}}}
 	}
 	cancelRequested := &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Enum{
-		Enum: &umpirespb.EnumValue{Type: "temporal.features.standaloneactivity.system.Phase", Case: "cancelRequested"}}}}}
+		Enum: &umpirespb.EnumValue{Type: "temporal.features.activity.standalone.system.Phase", Case: "cancelRequested"}}}}}
 	none := &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
 	byDefault := &umpirespb.Expr{Position: c.GetBody().GetPosition(), Kind: &umpirespb.Expr_Match{Match: &umpirespb.Match{
 		Scrutinee: phase(),
@@ -103,7 +103,7 @@ func TestDisabledByDefault(t *testing.T) {
 	tables, holes := holesOf(t, Options{}, pauseOfCancelRequestedByDefault)
 	found := holes[DisabledByDefault]["activitySystem"]
 	require.Equal(t, []string{"control-pause in cancelRequested"}, subjectsOf(found))
-	require.Contains(t, found[0].Position, "model/temporal/features/standaloneactivity/system/System.scala:")
+	require.Contains(t, found[0].Position, "model/temporal/features/activity/standalone/system/System.scala:")
 	require.Contains(t, found[0].Message, "s.phase is _")
 
 	// The default arm shows as `?` in the table, with its hole.
@@ -142,7 +142,7 @@ func TestSilentRejection(t *testing.T) {
 	i := slices.IndexFunc(protocol.Rules, func(r Rule) bool { return r.Class == "backoff" && r.Modality == MustNot })
 	require.GreaterOrEqual(t, i, 0)
 	require.Equal(t, "s.phase != backingOff", protocol.Rules[i].Text)
-	require.Contains(t, protocol.Rules[i].Position, "model/temporal/features/standaloneactivity/system/System.scala:")
+	require.Contains(t, protocol.Rules[i].Position, "model/temporal/features/activity/standalone/system/System.scala:")
 }
 
 func TestUnconstrainedResult(t *testing.T) {
@@ -199,10 +199,10 @@ func TestTablesAreWrittenByMachineAndClass(t *testing.T) {
 	tables, _, err := m.holes()
 	require.NoError(t, err)
 	var out strings.Builder
-	require.NoError(t, WriteTables(&out, &Result{File: "activity.json", Tables: tables}))
+	require.NoError(t, WriteTables(&out, &Result{File: "activity-standalone.json", Tables: tables}))
 	text := out.String()
-	require.Contains(t, text, "rules activity.json activitySystem by phase\n")
+	require.Contains(t, text, "rules activity-standalone.json activitySystem by phase\n")
 	require.Contains(t, text, "\n  control-pause\n")
 	require.Regexp(t, `\n    scheduled, backingOff +MAY +accepted -> paused \[statusPaused\]`, text)
-	require.Regexp(t, `\n    cancelRequested +\? +s\.phase is _ +model/temporal/features/standaloneactivity/system/System\.scala:\d+ +disabled-by-default +silent-rejection`, text)
+	require.Regexp(t, `\n    cancelRequested +\? +s\.phase is _ +model/temporal/features/activity/standalone/system/System\.scala:\d+ +disabled-by-default +silent-rejection`, text)
 }

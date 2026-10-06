@@ -15,7 +15,7 @@ var updateCoverage = flag.Bool("update-coverage", false, "rewrite testdata/cover
 // coverageFixtures is what the coverage golden pins: the lifter's fixture Models and two of the
 // checked-in IR files light enough to read in a unit test.
 var coverageFixtures = []string{
-	"model/ir/activity.json",
+	"model/ir/activity-standalone.json",
 	"model/ir/nexus-workflow-control.json",
 	"model/irgen/testdata/lifts/expected/admission.json",
 	"model/irgen/testdata/lifts/expected/capabilities.json",

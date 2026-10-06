@@ -6,8 +6,8 @@ package ir
 // neither as a directory with sources nor as a path, package or target a live file names. Nor may
 // the per-kind files fn-126 folded into one feature file per folder: no Model folder holds one, and
 // no live file names one. Nor may the zoom-in folders fn-126 flattened into a feature's level
-// folders (decisions 16 and 22): record/ and withTaskQueue/ are files of standaloneactivity/system/,
-// closepolicy/ one of nexuscaller/system/.
+// folders (decisions 16 and 22): record/ and withTaskQueue/ are files of activity/standalone/system/,
+// closepolicy/ one of nexus/workflow/system/.
 
 import (
 	"fmt"
@@ -33,6 +33,7 @@ var retiredModelDirectories = []string{
 	"model/temporal/features/standaloneactivity/record", "model/temporal/features/standaloneactivity/withTaskQueue",
 	"model/temporal/features/nexus/workflow/closepolicy",
 	"model/temporal/features/nexuscaller", "model/temporal/features/nexusoperation",
+	"model/temporal/features/standaloneactivity",
 }
 
 func TestNexusFormsLayout(t *testing.T) {
@@ -59,9 +60,11 @@ var retiredModelNames = regexp.MustCompile(strings.Join([]string{
 	`"tools", "umpire", "model"`,
 	`model/(?:lifter|gate|metrics|gen)\b`,
 	`model/temporal/(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)\b`,
-	`model/temporal/features/(?:nexuscaller|nexusoperation)\b`,
-	`model/temporal/features/(?:standaloneactivity/(?:record|withTaskQueue)|(?:nexuscaller|nexus/workflow)/closepolicy)\b`,
-	`\bfeatures\.(?:standaloneactivity\.(?:record|withTaskQueue)|(?:nexuscaller|nexus\.workflow)\.closepolicy)\b`,
+	`model/temporal/features/(?:nexuscaller|nexusoperation|standaloneactivity)\b`,
+	`\bfeatures\.standaloneactivity\b`,
+	`"features", "standaloneactivity"`,
+	`model/temporal/features/(?:(?:standaloneactivity|activity/standalone)/(?:record|withTaskQueue)|(?:nexuscaller|nexus/workflow)/closepolicy)\b`,
+	`\bfeatures\.(?:(?:standaloneactivity|activity\.standalone)\.(?:record|withTaskQueue)|(?:nexuscaller|nexus\.workflow)\.closepolicy)\b`,
 	`\bumpire\.(?:lift|gate)\b`,
 	`\blint-model-(?:lifter|lifts|gate|metrics)\b`,
 	// The same paths joined from their parts, as a Go test reads a file.
@@ -70,6 +73,8 @@ var retiredModelNames = regexp.MustCompile(strings.Join([]string{
 	`"standaloneactivity", "(?:record|withTaskQueue)"|"nexuscaller", "closepolicy"`,
 	`\bstandaloneactivity/Realization\.scala\b`,
 	`"standaloneactivity", "Realization\.scala"`,
+	`\bactivity/standalone/Realization\.scala\b`,
+	`"activity", "standalone", "Realization\.scala"`,
 }, "|"))
 
 // retiredZoomInFolders matches a flattened zoom-in folder named from its feature's folder, as prose
@@ -411,7 +416,9 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"a path joined from its parts":          {`filepath.Join("..", "model", "temporal", "worker")`, true},
 		"the new folders":                       {"model/irgen, model/check, model/build, model/temporal/features/nexus/workflow", false},
 		"a shared part's new folder":            {"model/temporal/shared/taskqueue", false},
-		"the new packages":                      {"package umpire.irgen\nimport temporal.features.standaloneactivity.*", false},
+		"the new packages":                      {"package umpire.irgen\nimport temporal.features.activity.standalone.*", false},
+		"the retired activity package":          {"package features.standaloneactivity", true},
+		"the retired activity import":           {"import temporal.features.standaloneactivity.system.*", true},
 		"a pinned Definition ID":                {`DefinitionScope("temporal.standaloneactivity.System$package$")`, false},
 		"Testpilot's worker":                    {"common/testing/testpilot/temporal/worker/interpreter.go", false},
 		"a word that starts like a stem":        {"model/generated, model/gates, lint-model-irgen-lifts", false},
@@ -437,7 +444,7 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"the former flattened package":          {"features.nexuscaller.closepolicy.exports", true},
 		"the former flattened folder":           {"model/temporal/features/nexuscaller/closepolicy", true},
 		"a function of a flattened package":     {"temporal.features.standaloneactivity.withTaskQueue.RecordOverQueue$.queries$.all", true},
-		"the level folders' files":              {"model/temporal/features/standaloneactivity/system/Record.scala, product/Product.scala", false},
+		"the level folders' files":              {"model/temporal/features/activity/standalone/system/Record.scala, product/Product.scala", false},
 		"a level package":                       {"package system\nimport temporal.features.nexus.workflow.system.ClosePolicyFamily", false},
 		"a pinned former owner":                 {`DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")`, false},
 		"a longer path ending in a folder name": {"common/testing/testpilot/record/run.go, x.record/y", false},
@@ -445,7 +452,9 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"the activity's former realization":     {"model/temporal/features/standaloneactivity/Realization.scala:33", true},
 		"the activity's relative realization":   {"standaloneactivity/Realization.scala", true},
 		"the former realization joined":         {`filepath.Join("standaloneactivity", "Realization.scala")`, true},
-		"the System realization":                {"standaloneactivity/system/Realization.scala", false},
+		"the retired System realization":        {"model/temporal/features/standaloneactivity/system/Realization.scala", true},
+		"the misplaced new root realization":    {"activity/standalone/Realization.scala", true},
+		"the System realization":                {"activity/standalone/system/Realization.scala", false},
 		"the Nexus caller realization":          {"nexuscaller/Realization.scala", false},
 		"the kit's capabilities":                {"model/temporal/capabilities/Capabilities.scala", false},
 		"the framework's capabilities":          {"model/umpire/Capabilities.scala", false},
@@ -481,7 +490,11 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 }
 
 func TestStandaloneActivityRealizationFollowsSystem(t *testing.T) {
-	root := filepath.Join(repoRoot, "model", "temporal", "features", "standaloneactivity")
+	kind := filepath.Join(repoRoot, "model", "temporal", "features", "activity")
+	root := filepath.Join(kind, "standalone")
+	require.NoDirExists(t, filepath.Join(repoRoot, "model", "temporal", "features", "standaloneactivity"))
+	require.FileExists(t, filepath.Join(kind, "Activity.scala"))
+	require.FileExists(t, filepath.Join(root, "Standalone.scala"))
 	require.NoFileExists(t, filepath.Join(root, "Realization.scala"))
 	require.FileExists(t, filepath.Join(root, "system", "Realization.scala"))
 	require.NoFileExists(t, filepath.Join(root, "product", "Realization.scala"))

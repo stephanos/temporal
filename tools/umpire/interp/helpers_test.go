@@ -24,7 +24,7 @@ func function(m *umpirespb.Model, suffix string) *umpirespb.Function {
 	return nil
 }
 
-const activityIR = "../../../model/ir/activity.json"
+const activityIR = "../../../model/ir/activity-standalone.json"
 
 // stuck is the first reachable state that is not an end and has no row with a result, or "". It reads
 // the rows themselves, not the table's index of them, which a test that edits the rows leaves stale.

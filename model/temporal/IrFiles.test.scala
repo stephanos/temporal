@@ -10,7 +10,7 @@ import umpire.IrFile
 class IrFilesTest extends munit.FunSuite:
   /** Each feature's `object exports`, which declares its IR files as it initializes. */
   val declaring: Seq[AnyRef] = Seq(
-    features.standaloneactivity.exports,
+    features.activity.standalone.exports,
     features.nexus.workflow.exports,
     features.nexus.standalone.exports
   )
@@ -51,7 +51,7 @@ class IrFilesTest extends munit.FunSuite:
   }
 
   test("standalone public API callers share the Temporal Client actor") {
-    val standaloneClient: Client = features.standaloneactivity.client
+    val standaloneClient: Client = features.activity.standalone.client
     val operationClient: Client = features.nexus.standalone.client
     assertEquals(standaloneClient.name, "client")
     assertEquals(operationClient.name, "client")

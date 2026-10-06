@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/server/tools/umpire/interp"
 )
 
-const activitySystemIR = "../../../model/ir/activity-record.json"
+const activitySystemIR = "../../../model/ir/activity-standalone-record.json"
 
 // recounted is m with each Query that asserts a total asserting m's count (WithTotals).
 func recounted(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
@@ -50,7 +50,7 @@ func BuildWithin(m *umpirespb.Model, c interp.Ceilings) (map[string]*interp.Mach
 	return in.Build(m)
 }
 
-const activityIR = "../../../model/ir/activity.json"
+const activityIR = "../../../model/ir/activity-standalone.json"
 
 var activityBaseline = sync.OnceValues(func() (*umpirespb.Model, error) { return Load(activityIR) })
 

@@ -13,7 +13,7 @@
  * Query's witness through these declarations (tools/umpire/lower).
  */
 package temporal
-package features.standaloneactivity
+package features.activity.standalone
 package system
 
 import umpire.*

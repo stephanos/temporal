@@ -1,7 +1,7 @@
 package umpire
 // What the standalone activity Model's effects do, run as Scala.
 
-import temporal.features.standaloneactivity.{system, Outcome}
+import temporal.features.activity.standalone.{system, Outcome}
 import system.*
 
 class StandaloneActivityPins extends munit.FunSuite:

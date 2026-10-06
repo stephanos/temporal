@@ -1,7 +1,7 @@
 package lower
 
 // The Cases of the standalone activity Model. Every expectation is read off
-// model/temporal/features/standaloneactivity: system/System.scala's Scenarios say which classes
+// model/temporal/features/activity/standalone: system/System.scala's Scenarios say which classes
 // a path takes, its protocol machine what each step records, and Realization.scala which command
 // performs a class, which command a Case carries for one, and which kind of evidence confirms a step.
 
@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	activityEvidence = "temporal.features.standaloneactivity.system.evidence."
-	activityActions  = "temporal.features.standaloneactivity.system.action.activitySystem."
+	activityEvidence = "temporal.features.activity.standalone.system.evidence."
+	activityActions  = "temporal.features.activity.standalone.system.action.activitySystem."
 	describeActivity = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
 )
 
@@ -142,7 +142,7 @@ func defined(names map[string]string, local string) string {
 // Three do not lower, each for one limit no task owns, named where the realization declares what
 // meets it (activityLimits).
 func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
@@ -198,7 +198,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, proto.Equal(source, prepared.Snapshot()), "preparation carries the Case unchanged")
 
-			again, err := NewProducer(loaded(t, "activity"))
+			again, err := NewProducer(loaded(t, "activity-standalone"))
 			require.NoError(t, err)
 			second, err := again.Lower(query, activityIdentity(query))
 			require.NoError(t, err)
@@ -234,7 +234,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 // 2, at the start call's instruction and keyed by the Run, with the attempt, the delivery and the
 // activity run kept as fields; the status the activity ends in is the one message Describe returns.
 func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *testing.T) {
-	p, err := NewProducer(loaded(t, "activity"))
+	p, err := NewProducer(loaded(t, "activity-standalone"))
 	require.NoError(t, err)
 	l, err := p.Lower("retry", activityIdentity("retry"))
 	require.NoError(t, err)
@@ -371,7 +371,7 @@ func TestAnAttemptRecordThatFollowsLaterEvidenceIsNamed(t *testing.T) {
 			[]string{activityEvidence + "attemptCount"}},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m := loaded(t, "activity")
+			m := loaded(t, "activity-standalone")
 			if test.change != nil {
 				test.change(m)
 			}
@@ -399,7 +399,7 @@ func TestAnAttemptRecordThatFollowsLaterEvidenceIsNamed(t *testing.T) {
 // leaves an attempt unanswered. The count is per script, and a path whose every attempt is answered,
 // or that starts none, has no such gap.
 func TestAnAttemptIsUnansweredWhereThePathStartsMoreThanItAnswers(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	for query, want := range map[string]int{"completion": 0, "retry": 0, "terminate": 0, "startToCloseTimeout": 1} {
@@ -454,7 +454,7 @@ func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *test
 		}, "evidence " + started + " confirms 2 steps, and the Case's rule for it confirms 1"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m := loaded(t, "activity")
+			m := loaded(t, "activity-standalone")
 			p, err := NewProducer(m)
 			require.NoError(t, err)
 			a, _, err := p.ask("completion")
@@ -506,7 +506,7 @@ func TestAFieldOfEvidenceIsCarriedAsTheScalarItsDescriptorMakesIt(t *testing.T) 
 // else of its Program and its Contract.
 func TestTheIdentityAFieldNamesIsInTheProjectionFingerprint(t *testing.T) {
 	lower := func(change func(*umpirespb.Realization)) *testpilotspb.Case {
-		m := loaded(t, "activity")
+		m := loaded(t, "activity-standalone")
 		change(m.GetRealizations()[0])
 		p, err := NewProducer(m)
 		require.NoError(t, err)
@@ -537,7 +537,7 @@ func TestTheIdentityAFieldNamesIsInTheProjectionFingerprint(t *testing.T) {
 func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *testing.T) {
 	const scheduled = activityEvidence + "statusScheduled"
 	changed := func(change func(*umpirespb.RunEventSource)) *Producer {
-		m := loaded(t, "activity")
+		m := loaded(t, "activity-standalone")
 		for _, e := range m.GetRealizations()[0].GetEvidence() {
 			if e.GetId() == scheduled {
 				change(e.GetRunEvent())
@@ -576,7 +576,7 @@ func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *
 // Evidence that is the Run's own record is the record of an instruction, which is part of what
 // carries the kind: a Case that declares the kind and carries no such instruction does not close.
 func TestARecordWhoseInstructionTheCaseDoesNotCarryDoesNotClose(t *testing.T) {
-	p, err := NewProducer(loaded(t, "activity"))
+	p, err := NewProducer(loaded(t, "activity-standalone"))
 	require.NoError(t, err)
 	a, _, err := p.ask("completion")
 	require.NoError(t, err)
@@ -605,7 +605,7 @@ func TestARecordWhoseInstructionTheCaseDoesNotCarryDoesNotClose(t *testing.T) {
 // polling before the start and resumes it after the release, on the task queue its activity runs on;
 // a path that does not pause does neither.
 func TestAPathThatPausesKeepsItsWorkerFromPollingUntilTheRelease(t *testing.T) {
-	p, err := NewProducer(loaded(t, "activity"))
+	p, err := NewProducer(loaded(t, "activity-standalone"))
 	require.NoError(t, err)
 	l, err := p.Lower("pauseResume", activityIdentity("pauseResume"))
 	require.NoError(t, err)

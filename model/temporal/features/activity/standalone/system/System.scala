@@ -5,7 +5,7 @@
  * WithTaskQueue.scala, that record composed with the shared task queue.
  */
 package temporal
-package features.standaloneactivity
+package features.activity.standalone
 package system
 
 import scala.annotation.unused

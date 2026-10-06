@@ -3,7 +3,7 @@ package lower
 // An activity's script, the evidence a realization declares beyond a kind and a source, and what the
 // standalone activity Model's own realization declares. The fixtures are in
 // model/irgen/testdata/lifts/Realizations.scala; the activity realization is
-// model/temporal/features/standaloneactivity/system/Realization.scala, and its Cases are in
+// model/temporal/features/activity/standalone/system/Realization.scala, and its Cases are in
 // activity_cases_test.go.
 
 import (
@@ -28,7 +28,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-const activityRealizationAt = "model/temporal/features/standaloneactivity/system/Realization.scala"
+const activityRealizationAt = "model/temporal/features/activity/standalone/system/Realization.scala"
 
 // kitAt is where the shared Temporal kit (model/temporal/realize) writes the declarations of the
 // realizations it builds: their roles and correlation, the evidence of the Run's own record, and the
@@ -487,7 +487,7 @@ func TestAnExhaustiveKindIsCarriedWithItsClosingRead(t *testing.T) {
 // either, so a poll of DescribeActivityExecution reads only a status the activity stays in until the
 // controller acts or for good: paused, and the five terminal statuses.
 func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	stable := map[string]string{
 		"statusPaused":     "ACTIVITY_EXECUTION_STATUS_PAUSED",
 		"statusCompleted":  "ACTIVITY_EXECUTION_STATUS_COMPLETED",
@@ -567,10 +567,10 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	}
 	realizer, err := check.NewRealizer(m, check.DefaultScope)
 	require.NoError(t, err)
-	const evidence = "temporal.features.standaloneactivity.system.evidence."
+	const evidence = "temporal.features.activity.standalone.system.evidence."
 	// The Run numbers its own record, so the kinds read from it count in one source, in the order the
 	// Run records them; each status is read by a poll of its own, and counts in a source of its own.
-	const recordSource = "temporal.features.standaloneactivity.system.source.record"
+	const recordSource = "temporal.features.activity.standalone.system.source.record"
 	polledSources := map[string]bool{}
 	got := map[string]recordedKind{}
 	for _, e := range r.GetEvidence() {
@@ -715,7 +715,7 @@ func TestACanceledAnswerLowersToItsInstruction(t *testing.T) {
 // names, which no later step confirms (the producer's evidence.action-unmapped). The producer reads
 // such a path whole now, so the refusal is its own.
 func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	var stop *umpirespb.ActionClass
 	for _, s := range m.GetScenarios() {
 		if s.GetName() == "terminatedWhileScheduled" {
@@ -741,17 +741,17 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 	require.Nil(t, l)
 	var refused *cp.Error
 	require.ErrorAs(t, err, &refused)
-	require.Equal(t, &cp.Error{Definition: "temporal.features.standaloneactivity.system.action.activitySystem.stop", Construct: "evidence.action-unmapped"}, refused)
-	require.ErrorContains(t, err, "model/temporal/features/standaloneactivity/system/System.scala:")
+	require.Equal(t, &cp.Error{Definition: "temporal.features.activity.standalone.system.action.activitySystem.stop", Construct: "evidence.action-unmapped"}, refused)
+	require.ErrorContains(t, err, "model/temporal/features/activity/standalone/system/System.scala:")
 }
 
 // A path that takes a class again with no kind of evidence that names the second step is an error of
 // the realization, and no gap: the retry with the second attempt's kind naming only the failure it
 // follows leaves the second attempt start to the first attempt's kind, which names the first alone.
 func TestAClassTakenAgainThatNoKindNamesIsAnError(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	for _, e := range m.GetRealizations()[0].GetEvidence() {
-		if e.GetId() == "temporal.features.standaloneactivity.system.evidence.attemptCount" {
+		if e.GetId() == "temporal.features.activity.standalone.system.evidence.attemptCount" {
 			e.Confirms = e.GetConfirms()[:1]
 		}
 	}
@@ -761,7 +761,7 @@ func TestAClassTakenAgainThatNoKindNamesIsAnError(t *testing.T) {
 	require.Nil(t, l)
 	var refused *cp.Error
 	require.ErrorAs(t, err, &refused)
-	require.Equal(t, &cp.Error{Definition: "temporal.features.standaloneactivity.system.action.activitySystem.poll", Construct: "evidence.taking-unrecorded"}, refused)
+	require.Equal(t, &cp.Error{Definition: "temporal.features.activity.standalone.system.action.activitySystem.poll", Construct: "evidence.taking-unrecorded"}, refused)
 	// The Queries whose path takes the class once are not touched by it.
 	completion, err := p.Lower("completion", cp.IdentityFor("temporal.case", "standaloneActivityTests", "completion"))
 	require.NoError(t, err)

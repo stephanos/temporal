@@ -18,6 +18,8 @@ The exact IR export stems are `activity` → `activity-standalone`, `activity-re
 The Model root-construction assertion in `IrFiles.test.scala` compares exports to the actual checked-in IR filenames. Stage the declared IR filename move before regeneration so this dynamic assertion can run; do not replace it with a fixed set or introduce an update-mode bypass. Preserve the first failed regeneration and the later fixture-import failure as actual evidence, not full-gate passes.
 
 Independent of task 1; the two may run in either order but not at the same time (both regenerate `model/ir`).
+
+**Finite downstream context maintenance (root authorization):** Update only fn-119.3's Required Nexus realization to `features/nexus/workflow/Realization.scala` and Activity realization to `features/activity/standalone/system/Realization.scala`, removing obsolete line ranges; fn-119.4's style target to `features/activity/standalone`; and fn-125.10's current Files/Required targets to `activity/standalone/{Standalone.scala,system/System.scala,system/Realization.scala}` as appropriate and `nexus/workflow/Realization.scala`. Preserve deferred statuses, dependencies, behavior and unrelated retired Go-reader targets. In fn-123's parent add one explicit historical-context sentence identifying its pre-fn-112 source paths/ranges; preserve the snapshot content and proposed semantics. These authoring edits use flowctl only; force-add exact CLI-mutated hidden authoring paths, never change exclusions. No whole-Flow-clear claim covers unrelated historical contexts.
 ## Acceptance
 - [ ] `features/activity/standalone` exists with the spec's layout; `features/standaloneactivity` does not.
 - [ ] A before/after projection with the path and IR-file-name map applied is identical.

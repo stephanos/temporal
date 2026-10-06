@@ -29,7 +29,7 @@
  * reads end, then states, syncs, properties, implements and queries.
  */
 package temporal
-package features.standaloneactivity
+package features.activity.standalone
 
 import umpire.*
 import shared.worker.worker as process
@@ -72,7 +72,7 @@ object Inputs:
   val control = input[Control]
 
 // Who acts, and on what: each action is declared in the object of who takes it, and named after
-// where it is declared, `temporal.features.standaloneactivity.client.start`.
+// where it is declared, `temporal.features.activity.standalone.client.start`.
 
 /** The client starts and controls the activity. */
 object client extends Client:
@@ -138,7 +138,7 @@ val eight = Limits(steps = 8, actions = 8, search = 262144)
 object exports:
   // The activity Model. Its cross-entity Query, stoppedWorkerStartsNothing, carries the composition
   // and its claim.
-  val activity = irFile("activity")(
+  val activityStandalone = irFile("activity-standalone")(
     StandaloneActivity,
     ActivityProduct,
     ActivityProduct.implements,
@@ -150,7 +150,7 @@ object exports:
 
   // Its history record, the admission designs, and the shared task queue's providers it composes.
   // A composition no Query runs over is a root of its own.
-  val activityRecord = irFile("activity-record")(
+  val activityStandaloneRecord = irFile("activity-standalone-record")(
     system.ActivityRecord.queries,
     system.TrustingActivityRecord.queries,
     shared.taskqueue.system.TaskQueueSystem.queries,
@@ -168,7 +168,7 @@ object exports:
 
   // The held race a server is run through, and the realization that runs it. It is a Model of its
   // own, so the history record's Queries are the ones its checkers were given.
-  val activityRace = irFile("activity-race")(
+  val activityStandaloneRace = irFile("activity-standalone-race")(
     system.HeldDispatch.queries,
     ActivityRealization.heldDelivery,
     system.LostStartAnswer.queries,

@@ -146,7 +146,7 @@ func TestAMalformedSidecarIsTheReadersErrorWithNoFindings(t *testing.T) {
 
 			dir := t.TempDir()
 			ir := filepath.Join(dir, "lawful.json")
-			encoded, err := os.ReadFile("../../../model/ir/activity.json")
+			encoded, err := os.ReadFile("../../../model/ir/activity-standalone.json")
 			require.NoError(t, err)
 			require.NoError(t, os.WriteFile(ir, encoded, 0o644))
 			malformed, err := os.ReadFile(filepath.Join("testdata", "laws", name+".laws.json"))

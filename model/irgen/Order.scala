@@ -40,7 +40,7 @@ import scala.collection.mutable
  * descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization makes (through 3.10.0-RC3).
  *
  * A feature file is a source named after its folder, case aside, in a package under `features` or
- * `shared`, as every Model's is: `features/standaloneactivity/StandaloneActivity.scala`. A file of a
+ * `shared`, as every Model's is: `features/activity/standalone/Standalone.scala`. A file of a
  * level folder, `product/` or `system/` (fn-126 R20), reads as one too, the level's own file and each
  * subject's beside it, without `object exports`, which only the root feature file holds; only the
  * root feature file has siblings that declare no Model, such as `Realization.scala`. A file of

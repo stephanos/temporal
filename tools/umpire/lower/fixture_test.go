@@ -142,7 +142,7 @@ func lineOf(t *testing.T, position string) string {
 // Lowering names each where it was written, as a limit no task owns, and builds no Case around them.
 // The race a Driver does realize holds what a step dispatched to a task queue, reads the commit from
 // the release that observed it, and runs on a machine whose authored monitors are no gap
-// (ir/activity-race.json; TestTheHeldRaceLowers). Nor is an activity script: Testpilot runs an
+// (ir/activity-standalone-race.json; TestTheHeldRaceLowers). Nor is an activity script: Testpilot runs an
 // activity's attempts (the errand; TestAnActivityScriptLowersToItsAttemptsInOrder).
 func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 	p, err := NewProducer(liftedRealizations(t))

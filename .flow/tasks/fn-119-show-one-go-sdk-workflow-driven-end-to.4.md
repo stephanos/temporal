@@ -22,7 +22,7 @@ Author the example Model in the finished DSL and wire it into the model gate and
 
 ### Investigation targets
 **Required:**
-- `model/temporal/features/standaloneactivity/` (final fn-112 form) - style
+- `model/temporal/features/activity/standalone/` (final fn-112 form) - style
 - `tests/testpilot_generated_test.go:100-210`, `tests/testcore/testpilot/model_fixture.go:80-115`
 - `model/check/Gate.scala:40-60,290-380`
 - `Makefile:665-740`

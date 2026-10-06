@@ -15,9 +15,9 @@ import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.standaloneactivity.{activity, client, worker, Control}
-import temporal.features.standaloneactivity.system.Fact as ActivityFact
-import temporal.features.standaloneactivity.system.ActivitySystem as activitySystem
+import temporal.features.activity.standalone.{activity, client, worker, Control}
+import temporal.features.activity.standalone.system.Fact as ActivityFact
+import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus

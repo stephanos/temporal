@@ -1,6 +1,6 @@
 package check
 
-// The standalone activity Model, as model/ir/activity.json carries it: the sizes, rows and answers its
+// The standalone activity Model, as model/ir/activity-standalone.json carries it: the sizes, rows and answers its
 // Scala pins asserted, read off the tables and receipts Go derives from the IR.
 
 import (

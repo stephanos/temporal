@@ -99,13 +99,13 @@ func evidenceOf(t *testing.T, m *umpirespb.Model, kind string) *umpirespb.Eviden
 // confirms the attempt start, and the retry has no Case. Read as the first attempt's, which is the
 // attempt in flight at the failure, it would have passed.
 func TestARecordIsLateByTheAttemptItIsDeclaredOf(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	second := evidenceOf(t, m, "attemptCount")
 	require.Equal(t, int64(2), second.GetRunEvent().GetAttempt().GetNumber())
 	second.Confirms = second.GetConfirms()[:1]
 	r := m.GetRealizations()[0]
 	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "startedAgain", Position: second.GetPosition(), Records: "statusStarted",
-		Source: "temporal.features.standaloneactivity.system.source.again", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
+		Source: "temporal.features.activity.standalone.system.source.again", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{{Step: evidenceOf(t, m, "statusStarted").GetConfirms()[0].GetStep(), Occurrence: 2}},
 		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
 			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}})
@@ -126,14 +126,14 @@ func TestARecordIsLateByTheAttemptItIsDeclaredOf(t *testing.T) {
 // the second attempt start alone, reaches the Run at the first answer, which is the failure, before
 // the evidence that confirms the failure, though it confirms a step after it.
 func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	second := evidenceOf(t, m, "attemptCount")
 	failure := second.GetConfirms()[0]
 	second.Confirms = second.GetConfirms()[1:]
 	second.GetRunEvent().GetAttempt().Number = 1
 	r := m.GetRealizations()[0]
 	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "failed", Position: second.GetPosition(), Records: second.GetRecords(),
-		Source: "temporal.features.standaloneactivity.system.source.failed", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
+		Source: "temporal.features.activity.standalone.system.source.failed", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{failure},
 		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
 			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}})
@@ -155,7 +155,7 @@ func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
 // Run records as the controller makes the call, is in the path's order.
 func TestEvidenceTheControllerRecordsIsNotDeferred(t *testing.T) {
 	late := func(change func(*umpirespb.Model)) []string {
-		m := loaded(t, "activity")
+		m := loaded(t, "activity-standalone")
 		change(m)
 		p, err := NewProducer(m)
 		require.NoError(t, err)
@@ -180,7 +180,7 @@ func TestEvidenceTheControllerRecordsIsNotDeferred(t *testing.T) {
 // the realization says so. One declared the record of no attempt has no Case to be out of order in:
 // the Model is refused where the evidence is written, before any Query of it is lowered.
 func TestADiagnosticDeclaredTheRecordOfNoAttemptHasNoProducer(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	evidenceOf(t, m, "statusStarted").GetRunEvent().Attempt = nil
 	p, err := NewProducer(m)
 	require.Nil(t, p)
@@ -196,7 +196,7 @@ func TestADiagnosticDeclaredTheRecordOfNoAttemptHasNoProducer(t *testing.T) {
 // a source declared for the other takes, so a Query whose Case runs both has no Case, and each record
 // says why. A Query whose Case runs one of them is not in the way of it.
 func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	r := m.GetRealizations()[0]
 	// A class is performed by one script, so the second activity takes over the failure that is
 	// retried, and is activated by no class of its own.
@@ -243,7 +243,7 @@ func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) 
 // Two kinds declared the record of one attempt are not out of order with each other: the Run records
 // the attempt as one Run Event, and the path asks for two pieces of evidence of it.
 func TestAnAttemptRecordedAsTwoKindsOfEvidenceHasNoCase(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	evidenceOf(t, m, "attemptCount").GetRunEvent().GetAttempt().Number = 1
 	p, err := NewProducer(m)
 	require.NoError(t, err)
@@ -263,7 +263,7 @@ func TestAnAttemptRecordedAsTwoKindsOfEvidenceHasNoCase(t *testing.T) {
 // A record of an attempt the path never starts confirms nothing a Run of the path could record: it
 // is an error of the realization against the path, where the record is written.
 func TestARecordOfAnAttemptThePathNeverStartsIsAnError(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	evidenceOf(t, m, "attemptCount").GetRunEvent().GetAttempt().Number = 3
 	p, err := NewProducer(m)
 	require.NoError(t, err)
@@ -313,7 +313,7 @@ func TestTheControllersInstructionsRecordEvidenceInThePathsOrder(t *testing.T) {
 		}, "query completion: no instruction of the Case records evidence " + activityEvidence + "statusCompleted, which confirms a step of the path"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m := loaded(t, "activity")
+			m := loaded(t, "activity-standalone")
 			test.change(m)
 			p, err := NewProducer(m)
 			require.NoError(t, err)
@@ -322,7 +322,7 @@ func TestTheControllersInstructionsRecordEvidenceInThePathsOrder(t *testing.T) {
 			require.ErrorContains(t, err, test.want)
 			var located *interp.Error
 			require.ErrorAs(t, err, &located)
-			require.Contains(t, located.Position, "model/temporal/features/standaloneactivity/")
+			require.Contains(t, located.Position, "model/temporal/features/activity/standalone/")
 		})
 	}
 }
@@ -344,7 +344,7 @@ func TestAnInstructionRunsAfterTheOnesItIsWrittenAfter(t *testing.T) {
 // guard states the attempt's number after the guard the realization writes, and alone where the
 // realization writes none.
 func TestTheLoweredGuardOfAnAttemptsRecordStatesTheAttempt(t *testing.T) {
-	m := loaded(t, "activity")
+	m := loaded(t, "activity-standalone")
 	evidenceOf(t, m, "statusStarted").GetRunEvent().Guard = nil
 	p, err := NewProducer(m)
 	require.NoError(t, err)

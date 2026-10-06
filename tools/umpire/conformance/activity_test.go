@@ -3,7 +3,7 @@ package conformance
 // The lowered Cases of the standalone activity Model, replayed on constructed Runs that a live Run
 // would not record: evidence out of the path's order, and evidence on a Run Event its source does not
 // take. The Run's own record is evidence here, so the Run Event that carries a piece of evidence is
-// itself read. The expectations are read off model/temporal/features/standaloneactivity
+// itself read. The expectations are read off model/temporal/features/activity/standalone
 // (system/System.scala, Realization.scala). The Runs the Cases record live are in played_test.go.
 
 import (
@@ -23,15 +23,15 @@ import (
 )
 
 const (
-	activityFamily   = "temporal.features.standaloneactivity.system"
+	activityFamily   = "temporal.features.activity.standalone.system"
 	activityMachine  = "activitySystem"
-	activityEvidence = "temporal.features.standaloneactivity.system.evidence."
+	activityEvidence = "temporal.features.activity.standalone.system.evidence."
 	activityRunID    = testpilot.RunIDPrefix + "00000000-0000-4000-8000-000000000001"
 )
 
 func activityModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
 	require.NoError(t, err)
 	return m
 }

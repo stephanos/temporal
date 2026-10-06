@@ -143,7 +143,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |extension [A](value: A) def in(xs: A*): Boolean = xs.contains(value)
         |""".stripMargin
     val temporal =
-      """package temporal.features.standaloneactivity
+      """package temporal.features.activity.standalone
         |
         |extension (m: Machine)
         |  /** Doc comments may say once, never and keeps. */
@@ -161,16 +161,16 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |""".stripMargin
     val found = findings(
       "model/umpire/Steps.scala" -> umpire,
-      "model/temporal/features/standaloneactivity/StandaloneActivity.scala" -> temporal,
+      "model/temporal/features/activity/standalone/Standalone.scala" -> temporal,
       "model/irgen/Matching.scala" -> lifter
     )
     assertEquals(
       found.map(_.takeWhile(_ != ' ')),
       Vector(
         "model/irgen/Matching.scala:5:",
-        "model/temporal/features/standaloneactivity/StandaloneActivity.scala:5:",
-        "model/temporal/features/standaloneactivity/StandaloneActivity.scala:6:",
-        "model/temporal/features/standaloneactivity/StandaloneActivity.scala:8:",
+        "model/temporal/features/activity/standalone/Standalone.scala:5:",
+        "model/temporal/features/activity/standalone/Standalone.scala:6:",
+        "model/temporal/features/activity/standalone/Standalone.scala:8:",
         "model/umpire/Steps.scala:3:",
         "model/umpire/Steps.scala:7:",
         "model/umpire/Steps.scala:8:",
@@ -222,7 +222,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
       findings(
         "model/irgen/testdata/lifts/Model.scala" -> sugar,
         "model/irgen/test/Lift.test.scala" -> sugar,
-        "model/temporal/features/standaloneactivity/Pins.test.scala" -> sugar,
+        "model/temporal/features/activity/standalone/Pins.test.scala" -> sugar,
         "model/umpire/.scala-build/Gen.scala" -> sugar
       ),
       Vector.empty

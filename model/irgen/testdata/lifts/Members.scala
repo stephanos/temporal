@@ -1,4 +1,4 @@
-// Typed composition selectors beside the production compositions of features/standaloneactivity,
+// Typed composition selectors beside the production compositions of features/activity/standalone,
 // which declare their members, syncs and replaced machines by field, derive each later design by
 // `withMember` and select their Scenarios' composed classes with `synced` and `own`. The lifter's
 // tests lift those Queries for their exact composed keys, members, syncs and replacement targets;

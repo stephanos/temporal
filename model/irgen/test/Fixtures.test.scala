@@ -1310,7 +1310,7 @@ class Fixtures extends munit.FunSuite:
       "results named a type"
     )
     // UpTo[2] lifts as the Int range 0..2, the record the live protocol state's attempt counter
-    // lifts to in model/ir/activity.json, which the gate holds.
+    // lifts to in model/ir/activity-standalone.json, which the gate holds.
     assertEquals(
       named("types", "fixture.inputs.CountedState").at("/record/fields/1/type").toString,
       """{"intRange":{"high":"2"}}"""
@@ -1461,7 +1461,7 @@ class Fixtures extends munit.FunSuite:
       )
 
   // fn-112.4, fn-112.7: typed composition selectors (lifts/Members.scala).
-  // The production compositions of temporal/features/standaloneactivity, written with typed
+  // The production compositions of temporal/features/activity/standalone, written with typed
   // selectors and derived by `withMember`, keep their exact members, syncs, replacement targets and
   // Scenario keys; and the keys of names that carry separators, over two members that bind actions
   // spelled alike.
@@ -1469,7 +1469,7 @@ class Fixtures extends munit.FunSuite:
     import com.fasterxml.jackson.databind.JsonNode
     // Each design is an object, named as the composition is with the first letter raised: its
     // Queries in its `queries`, or the design itself where no Query runs over it.
-    val designs = "temporal.features.standaloneactivity.system."
+    val designs = "temporal.features.activity.standalone.system."
     def designObject(d: String) = designs + d.head.toUpper + d.tail
     val overQueue = Seq("recordOverQueue", "trustingRecordOverQueue")
     val overMatching =
@@ -1578,7 +1578,7 @@ class Fixtures extends munit.FunSuite:
     // No name of the activity's package is lifted, only the shared queue's.
     val fromActivity = model.toString.linesIterator
       .flatMap(
-        """"(temporal\.features\.standaloneactivity[^"]*)"""".r.findAllMatchIn(_).map(_.group(1))
+        """"(temporal\.features\.activity\.standalone[^"]*)"""".r.findAllMatchIn(_).map(_.group(1))
       )
       .toSet
     assert(fromActivity.isEmpty, fromActivity.mkString(", "))

@@ -103,7 +103,7 @@ func apiWalk(md protoreflect.MessageDescriptor, path string) (protoreflect.Field
 // field of the run's own record that no count includes.
 func apiActivityIR(t *testing.T) (*umpirespb.Model, *umpirespb.Realization) {
 	t.Helper()
-	m, err := ir.Load("../../../model/ir/activity.json")
+	m, err := ir.Load("../../../model/ir/activity-standalone.json")
 	require.NoError(t, err)
 	m = proto.Clone(m).(*umpirespb.Model)
 	require.Len(t, m.GetRealizations(), 1)
@@ -185,7 +185,7 @@ func TestUnmodeledAPIValueReportsAValueAPollWaitsThrough(t *testing.T) {
 		if f.Subject == apiActivityStatus+" ACTIVITY_EXECUTION_STATUS_RUNNING" {
 			require.Equal(t, UnmodeledAPIValue, f.Kind)
 			require.Equal(t, "ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_RUNNING is mapped to a fact by no poll or guard", f.Message)
-			require.Equal(t, "model/temporal/features/standaloneactivity/system/Realization.scala:57", f.Position)
+			require.Equal(t, "model/temporal/features/activity/standalone/system/Realization.scala:57", f.Position)
 		}
 	}
 	for _, mapped := range []string{"PAUSED", "COMPLETED", "FAILED", "CANCELED", "TERMINATED", "TIMED_OUT"} {

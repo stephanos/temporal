@@ -2,7 +2,7 @@
 // SourceMetrics.scala). The check's second entry point, beside its main class `run`:
 //
 //   scala-cli run model/check --main-class umpire.check.metrics -- \
-//     model/temporal/features/standaloneactivity [more directories]
+//     model/temporal/features/activity/standalone [more directories]
 package umpire.check
 
 @main def metrics(directories: String*): Unit =

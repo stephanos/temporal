@@ -128,7 +128,7 @@ func TestHarnessBindingRejectsMismatchedAuthorityAndResources(t *testing.T) {
 
 func harnessFixture(t *testing.T) (*testpilotcore.ModelCase, testpilot.ProfileSpec, *policy.Policy) {
 	t.Helper()
-	fixture, err := generatedHarnessCase(t, "activity-completion-case.json")
+	fixture, err := generatedHarnessCase(t, "activity-standalone-completion-case.json")
 	require.NoError(t, err)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)

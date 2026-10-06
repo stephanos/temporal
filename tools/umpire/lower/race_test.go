@@ -21,7 +21,7 @@ import (
 // for by the two instructions that realize it. A Profile whose environment supplies no delivery
 // control refuses the Case, naming the hold.
 func TestTheHeldRaceLowers(t *testing.T) {
-	p, err := NewProducer(loaded(t, "activity-race"))
+	p, err := NewProducer(loaded(t, "activity-standalone-race"))
 	require.NoError(t, err)
 	l, err := p.Lower("heldDispatch.staleDelivery", cp.IdentityFor("temporal.case", "standaloneActivityRace", "heldDispatch.staleDelivery"))
 	require.NoError(t, err)

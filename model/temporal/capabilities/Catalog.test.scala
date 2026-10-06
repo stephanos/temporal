@@ -20,7 +20,7 @@ class CatalogTest extends munit.FunSuite:
   val declared: Seq[Declaring] = Seq(
     Declaring(
       "activityProduct",
-      "temporal.features.standaloneactivity.product.State",
+      "temporal.features.activity.standalone.product.State",
       Set(Closable, Pausable, Pollable)
     ),
     Declaring("activityRecord", "AdmissionState", Set(Closable, Pausable, Pollable)),
@@ -30,7 +30,7 @@ class CatalogTest extends munit.FunSuite:
     Declaring("recordOverQueue", "AdmissionState", Set(Closable, Pausable, Pollable)),
     Declaring(
       "activitySystem",
-      "temporal.features.standaloneactivity.system.State",
+      "temporal.features.activity.standalone.system.State",
       Set(Terminable, Cancelable, Describable)
     ),
     // The standalone Nexus operation (model/temporal/features/nexus/standalone).
@@ -66,7 +66,7 @@ class CatalogTest extends munit.FunSuite:
     assertEquals(
       instantiating(Set(Closable), declared),
       Seq(
-        "temporal.features.standaloneactivity.product.State",
+        "temporal.features.activity.standalone.product.State",
         "AdmissionState",
         "OperationState"
       )

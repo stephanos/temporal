@@ -386,7 +386,7 @@ func TestWithoutTotalsClearsOnlyTotals(t *testing.T) {
 //	  and still counted on activityRecord, 36 states; staleDeliveryAfterPause schedules 3 actions
 //	  under limits three: 36 × min(3, 3) = 108
 func TestTheActivityModelsTotalsAreStatesTimesSlots(t *testing.T) {
-	m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
+	m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
 	require.NoError(t, err)
 	for query, spelling := range map[string]string{
 		"completion":                            "288 states × 3 scheduled slots (the least of 3 steps and 3 scheduled actions) = 864",

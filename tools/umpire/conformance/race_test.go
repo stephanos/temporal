@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	raceFamily   = "temporal.features.standaloneactivity.system"
+	raceFamily   = "temporal.features.activity.standalone.system"
 	raceMachine  = "heldDispatch"
 	raceQuery    = "heldDispatch.staleDelivery"
 	raceProperty = "staleDeliveryRejected"
@@ -39,7 +39,7 @@ const (
 
 func raceModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-race.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone-race.json"))
 	require.NoError(t, err)
 	return m
 }

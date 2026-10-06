@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters.*
  * measures the standalone activity Model with it when it starts and when it closes:
  *
  *   scala-cli run model/check --main-class umpire.check.metrics -- \
- *     model/temporal/features/standaloneactivity
+ *     model/temporal/features/activity/standalone
  *
  * More directories are measured each on its own and together. Test sources (`*.test.scala`) are not
  * the Model and are left out.

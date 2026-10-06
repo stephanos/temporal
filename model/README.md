@@ -354,7 +354,7 @@ by id.
 | Path | What it holds |
 | --- | --- |
 | `model/umpire` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `umpire/realize` |
-| `model/temporal` | The Models: `features`, grouped by entity (`nexus/workflow`, `nexus/standalone`, `standaloneactivity`); `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, the laws stated once for every entity; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
+| `model/temporal` | The Models: `features`, grouped by entity (`nexus/workflow`, `nexus/standalone`, `activity/standalone`); `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, the laws stated once for every entity; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -556,15 +556,17 @@ below holds it), and the standalone activity is the example:
 
 ```text
 features/
-  standaloneactivity/
-    StandaloneActivity.scala   shared types and signature; exports
-    product/
-      Product.scala            Product Phase, State and Fact; ActivityProduct
-    system/
-      System.scala             System Phase, State and Fact; ActivitySystem, ActivityWorker, StandaloneActivity
-      Record.scala             the record and its designs: ActivityRecord, TrustingActivityRecord, HeldDispatch, LostStartAnswer
-      WithTaskQueue.scala      the designs over the task queue: RecordMember, TrustingRecordMember, RecordOverQueue, …
-      Realization.scala        the System realizations: standalone, heldDelivery, lostAdmissionResponse
+  activity/
+    Activity.scala            package header only; the standalone form owns its exports
+    standalone/
+      Standalone.scala         shared types and signature; exports
+      product/
+        Product.scala          Product Phase, State and Fact; ActivityProduct
+      system/
+        System.scala           System Phase, State and Fact; ActivitySystem, ActivityWorker, StandaloneActivity
+        Record.scala           the record and its designs: ActivityRecord, TrustingActivityRecord, HeldDispatch, LostStartAnswer
+        WithTaskQueue.scala     the designs over the task queue: RecordMember, TrustingRecordMember, RecordOverQueue, …
+        Realization.scala      the System realizations: standalone, heldDelivery, lostAdmissionResponse
   nexus/
     Nexus.scala                package header only; the forms own their exports
     workflow/
@@ -692,18 +694,18 @@ Go tests that pin each Query's answer and each refinement's receipt (`tools/umpi
 The markers change no ID, name or line of the IR. The core of a machine's rules, its step functions
 bound by hand, `object rules extends Bindings(a ~> f, …)`, is the spelling of the IR generator's core
 fixtures, and a Model may not use it. A level folder
-is a subpackage (`package features.standaloneactivity; package system`), so it reads its feature's
+is a subpackage (`package features.activity.standalone; package system`), so it reads its feature's
 types and signature without imports. A section that declares Properties over a machine argument returns them as a bundle
 (below), so its Queries read them by field rather than declaring them.
 
 A declaration is named after where it is declared. An action, monitor, assumption, hole, channel
 with the actions it derives, or realization takes as its Definition ID its fully qualified Scala
 name: its package and every object it sits in, then its own name,
-`temporal.features.standaloneactivity.client.start` or
-`temporal.features.standaloneactivity.system.ActivityRecord.monitors.atMostOneActiveAttempt`. A
-type is named so too, `temporal.features.standaloneactivity.system.State`. A machine's or
+`temporal.features.activity.standalone.client.start` or
+`temporal.features.activity.standalone.system.ActivityRecord.monitors.atMostOneActiveAttempt`. A
+type is named so too, `temporal.features.activity.standalone.system.State`. A machine's or
 composition's family, the root every ID derived from it hangs off (`<family>.query.<name>`, its
-target, its claims), is the package that declares it, `temporal.features.standaloneactivity.system`,
+target, its claims), is the package that declares it, `temporal.features.activity.standalone.system`,
 and a realization's IDs (its evidence, sources and producer) hang off its own package, which the
 kit's `umpire.realize.family` reads. Nobody writes an ID or a family: moving a declaration between
 files of one package keeps every name, and moving it into another object or package, or renaming
@@ -804,7 +806,7 @@ atMostOneActive(c)(through(_.activity, Admission.twoActive))
 
 The IR generator lifts each `through` as one function of the composed state,
 `<state>.through.<path>.<def>` (here
-`temporal.features.standaloneactivity.system.OverQueue.through.activity.temporal.features.standaloneactivity.system.ActivityRecord$.states$.paused`),
+`temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.paused`),
 which the law calls as it calls a def. `select` is a field path, `_.activity` or `_.left.phase`, and
 `read` a def of the lifted sources; each other selector and a lambda for `read` are refused at their
 line, as a lambda is, and a `read` over another type than the member's does not compile. Its two
@@ -1016,7 +1018,7 @@ citations and the one `given Catalog` live in `model/temporal/capabilities`:
 
 **The worked example.** The standalone activity declares its capabilities in two declarations, the
 `implements` objects of its `ActivityProduct` in
-`model/temporal/features/standaloneactivity/product/Product.scala` and its `ActivitySystem` in
+`model/temporal/features/activity/standalone/product/Product.scala` and its `ActivitySystem` in
 `system/System.scala`, each the declaration of the machine it sits in, which an IR file names as a
 root (`ActivityProduct.implements`):
 
@@ -1050,8 +1052,8 @@ and Pollable; nobody lists the pair. Each is a transition Property, verified ove
 Scenario under `three`, and the System reads them through its refinement. The second gives
 `activitySystem.terminateSettles` and `activitySystem.cancelIsRequested`, each a same-step
 Property asked by a `find` that starts the activity, stops the worker and then takes the control; a
-find has a realization, so they lower to the Cases `activity-activitySystem.terminateSettles` and
-`activity-activitySystem.cancelIsRequested`, whose awaited status comes from the `Describable`
+find has a realization, so they lower to the Cases `activity-standalone-activitySystem.terminateSettles` and
+`activity-standalone-activitySystem.cancelIsRequested`, whose awaited status comes from the `Describable`
 table. The functional laws sit on the System because a find lowers only through a realization,
 which is the System's. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
 activity's own files any more; the admission designs and both composition families declare the same
@@ -1095,7 +1097,7 @@ forwards each waiver's reason into `<file>.lint.json` and reports a binding left
    with the capabilities the machine has, each field a def or an action class of the Model, and each
    parameter its law lists under `parameters` written with `cited`; a waiver is a statement of its
    body, `except(law, because = …)` or `overriding(law -> ownDef, because = …)`.
-2. Name the section as a root of the folder's `irFile`, as `exports.activity` names
+2. Name the section as a root of the folder's `irFile`, as `exports.activityStandalone` names
    `ActivityProduct.implements`.
 3. Run `make umpire-gen-model`: it writes the generated claims, the Cases of the generated finds and
    the law sidecar. A law the Model breaks shows as a counterexample of the Query `<machine>.<law>`.
@@ -1140,7 +1142,7 @@ and the laws the machine waives with `except`. A law pins cells the step functio
 adds, removes or rewrites a row:
 
 ```text
-laws model/ir/activity.json activityProduct
+laws model/ir/activity-standalone.json activityProduct
   activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/product/Product.scala:133
     promises: while an entity is paused no work is handed to a worker: no step from paused lands in running
     does not promise: what a pause of held work does (…), what a second pause or an unpause of a live entity answers, …

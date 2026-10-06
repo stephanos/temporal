@@ -4,7 +4,7 @@
  * package as well as this one, so its types and signature are in scope.
  */
 package temporal
-package features.standaloneactivity
+package features.activity.standalone
 package product
 
 import umpire.*

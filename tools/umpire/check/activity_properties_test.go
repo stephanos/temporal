@@ -530,7 +530,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 			mutate: func(t *testing.T, m *umpirespb.Model) {
 				f := activityFunction(t, m, "activityProduct.property.activityProduct.pausedIsNotDispatched")
 				narrowed(f, binary(umpirespb.Binary_OP_NE, stateField(f, 1, "phase"),
-					expr(admEnum("temporal.features.standaloneactivity.product.Phase", "terminated"))))
+					expr(admEnum("temporal.features.activity.standalone.product.Phase", "terminated"))))
 			},
 			rows: []string{
 				"activityProduct.pausedIsNotDispatched on activityProduct at scheduled-control-terminate",

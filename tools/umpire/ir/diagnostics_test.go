@@ -211,7 +211,7 @@ func TestValidateRejectsAMonitorExpectationWithAnInvalidReason(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m, err := Load("../../../model/ir/activity-race.json")
+			m, err := Load("../../../model/ir/activity-standalone-race.json")
 			require.NoError(t, err)
 			at := slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "heldDispatch.staleDelivery" })
 			require.GreaterOrEqual(t, at, 0)

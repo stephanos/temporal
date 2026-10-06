@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T00:16:40.267283Z",
+  "depends_on": [],
+  "id": "fn-128-close-the-activitys-precision-gaps.1",
+  "priority": 10,
+  "spec": "fn-128-close-the-activitys-precision-gaps",
+  "spec_path": ".flow/tasks/fn-128-close-the-activitys-precision-gaps.1.md",
+  "status": "todo",
+  "title": "Dispatch is a field: replace the backingOff phase; start delay",
+  "updated_at": "2026-10-06T12:36:36.475808Z"
+}

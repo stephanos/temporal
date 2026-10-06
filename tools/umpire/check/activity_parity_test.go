@@ -56,7 +56,7 @@ func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 // catalog whose capabilities it names, the law's Property, Scenario and Query, each named
 // `<machine>.<law>`.
 func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
-	dir := filepath.Join("..", "..", "..", "model", "temporal", "features", "standaloneactivity")
+	dir := filepath.Join("..", "..", "..", "model", "temporal", "features", "activity", "standalone")
 	files := []string{"product/Product.scala", "system/System.scala"}
 	var source []byte
 	at := map[string]bool{}
@@ -64,7 +64,7 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 		text, err := os.ReadFile(filepath.Join(dir, file))
 		require.NoError(t, err)
 		source = append(append(source, text...), '\n')
-		at["model/temporal/features/standaloneactivity/"+file] = true
+		at["model/temporal/features/activity/standalone/"+file] = true
 	}
 	declared := []string{}
 	for _, match := range regexp.MustCompile(`(?:\.|\b)(property|scenario|query)\(\s*"([^"\n]+)"`).FindAllStringSubmatch(string(source), -1) {
@@ -98,7 +98,7 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 			Capabilities []string `json:"capabilities"`
 		} `json:"catalog"`
 	}
-	encoded, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "ir", "activity.laws.json"))
+	encoded, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.laws.json"))
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(encoded, &catalog))
 	require.NotEmpty(t, catalog.Catalog)

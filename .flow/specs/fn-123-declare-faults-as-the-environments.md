@@ -1,5 +1,7 @@
 # Declare faults as the environment's actions, with budgets and durable state
 
+Historical context: the source paths, line ranges and "today" descriptions in this proposal retain the pre-fn-112 monolithic Model snapshot; they are historical design evidence, not current source-navigation targets.
+
 ## Goal & Context
 <!-- scope: business -->
 

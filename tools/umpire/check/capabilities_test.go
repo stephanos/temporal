@@ -68,12 +68,12 @@ func TestCapabilitiesViolationNamesTheLawAndItsBindings(t *testing.T) {
 // the exploration bridge and lint among them, lists them apart.
 func TestIRPathsLeaveOutLawSidecarsAndAcceptedFindings(t *testing.T) {
 	dir := t.TempDir()
-	for _, name := range []string{"activity.json", "activity.laws.json", "activity.lint.json", "nexus.json", "notes.txt"} {
+	for _, name := range []string{"activity-standalone.json", "activity-standalone.laws.json", "activity-standalone.lint.json", "nexus.json", "notes.txt"} {
 		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte("{}"), 0o600))
 	}
 	paths, err := ir.IRPaths(dir)
 	require.NoError(t, err)
-	require.Equal(t, []string{filepath.Join(dir, "activity.json"), filepath.Join(dir, "nexus.json")}, paths)
+	require.Equal(t, []string{filepath.Join(dir, "activity-standalone.json"), filepath.Join(dir, "nexus.json")}, paths)
 }
 
 // The standalone Nexus operation, the laws' second entity, receives them without listing them:

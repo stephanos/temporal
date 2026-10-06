@@ -6,8 +6,8 @@ package fixture.hintrejects
 
 import umpire.realize.*
 import temporal.realize.*
-import temporal.features.standaloneactivity.activity
-import temporal.features.standaloneactivity.system.ActivitySystem as activitySystem
+import temporal.features.activity.standalone.activity
+import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 private def realizing(hint: Visibility) = temporalRealization(
   machine = activitySystem,

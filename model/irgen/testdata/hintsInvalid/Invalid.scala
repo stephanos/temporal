@@ -13,7 +13,7 @@ package fixture.hintsInvalid
 
 import io.temporal.api.workflowservice.v1.{DescribeActivityExecutionRequest, WorkflowServiceGrpc}
 import temporal.realize.*
-import temporal.features.standaloneactivity.worker
+import temporal.features.activity.standalone.worker
 
 private val start = WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
 private val describe = WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION

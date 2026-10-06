@@ -535,7 +535,7 @@ func TestRunRefusesARecordOfANoncanonicalFixtureBeforeRunning(t *testing.T) {
 }
 
 func TestRunSkipsMissingDeliveryCapabilityBeforeOpening(t *testing.T) {
-	arguments := []string{"--case", "../../../../model/cases/activity-race-heldDispatch.staleDelivery-case.json", "--grpc", "localhost:1", "--http", "localhost:2", "--namespace", "ns", "--task-queue", "q"}
+	arguments := []string{"--case", "../../../../model/cases/activity-standalone-race-heldDispatch.staleDelivery-case.json", "--grpc", "localhost:1", "--http", "localhost:2", "--namespace", "ns", "--task-queue", "q"}
 	var stdout, stderr bytes.Buffer
 	opened := false
 	code := Run(arguments, &stdout, &stderr, func(context.Context, config, *testpilotspb.Case) (*session, error) {
@@ -549,7 +549,7 @@ func TestRunSkipsMissingDeliveryCapabilityBeforeOpening(t *testing.T) {
 
 const (
 	modelRoot              = "../../../../model"
-	activityCompletionCase = "../../../../model/cases/activity-completion-case.json"
+	activityCompletionCase = "../../../../model/cases/activity-standalone-completion-case.json"
 )
 
 // modelFlags run the generated activity completion Case, which expects a satisfied Contract and a
@@ -583,7 +583,7 @@ func assessedSession(t *testing.T, status testpilotspb.VerdictStatus, assessment
 				fingerprint, err := testpilot.CaseFingerprint(source)
 				require.NoError(t, err)
 				require.Equal(t, fingerprint, factory.Binding().Case)
-				require.Contains(t, factory.Binding().Query, "temporal.features.standaloneactivity.system/activitySystem/completion#")
+				require.Contains(t, factory.Binding().Query, "temporal.features.activity.standalone.system/activitySystem/completion#")
 				disposition := testpilotspb.RUN_DISPOSITION_COMPLETED
 				if status == testpilotspb.VERDICT_STATUS_VIOLATED {
 					disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR

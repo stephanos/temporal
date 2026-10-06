@@ -20,7 +20,7 @@ import (
 )
 
 // slices of the lifted IR the backends are gated on, by file.
-var irFiles = []string{"activity", "activity-record", "nexus-workflow", "nexus-workflow-close"}
+var irFiles = []string{"activity-standalone", "activity-standalone-record", "nexus-workflow", "nexus-workflow-close"}
 
 func loadModel(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
@@ -103,7 +103,7 @@ func TestAgreementReadsAFaithfulDump(t *testing.T) {
 }
 
 func TestAgreementRejectsATamperedDump(t *testing.T) {
-	s := openNamed(t, "activity-record")
+	s := openNamed(t, "activity-standalone-record")
 	x := exported(t, s)
 	parts := dumpPartsOf(t, s, x)
 	const machine = "trustingActivityRecord"
@@ -221,7 +221,7 @@ func indexOfEnabled(row map[string]any) int {
 }
 
 func TestADumpThatIsNoDumpIsAnError(t *testing.T) {
-	s := openNamed(t, "activity")
+	s := openNamed(t, "activity-standalone")
 	x := exported(t, s)
 	for name, dump := range map[string]string{
 		"no JSON":     "quint: command not found",
@@ -251,7 +251,7 @@ func TestQuintExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 		}, "hole unknownPolicy"},
 		// A match with a case removed leaves a value no case matches: an undeclared hole, which Go reads
 		// as hole rows.
-		"a value no case matches": {"activity-record", func(m *umpirespb.Model) {
+		"a value no case matches": {"activity-standalone-record", func(m *umpirespb.Model) {
 			match := function(m, "activityRecord.rules.control").GetBody().GetMatch()
 			match.Cases = match.GetCases()[:1]
 		}, "an undeclared hole at the row"},
@@ -272,7 +272,7 @@ func TestQuintExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			m := proto.Clone(loadModel(t, cmp.Or(c.model, "activity"))).(*umpirespb.Model)
+			m := proto.Clone(loadModel(t, cmp.Or(c.model, "activity-standalone"))).(*umpirespb.Model)
 			c.edit(m)
 			s, err := Open(m)
 			if err == nil {
@@ -297,7 +297,7 @@ func function(m *umpirespb.Model, name string) *umpirespb.Function {
 // phase, to both memberships at once: an activity is over only when it is completed and timed out, which no
 // state is, so terminal finality is never closed and never reopened.
 func overAtOnce(m *umpirespb.Model) {
-	body := function(m, "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal").GetBody()
+	body := function(m, "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal").GetBody()
 	in := body.GetBinary()
 	is := func(item *umpirespb.Expr) *umpirespb.Expr {
 		return &umpirespb.Expr{Position: item.GetPosition(), Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{
@@ -325,7 +325,7 @@ func stepFunction(m *umpirespb.Model, machine string) *umpirespb.Function {
 // What is in the slice and not exported is listed, and is no agreement: compositions, refinements and
 // progress claims.
 func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
-	s := openNamed(t, "activity-record")
+	s := openNamed(t, "activity-standalone-record")
 	x := exported(t, s)
 	got := kinds(x.Unsupported)
 	require.Equal(t, Unsupported, got["module-refinement taskQueueSystem"])
@@ -357,7 +357,7 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 // product of the machine and its monitors; Quint's must equal them (TestQuintAgreement).
 func TestGoMonitorVerdictsAreTheSpecimens(t *testing.T) {
 	want := map[string]map[string][]string{
-		"activity-record": {
+		"activity-standalone-record": {
 			"activityRecord":         nil,
 			"trustingActivityRecord": {"atMostOneActiveAttempt", "terminalFinality"},
 		},
@@ -392,7 +392,7 @@ func TestGoMonitorVerdictsAreTheSpecimens(t *testing.T) {
 // A counterexample read off the backend's product is replayed through a fresh interpretation, and one
 // that is no path of the Model, or on which the monitor holds, is an error, never a result.
 func TestExternalWitnessesReplayOrAreErrors(t *testing.T) {
-	s := openNamed(t, "activity-record")
+	s := openNamed(t, "activity-standalone-record")
 	x := exported(t, s)
 	parts := dumpPartsOf(t, s, x)
 	receipts, err := s.QuintAgreement(x, parts.encode(t, nil))
@@ -524,23 +524,23 @@ func TestQuintDisagreesOnAnotherModel(t *testing.T) {
 		claim   Claim
 		subject string
 	}{
-		"a step's condition inverted": {"activity-record", func(m *umpirespb.Model) {
+		"a step's condition inverted": {"activity-standalone-record", func(m *umpirespb.Model) {
 			branch := function(m, "activityRecord.rules.dispatch").GetBody().GetIf()
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
 		}, TransitionAgreement, "activityRecord"},
-		"a Property negated": {"activity-record", func(m *umpirespb.Model) {
+		"a Property negated": {"activity-standalone-record", func(m *umpirespb.Model) {
 			holds := function(m, "trustingActivityRecord.property.atMostOneActive")
 			holds.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: holds.GetBody()}}}
 		}, PropertyAgreement, "trustingActivityRecord"},
-		"a step's condition inverted, in a composition": {"activity-record", func(m *umpirespb.Model) {
+		"a step's condition inverted, in a composition": {"activity-standalone-record", func(m *umpirespb.Model) {
 			branch := function(m, "activityRecord.rules.dispatch").GetBody().GetIf()
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
 		}, TransitionAgreement, "recordOverMatching"},
-		"a composition's Property negated": {"activity-record", func(m *umpirespb.Model) {
+		"a composition's Property negated": {"activity-standalone-record", func(m *umpirespb.Model) {
 			holds := function(m, "trustingRecordOverQueue.property.failedCommitKeepsTheMessage")
 			holds.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: holds.GetBody()}}}
 		}, PropertyAgreement, "trustingRecordOverQueue"},
-		"a monitor's notion of over narrowed": {"activity-record", func(m *umpirespb.Model) {
+		"a monitor's notion of over narrowed": {"activity-standalone-record", func(m *umpirespb.Model) {
 			overAtOnce(m)
 		}, MonitorAgreement, "trustingActivityRecord"},
 	}
@@ -583,7 +583,7 @@ func TestQuintStopsWhereTheModelHasNoValue(t *testing.T) {
 // path of the machine and the reader's checker finds a violation over its classes, and the replay still
 // rejects it, because the named monitor holds on it.
 func TestAWitnessOfAnotherMonitorIsRejected(t *testing.T) {
-	s := openNamed(t, "activity-record")
+	s := openNamed(t, "activity-standalone-record")
 	x := exported(t, s)
 	tampered := encodeDump(t, s, x, func(m string, d map[string]any) {
 		if m != "trustingActivityRecord" {
@@ -683,7 +683,7 @@ func TestPropertiesAboutAnActionAreReadOnItsSteps(t *testing.T) {
 // class's action: no exported machine of the lifted slices declares a Property about an action.
 func aboutActions(t *testing.T) *Slice {
 	t.Helper()
-	m := proto.Clone(loadModel(t, "activity")).(*umpirespb.Model)
+	m := proto.Clone(loadModel(t, "activity-standalone")).(*umpirespb.Model)
 	names := map[string]string{}
 	for _, a := range m.GetActions() {
 		names[a.GetId()] = a.GetName()
@@ -718,10 +718,10 @@ func TestQuintReadsPropertiesAboutAnAction(t *testing.T) {
 // replacement the reader rejects, with their 19 Properties but those two's none.
 func TestCompositionsAreExported(t *testing.T) {
 	exportedOf := map[string][]string{
-		"activity":             {"standaloneActivity"},
-		"activity-record":      {"recordOverLossyMatching", "recordOverMatching", "recordOverQueue", "trustingRecordOverMatching", "trustingRecordOverQueue"},
-		"nexus-workflow":       {"nexusCaller"},
-		"nexus-workflow-close": nil,
+		"activity-standalone":        {"standaloneActivity"},
+		"activity-standalone-record": {"recordOverLossyMatching", "recordOverMatching", "recordOverQueue", "trustingRecordOverMatching", "trustingRecordOverQueue"},
+		"nexus-workflow":             {"nexusCaller"},
+		"nexus-workflow-close":       nil,
 	}
 	properties := 0
 	for name, want := range exportedOf {
@@ -740,7 +740,7 @@ func TestCompositionsAreExported(t *testing.T) {
 func TestACompositionPastTheCeilingIsAResourceLimit(t *testing.T) {
 	scope := check.DefaultScope
 	scope.Compose.States = 3
-	s, err := OpenWithin(loadModel(t, "activity"), scope)
+	s, err := OpenWithin(loadModel(t, "activity-standalone"), scope)
 	require.NoError(t, err)
 	x := exported(t, s)
 	require.Empty(t, x.Compositions)
@@ -753,7 +753,7 @@ func TestACompositionPastTheCeilingIsAResourceLimit(t *testing.T) {
 // A composition's part of a dump is compared as a machine's is: a result, a disabled pair and a
 // Property's reading that differ are differences of the composition's own receipts.
 func TestAgreementRejectsATamperedComposition(t *testing.T) {
-	s := openNamed(t, "activity-record")
+	s := openNamed(t, "activity-standalone-record")
 	x := exported(t, s)
 	parts := dumpPartsOf(t, s, x)
 	const composition = "trustingRecordOverQueue"
@@ -821,7 +821,7 @@ func TestAgreementRejectsATamperedComposition(t *testing.T) {
 // the order its result list holds them.
 func admittedSteps(m *umpirespb.Model) []*umpirespb.Construct {
 	var out []*umpirespb.Construct
-	for _, item := range function(m, "temporal.features.standaloneactivity.system.ActivityRecord$.effects$.admit").GetBody().GetList().GetItems() {
+	for _, item := range function(m, "temporal.features.activity.standalone.system.ActivityRecord$.effects$.admit").GetBody().GetList().GetItems() {
 		out = append(out, item.GetConstruct())
 	}
 	return out
@@ -831,7 +831,7 @@ func admittedSteps(m *umpirespb.Model) []*umpirespb.Construct {
 // each alternative of a Scala `choose`.
 func namedChoices(t *testing.T, names ...string) *Slice {
 	t.Helper()
-	m := proto.Clone(loadModel(t, "activity-record")).(*umpirespb.Model)
+	m := proto.Clone(loadModel(t, "activity-standalone-record")).(*umpirespb.Model)
 	steps := admittedSteps(m)
 	require.Len(t, steps, len(names))
 	for i, c := range steps {
@@ -961,10 +961,10 @@ func TestQuintAgreesWithGoOnNamedChoices(t *testing.T) {
 func TestQuintRefusesANameItCannotWrite(t *testing.T) {
 	for _, name := range []string{`say "hi"`, `back\slash`, "two\nlines", "tab\there", "caf\u00e9"} {
 		t.Run(name, func(t *testing.T) {
-			m := proto.Clone(loadModel(t, "activity-record")).(*umpirespb.Model)
+			m := proto.Clone(loadModel(t, "activity-standalone-record")).(*umpirespb.Model)
 			steps := admittedSteps(m)
 			steps[0].Choice, steps[1].Choice = "accepts", name
-			at := function(m, "temporal.features.standaloneactivity.system.ActivityRecord$.effects$.admit").GetBody().GetList().GetItems()[1].GetPosition()
+			at := function(m, "temporal.features.activity.standalone.system.ActivityRecord$.effects$.admit").GetBody().GetList().GetItems()[1].GetPosition()
 			s, err := Open(m)
 			require.NoError(t, err)
 			_, err = s.Quint()

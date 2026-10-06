@@ -2,7 +2,7 @@
 // one that re-reads eligibility at admission and a deliberately faulty one that trusts a stale
 // dispatch message, with passive monitors in the framework's `monitor` declaration. It refines a
 // small product of its own, only the statuses its refinement reads, so a change to the live activity
-// Model (temporal/features/standaloneactivity, lifted to model/ir/activity.json) rewrites none of it.
+// Model (temporal/features/activity/standalone, lifted to model/ir/activity-standalone.json) rewrites none of it.
 // The lifter's tests lift both designs' Queries and compare the IR with expected/admission.json; the
 // Go tests read that IR as a small fixed system.
 package fixture.specimens.admission

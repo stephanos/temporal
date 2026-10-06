@@ -74,7 +74,7 @@ var (
 
 // derivedWaits is every read of every Case the checked-in Models lower to, once its wait is derived.
 var derivedWaits = map[string]map[string]map[string]wait{
-	"activity": {
+	"activity-standalone": {
 		"completion":          {"controller/await-completed": deliveredAnswered},
 		"nonRetryableFailure": {"controller/await-failed": deliveredAnswered},
 		"pauseResume":         {"controller/await-paused": readOnce, "controller/await-completed": deliveredAnswered},
@@ -86,7 +86,7 @@ var derivedWaits = map[string]map[string]map[string]wait{
 		"retry": {"controller/await-completed": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityAnswer=2000",
 			"deadline.backoff=1000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}},
 	},
-	"activity-race": {
+	"activity-standalone-race": {
 		"heldDispatch.staleDelivery": {"controller/await-paused": readOnce},
 		"lostStartAnswer.committed":  {},
 	},
@@ -244,11 +244,11 @@ func visibilityOf(id string, edit func(*umpirespb.Visibility)) func(*umpirespb.M
 // visibility's own bound and every its interval; at once, the same read reads once.
 func TestAReadAfterAnEventuallyVisibleWritePollsWithinItsBound(t *testing.T) {
 	const terminated = "visibility.terminateActivityExecution.describeActivityExecution"
-	l, err := lowerDerived(t, derivedModel(t, "activity"), "terminate")
+	l, err := lowerDerived(t, derivedModel(t, "activity-standalone"), "terminate")
 	require.NoError(t, err)
 	require.Equal(t, map[string]wait{"controller/await-terminated": readOnce}, waitsOf(l.Case))
 
-	eventually := derivedModel(t, "activity", visibilityOf(terminated, func(v *umpirespb.Visibility) {
+	eventually := derivedModel(t, "activity-standalone", visibilityOf(terminated, func(v *umpirespb.Visibility) {
 		v.EventuallyWithin = &umpirespb.WaitBound{Position: v.GetPosition(), IntervalMs: 100, AtMostMs: 1500}
 	}))
 	l, err = lowerDerived(t, eventually, "terminate")
@@ -300,19 +300,19 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		model, hint, query string
 		refusal            []string
 	}{
-		{"activity", "visibility.startActivityExecution.describeActivityExecution", "completion",
+		{"activity-standalone", "visibility.startActivityExecution.describeActivityExecution", "completion",
 			[]string{"command controller/await-completed reads " + describeActivity + " after command controller/start-activity",
 				unseen(workflowService+"StartActivityExecution", describeActivity)}},
-		{"activity", "visibility.pauseActivityExecution.describeActivityExecution", "pauseResume",
+		{"activity-standalone", "visibility.pauseActivityExecution.describeActivityExecution", "pauseResume",
 			[]string{"command controller/await-paused reads " + describeActivity, unseen(workflowService+"PauseActivityExecution", describeActivity)}},
-		{"activity", "visibility.unpauseActivityExecution.describeActivityExecution", "pauseResume",
+		{"activity-standalone", "visibility.unpauseActivityExecution.describeActivityExecution", "pauseResume",
 			[]string{"command controller/await-completed reads " + describeActivity, unseen(workflowService+"UnpauseActivityExecution", describeActivity)}},
-		{"activity", "visibility.terminateActivityExecution.describeActivityExecution", "terminate",
+		{"activity-standalone", "visibility.terminateActivityExecution.describeActivityExecution", "terminate",
 			[]string{"command controller/await-terminated reads " + describeActivity, unseen(workflowService+"TerminateActivityExecution", describeActivity)}},
-		{"activity", "visibility.requestCancelActivityExecution.describeActivityExecution", "cancel",
+		{"activity-standalone", "visibility.requestCancelActivityExecution.describeActivityExecution", "cancel",
 			[]string{"command controller/await-canceled reads " + describeActivity + " after command controller/request-cancel-activity",
 				unseen(workflowService+"RequestCancelActivityExecution", describeActivity)}},
-		{"activity", "visibility.activityAnswer.describeActivityExecution", "completion",
+		{"activity-standalone", "visibility.activityAnswer.describeActivityExecution", "completion",
 			[]string{"command controller/await-completed reads " + describeActivity + " after command activity/complete-attempt",
 				"which is an activity answer, " + unseen("an activity answer", describeActivity)}},
 		{"nexus-standalone", "visibility.startNexusOperationExecution.describeNexusOperationExecution", "nexusOperation.terminateSettles",
@@ -328,7 +328,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		{"nexus-workflow", "visibility.handlerReply.describeWorkflowExecution", "retry",
 			[]string{"command controller/pending-attempts reads " + describeWorkflow + " after command handler/respond-error-retryable",
 				unseen("a handler reply", describeWorkflow)}},
-		{"activity", "cause.activityAnswer", "completion",
+		{"activity-standalone", "cause.activityAnswer", "completion",
 			[]string{"command controller/await-completed waits for command activity/complete-attempt",
 				"which is an activity answer, and the realization declares no bound of an activity answer"}},
 		{"nexus-workflow", "cause.workflowTask", "syncCompletion",
@@ -337,8 +337,8 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		{"nexus-workflow", "cause.handlerReply", "retry",
 			[]string{"command controller/pending-attempts waits for command handler/respond-error-retryable",
 				"which is a handler reply, and the realization declares no bound of a handler reply"}},
-		{"activity", "cause.delivery", "completion", []string{"server step poll is a delivery, and the realization bounds no delivery"}},
-		{"activity", "cause.timer", "scheduleToStartTimeout", []string{"server step scheduleToStart is a timer, and the realization bounds no timer"}},
+		{"activity-standalone", "cause.delivery", "completion", []string{"server step poll is a delivery, and the realization bounds no delivery"}},
+		{"activity-standalone", "cause.timer", "scheduleToStartTimeout", []string{"server step scheduleToStart is a timer, and the realization bounds no timer"}},
 	} {
 		t.Run(tc.hint, func(t *testing.T) {
 			kept, err := lowerDerived(t, derivedModel(t, tc.model), tc.query)
@@ -357,7 +357,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		{"backoff", "retry", "command controller/await-completed waits for step backoff, which no command performs"},
 	} {
 		t.Run("server step "+tc.step, func(t *testing.T) {
-			_, err := lowerDerived(t, derivedModel(t, "activity", withoutStep(tc.step)), tc.query)
+			_, err := lowerDerived(t, derivedModel(t, "activity-standalone", withoutStep(tc.step)), tc.query)
 			require.ErrorContains(t, err, tc.refused)
 		})
 	}
@@ -365,7 +365,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 
 // A refusal is located at the read it refuses, where the realization declares the command.
 func TestARefusalIsLocatedAtTheRead(t *testing.T) {
-	m := derivedModel(t, "activity", without("visibility.pauseActivityExecution.describeActivityExecution"))
+	m := derivedModel(t, "activity-standalone", without("visibility.pauseActivityExecution.describeActivityExecution"))
 	var at *umpirespb.Position
 	for _, c := range commandsOfModel(m) {
 		if c.GetId() == "await-paused" {
@@ -400,7 +400,7 @@ func TestTheInventoryAccountsForTheHintsAWaitReads(t *testing.T) {
 	}
 	const paused, completed = "program.entrypoints[controller].instructions[await-paused]",
 		"program.entrypoints[controller].instructions[await-completed]"
-	l, err := lowerDerived(t, derivedModel(t, "activity"), "pauseResume")
+	l, err := lowerDerived(t, derivedModel(t, "activity-standalone"), "pauseResume")
 	require.NoError(t, err)
 	got := hints(l)
 	require.Equal(t, []string{string(InCase), paused}, got["visibility.startActivityExecution.describeActivityExecution"])
@@ -420,7 +420,7 @@ func TestTheInventoryAccountsForTheHintsAWaitReads(t *testing.T) {
 		require.Equal(t, want, got[id], id)
 	}
 
-	p, err := NewProducer(derivedModel(t, "activity", explicitly))
+	p, err := NewProducer(derivedModel(t, "activity-standalone", explicitly))
 	require.NoError(t, err)
 	l, err = p.Lower("pauseResume", activityIdentity("pauseResume"))
 	require.NoError(t, err)
@@ -438,7 +438,7 @@ func TestTheInventoryAccountsForTheHintsAWaitReads(t *testing.T) {
 // a method bound to one of the two, or what it does cannot be told.
 func TestBindingsTellWritesFromReads(t *testing.T) {
 	const pause = "visibility.pauseActivityExecution.describeActivityExecution"
-	m := derivedModel(t, "activity", visibilityOf(pause, func(v *umpirespb.Visibility) {
+	m := derivedModel(t, "activity-standalone", visibilityOf(pause, func(v *umpirespb.Visibility) {
 		v.Write = &umpirespb.Visibility_Method{Method: workflowService + "DescribeActivityExecution"}
 		v.Read = workflowService + "PauseActivityExecution"
 	}))
@@ -449,7 +449,7 @@ func TestBindingsTellWritesFromReads(t *testing.T) {
 	require.ErrorContains(t, err, fmt.Sprintf("visibility %s names %s as its read, which the API binds to no HTTP GET", pause,
 		workflowService+"PauseActivityExecution"))
 
-	unbound := derivedModel(t, "activity", func(m *umpirespb.Model) {
+	unbound := derivedModel(t, "activity-standalone", func(m *umpirespb.Model) {
 		for _, c := range commandsOfModel(m) {
 			if c.GetId() == "terminate-activity" {
 				c.GetRpc().Method = workflowService + "RespondWorkflowTaskCompleted"
@@ -492,14 +492,14 @@ func TestACallThatReadsIsCheckedAndNeverWaits(t *testing.T) {
 // fn-118.5 did; lint's explicit-wait finding asks why it is explicit. A poll left to derive its wait
 // writes no deadline, which the reader refuses.
 func TestAnExplicitPollKeepsItsInterval(t *testing.T) {
-	p, err := NewProducer(derivedModel(t, "activity", explicitly))
+	p, err := NewProducer(derivedModel(t, "activity-standalone", explicitly))
 	require.NoError(t, err)
 	l, err := p.Lower("completion", activityIdentity("completion"))
 	require.NoError(t, err)
 	require.Equal(t, map[string]wait{"controller/await-completed": {interval: 250}}, waitsOf(l.Case))
 	require.Nil(t, instruction(t, l.Case, "controller", "await-completed").GetLimits())
 
-	_, err = NewProducer(derivedModel(t, "activity", func(m *umpirespb.Model) {
+	_, err = NewProducer(derivedModel(t, "activity-standalone", func(m *umpirespb.Model) {
 		for _, c := range commandsOfModel(m) {
 			if c.GetId() == "await-completed" {
 				c.TimeoutMs = 1000
@@ -513,7 +513,7 @@ func TestAnExplicitPollKeepsItsInterval(t *testing.T) {
 // its wait is refused at the first write it reads after, while its calls that read are taken as
 // written, as before hints existed.
 func TestNoBehaviorDerivesNoWait(t *testing.T) {
-	m := derivedModel(t, "activity", func(m *umpirespb.Model) {
+	m := derivedModel(t, "activity-standalone", func(m *umpirespb.Model) {
 		for _, r := range m.GetRealizations() {
 			r.Behavior, r.ServerSteps = nil, nil
 		}

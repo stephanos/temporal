@@ -170,7 +170,7 @@ func answered(t *testing.T, seed uint64, iteration int, done []string, run func(
 
 func randomModels(t *testing.T) map[string]*umpirespb.Model {
 	return map[string]*umpirespb.Model{"nexus-workflow": loaded(t, "nexus-workflow"), "realizations": liftedRealizations(t),
-		"activity": loaded(t, "activity")}
+		"activity": loaded(t, "activity-standalone")}
 }
 
 // Admission answers every changed Model: it admits it or says what is wrong with it.

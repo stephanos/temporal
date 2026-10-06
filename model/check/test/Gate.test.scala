@@ -392,7 +392,7 @@ class GateSuite extends munit.FunSuite:
   private val irFiles = Seq(
     "nexus-workflow.json",
     "nexus-workflow-control.json",
-    "activity.json",
+    "activity-standalone.json",
     "activity-system.json",
     "activity-race.json",
     "nexus-workflow-close.json"
@@ -553,13 +553,13 @@ class GateSuite extends munit.FunSuite:
   test("the one lift reports every IR file that failed, each by name, and nothing is rewritten"):
     val repository = staleRepository()
     val failing =
-      repository.tools.withEnvironment("FAILING_LIFTS" -> "activity.json nexus-workflow-close.json")
+      repository.tools.withEnvironment("FAILING_LIFTS" -> "activity-standalone.json nexus-workflow-close.json")
     val answer = gate(failing, "--update", "--skip-go-checks")
     assertEquals(answer.status, 1)
     assert(
       answer.err.contains(
-        "the Models' IR files did not lift:\nlift: the roots of activity.json did not lift:\n" +
-          "lift: activity.json: no IR form"
+        "the Models' IR files did not lift:\nlift: the roots of activity-standalone.json did not lift:\n" +
+          "lift: activity-standalone.json: no IR form"
       ),
       answer.err
     )
@@ -599,7 +599,7 @@ class GateSuite extends munit.FunSuite:
     irFiles.foreach(file => Files.writeString(ir.resolve(file), "{}\n"))
     val both = gate(stale.tools, "--skip-go-checks")
     assertEquals(both.status, 1)
-    assert(both.err.contains("model/ir/activity.json is stale"), both.err)
+    assert(both.err.contains("model/ir/activity-standalone.json is stale"), both.err)
     assert(both.err.contains("model/cases/a.json is stale"), both.err)
 
   test("a check lints the settled IR before the Go checks, and a failing lint fails the gate"):

@@ -14,10 +14,10 @@ import (
 
 // activitySource is the Run Event source of one kind of evidence of the standalone activity Model's
 // realization, by the last part of the kind's id, as the lifter emitted it
-// (model/ir/activity.json).
+// (model/ir/activity-standalone.json).
 func activitySource(t testing.TB, kind string) *umpirespb.RunEventSource {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
 	require.NoError(t, err)
 	for _, e := range m.GetRealizations()[0].GetEvidence() {
 		if e.GetId() == activityEvidence+kind {
