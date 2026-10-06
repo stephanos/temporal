@@ -2,7 +2,17 @@ package umpire.irgen
 
 import io.temporal.server.api.umpire.v1 as ir
 import io.temporal.server.api.umpire.v1.Expr.Kind as E
-import scalapb.descriptors.{Descriptor, PMessage, PString}
+import scala.collection.mutable
+import scalapb.descriptors.{
+  Descriptor,
+  FieldDescriptor,
+  PLong,
+  PMessage,
+  PRepeated,
+  PString,
+  PValue,
+  ScalaType
+}
 
 // The lifting of the framework's sugar (model/umpire/Syntax.scala). The lifter does not inline a
 // framework body, so each sugar form is matched here by its definition and lowered to the IR its core
@@ -351,33 +361,327 @@ private[irgen] trait Syntax:
   // Hook: one line of a request scope written with the Temporal kit's sugar, `field(_.name) :=
   // operand`, lifted as the assignment record its core form writes, or None for a line that is not
   // one. The field's request type is the scope's, `root`, which the enclosing `rpc`/`readUntil`
-  // call opened; the selector is read against it. Core form:
-  // `Assignment.typed(Field[Req, V](_.name), operand)` lifts as `{target: "name", value: operand}`.
+  // call opened; the selector is read against it. A message written out for a message field,
+  // `field(_.getTimeout) := duration(2)`, assigns each field the message sets at its own path.
+  // Core form: `Assignment.typed(Field[Req, V](_.name), operand)` lifts as
+  // `{target: "name", value: operand}`, and `field(_.getTimeout) := duration(2)` as
+  // `Assignment.typed(Field[Req, Long](_.getTimeout.seconds), Operand.number(2))`.
   // `Realizations.scoped` asks it of every line before it reads a core one.
-  def requestAssignment(line: Bound, root: TypeRepr, into: Descriptor): Option[PMessage] =
+  def requestAssignment(line: Bound, root: TypeRepr, into: Descriptor): Option[List[PMessage]] =
     val t = follow(line).term
-    sugarCall(t).collect { case (":=", List(List(slot), List(value))) => (slot, value) }.map {
-      (slot, value) =>
-        val (scope, selectors) = applied(slot).map(_._2).getOrElse(Nil).partition { a =>
-          isNamed(a.tpe, "umpire.realize.RequestScope")
+    val sugared = sugarCall(t).collect { case (":=", List(List(slot), List(value))) =>
+      (slot, value, false)
+    }
+    val message = applied(t).collect {
+      case (fn @ Select(slot, ":="), List(value))
+          if fn.symbol.maybeOwner.fullName == "temporal.realize.RequestField" =>
+        (slot, value, isNamed(value.tpe, "umpire.realize.TypedProto"))
+    }
+    sugared.orElse(message).map { (slot, value, written) =>
+      val target = selectorPath(root, kitSelector(slot, root, t, requestScope), slot)
+      if written then
+        val proto = Message(ir.Proto.scalaDescriptor)
+        declaration(Bound(value, line.env), proto)
+        assignedMessage(target, proto.written, into, t)
+      else
+        List(
+          PMessage(
+            Map(
+              irField(into, "target", t) -> PString(target),
+              irField(into, "value", t) ->
+                typedOperandValue(Bound(value, line.env), irMessage(irField(into, "value", t), t))
+            )
+          )
+        )
+    }
+
+  private val requestScope =
+    "a request scope assigns the request's fields, `field(_.name) := operand`, and %s is no field of the request"
+  private val literalScope =
+    "a protobuf literal sets the message's fields, `field(_.name) := value`, and %s is no field of it"
+
+  // The selector of `field(_.name)` written in a scope whose message type is `root`: refused, with
+  // `refusal` naming the slot, where the field is not of that message.
+  private def kitSelector(slot: Term, root: TypeRepr, at: Term, refusal: String): Term =
+    val (scopes, selectors) = applied(slot)
+      .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "field")
+      .map(_._2)
+      .getOrElse(Nil)
+      .partition(a => a.tpe.baseClasses.exists(_.fullName == "temporal.realize.FieldScope"))
+    (scopes, selectors) match
+      case (List(s), List(selector))
+          if s.tpe
+            .baseType(s.tpe.baseClasses.find(_.fullName == "temporal.realize.FieldScope").get)
+            .typeArgs
+            .headOption
+            .exists(_ =:= root) =>
+        selector
+      case _ => fail(at, refusal.format(slot.show))
+
+  // The assignments a message written out for the request field `target` makes: one per scalar
+  // field it sets, at that field's path below `target`, nested messages field by field.
+  private def assignedMessage(
+      target: String,
+      proto: PMessage,
+      into: Descriptor,
+      at: Term
+  ): List[PMessage] =
+    val protoD = ir.Proto.scalaDescriptor
+    val fieldD = irMessage(irField(protoD, "fields", at), at)
+    val valueD = irMessage(irField(fieldD, "value", at), at)
+    val operand = irMessage(irField(into, "value", at), at)
+    val fields = proto.value.get(irField(protoD, "fields", at)) match
+      case Some(PRepeated(items)) => items.toList
+      case _                      => Nil
+    fields.flatMap {
+      case f: PMessage =>
+        val name = f.value(irField(fieldD, "name", at)) match
+          case PString(n) => n
+          case _          => fail(at, "a protobuf field has no name")
+        val path = s"$target.$name"
+        f.value(irField(fieldD, "value", at)) match
+          case v: PMessage =>
+            v.value.get(irField(valueD, "message", at)) match
+              case Some(nested: PMessage) => assignedMessage(path, nested, into, at)
+              case _                      =>
+                List(
+                  PMessage(
+                    Map(
+                      irField(into, "target", at) -> PString(path),
+                      irField(into, "value", at) -> PMessage(
+                        Map(
+                          irField(operand, "literal", at) -> v,
+                          irField(operand, "position", at) -> pos(at).toPMessage
+                        )
+                      )
+                    )
+                  )
+                )
+          case _ => fail(at, s"$path has no protobuf value")
+      case _ => fail(at, "a protobuf field is no message")
+    }
+
+  // Hook: one line of a call's scope that reads its response, `read(path, cardinality).into(…)`,
+  // lifted as the response read its core form writes, or None for a line that is not one. `path`
+  // is a field of the call's response, `response`; an observation written by value is observed
+  // into. Core form: `ResponseRead.typed(path, cardinality, Vector(Target.Observe(id), …))` lifts as
+  // `{path, cardinality, targets: [{observe: id}, …]}`. `Realizations.scoped` asks it of every line.
+  def responseRead(line: Bound, response: Option[TypeRepr], into: Descriptor): Option[PMessage] =
+    val t = follow(line).term
+    applied(t)
+      .collect {
+        case (fn @ Select(readCall, "into"), targets)
+            if fn.symbol.maybeOwner.fullName == "temporal.realize.ResponseReadLine" =>
+          (readCall, targets)
+      }
+      .map { (readCall, targets) =>
+        val (path, cardinality) = applied(readCall)
+          .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "read")
+          .collect { case (_, path :: cardinality :: _) => (path, cardinality) }
+          .getOrElse(
+            fail(t, s"into finishes the `read(path, cardinality)` before it, not ${t.show}")
+          )
+        val rsp = response.getOrElse(
+          fail(t, "a read reads the response of a call, so it is written in `rpc(...) { ... }`")
+        )
+        val root = path.tpe.widen.dealias.typeArgs.headOption
+        if !root.exists(_ =:= rsp) then
+          fail(
+            path,
+            s"a read reads a field of the call's response, ${rsp.show}, and ${path.show} is a " +
+              s"field of ${root.fold("no message")(_.show)}"
+          )
+        val targetsField = irField(into, "targets", t)
+        val targetD = irMessage(targetsField, t)
+        val written = targets.flatMap(a => itemsOf(Bound(a, line.env))).map { item =>
+          if isNamed(item.term.tpe, "umpire.realize.Observed") then
+            PMessage(Map(irField(targetD, "observe", t) -> PString(observedId(item))))
+          else valueOf(targetsField, item)
         }
-        (scope, selectors) match
-          case (List(s), List(selector))
-              if s.tpe.widen.dealias.typeArgs.headOption.exists(_ =:= root) =>
+        PMessage(
+          Map(
+            irField(into, "path", t) -> PString(fieldPath(Bound(path, line.env))),
+            irField(into, "cardinality", t) ->
+              valueOf(irField(into, "cardinality", t), Bound(cardinality, line.env)),
+            targetsField -> PRepeated(written.toVector)
+          )
+        )
+      }
+
+  // The id of an observation written by value: the one its declaration gives it.
+  private def observedId(b: Bound): String =
+    val r = reduce(b)
+    applied(r.term) match
+      case Some((_, id :: _)) => textOfBound(Bound(id, r.env))
+      case _                  => fail(b.term, s"${b.term.show} is no observation written out")
+
+  // The Temporal kit's sugar, by the package object its top-level definitions are members of.
+  private val kitSugar = "temporal.realize.Syntax$package$"
+
+  // Hook: a protobuf message written in the literal scope `proto[M] { … }`, lifted as the Proto its
+  // core form writes, or None for a term that is not one. Each line sets one field, by a value of
+  // the field's type, a message written out, a role, a per-Case name, text for bytes or a map of
+  // texts, or by the scope after it, `field(_.getInfo) { … }`, for a nested message; a scope passed
+  // in is applied where it is written. A field set twice is refused at its second line. Core form:
+  // `proto[Failure] { field(_.message) := "failed" }` lifts as
+  // `Proto[Failure](ProtoField.typed(Field[Failure, String](_.message), ProtoValue.text("failed")))`.
+  // `Realizations.declaration` asks it before it reads a core Proto.
+  def protoLiteral(b: Bound, into: Descriptor): Option[PMessage] =
+    applied(b.term)
+      .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "proto")
+      .map { (_, args) =>
+        val message = b.term.tpe.widen.dealias.typeArgs.headOption
+          .getOrElse(fail(b.term, "a protobuf literal needs a message type"))
+        literal(message, Bound(args.head, b.env), into, b.term)
+      }
+
+  // The Proto a literal scope over `message` writes.
+  private def literal(message: TypeRepr, build: Bound, into: Descriptor, at: Term): PMessage =
+    val fieldD = irMessage(irField(into, "fields", at), at)
+    val descriptor = messageDescriptor(message, at)
+    val set = mutable.LinkedHashMap.empty[String, PMessage]
+    for (line, name, value) <- literalLines(message, build) do
+      if set.contains(name) then
+        fail(line, s"the literal sets $name twice: set each field of a protobuf literal once")
+      set(name) = PMessage(
+        Map(irField(fieldD, "name", line) -> PString(name), irField(fieldD, "value", line) -> value)
+      )
+    PMessage(
+      Map(
+        irField(into, "position", at) -> pos(at).toPMessage,
+        irField(into, "message", at) -> PString(descriptor.fullName),
+        irField(into, "fields", at) -> PRepeated(set.values.toVector)
+      )
+    )
+
+  // The lines of a literal scope over `message`: each line, the protobuf name of the field it sets
+  // and the IR ProtoValue it sets it to.
+  private def literalLines(message: TypeRepr, build: Bound): List[(Term, String, PMessage)] =
+    val b = follow(build)
+    b.term match
+      case Block(List(d: DefDef), _: Closure) =>
+        def lines(t: Bound): List[Bound] = t.term match
+          case Block(stats, e) =>
+            stats.map {
+              case s: Term => Bound(s, t.env)
+              case other   => fail(other, "a protobuf literal sets fields, and declares nothing")
+            } ++ lines(Bound(e, t.env))
+          case Typed(e, _)             => lines(Bound(e, t.env))
+          case Inlined(_, Nil, e)      => lines(Bound(e, t.env))
+          case Literal(UnitConstant()) => Nil
+          case _                       => List(t)
+        val valueD = irMessage(
+          irField(
+            irMessage(irField(ir.Proto.scalaDescriptor, "fields", b.term), b.term),
+            "value",
+            b.term
+          ),
+          b.term
+        )
+        lines(Bound(d.rhs.get, b.env)).flatMap { line =>
+          val t = line.term
+          applied(t) match
+            case Some((fn @ Select(slot, ":="), List(value, _)))
+                if fn.symbol.maybeOwner.fullName == "temporal.realize.LiteralField" =>
+              val (name, field) = literalField(slot, message, t)
+              List((t, name, literalValue(Bound(value, line.env), field, valueD, t)))
+            case Some((fn @ Select(slot, "apply"), List(nested)))
+                if fn.symbol.maybeOwner.fullName == "temporal.realize.LiteralField" =>
+              val (name, field) = literalField(slot, message, t)
+              val inner = slot.tpe.widen.dealias.typeArgs(1)
+              val m = literal(
+                inner,
+                Bound(nested, line.env),
+                irMessage(irField(valueD, "message", t), t),
+                t
+              )
+              if field.scalaType != ScalaType.Message(messageDescriptor(inner, t)) then
+                fail(t, s"${field.name} holds no message, so no scope writes it")
+              List((t, name, PMessage(Map(irField(valueD, "message", t) -> m))))
+            // A scope passed in, applied where it is written.
+            case Some((Select(fn, "apply"), _)) if passedScope(Bound(fn, line.env)) =>
+              literalLines(message, Bound(fn, line.env))
+            case _ =>
+              fail(
+                t,
+                "a protobuf literal sets the message's fields, `field(_.name) := value` or " +
+                  s"`field(_.name) { ... }`, not ${t.show}"
+              )
+        }
+      case other =>
+        fail(
+          other,
+          "a protobuf literal's fields are set in its scope: `proto[M] { field(_.name) := ... }`"
+        )
+
+  private def passedScope(b: Bound): Boolean = follow(b).term match
+    case Block(List(_: DefDef), _: Closure) => true
+    case _                                  => false
+
+  // The protobuf name and descriptor of the field `field(_.name)` names in a literal over `message`.
+  private def literalField(slot: Term, message: TypeRepr, at: Term): (String, FieldDescriptor) =
+    val path = selectorPath(message, kitSelector(slot, message, at, literalScope), slot)
+    val name = path match
+      case direct if !direct.exists(c => c == '.' || c == '[' || c == '<') => direct
+      case oneof if oneof.matches("[^.\\[<>]+<[^<>]+>")                    =>
+        oneof.substring(oneof.indexOf('<') + 1, oneof.length - 1)
+      case _ => fail(at, s"$path is no field of ${message.show}: a literal sets its own fields")
+    val field = messageDescriptor(message, at).fields
+      .find(_.name == name)
+      .getOrElse(fail(at, s"$name is no field of ${message.show}"))
+    (name, field)
+
+  // The IR ProtoValue a literal's line sets `field` to.
+  private def literalValue(
+      value: Bound,
+      field: FieldDescriptor,
+      valueD: Descriptor,
+      at: Term
+  ): PMessage =
+    val tpe = follow(value).term.tpe
+    def kind(name: String, v: PValue) = PMessage(Map(irField(valueD, name, at) -> v))
+    if isNamed(tpe, "umpire.realize.TypedProto") then
+      kind("message", valueOf(irField(valueD, "message", at), value))
+    else if isNamed(tpe, "umpire.realize.TypedProtoValue") then typedProtoValue(value, valueD)
+    else if tpe.widen.dealias.baseClasses.exists(_.fullName == "umpire.realize.Addressee") then
+      kind("role_id", PString(textOfBound(value)))
+    else if isNamed(tpe, "umpire.realize.Name") then
+      kind("named", valueOf(irField(valueD, "named", at), value))
+    else if field.isMapField then
+      val map = irMessage(irField(valueD, "mapping", at), at)
+      val entry = irMessage(irField(map, "entries", at), at)
+      val r = reduce(value)
+      val pairs = applied(r.term) match
+        case Some((fn, args)) if fn.symbol.name == "apply" => args.flatMap(varargs)
+        case _ => fail(r.term, s"a map is written out, `Map(key -> text, ...)`, not ${r.term.show}")
+      val entries = pairs.map { p =>
+        p match
+          case Apply(TypeApply(arrow @ Select(Apply(_, List(k)), "->"), _), List(v))
+              if arrow.symbol.owner.name == "ArrowAssoc" =>
             PMessage(
               Map(
-                irField(into, "target", t) -> PString(selectorPath(root, selector, slot)),
-                irField(into, "value", t) ->
-                  typedOperandValue(Bound(value, line.env), irMessage(irField(into, "value", t), t))
+                irField(entry, "key", p) -> PString(textOfBound(Bound(k, r.env))),
+                irField(entry, "value", p) ->
+                  PMessage(Map(irField(valueD, "utf8", p) -> PString(textOfBound(Bound(v, r.env)))))
               )
             )
-          case _ =>
-            fail(
-              t,
-              "a request scope assigns the request's fields, `field(_.name) := operand`, and " +
-                s"${slot.show} is no field of the request"
-            )
-    }
+          case other => fail(other, s"a map entry is written `key -> text`, not ${other.show}")
+      }
+      kind("mapping", PMessage(Map(irField(map, "entries", at) -> PRepeated(entries.toVector))))
+    else
+      field.scalaType match
+        case ScalaType.String     => kind("text", PString(textOfBound(value)))
+        case ScalaType.ByteString => kind("utf8", PString(textOfBound(value)))
+        case ScalaType.Boolean    => kind("flag", valueOf(irField(valueD, "flag", at), value))
+        case ScalaType.Int | ScalaType.Long =>
+          val number = reduce(value).term match
+            case Literal(LongConstant(v)) => v
+            case other                    => constInt(other)
+          kind("number", PLong(number))
+        case ScalaType.Enum(_)    => kind("enum_name", PString(generatedEnumName(value)))
+        case ScalaType.Message(d) =>
+          fail(at, s"${field.name} holds a ${d.fullName}: write it out, `proto[...] { ... }`")
+        case other => fail(at, s"${field.name} of kind ${kindName(other)} has no literal value")
 
   // `token := value`, as a call writes it: the token and the value.
   private def assigned(t: Term): (Term, Term) = t match

@@ -323,7 +323,8 @@ class Fixtures extends munit.FunSuite:
     "statusTwice",
     "notAField",
     "notAPolledField",
-    "foreignFact"
+    "foreignFact",
+    "literalTwice"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
   // The refusals of fn-122.2's capability declarations, fn-122.5's citations and fn-127.2's
@@ -1541,6 +1542,37 @@ class Fixtures extends munit.FunSuite:
       realization(name).at("/scripts/0/items/0/command/rpc").toPrettyString
     assert(request("sugaredRequest").contains("task_queue.name"), request("sugaredRequest"))
     assertEquals(request("sugaredRequest"), request("coredRequest"))
+
+  // fn-133.1: the kit's literal and call scopes beside the core records they stand for
+  // (lifts/Literals.scala).
+  concurrently("proto, read, extended and a message for a request field lift as their core forms"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val pkg = "fixture.literals.Literals$package$."
+    val out = lifted("literals-pairs")
+    val roots = Seq("literalSugared", "literalCored").map(pkg + _)
+    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+    assert(!result.failed, result.diagnostics)
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove("position"): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    def realization(name: String): JsonNode =
+      val r = model
+        .path("realizations")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .getOrElse(fail(s"the literals fixture lifted no realization $name"))
+        .deepCopy[ObjectNode]()
+      r.remove(java.util.List.of("id", "name"))
+      strip(r)
+      r
+    val sugared = realization("literalSugared")
+    assertEquals(sugared.at("/scripts/0/items").size(), 7, sugared.toPrettyString)
+    assertEquals(sugared.toPrettyString, realization("literalCored").toPrettyString)
 
   // fn-112.5: input tokens, inputs supplied by name and a bounded counter (lifts/Inputs.scala).
   concurrently("inputs supplied by name lift as their positional calls, and UpTo as the Int range"):

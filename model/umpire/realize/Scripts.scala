@@ -89,6 +89,14 @@ extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](call: Instruction.T
     assign(using RequestScope())
     call
 
+  // A call of its own that extends this one: its request is this call's, with the fields its scope
+  // assigns after them, and it reads what its scope reads. Unlike `withFields` it is a command of
+  // its own, named after the `val` that declares it. IR: the Rpc with the assignments and reads
+  // appended.
+  def extended(assign: RequestScope[Req] ?=> Unit): Instruction.TypedRpc[Req, Rsp] =
+    assign(using RequestScope())
+    call
+
 // What a fact reads as on a system: one value of type `V` for each fact the table lists, such as
 // the status a describe call reports while the fact holds. The table is declared once beside the
 // realization and consulted by value, `table(fact)`; the lifter looks the fact up when it lifts.

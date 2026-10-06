@@ -5,7 +5,7 @@ package fixture.scriptrejects
 
 import umpire.*
 import umpire.realize.*
-import temporal.realize.WorkerInstruction.Fault
+import temporal.realize.WorkerInstruction.{AttemptFailure, Fault}
 import temporal.realize.*
 import temporal.features.activity.Timeout
 import temporal.features.activity.standalone.{activity, client, scheduleToStart, Control}
@@ -104,3 +104,11 @@ val foreignFact: Realization = temporalRealization(
   scripts = Vector(controller(everyCase(stopWorker))),
   evidence = Vector(answered(Control.pause, stopWorker))
 )
+
+private val failedTwice = AttemptFailure(proto[io.temporal.api.failure.v1.Failure] {
+  field(_.message) := "attempt failed"
+  field(_.message) := "attempt failed again"
+})
+
+// A protobuf literal that sets one field twice (fn-133.1).
+val literalTwice: Realization = realizing(everyCase(failedTwice))

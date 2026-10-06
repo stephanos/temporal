@@ -32,9 +32,11 @@ private[irgen] trait Realizations:
 
   // A member of a class or an object of the vocabulary, such as a case class's `apply` or the kit's
   // `WorkflowHistory.event`: written by name, never followed into its body. The kit's top-level
-  // helpers, such as `perCase`, are followed like a Model's own defs.
+  // helpers, such as `perCase`, are followed like a Model's own defs; its sugar, such as `proto`,
+  // is lowered by name (Syntax.scala).
   private def vocabularyMember(sym: Symbol): Boolean =
-    inVocabulary(sym) && !sym.maybeOwner.fullName.endsWith("$package$")
+    inVocabulary(sym) && (!sym.maybeOwner.fullName.endsWith("$package$") ||
+      sym.maybeOwner.fullName == "temporal.realize.Syntax$package$")
 
   // A case object of the vocabulary, such as `Activation.Controller`, written as an enum case is.
   private def caseObject(sym: Symbol): Boolean =
@@ -827,12 +829,8 @@ private[irgen] trait Realizations:
         PString(path.stripPrefix("attributes<").stripSuffix(">"))
       case ScalaType.String if isNamed(b.term.tpe, "umpire.realize.Field") =>
         PString(fieldPath(b))
-      case ScalaType.String  => PString(textOfBound(b))
-      case ScalaType.Boolean =>
-        b.term match
-          case Literal(BooleanConstant(v)) => PBoolean(v)
-          case other                       =>
-            fail(other, s"expected true or false, got ${other.show}")
+      case ScalaType.String               => PString(textOfBound(b))
+      case ScalaType.Boolean              => PBoolean(flagOf(b))
       case ScalaType.Long | ScalaType.Int =>
         val n = b.term match
           case Literal(LongConstant(v)) => v
@@ -856,6 +854,14 @@ private[irgen] trait Realizations:
           b.term,
           s"the IR field ${f.name} of kind ${kindName(other)} is not written out"
         )
+
+  // A flag written out: true or false, or the negation of one, `!retryable`.
+  private def flagOf(b0: Bound): Boolean =
+    val b = reduce(b0)
+    b.term match
+      case Literal(BooleanConstant(v)) => v
+      case Select(x, "unary_!")        => !flagOf(Bound(x, b.env))
+      case other                       => fail(other, s"expected true or false, got ${other.show}")
 
   // Sets the field a parameter names. An optional argument that is `None` leaves it unset.
   def fieldOf(into: Message, f: FieldDescriptor, b: Bound): Unit =
@@ -889,35 +895,9 @@ private[irgen] trait Realizations:
         PString(messageDescriptor(typeArgument(b.term).get, b.term).fullName)
       )
     else if d.name == "Proto" && isNamed(b.term.tpe, "umpire.realize.TypedProto") then
-      val (fn, args) = applied(b.term).getOrElse(fail(b.term, "expected a typed proto"))
-      if fn.symbol.name != "apply" ||
-        fn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.Proto"
-      then fail(b.term, "expected a typed proto")
-      val message = b.term.tpe.widen.dealias.typeArgs.headOption
-        .getOrElse(fail(b.term, "a typed proto needs a message type"))
-      into.set(irField(d, "message", b.term), PString(messageDescriptor(message, b.term).fullName))
-      val fieldDescriptor = irMessage(irField(d, "fields", b.term), b.term)
-      for item <- itemsOf(Bound(args.head, b.env)) do
-        val field = reduce(item)
-        val (fieldFn, fieldArgs) = applied(field.term)
-          .getOrElse(fail(field.term, "expected a typed protobuf field"))
-        if fieldFn.symbol.name != "typed" ||
-          fieldFn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.ProtoField"
-        then fail(field.term, "expected a typed protobuf field")
-        val name = protoFieldName(Bound(fieldArgs(0), field.env))
-        val value = typedProtoValue(
-          Bound(fieldArgs(1), field.env),
-          irMessage(irField(fieldDescriptor, "value", field.term), field.term)
-        )
-        into.add(
-          irField(d, "fields", b.term),
-          PMessage(
-            Map(
-              irField(fieldDescriptor, "name", field.term) -> PString(name),
-              irField(fieldDescriptor, "value", field.term) -> value
-            )
-          )
-        )
+      protoLiteral(b, d) match
+        case Some(literal) => literal.value.foreach((f, v) => into.set(f, v))
+        case None          => coreProto(b, into)
     else if d.name == "Observed" || d.name == "Proto" then
       fail(b.term, s"expected a typed ${d.name.toLowerCase} declaration")
     else
@@ -973,6 +953,39 @@ private[irgen] trait Realizations:
       member(name) match
         case Some(f) => write(f, args, b.term)
         case None    => fields(into, args, b.term)
+
+  // A Proto written in its core form, `Proto[M](ProtoField.typed(field, value), …)`.
+  private def coreProto(b: Bound, into: Message): Unit =
+    val d = into.descriptor
+    val (fn, args) = applied(b.term).getOrElse(fail(b.term, "expected a typed proto"))
+    if fn.symbol.name != "apply" ||
+      fn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.Proto"
+    then fail(b.term, "expected a typed proto")
+    val message = b.term.tpe.widen.dealias.typeArgs.headOption
+      .getOrElse(fail(b.term, "a typed proto needs a message type"))
+    into.set(irField(d, "message", b.term), PString(messageDescriptor(message, b.term).fullName))
+    val fieldDescriptor = irMessage(irField(d, "fields", b.term), b.term)
+    for item <- itemsOf(Bound(args.head, b.env)) do
+      val field = reduce(item)
+      val (fieldFn, fieldArgs) = applied(field.term)
+        .getOrElse(fail(field.term, "expected a typed protobuf field"))
+      if fieldFn.symbol.name != "typed" ||
+        fieldFn.symbol.owner.fullName.stripSuffix("$") != "umpire.realize.ProtoField"
+      then fail(field.term, "expected a typed protobuf field")
+      val name = protoFieldName(Bound(fieldArgs(0), field.env))
+      val value = typedProtoValue(
+        Bound(fieldArgs(1), field.env),
+        irMessage(irField(fieldDescriptor, "value", field.term), field.term)
+      )
+      into.add(
+        irField(d, "fields", b.term),
+        PMessage(
+          Map(
+            irField(fieldDescriptor, "name", field.term) -> PString(name),
+            irField(fieldDescriptor, "value", field.term) -> value
+          )
+        )
+      )
 
   // ### API behavior hints (model/temporal/realize/Realize.scala, Behavior.scala)
 
@@ -1265,7 +1278,7 @@ private[irgen] trait Realizations:
           case _ => (b, Nil)
     val i = reduce(instruction)
     scriptCall(i.term) match
-      case Some(("rpc" | "withFields", _)) =>
+      case Some(("rpc" | "withFields" | "extended", _)) =>
         val f = irField(d, "rpc", i.term)
         m.set(f, rpcValue(i, irMessage(f, i.term)))
       case Some(("readUntil", _)) =>
@@ -1277,29 +1290,36 @@ private[irgen] trait Realizations:
     m.set(irField(d, "position", b.term), pos(b.term).toPMessage)
     m.written
 
-  // A call written with `rpc(role, method) { … }`, and the fields `withFields` adds to it.
+  // A call written with `rpc(role, method) { … }`, and the fields and reads `withFields` or
+  // `extended` adds to it.
   private def rpcValue(b: Bound, d: Descriptor): PMessage =
-    def call(c: Bound): (Bound, Bound, List[PMessage]) = scriptCall(c.term) match
+    val response = b.term.tpe.widen.dealias.typeArgs.lift(1)
+    def call(c: Bound): (Bound, Bound, List[PMessage], List[PMessage]) = scriptCall(c.term) match
       case Some(("rpc", List(role, method, assign))) =>
-        (Bound(role, c.env), Bound(method, c.env), scoped(Bound(assign, c.env), d))
-      case Some(("withFields", List(base, assign))) =>
-        val (role, method, assigned) = call(reduce(Bound(base, c.env)))
-        (role, method, assigned ++ scoped(Bound(assign, c.env), d))
-      case _ => fail(c.term, "withFields extends a call written `rpc(role, method) { ... }`")
-    val (role, method, assigned) = call(b)
+        val (assigned, reads) = scoped(Bound(assign, c.env), d, response)
+        (Bound(role, c.env), Bound(method, c.env), assigned, reads)
+      case Some(("withFields" | "extended", List(base, assign))) =>
+        val (role, method, assigned, reads) = call(reduce(Bound(base, c.env)))
+        val (more, moreReads) = scoped(Bound(assign, c.env), d, response)
+        (role, method, assigned ++ more, reads ++ moreReads)
+      case _ =>
+        fail(c.term, "withFields and extended extend a call written `rpc(role, method) { ... }`")
+    val (role, method, assigned, reads) = call(b)
     PMessage(
       Map(
         irField(d, "role", b.term) -> valueOf(irField(d, "role", b.term), role),
         irField(d, "method", b.term) -> valueOf(irField(d, "method", b.term), method)
       ) ++ Option.when(assigned.nonEmpty)(
         irField(d, "assign", b.term) -> PRepeated(assigned.toVector)
+      ) ++ Option.when(reads.nonEmpty)(
+        irField(d, "reads", b.term) -> PRepeated(reads.toVector)
       )
     )
 
   // A read written with `readUntil(evidence, role, until, intervalMs) { … }`.
   private def pollValue(b: Bound, d: Descriptor): PMessage = scriptCall(b.term) match
     case Some(("readUntil", List(evidence, role, until, interval, assign))) =>
-      val assigned = scoped(Bound(assign, b.env), d)
+      val (assigned, _) = scoped(Bound(assign, b.env), d, None)
       def value(name: String, a: Term) =
         irField(d, name, b.term) -> valueOf(irField(d, name, b.term), Bound(a, b.env))
       PMessage(
@@ -1320,9 +1340,15 @@ private[irgen] trait Realizations:
     case _                                  => false
 
   // The assignments of the scope a call opens, in order: each line `field(_.name) := operand`, the
-  // typed field of the scope's request type, or its core form `Assignment.typed(field, operand)`.
-  private def scoped(b0: Bound, call: Descriptor): List[PMessage] =
+  // typed field of the scope's request type, or its core form `Assignment.typed(field, operand)`;
+  // and the reads of the call's response, of type `response`, its lines `read(path, …).into(…)`.
+  private def scoped(
+      b0: Bound,
+      call: Descriptor,
+      response: Option[TypeRepr]
+  ): (List[PMessage], List[PMessage]) =
     val assignment = irMessage(irField(call, "assign", b0.term), b0.term)
+    val read = call.findFieldByName("reads").map(irMessage(_, b0.term))
     val b = follow(b0)
     b.term match
       case Block(List(d: DefDef), _: Closure) =>
@@ -1343,13 +1369,15 @@ private[irgen] trait Realizations:
           case Inlined(_, Nil, e)      => lines(Bound(e, t.env))
           case Literal(UnitConstant()) => Nil
           case _                       => List(t)
-        lines(Bound(d.rhs.get, b.env)).flatMap { line =>
+        val written = lines(Bound(d.rhs.get, b.env)).map { line =>
           line.term match
             // A scope passed on to another call is applied to that call's scope.
             case Apply(Select(fn, "apply"), _) if passedOn(Bound(fn, line.env)) =>
-              scoped(Bound(fn, line.env), call)
+              scoped(Bound(fn, line.env), call, response)
+            case _ if responseRead(line, response, read.getOrElse(assignment)).nonEmpty =>
+              (Nil, responseRead(line, response, read.getOrElse(assignment)).toList)
             case _ =>
-              requestAssignment(line, root, assignment).map(List(_)).getOrElse {
+              requestAssignment(line, root, assignment).map(as => (as, Nil)).getOrElse {
                 val r = reduce(line)
                 applied(r.term) match
                   case Some((fn, _))
@@ -1357,7 +1385,7 @@ private[irgen] trait Realizations:
                         fn.symbol.owner.fullName.stripSuffix("$") == "umpire.realize.Assignment" =>
                     val m = Message(assignment)
                     declaration(r, m)
-                    List(m.written)
+                    (List(m.written), Nil)
                   case _ =>
                     fail(
                       line.term,
@@ -1366,6 +1394,7 @@ private[irgen] trait Realizations:
                     )
               }
         }
+        (written.flatMap(_._1), written.flatMap(_._2))
       case other =>
         fail(
           other,

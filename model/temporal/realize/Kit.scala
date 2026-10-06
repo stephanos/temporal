@@ -286,3 +286,46 @@ private def expectedRun(property: PropertyOutcome, reason: Option[Reason]) = Run
   cleanup = Cleanup.succeeded,
   reason = reason
 )
+
+// ### Literals a realization writes alike
+
+// A duration of `seconds`, the one value a deadline takes in a call's request field and in a
+// protobuf message: `field(_.getStartToCloseTimeout) := duration(deadlineSeconds)`.
+def duration(seconds: Long): TypedProto[com.google.protobuf.duration.Duration] =
+  Proto[com.google.protobuf.duration.Duration](
+    ProtoField.typed(Field(_.seconds), ProtoValue.number(seconds))
+  )
+
+// A payload of one JSON string, `text`, as the SDK's default data converter encodes it.
+def jsonPayload(text: String): TypedProto[io.temporal.api.common.v1.Payload] =
+  Proto[io.temporal.api.common.v1.Payload](
+    ProtoField.typed(
+      Field(_.metadata),
+      ProtoValue.mapping(ProtoEntry.typed("encoding", ProtoValue.utf8("json/plain")))
+    ),
+    ProtoField.typed(Field(_.data), ProtoValue.utf8("\"" + text + "\""))
+  )
+
+// An application failure of the type `type`, with `message`, that the server retries only when it
+// is `retryable`.
+def applicationFailure(
+    `type`: String,
+    message: String,
+    retryable: Boolean
+): TypedProto[io.temporal.api.failure.v1.Failure] =
+  Proto[io.temporal.api.failure.v1.Failure](
+    ProtoField.typed(Field(_.message), ProtoValue.text(message)),
+    ProtoField.typed(
+      Field(_.getApplicationFailureInfo),
+      ProtoValue.message(
+        Proto[io.temporal.api.failure.v1.ApplicationFailureInfo](
+          ProtoField.typed(Field(_.`type`), ProtoValue.text(`type`)),
+          ProtoField.typed(Field(_.nonRetryable), ProtoValue.flag(!retryable))
+        )
+      )
+    )
+  )
+
+// Completes the activation the script runs in with the text `result`.
+def finish(result: String): Instruction =
+  Instruction.Finish(Operand.Literal(ProtoValue.Text(result)))

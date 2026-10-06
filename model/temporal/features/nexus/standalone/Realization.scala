@@ -8,7 +8,6 @@ package temporal
 package features.nexus
 package standalone
 
-import umpire.*
 import system.{Fact as OperationFact, NexusSystem}
 import umpire.realize.*
 import temporal.realize.*

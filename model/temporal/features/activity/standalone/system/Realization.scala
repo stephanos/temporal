@@ -18,12 +18,11 @@ package system
 
 import umpire.*
 import umpire.realize.{Fact as RealizationFact, *}
-import umpire.realize.Instruction.{Finish, Hold, Release}
-import temporal.realize.{deadline as requestDeadline, *}
+import umpire.realize.Instruction.{Hold, Release}
+import temporal.realize.{deadline as _, *}
 import temporal.realize.WorkerInstruction.{AttemptCanceled, AttemptFailure, Fault}
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
-import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure}
 import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionOutcome}
 import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 
@@ -80,7 +79,7 @@ object ActivityRealization:
     field(_.requestId) := run
   }
   private val startUnreached = startActivity.withFields {
-    field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
+    field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
   }
 
   private val pauseActivity = rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION) {
@@ -119,10 +118,10 @@ object ActivityRealization:
     perform(
       client.start() -> startUnreached,
       client.start(scheduleToStart := expires) -> startUnreached.withFields {
-        field(_.getScheduleToStartTimeout.seconds) := requestDeadline
+        field(_.getScheduleToStartTimeout) := duration(deadlineSeconds)
       },
       client.start(startToClose := expires) -> startActivity.withFields {
-        field(_.getStartToCloseTimeout.seconds) := requestDeadline
+        field(_.getStartToCloseTimeout) := duration(deadlineSeconds)
       }
     ),
     perform(client.control(Control.pause) -> pauseActivity),
@@ -141,24 +140,12 @@ object ActivityRealization:
   // ### The worker
 
   // The failure an attempt that fails ends with.
-  private def attemptFailure(nonRetryable: Boolean) = AttemptFailure(
-    Proto[Failure](
-      ProtoField.typed(Field(_.message), ProtoValue.text("attempt failed")),
-      ProtoField.typed(
-        Field(_.getApplicationFailureInfo),
-        ProtoValue.message(
-          Proto[ApplicationFailureInfo](
-            ProtoField.typed(Field(_.`type`), ProtoValue.text("AttemptFailed")),
-            ProtoField.typed(Field(_.nonRetryable), ProtoValue.flag(nonRetryable))
-          )
-        )
-      )
-    )
-  )
+  private def attemptFailure(retryable: Boolean) =
+    AttemptFailure(applicationFailure("AttemptFailed", "attempt failed", retryable))
 
-  private val completeAttempt = Finish(Operand.Literal(ProtoValue.Text("done")))
-  private val failAttempt = attemptFailure(nonRetryable = false)
-  private val failActivity = attemptFailure(nonRetryable = true)
+  private val completeAttempt = finish("done")
+  private val failAttempt = attemptFailure(retryable = true)
+  private val failActivity = attemptFailure(retryable = false)
   private val cancelAttempt = AttemptCanceled
 
   // The activity's attempts: each delivery to the worker is an attempt start, answered in order.
