@@ -10,13 +10,13 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
+	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"google.golang.org/protobuf/proto"
 )
 
-// recorded is a Run of the pinned canary Case against the test cluster, as the lifecycle test
-// records it with UMPIRE_CANARY_RECORD set (`make umpire-rerecord-pinned-runs` sets it): a test
-// cluster's Run is the only one ever written.
+// recorded is the test-cluster Run of the canary Case pinned before the kind extraction.
+// Its immutable Case sits beside it; it is not a Run of the current production pin.
 func recorded(t *testing.T) recordedrun.Decoded {
 	t.Helper()
 	return recordedIn(t, "nexus-workflow-syncCompletion-run.json")
@@ -38,18 +38,25 @@ func committed(t *testing.T) *policy.Policy {
 	return canary
 }
 
-// A closed Run of the pinned Case admits as fn-26's subject with its recorded Verdict,
-// disposition and cleanup unchanged, and is accepted under the canary's Evaluation Profile.
-func TestAdmitRecordsAClosedRunAndAdmitsIt(t *testing.T) {
+// The closed Run keeps the exact Case it was recorded against before the kind extraction.
+// Admission retains its Verdict, disposition and cleanup; the current pin refuses that identity.
+func TestHistoricalClosedRunKeepsAdmissionAndDecision(t *testing.T) {
 	canary := committed(t)
 	fixture := recorded(t)
-	require.Equal(t, canary.CaseIdentity, fixture.Case, "crossed: the record is of another Case than the policy pins")
+	prior, err := os.ReadFile(filepath.Join("testdata", "nexus-workflow-syncCompletion-historical-case.json"))
+	require.NoError(t, err)
+	identity, err := recordedrun.CaseIdentity(prior)
+	require.NoError(t, err)
+	require.Equal(t, fixture.Case, identity, "the immutable Case is the recorded Run's")
+	require.NotEqual(t, canary.CaseIdentity, fixture.Case)
+	then := *canary
+	then.CaseIdentity = identity
 	before := proto.CloneOf(fixture.Run)
 
-	subject, err := Admit(canary, fixture.Driver, fixture.Run)
+	subject, err := admit(prior, &then, fixture.Driver, fixture.Run)
 	require.NoError(t, err)
 	require.Equal(t, fixture.Driver, subject.Driver)
-	require.Equal(t, canary.CaseIdentity, subject.CaseIdentity)
+	require.Equal(t, fixture.Case, subject.CaseIdentity)
 	require.Equal(t, fixture.Run.GetRunId(), subject.RunID)
 	require.Equal(t, fixture.Run.GetDisposition(), subject.Disposition)
 	require.Equal(t, fixture.Run.GetCleanup().GetStatus(), subject.Cleanup)
@@ -61,6 +68,13 @@ func TestAdmitRecordsAClosedRunAndAdmitsIt(t *testing.T) {
 	require.NoError(t, err)
 	decision := evaluation.Assess(subject, *profile, nil)
 	require.Equal(t, evaluation.DecisionAccepted, decision.Outcome)
+	recordedBytes, err := os.ReadFile(filepath.Join("testdata", "nexus-workflow-syncCompletion-run.json"))
+	require.NoError(t, err)
+	crossed, err := evaluation.Admit(casebinding.Case(), recordedBytes, fixture.Driver.Catalog)
+	require.Nil(t, crossed)
+	rejection, ok := evaluation.IsRejection(err)
+	require.True(t, ok, "not a rejection: %v", err)
+	require.Equal(t, evaluation.ReasonCrossed, rejection.Reason, rejection.Detail)
 }
 
 // The Run recorded of the Case the canary pinned before is kept unchanged, with that Case beside it.

@@ -1,7 +1,7 @@
 {
   "claims": [ {
-    "machine": "nexusOperation",
-    "name": "nexusOperation.cancelIsRequested",
+    "machine": "nexusSystem",
+    "name": "nexusSystem.cancelIsRequested",
     "law": "cancelIsRequested",
     "capabilities": [ "Cancelable" ],
     "actions": {
@@ -9,41 +9,41 @@
     },
     "bindings": {
       "requestCancel": "temporal.features.nexus.standalone.client.requestCancel",
-      "requested": "temporal.features.nexus.standalone.OperationFact.statusCancelRequested"
+      "requested": "temporal.features.nexus.standalone.system.Fact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:202"
+    "position": "model/temporal/features/nexus/standalone/system/System.scala:158"
   }, {
-    "machine": "nexusOperation",
-    "name": "nexusOperation.closedIsRejectedUniformly",
+    "machine": "nexusSystem",
+    "name": "nexusSystem.closedIsRejectedUniformly",
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.nexus.standalone.NexusOperation$.states$.phase",
-      "terminal": "temporal.features.nexus.standalone.NexusOperation$.states$.terminal",
-      "rejected": "temporal.features.nexus.standalone.Outcome.alreadyCompleted"
+      "status": "temporal.features.nexus.standalone.system.NexusSystem$.states$.phase",
+      "terminal": "temporal.features.nexus.standalone.system.NexusSystem$.states$.terminal",
+      "rejected": "temporal.features.nexus.Outcome.alreadyCompleted"
     },
     "cites": {
       "rejected": [ "chasm/lib/nexusoperation/operation.go" ]
     },
-    "overriddenBy": "temporal.features.nexus.standalone.NexusOperation$.properties$.closedRejectsOrRepeats",
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:191"
+    "overriddenBy": "temporal.features.nexus.standalone.system.NexusSystem$.properties$.closedRejectsOrRepeats",
+    "position": "model/temporal/features/nexus/standalone/system/System.scala:147"
   }, {
-    "machine": "nexusOperation",
-    "name": "nexusOperation.terminalStatesAreFinal",
+    "machine": "nexusSystem",
+    "name": "nexusSystem.terminalStatesAreFinal",
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.nexus.standalone.NexusOperation$.states$.phase",
-      "terminal": "temporal.features.nexus.standalone.NexusOperation$.states$.terminal"
+      "status": "temporal.features.nexus.standalone.system.NexusSystem$.states$.phase",
+      "terminal": "temporal.features.nexus.standalone.system.NexusSystem$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:191"
+    "position": "model/temporal/features/nexus/standalone/system/System.scala:147"
   }, {
-    "machine": "nexusOperation",
-    "name": "nexusOperation.terminateSettles",
+    "machine": "nexusSystem",
+    "name": "nexusSystem.terminateSettles",
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
     "actions": {
@@ -51,18 +51,18 @@
     },
     "bindings": {
       "terminate": "temporal.features.nexus.standalone.client.terminate",
-      "settled": "temporal.features.nexus.standalone.OperationFact.statusTerminated"
+      "settled": "temporal.features.nexus.standalone.system.Fact.nexusOperationTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:196"
+    "position": "model/temporal/features/nexus/standalone/system/System.scala:152"
   } ],
   "waivers": [ {
-    "machine": "nexusOperation",
+    "machine": "nexusSystem",
     "law": "closedIsRejectedUniformly",
     "waiver": "overriding",
-    "by": "temporal.features.nexus.standalone.NexusOperation$.properties$.closedRejectsOrRepeats",
+    "by": "temporal.features.nexus.standalone.system.NexusSystem$.properties$.closedRejectsOrRepeats",
     "because": "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate",
-    "position": "model/temporal/features/nexus/standalone/Standalone.scala:217"
+    "position": "model/temporal/features/nexus/standalone/system/System.scala:173"
   } ],
   "catalog": [ {
     "law": "cancelIsRequested",
@@ -72,8 +72,8 @@
     "doesNotPromise": "that the entity is then canceled, which only its work's answer settles; what a cancel with no work in flight does (the activity settles canceled at once); or what a second request answers (the Nexus operation answers ErrCancellationAlreadyRequested)",
     "parameters": [ ],
     "instantiating": [ {
-      "machine": "nexusOperation",
-      "state": "temporal.features.nexus.standalone.OperationState"
+      "machine": "nexusSystem",
+      "state": "temporal.features.nexus.standalone.system.State"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:10"
   }, {
@@ -84,8 +84,8 @@
     "doesNotPromise": "which outcome rejects (a parameter: the activity answers NotFound, the Nexus operation and the schedule FailedPrecondition), or that a repeated request with the same request id is rejected: the server answers it as the first",
     "parameters": [ "rejected" ],
     "instantiating": [ {
-      "machine": "nexusOperation",
-      "state": "temporal.features.nexus.standalone.OperationState"
+      "machine": "nexusSystem",
+      "state": "temporal.features.nexus.standalone.system.State"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:8"
   }, {
@@ -96,8 +96,8 @@
     "doesNotPromise": "that a closed entity answers a mutation by rejecting it (closedIsRejectedUniformly), that its status is reported, or that the close is recorded once",
     "parameters": [ ],
     "instantiating": [ {
-      "machine": "nexusOperation",
-      "state": "temporal.features.nexus.standalone.OperationState"
+      "machine": "nexusSystem",
+      "state": "temporal.features.nexus.standalone.system.State"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:8"
   }, {
@@ -108,8 +108,8 @@
     "doesNotPromise": "what a terminate of a closed entity answers (closedIsRejectedUniformly), what a second terminate answers (the activity answers the same request id OK, the Nexus operation also refuses another id by name), or that a reason and an identity are recorded: the schedule records only that it closed",
     "parameters": [ ],
     "instantiating": [ {
-      "machine": "nexusOperation",
-      "state": "temporal.features.nexus.standalone.OperationState"
+      "machine": "nexusSystem",
+      "state": "temporal.features.nexus.standalone.system.State"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:9"
   } ]

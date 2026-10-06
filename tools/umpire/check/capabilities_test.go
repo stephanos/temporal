@@ -86,10 +86,12 @@ func TestNexusOperationReceivesTheLaws(t *testing.T) {
 	c, err := checkedOnce(m)
 	require.NoError(t, err)
 	require.Equal(t, map[string]ReceiptKind{
-		"query nexusOperation nexusOperation.terminalStatesAreFinal":    Verified,
-		"query nexusOperation nexusOperation.closedIsRejectedUniformly": Verified,
-		"query nexusOperation nexusOperation.terminateSettles":          Found,
-		"query nexusOperation nexusOperation.cancelIsRequested":         Found,
+		"query nexusSystem nexusSystem.terminalStatesAreFinal":    Verified,
+		"query nexusSystem terminalHolds":                         Verified,
+		"refinement nexusSystem nexusProduct":                     Verified,
+		"query nexusSystem nexusSystem.closedIsRejectedUniformly": Verified,
+		"query nexusSystem nexusSystem.terminateSettles":          Found,
+		"query nexusSystem nexusSystem.cancelIsRequested":         Found,
 	}, kinds(c.report))
 	sidecar, err := ReadLawSidecar(path)
 	require.NoError(t, err)

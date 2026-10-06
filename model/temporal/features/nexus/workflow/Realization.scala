@@ -13,7 +13,8 @@
 // to the others by value; Go lowers a Query's witness through it into a Testpilot Case
 // (tools/umpire/lower).
 package temporal
-package features.nexus.workflow
+package features.nexus
+package workflow
 
 import umpire.*
 import umpire.realize.*
@@ -57,7 +58,7 @@ import io.temporal.api.enums.v1.{
 import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure as ApiFailure}
 import io.temporal.api.nexus.v1.{Failure as NexusFailure, HandlerError, StartOperationResponse}
 import com.google.protobuf.duration.Duration
-import shared.worker.worker
+import temporal.shared.worker.worker
 
 import Timeout.expires
 import system.{NexusSystem, TrustingCaller}
@@ -487,7 +488,7 @@ object NexusRealization:
   private def realization(
       machine: Machine[
         system.State,
-        temporal.features.nexus.workflow.Outcome,
+        temporal.features.nexus.Outcome,
         system.Fact
       ],
       steps: Item*

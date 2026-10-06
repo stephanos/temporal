@@ -39,12 +39,14 @@ var retiredModelDirectories = []string{
 func TestNexusFormsLayout(t *testing.T) {
 	for _, name := range []string{
 		"Nexus.scala", "workflow/Workflow.scala", "workflow/Realization.scala",
-		"workflow/product/Product.scala", "workflow/system/System.scala",
+		"product/Product.scala", "workflow/system/System.scala", "standalone/system/System.scala",
 		"workflow/system/TrustingCaller.scala", "standalone/Standalone.scala", "standalone/Realization.scala",
 	} {
 		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features/nexus", name))
 		require.NoError(t, err, name)
 	}
+	_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features/nexus/workflow/product/Product.scala"))
+	require.ErrorIs(t, err, os.ErrNotExist, "the shared Product has no form-owned copy")
 	for _, name := range []string{"nexuscaller/NexusCaller.scala", "nexusoperation/NexusOperation.scala"} {
 		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features", name))
 		require.ErrorIs(t, err, os.ErrNotExist, name)

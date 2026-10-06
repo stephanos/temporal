@@ -155,7 +155,7 @@ func TestSharedProductRejectsMissingAndWrongCarriers(t *testing.T) {
 func TestGroupingPreservesPreviouslyEnabledFormRows(t *testing.T) {
 	for _, subject := range []struct{ fixture, baseline, machine string }{
 		{"nexus-workflow", "nexus-workflow", "nexusSystem"},
-		{"nexus-standalone", "nexus-standalone", "nexusOperation"},
+		{"nexus-standalone", "nexus-standalone", "nexusSystem"},
 		{"activity-standalone", "activity-standalone", "activitySystem"},
 	} {
 		t.Run(subject.fixture, func(t *testing.T) {
@@ -163,24 +163,8 @@ func TestGroupingPreservesPreviouslyEnabledFormRows(t *testing.T) {
 			require.NoError(t, err)
 			old := built(t, baseline)[subject.machine]
 			name := subject.machine
-			if name == "nexusOperation" {
-				name = "nexusSystem"
-			}
 			current := built(t, groupingModel(t, subject.fixture))[name]
 			want := sideOf(old.Table).Rows
-			ledger := strings.NewReplacer("syncFailure", "operationFailed", "syncCanceled", "operationCanceled",
-				"statusStarted", "nexusOperationStarted", "statusSucceeded", "nexusOperationCompleted", "statusFailed", "nexusOperationFailed",
-				"statusCanceled", "nexusOperationCanceled", "statusTerminated", "nexusOperationTerminated")
-			if subject.machine == "nexusOperation" {
-				for i := range want {
-					want[i].Key, want[i].Action = ledger.Replace(want[i].Key), ledger.Replace(want[i].Action)
-					for j := range want[i].Results {
-						for k, fact := range want[i].Results[j].Facts {
-							want[i].Results[j].Facts[k] = ledger.Replace(fact)
-						}
-					}
-				}
-			}
 			require.ElementsMatch(t, want, sideOf(current.Table).Rows)
 			require.Equal(t, old.Table.Starts, current.Table.Starts)
 			require.Equal(t, old.Table.Ends, current.Table.Ends)

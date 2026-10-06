@@ -77,6 +77,14 @@
         "forgedSuccess"
       ],
       "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "trustingCaller",
+      "subjects": [
+        "outcome alreadyCompleted"
+      ],
+      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing alreadyCompleted; retaining the other form's required rejection member adds no behavior."
     }
   ]
 }

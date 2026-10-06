@@ -4,15 +4,16 @@
 // one file per subject: TrustingCaller.scala, the forged control a caller must refuse, and
 // ClosePolicy.scala, the close and reset designs.
 package temporal
-package features.nexus.workflow
+package features.nexus
+package workflow
 package system
 
 import scala.annotation.unused
 import umpire.*
 import umpire.realize.{Alternative, Exploration, Reason, Variation}
 import temporal.realize.{inconclusive, satisfied}
-import shared.Bounds.{four, three}
-import shared.worker.{worker, Phase as WorkerPhase, State as WorkerState}
+import temporal.shared.Bounds.{four, three}
+import temporal.shared.worker.{worker, Phase as WorkerPhase, State as WorkerState}
 import product.NexusProduct
 import Timeout.expires
 
@@ -123,6 +124,10 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
       case Phase.timedOut  => product.State(product.Phase.timedOut)
 
     // The backoff timer records nothing a Run can read: a retry writes no history event.
+    def visible(f: Fact): Boolean = f match
+      case Fact.nexusOperationScheduled | Fact.pendingAttempts => false
+      case _                                                   => true
+    def visibleOutcomes(@unused o: Outcome): Boolean = false
     val unobservable = List(timers.backoff)
 
   object effects:
@@ -407,7 +412,8 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
 // action no sync line names would stay executable on its own and admit a stop, a resume and then a
 // reply; the operation's timers settle every state a stop leaves.
 
-object HandlerWorker extends Derived(shared.worker.Polling.restrict(worker.stop, worker.serve))
+object HandlerWorker
+    extends Derived(temporal.shared.worker.Polling.restrict(worker.stop, worker.serve))
 
 // ### The operation and the handler's worker
 //

@@ -122,7 +122,7 @@ func TestLawTablesNameWaiversAndCompositions(t *testing.T) {
 
 	// An override is printed with the def that states it and its reason.
 	n := lawTablesOf(t, "../../../model/ir/nexus-standalone.json")
-	override := lawOf(t, tableOf(t, n, "nexusOperation").Laws, "nexusOperation.closedIsRejectedUniformly")
+	override := lawOf(t, tableOf(t, n, "nexusSystem").Laws, "nexusSystem.closedIsRejectedUniformly")
 	require.NotNil(t, override.Overridden)
 	require.Contains(t, override.Overridden.By, "closedRejectsOrRepeats")
 }

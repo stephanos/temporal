@@ -5,13 +5,14 @@
 // from NexusSystem: a derivation lifts its source machines, and nexus-workflow-control.json holds this
 // machine alone.
 package temporal
-package features.nexus.workflow
+package features.nexus
+package workflow
 package system
 
 import umpire.*
 import umpire.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
 import umpire.realize.{PropertyOutcome, RunExpectation, Variation}
-import shared.worker.worker
+import temporal.shared.worker.worker
 
 // ### Signature
 

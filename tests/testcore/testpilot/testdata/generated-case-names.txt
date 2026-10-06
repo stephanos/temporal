@@ -8,8 +8,8 @@ activity-standalone-race-lostStartAnswer.committed
 activity-standalone-retry
 activity-standalone-scheduleToStartTimeout
 activity-standalone-terminate
-nexus-standalone-nexusOperation.cancelIsRequested
-nexus-standalone-nexusOperation.terminateSettles
+nexus-standalone-nexusSystem.cancelIsRequested
+nexus-standalone-nexusSystem.terminateSettles
 nexus-workflow-asyncCompletion
 nexus-workflow-asyncFailure
 nexus-workflow-control-forgedCompletion

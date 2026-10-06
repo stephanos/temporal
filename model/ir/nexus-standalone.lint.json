@@ -2,18 +2,18 @@
   "accepted": [
     {
       "kind": "unevidenced-fact",
-      "owner": "nexusOperation",
+      "owner": "nexusSystem",
       "subjects": [
-        "statusCanceled",
-        "statusFailed",
-        "statusStarted",
-        "statusSucceeded"
+        "nexusOperationCanceled",
+        "nexusOperationFailed",
+        "nexusOperationStarted",
+        "nexusOperationCompleted"
       ],
       "because": "The realization declares evidence only for the status its Cases end in (terminated); these statuses are recorded by steps no lowered Case takes yet, so no evidence kind is declared for them."
     },
     {
       "kind": "unperformed-action",
-      "owner": "nexusOperation",
+      "owner": "nexusSystem",
       "subjects": [
         "complete",
         "reply"
@@ -22,7 +22,7 @@
     },
     {
       "kind": "unmodeled-api-value",
-      "owner": "nexusOperation",
+      "owner": "nexusSystem",
       "subjects": [
         "temporal.api.nexus.v1.NexusOperationExecutionInfo.status NEXUS_OPERATION_EXECUTION_STATUS_CANCELED",
         "temporal.api.nexus.v1.NexusOperationExecutionInfo.status NEXUS_OPERATION_EXECUTION_STATUS_COMPLETED",
@@ -33,7 +33,7 @@
     },
     {
       "kind": "unmodeled-api-value",
-      "owner": "nexusOperation",
+      "owner": "nexusSystem",
       "subjects": [
         "temporal.api.nexus.v1.NexusOperationExecutionInfo.status NEXUS_OPERATION_EXECUTION_STATUS_RUNNING"
       ],
@@ -41,14 +41,14 @@
     },
     {
       "kind": "silent-rejection",
-      "owner": "nexusOperation",
+      "owner": "nexusSystem",
       "subjects": [
         "complete-canceled in unstarted, scheduled",
         "complete-failed in unstarted, scheduled",
         "complete-succeeded in unstarted, scheduled",
         "reply-async in unstarted, started",
-        "reply-syncCanceled in unstarted, started",
-        "reply-syncFailure in unstarted, started",
+        "reply-operationCanceled in unstarted, started",
+        "reply-operationFailed in unstarted, started",
         "reply-syncSuccess in unstarted, started",
         "requestCancel in unstarted",
         "start in scheduled, started",
@@ -58,14 +58,14 @@
     },
     {
       "kind": "unconstrained-result",
-      "owner": "nexusOperation",
+      "owner": "nexusSystem",
       "subjects": [
         "complete-canceled",
         "complete-failed",
         "complete-succeeded",
         "reply-async",
-        "reply-syncCanceled",
-        "reply-syncFailure",
+        "reply-operationCanceled",
+        "reply-operationFailed",
         "reply-syncSuccess",
         "start"
       ],
@@ -73,18 +73,148 @@
     },
     {
       "kind": "witness-only",
-      "owner": "nexusOperation",
+      "owner": "nexusSystem",
       "subjects": [
-        "nexusOperation.cancelIsRequested",
-        "nexusOperation.terminateSettles"
+        "nexusSystem.cancelIsRequested",
+        "nexusSystem.terminateSettles"
       ],
       "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
-      "kind": "waived-law",
-      "owner": "nexusOperation",
+      "kind": "never-enabled",
+      "owner": "nexusProduct",
       "subjects": [
-        "nexusOperation.closedIsRejectedUniformly"
+        "reply-handlerError-true"
+      ],
+      "because": "A retryable handler error leaves the operation where it is: the product machine does not know about backing off, which is the whole of what the protocol machine adds (product/Product.scala, NexusProduct.rules fires no retryable handlerError)."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "nexusProduct",
+      "subjects": [
+        "fault"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "nexusProduct",
+      "subjects": [
+        "stop"
+      ],
+      "because": "The product machine does not feel a worker stopping (product/Product.scala, NexusProduct.rules disables stop); the protocol and worker machines step it."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusProduct",
+      "subjects": [
+        "fact nexusOperationScheduled"
+      ],
+      "because": "The product machine starts scheduled, so no step of it records the scheduling; the protocol machine records it."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusProduct",
+      "subjects": [
+        "reply-async in started",
+        "reply-handlerError-false in started",
+        "reply-handlerError-true in scheduled, started",
+        "reply-operationCanceled in started",
+        "reply-operationFailed in started",
+        "reply-syncSuccess in started"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusProduct",
+      "subjects": [
+        "fault in scheduled, started"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusProduct",
+      "subjects": [
+        "stop in scheduled, started"
+      ],
+      "because": "The worker stopping is a fault the Run records; a machine that does not feel it disables it, and the worker and protocol machines step it."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "nexusProduct",
+      "subjects": [
+        "reply-async",
+        "reply-handlerError-false",
+        "reply-operationCanceled",
+        "reply-operationFailed",
+        "reply-syncSuccess",
+        "timeout"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "nexusSystem",
+      "subjects": [
+        "reply-handlerError-false"
+      ],
+      "because": "The shared Reply union retains both handlerError classes; this standalone form has no handler script answering either. Both classes remain disabled in every state, rather than deleting members from the kind catalog."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "nexusSystem",
+      "subjects": [
+        "reply-handlerError-true"
+      ],
+      "because": "The shared Reply union retains both handlerError classes; this standalone form has no handler script answering either. Both classes remain disabled in every state, rather than deleting members from the kind catalog."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusSystem",
+      "subjects": [
+        "reply-handlerError-false in unstarted, scheduled, started"
+      ],
+      "because": "The shared Reply union retains both handlerError classes; this standalone form has no handler script answering either. Both classes remain disabled in every state, rather than deleting members from the kind catalog."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusSystem",
+      "subjects": [
+        "reply-handlerError-true in unstarted, scheduled, started"
+      ],
+      "because": "The shared Reply union retains both handlerError classes; this standalone form has no handler script answering either. Both classes remain disabled in every state, rather than deleting members from the kind catalog."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "nexusProduct",
+      "subjects": [
+        "terminate"
+      ],
+      "because": "The shared Product adds only the same-action termination carrier proved by both refinements. Its results have no additional same-step claim: extending Product claim coverage remains separate work under fn-112's behavior freeze."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusProduct",
+      "subjects": [
+        "outcome alreadyCompleted"
+      ],
+      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing alreadyCompleted; retaining the other form's required rejection member adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusSystem",
+      "subjects": [
+        "outcome notFound"
+      ],
+      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing notFound; retaining the other form's required rejection member adds no behavior."
+    },
+    {
+      "kind": "waived-law",
+      "owner": "nexusSystem",
+      "subjects": [
+        "nexusSystem.closedIsRejectedUniformly"
       ],
       "because": "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate"
     }

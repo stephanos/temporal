@@ -164,6 +164,30 @@
         "stop"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "nexusProduct",
+      "subjects": [
+        "terminate"
+      ],
+      "because": "The shared Product adds only the same-action termination carrier proved by both refinements. Its results have no additional same-step claim: extending Product claim coverage remains separate work under fn-112's behavior freeze."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusProduct",
+      "subjects": [
+        "outcome alreadyCompleted"
+      ],
+      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing alreadyCompleted; retaining the other form's required rejection member adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusSystem",
+      "subjects": [
+        "outcome alreadyCompleted"
+      ],
+      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing alreadyCompleted; retaining the other form's required rejection member adds no behavior."
     }
   ]
 }

@@ -5,9 +5,11 @@
 // Driver reserves a Nexus handler only through a workflow's or an activity's start
 // (.plans/SEMANTIC_PROTOCOLS.md).
 package temporal
-package features.nexus.standalone
+package features.nexus
+package standalone
 
 import umpire.*
+import system.{Fact as OperationFact, NexusSystem}
 import umpire.realize.*
 import temporal.realize.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
@@ -26,10 +28,10 @@ object OperationRealization:
 
   // The status the operation's description reports while each fact holds (operationExecutionStatus).
   val operationStatus = statusTable(
-    OperationFact.statusSucceeded -> NEXUS_OPERATION_EXECUTION_STATUS_COMPLETED,
-    OperationFact.statusFailed -> NEXUS_OPERATION_EXECUTION_STATUS_FAILED,
-    OperationFact.statusCanceled -> NEXUS_OPERATION_EXECUTION_STATUS_CANCELED,
-    OperationFact.statusTerminated -> NEXUS_OPERATION_EXECUTION_STATUS_TERMINATED
+    OperationFact.nexusOperationCompleted -> NEXUS_OPERATION_EXECUTION_STATUS_COMPLETED,
+    OperationFact.nexusOperationFailed -> NEXUS_OPERATION_EXECUTION_STATUS_FAILED,
+    OperationFact.nexusOperationCanceled -> NEXUS_OPERATION_EXECUTION_STATUS_CANCELED,
+    OperationFact.nexusOperationTerminated -> NEXUS_OPERATION_EXECUTION_STATUS_TERMINATED
   )
 
   // Polls the operation's description until it reads the status the fact's evidence names.
@@ -70,7 +72,7 @@ object OperationRealization:
       field(_.requestId) := run
     }
 
-  private val awaitTerminated = awaitStatus(OperationFact.statusTerminated)
+  private val awaitTerminated = awaitStatus(OperationFact.nexusOperationTerminated)
 
   private val operationController = controller(
     perform(client.start -> startOperation),
@@ -86,14 +88,14 @@ object OperationRealization:
 
   // One standalone operation a controller starts on the Case's endpoint.
   val standalone: Realization = temporalRealization(
-    machine = NexusOperation,
+    machine = NexusSystem,
     operation = operation,
     roles = Vector(workflowService, taskQueue, nexusEndpoint),
     scripts = Vector(operationController),
     evidence = Vector(
       answered(OperationFact.statusScheduled, startOperation),
       answered(OperationFact.statusCancelRequested, requestCancelOperation),
-      status(OperationFact.statusTerminated)
+      status(OperationFact.nexusOperationTerminated)
     ),
     requiredSettings = Vector(standaloneEnabled)
   )

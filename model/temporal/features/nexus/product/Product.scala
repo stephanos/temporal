@@ -1,24 +1,24 @@
-// The Nexus caller's Product: what an operation does, the level a caller reads (fn-126 decision
-// 16). The level's own file holds the product machine, NexusProduct, which refines nothing;
-// system/System.scala refines it. The two package clauses read the feature's package as well as
-// this one, so its types and signature are in scope.
+// The Nexus Product: what an operation does in either form (fn-126 decision 16). This level's
+// own file holds NexusProduct, which refines nothing; the workflow and standalone System
+// machines refine it. The package clauses read the kind's package as well as this one,
+// so its shared types and signature are in scope.
 package temporal
-package features.nexus.workflow
+package features.nexus
 package product
 
 import umpire.*
-import shared.worker.worker
+import temporal.shared.worker.worker
 
 // What an operation does.
 enum Phase derives Finite:
-  case scheduled, started, succeeded, failed, canceled, timedOut
+  case scheduled, started, succeeded, failed, canceled, timedOut, terminated
 
 final case class State(phase: Phase) derives Finite
 
 enum Fact derives Finite:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
-    nexusOperationCanceled, nexusOperationTimedOut
+    nexusOperationCanceled, nexusOperationTimedOut, nexusOperationTerminated
 
 // ### The product machine
 //
@@ -33,14 +33,26 @@ object NexusProduct extends Machine[State, Outcome, Fact]:
 
   // The product's phase sets.
   object states:
-    // The four phases the product machine ends on.
-    def productTerminal(s: State) = s.phase.in(succeeded, failed, canceled, timedOut)
+    // The five phases the product machine ends on.
+    def productTerminal(s: State) = s.phase.in(succeeded, failed, canceled, timedOut, terminated)
 
-  // Every fact the product machine records is confirmed by the history event of its name.
+  // Both forms record these facts through their history or Describe evidence.
   object effects:
     import Fact.*
 
     def succeed(s: State) = enter(s.copy(phase = succeeded), nexusOperationCompleted)
+
+    def complete(s: State, resolution: Resolution) =
+      val startedFirst = if s.phase != started then List(nexusOperationStarted) else Nil
+      resolution match
+        case Resolution.succeeded =>
+          enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
+        case Resolution.failed =>
+          enter(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
+        case Resolution.canceled =>
+          enter(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
+
+    def terminate(s: State) = enter(s.copy(phase = terminated), nexusOperationTerminated)
 
     def start(s: State) = enter(s.copy(phase = started), nexusOperationStarted)
 
@@ -68,15 +80,22 @@ object NexusProduct extends Machine[State, Outcome, Fact]:
 
     // An asynchronous completion settles a running operation, and is not found once it is over.
     on(handler.complete)(where(states.productTerminal) ~> effects.notFound)
-    on(handler.complete(Resolution.succeeded))(in(scheduled, started) ~> effects.succeed)
-    on(handler.complete(Resolution.failed))(in(scheduled, started) ~> effects.fail)
-    on(handler.complete(Resolution.canceled))(in(scheduled, started) ~> effects.cancel)
+    on(handler.complete(Resolution.succeeded))(
+      in(scheduled, started) ~> ((s: State) => effects.complete(s, Resolution.succeeded))
+    )
+    on(handler.complete(Resolution.failed))(
+      in(scheduled, started) ~> ((s: State) => effects.complete(s, Resolution.failed))
+    )
+    on(handler.complete(Resolution.canceled))(
+      in(scheduled, started) ~> ((s: State) => effects.complete(s, Resolution.canceled))
+    )
 
     // A transport fault is an ordinary action of the network, and the handler's worker stopping is a
     // fault the Run records. The product machine sees neither: whether a delivery was retried is the
     // System's account of how, not what, and a step that kept the state and recorded nothing would
     // be indistinguishable from a stutter, which the refinement would read as this step.
     disabled(network.fault, worker.stop)
+    on(client.terminate)(in(scheduled, started) ~> effects.terminate)
 
     // The deadline fires while the operation runs.
     on(timers.timeout)(in(scheduled, started) ~> effects.timeOut)

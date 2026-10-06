@@ -102,7 +102,7 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/features/nexus/workflow/system/System.scala:227: nexusSystem.rules.backoff "+
+	require.ErrorContains(t, Validate(m), "model/temporal/features/nexus/workflow/system/System.scala:215: nexusSystem.rules.backoff "+
 		"steps reply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 

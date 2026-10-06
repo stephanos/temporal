@@ -28,7 +28,7 @@ func TestGroupingBindingsKeepExecutablePrograms(t *testing.T) {
 		queries []string
 	}{
 		{"nexus-workflow", functionalQueries},
-		{"nexus-standalone", []string{"nexusOperation.terminateSettles", "nexusOperation.cancelIsRequested"}},
+		{"nexus-standalone", []string{"nexusSystem.terminateSettles", "nexusSystem.cancelIsRequested"}},
 		{"activity-standalone", []string{"completion", "nonRetryableFailure", "pauseResume", "scheduleToStartTimeout", "terminate", "activitySystem.terminateSettles", "activitySystem.cancelIsRequested", "retry"}},
 	}
 	for _, form := range forms {
@@ -43,20 +43,27 @@ func TestGroupingBindingsKeepExecutablePrograms(t *testing.T) {
 					before, err := original.Lower(query, identity)
 					require.NoError(t, err)
 					require.Equal(t, Lowered, before.Standing)
-					after, err := bound.Lower(strings.Replace(query, "nexusOperation.", "nexusSystem.", 1), identity)
+					after, err := bound.Lower(query, identity)
 					require.NoError(t, err)
 					require.Equal(t, Lowered, after.Standing, "%v", after.Unsupported)
 					preparedAsIs(t, after.Case)
-					// The disposable Activity copy adds exactly one import line. Account for that
-					// finite source-position move; all instructions, waits and keys still compare.
-					if form.name == "activity-standalone" {
-						for _, entry := range before.Case.GetProgram().GetEntrypoints() {
-							for _, node := range entry.GetInstructions() {
-								for _, hint := range node.GetWaitHints() {
-									if hint.GetSource().GetPath() == "model/temporal/features/activity/standalone/system/Realization.scala" {
-										hint.Source.Path = "model/irgen/testdata/grouping/activity/standalone/system/Realization.scala"
-										hint.Source.Line++
-									}
+					// The archived fixture predates the committed comment conversion. These exact
+					// wait-source coordinates also include the Activity fixture's added import.
+					for _, entry := range before.Case.GetProgram().GetEntrypoints() {
+						for _, node := range entry.GetInstructions() {
+							for _, hint := range node.GetWaitHints() {
+								switch hint.GetSource().GetPath() {
+								case "model/temporal/realize/Behavior.scala":
+									line, ok := map[int32]int32{74: 75, 82: 83, 86: 87, 89: 90, 94: 95, 99: 100}[hint.Source.Line]
+									require.True(t, ok, "undeclared shared wait-source coordinate %d", hint.Source.Line)
+									hint.Source.Line = line
+								case "model/temporal/features/activity/standalone/system/Realization.scala":
+									line, ok := map[int32]int32{226: 230, 227: 231}[hint.Source.Line]
+									require.True(t, ok, "undeclared Activity wait-source coordinate %d", hint.Source.Line)
+									hint.Source.Path = "model/irgen/testdata/grouping/activity/standalone/system/Realization.scala"
+									hint.Source.Line = line
+								default:
+									require.FailNowf(t, "undeclared wait-source path", "%s", hint.GetSource().GetPath())
 								}
 							}
 						}
@@ -65,12 +72,7 @@ func TestGroupingBindingsKeepExecutablePrograms(t *testing.T) {
 					require.NoError(t, err)
 					got, err := protojson.Marshal(after.Case.GetProgram())
 					require.NoError(t, err)
-					ledger := strings.NewReplacer(
-						"temporal.features.", "fixture.features.",
-						"statusTerminated", "nexusOperationTerminated")
-					if form.name != "nexus-standalone" {
-						ledger = strings.NewReplacer("temporal.features.", "fixture.features.")
-					}
+					ledger := strings.NewReplacer("temporal.features.", "fixture.features.")
 					require.JSONEq(t, ledger.Replace(string(want)), string(got), "the finite source identity ledger leaves the entire executable program unchanged")
 					oldContract, newContract := before.Case.GetContract().GetCorrelated(), after.Case.GetContract().GetCorrelated()
 					require.Equal(t, oldContract.GetProjectionId(), newContract.GetProjectionId())

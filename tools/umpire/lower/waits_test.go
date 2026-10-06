@@ -98,7 +98,7 @@ var derivedWaits = map[string]map[string]map[string]wait{
 				"visibility.handlerReply.describeWorkflowExecution=2000"}}},
 	},
 	"nexus-workflow-control": {"forgedCompletion": scheduled},
-	"nexus-standalone":       {"nexusOperation.terminateSettles": {"controller/await-terminated": readOnce}, "nexusOperation.cancelIsRequested": {}},
+	"nexus-standalone":       {"nexusSystem.terminateSettles": {"controller/await-terminated": readOnce}, "nexusSystem.cancelIsRequested": {}},
 }
 
 // waitsOf is how each read of a Case waits.
@@ -315,9 +315,9 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		{"activity-standalone", "visibility.activityAnswer.describeActivityExecution", "completion",
 			[]string{"command controller/await-completed reads " + describeActivity + " after command activity/complete-attempt",
 				"which is an activity answer, " + unseen("an activity answer", describeActivity)}},
-		{"nexus-standalone", "visibility.startNexusOperationExecution.describeNexusOperationExecution", "nexusOperation.terminateSettles",
+		{"nexus-standalone", "visibility.startNexusOperationExecution.describeNexusOperationExecution", "nexusSystem.terminateSettles",
 			[]string{"command controller/await-terminated reads " + describeOperation, unseen(workflowService+"StartNexusOperationExecution", describeOperation)}},
-		{"nexus-standalone", "visibility.terminateNexusOperationExecution.describeNexusOperationExecution", "nexusOperation.terminateSettles",
+		{"nexus-standalone", "visibility.terminateNexusOperationExecution.describeNexusOperationExecution", "nexusSystem.terminateSettles",
 			[]string{"command controller/await-terminated reads " + describeOperation, unseen(workflowService+"TerminateNexusOperationExecution", describeOperation)}},
 		{"nexus-workflow", "visibility.startWorkflowExecution.getWorkflowExecutionHistory", "syncCompletion",
 			[]string{"command controller/await-scheduled reads " + history + " after command controller/start-workflow",

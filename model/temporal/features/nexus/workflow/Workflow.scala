@@ -11,7 +11,7 @@
 //
 //   - this file: the shared types; the signature (the entities, the inputs, the actors with their
 //     actions, the derived observation, the timers and the bounds); and last exports, its IR files;
-//   - product/Product.scala: Product Phase, State and Fact; NexusProduct, the product machine, what
+//   - ../product/Product.scala: Product Phase, State and Fact; NexusProduct, the kind's machine, what
 //     an operation does;
 //   - system/System.scala: System Phase, State, Fact, timer and composition types; NexusSystem, the
 //     System machine that refines it; HandlerWorker, the handler's worker; and NexusCaller, the
@@ -22,11 +22,11 @@
 // A machine object reads its header (entity, init, end, evidence), then its sections in order:
 // states, refinement, effects, rules, properties and queries. Realization.scala realizes it.
 package temporal
-package features.nexus.workflow
+package features.nexus
+package workflow
 
 import umpire.*
 import io.temporal.api.command.v1.ScheduleNexusOperationCommandAttributes
-import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import product.NexusProduct
 import system.{HandlerWorker, NexusCaller, NexusSystem, TrustingCaller}
 
@@ -39,20 +39,6 @@ import system.{HandlerWorker, NexusCaller, NexusSystem, TrustingCaller}
 // Whether the schedule command sets a deadline.
 enum Timeout derives Finite:
   case unset, expires
-
-// The handler's reply to the server's start request.
-enum Reply derives Finite:
-  case syncSuccess, async, operationFailed, operationCanceled
-  case handlerError(retryable: Boolean)
-
-// How an asynchronous completion settles the operation.
-enum Resolution derives Finite:
-  case succeeded, failed, canceled
-
-// A step's outcome. The Product and System machines share the two members, and an outcome reads
-// as the refined machine's outcome of the same name.
-enum Outcome derives Finite:
-  case accepted, notFound
 
 // ### Signature
 //
@@ -73,9 +59,6 @@ val operation = Entity(key = "scheduledEvent", refer = Map("caller" -> workflow)
 val scheduleToClose = input[Timeout]
 val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
-object Inputs:
-  val reply = input[Reply]
-val resolution = input[Resolution]
 
 // The caller workflow, which schedules the operation and inspects it.
 object caller extends Actor:
@@ -91,22 +74,12 @@ object caller extends Actor:
 
 // The endpoint's handler, which replies to the start and completes the operation.
 object handler extends Actor:
-  val reply = action(this)
-    .on(operation)
-    .input(Inputs.reply)
-    .schema[StartOperationResponse]
-    .schema[HandlerError]
-    .example(Reply.handlerError(false), "BadRequest")
-    .example(Reply.handlerError(true), "Internal")
-
-  // The Nexus HTTP completion carries no protobuf message, so it declares no schema and its classes
-  // are names the realization interprets. The result text is metadata of the action, not a domain a
-  // state holds.
-  val complete = action(this).on(operation).input(resolution).results("Delivery")
+  val reply = temporal.features.nexus.handler.reply.on(operation)
+  val complete = temporal.features.nexus.handler.complete.on(operation)
 
 // The network between the caller and the handler, which can fail a transport.
 object network extends Actor:
-  val fault = action(this) on operation
+  val fault = temporal.features.nexus.network.fault.on(operation)
 
 // The handler's worker stopping is the worker's own action, `worker.stop`: an action that
 // names no entity is behavior no entity records. The Run records the fault, but nothing recorded
@@ -122,7 +95,7 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 
 // One of the operation's deadlines firing, as the product machine sees it, and the backoff.
 object timers:
-  val timeout = timer
+  val timeout = temporal.features.nexus.timers.timeout
   val backoff = timer
 
 // The System's three deadlines, each armed by the schedule's input of its name.
@@ -131,7 +104,7 @@ object deadline:
   val scheduleToStart = timer
   val startToClose = timer
 
-// The bounds of the Queries, beside three and four (shared.Bounds). Nine actions are enabled before
+// The bounds of the Queries, beside three and four (temporal.shared.Bounds). Nine actions are enabled before
 // the operation is scheduled and eleven once it is, so an exact sequence of two is found among
 // ninety-nine candidates, one of three among about a thousand and one of four among about ten
 // thousand.
@@ -150,7 +123,7 @@ object exports:
     NexusSystem,
     HandlerWorker,
     NexusCaller,
-    shared.worker.Polling,
+    temporal.shared.worker.Polling,
     NexusSystem.queries,
     NexusCaller.queries,
     NexusRealization.asyncNexus

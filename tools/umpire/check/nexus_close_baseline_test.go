@@ -352,7 +352,7 @@ func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 		"currentOwnerEventuallyRecoversAndReappliesRetainedOutcome"
 	require.Equal(t, map[string][]string{
 		reporting:                              nil,
-		delivery:                               {"temporal.features.nexus.workflow.handler.complete"},
+		delivery:                               {"temporal.features.nexus.handler.complete"},
 		recovery:                               {model + "reset"},
 		"transientRejectionEventuallyAccepted": nil,
 		"retentionSurvivesCrash":               nil,

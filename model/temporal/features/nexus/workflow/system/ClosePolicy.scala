@@ -23,7 +23,8 @@
 // Workflow.scala. The faulty policies and resets are deliberately wrong designs, marked as
 // negative controls.
 package temporal
-package features.nexus.workflow
+package features.nexus
+package workflow
 package system
 
 // `Answer` here is the designs' delivery answer.

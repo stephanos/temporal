@@ -547,8 +547,9 @@ Query's machine does not watch it.
 Related forms of one kind live together under `features/<kind>/`. Nexus has `nexus/workflow/` and
 `nexus/standalone/`; activity currently has `activity/standalone/`. The kind has one general file
 named after it, `Nexus.scala` or `Activity.scala`, for types and signature shared by its forms. It
-holds no machine and needs no `object exports`. Both current general files contain only their
-package header, ready for shared declarations. A kind may also own `product/Product.scala`, with
+holds no machine and needs no `object exports`. Nexus declares its shared Reply, Resolution,
+Outcome and canonical action/input signature there; Activity still has a package-only header.
+A kind may also own `product/Product.scala`, with
 no kind-level System. Each form keeps its own feature file and exports, realization and tests;
 `workflow/` and `standalone/` belong inside a kind, never directly under `features/`.
 
@@ -576,19 +577,21 @@ features/
         WithTaskQueue.scala     the designs over the task queue: RecordMember, TrustingRecordMember, RecordOverQueue, …
         Realization.scala      the System realizations: standalone, heldDelivery, lostAdmissionResponse
   nexus/
-    Nexus.scala                package header only; the forms own their exports
+    Nexus.scala                shared Reply, Resolution, Outcome and signature; no form dependency
+    product/
+      Product.scala            Product Phase, State and Fact; NexusProduct, refined by both forms
     workflow/
       Workflow.scala           shared types and signature; workflow, control and close exports
       Realization.scala
-      product/
-        Product.scala          Product Phase, State and Fact; NexusProduct
       system/
         System.scala           System Phase, State and Fact; NexusSystem, HandlerWorker, NexusCaller
         TrustingCaller.scala   TrustingCaller, the forged control
         ClosePolicy.scala      RejectAfterClose and the eight designs derived from it
     standalone/
-      Standalone.scala         NexusOperation; standalone export
+      Standalone.scala         local signature and immutable shared-action bindings; standalone export
       Realization.scala
+      system/
+        System.scala           System Phase, State and Fact; NexusSystem and its shared-Product refinement
 shared/
   Bounds.scala                 the bounds more than one folder's Queries run under
   taskqueue/
@@ -603,8 +606,9 @@ shared/
 ```
 
 A form's System may refine its own Product or the Product of its enclosing kind. It may not refine
-another kind's or another form's Product. Nexus currently keeps its Product in the workflow form;
-its standalone form is still single-level. The kind-level Product shape is proved by the `relay`
+another kind's or another form's Product. Both Nexus forms refine the kind-owned Product and check
+its source-rooted terminalIsFinal Property; only their System levels describe retries, deadlines or
+standalone controls. The kind-level Product shape is also proved by the `relay`
 fixture in `model/irgen/testdata/layout/kinds/`.
 
 The files of one level folder share its package, so their top-level names are shared too. The

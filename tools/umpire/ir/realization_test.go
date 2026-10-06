@@ -253,7 +253,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, "evidence temporal.features.nexus.workflow.evidence.started confirms a step of no class"},
 		{"evidence that confirms a class written with too few inputs", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: &umpirespb.ActionClass{Action: admClass(t, r).GetAction()}, Occurrence: 1}}
-		}, "realization asyncNexus: evidence temporal.features.nexus.workflow.evidence.started: temporal.features.nexus.workflow.handler.reply takes 1 inputs, not 0"},
+		}, "realization asyncNexus: evidence temporal.features.nexus.workflow.evidence.started: temporal.features.nexus.handler.reply takes 1 inputs, not 0"},
 		{"two kinds of evidence for one recorded kind, one of which names its steps", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[2].Records, r.Evidence[3].Records = r.Evidence[1].GetRecords(), r.Evidence[1].GetRecords()
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}

@@ -26,10 +26,10 @@ const productClaimProbes = `{
       "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
       "body": {"binary": {"op": "OP_EQ",
         "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
-        "right": {"literal": {"enum": {"type": "temporal.features.nexus.workflow.product.Phase", "case": "timedOut"}}}}}}],
+        "right": {"literal": {"enum": {"type": "temporal.features.nexus.product.Phase", "case": "timedOut"}}}}}}],
   "properties": [
     {"machine": "nexusProduct", "name": "timesOut", "holds": "nexusProduct.property.timesOut",
-      "whenClass": {"action": "temporal.features.nexus.workflow.timers.timeout"},
+      "whenClass": {"action": "temporal.features.nexus.timers.timeout"},
       "position": {"file": "tools/umpire/check/nexus_pins_test.go"}}],
   "scenarios": [
     {"machine": "nexusSystem", "name": "everywhere", "free": true,
@@ -69,13 +69,13 @@ func withDeclarations(t *testing.T, m *umpirespb.Model, fragments ...string) *um
 func TestNexusProductTable(t *testing.T) {
 	product := machines(t)["nexusProduct"]
 	tb := product.Table
-	// Six phases, and the four the design ends on.
-	require.Equal(t, []int{6, 4}, []int{len(tb.States), len(tb.Ends)})
-	// Six replies, three resolutions, the two faults it cannot see, and the one timer.
-	require.Len(t, tb.Actions, 12)
+	// Seven phases, and the five the design ends on.
+	require.Equal(t, []int{7, 5}, []int{len(tb.States), len(tb.Ends)})
+	// Six replies, three resolutions, the two faults it cannot see, a timer and termination.
+	require.Len(t, tb.Actions, 13)
 	// A retryable handler error is invisible here: it is the protocol machine that backs off.
 	require.True(t, disabled(product, "scheduled", "reply-handlerError-true"))
-	require.Equal(t, []string{"scheduled", "canceled", "failed", "succeeded", "started", "timedOut"}, tb.Reachable)
+	require.Equal(t, []string{"scheduled", "canceled", "failed", "succeeded", "started", "terminated", "timedOut"}, tb.Reachable)
 	require.Empty(t, stuck(tb))
 }
 
@@ -196,7 +196,7 @@ func TestNexusQueries(t *testing.T) {
 	terminal := receiptOf(t, r, "query nexusSystem terminalHolds")
 	require.Equal(t, Verified, terminal.Kind)
 	require.True(t, terminal.Exercised)
-	require.Equal(t, ClaimKey{Family: "temporal.features.nexus.workflow.product", Owner: "nexusProduct", Name: "terminalIsFinal"}, terminal.Property)
+	require.Equal(t, ClaimKey{Family: "temporal.features.nexus.product", Owner: "nexusProduct", Name: "terminalIsFinal"}, terminal.Property)
 }
 
 // The search keeps one fired bit per Property and visits 111 product states. The count is a search

@@ -1111,12 +1111,12 @@
     {
       "model": "nexus-standalone.json",
       "query": {
-        "Family": "temporal.features.nexus.standalone",
-        "Owner": "nexusOperation",
-        "Name": "nexusOperation.cancelIsRequested"
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.cancelIsRequested"
       },
       "standing": "lowered",
-      "file": "nexus-standalone-nexusOperation.cancelIsRequested-case.json",
+      "file": "nexus-standalone-nexusSystem.cancelIsRequested-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -1124,7 +1124,7 @@
         "conformance": "conformant",
         "properties": [
           {
-            "id": "nexusOperation.cancelIsRequested",
+            "id": "nexusSystem.cancelIsRequested",
             "status": "inconclusive",
             "reason": "explanations_disagree"
           }
@@ -1134,30 +1134,30 @@
     {
       "model": "nexus-standalone.json",
       "query": {
-        "Family": "temporal.features.nexus.standalone",
-        "Owner": "nexusOperation",
-        "Name": "nexusOperation.closedIsRejectedUniformly"
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.closedIsRejectedUniformly"
       },
       "standing": "nothing-to-realize"
     },
     {
       "model": "nexus-standalone.json",
       "query": {
-        "Family": "temporal.features.nexus.standalone",
-        "Owner": "nexusOperation",
-        "Name": "nexusOperation.terminalStatesAreFinal"
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.terminalStatesAreFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
       "model": "nexus-standalone.json",
       "query": {
-        "Family": "temporal.features.nexus.standalone",
-        "Owner": "nexusOperation",
-        "Name": "nexusOperation.terminateSettles"
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.terminateSettles"
       },
       "standing": "lowered",
-      "file": "nexus-standalone-nexusOperation.terminateSettles-case.json",
+      "file": "nexus-standalone-nexusSystem.terminateSettles-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -1165,12 +1165,21 @@
         "conformance": "conformant",
         "properties": [
           {
-            "id": "nexusOperation.terminateSettles",
+            "id": "nexusSystem.terminateSettles",
             "status": "inconclusive",
             "reason": "explanations_disagree"
           }
         ]
       }
+    },
+    {
+      "model": "nexus-standalone.json",
+      "query": {
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "terminalHolds"
+      },
+      "standing": "nothing-to-realize"
     },
     {
       "model": "nexus-workflow-close.json",
