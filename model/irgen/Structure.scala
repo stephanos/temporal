@@ -1,6 +1,8 @@
 package umpire.irgen
 
+import java.nio.file.{Files, Path}
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.*
 
 /**
  * The structure lint (fn-126 R20), a sibling pass of the declaration-order lint (Order.scala), which
@@ -34,6 +36,12 @@ import scala.collection.mutable
  *     keep only types shared by both levels. It goes in `feature`, beside (a), where the levels'
  *     files are found.
  *
+ * A kind under `features` adds only `workflow/` and `standalone/`, each validated as a feature.
+ * Its one general file, named after the kind, holds no machine; its optional Product needs no
+ * kind System or exports. A form may refine that Product, never one outside its kind. Empty
+ * package-only general headers are checked at the configured source root because they emit no
+ * TASTy. Kind admission does not change the flat `shared` layout.
+ *
  * Every feature of the Temporal Models (model/temporal/) is held to these rules, whatever its
  * folders. The lifter's fixtures, single-file features of their own rules, are held only where they
  * have a `product/` or `system/` folder, as the template and the refusal fixtures do.
@@ -47,8 +55,10 @@ final private[irgen] class Structure(index: Index):
   def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1).flatMap(source)
-    for (_, feature) <- sources.groupBy(_.feature).toSeq.sortBy(_._1) if held(feature) do
-      this.feature(feature)
+    for (_, group) <- sources.groupBy(_.feature).toSeq.sortBy(_._1) do
+      val hasForms = group.exists(s => s.sub.headOption.exists(Structure.formFolders))
+      if hasForms && group.head.feature.split('.').reverse(1) == "features" then kind(group)
+      else if hasForms || held(group) then feature(group)
     refused.toSeq
 
   // ### Positions, as the order lint gives them
@@ -60,7 +70,9 @@ final private[irgen] class Structure(index: Index):
       .getOrElse("")
   private def lineOf(t: Tree): Int = scala.util.Try(t.pos.startLine + 1).getOrElse(0)
   private def refuse(t: Tree, message: String): Unit =
-    refused += ((fileOf(t), lineOf(t), LiftError(s"${fileOf(t)}:${lineOf(t)}", message)))
+    refuse(fileOf(t), lineOf(t), message)
+  private def refuse(path: String, line: Int, message: String): Unit =
+    refused += ((path, line, LiftError(s"$path:$line", message)))
 
   // ### A feature's sources
 
@@ -89,7 +101,16 @@ final private[irgen] class Structure(index: Index):
 
   private def source(path: String, trees: List[Tree]): Option[Source] =
     val top = topLevel(trees)
-    val pkg = top.headOption.flatMap(d => packageOf(d.symbol)).fold("")(_.fullName).split('.')
+    def declared(t: Tree): Option[String] = t match
+      case PackageClause(pid, stats) =>
+        stats.flatMap(declared).headOption.orElse(Some(pid.symbol.fullName))
+      case _ => None
+    val pkg = top.headOption
+      .flatMap(d => packageOf(d.symbol))
+      .map(_.fullName)
+      .orElse(trees.flatMap(declared).headOption)
+      .getOrElse("")
+      .split('.')
     val at = pkg.indexWhere(Set("features", "shared"))
     Option.when(at >= 0 && pkg.length > at + 1)(
       Source(path, pkg.take(at + 2).mkString("."), pkg.drop(at + 2).toList, top)
@@ -119,6 +140,70 @@ final private[irgen] class Structure(index: Index):
   /** Whether a feature is held to the rules: it is a Temporal Model's, or has a level folder. */
   private def held(feature: Seq[Source]): Boolean =
     feature.exists(s => s.level || s.path.startsWith("model/temporal/"))
+
+  private def rootOf(sources: Seq[Source]): String =
+    val mirroring = sources.filter(_.mirrors)
+    val s = (if mirroring.isEmpty then sources else mirroring).minBy(_.sub.size)
+    s.folder.split('/').dropRight(s.sub.size).map(_ + "/").mkString
+
+  private def kind(sources: Seq[Source]): Unit =
+    val pkg = sources.head.feature
+    val name = pkg.split('.').last
+    val root = rootOf(sources)
+    val core = sources.filterNot(s => s.sub.headOption.exists(Structure.formFolders))
+    val directory = Path.of(root)
+    val files =
+      if Files.isDirectory(directory) then
+        val stream = Files.newDirectoryStream(directory, "*.scala")
+        try stream.iterator.asScala.toList.sortBy(_.toString)
+        finally stream.close()
+      else Nil
+    val headers = files.filter(_.getFileName.toString.stripSuffix(".scala").equalsIgnoreCase(name))
+    if headers.isEmpty then
+      refuse(
+        root + s"${name.head.toUpper}${name.tail}.scala",
+        1,
+        s"$name has no general feature file named after its kind in $root"
+      )
+    for file <- files if !headers.headOption.contains(file) do
+      refuse(
+        file.toString,
+        1,
+        s"$name holds one general feature file named after its kind in $root, not ${file.getFileName}"
+      )
+    val empty = headers.headOption.toSeq.flatMap { file =>
+      val path = file.toString
+      if sources.exists(_.path == path) then None
+      else
+        // Package-only compilation units emit no TASTy; the named source root supplies this header.
+        val text =
+          Files.readString(file).replaceAll("(?s)/\\*.*?\\*/", "").replaceAll("(?m)//.*$", "")
+        val clauses = text.split("[;\\n]").map(_.trim).filter(_.nonEmpty)
+        val clause = "package ([a-zA-Z_][a-zA-Z_0-9]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*)".r
+        val declared = clauses.collect { case clause(p) => p }
+        if declared.nonEmpty && declared.mkString(".") != pkg then
+          refuse(
+            path,
+            1,
+            s"$path declares package ${declared.mkString(".")}, which its folder, $root, does not mirror"
+          )
+          None
+        else if declared.length != clauses.length || declared.isEmpty then
+          refuse(
+            path,
+            1,
+            s"$path cannot supply its kind's general scaffold: an unindexed header contains only its package"
+          )
+          None
+        else Some(Source(path, pkg, Nil, Nil))
+    }
+    val product =
+      Option.when((core ++ empty).nonEmpty)(feature(core ++ empty, general = true)).flatten
+    for formName <- Structure.formFolders.toSeq.sorted do
+      val formSources = sources
+        .filter(_.sub.headOption.contains(formName))
+        .map(s => s.copy(feature = s.feature + "." + formName, sub = s.sub.tail))
+      if formSources.nonEmpty then feature(formSources, inherited = product, kindForm = true)
 
   // ### Machine objects and their refinements
 
@@ -170,10 +255,15 @@ final private[irgen] class Structure(index: Index):
 
   // ### (a) and (c), over one feature
 
-  private def feature(sources: Seq[Source]): Unit =
+  private def feature(
+      sources: Seq[Source],
+      general: Boolean = false,
+      inherited: Option[(Source, ClassDef)] = None,
+      kindForm: Boolean = false
+  ): Option[(Source, ClassDef)] =
     val pkg = sources.head.feature
     val name = pkg.split('.').last
-    val shared = pkg.split('.').reverse(1) == "shared"
+    val shared = general || pkg.split('.').reverse(1) == "shared"
     // A source's package mirrors its folder, which the order lint reads.
     for s <- sources if !s.mirrors; first <- s.top.headOption do
       refuse(
@@ -183,23 +273,35 @@ final private[irgen] class Structure(index: Index):
           "since the structure lint reads a source's package and the order lint its path"
       )
     // The root folder: a source's folder less the folders of its subpackage.
-    val root =
-      val mirroring = sources.filter(_.mirrors)
-      val s = (if mirroring.isEmpty then sources else mirroring).minBy(_.sub.size)
-      s.folder.split('/').dropRight(s.sub.size).map(_ + "/").mkString
+    val root = rootOf(sources)
     val rootFile =
       sources.find(s => s.sub.isEmpty && s.file.stripSuffix(".scala").equalsIgnoreCase(name))
     val forms = for s <- sources; c <- s.objects if form(c.symbol) yield (s, c)
     val within = forms.map(_._2.symbol).toSet
 
     // (a): a refinement pair makes two levels, each with its folder.
-    val pairs = for (_, c) <- forms; (r, product) <- refines(c) if within(product)
+    val pairs = for
+      (_, c) <- forms; (r, product) <- refines(c)
+      if within(product) || inherited.exists(_._2.symbol == product)
     yield (c, r, product)
     val productPath = root + "product/Product.scala"
     val systemPath = root + "system/System.scala"
     val hasLevelFiles =
       sources.exists(_.path == productPath) && sources.exists(_.path == systemPath)
-    val twoLevels = pairs.nonEmpty || hasLevelFiles
+    val hasProduct = sources.exists(_.path == productPath)
+    val kindLevels = general && hasProduct
+    val inheritedLevels = inherited.nonEmpty && sources.exists(_.sub.headOption.contains("system"))
+    val twoLevels = pairs.nonEmpty || hasLevelFiles || kindLevels || inheritedLevels
+    if kindForm then
+      for
+        (_, machine) <- forms; (refinement, product) <- refines(machine)
+        if !within(product) && !inherited.exists(_._2.symbol == product)
+      do
+        refuse(
+          refinement,
+          s"${plain(machine.name)} refines ${product.fullName} outside its kind: a form refines " +
+            "its own local Product or its kind's Product"
+        )
     pairs.headOption match
       case Some((machine, refinement, product)) =>
         val two = s"${plain(machine.name)} refines ${plain(product.name)}, so $name has two " +
@@ -208,10 +310,11 @@ final private[irgen] class Structure(index: Index):
           "which holds shared types, the signature and object exports (model/irgen/testdata/" +
           "layout/lamp is the template)"
         if rootFile.isEmpty then refuse(refinement, s"$two; $root has no root feature file")
-        for level <- Seq(productPath, systemPath) if !sources.exists(_.path == level) do
+        val required = Seq(systemPath) ++ Option.when(inherited.isEmpty)(productPath)
+        for level <- required if !sources.exists(_.path == level) do
           refuse(refinement, s"$two; $level is missing")
-      case None if hasLevelFiles => ()
-      case None                  =>
+      case None if hasLevelFiles || kindLevels || inheritedLevels => ()
+      case None                                                   =>
         for s <- sources if s.sub.nonEmpty; first <- s.top.headOption do
           refuse(
             first,
@@ -219,7 +322,7 @@ final private[irgen] class Structure(index: Index):
               s"Models sit in its feature file: it has no ${s.sub.mkString("/")}/ folder"
           )
 
-    if twoLevels then
+    if twoLevels || general then
       for (s, c) <- forms do
         if s.sub.isEmpty then
           refuse(
@@ -228,7 +331,7 @@ final private[irgen] class Structure(index: Index):
               "feature file holds shared types, the signature and object exports alone: a " +
               "feature with two levels declares its machines in product/ and system/"
           )
-        else if !s.level then
+        else if !s.level || (general && s.sub != List("product")) then
           refuse(
             c,
             s"${plain(c.name)} is a machine object in ${s.folder}, which is no level folder of " +
@@ -260,10 +363,15 @@ final private[irgen] class Structure(index: Index):
                     s"machine: declare one <Prefix>$level"
                 )
               None
-    val productDef = Option.when(twoLevels)(primary(productPath, "Product")).flatten
-    val systemDef = Option.when(twoLevels)(primary(systemPath, "System")).flatten
+    val localProduct = Option
+      .when(twoLevels && (inherited.isEmpty || hasProduct))(
+        primary(productPath, "Product")
+      )
+      .flatten
+    val productDef = localProduct.orElse(inherited.map(_._2))
+    val systemDef = Option.when(twoLevels && !general)(primary(systemPath, "System")).flatten
     val featurePrefix = s"${name.head.toUpper}${name.tail}"
-    for product <- productDef do
+    for product <- localProduct do
       val productName = plain(product.name)
       if !productName.endsWith("Product") then
         refuse(
@@ -304,10 +412,13 @@ final private[irgen] class Structure(index: Index):
               s"$expected, with the same prefix as $productName"
           )
       if !refines(system).exists(_._2 == product.symbol) then
+        val path = localProduct.fold(inherited.fold("product/Product.scala")(_._1.path))(_ =>
+          "product/Product.scala"
+        )
         refuse(
           system,
           s"$systemName is the System machine in $name's system/System.scala but does not refine " +
-            s"$productName from product/Product.scala"
+            s"$productName from $path"
         )
 
     // (b): Phase, State and Fact belong to their level. The prefixed spellings are the retired
@@ -351,14 +462,14 @@ final private[irgen] class Structure(index: Index):
       // Taskqueue deliberately keeps its cross-level QueueView/QueueDetail vocabulary in its root;
       // that named exception does not exempt another two-level feature under `shared`.
       val levelOwned =
-        pkg != "temporal.shared.taskqueue" && (for
+        pkg != "temporal.shared.taskqueue" && (general || (for
           product <- productDef
           system <- systemDef
         yield
           val productArguments = machineArguments(product).map(_.dealias.typeSymbol)
           val systemArguments = machineArguments(system).map(_.dealias.typeSymbol)
           Seq(0, 2).exists(i => productArguments.lift(i) != systemArguments.lift(i))
-        ).getOrElse(false)
+        ).getOrElse(false))
       if levelOwned then
         val vocabulary = Seq("Phase", "State", "Fact")
         for
@@ -420,8 +531,12 @@ final private[irgen] class Structure(index: Index):
           s"$name declares no object exports in its root feature file, ${s.path}: a feature " +
             "under features names its IR files there, in one object exports"
         )
+    for product <- localProduct; source <- sources.find(_.path == productPath)
+    yield source -> product
 
 object Structure:
+  val formFolders = Set("workflow", "standalone")
+
   /** A feature's level folders, by audience (fn-126 decision 16). */
   val levels = Set("product", "system")
 

@@ -76,7 +76,7 @@ Gate: starts after fn-126 and fn-124 close; closes before fn-128 starts. Source 
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-132.8 | ⬜ todo | Kind/form source grouping admitted before either move; unchanged-tree proof |
+| fn-132.8 | 🔄 in progress | Kind/form source grouping admitted before either move; unchanged-tree proof |
 | fn-132.1 | ⬜ todo | `nexuscaller` → `features/nexus/workflow`, `nexusoperation` → `features/nexus/standalone`; IR files renamed |
 | fn-132.2 | ⬜ todo | `standaloneactivity` → `features/activity/standalone`; IR files renamed; fn-128/fn-129 paths |
 | fn-132.3 | ⬜ todo | Structure lint and docs learn the kind level |

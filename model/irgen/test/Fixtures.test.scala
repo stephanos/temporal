@@ -84,11 +84,12 @@ class Fixtures extends munit.FunSuite:
       s"$file:$line:$column"
     }
 
-  private def packaged(name: String, sources: Path): Path =
+  private def packaged(name: String, sources: Path, options: Seq[String] = Nil): Path =
     val jar = scratch.resolve(s"$name.jar")
     bounded(
       tools.scalaCli(
-        Seq("--power", "package", "--library", sources.toString, "-f", "-o", jar.toString)
+        Seq("--power", "package", "--library", sources.toString, "-f", "-o", jar.toString) ++
+          options
       )
     ).orFail()
     jar
@@ -1794,13 +1795,21 @@ class Fixtures extends munit.FunSuite:
   // ### fn-126 R20: the structure lint, over fixtures of features with their level folders
 
   /** A fixture whose features have folders, copied with them, its jar's path resolved. */
-  private def materializeTree(fixture: String): Path =
+  private def materializeTree(
+      fixture: String,
+      name: String = "",
+      excluding: Set[String] = Set.empty
+  ): Path =
     val from = testdata.resolve(fixture)
-    val to = Files.createDirectories(scratch.resolve(fixture))
+    val to = Files.createDirectories(scratch.resolve(if name.isEmpty then fixture else name))
     val jar = java.util.regex.Matcher.quoteReplacement(modelJar.toString)
     val stream = Files.walk(from)
     try
-      for source <- stream.iterator.asScala.toList if source.toString.endsWith(".scala") do
+      for
+        source <- stream.iterator.asScala.toList
+        if source.toString.endsWith(".scala")
+        if !excluding.exists(from.relativize(source).startsWith(_))
+      do
         val copy = to.resolve(from.relativize(source).toString)
         Files.createDirectories(copy.getParent)
         Files.writeString(
@@ -1813,7 +1822,28 @@ class Fixtures extends munit.FunSuite:
   // The template a new feature copies (layout/lamp): a feature with its two levels and a zoom-in,
   // which the lint refuses nothing of and the lifter lifts.
   concurrently("the layout template lifts with no refusal"):
-    val jar = packaged("layout", materializeTree("layout"))
+    val tree = materializeTree("layout", excluding = Set("kinds"))
+    val stream = Files.walk(tree)
+    val inventory =
+      try
+        stream.iterator.asScala
+          .filter(Files.isRegularFile(_))
+          .map(tree.relativize(_).toString)
+          .toList
+          .sorted
+      finally stream.close()
+    assertEquals(
+      inventory,
+      List(
+        "lamp/Lamp.scala",
+        "lamp/product/Product.scala",
+        "lamp/system/Bulb.scala",
+        "lamp/system/Realization.scala",
+        "lamp/system/System.scala",
+        "project.scala"
+      )
+    )
+    val jar = packaged("layout", tree)
     val out = scratch.resolve("layout-out")
     val result = liftIr(out, s"$jar=${stored("layout")},$modelJar=model/", "lamp")
     assertEquals(refused(result), Nil)
@@ -1833,6 +1863,154 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       realization.head.get("position").get("file").asText(),
       "model/irgen/testdata/layout/lamp/system/Realization.scala"
+    )
+
+  concurrently("kind scaffolds and their one or two forms lift with local or kind Products"):
+    val tree = materializeTree("layout/kinds", "kind-layout")
+    val jar = packaged("kind-layout", tree, Seq("--server=false"))
+    val out = scratch.resolve("kind-layout-out")
+    val result = liftIr(
+      out,
+      s"$jar=$tree/,$modelJar=model/",
+      "activity-standalone",
+      "nexus-standalone",
+      "nexus-workflow",
+      "relay-standalone",
+      "relay-workflow"
+    )
+    assertEquals(refused(result), Nil)
+    assert(!result.failed, result.diagnostics)
+    assertEquals(
+      listed(out),
+      Seq(
+        "activity-standalone.json",
+        "nexus-standalone.json",
+        "nexus-workflow.json",
+        "relay-standalone.json",
+        "relay-workflow.json"
+      )
+    )
+    for form <- Seq("standalone", "workflow") do
+      val json = new com.fasterxml.jackson.databind.ObjectMapper()
+        .readTree(Files.readString(out.resolve(s"relay-$form.json")))
+      val machines = json.get("machines").elements().asScala.toSeq
+      assertEquals(machines.map(_.get("name").asText()).toSet, Set("relayProduct", "relaySystem"))
+      assertEquals(
+        machines
+          .find(_.get("name").asText() == "relaySystem")
+          .get
+          .get("refines")
+          .get("product")
+          .asText(),
+        "relayProduct"
+      )
+
+  private val kindRefusals = Seq(
+    ("missing-header", "nexus/Nexus.scala", None, "has no general feature file"),
+    (
+      "wrong-header-package",
+      "nexus/Nexus.scala",
+      Some("package fixture.features.other\n"),
+      "does not mirror"
+    ),
+    (
+      "extra-empty-header",
+      "nexus/Extra.scala",
+      Some("package fixture.features.nexus\n"),
+      "one general feature file"
+    ),
+    (
+      "case-variant-header",
+      "nexus/nexus.scala",
+      Some("package fixture.features.nexus\n"),
+      "one general feature file"
+    ),
+    (
+      "wrong-form-package",
+      "nexus/standalone/Mismatch.scala",
+      Some("package fixture.features.nexus.workflow\nfinal case class Marker(value: Boolean)\n"),
+      "does not mirror"
+    ),
+    (
+      "deeper-form",
+      "nexus/workflow/system/extra/Extra.scala",
+      Some(
+        "package fixture.features.nexus.workflow.system.extra\n" +
+          "import umpire.*\n" +
+          "object Extra extends Derived(fixture.features.nexus.workflow.system.NexusSystem)\n"
+      ),
+      "no level folder"
+    ),
+    (
+      "foreign-product",
+      "relay/workflow/system/System.scala",
+      Some(
+        Files
+          .readString(testdata.resolve("layout/kinds/relay/workflow/system/System.scala"))
+          .replace("fixture.features.relay.product", "fixture.features.nexus.workflow.product")
+          .replace("RelayProduct", "NexusProduct")
+      ),
+      "does not refine RelayProduct"
+    ),
+    (
+      "foreign-single-level",
+      "nexus/standalone/Standalone.scala",
+      Some(
+        Files
+          .readString(testdata.resolve("layout/kinds/nexus/standalone/Standalone.scala"))
+          .replace(
+            "  object effects:",
+            "  object refinement extends Refinement(fixture.features.relay.product.RelayProduct):\n" +
+              "    def toProduct(s: State) = fixture.features.relay.product.State(\n" +
+              "      if s.phase == Phase.idle then fixture.features.relay.product.Phase.idle\n" +
+              "      else fixture.features.relay.product.Phase.done)\n\n" +
+              "  object effects:"
+          )
+      ),
+      "outside its kind"
+    )
+  )
+  for (name, file, contents, diagnostic) <- kindRefusals do
+    concurrently(s"kind classification refuses $name"):
+      val variant = materializeTree("layout/kinds", s"kind-$name")
+      val changed = variant.resolve(file)
+      if name == "case-variant-header" then
+        assume(!Files.exists(changed), "case-variant headers require a case-sensitive filesystem")
+      contents match
+        case Some(text) =>
+          Files.createDirectories(changed.getParent)
+          Files.writeString(changed, text)
+        case None => Files.delete(changed)
+      val jar = packaged(s"kind-$name", variant, Seq("--server=false"))
+      val out = scratch.resolve(s"kind-$name-out")
+      val result = liftIr(out, s"$jar=$variant/,$modelJar=model/")
+      assertNotEquals(result.exit, 0, name)
+      assertEquals(listed(out), Nil)
+      assert(
+        refused(result).exists(message => message.contains(file) && message.contains(diagnostic)),
+        s"$name did not report $diagnostic:\n${result.diagnostics}"
+      )
+
+  concurrently("shared features refuse kind-form nesting"):
+    val tree = materializeTree("layout/kinds", "shared-forms")
+    val stream = Files.walk(tree.resolve("nexus"))
+    try
+      for file <- stream.iterator.asScala.toList if Files.isRegularFile(file) do
+        Files.writeString(
+          file,
+          Files.readString(file).replace("fixture.features.nexus", "fixture.shared.nexus")
+        )
+    finally stream.close()
+    val jar = packaged("shared-forms", tree, Seq("--server=false"))
+    val out = scratch.resolve("shared-forms-out")
+    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "nexus-workflow")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    assert(
+      refused(result).exists(message =>
+        message.contains("nexus/workflow/") && message.contains("no level folder")
+      ),
+      result.diagnostics
     )
 
   // R20 (a): the folders of a feature with two levels, a missing root feature file or level file,
