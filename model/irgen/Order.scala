@@ -19,11 +19,12 @@ import scala.collection.mutable
 //   - (e) in a feature file, R17's section rules: in a machine or composition object
 //     (`umpire.Machine`, `Derived`, `Composition`), its header and sections out of the order
 //     states, refinement, effects, monitors, rules (a composition's syncs), properties,
-//     implements, queries; a declaration in a section other than its kind's, vocabulary outside
-//     `states`, a refinement's member outside `refinement`, an effect outside `effects` and a
-//     monitor outside `monitors`; a step function bound by hand, `action ~> step`, outside a
-//     derivation's `rebind`; a machine's section outside its object, or in another section; and
-//     an object that holds a Model declaration and is no machine or composition object.
+//     implements, capabilities, queries; a declaration in a section other than its kind's,
+//     vocabulary outside `states`, a refinement's member outside `refinement`, an effect outside
+//     `effects` and a monitor outside `monitors`; a step function bound by hand, `action ~> step`,
+//     outside a derivation's `rebind`; a machine's section outside its object, or in another
+//     section; and an object that holds a Model declaration and is no machine or composition
+//     object.
 //
 // A section is an object of a machine or composition object named as one, `object effects`: its name
 // says what it holds (the structure lint, Structure.scala, refuses any other name there).
@@ -128,9 +129,12 @@ final private[irgen] class Order(index: Index):
   private def initializes(cls: ClassDef): Unit =
     val owner = cls.symbol
     val order = cls.body.zipWithIndex.collect { case (v: ValDef, i) => v.symbol -> i }.toMap
-    // The parents' constructor arguments run first, then the body, statement by statement.
+    // The parents' constructor arguments run first, then the body of each class of the lifted
+    // sources it extends, such as the shared set a `capabilities` section extends, then its own
+    // body, statement by statement.
     val inits: List[(Int, Tree)] =
       cls.parents.collect { case t: Term => -1 -> t } ++
+        inherited(cls).map(-1 -> _) ++
         cls.body.zipWithIndex.flatMap {
           case (v: ValDef, i) if !lazily(v.symbol)        => v.rhs.map(i -> _)
           case (_: Definition | _: Import | _: Export, _) => None
@@ -198,6 +202,25 @@ final private[irgen] class Order(index: Index):
           case id: Ident => read(id, i)
           case _         => super.traverseTree(t)(o)
       initReads.traverseTree(init)(owner)
+
+  // What constructing `cls` runs of the classes of the lifted sources it extends, outermost last:
+  // each one's parents' arguments, its vals' right-hand sides and its statements. A framework class
+  // runs none a Model wrote.
+  private def inherited(cls: ClassDef): List[Tree] =
+    val bases = cls.parents.collect {
+      case t: Term if t.symbol.isClassConstructor => t.symbol.maybeOwner
+    }
+    bases
+      .filterNot(_.fullName.startsWith("umpire."))
+      .flatMap(treeOf)
+      .collect { case base: ClassDef if !exempt(fileOf(base)) => base }
+      .flatMap { base =>
+        base.parents.collect { case t: Term => t } ++ inherited(base) ++ base.body.flatMap {
+          case v: ValDef if !lazily(v.symbol)        => v.rhs
+          case _: Definition | _: Import | _: Export => None
+          case t                                     => Some(t)
+        }
+      }
 
   // A call that runs its function arguments while it is made: a rule block, `on(a) { ... }` of
   // `rules` or of a derivation, whose cases run at once; a case, `in(set)`, `where(g)` or
@@ -285,7 +308,7 @@ final private[irgen] class Order(index: Index):
             Some(Kind.Watch)
           case "umpire.Machine" | "umpire.Composition" => Some(Kind.Machine)
           case "umpire.Property" | "umpire.Progress"   => Some(Kind.Claim)
-          case "umpire.Capabilities"                   => Some(Kind.Laws)
+          case "umpire.LawDeclaration"                 => Some(Kind.Laws)
           case "umpire.Scenario"                       => Some(Kind.Scenario)
           case "umpire.Query"                          => Some(Kind.Query)
           case "umpire.IrFile"                         => Some(Kind.File)
@@ -617,6 +640,7 @@ final private[irgen] class Order(index: Index):
       case "rules"                 => Set.empty // statements alone, or a composition's syncs
       case "properties"            => Set(Kind.Claim)
       case "implements"            => Set(Kind.Laws)
+      case "capabilities"          => Set.empty // capabilities and waivers
       case "states" | "refinement" => Set.empty // vocabulary, and the machine's refinement
       case _                       => Set(Kind.Scenario, Kind.Query)
     if name == "queries" then

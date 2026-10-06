@@ -394,8 +394,9 @@ private[irgen] trait Claims:
       folded.getOrElseUpdate(
         sym,
         valDef(sym, r, "a declaration") match
-          case _ if objectForm(sym)       => Decl.Model(modelOfObject(moduleClassOf(sym), r))
-          case _ if implementsObject(sym) => implementsOf(sym, r)
+          case _ if objectForm(sym)         => Decl.Model(modelOfObject(moduleClassOf(sym), r))
+          case _ if implementsObject(sym)   => implementsOf(sym, r)
+          case _ if capabilitiesObject(sym) => capabilitiesSectionOf(sym, r)
           case d if isNamed(d.tpt.tpe, "umpire.Machine")     => Decl.Model(machineOf(sym, r).name)
           case d if isNamed(d.tpt.tpe, "umpire.Composition") =>
             Decl.Model(compositionOf(sym, r).name)
@@ -542,7 +543,8 @@ private[irgen] trait Claims:
       "scala.collection.immutable.Vector"
     )
     !(declares(tpe) || claimType(tpe) || folds.exists(isNamed(tpe, _)) ||
-      bundle(tpe.typeSymbol) || isList(tpe.typeSymbol))
+      bundle(tpe.typeSymbol) || isList(tpe.typeSymbol) ||
+      tpe.derivesFrom(Symbol.requiredClass("umpire.Capabilities")))
 
   // The value argument `a` of the parameter `p` of `d`, folded: an integer parameter, such as the
   // total of a Query the def declares, takes a literal the author computed, or a parameter of the

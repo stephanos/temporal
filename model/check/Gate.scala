@@ -470,6 +470,7 @@ final class Gate(tools: Tools, log: PrintStream):
     report(Seq(fixtures, modelLifts))
     // After both, so an update rewrites model/ir only once the lifter's fixtures passed too.
     Gate.settle(model.resolve("ir"), lifted, root, update)
+    Gate.acceptWaivers(model.resolve("ir"), lifted, root, update)
 
 object Gate:
   val usage =
@@ -496,6 +497,10 @@ object Gate:
   // lifter does not, and umpire-lint fails on one beside no IR file.
   private val acceptedSuffix = ".lint.json"
 
+  // The waivers the `capabilities` sections of an IR file state, which the lifter writes beside
+  // it, `<file>.waivers.json`: never checked in, they are written into its accepted findings.
+  private val waiversSuffix = ".waivers.json"
+
   // Holds the checked-in `tree` to the `produced` directory, file for file: the tree is the files
   // that were produced and no others, apart from the accepted lint findings an author writes. A
   // check writes nothing and fails on every file that is stale, missing or produced by nothing. An
@@ -503,7 +508,10 @@ object Gate:
   // over.
   def settle(tree: Path, produced: Path, root: Path, update: Boolean): Unit =
     def name(file: Path) = root.relativize(file)
-    val (held, lifted) = (files(tree).filterNot(_.endsWith(acceptedSuffix)), files(produced))
+    val (held, lifted) = (
+      files(tree).filterNot(_.endsWith(acceptedSuffix)),
+      files(produced).filterNot(_.endsWith(waiversSuffix))
+    )
     val orphans = (held -- lifted).toSeq.sorted.map(file =>
       s"${name(tree.resolve(file))} is checked in and nothing produces it: remove it or declare it with irFile"
     )
@@ -524,6 +532,35 @@ object Gate:
         val remedy =
           s"rerun with --update (make umpire-gen-model); the lifted files are in $produced"
         throw GateError((stale ++ orphans :+ remedy).mkString("\n"))
+
+  // Holds the accepted findings beside each IR file of `tree` to the waivers its `capabilities`
+  // sections state, as the lift into `produced` wrote them: each waiver accepted under its key,
+  // `<machine>.<property>`, for its reason (`withWaivers`). An update writes the findings that
+  // differ; a check writes nothing and fails on each file missing a waiver's acceptance or holding
+  // a stale one. A file that would accept nothing is not created.
+  def acceptWaivers(tree: Path, produced: Path, root: Path, update: Boolean): Unit =
+    val differing = files(produced).filter(_.endsWith(waiversSuffix)).toSeq.sorted.flatMap { file =>
+      val (machines, waivers) = Accepted.waivers(Files.readString(produced.resolve(file)))
+      val target = tree.resolve(file.stripSuffix(waiversSuffix) + acceptedSuffix)
+      val held =
+        if Files.isRegularFile(target) then Accepted.read(Files.readString(target)) else Vector()
+      val accepted = Accepted.withWaivers(held, machines, waivers)
+      if accepted == held then None
+      else if update then
+        Files.writeString(target, Accepted.encode(accepted)): Unit
+        None
+      else
+        val (was, now) = (held.toSet, accepted.toSet)
+        val missing = accepted.filterNot(was).flatMap(_.subjects)
+        val stale = held.filterNot(now).flatMap(_.subjects)
+        Some(
+          s"${root.relativize(target)} does not carry the waivers its capabilities sections " +
+            s"state: missing ${Some(missing).filter(_.nonEmpty).fold("none")(_.mkString(", "))}, " +
+            s"stale ${Some(stale).filter(_.nonEmpty).fold("none")(_.mkString(", "))}"
+        )
+    }
+    if differing.nonEmpty then
+      throw GateError((differing :+ "rerun with --update (make umpire-gen-model)").mkString("\n"))
 
   // Runs the gate as its command line says and answers its exit status.
   def main(arguments: Seq[String], tools: => Tools, out: PrintStream, err: PrintStream): Int =
@@ -571,6 +608,178 @@ object Gate:
         case e: java.io.IOException =>
           err.println(s"gate: $e")
           1
+
+// An accepted lint finding, as umpire-lint reads and writes one (tools/umpire/lint/accept.go).
+final case class Acceptance(kind: String, owner: String, subjects: Vector[String], because: String)
+
+// The accepted findings beside an IR file, `<file>.lint.json`, read and written as umpire-lint's
+// encoder writes them, and the waivers the lifter writes beside the IR file it lifted a
+// `capabilities` section into.
+object Accepted:
+  // The kind an acceptance of a waiver's reason has, keyed `<machine>.<property>`.
+  val waived = "waived-law"
+
+  // `accepted`, holding the waivers `waivers`, `(machine, <machine>.<property>, reason)`, that the
+  // `capabilities` sections of `machines` state: an acceptance of one keeps its place with its
+  // reason, an acceptance of a waiver of those machines that none states any more is dropped, and
+  // a waiver not accepted yet follows the others, in the order given. Every other acceptance keeps
+  // its place, an author's and those another forward wrote for other machines alike.
+  def withWaivers(
+      accepted: Vector[Acceptance],
+      machines: Set[String],
+      waivers: Seq[(String, String, String)]
+  ): Vector[Acceptance] =
+    val stated = waivers.map((machine, subject, because) =>
+      subject -> Acceptance(waived, machine, Vector(subject), because)
+    )
+    def ours(a: Acceptance) = a.kind == waived && machines(a.owner)
+    val kept = accepted
+      .flatMap(a =>
+        if !ours(a) then Seq(a) else a.subjects.flatMap(s => stated.find(_._1 == s)).map(_._2)
+      )
+      .distinct
+    val placed = kept.filter(ours).flatMap(_.subjects).toSet
+    kept ++ stated.collect { case (subject, a) if !placed(subject) => a }
+
+  // The machines and waivers a lifter's `<file>.waivers.json` holds.
+  def waivers(text: String): (Set[String], Seq[(String, String, String)]) =
+    val fields = Json.fields(Json.parse(text), "the waivers")
+    val machines =
+      Json.items(fields.getOrElse("machines", Vector()), "machines").map(Json.text(_, "a machine"))
+    val waivers = Json.items(fields.getOrElse("waivers", Vector()), "waivers").map { w =>
+      val f = Json.fields(w, "a waiver")
+      def text(name: String) = Json.text(f.getOrElse(name, ""), s"a waiver's $name")
+      (text("machine"), text("subject"), text("because"))
+    }
+    (machines.toSet, waivers)
+
+  // The acceptances of a `<file>.lint.json`.
+  def read(text: String): Vector[Acceptance] =
+    val fields = Json.fields(Json.parse(text), "the accepted findings")
+    Json.items(fields.getOrElse("accepted", Vector()), "accepted").map { a =>
+      val f = Json.fields(a, "an acceptance")
+      def text(name: String) = Json.text(f.getOrElse(name, ""), s"an acceptance's $name")
+      Acceptance(
+        text("kind"),
+        text("owner"),
+        Json.items(f.getOrElse("subjects", Vector()), "subjects").map(Json.text(_, "a subject")),
+        text("because")
+      )
+    }
+
+  // The acceptances as Go's encoder writes them, indented by two spaces, with HTML left unescaped.
+  def encode(accepted: Vector[Acceptance]): String =
+    def text(s: String) = Json.quoted(s)
+    def list(items: Vector[String], indent: String) =
+      if items.isEmpty then "[]"
+      else items.map(i => s"$indent  ${text(i)}").mkString("[\n", ",\n", s"\n$indent]")
+    val entries = accepted.map { a =>
+      s"""    {
+         |      "kind": ${text(a.kind)},
+         |      "owner": ${text(a.owner)},
+         |      "subjects": ${list(a.subjects, "      ")},
+         |      "because": ${text(a.because)}
+         |    }""".stripMargin
+    }
+    val body = if entries.isEmpty then "[]" else entries.mkString("[\n", ",\n", "\n  ]")
+    s"{\n  \"accepted\": $body\n}\n"
+
+// The JSON the gate reads with the standard library alone: a value is a Map of its fields, a Vector
+// of its items, a String, a BigDecimal, a Boolean or None for null.
+private[check] object Json:
+  def parse(text: String): Any =
+    val (v, end) = value(text, space(text, 0))
+    if space(text, end) != text.length then fail(end, "text after the value")
+    v
+
+  def fields(v: Any, what: String): Map[String, Any] = v match
+    case m: Map[?, ?] => m.collect { case (k: String, x) => k -> x }
+    case _            => throw GateError(s"$what is no JSON object")
+  def items(v: Any, what: String): Vector[Any] = v match
+    case xs: Vector[?] => xs.toVector
+    case _             => throw GateError(s"$what is no JSON array")
+  def text(v: Any, what: String): String = v match
+    case s: String => s
+    case _         => throw GateError(s"$what is no JSON string")
+
+  // A string as Go's encoder writes it with HTML left unescaped.
+  def quoted(s: String): String =
+    s.flatMap {
+      case '"'                                            => "\\\""
+      case '\\'                                           => "\\\\"
+      case '\n'                                           => "\\n"
+      case '\r'                                           => "\\r"
+      case '\t'                                           => "\\t"
+      case '\b'                                           => "\\b"
+      case '\f'                                           => "\\f"
+      case c if c < ' ' || c == '\u2028' || c == '\u2029' => f"\\u${c.toInt}%04x"
+      case c                                              => c.toString
+    }.mkString("\"", "", "\"")
+
+  private def fail(at: Int, what: String): Nothing =
+    throw GateError(s"not JSON at offset $at: $what")
+
+  @scala.annotation.tailrec
+  private def space(text: String, i: Int): Int =
+    if i < text.length && " \t\r\n".contains(text(i)) then space(text, i + 1) else i
+
+  private def value(text: String, i: Int): (Any, Int) =
+    if i >= text.length then fail(i, "a value is missing")
+    text(i) match
+      case '{' => members(text, space(text, i + 1), Vector())
+      case '[' => elements(text, space(text, i + 1), Vector())
+      case '"' => string(text, i + 1, StringBuilder())
+      case _   =>
+        val end = Iterator.from(i).find(j => j >= text.length || ",]} \t\r\n".contains(text(j))).get
+        text.substring(i, end) match
+          case "true"  => (true, end)
+          case "false" => (false, end)
+          case "null"  => (None, end)
+          case n => (scala.util.Try(BigDecimal(n)).getOrElse(fail(i, s"not a value: $n")), end)
+
+  @scala.annotation.tailrec
+  private def members(text: String, i: Int, done: Vector[(String, Any)]): (Any, Int) =
+    if i < text.length && text(i) == '}' && done.isEmpty then (done.toMap, i + 1)
+    else
+      if i >= text.length || text(i) != '"' then fail(i, "a field name is missing")
+      val (key, afterKey) = string(text, i + 1, StringBuilder())
+      val colon = space(text, afterKey)
+      if colon >= text.length || text(colon) != ':' then fail(colon, "a colon is missing")
+      val (v, afterValue) = value(text, space(text, colon + 1))
+      val next = space(text, afterValue)
+      val all = done :+ (key.toString -> v)
+      if next < text.length && text(next) == ',' then members(text, space(text, next + 1), all)
+      else if next < text.length && text(next) == '}' then (all.toMap, next + 1)
+      else fail(next, "a comma or a brace is missing")
+
+  @scala.annotation.tailrec
+  private def elements(text: String, i: Int, done: Vector[Any]): (Any, Int) =
+    if i < text.length && text(i) == ']' && done.isEmpty then (done, i + 1)
+    else
+      val (v, afterValue) = value(text, i)
+      val next = space(text, afterValue)
+      if next < text.length && text(next) == ',' then
+        elements(text, space(text, next + 1), done :+ v)
+      else if next < text.length && text(next) == ']' then (done :+ v, next + 1)
+      else fail(next, "a comma or a bracket is missing")
+
+  @scala.annotation.tailrec
+  private def string(text: String, i: Int, out: StringBuilder): (String, Int) =
+    if i >= text.length then fail(i, "a string is not closed")
+    text(i) match
+      case '"'                         => (out.toString, i + 1)
+      case '\\' if i + 1 < text.length =>
+        text(i + 1) match
+          case 'u' if i + 5 < text.length =>
+            out += Integer.parseInt(text.substring(i + 2, i + 6), 16).toChar
+            string(text, i + 6, out)
+          case c =>
+            out += Map('n' -> '\n', 't' -> '\t', 'r' -> '\r', 'b' -> '\b', 'f' -> '\f')
+              .getOrElse(c, c)
+            string(text, i + 2, out)
+      case c =>
+        out += c
+        string(text, i + 1, out)
 
 @main def run(arguments: String*): Unit =
   sys.exit(Gate.main(arguments, Tools.here, System.out, System.err))

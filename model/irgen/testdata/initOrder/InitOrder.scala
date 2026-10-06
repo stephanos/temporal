@@ -5,7 +5,7 @@
 // object's machine; a machine in a type's companion or in an object of the signature; a Property in
 // an object of a machine object that is none of its sections; a Query over another object's
 // Scenario; a val in exports that is no IR file. (b): Switch's `implements` reads the realization
-// (Realization.scala), which reads it back.
+// (Realization.scala), which reads it back, and so does Dimmer's `capabilities`, through its base.
 package fixture.features.initorder
 
 import umpire.*
@@ -98,6 +98,14 @@ object Asked extends Machine[Lamp, Outcome, Nothing]:
     val first = query verify properties.stays in scenario("any").free limits one total 2
     val late = scenario.free
     val borrowed = query verify properties.stays in Switch.queries.flipped limits one total 2
+
+object Dimmer extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(lamp: State) = true
+
+  object rules extends Rules
+
+  object capabilities extends Dimmed(this)
 
 object exports:
   val switchFile = irFile("switch")(Switch)

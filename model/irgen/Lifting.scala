@@ -17,8 +17,9 @@ final private[irgen] class Lifting(val ctx: Context)
   import ctx.quotes.reflect.*
 
   // A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, a
-  // capability declaration, an `implements` section, which is its object's, or a `queries` section,
-  // which roots every Query, list of Queries and progress claim it declares, in the order written.
+  // capability declaration, an `implements` or `capabilities` section, which is its object's, or a
+  // `queries` section, which roots every Query, list of Queries and progress claim it declares, in
+  // the order written.
   def liftRoot(root: String): Unit =
     val sym = defs.keys
       .find(s => s.isValDef && s.fullName == root)
@@ -27,7 +28,7 @@ final private[irgen] class Lifting(val ctx: Context)
     // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
     if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d)
     else if objectForm(sym) then compositionOf(sym, d)
-    else if implementsObject(sym) then fold(Ref(sym), Map.empty): Unit
+    else if implementsObject(sym) || capabilitiesObject(sym) then fold(Ref(sym), Map.empty): Unit
     else if queriesSection(sym) then
       for q <- statements(objectBody(moduleClassOf(sym), d)) do
         q match
@@ -43,7 +44,7 @@ final private[irgen] class Lifting(val ctx: Context)
     else if isNamed(d.tpt.tpe, "umpire.Machine") then machineOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.Composition") then compositionOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.realize.Realization") then realizationOf(sym, d)
-    else if isNamed(d.tpt.tpe, "umpire.Capabilities") then fold(Ref(sym), Map.empty): Unit
+    else if isNamed(d.tpt.tpe, "umpire.LawDeclaration") then fold(Ref(sym), Map.empty): Unit
     else
       val kind = d.tpt.tpe.widen.dealias
       val claims = Set("umpire.Query", "umpire.Progress")

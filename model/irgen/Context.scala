@@ -194,6 +194,11 @@ final private[irgen] class Context(val index: Index):
   val lawClaims = mutable.ArrayBuffer.empty[LawClaim]
   val lawWaivers = mutable.ArrayBuffer.empty[LawWaiver]
   val lawCatalog = mutable.LinkedHashMap.empty[String, LawEntry]
+  // The machines whose `capabilities` sections were lifted, and each waiver they state, as
+  // `(machine, <machine>.<property>, reason)`, which the model gate writes into the accepted
+  // findings beside the IR file.
+  val capabilitySections = mutable.LinkedHashSet.empty[String]
+  val capabilityWaivers = mutable.ArrayBuffer.empty[(String, String, String)]
 
   // A type with the type parameters of the declaring functions being folded applied.
   def instantiated(tpe: TypeRepr): TypeRepr =

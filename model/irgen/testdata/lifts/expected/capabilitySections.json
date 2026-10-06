@@ -1,0 +1,3101 @@
+{
+  "source": "model: fixture.capabilitysections.Chore$.capabilities, fixture.capabilitysections.MirrorPair$.capabilities, fixture.capabilitysections.Task$.capabilities, fixture.capabilitysections.Task$.queries, fixture.capabilitysections.TaskPair$.capabilities",
+  "types": [ {
+    "name": "fixture.capabilitysections.Answer",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 22
+    },
+    "enum": {
+      "cases": [ {
+        "name": "ok"
+      }, {
+        "name": "gone"
+      } ]
+    }
+  }, {
+    "name": "fixture.capabilitysections.Note",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 27
+    },
+    "enum": {
+      "cases": [ {
+        "name": "started"
+      }, {
+        "name": "heldNote"
+      }, {
+        "name": "released"
+      }, {
+        "name": "finished"
+      } ]
+    }
+  }, {
+    "name": "fixture.capabilitysections.PairState",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 166
+    },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "named": "fixture.capabilitysections.TaskState"
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "named": "fixture.capabilitysections.TaskState"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.capabilitysections.Phase",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 16
+    },
+    "enum": {
+      "cases": [ {
+        "name": "queued"
+      }, {
+        "name": "running"
+      }, {
+        "name": "held"
+      }, {
+        "name": "done"
+      } ]
+    }
+  }, {
+    "name": "fixture.capabilitysections.TaskState",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 20
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.capabilitysections.Phase"
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "chore.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 143
+    },
+    "params": [ {
+      "name": "note",
+      "type": {
+        "named": "fixture.capabilitysections.Note"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 143
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 143
+          },
+          "var": "note"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilitysections.Note",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+              "line": 143
+            },
+            "literal": {
+              "text": "started"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilitysections.Note",
+                "case": "heldNote"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+              "line": 143
+            },
+            "literal": {
+              "text": "heldNote"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilitysections.Note",
+                "case": "released"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+              "line": 143
+            },
+            "literal": {
+              "text": "released"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilitysections.Note",
+                "case": "finished"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+              "line": 143
+            },
+            "literal": {
+              "text": "finished"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "chore.property.chore.sealedIsRefused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 108
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 108
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 108
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 108
+              },
+              "call": {
+                "function": "fixture.capabilitysections.Tasks$.done",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 108
+                  },
+                  "call": {
+                    "function": "fixture.capabilitysections.Tasks$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 108
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 108
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 108
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 108
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 108
+              },
+              "var": "before"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.held",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 180
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.capabilitysections.PairState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 180
+      },
+      "call": {
+        "function": "fixture.capabilitysections.Tasks$.held",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 180
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 180
+              },
+              "var": "s"
+            },
+            "field": "left"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.phase",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 176
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.capabilitysections.PairState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 176
+      },
+      "call": {
+        "function": "fixture.capabilitysections.Tasks$.phase",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 176
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 176
+              },
+              "var": "s"
+            },
+            "field": "left"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.working",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 183
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.capabilitysections.PairState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 183
+      },
+      "call": {
+        "function": "fixture.capabilitysections.Tasks$.working",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 183
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 183
+              },
+              "var": "s"
+            },
+            "field": "left"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Pairs$.over",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 169
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.capabilitysections.PairState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 169
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 169
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Tasks$.over",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 169
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 169
+                  },
+                  "var": "p"
+                },
+                "field": "left"
+              }
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 169
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Tasks$.over",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 169
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 169
+                  },
+                  "var": "p"
+                },
+                "field": "right"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.done",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 82
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.capabilitysections.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 82
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 82
+          },
+          "var": "p"
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 82
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "done"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.finish",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 91
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 92
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 92
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 92
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 92
+                  },
+                  "var": "t"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 92
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Phase",
+                  "case": "running"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 92
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 92
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 25
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilitysections.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 92
+                  },
+                  "construct": {
+                    "type": "fixture.capabilitysections.TaskState",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 92
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilitysections.Phase",
+                          "case": "done"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 92
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 92
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilitysections.Note",
+                          "case": "finished"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 92
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 92
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.gone",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 87
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 87
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 87
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 87
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Answer",
+                  "case": "gone"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 87
+              },
+              "var": "t"
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 87
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 87
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.held",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 83
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 83
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 83
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 83
+              },
+              "var": "t"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 83
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "held"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.hold",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 93
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 94
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 94
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Tasks$.done",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 94
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 94
+                  },
+                  "var": "t"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 94
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Tasks$.gone",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 94
+              },
+              "var": "t"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 95
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 95
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 95
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 95
+                      },
+                      "var": "t"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 95
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 95
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilitysections.Phase",
+                          "case": "queued"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 95
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilitysections.Phase",
+                          "case": "running"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 95
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 95
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 25
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilitysections.Answer",
+                          "case": "ok"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 95
+                      },
+                      "construct": {
+                        "type": "fixture.capabilitysections.TaskState",
+                        "args": [ {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                            "line": 95
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilitysections.Phase",
+                              "case": "held"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 95
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                            "line": 95
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilitysections.Note",
+                              "case": "heldNote"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 95
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 96
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.over",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 85
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 85
+      },
+      "call": {
+        "function": "fixture.capabilitysections.Tasks$.done",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 85
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 85
+              },
+              "var": "t"
+            },
+            "field": "phase"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.phase",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 81
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 81
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 81
+          },
+          "var": "t"
+        },
+        "field": "phase"
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.release",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 97
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 98
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 98
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Tasks$.done",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 98
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 98
+                  },
+                  "var": "t"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 98
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Tasks$.gone",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 98
+              },
+              "var": "t"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 99
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 99
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 99
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 99
+                      },
+                      "var": "t"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 99
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilitysections.Phase",
+                      "case": "held"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 99
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 99
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 25
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilitysections.Answer",
+                          "case": "ok"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 99
+                      },
+                      "construct": {
+                        "type": "fixture.capabilitysections.TaskState",
+                        "args": [ {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                            "line": 99
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilitysections.Phase",
+                              "case": "queued"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 99
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                            "line": 99
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilitysections.Note",
+                              "case": "released"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 99
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 100
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.take",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 89
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 90
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 90
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 90
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 90
+                  },
+                  "var": "t"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 90
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Phase",
+                  "case": "queued"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 90
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 90
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 25
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilitysections.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 90
+                  },
+                  "construct": {
+                    "type": "fixture.capabilitysections.TaskState",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 90
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilitysections.Phase",
+                          "case": "running"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 90
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 90
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilitysections.Note",
+                          "case": "started"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 90
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 90
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilitysections.Tasks$.working",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 84
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 84
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 84
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 84
+              },
+              "var": "t"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 84
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "running"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "mirrorPair.property.mirrorPair.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 46
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilitysections.PairState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 47
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 47
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.Tasks$.done",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "call": {
+                    "function": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 47
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 47
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 47
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "task.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 114
+    },
+    "params": [ {
+      "name": "note",
+      "type": {
+        "named": "fixture.capabilitysections.Note"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 114
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 114
+          },
+          "var": "note"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilitysections.Note",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+              "line": 114
+            },
+            "literal": {
+              "text": "started"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilitysections.Note",
+                "case": "heldNote"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+              "line": 114
+            },
+            "literal": {
+              "text": "heldNote"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilitysections.Note",
+                "case": "released"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+              "line": 114
+            },
+            "literal": {
+              "text": "released"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilitysections.Note",
+                "case": "finished"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+              "line": 114
+            },
+            "literal": {
+              "text": "finished"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "task.property.task.heldIsNotTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 71
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 71
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 71
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 71
+              },
+              "call": {
+                "function": "fixture.capabilitysections.Tasks$.held",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 71
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 71
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 71
+              },
+              "call": {
+                "function": "task.property.task.heldIsNotTaken.never",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 71
+                  },
+                  "var": "after"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "task.property.task.heldIsNotTaken.never",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 71
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 71
+      },
+      "call": {
+        "function": "fixture.capabilitysections.Tasks$.working",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 71
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 71
+              },
+              "var": "s"
+            },
+            "field": "state"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "task.property.task.sealedIsRefused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 56
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 57
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 57
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 57
+              },
+              "call": {
+                "function": "fixture.capabilitysections.Tasks$.done",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 57
+                  },
+                  "call": {
+                    "function": "fixture.capabilitysections.Tasks$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 57
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 57
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 57
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 57
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 57
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 57
+                  },
+                  "var": "before"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 57
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 57
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 57
+                      },
+                      "var": "after"
+                    },
+                    "field": "outcome"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 128
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilitysections.Answer",
+                      "case": "gone"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "task.property.task.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 46
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilitysections.TaskState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 47
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 47
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.Tasks$.done",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "call": {
+                    "function": "fixture.capabilitysections.Tasks$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 47
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 47
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.Tasks$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 47
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.Tasks$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "taskPair.property.taskPair.heldIsNotTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 71
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilitysections.PairState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 71
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 71
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 71
+              },
+              "call": {
+                "function": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.held",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 71
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 71
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 71
+              },
+              "call": {
+                "function": "taskPair.property.taskPair.heldIsNotTaken.never",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 71
+                  },
+                  "var": "after"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "taskPair.property.taskPair.heldIsNotTaken.never",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 71
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 71
+      },
+      "call": {
+        "function": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.working",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 71
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 71
+              },
+              "var": "s"
+            },
+            "field": "state"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "taskPair.property.taskPair.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 46
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilitysections.PairState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 47
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 47
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.Tasks$.done",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "call": {
+                    "function": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 47
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 47
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                        "line": 47
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 47
+              },
+              "call": {
+                "function": "fixture.capabilitysections.PairState.through.left.fixture.capabilitysections.Tasks$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                    "line": 47
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.capabilitysections.finish",
+    "name": "finish",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 34
+    },
+    "actor": "worker"
+  }, {
+    "id": "fixture.capabilitysections.hold",
+    "name": "hold",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 35
+    },
+    "actor": "client"
+  }, {
+    "id": "fixture.capabilitysections.release",
+    "name": "release",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 36
+    },
+    "actor": "client"
+  }, {
+    "id": "fixture.capabilitysections.take",
+    "name": "take",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 33
+    },
+    "actor": "worker"
+  } ],
+  "machines": [ {
+    "family": "fixture.capabilitysections",
+    "name": "chore",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 143
+    },
+    "stateType": "fixture.capabilitysections.TaskState",
+    "outcomeType": "fixture.capabilitysections.Answer",
+    "factType": "fixture.capabilitysections.Note",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 144
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.TaskState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 144
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 145
+      },
+      "lambda": {
+        "params": [ {
+          "name": "t",
+          "type": {
+            "named": "fixture.capabilitysections.TaskState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 145
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Tasks$.over",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 145
+              },
+              "var": "t"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.capabilitysections.hold",
+      "function": "fixture.capabilitysections.Tasks$.hold",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 147
+      }
+    }, {
+      "action": "fixture.capabilitysections.release",
+      "function": "fixture.capabilitysections.Tasks$.release",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 147
+      }
+    } ],
+    "evidence": "chore.evidence"
+  }, {
+    "family": "fixture.capabilitysections",
+    "name": "task",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 114
+    },
+    "stateType": "fixture.capabilitysections.TaskState",
+    "outcomeType": "fixture.capabilitysections.Answer",
+    "factType": "fixture.capabilitysections.Note",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 115
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.TaskState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 116
+      },
+      "lambda": {
+        "params": [ {
+          "name": "t",
+          "type": {
+            "named": "fixture.capabilitysections.TaskState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 116
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Tasks$.over",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 116
+              },
+              "var": "t"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.capabilitysections.take",
+      "function": "fixture.capabilitysections.Tasks$.take",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 120
+      }
+    }, {
+      "action": "fixture.capabilitysections.finish",
+      "function": "fixture.capabilitysections.Tasks$.finish",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 121
+      }
+    }, {
+      "action": "fixture.capabilitysections.hold",
+      "function": "fixture.capabilitysections.Tasks$.hold",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 122
+      }
+    }, {
+      "action": "fixture.capabilitysections.release",
+      "function": "fixture.capabilitysections.Tasks$.release",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 123
+      }
+    } ],
+    "evidence": "task.evidence"
+  } ],
+  "compositions": [ {
+    "family": "fixture.capabilitysections",
+    "name": "mirrorPair",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 198
+    },
+    "stateType": "fixture.capabilitysections.PairState",
+    "members": [ {
+      "field": "left",
+      "machine": "task"
+    }, {
+      "field": "right",
+      "machine": "task"
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 199
+      },
+      "lambda": {
+        "params": [ {
+          "name": "p",
+          "type": {
+            "named": "fixture.capabilitysections.PairState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 199
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Pairs$.over",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 199
+              },
+              "var": "p"
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.capabilitysections",
+    "name": "taskPair",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 190
+    },
+    "stateType": "fixture.capabilitysections.PairState",
+    "members": [ {
+      "field": "left",
+      "machine": "task"
+    }, {
+      "field": "right",
+      "machine": "chore"
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 191
+      },
+      "lambda": {
+        "params": [ {
+          "name": "p",
+          "type": {
+            "named": "fixture.capabilitysections.PairState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 191
+          },
+          "call": {
+            "function": "fixture.capabilitysections.Pairs$.over",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 191
+              },
+              "var": "p"
+            } ]
+          }
+        }
+      }
+    }
+  } ],
+  "properties": [ {
+    "machine": "chore",
+    "name": "chore.sealedIsRefused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 150
+    },
+    "holds": "chore.property.chore.sealedIsRefused",
+    "transition": true,
+    "origin": {
+      "name": "fixture.capabilitysections.Sealable.sealedIsRefused",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 51
+      }
+    }
+  }, {
+    "machine": "mirrorPair",
+    "name": "mirrorPair.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 175
+    },
+    "holds": "mirrorPair.property.mirrorPair.sealedStaysSealed",
+    "transition": true,
+    "origin": {
+      "name": "fixture.capabilitysections.Sealable.sealedStaysSealed",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 45
+      }
+    }
+  }, {
+    "machine": "task",
+    "name": "task.heldIsNotTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 129
+    },
+    "holds": "task.property.task.heldIsNotTaken",
+    "transition": true,
+    "origin": {
+      "name": "fixture.capabilitysections.Holdable.heldIsNotTaken",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 70
+      }
+    }
+  }, {
+    "machine": "task",
+    "name": "task.sealedIsRefused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 127
+    },
+    "holds": "task.property.task.sealedIsRefused",
+    "transition": true,
+    "origin": {
+      "name": "fixture.capabilitysections.Sealable.sealedIsRefused",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 51
+      }
+    }
+  }, {
+    "machine": "task",
+    "name": "task.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 127
+    },
+    "holds": "task.property.task.sealedStaysSealed",
+    "transition": true,
+    "origin": {
+      "name": "fixture.capabilitysections.Sealable.sealedStaysSealed",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 45
+      }
+    }
+  }, {
+    "machine": "taskPair",
+    "name": "taskPair.heldIsNotTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 177
+    },
+    "holds": "taskPair.property.taskPair.heldIsNotTaken",
+    "transition": true,
+    "origin": {
+      "name": "fixture.capabilitysections.Holdable.heldIsNotTaken",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 70
+      }
+    }
+  }, {
+    "machine": "taskPair",
+    "name": "taskPair.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 175
+    },
+    "holds": "taskPair.property.taskPair.sealedStaysSealed",
+    "transition": true,
+    "origin": {
+      "name": "fixture.capabilitysections.Sealable.sealedStaysSealed",
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 45
+      }
+    }
+  } ],
+  "scenarios": [ {
+    "machine": "chore",
+    "name": "chore.sealedIsRefused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 151
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 144
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.TaskState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 144
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "mirrorPair",
+    "name": "mirrorPair.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 176
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 176
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.PairState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "construct": {
+            "type": "fixture.capabilitysections.TaskState",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 115
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Phase",
+                  "case": "queued"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "construct": {
+            "type": "fixture.capabilitysections.TaskState",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 115
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Phase",
+                  "case": "queued"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "task",
+    "name": "heldThenTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 137
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 115
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.TaskState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.capabilitysections.hold"
+    }, {
+      "action": "fixture.capabilitysections.take"
+    } ]
+  }, {
+    "machine": "task",
+    "name": "task.heldIsNotTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 129
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 115
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.TaskState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "task",
+    "name": "task.sealedIsRefused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 128
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 115
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.TaskState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "task",
+    "name": "task.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 128
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 115
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.TaskState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilitysections.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "taskPair",
+    "name": "taskPair.heldIsNotTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 177
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 177
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.PairState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "construct": {
+            "type": "fixture.capabilitysections.TaskState",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 115
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Phase",
+                  "case": "queued"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 144
+          },
+          "construct": {
+            "type": "fixture.capabilitysections.TaskState",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 144
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Phase",
+                  "case": "queued"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "taskPair",
+    "name": "taskPair.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 176
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+        "line": 176
+      },
+      "construct": {
+        "type": "fixture.capabilitysections.PairState",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 115
+          },
+          "construct": {
+            "type": "fixture.capabilitysections.TaskState",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 115
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Phase",
+                  "case": "queued"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+            "line": 144
+          },
+          "construct": {
+            "type": "fixture.capabilitysections.TaskState",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+                "line": 144
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilitysections.Phase",
+                  "case": "queued"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  } ],
+  "queries": [ {
+    "name": "chore.sealedIsRefused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 151
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "chore",
+      "name": "chore.sealedIsRefused"
+    },
+    "scenario": {
+      "machine": "chore",
+      "name": "chore.sealedIsRefused"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "24"
+  }, {
+    "name": "heldStaysUntaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 139
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "task",
+      "name": "task.heldIsNotTaken"
+    },
+    "scenario": {
+      "machine": "task",
+      "name": "heldThenTaken"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "8"
+  }, {
+    "name": "mirrorPair.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 176
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "mirrorPair",
+      "name": "mirrorPair.sealedStaysSealed"
+    },
+    "scenario": {
+      "machine": "mirrorPair",
+      "name": "mirrorPair.sealedStaysSealed"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 256
+    },
+    "total": "256"
+  }, {
+    "name": "task.heldIsNotTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 129
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "task",
+      "name": "task.heldIsNotTaken"
+    },
+    "scenario": {
+      "machine": "task",
+      "name": "task.heldIsNotTaken"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "48"
+  }, {
+    "name": "task.sealedIsRefused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 128
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "task",
+      "name": "task.sealedIsRefused"
+    },
+    "scenario": {
+      "machine": "task",
+      "name": "task.sealedIsRefused"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 256
+    },
+    "total": "32"
+  }, {
+    "name": "task.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 128
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "task",
+      "name": "task.sealedStaysSealed"
+    },
+    "scenario": {
+      "machine": "task",
+      "name": "task.sealedStaysSealed"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "48"
+  }, {
+    "name": "taskPair.heldIsNotTaken",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 177
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "taskPair",
+      "name": "taskPair.heldIsNotTaken"
+    },
+    "scenario": {
+      "machine": "taskPair",
+      "name": "taskPair.heldIsNotTaken"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 256
+    },
+    "total": "192"
+  }, {
+    "name": "taskPair.sealedStaysSealed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/CapabilitySections.scala",
+      "line": 176
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "taskPair",
+      "name": "taskPair.sealedStaysSealed"
+    },
+    "scenario": {
+      "machine": "taskPair",
+      "name": "taskPair.sealedStaysSealed"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 256
+    },
+    "total": "192"
+  } ]
+}

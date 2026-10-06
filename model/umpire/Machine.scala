@@ -81,14 +81,14 @@ trait Declares[S] extends Model:
   // this form serves a function that declares them for several designs.
   def capabilities(limits: Limits)(declared: CapabilityOf[S, Outcome, Fact]*)(using
       Catalog
-  ): Capabilities[S] = umpire.capabilities(this, limits)(declared*)
+  ): LawDeclaration[S] = umpire.capabilities(this, limits)(declared*)
 
   // Declares the capabilities of another machine or composition `m`, as the top-level
   // `capabilities(m, limits)(...)` does, from inside an object form, whose own `capabilities` hides
   // that one.
   def capabilities[T](m: Declares[T], limits: Limits)(
       declared: CapabilityOf[T, m.Outcome, m.Fact]*
-  )(using Catalog): Capabilities[T] = umpire.capabilities(m, limits)(declared*)
+  )(using Catalog): LawDeclaration[T] = umpire.capabilities(m, limits)(declared*)
 
 // What a derivation binds in its source's place: one action's step function, `action ~> f`, or the
 // rules of one action, `on(action) { where(g) ~> effect }` (model/umpire/Syntax.scala).
@@ -144,8 +144,8 @@ extension [A, B, C](a: Action[(A, B, C)])
 // `object rules extends Rules(_.phase)` in `object OrderProduct extends Machine[...]`.
 final class Owner[S, O, F] private[umpire] (val machine: Machine[S, O, F])
 
-// What an `implements` section declares the capabilities of: the machine or composition whose
-// object it sits in, with the outcomes and facts its steps answer and record.
+// What an `implements` or `capabilities` section declares the capabilities of: the machine or
+// composition whose object it sits in, with the outcomes and facts its steps answer and record.
 final class Declaring[S, O, F] private[umpire] (val model: Declares[S])
 
 // What a machine binds each action to, in the order the first binding of each names it: a step
@@ -257,14 +257,14 @@ private[umpire] def writtenAction(code: String): String =
 // where it declares them, `entity` and `evidence`; then its sections, objects named after what they
 // hold, in this order: `states`, its vocabulary (the named sets and projections of its states);
 // `refinement`, where it refines another machine (umpire.Refinement); `effects`; `monitors`;
-// `rules`, which it must declare; `properties`; `implements`, its capabilities (umpire.Implements);
-// and `queries`. Its `entity` is the one entity its actions are `on`, or create, unless it names
-// another. The IR generator (model/irgen) reads them from the source, and names each of its
-// declarations after where it is declared: its package and the objects it sits in. At run time a
-// machine is its init, its end and the step function each action's rules lower to: `rules` is the
-// one section the machine itself reads, through the member it implements, so no section is found by
-// reflection, and a section object, which initializes on its first use, is never read while the
-// machine initializes.
+// `rules`, which it must declare; `properties`; `implements` or `capabilities`, its capabilities
+// (umpire.Implements, umpire.Capabilities); and `queries`. Its `entity` is the one entity its
+// actions are `on`, or create, unless it names another. The IR generator (model/irgen) reads them
+// from the source, and names each of its declarations after where it is declared: its package and
+// the objects it sits in. At run time a machine is its init, its end and the step function each
+// action's rules lower to: `rules` is the one section the machine itself reads, through the member
+// it implements, so no section is found by reflection, and a section object, which initializes on
+// its first use, is never read while the machine initializes.
 abstract class Machine[S, O, F](using
     private[umpire] val fs: Finite[S],
     private[umpire] val fo: Finite[O],
@@ -288,7 +288,7 @@ abstract class Machine[S, O, F](using
   // The owner its `rules` and other sections read its types from.
   protected given machineOwner: Owner[S, O, F] = Owner(this)
 
-  // What its `implements` declares the capabilities of: this machine.
+  // What its `implements` or `capabilities` declares the capabilities of: this machine.
   protected given declaring: Declaring[S, O, F] = Declaring(this)
 
   // What each action is bound to, in the order its first rule names it.

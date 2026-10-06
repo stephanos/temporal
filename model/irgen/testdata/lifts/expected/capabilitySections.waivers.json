@@ -1,0 +1,24 @@
+{
+  "machines": [ "chore", "mirrorPair", "task", "taskPair" ],
+  "waivers": [ {
+    "machine": "chore",
+    "subject": "chore.sealedIsRefused",
+    "because": "a fixture's override: the chore answers a done task as it likes"
+  }, {
+    "machine": "chore",
+    "subject": "chore.sealedStaysSealed",
+    "because": "a fixture's waiver: the chore keeps no status"
+  }, {
+    "machine": "mirrorPair",
+    "subject": "mirrorPair.heldIsNotTaken",
+    "because": "a fixture's own waiver: the mirror's right task may be taken while the left is held"
+  }, {
+    "machine": "mirrorPair",
+    "subject": "mirrorPair.sealedIsRefused",
+    "because": "a fixture's shared waiver: a pair answers a done task with its member's outcome"
+  }, {
+    "machine": "taskPair",
+    "subject": "taskPair.sealedIsRefused",
+    "because": "a fixture's shared waiver: a pair answers a done task with its member's outcome"
+  } ]
+}

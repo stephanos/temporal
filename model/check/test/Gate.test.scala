@@ -3,6 +3,7 @@ package umpire.check
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
 import java.nio.file.attribute.FileTime
+import scala.jdk.CollectionConverters.*
 
 class GateSuite extends munit.FunSuite:
   private val schemaFile = "proto/internal/temporal/server/api/umpire/v1/ir.proto"
@@ -741,3 +742,81 @@ class GateSuite extends munit.FunSuite:
       "model/ir/old.json is checked in and nothing produces it: remove it or declare it with irFile"
     )
     assertEquals(trees.held, before)
+
+  // fn-134.2 (R6): the waivers a lift's `capabilities` sections state, written beside its IR as
+  // `<file>.waivers.json`, reach the accepted findings under `<machine>.<property>`.
+  private def waivers(machines: Seq[String], stated: (String, String, String)*): String =
+    def q(s: String) = "\"" + s + "\""
+    val ws = stated.map((m, s, b) =>
+      s"{${q("machine")}: ${q(m)}, ${q("subject")}: ${q(s)}, ${q("because")}: ${q(b)}}"
+    )
+    s"{${q("machines")}: [${machines.map(q).mkString(", ")}], ${q("waivers")}: [${ws.mkString(", ")}]}\n"
+
+  private val authored = Acceptance("never-enabled", "task", Vector("stop"), "an author's reason")
+  private val otherForward =
+    Acceptance(Accepted.waived, "legacy", Vector("legacy.p"), "a sidecar's")
+  private def waiver(subject: String, because: String) =
+    Acceptance(Accepted.waived, subject.takeWhile(_ != '.'), Vector(subject), because)
+
+  test("the accepted findings file is read and written as umpire-lint writes it"):
+    val ir = Tools.here.directory.resolve("model/ir")
+    val stream = Files.list(ir)
+    val accepted =
+      try stream.iterator.asScala.filter(_.toString.endsWith(".lint.json")).toVector.sorted
+      finally stream.close()
+    assert(accepted.nonEmpty, s"$ir holds no accepted findings")
+    for file <- accepted do
+      val text = Files.readString(file)
+      assertEquals(Accepted.encode(Accepted.read(text)), text, file.toString)
+    assertEquals(
+      Accepted.encode(Vector(Acceptance("k", "o", Vector(), "a \"quoted\" <tab>\there"))),
+      "{\n  \"accepted\": [\n    {\n      \"kind\": \"k\",\n      \"owner\": \"o\",\n" +
+        "      \"subjects\": [],\n      \"because\": \"a \\\"quoted\\\" <tab>\\there\"\n    }\n  ]\n}\n"
+    )
+
+  test("an update writes each stated waiver in its place, drops a stale one, and keeps the rest"):
+    val held =
+      Vector(authored, waiver("task.p", "an old reason"), otherForward, waiver("task.gone", "x"))
+    val trees = Trees(
+      Map("a.json" -> "{}\n", "a.lint.json" -> Accepted.encode(held)),
+      Map(
+        "a.json" -> "{}\n",
+        "a.waivers.json" -> waivers(
+          Seq("task"),
+          ("task", "task.p", "now"),
+          ("task", "task.q", "new")
+        )
+      )
+    )
+    trees.settle(update = false)
+    Gate.acceptWaivers(trees.tree, trees.lifted, trees.root, update = true)
+    assertEquals(
+      Accepted.read(Files.readString(trees.tree.resolve("a.lint.json"))),
+      Vector(authored, waiver("task.p", "now"), otherForward, waiver("task.q", "new"))
+    )
+    Gate.acceptWaivers(trees.tree, trees.lifted, trees.root, update = false)
+    assert(!Files.exists(trees.tree.resolve("a.waivers.json")), "the waivers were checked in")
+
+  test("a check fails on a missing or stale waiver acceptance and writes nothing"):
+    val held = Accepted.encode(Vector(authored, waiver("task.gone", "x")))
+    val trees = Trees(
+      Map("a.json" -> "{}\n", "a.lint.json" -> held),
+      Map("a.json" -> "{}\n", "a.waivers.json" -> waivers(Seq("task"), ("task", "task.p", "why")))
+    )
+    val message = intercept[GateError](
+      Gate.acceptWaivers(trees.tree, trees.lifted, trees.root, update = false)
+    ).getMessage
+    assertEquals(
+      message,
+      "model/ir/a.lint.json does not carry the waivers its capabilities sections state: missing " +
+        "task.p, stale task.gone\nrerun with --update (make umpire-gen-model)"
+    )
+    assertEquals(Files.readString(trees.tree.resolve("a.lint.json")), held)
+
+  test("a section that states no waiver creates no accepted findings"):
+    val trees = Trees(
+      Map("a.json" -> "{}\n"),
+      Map("a.json" -> "{}\n", "a.waivers.json" -> waivers(Seq("task")))
+    )
+    Gate.acceptWaivers(trees.tree, trees.lifted, trees.root, update = true)
+    assert(!Files.exists(trees.tree.resolve("a.lint.json")), "a file accepting nothing was created")

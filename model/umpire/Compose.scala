@@ -49,7 +49,7 @@ abstract class Composition[S <: Product] private (
   // The owner its `syncs` read the composed state type from.
   protected given compositionOwner: Composer[S] = Composer(this)
 
-  // What its `implements` declares the capabilities of: this composition.
+  // What its `implements` or `capabilities` declares the capabilities of: this composition.
   protected given declaring: Declaring[S, String, String] = Declaring(this)
 
   // The members, each constructed: the machines and compositions it composes.
