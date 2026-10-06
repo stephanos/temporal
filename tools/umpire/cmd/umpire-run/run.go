@@ -17,8 +17,8 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/temporal/binding"
 	"go.temporal.io/server/tools/umpire/conformance"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 // Exit codes. 3 is deliberately separate from 2 so a caller can tell an unreachable server or a
@@ -173,7 +173,7 @@ func prepareAssessment(root string, source *testpilotspb.Case) (*modelAssessment
 	if err != nil {
 		return nil, err
 	}
-	model, err := umpiremodel.Load(filepath.Join(root, "ir", entry.Model))
+	model, err := ir.Load(filepath.Join(root, "ir", entry.Model))
 	if err != nil {
 		return nil, err
 	}

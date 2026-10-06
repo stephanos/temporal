@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
 )
 
 // assessDirectly gives a fresh Assessor these pieces of evidence, one per Run Event from event 2 on,
@@ -36,7 +36,7 @@ var completed = testpilot.AssessmentClosure{Disposition: testpilotspb.RUN_DISPOS
 // Monitor stopped, one that became incomplete, or one whose Contract evaluation failed, is
 // inconclusive: live and offline read the same closure.
 func TestOnlyARunThatClosedCompleteIsConcludedPositively(t *testing.T) {
-	factory, err := Prepare(declared(t), umpiremodel.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}, carrier(store, []string{"stored"}, 1), generous)
+	factory, err := Prepare(declared(t), check.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}, carrier(store, []string{"stored"}, 1), generous)
 	require.NoError(t, err)
 	stored := script(store, fact{name: "o0", records: "stored"})[0].evidence
 	for name, test := range map[string]struct {
@@ -148,7 +148,7 @@ func TestEvidenceCarriesItsKindsFieldsAsDeclared(t *testing.T) {
 		{FieldId: "note", Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_REDACT},
 		{FieldId: "secret", Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT},
 	}
-	factory, err := Prepare(declared(t), umpiremodel.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}, source, generous)
+	factory, err := Prepare(declared(t), check.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}, source, generous)
 	require.NoError(t, err)
 	text := &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "x"}}
 	for name, test := range map[string]struct {

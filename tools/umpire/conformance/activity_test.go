@@ -16,8 +16,9 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -30,7 +31,7 @@ const (
 
 func activityModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
 	require.NoError(t, err)
 	return m
 }
@@ -51,7 +52,7 @@ func loweredActivity(t testing.TB, m *umpirespb.Model, query string) *bound {
 	require.NoError(t, err)
 	plain, err := testpilot.Prepare(lowering.Case, profile)
 	require.NoError(t, err)
-	factory, err := Prepare(m, umpiremodel.ClaimKey{Family: activityFamily, Owner: activityMachine, Name: query}, lowering.Case, generous)
+	factory, err := Prepare(m, check.ClaimKey{Family: activityFamily, Owner: activityMachine, Name: query}, lowering.Case, generous)
 	require.NoError(t, err)
 	assessed, err := plain.WithAssessment(factory)
 	require.NoError(t, err)

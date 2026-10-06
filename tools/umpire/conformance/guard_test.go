@@ -8,7 +8,7 @@ import (
 	failurepb "go.temporal.io/api/failure/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -17,7 +17,7 @@ import (
 // (model/ir/activity.json).
 func activitySource(t testing.TB, kind string) *umpirespb.RunEventSource {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
 	require.NoError(t, err)
 	for _, e := range m.GetRealizations()[0].GetEvidence() {
 		if e.GetId() == activityEvidence+kind {

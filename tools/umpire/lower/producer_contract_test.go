@@ -6,13 +6,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/tools/umpire/check"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 // producerContractFixture is what the producer is handed for a Query of the Nexus caller Model once
 // the lowerer has checked it: the Query, its identity, the realization and the source.
-func producerContractFixture(t *testing.T, name string) (*umpiremodel.Query, Identity, *cp.Realization, cp.Source) {
+func producerContractFixture(t *testing.T, name string) (*check.Query, Identity, *cp.Realization, cp.Source) {
 	t.Helper()
 	p, err := NewProducer(loaded(t, "nexus-caller"))
 	require.NoError(t, err)

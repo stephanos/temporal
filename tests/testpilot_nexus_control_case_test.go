@@ -20,7 +20,7 @@ import (
 	umpirebinding "go.temporal.io/server/common/testing/testpilot/temporal/binding"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
 	"go.temporal.io/server/tools/umpire/explore"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -112,7 +112,7 @@ func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
 	runBinary := buildUmpireRun(t)
 	replayBinary := buildUmpireCommand(t, "umpire-replay")
 
-	model, err := umpiremodel.Load(filepath.Join(modelRoot, "ir", "nexus-control.json"))
+	model, err := ir.Load(filepath.Join(modelRoot, "ir", "nexus-control.json"))
 	require.NoError(t, err)
 	plan, err := explore.New(model, "nexusControl")
 	require.NoError(t, err)

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -103,9 +103,9 @@ func TestEveryQueryWithoutATotalIsRefused(t *testing.T) {
 	directory := t.TempDir()
 	queries := 0
 	for _, name := range []string{"nexus-caller.json", "nexus-control.json"} {
-		m, err := umpiremodel.Load(filepath.Join(repository, "model/ir", name))
+		m, err := ir.Load(filepath.Join(repository, "model/ir", name))
 		require.NoError(t, err)
-		m = umpiremodel.WithoutTotals(m)
+		m = ir.WithoutTotals(m)
 		queries += len(m.GetQueries())
 		encoded, err := protojson.Marshal(m)
 		require.NoError(t, err)
@@ -120,15 +120,15 @@ func TestEveryQueryWithoutATotalIsRefused(t *testing.T) {
 
 	for _, name := range []string{"nexus-caller.json", "nexus-control.json"} {
 		path := filepath.Join(directory, name)
-		m, err := umpiremodel.Load(path)
+		m, err := ir.Load(path)
 		require.NoError(t, err)
 		declared := proto.CloneOf(m)
 		for _, q := range declared.GetQueries() {
 			q.Total = wrapperspb.Int64(0)
 		}
-		totaled, err := umpiremodel.WithTotals(declared)
+		totaled, err := ir.WithTotals(declared)
 		require.NoError(t, err)
-		require.NoError(t, umpiremodel.Validate(totaled))
+		require.NoError(t, ir.Validate(totaled))
 		encoded, err := protojson.Marshal(totaled)
 		require.NoError(t, err)
 		require.NoError(t, os.WriteFile(path, encoded, 0o644))

@@ -19,7 +19,8 @@ import (
 	"strings"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // Error is a production failure: the construct that could not be realized and the definition it
@@ -121,7 +122,7 @@ func (s *EvidenceSource) readsHistory() bool { return s.Recorded.HistoryAttribut
 // EvidenceRule is one resolved (action, source) pair: the action a recorded event confirms, and how
 // to read it.
 type EvidenceRule struct {
-	Action umpiremodel.Atom
+	Action interp.Atom
 	Source *EvidenceSource
 }
 
@@ -130,10 +131,10 @@ func (r EvidenceRule) ReadsHistory() bool { return r.Source.readsHistory() }
 
 // step is one taken step as model values: its action and result.
 type step struct {
-	Action  umpiremodel.Atom
-	State   umpiremodel.Atom
-	Outcome umpiremodel.Atom
-	Facts   []umpiremodel.Atom
+	Action  interp.Atom
+	State   interp.Atom
+	Outcome interp.Atom
+	Facts   []interp.Atom
 }
 
 func (s step) same(o step) bool {
@@ -202,7 +203,7 @@ type ActionBinding struct {
 	Node          func(Placement, string) *testpilotspb.InstructionNode
 }
 
-func (b ActionBinding) resolve(t *umpiremodel.Table) string {
+func (b ActionBinding) resolve(t *interp.Table) string {
 	if b.Key == "" {
 		return b.Action
 	}
@@ -235,7 +236,7 @@ type Realization struct {
 // Fingerprinted is a table with its Behavior Fingerprint. A caller that lowers many Queries of one
 // bound table computes it once; a production of a Query on any other table computes its own.
 type Fingerprinted struct {
-	Table       *umpiremodel.Table
+	Table       *interp.Table
 	Fingerprint string
 }
 
@@ -250,7 +251,7 @@ func (s Source) pb() *testpilotspb.SourceLocation {
 }
 
 // Produce lowers one checked find Query into a Case.
-func Produce(q *umpiremodel.Query, identity Identity, r *Realization, source Source) (*testpilotspb.Case, error) {
+func Produce(q *check.Query, identity Identity, r *Realization, source Source) (*testpilotspb.Case, error) {
 	p, err := newProduction(q, identity, r, source)
 	if err != nil {
 		return nil, err
@@ -260,15 +261,15 @@ func Produce(q *umpiremodel.Query, identity Identity, r *Realization, source Sou
 
 // production is one Case being produced.
 type production struct {
-	q        *umpiremodel.Query
-	t        *umpiremodel.Table
+	q        *check.Query
+	t        *interp.Table
 	identity Identity
 	r        *Realization
 	source   Source
-	answer   umpiremodel.Answer
+	answer   check.Answer
 	steps    []step
-	initial  umpiremodel.Atom
-	opening  umpiremodel.Atom
+	initial  interp.Atom
+	opening  interp.Atom
 	schedule []string // the pinned schedule's action ids, in trace order
 	// fingerprint is the table's Behavior Fingerprint, once it has been read.
 	fingerprint string
@@ -287,7 +288,7 @@ func (p *production) targetFingerprint() string {
 	return p.fingerprint
 }
 
-func newProduction(q *umpiremodel.Query, identity Identity, r *Realization, source Source) (*production, error) {
+func newProduction(q *check.Query, identity Identity, r *Realization, source Source) (*production, error) {
 	t, err := q.Scenario.Machine.Table()
 	if err != nil {
 		return nil, err
@@ -296,7 +297,7 @@ func newProduction(q *umpiremodel.Query, identity Identity, r *Realization, sour
 	if err != nil {
 		return nil, err
 	}
-	if a.Outcome != umpiremodel.Outcome(umpiremodel.Found) || a.Witness == nil {
+	if a.Outcome != check.Outcome(check.Found) || a.Witness == nil {
 		return nil, reject(string(t.Family)+".query."+q.Name, "witness.absent")
 	}
 	p := &production{q: q, t: t, identity: identity, r: r, source: source, answer: a,
@@ -317,7 +318,7 @@ func newProduction(q *umpiremodel.Query, identity Identity, r *Realization, sour
 // Preflight decides everything Produce decides for a Query and writes no Case: that the Query has a
 // witness, which evidence confirms each step, which clauses the Property lowers to, and where the
 // path's actions land in the Program. It reports what Produce would refuse, by the same steps.
-func Preflight(q *umpiremodel.Query, identity Identity, r *Realization) error {
+func Preflight(q *check.Query, identity Identity, r *Realization) error {
 	p, err := newProduction(q, identity, r, Source{})
 	if err != nil {
 		return err
@@ -335,7 +336,7 @@ type Confirmation struct {
 
 // Confirmations is which kind of evidence confirms each step of a Query's path, as Produce decides
 // it and in path order. It refuses what Produce refuses of the path's evidence.
-func Confirmations(q *umpiremodel.Query, identity Identity, r *Realization) ([]Confirmation, error) {
+func Confirmations(q *check.Query, identity Identity, r *Realization) ([]Confirmation, error) {
 	p, err := newProduction(q, identity, r, Source{})
 	if err != nil {
 		return nil, err
@@ -360,7 +361,7 @@ func Confirmations(q *umpiremodel.Query, identity Identity, r *Realization) ([]C
 // decided is what a production decides before it writes a Case.
 type decided struct {
 	silentGaps          []*testpilotspb.KnownGap
-	groups              []umpiremodel.Group
+	groups              []check.Group
 	clauses             []clause
 	propertyID          string
 	propertyFingerprint string
@@ -389,7 +390,7 @@ func (p *production) decide() (*decided, error) {
 		return nil, err
 	}
 	propertyID := p.q.Property.PropertyID(p.t)
-	propertyFingerprint := umpiremodel.Fingerprint(p.correlatedPropertySemantic(propertyID, clauses))
+	propertyFingerprint := check.Fingerprint(p.correlatedPropertySemantic(propertyID, clauses))
 	offPath := p.offPath(evidenceRules)
 	plan := p.projection(evidenceRules, offPath)
 	contract := p.correlatedContract(plan, clauses)
@@ -418,13 +419,13 @@ func (p *production) produce() (*testpilotspb.Case, error) {
 	propertyFingerprint, plan, contract, program := d.propertyFingerprint, d.plan, d.contract, d.program
 	scenarioSemantic := p.q.Scenario.ScenarioSemantic(p.t)
 	propertySemantic := p.t.PropertySemantic(propertyID, groups)
-	queryFingerprint := umpiremodel.Fingerprint(p.q.QueryCanonicalOf(p.t, umpiremodel.Fingerprint(propertySemantic), p.targetFingerprint()))
+	queryFingerprint := check.Fingerprint(p.q.QueryCanonicalOf(p.t, check.Fingerprint(propertySemantic), p.targetFingerprint()))
 	provenance := &testpilotspb.CaseProvenance{
 		ProducerId:      p.r.ProducerID,
 		ProducerVersion: p.r.ProducerVersion,
 		Definitions: []*testpilotspb.DefinitionBinding{
 			{DefinitionId: p.t.IDs().Target, BehaviorFingerprint: p.targetFingerprint(), Kind: testpilotspb.DEFINITION_KIND_TARGET},
-			{DefinitionId: p.q.Scenario.ScenarioID(p.t), BehaviorFingerprint: umpiremodel.Fingerprint(scenarioSemantic),
+			{DefinitionId: p.q.Scenario.ScenarioID(p.t), BehaviorFingerprint: check.Fingerprint(scenarioSemantic),
 				Kind: testpilotspb.DEFINITION_KIND_SCENARIO},
 			{DefinitionId: string(p.t.Family) + ".query." + p.q.Name, BehaviorFingerprint: queryFingerprint,
 				Kind: testpilotspb.DEFINITION_KIND_QUERY},
@@ -534,7 +535,7 @@ func confirming(sources []*EvidenceSource, taking Taking, action string, names, 
 }
 
 // evidenceNames is the evidence names the facts of a step are recorded under, in fact order.
-func (p *production) evidenceNames(facts []umpiremodel.Atom) []string {
+func (p *production) evidenceNames(facts []interp.Atom) []string {
 	var out []string
 	for _, f := range facts {
 		for _, line := range p.t.Evidence {
@@ -636,7 +637,7 @@ func (p *production) offPath(rules []resolvedRule) []*EvidenceSource {
 
 // silentGap is the Known Gap a silent step records: the Contract infers it from the evidence of the
 // step after it.
-func silentGap(action umpiremodel.Atom) *testpilotspb.KnownGap {
+func silentGap(action interp.Atom) *testpilotspb.KnownGap {
 	return &testpilotspb.KnownGap{
 		Kind:            testpilotspb.KNOWN_GAP_KIND_CAPABILITY,
 		Code:            action.ID + ".unobserved",
@@ -669,7 +670,7 @@ func (p *production) alternativeRules(resolved []resolvedRule) ([]resolvedRule, 
 
 // alternativesOf is one rule per other result of the witnessed row taken from prior, each confirming
 // the silent steps before it together with its own.
-func (p *production) alternativesOf(rules []resolvedRule, prior umpiremodel.Atom, taken step, before []step) ([]resolvedRule, error) {
+func (p *production) alternativesOf(rules []resolvedRule, prior interp.Atom, taken step, before []step) ([]resolvedRule, error) {
 	var added []resolvedRule
 	for _, res := range p.resultsOf(prior.Value, taken.Action.Value) {
 		if res.same(taken) {
@@ -692,7 +693,7 @@ func (p *production) alternativesOf(rules []resolvedRule, prior umpiremodel.Atom
 	return added, nil
 }
 
-func (p *production) firstKind(facts []umpiremodel.Atom) (string, bool) {
+func (p *production) firstKind(facts []interp.Atom) (string, bool) {
 	for _, f := range facts {
 		for _, line := range p.t.Evidence {
 			if f.Value == line[0] || strings.HasPrefix(f.Value, line[0]+"-") {
@@ -717,9 +718,9 @@ func (p *production) resultsOf(state, action string) []step {
 	return out
 }
 
-func (p *production) stepOf(action string, res umpiremodel.Result) step {
+func (p *production) stepOf(action string, res interp.Result) step {
 	s := step{Action: p.t.ActionAtom(action), State: p.t.StateAtom(res.State), Outcome: p.t.OutcomeAtom(res.Outcome),
-		Facts: []umpiremodel.Atom{}}
+		Facts: []interp.Atom{}}
 	for _, f := range res.Facts {
 		s.Facts = append(s.Facts, p.t.FactAtom(f))
 	}

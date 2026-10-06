@@ -16,8 +16,9 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -91,22 +92,22 @@ type Lowering struct {
 
 // Producer lowers the Queries of one admitted, checked Model.
 type Producer struct {
-	realizer *umpiremodel.Realizer
+	realizer *check.Realizer
 	// found is each Query's receipt by its name, which a Model gives one Query.
-	found map[string]umpiremodel.Receipt
+	found map[string]check.Receipt
 	// realizations is the realizations the Model declares.
 	realizations []*umpirespb.Realization
 }
 
 // NewProducer admits a Model, binds it and answers its Queries once, for every Case lowered from it.
 func NewProducer(m *umpirespb.Model) (*Producer, error) {
-	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
+	realizer, err := check.NewRealizer(m, check.DefaultScope)
 	if err != nil {
 		return nil, err
 	}
-	p := &Producer{realizer: realizer, found: map[string]umpiremodel.Receipt{}, realizations: realizer.Realizations()}
-	for _, r := range umpiremodel.Check(m, umpiremodel.DefaultScope).Receipts {
-		if r.Subject == umpiremodel.QuerySubject {
+	p := &Producer{realizer: realizer, found: map[string]check.Receipt{}, realizations: realizer.Realizations()}
+	for _, r := range check.Check(m, check.DefaultScope).Receipts {
+		if r.Subject == check.QuerySubject {
 			p.found[r.Key.Name] = r
 		}
 	}
@@ -115,7 +116,7 @@ func NewProducer(m *umpirespb.Model) (*Producer, error) {
 
 // asked is one Query with the declarations it names.
 type asked struct {
-	key      umpiremodel.ClaimKey
+	key      check.ClaimKey
 	q        *umpirespb.Query
 	property *umpirespb.Property
 	scenario *umpirespb.Scenario
@@ -129,10 +130,10 @@ func (p *Producer) ask(query string) (*asked, Standing, error) {
 	receipt, ok := p.found[query]
 	if !ok {
 		// The Realizer's refusal names the Model the Query is missing from.
-		if _, err := p.realizer.Declared(umpiremodel.ClaimKey{Name: query}); err != nil {
+		if _, err := p.realizer.Declared(check.ClaimKey{Name: query}); err != nil {
 			return nil, "", err
 		}
-		return nil, "", &umpiremodel.Error{Message: "no Query " + query}
+		return nil, "", &interp.Error{Message: "no Query " + query}
 	}
 	declared, err := p.realizer.Declared(receipt.Key)
 	if err != nil {
@@ -733,10 +734,10 @@ func commandsOf(s *umpirespb.Script) []*umpirespb.Command {
 // identity, and the Query as the checker answers it.
 type lowering struct {
 	a           *asked
-	mm          *umpiremodel.Machine
+	mm          *interp.Machine
 	adapter     *adapter
 	realization *cp.Realization
-	query       *umpiremodel.Query
+	query       *check.Query
 	keys        []string
 	// confirmations is which kind of evidence confirms each step of the path, as the producer decides
 	// it: set once the producer has read the path whole and refused nothing.
@@ -783,7 +784,7 @@ func (p *Producer) check(a *asked, identity Identity) (*lowering, []error) {
 		problems = append(problems, err)
 	}
 	receipt, ok := p.found[name]
-	witnessed := ok && receipt.Kind == umpiremodel.Found && receipt.Witness != nil
+	witnessed := ok && receipt.Kind == check.Found && receipt.Witness != nil
 	if !witnessed {
 		problems = append(problems, errorAt(at, "query %s has no witness to realize: its check is %s: %s", name, receipt.Kind, receipt.Explanation))
 	}

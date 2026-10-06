@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -36,7 +37,7 @@ func (s *Slice) confirm(receipts []Receipt, everyPath bool) error {
 	// Only the Queries declared here are answered: the Model's own are checked where it is gated.
 	m.Queries, m.Progress = nil, nil
 	m.Functions = append(m.Functions, &umpirespb.Function{Name: anyStep,
-		Params: []*umpirespb.Param{{Name: "step", Type: named(umpiremodel.StepType)}},
+		Params: []*umpirespb.Param{{Name: "step", Type: named(interp.StepType)}},
 		Body:   &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: true}}}}})
 	asked := func(r Receipt) bool { return r.Claim == MonitorAgreement && r.Kind != Unsupported }
 	for _, r := range receipts {
@@ -47,12 +48,12 @@ func (s *Slice) confirm(receipts []Receipt, everyPath bool) error {
 	if len(m.GetQueries()) == 0 {
 		return nil
 	}
-	answers := map[string]umpiremodel.Receipt{}
-	for _, a := range umpiremodel.Check(m, umpiremodel.DefaultScope).Receipts {
-		if a.Subject == umpiremodel.ModelSubject {
+	answers := map[string]check.Receipt{}
+	for _, a := range check.Check(m, check.DefaultScope).Receipts {
+		if a.Subject == check.ModelSubject {
 			return fmt.Errorf("goir does not admit the Model with the backend's Queries: %s", a.Explanation)
 		}
-		if a.Subject == umpiremodel.QuerySubject {
+		if a.Subject == check.QuerySubject {
 			answers[a.Key.Name] = a
 		}
 	}
@@ -96,7 +97,7 @@ func (s *Slice) ask(m *umpirespb.Model, r Receipt, everyPath bool) {
 		}
 		sc := &umpirespb.Scenario{Start: starts[k]}
 		for _, step := range w.Trace.Steps {
-			if c := slices.IndexFunc(mm.Classes, func(c umpiremodel.Class) bool { return c.Key == step.Action.Value }); c >= 0 {
+			if c := slices.IndexFunc(mm.Classes, func(c interp.Class) bool { return c.Key == step.Action.Value }); c >= 0 {
 				sc.Actions = append(sc.Actions, classOf(mm.Classes[c]))
 			}
 		}
@@ -105,7 +106,7 @@ func (s *Slice) ask(m *umpirespb.Model, r Receipt, everyPath bool) {
 }
 
 // classOf writes a class as the IR names one: its action, and its inputs as literals.
-func classOf(c umpiremodel.Class) *umpirespb.ActionClass {
+func classOf(c interp.Class) *umpirespb.ActionClass {
 	class := &umpirespb.ActionClass{Action: c.Action.GetId()}
 	for _, input := range c.Inputs {
 		class.Inputs = append(class.Inputs, literal(input))
@@ -114,10 +115,10 @@ func classOf(c umpiremodel.Class) *umpirespb.ActionClass {
 }
 
 // confirmed is a monitor agreement with the reader's checker's answers folded in.
-func confirmed(r Receipt, starts int, answers map[string]umpiremodel.Receipt) Receipt {
+func confirmed(r Receipt, starts int, answers map[string]check.Receipt) Receipt {
 	for _, w := range r.Witnesses {
 		a := answers[fmt.Sprintf("%s.%s.%s", replayQuery, r.Subject, w.Monitor)]
-		if a.Kind != umpiremodel.Counterexample || a.Monitor == "" {
+		if a.Kind != check.Counterexample || a.Monitor == "" {
 			r.Kind = WitnessRejected
 			r.Explanation = fmt.Sprintf("the backend's counterexample of %s did not replay through goir's checker, which answers %q over its classes: %s",
 				w.Monitor, a.Kind, a.Explanation)
@@ -128,8 +129,8 @@ func confirmed(r Receipt, starts int, answers map[string]umpiremodel.Receipt) Re
 	for k := range starts {
 		a := answers[fmt.Sprintf("%s.%s.%d", freeQuery, r.Subject, k)]
 		switch a.Kind {
-		case umpiremodel.Verified:
-		case umpiremodel.Counterexample:
+		case check.Verified:
+		case check.Counterexample:
 			named = append(named, a.Monitor)
 		default:
 			r.Differences = append(r.Differences, fmt.Sprintf("goir's checker answers %q of the monitors from start %d: %s", a.Kind, k, a.Explanation))
@@ -161,8 +162,8 @@ func confirmed(r Receipt, starts int, answers map[string]umpiremodel.Receipt) Re
 }
 
 // literal writes a value as the IR writes one.
-func literal(v umpiremodel.Value) *umpirespb.Value {
-	values := func(vs []umpiremodel.Value) []*umpirespb.Value {
+func literal(v interp.Value) *umpirespb.Value {
+	values := func(vs []interp.Value) []*umpirespb.Value {
 		out := make([]*umpirespb.Value, len(vs))
 		for i, f := range vs {
 			out[i] = literal(f)
@@ -170,15 +171,15 @@ func literal(v umpiremodel.Value) *umpirespb.Value {
 		return out
 	}
 	switch v.Kind {
-	case umpiremodel.BoolValue:
+	case interp.BoolValue:
 		return &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: v.Bool}}
-	case umpiremodel.IntValue:
+	case interp.IntValue:
 		return &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: v.Int}}
-	case umpiremodel.TextValue:
+	case interp.TextValue:
 		return &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: v.Text}}
-	case umpiremodel.EnumValue:
+	case interp.EnumValue:
 		return &umpirespb.Value{Kind: &umpirespb.Value_Enum{Enum: &umpirespb.EnumValue{Type: v.Type, Case: v.Case, Fields: values(v.Fields)}}}
-	case umpiremodel.RecordValue:
+	case interp.RecordValue:
 		return &umpirespb.Value{Kind: &umpirespb.Value_Record{Record: &umpirespb.RecordValue{Type: v.Type, Fields: values(v.Fields)}}}
 	default:
 		return &umpirespb.Value{Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{Items: values(v.Items)}}}

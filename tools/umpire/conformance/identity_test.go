@@ -8,7 +8,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/interp"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -454,7 +455,7 @@ func TestPrepareBindsTheFieldsAndTheClosingReadsOfACase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			factory, err := Prepare(test.model, query, test.source, generous)
 			require.Nil(t, factory)
-			var located *umpiremodel.Error
+			var located *interp.Error
 			require.ErrorAs(t, err, &located)
 			require.ErrorContains(t, err, test.says)
 		})
@@ -503,7 +504,7 @@ func TestAQueryTotalMovesNoModelIdentity(t *testing.T) {
 		require.NotNil(t, q.GetTotal(), q.GetName())
 	}
 	with := loweredActivity(t, m, "completion").factory.Binding().Model
-	without := loweredActivity(t, umpiremodel.WithoutTotals(m), "completion").factory.Binding().Model
+	without := loweredActivity(t, ir.WithoutTotals(m), "completion").factory.Binding().Model
 	require.Equal(t, with, without)
 	require.NotEmpty(t, with)
 }
@@ -536,7 +537,7 @@ func eachStepRecord(x *umpirespb.Expr, visit func(*umpirespb.Construct)) {
 	if x == nil {
 		return
 	}
-	if c := x.GetConstruct(); c != nil && c.GetType() == umpiremodel.StepType {
+	if c := x.GetConstruct(); c != nil && c.GetType() == interp.StepType {
 		visit(c)
 	}
 	walk := func(xs ...*umpirespb.Expr) {

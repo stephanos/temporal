@@ -9,7 +9,8 @@ import (
 	"text/tabwriter"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // Modality is what one state and class of a machine is, as .plans/MODALITIES.md reads the table: a
@@ -33,7 +34,7 @@ type Cell struct {
 	State      string
 	Class      string
 	Modality   Modality
-	Results    []model.Result
+	Results    []interp.Result
 	Guard      string
 	Position   string
 	Predicates []string
@@ -99,15 +100,15 @@ func (m *Model) holes() ([]*Table, []Tally, error) {
 type view struct {
 	m     *Model
 	name  string
-	mm    *model.Machine
+	mm    *interp.Machine
 	field int
 	// fieldName is the field rules group by, or the state type's own name where the state is an enum.
 	fieldName string
 	reachable []string
 	reach     map[string]bool
 	ends      map[string]bool
-	rows      map[string]model.Row
-	steps     map[string][]model.Value
+	rows      map[string]interp.Row
+	steps     map[string][]interp.Value
 	// naming is the same-step Properties that name each class, and reaching the progress claims a
 	// class's rows reach the target of.
 	naming     map[string][]string
@@ -127,8 +128,8 @@ func (m *Model) view(name string, views map[string]*view) (*view, error) {
 		return v, nil
 	}
 	mm := m.Machines[name]
-	v := &view{m: m, name: name, mm: mm, field: -1, reach: map[string]bool{}, ends: map[string]bool{}, rows: map[string]model.Row{},
-		steps: map[string][]model.Value{}, naming: map[string][]string{}, reaching: map[string][]string{}, carriers: map[string][]*string{},
+	v := &view{m: m, name: name, mm: mm, field: -1, reach: map[string]bool{}, ends: map[string]bool{}, rows: map[string]interp.Row{},
+		steps: map[string][]interp.Value{}, naming: map[string][]string{}, reaching: map[string][]string{}, carriers: map[string][]*string{},
 		stepPins: map[string][]string{}, at: map[string]*umpirespb.Position{}}
 	views[name] = v
 	v.stateField()
@@ -242,8 +243,8 @@ func (v *view) reaches(p *umpirespb.Progress) error {
 	to := map[string]bool{}
 	for _, s := range v.reachable {
 		value, _ := v.mm.State(s)
-		b, err := v.m.In.Call(p.GetTo(), []model.Value{value}, p.GetPosition())
-		if err != nil && !model.Unknown(err) {
+		b, err := v.m.In.Call(p.GetTo(), []interp.Value{value}, p.GetPosition())
+		if err != nil && !check.Unknown(err) {
 			return err
 		}
 		to[s] = err == nil && b.Bool
@@ -252,7 +253,7 @@ func (v *view) reaches(p *umpirespb.Progress) error {
 		if !v.reach[r.Source] || to[r.Source] || slices.Contains(v.reaching[r.Action], p.GetName()) {
 			continue
 		}
-		if slices.ContainsFunc(r.Results, func(res model.Result) bool { return to[res.State] }) {
+		if slices.ContainsFunc(r.Results, func(res interp.Result) bool { return to[res.State] }) {
 			v.reaching[r.Action] = append(v.reaching[r.Action], p.GetName())
 		}
 	}
@@ -339,7 +340,7 @@ func (m *Model) classKey(c *umpirespb.ActionClass) (string, error) {
 
 // readers is the transition Properties and monitors of the machine whose evaluation at the step from
 // before reads the step: the claims that constrain where a step from there may go.
-func (v *view) readers(before string, step model.Value) ([]string, error) {
+func (v *view) readers(before string, step interp.Value) ([]string, error) {
 	key := before + "|" + step.Key()
 	if pins, ok := v.stepPins[key]; ok {
 		return pins, nil
@@ -347,8 +348,8 @@ func (v *view) readers(before string, step model.Value) ([]string, error) {
 	state, _ := v.mm.State(before)
 	var pins []string
 	for _, p := range v.transition {
-		_, read, err := v.m.In.Reads(p.GetHolds(), []model.Value{state, step}, p.GetPosition())
-		if err != nil && !model.Unknown(err) {
+		_, read, err := v.m.In.Reads(p.GetHolds(), []interp.Value{state, step}, p.GetPosition())
+		if err != nil && !check.Unknown(err) {
 			return nil, err
 		}
 		if err == nil && read[1] {
@@ -369,14 +370,14 @@ func (v *view) readers(before string, step model.Value) ([]string, error) {
 }
 
 // monitorReads is whether a monitor's next state reads the step from some monitor state.
-func (v *view) monitorReads(mo *umpirespb.Monitor, state, step model.Value) (bool, error) {
+func (v *view) monitorReads(mo *umpirespb.Monitor, state, step interp.Value) (bool, error) {
 	states, err := v.m.In.Members(mo.GetState())
 	if err != nil {
 		return false, err
 	}
 	for _, ms := range states {
-		_, read, err := v.m.In.Reads(mo.GetNext(), []model.Value{ms, state, step}, mo.GetPosition())
-		if err != nil && !model.Unknown(err) {
+		_, read, err := v.m.In.Reads(mo.GetNext(), []interp.Value{ms, state, step}, mo.GetPosition())
+		if err != nil && !check.Unknown(err) {
 			return false, err
 		}
 		if err == nil && read[2] {
@@ -428,8 +429,8 @@ func (v *view) disabledPins(state string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	stay := model.Value{Kind: model.RecordValue, Type: model.StepType,
-		Fields: []model.Value{outcomes[0], s, {Kind: model.ListValue}, {Kind: model.TextValue}}}
+	stay := interp.Value{Kind: interp.RecordValue, Type: interp.StepType,
+		Fields: []interp.Value{outcomes[0], s, {Kind: interp.ListValue}, {Kind: interp.TextValue}}}
 	pins, err := v.readers(state, stay)
 	if err != nil {
 		return nil, err
@@ -454,7 +455,7 @@ func (v *view) disabledPins(state string) ([]string, error) {
 func (v *view) mapped(state string) (string, error) {
 	s, _ := v.mm.State(state)
 	r := v.mm.Decl.GetRefines()
-	p, err := v.m.In.Call(r.GetMap(), []model.Value{s}, v.mm.Decl.GetPosition())
+	p, err := v.m.In.Call(r.GetMap(), []interp.Value{s}, v.mm.Decl.GetPosition())
 	return p.Key(), err
 }
 
@@ -474,7 +475,7 @@ func (v *view) table() (*Table, error) {
 	return t, nil
 }
 
-func (v *view) cell(state string, c model.Class) (Cell, error) {
+func (v *view) cell(state string, c interp.Class) (Cell, error) {
 	cell := Cell{State: state, Class: c.Key}
 	why, err := v.m.In.Why(v.mm, state, c.Key)
 	if err != nil {
@@ -532,7 +533,7 @@ func (v *view) cell(state string, c model.Class) (Cell, error) {
 // guard spells the decision that disabled a pair: the condition of an `if`, negated where its else
 // was taken, or the scrutinee of a `match` and the pattern of the case taken. A step function that
 // decided nothing is disabled everywhere.
-func guard(d model.Decision, decided bool) string {
+func guard(d interp.Decision, decided bool) string {
 	switch {
 	case !decided:
 		return "always"
@@ -548,7 +549,7 @@ func guard(d model.Decision, decided bool) string {
 
 // results spells what a MAY does: each result's choice, outcome, the value of the grouping field it
 // lands in, or `itself` where it keeps the state, and its facts.
-func (v *view) results(state string, rs []model.Result) string {
+func (v *view) results(state string, rs []interp.Result) string {
 	parts := make([]string, len(rs))
 	for i, r := range rs {
 		to := r.State

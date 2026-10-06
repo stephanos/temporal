@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // reader reads one machine's part of an export's output back as keys, by the IR's types. The output
@@ -17,7 +17,7 @@ import (
 type reader struct {
 	x     *QuintExport
 	index int
-	mm    *umpiremodel.Machine
+	mm    *interp.Machine
 	// composed is set for a composition's part, whose states, classes and results are read as the
 	// composed table keys them.
 	composed *composedExport
@@ -337,21 +337,21 @@ func (r reader) flags(raw any) ([]bool, error) {
 }
 
 // value reads an ITF value back as a value of an IR type.
-func (x *QuintExport) value(raw any, t *umpirespb.TypeRef) (umpiremodel.Value, error) {
+func (x *QuintExport) value(raw any, t *umpirespb.TypeRef) (interp.Value, error) {
 	switch r := t.GetRef().(type) {
 	case *umpirespb.TypeRef_Bool:
 		b, err := boolean(raw, fmt.Sprint(raw))
-		return umpiremodel.Value{Kind: umpiremodel.BoolValue, Bool: b}, err
+		return interp.Value{Kind: interp.BoolValue, Bool: b}, err
 	case *umpirespb.TypeRef_IntRange, *umpirespb.TypeRef_Int:
 		n, err := integer(raw)
-		return umpiremodel.Value{Kind: umpiremodel.IntValue, Int: n}, err
+		return interp.Value{Kind: interp.IntValue, Int: n}, err
 	case *umpirespb.TypeRef_List:
-		items, err := each(raw, func(item any) (umpiremodel.Value, error) { return x.value(item, r.List) })
-		return umpiremodel.Value{Kind: umpiremodel.ListValue, Items: items}, err
+		items, err := each(raw, func(item any) (interp.Value, error) { return x.value(item, r.List) })
+		return interp.Value{Kind: interp.ListValue, Items: items}, err
 	case *umpirespb.TypeRef_Named:
 		return x.declared(raw, r.Named)
 	default:
-		return umpiremodel.Value{}, errors.New("a channel's contents are not exported")
+		return interp.Value{}, errors.New("a channel's contents are not exported")
 	}
 }
 
@@ -370,30 +370,30 @@ func integer(raw any) (int64, error) {
 }
 
 // declared reads a value of a declared type: a record by its fields, an enum by its variant's tag.
-func (x *QuintExport) declared(raw any, name string) (umpiremodel.Value, error) {
+func (x *QuintExport) declared(raw any, name string) (interp.Value, error) {
 	decl, ok := x.from.types[name]
 	if !ok {
-		return umpiremodel.Value{}, fmt.Errorf("the Model declares no type %s", name)
+		return interp.Value{}, fmt.Errorf("the Model declares no type %s", name)
 	}
 	if decl.GetRecord() != nil {
 		fields, err := x.fields(decl.GetRecord().GetFields(), raw, name)
-		return umpiremodel.Value{Kind: umpiremodel.RecordValue, Type: name, Fields: fields}, err
+		return interp.Value{Kind: interp.RecordValue, Type: name, Fields: fields}, err
 	}
 	tagged, err := record(raw, fmt.Sprintf("%v, read as a case of %s,", raw, name))
 	if err != nil {
-		return umpiremodel.Value{}, err
+		return interp.Value{}, err
 	}
 	variant, ok := x.tags[text(tagged["tag"])]
 	if !ok || variant.typ != name {
-		return umpiremodel.Value{}, fmt.Errorf("%v is no case of %s", raw, name)
+		return interp.Value{}, fmt.Errorf("%v is no case of %s", raw, name)
 	}
 	fields, err := x.fields(variant.enum.GetFields(), tagged["value"], name)
-	return umpiremodel.Value{Kind: umpiremodel.EnumValue, Type: name, Case: variant.enum.GetName(), Fields: fields}, err
+	return interp.Value{Kind: interp.EnumValue, Type: name, Case: variant.enum.GetName(), Fields: fields}, err
 }
 
 // fields reads a record's or a case's fields in declaration order. A case without fields has none to
 // read, whatever its variant carries.
-func (x *QuintExport) fields(decls []*umpirespb.Field, raw any, name string) ([]umpiremodel.Value, error) {
+func (x *QuintExport) fields(decls []*umpirespb.Field, raw any, name string) ([]interp.Value, error) {
 	if len(decls) == 0 {
 		return nil, nil
 	}
@@ -401,7 +401,7 @@ func (x *QuintExport) fields(decls []*umpirespb.Field, raw any, name string) ([]
 	if err != nil {
 		return nil, err
 	}
-	out := make([]umpiremodel.Value, len(decls))
+	out := make([]interp.Value, len(decls))
 	for n, f := range decls {
 		if out[n], err = x.value(values["f_"+plain(f.GetName())], f.GetType()); err != nil {
 			return nil, fmt.Errorf("%s: %w", f.GetName(), err)

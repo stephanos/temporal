@@ -30,10 +30,11 @@ import (
 	// every one of them, and lowering links the rest.
 	_ "go.temporal.io/api/workflowservice/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	umpireir "go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lint"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 const irDirectory = "model/ir"
@@ -113,7 +114,7 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 // to an IR file: model/ir and every IR file of it, or the files named and their directories.
 func irFiles(named []string) (paths, directories []string, err error) {
 	if len(named) == 0 {
-		paths, err := umpiremodel.IRPaths(irDirectory)
+		paths, err := umpireir.IRPaths(irDirectory)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -171,7 +172,7 @@ func lintFile(path string, options lint.Options, tables, update bool, stdout io.
 	}
 	if unforwarded {
 		return fmt.Errorf("%s does not carry the law waivers of %s: rerun make umpire-gen-model, whose update forwards them (umpire-lint --update)",
-			lint.AcceptedPath(path), umpiremodel.LawSidecarPath(path))
+			lint.AcceptedPath(path), check.LawSidecarPath(path))
 	}
 	return nil
 }
@@ -201,14 +202,14 @@ func forward(path string, accepted, forwarded *lint.Accepted, update bool) (bool
 // instances counts each law's instantiating machines across the law sidecars of the directories a
 // run lints. A sidecar the reader refuses counts nothing here: linting its IR file reports it.
 func instances(directories []string) lint.Instances {
-	var sidecars []*umpiremodel.LawSidecar
+	var sidecars []*check.LawSidecar
 	for _, directory := range directories {
-		paths, err := umpiremodel.IRPaths(directory)
+		paths, err := umpireir.IRPaths(directory)
 		if err != nil {
 			continue
 		}
 		for _, path := range paths {
-			if s, err := umpiremodel.ReadLawSidecar(path); err == nil {
+			if s, err := check.ReadLawSidecar(path); err == nil {
 				sidecars = append(sidecars, s)
 			}
 		}

@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/ir"
 	lowering "go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -177,7 +177,7 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 			full.ProtocolCode, full.Value = "ok", &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}
 			bare := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
 
-			validated := umpiremodel.Validate(m)
+			validated := ir.Validate(m)
 			var lowers error
 			if validated == nil {
 				p, err := lowering.NewProducer(m)

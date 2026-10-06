@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // tallies is one kind's tallies as they are counted, by owner. Each thing a kind looks at is added
@@ -77,14 +78,14 @@ func unfiredVerifies(m *Model) ([]Tally, error) {
 			continue
 		}
 		// A Query's receipt is keyed by its Scenario's machine, which the search runs on.
-		i := slices.IndexFunc(m.Verified.Receipts, func(r model.Receipt) bool {
-			return r.Subject == model.QuerySubject && r.Key.Name == q.GetName() && r.Key.Owner == q.GetScenario().GetMachine()
+		i := slices.IndexFunc(m.Verified.Receipts, func(r check.Receipt) bool {
+			return r.Subject == check.QuerySubject && r.Key.Name == q.GetName() && r.Key.Owner == q.GetScenario().GetMachine()
 		})
 		if i < 0 {
 			return nil, fmt.Errorf("no receipt answers the Query %s", q.GetName())
 		}
 		r := m.Verified.Receipts[i]
-		t.add(q.GetProperty().GetMachine(), r.Exercised || r.Kind == model.Counterexample, q.GetName(), q.GetPosition(),
+		t.add(q.GetProperty().GetMachine(), r.Exercised || r.Kind == check.Counterexample, q.GetName(), q.GetPosition(),
 			"%s: its Property fired on no step the search explored (%s)", q.GetName(), r.Kind)
 	}
 	return t.list(), nil
@@ -287,12 +288,12 @@ func (c *choices) exprs(es []*umpirespb.Expr) {
 }
 
 // reachableRows is the rows of a table whose state it reaches.
-func reachableRows(t *model.Table) []model.Row {
+func reachableRows(t *interp.Table) []interp.Row {
 	reachable := map[string]bool{}
 	for _, s := range t.Reachable {
 		reachable[s] = true
 	}
-	var out []model.Row
+	var out []interp.Row
 	for _, row := range t.Rows {
 		if reachable[row.Source] {
 			out = append(out, row)
@@ -415,7 +416,7 @@ func unreachableValues(m *Model) ([]Tally, error) {
 		if machine == nil || state == nil {
 			continue
 		}
-		var reached []model.Value
+		var reached []interp.Value
 		for _, key := range machine.Table.Reachable {
 			v, ok := machine.State(key)
 			if !ok {
@@ -426,14 +427,14 @@ func unreachableValues(m *Model) ([]Tally, error) {
 		l := stateLeaves{m: m, t: t, machine: decl.GetName(), at: state.GetPosition(), reached: reached}
 		if state.GetRecord() != nil {
 			for i, f := range state.GetRecord().GetFields() {
-				if err := l.visit(f.GetName(), f.GetType(), func(v model.Value) model.Value { return v.Fields[i] }); err != nil {
+				if err := l.visit(f.GetName(), f.GetType(), func(v interp.Value) interp.Value { return v.Fields[i] }); err != nil {
 					return nil, err
 				}
 			}
 			continue
 		}
 		root := &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: decl.GetStateType()}}
-		if err := l.visit(decl.GetStateType()[strings.LastIndex(decl.GetStateType(), ".")+1:], root, func(v model.Value) model.Value { return v }); err != nil {
+		if err := l.visit(decl.GetStateType()[strings.LastIndex(decl.GetStateType(), ".")+1:], root, func(v interp.Value) interp.Value { return v }); err != nil {
 			return nil, err
 		}
 	}
@@ -448,13 +449,13 @@ type stateLeaves struct {
 	t       tallies
 	machine string
 	at      *umpirespb.Position
-	reached []model.Value
+	reached []interp.Value
 }
 
-func (l stateLeaves) visit(path string, ref *umpirespb.TypeRef, of func(model.Value) model.Value) error {
+func (l stateLeaves) visit(path string, ref *umpirespb.TypeRef, of func(interp.Value) interp.Value) error {
 	if record := l.m.declared(ref.GetNamed()).GetRecord(); ref.GetNamed() != "" && record != nil {
 		for i, f := range record.GetFields() {
-			if err := l.visit(path+"."+f.GetName(), f.GetType(), func(v model.Value) model.Value { return of(v).Fields[i] }); err != nil {
+			if err := l.visit(path+"."+f.GetName(), f.GetType(), func(v interp.Value) interp.Value { return of(v).Fields[i] }); err != nil {
 				return err
 			}
 		}
@@ -476,14 +477,14 @@ func (l stateLeaves) visit(path string, ref *umpirespb.TypeRef, of func(model.Va
 
 // values is a leaf's values and how a value of the field is keyed among them, or none for a field
 // that is a combination.
-func (l stateLeaves) values(path string, ref *umpirespb.TypeRef) ([]string, func(model.Value) string, error) {
+func (l stateLeaves) values(path string, ref *umpirespb.TypeRef) ([]string, func(interp.Value) string, error) {
 	var values []string
 	switch {
 	case ref.GetNamed() != "":
 		for _, c := range l.m.declared(ref.GetNamed()).GetEnum().GetCases() {
 			values = append(values, c.GetName())
 		}
-		return values, func(v model.Value) string { return v.Case }, nil
+		return values, func(v interp.Value) string { return v.Case }, nil
 	case ref.GetBool() != nil || ref.GetIntRange() != nil:
 		catalog, err := l.m.In.Members(ref)
 		if err != nil {
@@ -492,7 +493,7 @@ func (l stateLeaves) values(path string, ref *umpirespb.TypeRef) ([]string, func
 		for _, v := range catalog {
 			values = append(values, v.Key())
 		}
-		return values, model.Value.Key, nil
+		return values, interp.Value.Key, nil
 	default:
 		return nil, nil, nil
 	}
@@ -530,7 +531,7 @@ func neverEnabled(m *Model) ([]Tally, error) {
 // carries the shortest path from a start to the state.
 func stuckStates(m *Model) ([]Tally, error) {
 	t := tally(StuckState)
-	inspect := func(name string, at *umpirespb.Position, table *model.Table) {
+	inspect := func(name string, at *umpirespb.Position, table *interp.Table) {
 		steps := map[string]bool{}
 		for _, row := range table.Rows {
 			if len(row.Results) > 0 {
@@ -573,7 +574,7 @@ func stuckStates(m *Model) ([]Tally, error) {
 }
 
 // spellPath spells a witness as its start and each step's action and outcome to the state it reaches.
-func spellPath(w *model.Trace) string {
+func spellPath(w *check.Trace) string {
 	if w == nil {
 		return "no path"
 	}

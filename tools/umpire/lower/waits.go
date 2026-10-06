@@ -32,7 +32,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/realization"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -216,7 +216,7 @@ func (l *lowering) callOf(s *umpirespb.Script, c *umpirespb.Command) call {
 		if kind == umpirespb.CAUSE_KIND_UNSPECIFIED {
 			return call{access: writes, what: "is the answer of no worker"}
 		}
-		return call{access: writes, cause: kind, what: "is " + umpiremodel.ACause(kind)}
+		return call{access: writes, cause: kind, what: "is " + realization.ACause(kind)}
 	case *umpirespb.Command_NexusCompletion:
 		return call{access: writes, what: "completes a Nexus operation through its callback"}
 	default:
@@ -563,7 +563,7 @@ func (w *waiting) causes(r *reading, window []event) {
 		cause := w.b.bounds[e.kind]
 		if cause == nil {
 			w.problems = append(w.problems, errorAt(r.at, "command %s waits for %s, which is %s, and the realization declares no bound of %s",
-				r.name, e.label, umpiremodel.ACause(e.kind), umpiremodel.ACause(e.kind)))
+				r.name, e.label, realization.ACause(e.kind), realization.ACause(e.kind)))
 			continue
 		}
 		if e.server != nil {
@@ -591,7 +591,7 @@ func (w *waiting) written(c call) string {
 	if c.method != "" {
 		return c.method
 	}
-	return umpiremodel.ACause(c.cause)
+	return realization.ACause(c.cause)
 }
 
 // waitHint is one hint a wait's bound is the sum of, where it is declared.

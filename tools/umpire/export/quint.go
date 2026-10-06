@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 const quintBackend = "quint"
@@ -539,7 +539,7 @@ func (q *quint) construct(typ, name, choice string, args []string, at *umpirespb
 		}
 		return "{" + strings.Join(parts, ", ") + "}", nil
 	}
-	if typ == umpiremodel.StepType {
+	if typ == interp.StepType {
 		if !writable(choice) {
 			return "", q.unsupported(at, "the choice %q: a Quint string is written verbatim between double quotes, with no escapes, and only printable ASCII other than a double quote or a backslash is written", choice)
 		}
@@ -778,7 +778,7 @@ func (q *quint) stepType(decl *umpirespb.Machine) (state, step string, err error
 // machine writes one machine: its classes, its step, its starts and ends, the states its starts reach
 // and its rows from them, the same for the product with its monitors, and what its Properties say of
 // every step. It gives the type of the machine's part of the dump.
-func (q *quint) machine(i int, mm *umpiremodel.Machine) (string, error) {
+func (q *quint) machine(i int, mm *interp.Machine) (string, error) {
 	decl := mm.Decl
 	state, step, err := q.stepType(decl)
 	if err != nil {
@@ -874,7 +874,7 @@ func (q *quint) reach(name, starts, succ string, rounds int) {
 // monitors writes the product of a machine and the monitors it names: the monitors' states advance
 // with every step by each monitor's `next`, and each step says, for each monitor, whether its verdict
 // is read there and whether its state violates it. It gives the type of the product's dump.
-func (q *quint) monitors(i int, mm *umpiremodel.Machine, state, starts string) (string, error) {
+func (q *quint) monitors(i int, mm *interp.Machine, state, starts string) (string, error) {
 	m := fmt.Sprintf("m%d", i)
 	var initial, next, read, viol, mu, flags []string
 	for k, mo := range mm.Monitors {
@@ -975,7 +975,7 @@ func (q *quint) claims(prefix, class string, properties []*umpirespb.Property, s
 
 // about writes whether a Property is about the step of the class `c`: every step, the steps of one
 // class, by the action's id and its inputs, or the steps of every class of one action, by its name.
-func (q *quint) about(i int, mm *umpiremodel.Machine, p *umpirespb.Property) (string, error) {
+func (q *quint) about(i int, mm *interp.Machine, p *umpirespb.Property) (string, error) {
 	steps := mm.Decl.GetSteps()
 	variant := func(bound func(*umpirespb.Action) bool) (string, *umpirespb.Action, error) {
 		j := slices.IndexFunc(steps, func(b *umpirespb.StepBinding) bool { return bound(q.s.actions[b.GetAction()]) })
@@ -1014,7 +1014,7 @@ func (q *quint) about(i int, mm *umpiremodel.Machine, p *umpirespb.Property) (st
 // transition system a model checker explores. Its state is the machine's state, its monitors'
 // states, whether each monitor was read and violated on the last step, and the steps taken so far, so
 // that a counterexample carries its own path. A step takes any class and any result of its row.
-func (q *quint) stateful(i int, mm *umpiremodel.Machine, state, step, starts string) {
+func (q *quint) stateful(i int, mm *interp.Machine, state, step, starts string) {
 	m := fmt.Sprintf("m%d", i)
 	var flags, unset, bad, invariants []string
 	for k := range mm.Monitors {

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	_ "go.temporal.io/api/workflowservice/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
@@ -19,9 +19,9 @@ func withSourceTotals(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
 	for _, q := range declared.GetQueries() {
 		q.Total = wrapperspb.Int64(0)
 	}
-	out, err := umpiremodel.WithTotals(declared)
+	out, err := ir.WithTotals(declared)
 	require.NoError(t, err)
-	require.NoError(t, umpiremodel.Validate(out))
+	require.NoError(t, ir.Validate(out))
 	return out
 }
 
@@ -43,18 +43,18 @@ func requireRecounted(t *testing.T, plan *Plan, c *Candidate) int64 {
 	require.NotEmpty(t, c.Bytes, c.Key)
 	q := queryNamed(t, c.Model, plan.Query)
 	require.NotNil(t, q.GetTotal(), c.Key)
-	recounted, err := umpiremodel.WithTotals(c.Model)
+	recounted, err := ir.WithTotals(c.Model)
 	require.NoError(t, err, c.Key)
 	n := queryNamed(t, recounted, plan.Query).GetTotal().GetValue()
 	require.Equal(t, n, q.GetTotal().GetValue(), c.Key)
-	require.NoError(t, umpiremodel.Validate(c.Model), c.Key)
+	require.NoError(t, ir.Validate(c.Model), c.Key)
 	return n
 }
 
 // A variation of another schedule length and a prefix drop each change the source Query's count; the
 // candidate asserts its own recount and lowers, while the source Query keeps the author's assertion.
 func TestScheduleChangingCandidatesAssertTheirOwnRecountedTotal(t *testing.T) {
-	loaded, err := umpiremodel.Load("../../../model/ir/nexus-control.json")
+	loaded, err := ir.Load("../../../model/ir/nexus-control.json")
 	require.NoError(t, err)
 	m := withSourceTotals(t, loaded)
 	source := proto.CloneOf(m)
@@ -94,9 +94,9 @@ func TestASourceTotalCorrectionChangesNoExplorationIdentity(t *testing.T) {
 		{"../../../model/ir/nexus-caller.json", "nexusDeadlines"},
 	} {
 		t.Run(explored.name, func(t *testing.T) {
-			loaded, err := umpiremodel.Load(explored.file)
+			loaded, err := ir.Load(explored.file)
 			require.NoError(t, err)
-			bare, err := New(umpiremodel.WithoutTotals(loaded), explored.name)
+			bare, err := New(ir.WithoutTotals(loaded), explored.name)
 			require.NoError(t, err)
 			totaled, err := New(withSourceTotals(t, loaded), explored.name)
 			require.NoError(t, err)

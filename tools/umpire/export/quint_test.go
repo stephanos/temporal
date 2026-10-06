@@ -13,7 +13,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -23,7 +24,7 @@ var irFiles = []string{"activity", "activity-record", "nexus-caller", "nexus-clo
 
 func loadModel(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
 	require.NoError(t, err)
 	return m
 }
@@ -610,24 +611,24 @@ func TestCheckerAnswersAreFoldedIn(t *testing.T) {
 	witness := Witness{Monitor: "terminalFinality"}
 	base := Receipt{Claim: MonitorAgreement, Subject: "m", Kind: Agreed, Violated: []string{"terminalFinality"}, Witnesses: []Witness{witness}}
 	free, replay := "backends.monitors.m.0", "backends.witness.m.terminalFinality"
-	found := umpiremodel.Receipt{Kind: umpiremodel.Counterexample, Monitor: "terminalFinality"}
+	found := check.Receipt{Kind: check.Counterexample, Monitor: "terminalFinality"}
 	cases := map[string]struct {
 		receipt Receipt
-		answers map[string]umpiremodel.Receipt
+		answers map[string]check.Receipt
 		want    Kind
 		says    string
 	}{
-		"the same verdict":               {base, map[string]umpiremodel.Receipt{free: found, replay: found}, Agreed, ""},
-		"a counterexample verified":      {base, map[string]umpiremodel.Receipt{free: found, replay: {Kind: umpiremodel.Verified}}, WitnessRejected, ""},
-		"a counterexample of no monitor": {base, map[string]umpiremodel.Receipt{free: found, replay: {Kind: umpiremodel.Counterexample}}, WitnessRejected, ""},
-		"another monitor named": {base, map[string]umpiremodel.Receipt{free: {Kind: umpiremodel.Counterexample, Monitor: "atMostOneActiveAttempt"}, replay: found},
+		"the same verdict":               {base, map[string]check.Receipt{free: found, replay: found}, Agreed, ""},
+		"a counterexample verified":      {base, map[string]check.Receipt{free: found, replay: {Kind: check.Verified}}, WitnessRejected, ""},
+		"a counterexample of no monitor": {base, map[string]check.Receipt{free: found, replay: {Kind: check.Counterexample}}, WitnessRejected, ""},
+		"another monitor named": {base, map[string]check.Receipt{free: {Kind: check.Counterexample, Monitor: "atMostOneActiveAttempt"}, replay: found},
 			Disagreed, "finds the monitor atMostOneActiveAttempt violated"},
-		"verified where the backend finds a violation": {base, map[string]umpiremodel.Receipt{free: {Kind: umpiremodel.Verified}, replay: found},
+		"verified where the backend finds a violation": {base, map[string]check.Receipt{free: {Kind: check.Verified}, replay: found},
 			Disagreed, "verifies the monitors on every path"},
 		"a violation the backend does not find": {Receipt{Claim: MonitorAgreement, Subject: "m", Kind: Agreed},
-			map[string]umpiremodel.Receipt{free: found}, Disagreed, "finds the monitor terminalFinality violated"},
+			map[string]check.Receipt{free: found}, Disagreed, "finds the monitor terminalFinality violated"},
 		"a limit": {Receipt{Claim: MonitorAgreement, Subject: "m", Kind: Agreed},
-			map[string]umpiremodel.Receipt{free: {Kind: umpiremodel.LimitReached}}, Disagreed, "limit-reached"},
+			map[string]check.Receipt{free: {Kind: check.LimitReached}}, Disagreed, "limit-reached"},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -737,7 +738,7 @@ func TestCompositionsAreExported(t *testing.T) {
 // A composition past the scope's ceiling is a resource-limit receipt: Go builds no table of it, and
 // no part of it is exported.
 func TestACompositionPastTheCeilingIsAResourceLimit(t *testing.T) {
-	scope := umpiremodel.DefaultScope
+	scope := check.DefaultScope
 	scope.Compose.States = 3
 	s, err := OpenWithin(loadModel(t, "activity"), scope)
 	require.NoError(t, err)

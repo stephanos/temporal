@@ -10,8 +10,8 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -26,7 +26,7 @@ func TestModelCasesLowerForExistingConsumers(t *testing.T) {
 	} {
 		t.Run(item.query, func(t *testing.T) {
 			path := filepath.Join("..", "..", "..", "model", "ir", item.model+".json")
-			key := umpiremodel.ClaimKey{Family: item.family, Owner: item.owner, Name: item.query}
+			key := check.ClaimKey{Family: item.family, Owner: item.owner, Name: item.query}
 			fixture, err := LoadModelCase(path, key, item.set)
 			require.NoError(t, err)
 			again, err := LoadModelCase(path, key, item.set)
@@ -107,7 +107,7 @@ func TestGeneratedNexusOperationCasesRequireTheStandaloneFlag(t *testing.T) {
 // out of a recorded Run without knowing the Case.
 func TestTheHeldRaceIsLoadedWithItsClaimAndItsDurableKinds(t *testing.T) {
 	fixture, err := LoadModelCase(filepath.Join("..", "..", "..", "model", "ir", "activity-race.json"),
-		umpiremodel.ClaimKey{Family: "temporal.features.standaloneactivity.system", Owner: "heldDispatch", Name: "heldDispatch.staleDelivery"}, "standaloneActivityRace")
+		check.ClaimKey{Family: "temporal.features.standaloneactivity.system", Owner: "heldDispatch", Name: "heldDispatch.staleDelivery"}, "standaloneActivityRace")
 	require.NoError(t, err)
 	require.Equal(t, "staleDeliveryRejected", fixture.Property)
 	require.Equal(t, []string{"evidence.admissionRejected", "evidence.attemptAdmitted"}, fixture.Durable)

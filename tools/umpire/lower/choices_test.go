@@ -12,7 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/interp"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -27,7 +28,7 @@ func namedChoices(t *testing.T, m *umpirespb.Model) (*umpirespb.Model, int) {
 	var steps []*umpirespb.Construct
 	var visit func(protoreflect.Message)
 	visit = func(msg protoreflect.Message) {
-		if c, ok := msg.Interface().(*umpirespb.Construct); ok && c.GetType() == umpiremodel.StepType {
+		if c, ok := msg.Interface().(*umpirespb.Construct); ok && c.GetType() == interp.StepType {
 			c.Choice = fmt.Sprintf("alternative-%d", len(steps))
 			steps = append(steps, c)
 		}
@@ -48,7 +49,7 @@ func namedChoices(t *testing.T, m *umpirespb.Model) (*umpirespb.Model, int) {
 	named := len(steps)
 	twice := regexp.MustCompile(`has two results named alternative-(\d+)$`)
 	for {
-		_, err := umpiremodel.Build(out)
+		_, err := interp.Build(out)
 		if err == nil {
 			return out, named
 		}
@@ -94,12 +95,12 @@ func TestNamedChoicesLowerTheSameCases(t *testing.T) {
 		"model/irgen/testdata/lifts/expected/realizations.json",
 	} {
 		t.Run(filepath.Base(path), func(t *testing.T) {
-			plain, err := umpiremodel.Load(filepath.Join("..", "..", "..", path))
+			plain, err := ir.Load(filepath.Join("..", "..", "..", path))
 			require.NoError(t, err)
 			named, n := namedChoices(t, plain)
 			require.Positive(t, n)
-			require.NoError(t, umpiremodel.Validate(named))
-			machines, err := umpiremodel.Build(named)
+			require.NoError(t, ir.Validate(named))
+			machines, err := interp.Build(named)
 			require.NoError(t, err)
 			reported, branching := 0, 0
 			for _, mm := range machines {

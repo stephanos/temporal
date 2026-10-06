@@ -22,8 +22,8 @@ import (
 	"go.temporal.io/server/tests/testcore"
 	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 	"go.temporal.io/server/tools/umpire/explore"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 var generatedCaseDirectory = filepath.Join("..", "model", "cases")
@@ -229,7 +229,7 @@ func runGeneratedCaseOnCluster(t *testing.T, entry lower.GeneratedCase, fixture 
 			if round == 0 && i == 0 {
 				verdict = result.verdict
 				if os.Getenv("UMPIRE_EXPLORATION_DIR") != "" {
-					model, err := umpiremodel.Load(filepath.Join(generatedCaseDirectory, "..", "ir", entry.Model))
+					model, err := ir.Load(filepath.Join(generatedCaseDirectory, "..", "ir", entry.Model))
 					require.NoError(t, err)
 					identity, err := recordedrun.CaseIdentity(fixture.Bytes)
 					require.NoError(t, err)

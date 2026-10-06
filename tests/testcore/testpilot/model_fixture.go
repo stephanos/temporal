@@ -12,9 +12,10 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/conformance"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -64,8 +65,8 @@ func (c *ModelCase) WithoutDurableEvidence(run *testpilotspb.Run) (*testpilotspb
 	return out, nil
 }
 
-func LoadModelCase(path string, query umpiremodel.ClaimKey, set string) (*ModelCase, error) {
-	model, err := umpiremodel.Load(path)
+func LoadModelCase(path string, query check.ClaimKey, set string) (*ModelCase, error) {
+	model, err := ir.Load(path)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func LoadGeneratedCase(directory string, entry lower.GeneratedCase) (*ModelCase,
 	if err != nil {
 		return nil, err
 	}
-	model, err := umpiremodel.Load(filepath.Join(directory, "..", "ir", entry.Model))
+	model, err := ir.Load(filepath.Join(directory, "..", "ir", entry.Model))
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +124,7 @@ func GeneratedCases(directory string) ([]lower.GeneratedCase, error) {
 	return manifest.Queries, nil
 }
 
-func prepareModelCase(model *umpirespb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case) (*ModelCase, error) {
+func prepareModelCase(model *umpirespb.Model, query check.ClaimKey, source *testpilotspb.Case) (*ModelCase, error) {
 	assessment, err := conformance.Prepare(model, query, source, conformance.DefaultLimits())
 	if err != nil {
 		return nil, err

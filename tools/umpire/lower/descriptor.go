@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/interp"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -32,7 +32,7 @@ func locate(at *umpirespb.Position) string {
 }
 
 func errorAt(at *umpirespb.Position, format string, args ...any) error {
-	return &umpiremodel.Error{Position: locate(at), Message: fmt.Sprintf(format, args...)}
+	return &interp.Error{Position: locate(at), Message: fmt.Sprintf(format, args...)}
 }
 
 // messageNamed is the descriptor of a protobuf message linked into this binary, by its full name.

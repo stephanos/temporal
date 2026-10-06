@@ -18,7 +18,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/replay"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/explore"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -31,7 +31,7 @@ func TestIRBridgeProtocol(t *testing.T) {
 	build.Dir = root
 	output, err := build.CombinedOutput()
 	require.NoError(t, err, "%s", output)
-	m, err := umpiremodel.Load(filepath.Join(root, "model", "ir", "nexus-caller.json"))
+	m, err := ir.Load(filepath.Join(root, "model", "ir", "nexus-caller.json"))
 	require.NoError(t, err)
 	var query *umpirespb.Query
 	for _, q := range m.Queries {

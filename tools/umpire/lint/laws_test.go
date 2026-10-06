@@ -12,13 +12,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
 )
 
 // sidecar is the law sidecar of testdata/laws named name, read as lint reads one beside an IR file.
-func sidecar(t *testing.T, name string) *model.LawSidecar {
+func sidecar(t *testing.T, name string) *check.LawSidecar {
 	t.Helper()
-	s, err := model.ReadLawSidecar(filepath.Join("testdata", "laws", name+".json"))
+	s, err := check.ReadLawSidecar(filepath.Join("testdata", "laws", name+".json"))
 	require.NoError(t, err)
 	require.NotNil(t, s)
 	return s
@@ -123,11 +123,11 @@ func TestALawWithOneInstantiatingMachineIsReported(t *testing.T) {
 
 	// Counted across every sidecar a run reads, a second machine elsewhere makes two; a machine of a
 	// state type already counted does not.
-	elsewhere := &model.LawSidecar{Catalog: []model.LawEntry{{Law: "lockedStaysLocked", Position: "x:1",
-		Instantiating: []model.LawInstance{{Machine: "barn", State: "fixture.BarnState"}}}}}
+	elsewhere := &check.LawSidecar{Catalog: []check.LawEntry{{Law: "lockedStaysLocked", Position: "x:1",
+		Instantiating: []check.LawInstance{{Machine: "barn", State: "fixture.BarnState"}}}}}
 	require.Empty(t, findingsOf(t, withLaws(t, "lonely", Options{Instances: CountInstances(m.Laws, elsewhere)}), lawsWithOneInstance))
-	derived := &model.LawSidecar{Catalog: []model.LawEntry{{Law: "lockedStaysLocked", Position: "x:1",
-		Instantiating: []model.LawInstance{{Machine: "backDoor", State: "fixture.DoorState"}}}}}
+	derived := &check.LawSidecar{Catalog: []check.LawEntry{{Law: "lockedStaysLocked", Position: "x:1",
+		Instantiating: []check.LawInstance{{Machine: "backDoor", State: "fixture.DoorState"}}}}}
 	require.Len(t, findingsOf(t, withLaws(t, "lonely", Options{Instances: CountInstances(m.Laws, derived)}), lawsWithOneInstance), 1)
 }
 
@@ -140,7 +140,7 @@ func TestAMalformedSidecarIsTheReadersErrorWithNoFindings(t *testing.T) {
 		"bare-instance":  "cannot unmarshal string",
 	} {
 		t.Run(name, func(t *testing.T) {
-			_, err := model.ReadLawSidecar(filepath.Join("testdata", "laws", name+".json"))
+			_, err := check.ReadLawSidecar(filepath.Join("testdata", "laws", name+".json"))
 			require.ErrorContains(t, err, filepath.Join("testdata", "laws", name+".laws.json")+": ")
 			require.ErrorContains(t, err, says)
 
@@ -151,7 +151,7 @@ func TestAMalformedSidecarIsTheReadersErrorWithNoFindings(t *testing.T) {
 			require.NoError(t, os.WriteFile(ir, encoded, 0o644))
 			malformed, err := os.ReadFile(filepath.Join("testdata", "laws", name+".laws.json"))
 			require.NoError(t, err)
-			require.NoError(t, os.WriteFile(model.LawSidecarPath(ir), malformed, 0o644))
+			require.NoError(t, os.WriteFile(check.LawSidecarPath(ir), malformed, 0o644))
 			m, err := Read(ir, unrealizedByMachine, Options{})
 			require.ErrorContains(t, err, says)
 			require.Nil(t, m)
@@ -185,7 +185,7 @@ func TestWaiverFaultsCannotBeAcceptedNorWaivedTwice(t *testing.T) {
 	encoded, err := json.Marshal(twice)
 	require.NoError(t, err)
 	ir := filepath.Join(t.TempDir(), "twice.json")
-	require.NoError(t, os.WriteFile(model.LawSidecarPath(ir), encoded, 0o644))
-	_, err = model.ReadLawSidecar(ir)
+	require.NoError(t, os.WriteFile(check.LawSidecarPath(ir), encoded, 0o644))
+	_, err = check.ReadLawSidecar(ir)
 	require.ErrorContains(t, err, "shed.lockedStaysLocked is waived twice")
 }

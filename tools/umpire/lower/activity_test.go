@@ -19,8 +19,10 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
+	"go.temporal.io/server/tools/umpire/ir"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -252,7 +254,7 @@ func TestAnActivityScriptAnswersItsAttempts(t *testing.T) {
 			l, err := p.Lower("errand.retry", errandIdentity)
 			require.Nil(t, l)
 			require.ErrorContains(t, err, c.want)
-			var located *umpiremodel.Error
+			var located *interp.Error
 			require.ErrorAs(t, err, &located)
 			require.Contains(t, located.Position, liftsDir)
 		})
@@ -446,7 +448,7 @@ func TestTheFieldsAndTheSingleReadOfEvidenceAreCheckedAgainstTheirDescriptors(t 
 			l, err := p.Lower("tally.opens", cp.IdentityFor("temporal.case", "fixture", "tally"))
 			require.Nil(t, l)
 			require.ErrorContains(t, err, c.want)
-			var located *umpiremodel.Error
+			var located *interp.Error
 			require.ErrorAs(t, err, &located)
 			require.Contains(t, located.Position, realizationsAt)
 		})
@@ -563,7 +565,7 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 		fields  []*umpirespb.EvidenceField
 		names   []taking
 	}
-	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
+	realizer, err := check.NewRealizer(m, check.DefaultScope)
 	require.NoError(t, err)
 	const evidence = "temporal.features.standaloneactivity.system.evidence."
 	// The Run numbers its own record, so the kinds read from it count in one source, in the order the
@@ -731,7 +733,7 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 			q.GetLimits().Steps, q.GetLimits().Actions = 7, 7
 		}
 	}
-	m, err := umpiremodel.WithTotals(m)
+	m, err := ir.WithTotals(m)
 	require.NoError(t, err)
 	p, err := NewProducer(m)
 	require.NoError(t, err)

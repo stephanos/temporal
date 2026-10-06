@@ -44,7 +44,9 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -111,16 +113,16 @@ type Factory struct {
 // machine and claims are read whole, and the Case must carry the evidence observation of the
 // machine's one realization. A Query this reader does not assess, a claim that cannot be read and a
 // ceiling out of range are errors here, before any Run.
-func Prepare(m *umpirespb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) (*Factory, error) {
+func Prepare(m *umpirespb.Model, query check.ClaimKey, source *testpilotspb.Case, limits Limits) (*Factory, error) {
 	if m == nil || source == nil {
-		return nil, &umpiremodel.Error{Message: "a Model and a Case are required"}
+		return nil, &interp.Error{Message: "a Model and a Case are required"}
 	}
 	for _, ceiling := range []struct {
 		name       string
 		value, max int
 	}{{"candidates", limits.MaxCandidates, maxCandidates}, {"work", limits.MaxWork, maxWork}, {"readings", limits.MaxReadings, maxWork}} {
 		if ceiling.value < 1 || ceiling.value > ceiling.max {
-			return nil, &umpiremodel.Error{Message: fmt.Sprintf("conformance %s ceiling must be between 1 and %d", ceiling.name, ceiling.max)}
+			return nil, &interp.Error{Message: fmt.Sprintf("conformance %s ceiling must be between 1 and %d", ceiling.name, ceiling.max)}
 		}
 	}
 	snapshot := proto.CloneOf(m)
@@ -141,7 +143,7 @@ func Prepare(m *umpirespb.Model, query umpiremodel.ClaimKey, source *testpilotsp
 		compiled.realization, limits.MaxCandidates, limits.MaxWork))
 	identity := fmt.Sprintf("%s/%s/%s#%s", query.Family, query.Owner, query.Name, hex.EncodeToString(asked[:8]))
 	if len(identity) > 256 {
-		return nil, &umpiremodel.Error{Message: "query identity " + identity + " is longer than 256 bytes"}
+		return nil, &interp.Error{Message: "query identity " + identity + " is longer than 256 bytes"}
 	}
 	return &Factory{plan: compiled, binding: testpilot.AssessmentBinding{Case: fingerprint, Model: model, Query: identity,
 		Limits: testpilot.AssessmentLimits{MaxEvents: limits.MaxEvents, MaxProperties: limits.MaxProperties, MaxDuration: limits.MaxDuration}}}, nil
@@ -157,7 +159,7 @@ func (f *Factory) New(context.Context) (testpilot.Assessor, error) { return newA
 // taken out, so that moving a declaration in its file, correcting a total no assessment reads, or
 // naming a result (model/SEMANTICS.md, Named choices) moves no identity.
 func modelIdentity(m *umpirespb.Model) (string, error) {
-	bare := umpiremodel.WithoutChoiceNames(umpiremodel.WithoutTotals(m))
+	bare := ir.WithoutChoiceNames(ir.WithoutTotals(m))
 	bare.Source = ""
 	clearPositions(bare.ProtoReflect())
 	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(bare)

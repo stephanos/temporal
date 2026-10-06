@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 )
 
 func TestTraceRenderingIsStableAndSourceLinked(t *testing.T) {
-	m, err := umpiremodel.Load("../../../model/ir/nexus-caller.json")
+	m, err := ir.Load("../../../model/ir/nexus-caller.json")
 	require.NoError(t, err)
 	plan, err := New(m, "nexusDeadlines")
 	require.NoError(t, err)

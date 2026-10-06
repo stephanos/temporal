@@ -10,7 +10,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/common/testing/testpilot/replay"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -29,7 +29,7 @@ type proposal struct {
 func (p *Plan) Proposal(c *Candidate) (*replay.BridgeProposal, error) {
 	// The recipe is the source Model as an identity reads it, without totals, so a corrected source
 	// total changes neither the proposal bytes nor the SHA-256 that names the promotion source.
-	model, err := protojson.Marshal(umpiremodel.WithoutTotals(p.base))
+	model, err := protojson.Marshal(ir.WithoutTotals(p.base))
 	if err != nil {
 		return nil, err
 	}

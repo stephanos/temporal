@@ -6,7 +6,8 @@ import (
 	"strings"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // clause is one lowered requirement as an operation-correlated clause: from the operation's first
@@ -32,7 +33,7 @@ func (c pattern) json() string {
 
 // holds reports whether one taken step already carries the pattern's value.
 func (c pattern) holds(s step) bool {
-	carries := func(a umpiremodel.Atom) bool { return a.ID == c.reference && a.Value == c.value }
+	carries := func(a interp.Atom) bool { return a.ID == c.reference && a.Value == c.value }
 	switch c.field {
 	case "selected-action":
 		return carries(s.Action)
@@ -71,7 +72,7 @@ func (c pattern) condition() *testpilotspb.Expression {
 // action, its bound the position of the clause's own action in the pinned schedule. A clause whose
 // value the trace already carries before its action would answer without the action being observed,
 // so it rejects. Clauses come in the checked Property's order, which is by clause id.
-func (p *production) scopedClauses(groups []umpiremodel.Group) ([]clause, error) {
+func (p *production) scopedClauses(groups []check.Group) ([]clause, error) {
 	propertyID := p.q.Property.PropertyID(p.t)
 	var out []clause
 	for _, g := range groups {
@@ -83,11 +84,11 @@ func (p *production) scopedClauses(groups []umpiremodel.Group) ([]clause, error)
 			id := propertyID + "." + r.Label
 			var resp pattern
 			switch r.Kind {
-			case umpiremodel.FactRequirement:
+			case check.FactRequirement:
 				resp = pattern{"observation", p.t.FactAtom(r.Value).ID, r.Value}
-			case umpiremodel.OutcomeRequirement:
+			case check.OutcomeRequirement:
 				resp = pattern{"outcome", p.t.OutcomeAtom(r.Value).ID, r.Value}
-			case umpiremodel.StateRequirement:
+			case check.StateRequirement:
 				resp = pattern{"resulting-state", p.t.StateAtom(r.Value).ID, r.Value}
 			default:
 				return nil, reject(id, "property.clause-shape")
@@ -135,7 +136,7 @@ type projectionPlan struct {
 }
 
 type projectedRow struct {
-	prior  umpiremodel.Atom
+	prior  interp.Atom
 	result step
 }
 
@@ -157,7 +158,7 @@ func (p *production) projection(rules []resolvedRule, offPath []*EvidenceSource)
 		return strings.Compare(a.Rule.Source.KindID, b.Rule.Source.KindID)
 	})
 	return projectionPlan{rules: sorted, sources: sources,
-		fingerprint: umpiremodel.Fingerprint(p.projectionCanonical(sorted, sources)),
+		fingerprint: check.Fingerprint(p.projectionCanonical(sorted, sources)),
 		transitions: p.projectedRows(sorted)}
 }
 
@@ -294,11 +295,11 @@ func (p *production) fields(state string) []*testpilotspb.ModelValue {
 	return out
 }
 
-func modelValue(a umpiremodel.Atom) *testpilotspb.ModelValue {
+func modelValue(a interp.Atom) *testpilotspb.ModelValue {
 	return &testpilotspb.ModelValue{DefinitionId: a.ID, Value: a.Value}
 }
 
-func atomValues(atoms []umpiremodel.Atom) []string {
+func atomValues(atoms []interp.Atom) []string {
 	out := make([]string, len(atoms))
 	for i, a := range atoms {
 		out[i] = quote(a.Value)
@@ -316,4 +317,4 @@ func quotedAll(items []string) []string {
 
 func jsonArray(items []string) string { return "[" + strings.Join(items, ",") + "]" }
 
-func quote(s string) string { return umpiremodel.Quote(s) }
+func quote(s string) string { return check.Quote(s) }

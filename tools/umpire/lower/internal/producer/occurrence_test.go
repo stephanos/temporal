@@ -15,8 +15,10 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
+	"go.temporal.io/server/tools/umpire/ir"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -30,25 +32,25 @@ const (
 // was taken and its attempt count; a failed attempt lists it again with the count; a finished one
 // closes it. A job may also be dropped while it is queued, which records that it was dropped. A
 // running job may be checked, which records nothing, and closed, which finishes it or drops it.
-func jobTable(t *testing.T) *umpiremodel.Table {
+func jobTable(t *testing.T) *interp.Table {
 	t.Helper()
 	model := jobModel("once", jobOnce...)
-	require.NoError(t, umpiremodel.Validate(model))
-	built, err := umpiremodel.Build(model)
+	require.NoError(t, ir.Validate(model))
+	built, err := interp.Build(model)
 	require.NoError(t, err)
 	require.Len(t, built, 1)
 	return built["job"].Table
 }
 
 // jobQuery finds the job finished by the last step of a path of these classes.
-func jobQuery(t *testing.T, name string, actions ...string) *umpiremodel.Query {
+func jobQuery(t *testing.T, name string, actions ...string) *check.Query {
 	t.Helper()
 	model := jobModel(name, actions...)
 	table := jobTable(t)
-	realizer, err := umpiremodel.NewRealizer(model, umpiremodel.DefaultScope)
+	realizer, err := check.NewRealizer(model, check.DefaultScope)
 	require.NoError(t, err)
 	require.Equal(t, table.IDs(), realizer.Machine("job").Table.IDs())
-	query, err := realizer.Find(umpiremodel.ClaimKey{Family: jobFamily, Owner: "job", Name: name})
+	query, err := realizer.Find(check.ClaimKey{Family: jobFamily, Owner: "job", Name: name})
 	require.NoError(t, err)
 	return query
 }
@@ -311,7 +313,7 @@ func TestTheProjectionFingerprintIsOfItsCanonicalForm(t *testing.T) {
 	sources := jobSources()
 	sources[4].Exhaustive = true
 	table := jobTable(t)
-	q := func(text string) string { return umpiremodel.Quote(text) }
+	q := func(text string) string { return check.Quote(text) }
 	canonical := "[" + strings.Join([]string{
 		q("checked-projection/v2"), q(jobFamily + ".projection"), q(table.TargetFingerprint()), q(table.SetupKey()), q("idle"),
 		"[" + q(jobFamily+".scope.run") + "]", q(jobFamily + ".scope.job"),
@@ -326,7 +328,7 @@ func TestTheProjectionFingerprintIsOfItsCanonicalForm(t *testing.T) {
 		}, ",") + "]",
 		"[8,8,2,16,1000,512]",
 	}, ",") + "]"
-	require.Equal(t, umpiremodel.Fingerprint(canonical), produced(t, "once", sources, jobOnce...).GetContract().GetCorrelated().GetProjectionFingerprint())
+	require.Equal(t, check.Fingerprint(canonical), produced(t, "once", sources, jobOnce...).GetContract().GetCorrelated().GetProjectionFingerprint())
 }
 
 // retyped is the fields with the first one changed, as a copy.

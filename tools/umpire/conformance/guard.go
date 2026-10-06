@@ -6,7 +6,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/realization"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -64,7 +64,7 @@ func admits(source *umpirespb.RunEventSource, event *testpilotspb.RunEvent) (boo
 		return true, nil
 	}
 	payload := event.GetOutcome().ProtoReflect()
-	if err := umpiremodel.GuardProblem(source.GetGuard(), payload.Descriptor()); err != nil {
+	if err := realization.GuardProblem(source.GetGuard(), payload.Descriptor()); err != nil {
 		return refused(err.Error())
 	}
 	held, err := evaluate(source.GetGuard(), payload)
@@ -152,7 +152,7 @@ func sides(left, right *umpirespb.Operand, payload protoreflect.Message, verb st
 // and a oneof member that is not the one set, leave the value absent; a scalar that is no member of a
 // oneof is held always, at its default where nothing set it.
 func valueAt(at protoreflect.Message, path string) (value, error) {
-	fields, err := umpiremodel.PayloadFields(at.Descriptor(), path)
+	fields, err := realization.PayloadFields(at.Descriptor(), path)
 	if err != nil {
 		return value{}, err
 	}

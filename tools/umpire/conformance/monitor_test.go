@@ -7,7 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -39,7 +40,7 @@ func counted(t testing.TB, initial, target int) *umpirespb.Model {
 			machine.Monitors = append(machine.Monitors, "test.counter")
 		}
 	}
-	require.NoError(t, umpiremodel.Validate(m))
+	require.NoError(t, ir.Validate(m))
 	return m
 }
 
@@ -50,7 +51,7 @@ func TestAMonitorStateIsItselfAtEveryIndexOfTheLargestCatalog(t *testing.T) {
 	stored := script(store, fact{name: "o0", records: "stored"})[0].evidence
 	for _, initial := range []int{0, 32766, 32767, 65534} {
 		t.Run(fmt.Sprint(initial), func(t *testing.T) {
-			factory, err := Prepare(counted(t, initial, initial+1), umpiremodel.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"},
+			factory, err := Prepare(counted(t, initial, initial+1), check.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"},
 				carrier(store, []string{"stored"}, 1), generous)
 			require.NoError(t, err)
 			established, outcome := assessDirectly(t, factory, completed, proto.CloneOf(stored))
@@ -62,7 +63,7 @@ func TestAMonitorStateIsItselfAtEveryIndexOfTheLargestCatalog(t *testing.T) {
 		})
 	}
 	// The same step from the same states leaves the counter short of a target one further on.
-	factory, err := Prepare(counted(t, 65533, 65535), umpiremodel.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"},
+	factory, err := Prepare(counted(t, 65533, 65535), check.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"},
 		carrier(store, []string{"stored"}, 1), generous)
 	require.NoError(t, err)
 	established, outcome := assessDirectly(t, factory, completed, proto.CloneOf(stored))

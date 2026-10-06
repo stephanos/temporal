@@ -9,7 +9,7 @@ import (
 	"text/tabwriter"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
 )
 
 // The law view reads the law sidecar beside an IR file onto the per-operation table: each law a
@@ -32,7 +32,7 @@ type LawTable struct {
 	Owner    string
 	Laws     []LawView
 	Unpinned []LawCell
-	Excepted []model.LawWaiver
+	Excepted []check.LawWaiver
 }
 
 // LawView is one generated claim of a law on the table: the claim and the catalog's entry for its
@@ -43,10 +43,10 @@ type LawTable struct {
 // Unchecked, one no Query over the machine's own Scenarios asks, which the refinement does not by
 // itself preserve.
 type LawView struct {
-	Claim      model.LawClaim
-	Entry      *model.LawEntry
+	Claim      check.LawClaim
+	Entry      *check.LawEntry
 	Modality   Modality
-	Overridden *model.LawWaiver
+	Overridden *check.LawWaiver
 	Witnessed  bool
 	Inherited  bool
 	Unchecked  bool
@@ -93,10 +93,10 @@ func (m *Model) compositionLaws() []*LawTable {
 }
 
 // excepted is the waivers of an owner made with `except`.
-func (m *Model) excepted(owner string) []model.LawWaiver {
-	var out []model.LawWaiver
+func (m *Model) excepted(owner string) []check.LawWaiver {
+	var out []check.LawWaiver
 	for _, w := range m.Laws.Waivers {
-		if w.Machine == owner && w.Waiver == model.WaiverExcept {
+		if w.Machine == owner && w.Waiver == check.WaiverExcept {
 			out = append(out, w)
 		}
 	}
@@ -104,7 +104,7 @@ func (m *Model) excepted(owner string) []model.LawWaiver {
 }
 
 // lawView is a claim with its law's entry, the modality it pins and the waiver overriding it.
-func (m *Model) lawView(c model.LawClaim) LawView {
+func (m *Model) lawView(c check.LawClaim) LawView {
 	lv := LawView{Claim: c, Entry: m.Laws.Entry(c.Law), Modality: Must}
 	for _, p := range m.IR.GetProperties() {
 		if p.GetMachine() == c.Machine && p.GetName() == c.Name && p.GetTransition() {
@@ -115,7 +115,7 @@ func (m *Model) lawView(c model.LawClaim) LawView {
 		return q.GetForm() == umpirespb.Query_FORM_VERIFY && q.GetProperty().GetMachine() == c.Machine && q.GetProperty().GetName() == c.Name
 	})
 	for i, w := range m.Laws.Waivers {
-		if w.Machine == c.Machine && w.Law == c.Law && w.Waiver == model.WaiverOverriding {
+		if w.Machine == c.Machine && w.Law == c.Law && w.Waiver == check.WaiverOverriding {
 			lv.Overridden = &m.Laws.Waivers[i]
 		}
 	}
@@ -129,7 +129,7 @@ func (v *view) lawTable(t *Table) *LawTable {
 	if v.m.Laws == nil {
 		return nil
 	}
-	var claims []model.LawClaim
+	var claims []check.LawClaim
 	for _, c := range v.m.Laws.Claims {
 		if c.Machine == v.name || v.product != nil && c.Machine == v.product.name {
 			claims = append(claims, c)
@@ -174,7 +174,7 @@ func (v *view) asks(machine, name string) bool {
 // pins is the rules a claim pins of the classes its capabilities' actions name, noting each class's
 // fields in acting. A law whose capabilities name no action pins its cells on every class, read by
 // label (everyClass).
-func (v *view) pins(t *Table, c model.LawClaim, acting map[string][]string) []LawCell {
+func (v *view) pins(t *Table, c check.LawClaim, acting map[string][]string) []LawCell {
 	classes := v.actionClasses(c, acting)
 	var out []LawCell
 	var labels []string
@@ -201,7 +201,7 @@ func (v *view) pins(t *Table, c model.LawClaim, acting map[string][]string) []La
 
 // actionClasses is the capability fields naming each class of the machine a claim's actions name, a
 // class by its key or an action with inputs by its name, each also noted in acting.
-func (v *view) actionClasses(c model.LawClaim, acting map[string][]string) map[string][]string {
+func (v *view) actionClasses(c check.LawClaim, acting map[string][]string) map[string][]string {
 	classes := map[string][]string{}
 	for _, field := range slices.Sorted(maps.Keys(c.Actions)) {
 		for _, class := range v.mm.Classes {

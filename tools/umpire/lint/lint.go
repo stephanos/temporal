@@ -14,7 +14,9 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
+	umpireir "go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -131,13 +133,13 @@ type Model struct {
 	File string
 	IR   *umpirespb.Model
 	// Laws is the law sidecar beside the IR file, or nil where its Models declare no capabilities.
-	Laws *model.LawSidecar
+	Laws *check.LawSidecar
 	// Verified is the receipts of a check of the Model with its verify Queries alone: lint reads
 	// whether each Property fired, and a find Query's search answers nothing it asks.
-	Verified *model.Report
-	Machines map[string]*model.Machine
-	In       *model.Interpreter
-	realizer *model.Realizer
+	Verified *check.Report
+	Machines map[string]*interp.Machine
+	In       *interp.Interpreter
+	realizer *check.Realizer
 	actions  map[string]*umpirespb.Action
 	lowering Lowering
 	options  Options
@@ -146,11 +148,11 @@ type Model struct {
 // Read loads, checks and interprets the IR file at path, with the law sidecar beside it. A malformed
 // file or sidecar is the reader's error, returned as the reader reports it, and gives no findings.
 func Read(path string, lowering Lowering, options Options) (*Model, error) {
-	ir, err := model.Load(path)
+	ir, err := umpireir.Load(path)
 	if err != nil {
 		return nil, err
 	}
-	laws, err := model.ReadLawSidecar(path)
+	laws, err := check.ReadLawSidecar(path)
 	if err != nil {
 		return nil, err
 	}
@@ -164,22 +166,22 @@ func Read(path string, lowering Lowering, options Options) (*Model, error) {
 
 // Of reads an admitted Model as Read does, under the name file.
 func Of(file string, ir *umpirespb.Model, lowering Lowering, options Options) (*Model, error) {
-	realizer, err := model.NewRealizer(ir, model.DefaultScope)
+	realizer, err := check.NewRealizer(ir, check.DefaultScope)
 	if err != nil {
 		return nil, err
 	}
-	machines := map[string]*model.Machine{}
+	machines := map[string]*interp.Machine{}
 	for _, decl := range ir.GetMachines() {
 		if machines[decl.GetName()] = realizer.Machine(decl.GetName()); machines[decl.GetName()] == nil {
 			// Build says why a machine has no table, as the reader reports it.
-			_, err := model.Build(ir)
+			_, err := interp.Build(ir)
 			return nil, cmp.Or(err, fmt.Errorf("%s could not be interpreted", decl.GetName()))
 		}
 	}
 	verify := proto.CloneOf(ir)
 	verify.Queries = slices.DeleteFunc(verify.Queries, func(q *umpirespb.Query) bool { return q.GetForm() != umpirespb.Query_FORM_VERIFY })
 	verify.Progress = nil
-	m := &Model{File: file, IR: ir, Verified: model.Check(verify, model.DefaultScope), Machines: machines, In: model.NewInterpreter(ir),
+	m := &Model{File: file, IR: ir, Verified: check.Check(verify, check.DefaultScope), Machines: machines, In: interp.NewInterpreter(ir),
 		realizer: realizer, actions: map[string]*umpirespb.Action{}, lowering: lowering, options: options}
 	for _, a := range ir.GetActions() {
 		m.actions[a.GetId()] = a

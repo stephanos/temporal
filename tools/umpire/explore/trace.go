@@ -11,7 +11,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -21,7 +22,7 @@ type traceSource struct {
 }
 type traceStep struct {
 	Action, Before, After, Outcome, Product string
-	Facts                                   []umpiremodel.Atom
+	Facts                                   []interp.Atom
 }
 type traceView struct {
 	Query, Digest, Identity                               string
@@ -39,13 +40,13 @@ func RenderTrace(c *Candidate, query string, run *testpilotspb.Run, assessment *
 	if run != nil && (run.GetCaseId() != c.Case.GetCaseId() || run.GetProgramId() != c.Case.GetProgram().GetProgramId()) {
 		return nil, errors.New("trace Run belongs to another Case")
 	}
-	realizer, err := umpiremodel.NewRealizer(c.Model, umpiremodel.DefaultScope)
+	realizer, err := check.NewRealizer(c.Model, check.DefaultScope)
 	if err != nil {
 		return nil, err
 	}
-	var receipt *umpiremodel.Receipt
-	for _, r := range umpiremodel.Check(c.Model, umpiremodel.DefaultScope).Receipts {
-		if r.Subject == umpiremodel.QuerySubject && r.Key.Name == query {
+	var receipt *check.Receipt
+	for _, r := range check.Check(c.Model, check.DefaultScope).Receipts {
+		if r.Subject == check.QuerySubject && r.Key.Name == query {
 			receipt = &r
 			break
 		}
@@ -105,9 +106,9 @@ func RenderTrace(c *Candidate, query string, run *testpilotspb.Run, assessment *
 	return out.Bytes(), err
 }
 
-func (view *traceView) witness(model *umpirespb.Model, machine *umpiremodel.Machine, receipt *umpiremodel.Receipt) error {
+func (view *traceView) witness(model *umpirespb.Model, machine *interp.Machine, receipt *check.Receipt) error {
 	before := receipt.Witness.Initial.Value
-	interpreter := umpiremodel.NewInterpreter(model)
+	interpreter := interp.NewInterpreter(model)
 	for _, step := range receipt.Witness.Steps {
 		row := traceStep{Action: step.Action.Value, Before: before, After: step.State.Value, Outcome: step.Outcome.Value, Facts: step.Facts}
 		if ref := machine.Decl.GetRefines(); ref != nil {
@@ -115,7 +116,7 @@ func (view *traceView) witness(model *umpirespb.Model, machine *umpiremodel.Mach
 			if !ok {
 				return errors.New("witness state missing")
 			}
-			projected, err := interpreter.Call(ref.GetMap(), []umpiremodel.Value{state}, machine.Decl.GetPosition())
+			projected, err := interpreter.Call(ref.GetMap(), []interp.Value{state}, machine.Decl.GetPosition())
 			if err != nil {
 				return err
 			}

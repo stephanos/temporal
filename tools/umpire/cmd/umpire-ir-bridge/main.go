@@ -8,7 +8,7 @@ import (
 	_ "go.temporal.io/api/workflowservice/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/explore"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func run() error {
 	if len(os.Args) != 1 {
 		return errors.New("usage: umpire-ir-bridge [proposal <regression.json>]; bridge runs in model")
 	}
-	paths, err := umpiremodel.IRPaths("ir")
+	paths, err := ir.IRPaths("ir")
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func run() error {
 	}
 	var models []*umpirespb.Model
 	for _, path := range paths {
-		m, err := umpiremodel.Load(path)
+		m, err := ir.Load(path)
 		if err != nil {
 			return err
 		}

@@ -10,7 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/interp"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -22,7 +23,7 @@ func namedSteps(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
 	n := 0
 	var visit func(protoreflect.Message)
 	visit = func(msg protoreflect.Message) {
-		if c, ok := msg.Interface().(*umpirespb.Construct); ok && c.GetType() == umpiremodel.StepType {
+		if c, ok := msg.Interface().(*umpirespb.Construct); ok && c.GetType() == interp.StepType {
 			n++
 			c.Choice = fmt.Sprintf("alternative-%d", n)
 		}
@@ -41,8 +42,8 @@ func namedSteps(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
 	}
 	visit(out.ProtoReflect())
 	require.Positive(t, n)
-	require.NoError(t, umpiremodel.Validate(out))
-	_, err := umpiremodel.Build(out)
+	require.NoError(t, ir.Validate(out))
+	_, err := interp.Build(out)
 	require.NoError(t, err)
 	return out
 }
@@ -52,11 +53,11 @@ func namedSteps(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
 // proposal re-answered from the named Model are the unnamed Model's, though the named Model's own
 // bytes differ: its candidates are digested without the names.
 func TestNamedChoicesExploreTheSameCandidates(t *testing.T) {
-	plain, err := umpiremodel.Load("../../../model/ir/nexus-caller.json")
+	plain, err := ir.Load("../../../model/ir/nexus-caller.json")
 	require.NoError(t, err)
 	named := namedSteps(t, plain)
 	require.False(t, proto.Equal(plain, named))
-	require.True(t, proto.Equal(plain, umpiremodel.WithoutChoiceNames(named)))
+	require.True(t, proto.Equal(plain, ir.WithoutChoiceNames(named)))
 
 	was, err := New(plain, "nexusDeadlines")
 	require.NoError(t, err)

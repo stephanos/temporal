@@ -15,8 +15,9 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	runtime "go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -43,12 +44,12 @@ type ExpectedRun struct {
 }
 
 type GeneratedCase struct {
-	Model       string               `json:"model"`
-	Query       umpiremodel.ClaimKey `json:"query"`
-	Standing    Standing             `json:"standing"`
-	File        string               `json:"file,omitempty"`
-	Expected    *ExpectedRun         `json:"expected,omitempty"`
-	Unsupported []Unsupported        `json:"unsupported,omitempty"`
+	Model       string         `json:"model"`
+	Query       check.ClaimKey `json:"query"`
+	Standing    Standing       `json:"standing"`
+	File        string         `json:"file,omitempty"`
+	Expected    *ExpectedRun   `json:"expected,omitempty"`
+	Unsupported []Unsupported  `json:"unsupported,omitempty"`
 }
 
 // GenerateCases accounts for every Query, including those with no executable realization.
@@ -58,7 +59,7 @@ func GenerateCases(irDirectory string) (map[string][]byte, error) {
 
 // generateCases is GenerateCases with the Producer of each loaded IR file made by produce.
 func generateCases(irDirectory string, produce func(path string, m *umpirespb.Model) (*Producer, error)) (map[string][]byte, error) {
-	paths, err := umpiremodel.IRPaths(irDirectory)
+	paths, err := ir.IRPaths(irDirectory)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,7 @@ func generateCases(irDirectory string, produce func(path string, m *umpirespb.Mo
 	files := map[string][]byte{}
 	manifest := Manifest{Version: 1}
 	for _, path := range paths {
-		model, err := umpiremodel.Load(path)
+		model, err := ir.Load(path)
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +119,7 @@ func generateCase(producer *Producer, model string, query *umpirespb.Query) (Gen
 		return GeneratedCase{}, nil, fmt.Errorf("%s:%d: lowerable Query %s declares no expected Run assessment", query.GetPosition().GetFile(), query.GetPosition().GetLine(), query.GetName())
 	}
 	entry.File = name
-	id := umpiremodel.ExpectationID
+	id := ir.ExpectationID
 	entry.Expected = &ExpectedRun{
 		Contract:          id(expected.GetContract()),
 		Disposition:       id(expected.GetDisposition()),
@@ -327,7 +328,7 @@ func validateExpectedRun(expected *ExpectedRun, key string) error {
 // it, the one spelling rule for a claim's reason and the conformance reason.
 func reasonID(id string) bool {
 	reason, named := umpirespb.RunExpectation_Reason_value["REASON_"+strings.ToUpper(id)]
-	return named && reason != 0 && umpiremodel.ExpectationID(umpirespb.RunExpectation_Reason(reason)) == id
+	return named && reason != 0 && ir.ExpectationID(umpirespb.RunExpectation_Reason(reason)) == id
 }
 
 // testpilotValue is the Testpilot enum value an expected Run's id names, by the enum's prefix, and
@@ -337,7 +338,7 @@ func testpilotValue[E interface {
 	protoreflect.Enum
 }](values map[string]int32, prefix, id string) (E, bool) {
 	n, ok := values[prefix+strings.ToUpper(id)]
-	return E(n), ok && n != 0 && umpiremodel.EnumID(E(n), prefix) == id
+	return E(n), ok && n != 0 && ir.EnumID(E(n), prefix) == id
 }
 
 // concludable reports whether testpilot.ConcludeVerdict concludes verdict and leaves a Run in
@@ -409,7 +410,7 @@ func (e *ExpectedRun) Check(run *testpilotspb.Run, verdict *testpilotspb.Verdict
 
 // testpilotID is a Testpilot enum value as an expected Run names it (umpiremodel.EnumID).
 func testpilotID(value protoreflect.Enum, prefix string) string {
-	return umpiremodel.EnumID(value, prefix)
+	return ir.EnumID(value, prefix)
 }
 
 func bareJSON(name string) bool {

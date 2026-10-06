@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // itf writes a value of an IR type as the export's module would hold it in an ITF trace.
-func (x *QuintExport) itf(v umpiremodel.Value, t *umpirespb.TypeRef) any {
+func (x *QuintExport) itf(v interp.Value, t *umpirespb.TypeRef) any {
 	switch r := t.GetRef().(type) {
 	case *umpirespb.TypeRef_Bool:
 		return v.Bool
@@ -51,7 +51,7 @@ func (x *QuintExport) itf(v umpiremodel.Value, t *umpirespb.TypeRef) any {
 func set(items []any) any { return map[string]any{"#set": items} }
 
 // classITF writes a class of machine i as the module holds it.
-func (x *QuintExport) classITF(i int, c umpiremodel.Class) any {
+func (x *QuintExport) classITF(i int, c interp.Class) any {
 	j := slices.IndexFunc(x.bindings[i], func(a *umpirespb.Action) bool { return a.GetId() == c.Action.GetId() })
 	value := map[string]any{"#tup": []any{}}
 	if len(c.Inputs) > 0 {
@@ -88,7 +88,7 @@ func (s *Slice) dumpOfComposition(x *QuintExport, j int) (map[string]any, error)
 	}
 	// Every composed class by its key: a member's own, and each pair a sync takes.
 	classes := map[string]any{}
-	classesOf := func(m int) []umpiremodel.Class { return s.machines[x.Machines[meta.members[m].machine]].Classes }
+	classesOf := func(m int) []interp.Class { return s.machines[x.Machines[meta.members[m].machine]].Classes }
 	for m, mb := range meta.members {
 		for _, k := range classesOf(m) {
 			classes[mb.field+"_"+k.Key] = map[string]any{"tag": fmt.Sprintf("C%d_o%d", j, m), "value": x.classITF(mb.machine, k)}
@@ -141,7 +141,7 @@ func (s *Slice) dumpOfComposition(x *QuintExport, j int) (map[string]any, error)
 }
 
 // dumpOf is machine i's part of a dump as Go's interpretation gives it.
-func (s *Slice) dumpOf(x *QuintExport, i int, mm *umpiremodel.Machine) (map[string]any, error) {
+func (s *Slice) dumpOf(x *QuintExport, i int, mm *interp.Machine) (map[string]any, error) {
 	decl, t := mm.Decl, mm.Table
 	stateType := named(decl.GetStateType())
 	state := func(key string) any {
@@ -155,7 +155,7 @@ func (s *Slice) dumpOf(x *QuintExport, i int, mm *umpiremodel.Machine) (map[stri
 		}
 		return out
 	}
-	class := func(c umpiremodel.Class) any { return x.classITF(i, c) }
+	class := func(c interp.Class) any { return x.classITF(i, c) }
 	classes := []any{}
 	for _, c := range mm.Classes {
 		classes = append(classes, class(c))
@@ -166,10 +166,10 @@ func (s *Slice) dumpOf(x *QuintExport, i int, mm *umpiremodel.Machine) (map[stri
 			ends = append(ends, e)
 		}
 	}
-	from := map[string]map[string]umpiremodel.Transition{}
+	from := map[string]map[string]interp.Transition{}
 	for _, tr := range mm.Transitions {
 		if from[tr.Source.Key()] == nil {
-			from[tr.Source.Key()] = map[string]umpiremodel.Transition{}
+			from[tr.Source.Key()] = map[string]interp.Transition{}
 		}
 		from[tr.Source.Key()][tr.Class.Key] = tr
 	}

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
 )
 
 // lawTablesOf reads the tables of an IR file of model/ir with the law sidecar beside it.
@@ -107,7 +107,7 @@ func TestLawTablesNameWaiversAndCompositions(t *testing.T) {
 	r := lawTablesOf(t, "../../../model/ir/activity-record.json")
 	// The admission record waives closedIsRejectedUniformly with its reason.
 	record := tableOf(t, r, "activityRecord")
-	require.True(t, slices.ContainsFunc(record.Laws.Excepted, func(w model.LawWaiver) bool {
+	require.True(t, slices.ContainsFunc(record.Laws.Excepted, func(w check.LawWaiver) bool {
 		return w.Law == "closedIsRejectedUniformly" && strings.TrimSpace(w.Because) != ""
 	}))
 	// A composition has no table: its laws are printed with what they say.

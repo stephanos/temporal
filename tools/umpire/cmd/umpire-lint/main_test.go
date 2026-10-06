@@ -10,8 +10,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	umpirecheck "go.temporal.io/server/tools/umpire/check"
+	umpireir "go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lint"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 // fixture is a lifter fixture with machines, Properties and find Queries and no realization, small
@@ -135,7 +136,7 @@ func TestAMalformedIRFileFailsWithTheReadersError(t *testing.T) {
 	path := copied(t)
 	malformed := filepath.Join(filepath.Dir(path), "malformed.json")
 	require.NoError(t, os.WriteFile(malformed, []byte(`{"machines": [{"unknown": 1}]}`), 0o644))
-	_, readerError := umpiremodel.Load(malformed)
+	_, readerError := umpireir.Load(malformed)
 	require.Error(t, readerError)
 
 	a := lintRun(path, malformed)
@@ -178,7 +179,7 @@ const capabilities = "../../../../model/irgen/testdata/lifts/expected/capabiliti
 func copiedWithLaws(t *testing.T) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "capabilities.json")
-	for from, to := range map[string]string{capabilities: path, umpiremodel.LawSidecarPath(capabilities): umpiremodel.LawSidecarPath(path)} {
+	for from, to := range map[string]string{capabilities: path, umpirecheck.LawSidecarPath(capabilities): umpirecheck.LawSidecarPath(path)} {
 		encoded, err := os.ReadFile(from)
 		require.NoError(t, err)
 		require.NoError(t, os.WriteFile(to, encoded, 0o644))
@@ -201,7 +202,7 @@ func TestAnUpdateForwardsTheLawWaiversAndACheckHoldsThem(t *testing.T) {
 
 	check := lintRun(path)
 	require.Equal(t, 1, check.status)
-	require.Contains(t, check.errors, lint.AcceptedPath(path)+" does not carry the law waivers of "+umpiremodel.LawSidecarPath(path)+
+	require.Contains(t, check.errors, lint.AcceptedPath(path)+" does not carry the law waivers of "+umpirecheck.LawSidecarPath(path)+
 		": rerun make umpire-gen-model, whose update forwards them (umpire-lint --update)\n")
 	require.Contains(t, check.errors, "2 unaccepted findings, 0 stale acceptances and 1 errors;")
 
@@ -220,12 +221,12 @@ func TestAnUpdateForwardsTheLawWaiversAndACheckHoldsThem(t *testing.T) {
 	require.Equal(t, 0, lintRun(path).status)
 
 	// A waiver the sidecar no longer records leaves its forwarded acceptance stale.
-	laws, err := umpiremodel.ReadLawSidecar(path)
+	laws, err := umpirecheck.ReadLawSidecar(path)
 	require.NoError(t, err)
 	laws.Waivers = laws.Waivers[:1]
 	encoded, err := json.Marshal(laws)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(umpiremodel.LawSidecarPath(path), encoded, 0o644))
+	require.NoError(t, os.WriteFile(umpirecheck.LawSidecarPath(path), encoded, 0o644))
 	gone := lintRun(path)
 	require.Equal(t, 1, gone.status)
 	require.Contains(t, gone.out, "  stale acceptance: waived-law legacyJob \"legacyJob.terminalStatesAreFinal\" matches no finding\n")
@@ -252,16 +253,16 @@ func TestInstantiatingMachinesAreCountedAcrossTheDirectory(t *testing.T) {
 	alone := lonely(path)
 	require.Contains(t, alone, "terminalStatesAreFinal", "the fixture's laws have one instantiating machine each")
 
-	laws, err := umpiremodel.ReadLawSidecar(path)
+	laws, err := umpirecheck.ReadLawSidecar(path)
 	require.NoError(t, err)
 	for i := range laws.Catalog {
-		laws.Catalog[i].Instantiating = []umpiremodel.LawInstance{{Machine: "elsewhere", State: "fixture.Elsewhere"}}
+		laws.Catalog[i].Instantiating = []umpirecheck.LawInstance{{Machine: "elsewhere", State: "fixture.Elsewhere"}}
 	}
 	laws.Claims, laws.Waivers = nil, nil
 	encoded, err := json.Marshal(laws)
 	require.NoError(t, err)
 	other := filepath.Join(filepath.Dir(path), "other.json")
-	require.NoError(t, os.WriteFile(umpiremodel.LawSidecarPath(other), encoded, 0o644))
+	require.NoError(t, os.WriteFile(umpirecheck.LawSidecarPath(other), encoded, 0o644))
 	require.NoError(t, os.WriteFile(other, []byte("{}"), 0o644))
 	require.Empty(t, lonely(path))
 }

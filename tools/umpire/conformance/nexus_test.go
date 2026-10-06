@@ -18,8 +18,9 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -33,7 +34,7 @@ const (
 
 func nexusModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "nexus-caller.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "nexus-caller.json"))
 	require.NoError(t, err)
 	return m
 }
@@ -54,7 +55,7 @@ func loweredNexus(t testing.TB, m *umpirespb.Model, query string, limits Limits)
 	require.NoError(t, err)
 	plain, err := testpilot.Prepare(lowering.Case, profile)
 	require.NoError(t, err)
-	factory, err := Prepare(m, umpiremodel.ClaimKey{Family: nexusFamily, Owner: nexusMachine, Name: query}, lowering.Case, limits)
+	factory, err := Prepare(m, check.ClaimKey{Family: nexusFamily, Owner: nexusMachine, Name: query}, lowering.Case, limits)
 	require.NoError(t, err)
 	assessed, err := plain.WithAssessment(factory)
 	require.NoError(t, err)
@@ -198,7 +199,7 @@ func TestAWitnessRunConformsWhileItsPropertyStaysOpen(t *testing.T) {
 			require.Equal(t, &testpilot.Assessment{Model: binding.Model, Query: binding.Query,
 				Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceConformant, SupportingEventSequences: support},
 				Properties: []testpilot.PropertyAssessment{{ID: test.property, Status: testpilot.PropertyInconclusive,
-					Reason: umpiremodel.ExpectationID(test.why), Detail: nexusMachine + ", " + nexusInstance(test.query) + ": " + wording[test.why]}},
+					Reason: ir.ExpectationID(test.why), Detail: nexusMachine + ", " + nexusInstance(test.query) + ": " + wording[test.why]}},
 			}, evaluation.Assessment)
 		})
 	}
@@ -237,7 +238,7 @@ func TestAClosedHistorySettlesSyncCompletionAndLeavesTheOtherSixOpen(t *testing.
 				support = append(support, int64(i)+3)
 			}
 			property := testpilot.PropertyAssessment{ID: test.property, Status: testpilot.PropertyInconclusive,
-				Reason: umpiremodel.ExpectationID(test.why), Detail: nexusMachine + ", " + nexusInstance(test.query) + ": " + wording[test.why]}
+				Reason: ir.ExpectationID(test.why), Detail: nexusMachine + ", " + nexusInstance(test.query) + ": " + wording[test.why]}
 			if test.query == "syncCompletion" {
 				property = testpilot.PropertyAssessment{ID: test.property, Status: testpilot.PropertySatisfied, SupportingEventSequences: support}
 			}
@@ -492,7 +493,7 @@ func TestAnAssessmentIsReplayedOnlyUnderItsOwnBinding(t *testing.T) {
 
 func mustPrepare(t testing.TB, m *umpirespb.Model, query string, source *testpilotspb.Case, limits Limits) *Factory {
 	t.Helper()
-	factory, err := Prepare(m, umpiremodel.ClaimKey{Family: nexusFamily, Owner: nexusMachine, Name: query}, source, limits)
+	factory, err := Prepare(m, check.ClaimKey{Family: nexusFamily, Owner: nexusMachine, Name: query}, source, limits)
 	require.NoError(t, err)
 	return factory
 }

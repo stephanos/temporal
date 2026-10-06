@@ -12,8 +12,8 @@ import (
 
 	_ "go.temporal.io/api/workflowservice/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -61,7 +61,7 @@ func sync(root string, complete map[string][]byte, selected kind, update bool) e
 // combination total. Lowering admits IR without totals, as lifted before the assertion existed;
 // Cases are generated only from a current Model, whose every Query declares its total.
 func requireTotals(irDirectory string) error {
-	paths, err := umpiremodel.IRPaths(irDirectory)
+	paths, err := ir.IRPaths(irDirectory)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func requireTotals(irDirectory string) error {
 		if err := protojson.Unmarshal(encoded, m); err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
-		if err := umpiremodel.RequireTotals(m); err != nil {
+		if err := ir.RequireTotals(m); err != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", path, err))
 		}
 	}

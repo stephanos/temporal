@@ -9,7 +9,8 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -31,8 +32,8 @@ func admission(t testing.TB) *umpirespb.Model {
 	return realized(t, realized(t, lifted(t, "admission"), stale, admissionKinds), current, admissionKinds)
 }
 
-func admissionQuery(design string) umpiremodel.ClaimKey {
-	return umpiremodel.ClaimKey{Family: admissionFamily, Owner: design, Name: design + ".any." + notWhilePaused}
+func admissionQuery(design string) check.ClaimKey {
+	return check.ClaimKey{Family: admissionFamily, Owner: design, Name: design + ".any." + notWhilePaused}
 }
 
 var localKinds = []string{"statusStarted", "statusPaused", "statusCompleted", "dispatchEnqueued", "attemptAdmitted", "admissionRejected"}
@@ -82,10 +83,10 @@ func (e expectation) assessment(t testing.TB, b *bound, machine string, run *tes
 		return carrying(t, run, reads, names...)
 	}
 	out := &testpilot.Assessment{Model: binding.Model, Query: binding.Query, Conformance: testpilot.ConformanceAssessment{
-		Status: testpilot.ConformanceStatus(e.conformance.status), SupportingEventSequences: support(e.conformance.support), Reason: umpiremodel.ExpectationID(e.conformance.why), Detail: e.conformance.detail(machine)}}
+		Status: testpilot.ConformanceStatus(e.conformance.status), SupportingEventSequences: support(e.conformance.support), Reason: ir.ExpectationID(e.conformance.why), Detail: e.conformance.detail(machine)}}
 	for _, c := range e.claims {
 		out.Properties = append(out.Properties, testpilot.PropertyAssessment{ID: c.id, Status: testpilot.PropertyStatus(c.status),
-			SupportingEventSequences: support(c.support), Reason: umpiremodel.ExpectationID(c.why), Detail: c.detail(machine)})
+			SupportingEventSequences: support(c.support), Reason: ir.ExpectationID(c.why), Detail: c.detail(machine)})
 	}
 	if e.failed != "" {
 		at := carrying(t, run, reads, e.failed)[0]
@@ -119,7 +120,7 @@ type row struct {
 	// Model and its Query of the design.
 	design  string
 	model   func(testing.TB) *umpirespb.Model
-	query   umpiremodel.ClaimKey
+	query   check.ClaimKey
 	carried []string
 	script  []any
 	// retains is the fields the Case's evidence keeps, by the fact a kind records. closes says the Case
@@ -402,8 +403,8 @@ func declared(t testing.TB) *umpirespb.Model {
 // The rows a hole decides, with the same evidence on a machine that has none beside them.
 func holeRows() []row {
 	all := func(names ...string) []string { return names }
-	onDisk := umpiremodel.ClaimKey{Family: declarationsFamily, Owner: disk, Name: "putAccepted"}
-	onStore := umpiremodel.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}
+	onDisk := check.ClaimKey{Family: declarationsFamily, Owner: disk, Name: "putAccepted"}
+	onStore := check.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}
 	stored, again := fact{name: "o0", records: "stored"}, fact{name: "o1", records: "stored", ordinal: 1}
 	return []row{
 		{

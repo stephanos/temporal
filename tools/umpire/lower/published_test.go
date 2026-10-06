@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
+	"go.temporal.io/server/tools/umpire/interp"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -185,7 +185,7 @@ func TestADiagnosticDeclaredTheRecordOfNoAttemptHasNoProducer(t *testing.T) {
 	p, err := NewProducer(m)
 	require.Nil(t, p)
 	require.ErrorContains(t, err, "evidence "+activityEvidence+"statusStarted is what a worker reports of an activation and is declared the record of no attempt")
-	var located *umpiremodel.Error
+	var located *interp.Error
 	require.ErrorAs(t, err, &located)
 	require.Contains(t, located.Position, kitAt)
 }
@@ -270,7 +270,7 @@ func TestARecordOfAnAttemptThePathNeverStartsIsAnError(t *testing.T) {
 	l, err := p.Lower("retry", activityIdentity("retry"))
 	require.Nil(t, l)
 	require.ErrorContains(t, err, "evidence "+activityEvidence+"attemptCount is the record of attempt 3 of script activity, and the path of query retry starts 2")
-	var located *umpiremodel.Error
+	var located *interp.Error
 	require.ErrorAs(t, err, &located)
 	require.Contains(t, located.Position, kitAt)
 	// A path the kind confirms no step of is not touched by it.
@@ -320,7 +320,7 @@ func TestTheControllersInstructionsRecordEvidenceInThePathsOrder(t *testing.T) {
 			l, err := p.Lower("completion", activityIdentity("completion"))
 			require.Nil(t, l)
 			require.ErrorContains(t, err, test.want)
-			var located *umpiremodel.Error
+			var located *interp.Error
 			require.ErrorAs(t, err, &located)
 			require.Contains(t, located.Position, "model/temporal/features/standaloneactivity/")
 		})

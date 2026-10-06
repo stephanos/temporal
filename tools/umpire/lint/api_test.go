@@ -10,7 +10,7 @@ import (
 	_ "go.temporal.io/api/workflowservice/v1"
 	_ "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -103,7 +103,7 @@ func apiWalk(md protoreflect.MessageDescriptor, path string) (protoreflect.Field
 // field of the run's own record that no count includes.
 func apiActivityIR(t *testing.T) (*umpirespb.Model, *umpirespb.Realization) {
 	t.Helper()
-	ir, err := model.Load("../../../model/ir/activity.json")
+	ir, err := ir.Load("../../../model/ir/activity.json")
 	require.NoError(t, err)
 	ir = proto.Clone(ir).(*umpirespb.Model)
 	require.Len(t, ir.GetRealizations(), 1)

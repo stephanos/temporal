@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/check"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -21,7 +21,7 @@ import (
 func declared(t *testing.T, m *umpirespb.Model, r *umpirespb.Realization) [][2]string {
 	t.Helper()
 	var out [][2]string
-	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
+	realizer, err := check.NewRealizer(m, check.DefaultScope)
 	require.NoError(t, err)
 	classKey := realizer.ClassKey
 	message := r.ProtoReflect()

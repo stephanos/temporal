@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
 )
 
 // composedExport is one exported composition as its part of a dump is read back: its members in
@@ -40,8 +40,8 @@ func (q *quint) compositions() (fields, views []string, err error) {
 		name := decl.GetName()
 		left := Receipt{Backend: quintBackend, Claim: TransitionAgreement, Subject: name, Kind: Unsupported}
 		c, err := q.s.bound.Composition(name)
-		var limit *umpiremodel.ComposeLimitError
-		var rejected *umpiremodel.RefinementError
+		var limit *check.ComposeLimitError
+		var rejected *check.RefinementError
 		switch {
 		case errors.As(err, &limit):
 			left.Kind = ResourceLimit
@@ -124,7 +124,7 @@ func (q *quint) spelled(name, field, typ string) error {
 // the first member's outcome and both members' facts; a claim reads a step's state as the
 // composition's state record and its outcome and facts as strings. It gives the type of the
 // composition's part of the dump.
-func (q *quint) composition(j int, c *umpiremodel.Composed) (string, error) {
+func (q *quint) composition(j int, c *check.Composed) (string, error) {
 	decl := c.Decl
 	state, err := q.typeRef(named(decl.GetStateType()))
 	if err != nil {

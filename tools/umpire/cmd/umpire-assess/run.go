@@ -20,8 +20,8 @@ import (
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/conformance"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -198,7 +198,7 @@ func assessRecorded(root string, caseBytes, runBytes []byte) (*testpilot.Assessm
 	if err != nil {
 		return nil, statusModelUnassessable, err
 	}
-	model, err := umpiremodel.Load(filepath.Join(root, "ir", entry.Model))
+	model, err := ir.Load(filepath.Join(root, "ir", entry.Model))
 	if err != nil {
 		return nil, statusModelUnassessable, err
 	}

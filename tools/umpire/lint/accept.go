@@ -10,13 +10,13 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 )
 
 // AcceptedSuffix ends the checked-in file of accepted findings beside an IR file, `<file>.lint.json`,
 // which the reader leaves out of a directory's IR files. The lifter writes nothing there: an author
 // does, with a reason for each acceptance.
-const AcceptedSuffix = model.AcceptedSuffix
+const AcceptedSuffix = ir.AcceptedSuffix
 
 // AcceptedPath is the file of accepted findings beside the IR file at irPath.
 func AcceptedPath(irPath string) string { return strings.TrimSuffix(irPath, ".json") + AcceptedSuffix }

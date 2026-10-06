@@ -22,8 +22,9 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -38,7 +39,7 @@ const (
 
 func raceModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-race.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-race.json"))
 	require.NoError(t, err)
 	return m
 }
@@ -60,7 +61,7 @@ func loweredRace(t testing.TB) *bound {
 	require.NoError(t, err)
 	plain, err := testpilot.Prepare(lowering.Case, profile)
 	require.NoError(t, err)
-	factory, err := Prepare(m, umpiremodel.ClaimKey{Family: raceFamily, Owner: raceMachine, Name: raceQuery}, lowering.Case, generous)
+	factory, err := Prepare(m, check.ClaimKey{Family: raceFamily, Owner: raceMachine, Name: raceQuery}, lowering.Case, generous)
 	require.NoError(t, err)
 	assessed, err := plain.WithAssessment(factory)
 	require.NoError(t, err)

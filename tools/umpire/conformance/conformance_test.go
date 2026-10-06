@@ -13,7 +13,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -116,7 +117,7 @@ func TestEveryReasonIsWordedOnce(t *testing.T) {
 // not.
 func TestACeilingThatIsReachedIsReported(t *testing.T) {
 	m := realized(t, lifted(t, "declarations"), store, []kindOf{{"stored", false}})
-	query := umpiremodel.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}
+	query := check.ClaimKey{Family: declarationsFamily, Owner: store, Name: "putStores"}
 	source := carrier(store, []string{"stored"}, 1)
 	event := &testpilotspb.RunEvent{Sequence: 7, Observations: []*testpilotspb.ObservationResult{{ObservationId: evidenceObservation,
 		Value: evidenceValue(t, script(store, fact{name: "o0", records: "stored"})[0].evidence)}}}
@@ -351,16 +352,16 @@ func TestPrepareRefusesWhatItCannotAssess(t *testing.T) {
 		"no Case":              {func() (*Factory, error) { return Prepare(m, query, nil, generous) }, "a Model and a Case are required"},
 		"a Model not admitted": {func() (*Factory, error) { return Prepare(unadmitted, query, source, generous) }, "undeclared"},
 		"an undeclared Query": {func() (*Factory, error) {
-			return Prepare(m, umpiremodel.ClaimKey{Family: admissionFamily, Owner: stale, Name: "missing"}, source, generous)
+			return Prepare(m, check.ClaimKey{Family: admissionFamily, Owner: stale, Name: "missing"}, source, generous)
 		}, "no Query missing"},
 		"a Query under another machine": {func() (*Factory, error) {
-			return Prepare(m, umpiremodel.ClaimKey{Family: admissionFamily, Owner: current, Name: query.Name}, source, generous)
+			return Prepare(m, check.ClaimKey{Family: admissionFamily, Owner: current, Name: query.Name}, source, generous)
 		}, "not on activityRecord"},
 		"a Query read through a refinement": {func() (*Factory, error) {
-			return Prepare(m, umpiremodel.ClaimKey{Family: admissionFamily, Owner: stale, Name: "trustingActivityRecord.product.pausedIsNotDispatched"}, source, generous)
+			return Prepare(m, check.ClaimKey{Family: admissionFamily, Owner: stale, Name: "trustingActivityRecord.product.pausedIsNotDispatched"}, source, generous)
 		}, "is not read on the steps of one machine"},
 		"a Query of a composition": {func() (*Factory, error) {
-			return Prepare(declared(t), umpiremodel.ClaimKey{Family: declarationsFamily, Owner: "pair", Name: "keptTogether"}, source, generous)
+			return Prepare(declared(t), check.ClaimKey{Family: declarationsFamily, Owner: "pair", Name: "keptTogether"}, source, generous)
 		}, "is not read on the steps of one machine"},
 		"a machine with no realization": {func() (*Factory, error) { return Prepare(lifted(t, "admission"), query, source, generous) }, "declares no realization"},
 		"a Case with no correlated Contract": {func() (*Factory, error) {
@@ -415,7 +416,7 @@ func TestPrepareRefusesWhatItCannotAssess(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			factory, err := test.prepare()
 			require.Nil(t, factory)
-			var located *umpiremodel.Error
+			var located *interp.Error
 			require.ErrorAs(t, err, &located)
 			require.ErrorContains(t, err, test.says)
 		})

@@ -7,7 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -20,7 +21,7 @@ var (
 )
 
 func loaded(path string) func() (*umpirespb.Model, error) {
-	return sync.OnceValues(func() (*umpirespb.Model, error) { return model.Load(path) })
+	return sync.OnceValues(func() (*umpirespb.Model, error) { return ir.Load(path) })
 }
 
 // unrealizedByMachine is the standing lowering gives a find Query in these tests: unrealized where no
@@ -372,13 +373,13 @@ func TestCompositionStuckStateWithRejectedReplacement(t *testing.T) {
 		}
 	})
 	_, err := m.realizer.Composition("detailedPair")
-	var rejected *model.RefinementError
+	var rejected *check.RefinementError
 	require.ErrorAs(t, err, &rejected)
 	r := run(t, m, stuckStates)
 	require.Equal(t, 1, r.population["detailedPair"])
 	require.Equal(t, map[string][]string{"detailedPair": {"held_empty"}}, r.subjects)
-	require.True(t, slices.ContainsFunc(m.Verified.Receipts, func(r model.Receipt) bool {
-		return r.Subject == model.CompositionSubject && r.Key.Owner == "detailedPair" && r.Kind == model.RefinementRejected
+	require.True(t, slices.ContainsFunc(m.Verified.Receipts, func(r check.Receipt) bool {
+		return r.Subject == check.CompositionSubject && r.Key.Owner == "detailedPair" && r.Kind == check.RefinementRejected
 	}), "the refinement diagnostic is retained")
 }
 
@@ -417,8 +418,8 @@ func TestStuckStateWithRefinementMapHole(t *testing.T) {
 	r := run(t, m, stuckStates)
 	require.Equal(t, map[string]int{"disk": 3, "store": 2, "detailedPair": 3, "pair": 2}, r.population)
 	require.Empty(t, r.subjects)
-	require.True(t, slices.ContainsFunc(m.Verified.Receipts, func(r model.Receipt) bool {
-		return r.Subject == model.RefinementSubject && r.Key.Owner == "disk" && r.Kind == model.Incomplete && len(r.Holes) > 0
+	require.True(t, slices.ContainsFunc(m.Verified.Receipts, func(r check.Receipt) bool {
+		return r.Subject == check.RefinementSubject && r.Key.Owner == "disk" && r.Kind == check.Incomplete && len(r.Holes) > 0
 	}), "the refinement-map hole remains an explicit diagnostic")
 }
 

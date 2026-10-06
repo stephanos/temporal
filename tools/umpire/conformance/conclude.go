@@ -3,7 +3,7 @@ package conformance
 import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/ir"
 )
 
 // This file is the one place a conclusion is decided. A live Run, a replay, an Observe and a Close
@@ -64,7 +64,7 @@ type because struct {
 }
 
 // id is the reason's stable id, empty for none.
-func (b because) id() string { return umpiremodel.ExpectationID(b.reason) }
+func (b because) id() string { return ir.ExpectationID(b.reason) }
 
 // claimConclusion is one claim on one instance of the machine. A violation needs every execution
 // left to violate it and no hole beside one that does not; it stands on a Run that did not close

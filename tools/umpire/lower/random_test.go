@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/ir"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -185,7 +185,7 @@ func TestAdmissionOfAChangedModelNeverPanics(t *testing.T) {
 			for i := range iterations {
 				m, done := changed(rng, base, true)
 				answered(t, seed, i, done, func() {
-					if umpiremodel.Validate(m) == nil {
+					if ir.Validate(m) == nil {
 						admitted++
 					}
 				})
@@ -214,7 +214,7 @@ func TestLoweringAChangedRealizationNeverPanics(t *testing.T) {
 			for i := range iterations {
 				m, done := changed(rng, base, false)
 				answered(t, seed, i, done, func() {
-					if umpiremodel.Validate(m) != nil {
+					if ir.Validate(m) != nil {
 						return
 					}
 					lowered++

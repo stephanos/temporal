@@ -16,8 +16,9 @@ import (
 	nexuspb "go.temporal.io/api/nexus/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/interp"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/realization"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -27,7 +28,7 @@ import (
 // one declaration that crosses a descriptor hides none after it.
 type adapter struct {
 	r *umpirespb.Realization
-	t *umpiremodel.Table
+	t *interp.Table
 	// classKey is the key of one class of an action, as the Model's tables key it.
 	classKey func(*umpirespb.ActionClass) string
 	w        *writer
@@ -41,7 +42,7 @@ type adapter struct {
 	waits map[string]derivedWait
 }
 
-func newAdapter(r *umpirespb.Realization, t *umpiremodel.Table, classKey func(*umpirespb.ActionClass) string, fixture string) *adapter {
+func newAdapter(r *umpirespb.Realization, t *interp.Table, classKey func(*umpirespb.ActionClass) string, fixture string) *adapter {
 	a := &adapter{r: r, t: t, classKey: classKey, w: &writer{fixture: fixture},
 		evidence: map[string]*umpirespb.Evidence{}, element: map[string]protoreflect.MessageDescriptor{},
 		observed: map[string]protoreflect.MessageDescriptor{}}
@@ -289,17 +290,17 @@ func (a *adapter) payloadOf(e *umpirespb.Evidence, source *umpirespb.RunEventSou
 		return nil, err
 	}
 	if guard := source.GetGuard(); guard != nil {
-		if err := umpiremodel.GuardProblem(guard, payload); err != nil {
+		if err := realization.GuardProblem(guard, payload); err != nil {
 			return nil, errorAt(at, "evidence %s: its guard %s", e.GetId(), err)
 		}
 	}
 	// The key names one operation: the run's own id, or one text or integer of the payload.
 	if key := source.GetKey(); key.GetPath() != nil {
-		computes, err := umpiremodel.TypeOf(key, payload, lifted(at))
+		computes, err := realization.TypeOf(key, payload, lifted(at))
 		if err != nil {
 			return nil, mistyped(at, err, "evidence %s: its key", e.GetId())
 		}
-		if computes.Shape != umpiremodel.TextShape && computes.Shape != umpiremodel.NumberShape {
+		if computes.Shape != realization.TextShape && computes.Shape != realization.NumberShape {
 			return nil, errorAt(at, "evidence %s: its key reads %s, which is no single text or integer of %s", e.GetId(), key.GetPath().GetPath(), payload.FullName())
 		}
 	}
@@ -308,7 +309,7 @@ func (a *adapter) payloadOf(e *umpirespb.Evidence, source *umpirespb.RunEventSou
 
 // mistyped locates a type problem under what it is a problem of, and leaves any other error as it is.
 func mistyped(at *umpirespb.Position, err error, format string, args ...any) error {
-	var problem *umpiremodel.Mistype
+	var problem *realization.Mistype
 	if errors.As(err, &problem) {
 		return errorAt(at, format+" %s", append(args, problem.Says)...)
 	}
@@ -317,37 +318,37 @@ func mistyped(at *umpirespb.Position, err error, format string, args ...any) err
 
 // lifted types a path as Testpilot reads one where it lifts evidence: a field, each element of a
 // repeated field, or a member of a oneof, of the message the path is read from.
-func lifted(at *umpirespb.Position) umpiremodel.Paths {
-	return func(of umpiremodel.Typed, path string) (umpiremodel.Typed, error) {
+func lifted(at *umpirespb.Position) realization.Paths {
+	return func(of realization.Typed, path string) (realization.Typed, error) {
 		if of.Message == nil {
-			return umpiremodel.Typed{}, nil
+			return realization.Typed{}, nil
 		}
 		end, err := walk(at, of.Message, path)
 		if err != nil {
-			return umpiremodel.Typed{}, err
+			return realization.Typed{}, err
 		}
 		return fieldValue(end), nil
 	}
 }
 
-func fieldValue(end reached) umpiremodel.Typed {
+func fieldValue(end reached) realization.Typed {
 	if end.fanned || end.field.IsList() {
-		return umpiremodel.Typed{Shape: umpiremodel.SeveralShape}
+		return realization.Typed{Shape: realization.SeveralShape}
 	}
 	switch end.field.Kind() {
 	case protoreflect.MessageKind, protoreflect.GroupKind:
-		return umpiremodel.Typed{Shape: umpiremodel.MessageShape, Message: end.message()}
+		return realization.Typed{Shape: realization.MessageShape, Message: end.message()}
 	case protoreflect.BoolKind:
-		return umpiremodel.Typed{Shape: umpiremodel.ConditionShape}
+		return realization.Typed{Shape: realization.ConditionShape}
 	case protoreflect.StringKind:
-		return umpiremodel.Typed{Shape: umpiremodel.TextShape}
+		return realization.Typed{Shape: realization.TextShape}
 	case protoreflect.EnumKind:
-		return umpiremodel.Typed{Shape: umpiremodel.EnumShape, Enum: end.field.Enum()}
+		return realization.Typed{Shape: realization.EnumShape, Enum: end.field.Enum()}
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.Uint32Kind, protoreflect.Fixed32Kind,
 		protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind, protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-		return umpiremodel.Typed{Shape: umpiremodel.NumberShape}
+		return realization.Typed{Shape: realization.NumberShape}
 	default:
-		return umpiremodel.Typed{Shape: umpiremodel.OtherShape}
+		return realization.Typed{Shape: realization.OtherShape}
 	}
 }
 
@@ -865,10 +866,10 @@ func (a *adapter) poll(c *umpirespb.Command, poll *umpirespb.Poll) (*testpilotsp
 		return nil, errorAt(at, "command %s polls until a condition that reads %s; a poll's condition reads only the value the poll is looking at",
 			c.GetId(), outside)
 	}
-	switch computes, err := umpiremodel.TypeOf(poll.GetUntil(), a.element[poll.GetEvidence()], lifted(at)); {
+	switch computes, err := realization.TypeOf(poll.GetUntil(), a.element[poll.GetEvidence()], lifted(at)); {
 	case err != nil:
 		return nil, mistyped(at, err, "command %s polls until a condition that", c.GetId())
-	case computes.Shape != umpiremodel.AnyShape && computes.Shape != umpiremodel.ConditionShape:
+	case computes.Shape != realization.AnyShape && computes.Shape != realization.ConditionShape:
 		return nil, errorAt(at, "command %s polls until %s, and a poll's condition is a condition", c.GetId(), computes.Shape)
 	default:
 	}

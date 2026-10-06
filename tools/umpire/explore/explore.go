@@ -13,8 +13,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
+	"go.temporal.io/server/tools/umpire/ir"
 	producer "go.temporal.io/server/tools/umpire/lower"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -45,7 +45,7 @@ type Plan struct {
 
 func New(m *umpirespb.Model, name string) (*Plan, error) {
 	m = proto.CloneOf(m)
-	if err := umpiremodel.Validate(m); err != nil {
+	if err := ir.Validate(m); err != nil {
 		return nil, err
 	}
 	p := &Plan{Name: name, base: m}
@@ -104,7 +104,7 @@ func (p *Plan) lower(key string, priority int64, actions []*umpirespb.ActionClas
 	c := &Candidate{Key: key, Priority: priority, Model: m, Actions: actions}
 	// Totals and named-choice names are metadata no identity reads: the digest hashes the candidate
 	// without them, so a corrected source total or a named result names the same candidate as before.
-	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(umpiremodel.WithoutChoiceNames(umpiremodel.WithoutTotals(m)))
+	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(ir.WithoutChoiceNames(ir.WithoutTotals(m)))
 	if err != nil {
 		c.Rejection = err.Error()
 		return c
@@ -113,7 +113,7 @@ func (p *Plan) lower(key string, priority int64, actions []*umpirespb.ActionClas
 	c.Digest = hex.EncodeToString(sum[:])
 	// A changed schedule changes the candidate's static combination count, so the candidate asserts
 	// its own recount; the source Query's assertion in p.base is the author's and stays as written.
-	if m, err = umpiremodel.WithTotals(m); err != nil {
+	if m, err = ir.WithTotals(m); err != nil {
 		c.Rejection = err.Error()
 		return c
 	}

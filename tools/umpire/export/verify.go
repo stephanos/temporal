@@ -11,7 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // QuintVerdict is what `quint verify` found of one invariant: no violation in any run within its
@@ -81,7 +82,7 @@ func (c *QuintCheck) NotVerified(monitor int, cause error) Receipt {
 
 // witness reads a check module's counterexample back as a trace of the machine: the first state's
 // machine state, and the steps its last state says were taken.
-func (c *QuintCheck) witness(table *umpiremodel.Table, itf []byte) (*umpiremodel.Trace, error) {
+func (c *QuintCheck) witness(table *interp.Table, itf []byte) (*check.Trace, error) {
 	var trace struct {
 		States []map[string]any `json:"states"`
 	}
@@ -96,7 +97,7 @@ func (c *QuintCheck) witness(table *umpiremodel.Table, itf []byte) (*umpiremodel
 	if err != nil {
 		return nil, fmt.Errorf("the counterexample's first state: %w", err)
 	}
-	out := &umpiremodel.Trace{Initial: table.StateAtom(start)}
+	out := &check.Trace{Initial: table.StateAtom(start)}
 	taken, err := list(trace.States[len(trace.States)-1]["hist"])
 	if err != nil {
 		return nil, fmt.Errorf("the counterexample's steps: %w", err)
@@ -114,7 +115,7 @@ func (c *QuintCheck) witness(table *umpiremodel.Table, itf []byte) (*umpiremodel
 		if err != nil {
 			return nil, err
 		}
-		step := umpiremodel.TraceStep{Action: table.ActionAtom(class), Outcome: table.OutcomeAtom(res.Outcome), State: table.StateAtom(res.State)}
+		step := check.TraceStep{Action: table.ActionAtom(class), Outcome: table.OutcomeAtom(res.Outcome), State: table.StateAtom(res.State)}
 		for _, f := range res.Facts {
 			step.Facts = append(step.Facts, table.FactAtom(f))
 		}

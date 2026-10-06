@@ -13,8 +13,9 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/interp"
+	"go.temporal.io/server/tools/umpire/ir"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -29,7 +30,7 @@ var functionalQueries = []string{"syncCompletion", "asyncCompletion", "asyncFail
 
 func loaded(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
 	require.NoError(t, err)
 	return m
 }
@@ -378,7 +379,7 @@ func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) 
 			require.NoError(t, err)
 			_, err = p.Lower("retry", nexusIdentity("retry"))
 			require.ErrorContains(t, err, c.want)
-			var located *umpiremodel.Error
+			var located *interp.Error
 			require.ErrorAs(t, err, &located)
 			// A poll the realization waits in through the kit's await is placed where the kit writes it.
 			requireDeclaredIn(t, located.Position, realizationAt)
@@ -423,9 +424,9 @@ func TestEveryQueryHasAStanding(t *testing.T) {
 	p, err := NewProducer(loaded(t, "nexus-caller"))
 	require.NoError(t, err)
 	_, err = p.Lower("nope", nexusIdentity("nope"))
-	var located *umpiremodel.Error
+	var located *interp.Error
 	require.ErrorAs(t, err, &located)
-	require.Equal(t, umpiremodel.Error{Position: loaded(t, "nexus-caller").GetSource(), Message: "no Query nope"}, *located)
+	require.Equal(t, interp.Error{Position: loaded(t, "nexus-caller").GetSource(), Message: "no Query nope"}, *located)
 }
 
 // A read lifts the history kinds a path's rules confirm. A path that records no history kind lifts

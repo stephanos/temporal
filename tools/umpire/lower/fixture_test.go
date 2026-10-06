@@ -16,8 +16,10 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
+	"go.temporal.io/server/tools/umpire/ir"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -29,7 +31,7 @@ const (
 
 func liftedRealizations(t *testing.T) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", "realizations.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", "realizations.json"))
 	require.NoError(t, err)
 	return m
 }
@@ -327,7 +329,7 @@ func TestAPropertyThatReachesAHoleIsNotLowered(t *testing.T) {
 	require.Nil(t, l)
 	require.ErrorContains(t, err, "query syncCompletion has no witness to realize: its check is incomplete")
 	require.ErrorContains(t, err, "property syncSucceeds: ")
-	var hole *umpiremodel.Hole
+	var hole *interp.Hole
 	require.ErrorAs(t, err, &hole)
 	require.Equal(t, "fixture.unknown", hole.ID)
 }
@@ -337,9 +339,9 @@ func TestAPropertyThatReachesAHoleIsNotLowered(t *testing.T) {
 // lowering fixes the same step's fact. With another explanation in the Property the search finds
 // nothing, and nothing is lowered.
 func TestAPropertyIsLoweredOverTheStepItIsCheckedOn(t *testing.T) {
-	found := func(m *umpirespb.Model) umpiremodel.ReceiptKind {
-		for _, r := range umpiremodel.Check(m, umpiremodel.DefaultScope).Receipts {
-			if r.Subject == umpiremodel.QuerySubject && r.Key.Name == "door.opens" {
+	found := func(m *umpirespb.Model) check.ReceiptKind {
+		for _, r := range check.Check(m, check.DefaultScope).Receipts {
+			if r.Subject == check.QuerySubject && r.Key.Name == "door.opens" {
 				return r.Kind
 			}
 		}
@@ -347,7 +349,7 @@ func TestAPropertyIsLoweredOverTheStepItIsCheckedOn(t *testing.T) {
 	}
 	identity := cp.IdentityFor("temporal.case", "fixture", "door")
 	m := liftedRealizations(t)
-	require.Equal(t, umpiremodel.Found, found(m))
+	require.Equal(t, check.Found, found(m))
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("door.opens", identity)
@@ -379,7 +381,7 @@ func TestAPropertyIsLoweredOverTheStepItIsCheckedOn(t *testing.T) {
 		}
 	}
 	require.Equal(t, 1, rewritten)
-	require.Equal(t, umpiremodel.NotFound, found(m))
+	require.Equal(t, check.NotFound, found(m))
 	p, err = NewProducer(m)
 	require.NoError(t, err)
 	_, err = p.Lower("door.opens", identity)

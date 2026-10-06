@@ -6,7 +6,8 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // plan is everything an assessment reads, fixed when the factory was prepared: the machine's steps
@@ -81,15 +82,15 @@ func located(at *umpirespb.Position, format string, args ...any) error {
 	if at.GetFile() != "" {
 		position = fmt.Sprintf("%s:%d", at.GetFile(), at.GetLine())
 	}
-	return &umpiremodel.Error{Position: position, Message: fmt.Sprintf(format, args...)}
+	return &interp.Error{Position: position, Message: fmt.Sprintf(format, args...)}
 }
 
 // compile reads the Query's machine and claims whole, through the Query as tools/umpire/model binds it for a
 // reader of recorded steps: the table Check reads, and the Property and monitors as Check declares them.
 // Nothing of a claim is decided here. Reading the claims is work, counted against the readings
 // ceiling before each reading is made.
-func compile(m *umpirespb.Model, key umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) (*plan, error) {
-	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
+func compile(m *umpirespb.Model, key check.ClaimKey, source *testpilotspb.Case, limits Limits) (*plan, error) {
+	realizer, err := check.NewRealizer(m, check.DefaultScope)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +101,7 @@ func compile(m *umpirespb.Model, key umpiremodel.ClaimKey, source *testpilotspb.
 	at := declared.Query.GetPosition()
 	bound, err := realizer.Bound(key)
 	if err != nil {
-		var known *umpiremodel.Error
+		var known *interp.Error
 		if errors.As(err, &known) {
 			return nil, err
 		}
@@ -152,7 +153,7 @@ func compile(m *umpirespb.Model, key umpiremodel.ClaimKey, source *testpilotspb.
 }
 
 // realizationOf is the one realization that says how the facts of a Query's machine are recorded.
-func realizationOf(realizer *umpiremodel.Realizer, key umpiremodel.ClaimKey, declared *umpiremodel.Declared) (*umpirespb.Realization, error) {
+func realizationOf(realizer *check.Realizer, key check.ClaimKey, declared *check.Declared) (*umpirespb.Realization, error) {
 	at, machine := declared.Query.GetPosition(), declared.Scenario.GetMachine()
 	var realization *umpirespb.Realization
 	for _, r := range realizer.Realizations() {
@@ -174,12 +175,12 @@ func realizationOf(realizer *umpiremodel.Realizer, key umpiremodel.ClaimKey, dec
 // result.
 type taken struct {
 	action, source string
-	result         umpiremodel.Result
+	result         interp.Result
 }
 
 // index lays the bound table's rows and unknown pairs out by state, from the Query's start, and
 // returns every step in the order the claims' readings are indexed by.
-func (p *plan) index(bound *umpiremodel.Bound, at *umpirespb.Position) ([]taken, error) {
+func (p *plan) index(bound *check.Bound, at *umpirespb.Position) ([]taken, error) {
 	table := bound.Table
 	index := make(map[string]int32, len(p.states))
 	for i, state := range p.states {
@@ -214,8 +215,8 @@ func (p *plan) index(bound *umpiremodel.Bound, at *umpirespb.Position) ([]taken,
 		}
 		for _, result := range row.Results {
 			target, known := index[result.State]
-			record, isRecord := result.Step.(umpiremodel.Value)
-			if !known || !isRecord || record.Kind != umpiremodel.RecordValue || len(record.Fields) != 4 || record.Fields[2].Kind != umpiremodel.ListValue {
+			record, isRecord := result.Step.(interp.Value)
+			if !known || !isRecord || record.Kind != interp.RecordValue || len(record.Fields) != 4 || record.Fields[2].Kind != interp.ListValue {
 				return nil, located(at, "row %s of %s has a result that is no step into a state of it", row.Key, p.machine)
 			}
 			s := step{index: len(all), row: row.Key, target: target}
@@ -249,7 +250,7 @@ func (r *readings) charge() error {
 // assessment's when an execution reaches what it was read on.
 func (c *claim) decided(answer bool, err error, where [2]int) reading {
 	switch {
-	case err != nil && umpiremodel.Unknown(err):
+	case err != nil && check.Unknown(err):
 		return unreadable
 	case err != nil:
 		c.errs[where] = err
@@ -261,7 +262,7 @@ func (c *claim) decided(answer bool, err error, where [2]int) reading {
 	}
 }
 
-func compileProperty(p umpiremodel.BoundProperty, steps []taken, budget *readings) (*claim, error) {
+func compileProperty(p check.BoundProperty, steps []taken, budget *readings) (*claim, error) {
 	c := &claim{id: p.Name, property: make([]reading, len(steps)), errs: map[[2]int]error{}}
 	for i, s := range steps {
 		if !p.About(s.action) {
@@ -277,7 +278,7 @@ func compileProperty(p umpiremodel.BoundProperty, steps []taken, budget *reading
 }
 
 // compileMonitor reads a monitor from its initial state through every state a step can take it to.
-func compileMonitor(mo umpiremodel.BoundMonitor, steps []taken, budget *readings) (*claim, error) {
+func compileMonitor(mo check.BoundMonitor, steps []taken, budget *readings) (*claim, error) {
 	c := &claim{id: mo.Name, monitor: true, atEnds: mo.AtEnds, errs: map[[2]int]error{}, read: make([]reading, len(steps))}
 	for j, s := range steps {
 		if mo.AtEnds {
@@ -303,7 +304,7 @@ func compileMonitor(mo umpiremodel.BoundMonitor, steps []taken, budget *readings
 			}
 			next, err := mo.Next(found[i], s.source, s.result)
 			switch {
-			case err != nil && umpiremodel.Unknown(err):
+			case err != nil && check.Unknown(err):
 				after[j] = lost
 			case err != nil:
 				c.errs[[2]int{j, i + 1}], after[j] = err, lost

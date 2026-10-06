@@ -15,7 +15,8 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/interp"
 )
 
 // Claim is what a receipt is about. The claims are kept apart: that a backend's transitions are
@@ -66,7 +67,7 @@ const (
 // Witness is a backend's counterexample of one monitor, as a path of the machine.
 type Witness struct {
 	Monitor string
-	Trace   *umpiremodel.Trace
+	Trace   *check.Trace
 }
 
 // Receipt is what one comparison of a backend with Go established, and over what.
@@ -133,25 +134,25 @@ type Slice struct {
 	// Name is what the slice's receipts call it: the caller's name for the Model, such as its file's.
 	Name     string
 	Model    *umpirespb.Model
-	machines map[string]*umpiremodel.Machine
-	in       *umpiremodel.Interpreter
+	machines map[string]*interp.Machine
+	in       *interp.Interpreter
 	// bound reads the Model's compositions as the reader's checker builds them.
-	bound   *umpiremodel.Realizer
+	bound   *check.Realizer
 	types   map[string]*umpirespb.Type
 	actions map[string]*umpirespb.Action
 }
 
 // Open admits a Model and interprets its machines, within the reader's default scope.
-func Open(m *umpirespb.Model) (*Slice, error) { return OpenWithin(m, umpiremodel.DefaultScope) }
+func Open(m *umpirespb.Model) (*Slice, error) { return OpenWithin(m, check.DefaultScope) }
 
 // OpenWithin is Open within a scope, whose ceilings bound the Model's compositions.
-func OpenWithin(m *umpirespb.Model, scope umpiremodel.Scope) (*Slice, error) {
-	bound, err := umpiremodel.NewRealizer(m, scope)
+func OpenWithin(m *umpirespb.Model, scope check.Scope) (*Slice, error) {
+	bound, err := check.NewRealizer(m, scope)
 	if err != nil {
 		return nil, err
 	}
-	machines, err := umpiremodel.Build(m)
-	var hole *umpiremodel.Hole
+	machines, err := interp.Build(m)
+	var hole *interp.Hole
 	if errors.As(err, &hole) {
 		return nil, &UnsupportedError{Backend: "backend", Construct: "a machine left without a table by " + describeHole(m, hole.ID),
 			Position: hole.Position}
@@ -159,7 +160,7 @@ func OpenWithin(m *umpirespb.Model, scope umpiremodel.Scope) (*Slice, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &Slice{Model: m, machines: machines, in: umpiremodel.NewInterpreter(m), bound: bound, types: map[string]*umpirespb.Type{},
+	s := &Slice{Model: m, machines: machines, in: interp.NewInterpreter(m), bound: bound, types: map[string]*umpirespb.Type{},
 		actions: map[string]*umpirespb.Action{}}
 	for _, t := range m.GetTypes() {
 		s.types[t.GetName()] = t
@@ -240,7 +241,7 @@ type productView struct {
 
 // view is Go's reading of a machine: its table over the reachable states, and the product with its
 // monitors as the IR declares them.
-func (s *Slice) view(mm *umpiremodel.Machine) (*machineView, error) {
+func (s *Slice) view(mm *interp.Machine) (*machineView, error) {
 	t := mm.Table
 	v := &machineView{Starts: slices.Clone(t.Starts), Reach: sorted(t.Reachable), Closed: true, Classes: sorted(t.Actions),
 		Rows: map[string]map[string][]result{}}
@@ -276,7 +277,7 @@ func (s *Slice) view(mm *umpiremodel.Machine) (*machineView, error) {
 // composedView is Go's reading of a composition: the table the reader's checker builds for it, and what
 // each of its Properties, as the checker binds them, says of every step. The table holds the states
 // the members' starts reach and no others.
-func composedView(c *umpiremodel.Composed) (*machineView, error) {
+func composedView(c *check.Composed) (*machineView, error) {
 	t := c.Table
 	v := &machineView{Starts: slices.Clone(t.Starts), Reach: sorted(t.States), Closed: true, Ends: sorted(t.Ends), Classes: sorted(t.Actions),
 		Rows: map[string]map[string][]result{}}
@@ -311,7 +312,7 @@ func composedView(c *umpiremodel.Composed) (*machineView, error) {
 
 // composedReads reads a composition's Properties on one step, as the reader's checker binds them. A
 // Property that is not about the step holds of it, and its function is not called there.
-func composedReads(properties []umpiremodel.BoundProperty, state, class string, step umpiremodel.Result) ([]claimRead, error) {
+func composedReads(properties []check.BoundProperty, state, class string, step interp.Result) ([]claimRead, error) {
 	reads := make([]claimRead, len(properties))
 	for i, p := range properties {
 		reads[i] = claimRead{Holds: true}
@@ -338,17 +339,17 @@ func (s *Slice) properties(machine string) []*umpirespb.Property {
 	return out
 }
 
-func (s *Slice) literal(v *umpirespb.Value) umpiremodel.Value {
+func (s *Slice) literal(v *umpirespb.Value) interp.Value {
 	out, err := s.in.Eval(&umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: v}})
 	if err != nil {
-		return umpiremodel.Value{}
+		return interp.Value{}
 	}
 	return out
 }
 
 // about is whether a Property is about the steps of a class: every step, the steps of one class, or
 // the steps of every class of one action.
-func (s *Slice) about(p *umpirespb.Property, class umpiremodel.Class) bool {
+func (s *Slice) about(p *umpirespb.Property, class interp.Class) bool {
 	switch w := p.GetWhen().(type) {
 	case *umpirespb.Property_WhenClass:
 		parts := []string{s.actions[w.WhenClass.GetAction()].GetName()}
@@ -366,7 +367,7 @@ func (s *Slice) about(p *umpirespb.Property, class umpiremodel.Class) bool {
 // claims reads every Property of a machine on every step from every reachable state, with the reader's
 // interpreter: a same-step Property of the step record, a transition Property of the state before
 // the step and the step record.
-func (s *Slice) claims(mm *umpiremodel.Machine, v *machineView) error {
+func (s *Slice) claims(mm *interp.Machine, v *machineView) error {
 	properties := s.properties(mm.Decl.GetName())
 	if len(properties) == 0 {
 		return nil
@@ -399,19 +400,19 @@ func (s *Slice) claims(mm *umpiremodel.Machine, v *machineView) error {
 
 // read reads one Property on one step of a row. A Property that is not about the step holds of it,
 // and its function is not called there.
-func (s *Slice) read(p *umpirespb.Property, tr umpiremodel.Transition, step umpiremodel.Value) (claimRead, error) {
+func (s *Slice) read(p *umpirespb.Property, tr interp.Transition, step interp.Value) (claimRead, error) {
 	if !s.about(p, tr.Class) {
 		return claimRead{Holds: true}, nil
 	}
-	args := []umpiremodel.Value{step}
+	args := []interp.Value{step}
 	if p.GetTransition() {
-		args = []umpiremodel.Value{tr.Source, step}
+		args = []interp.Value{tr.Source, step}
 	}
 	held, err := s.in.Call(p.GetHolds(), args, p.GetPosition())
 	if err != nil {
 		return claimRead{}, err
 	}
-	if held.Kind != umpiremodel.BoolValue {
+	if held.Kind != interp.BoolValue {
 		return claimRead{}, fmt.Errorf("%s.%s: %s is %s, not a Boolean", p.GetMachine(), p.GetName(), p.GetHolds(), held.Key())
 	}
 	return claimRead{About: true, Holds: held.Bool}, nil
@@ -439,10 +440,10 @@ type goProduct struct {
 type watching struct {
 	decls  []*umpirespb.Monitor
 	ends   map[string]bool
-	states []map[string]umpiremodel.Value
+	states []map[string]interp.Value
 }
 
-func (s *Slice) watching(mm *umpiremodel.Machine) (*watching, []string, error) {
+func (s *Slice) watching(mm *interp.Machine) (*watching, []string, error) {
 	w := &watching{decls: mm.Monitors, ends: map[string]bool{}}
 	for _, e := range mm.Table.Ends {
 		w.ends[e] = true
@@ -453,7 +454,7 @@ func (s *Slice) watching(mm *umpiremodel.Machine) (*watching, []string, error) {
 		if err != nil {
 			return nil, nil, err
 		}
-		byKey := map[string]umpiremodel.Value{}
+		byKey := map[string]interp.Value{}
 		for _, v := range members {
 			byKey[v.Key()] = v
 		}
@@ -472,10 +473,10 @@ func (s *Slice) watching(mm *umpiremodel.Machine) (*watching, []string, error) {
 
 // step advances every monitor over one step: the IR's `next`, its evaluation point and its
 // `violated`, evaluated by the reader's interpreter.
-func (s *Slice) step(w *watching, mu []string, source umpiremodel.Value, step umpiremodel.Value, target string) (productStep, error) {
+func (s *Slice) step(w *watching, mu []string, source interp.Value, step interp.Value, target string) (productStep, error) {
 	out := productStep{Mu: make([]string, len(mu)), Read: make([]bool, len(mu)), Viol: make([]bool, len(mu))}
 	for k, mo := range w.decls {
-		next, err := s.in.Call(mo.GetNext(), []umpiremodel.Value{w.states[k][mu[k]], source, step}, mo.GetPosition())
+		next, err := s.in.Call(mo.GetNext(), []interp.Value{w.states[k][mu[k]], source, step}, mo.GetPosition())
 		if err != nil {
 			return out, err
 		}
@@ -502,19 +503,19 @@ func (s *Slice) step(w *watching, mu []string, source umpiremodel.Value, step um
 	return out, nil
 }
 
-func (s *Slice) decide(function string, arg umpiremodel.Value, mo *umpirespb.Monitor) (bool, error) {
-	v, err := s.in.Call(function, []umpiremodel.Value{arg}, mo.GetPosition())
+func (s *Slice) decide(function string, arg interp.Value, mo *umpirespb.Monitor) (bool, error) {
+	v, err := s.in.Call(function, []interp.Value{arg}, mo.GetPosition())
 	if err != nil {
 		return false, err
 	}
-	if v.Kind != umpiremodel.BoolValue {
+	if v.Kind != interp.BoolValue {
 		return false, fmt.Errorf("monitor %s: %s is %s, not a Boolean", mo.GetName(), function, v.Key())
 	}
 	return v.Bool, nil
 }
 
 // product explores the product of a machine and its monitors from the machine's starts, to the end.
-func (s *Slice) product(mm *umpiremodel.Machine) (*goProduct, error) {
+func (s *Slice) product(mm *interp.Machine) (*goProduct, error) {
 	w, initial, err := s.watching(mm)
 	if err != nil {
 		return nil, err
@@ -524,7 +525,7 @@ func (s *Slice) product(mm *umpiremodel.Machine) (*goProduct, error) {
 	for _, mo := range mm.Monitors {
 		p.Monitors = append(p.Monitors, mo.GetName())
 	}
-	from := map[string][]umpiremodel.Transition{}
+	from := map[string][]interp.Transition{}
 	for _, tr := range mm.Transitions {
 		key := tr.Source.Key()
 		from[key] = append(from[key], tr)
@@ -609,7 +610,7 @@ func depth(starts []string, successors func(string) []string) int {
 // Replay replays a backend's counterexample of a monitor through a fresh interpretation of the
 // Model: the trace must be a path of the machine's table, by its Definition IDs, from one of its
 // starts, and the monitor must be read and violated on its last step. Anything else is an error.
-func (s *Slice) Replay(machine, monitor string, trace *umpiremodel.Trace) error {
+func (s *Slice) Replay(machine, monitor string, trace *check.Trace) error {
 	fresh, err := Open(s.Model)
 	if err != nil {
 		return err
@@ -617,7 +618,7 @@ func (s *Slice) Replay(machine, monitor string, trace *umpiremodel.Trace) error 
 	return fresh.replay(machine, monitor, trace)
 }
 
-func (s *Slice) replay(machine, monitor string, trace *umpiremodel.Trace) error {
+func (s *Slice) replay(machine, monitor string, trace *check.Trace) error {
 	mm := s.machines[machine]
 	if mm == nil {
 		return fmt.Errorf("the Model has no machine %s", machine)
@@ -642,7 +643,7 @@ func (s *Slice) replay(machine, monitor string, trace *umpiremodel.Trace) error 
 	state := trace.Initial.Value
 	var last productStep
 	for i, step := range trace.Steps {
-		j := slices.IndexFunc(mm.Transitions, func(tr umpiremodel.Transition) bool {
+		j := slices.IndexFunc(mm.Transitions, func(tr interp.Transition) bool {
 			return tr.Source.Key() == state && tr.Class.Key == step.Action.Value
 		})
 		if j < 0 {
@@ -650,7 +651,7 @@ func (s *Slice) replay(machine, monitor string, trace *umpiremodel.Trace) error 
 		}
 		// Build lists a machine's transitions row for row with its table.
 		tr := mm.Transitions[j]
-		n := slices.IndexFunc(mm.Table.Rows[j].Results, func(r umpiremodel.Result) bool {
+		n := slices.IndexFunc(mm.Table.Rows[j].Results, func(r interp.Result) bool {
 			return r.Outcome == step.Outcome.Value && r.State == step.State.Value && slices.Equal(r.Facts, atomValues(step.Facts))
 		})
 		if n < 0 {
@@ -668,7 +669,7 @@ func (s *Slice) replay(machine, monitor string, trace *umpiremodel.Trace) error 
 	return nil
 }
 
-func atomValues(atoms []umpiremodel.Atom) []string {
+func atomValues(atoms []interp.Atom) []string {
 	out := make([]string, len(atoms))
 	for i, a := range atoms {
 		out[i] = a.Value

@@ -14,7 +14,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -40,7 +41,7 @@ const (
 
 func lifted(t testing.TB, name string) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", name+".json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", name+".json"))
 	require.NoError(t, err)
 	return m
 }
@@ -122,7 +123,7 @@ func realizedWith(t testing.TB, m *umpirespb.Model, machine string, kinds []kind
 			Items: []*umpirespb.Item{{Command: closing}}}}
 	}
 	out.Realizations = append(out.Realizations, r)
-	require.NoError(t, umpiremodel.Validate(out))
+	require.NoError(t, ir.Validate(out))
 	return out
 }
 
@@ -395,7 +396,7 @@ type bound struct {
 	factory  *Factory
 }
 
-func bind(t testing.TB, m *umpirespb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) *bound {
+func bind(t testing.TB, m *umpirespb.Model, query check.ClaimKey, source *testpilotspb.Case, limits Limits) *bound {
 	t.Helper()
 	plain, err := testpilot.Prepare(source, carrierProfile(t))
 	require.NoError(t, err)
