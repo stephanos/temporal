@@ -751,7 +751,7 @@ lint-model-syntax:
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
 fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Applying model lint fixes..."
-	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCES)
+	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCES)
 	@cd $(MODEL_ROOT)/irgen && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_IRGEN_SOURCES)) .
 	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) .
 	@cd $(MODEL_ROOT)/check && $(MODEL_SCALAFIX) .
