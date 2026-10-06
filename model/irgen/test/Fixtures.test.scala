@@ -147,6 +147,10 @@ class Fixtures extends munit.FunSuite:
     "capabilitySections" -> (Seq("Task", "Chore", "TaskPair", "MirrorPair")
       .map(o => s"fixture.capabilitysections.$o$$.capabilities") :+
       "fixture.capabilitysections.Task$.queries"),
+    // fn-135.2: `is { }` vals and their def twins (lifts/Blocks.scala).
+    "blocks" -> Seq("Blocked", "Defined").flatMap(o =>
+      Seq(s"fixture.blocks.$o$$.capabilities", s"fixture.blocks.$o$$.queries")
+    ),
     "captured" -> Seq(
       "queries",
       "diskQueries",
@@ -351,6 +355,10 @@ class Fixtures extends munit.FunSuite:
     "BothForms"
   ).map(o => s"fixture.capabilitysectionrejects.$o$$.capabilities")
 
+  // The refusals of fn-135.2's `is { }` blocks, each a machine object (lifts/BlockRejects.scala).
+  private val blockRejects: Seq[String] =
+    Seq("NestedIs", "HeaderIs", "DefIs", "ShapedAccessor").map("fixture.blockrejects." + _)
+
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
   private val hintRejects: Seq[String] =
     Seq("builtWrite", "builtRead").map("fixture.hintrejects.HintRejects$package$." + _)
@@ -449,7 +457,7 @@ class Fixtures extends munit.FunSuite:
     "UnobservedRefiner",
     "IndexedQueries$.queries"
   ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ sectionRejects ++ hintRejects ++
-    markerRejects
+    markerRejects ++ blockRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -1270,6 +1278,47 @@ class Fixtures extends munit.FunSuite:
       """{"wildcard":{}}""",
       "a wildcard arm lifts as a wildcard"
     )
+
+  // fn-135.2: each `is { }` val of `Blocked` beside the def of `Defined` it stands for, read by a
+  // rule's condition, a capability field, `end` and a claim (lifts/Blocks.scala). Every declaration
+  // of one machine, with the other's name in its place and no positions, is the other's.
+  test(
+    "is blocks lift as the defs they stand for, in a condition, a capability field, end and a claim"
+  ):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val model = mapper.readTree(ir("blocks"))
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    // The declarations of each kind that name the machine, as the other machine's, by their names.
+    def declarations(machine: String): Map[String, Map[String, String]] =
+      val named =
+        (s: String) => s.replace(machine, "Defined").replace(machine.toLowerCase, "defined")
+      Seq("machines", "functions", "properties", "scenarios", "queries").map { kind =>
+        kind -> model
+          .path(kind)
+          .elements()
+          .asScala
+          .filter(_.toString.toLowerCase.contains(machine.toLowerCase))
+          .map { d =>
+            val copy = mapper.readTree(named(d.toString))
+            strip(copy)
+            Seq("name", "id").map(copy.path(_).asText()).mkString("/") -> copy.toPrettyString
+          }
+          .toMap
+      }.toMap
+    val (blocked, defined) = (declarations("Blocked"), declarations("Defined"))
+    for kind <- blocked.keys do assertEquals(blocked(kind), defined(kind), kind)
+    assertEquals(
+      blocked("functions").keySet.filter(_.contains("states")),
+      Set("paused", "busy", "over").map(p => s"fixture.blocks.Defined$$.states$$.$p/"),
+      "each is block is a function of its own"
+    )
+    assert(blocked("properties").size == 2, blocked("properties").keys)
 
   // fn-112.9: the script helpers and the Temporal kit beside the core records they stand for, and
   // the kit's `field(_.name) :=` beside `Assignment.typed` (lifts/Scripts.scala).

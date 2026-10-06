@@ -45,9 +45,50 @@ final private[irgen] class Context(val index: Index):
 
   val defs: collection.Map[Symbol, Definition] = index.defs
   val sourceRoots: collection.Map[String, String] = index.sourceRoots
+  // A function of the lifted sources: a def, or a section member a block declares (`blockVal`).
   def isFunction(sym: Symbol): Boolean = defs.get(sym) match
     case Some(_: DefDef) => true
-    case _               => false
+    case _               => blockVal(sym).nonEmpty
+
+  // A section member a block of the framework's syntax declares (model/umpire/Syntax.scala): the
+  // block's form (`is`), the val, the state type the block reads, and its body, the context function
+  // the call is given.
+  final case class SectionBlock(form: String, at: ValDef, state: TypeRepr, body: Term)
+
+  private val blockForms = Set("is")
+  private val syntaxOwner = "umpire.Syntax$package$"
+
+  // The call of a block form a term is, `is[S, O, F](using owner)(body)`: its name, its state type
+  // and its body.
+  def blockCall(t: Term): Option[(String, TypeRepr, Term)] = t match
+    case Typed(e, _)        => blockCall(e)
+    case Inlined(_, Nil, e) => blockCall(e)
+    case Block(Nil, e)      => blockCall(e)
+    case Apply(Apply(TypeApply(fn, state :: _), List(_)), List(body))
+        if blockForms(fn.symbol.name) && fn.symbol.maybeOwner.fullName == syntaxOwner =>
+      Some((fn.symbol.name, state.tpe, body))
+    case _ => None
+
+  // The one recognizer of a section member a block declares, `val held = is { ... }` in a section
+  // of a machine's object: it is the function the block stands for, named by its val as a def is by
+  // its def. A block anywhere else is refused.
+  def blockVal(sym: Symbol): Option[SectionBlock] = defs.get(sym) match
+    case Some(v @ ValDef(_, _, Some(rhs))) =>
+      blockCall(rhs).map { (form, state, body) =>
+        val section = sym.maybeOwner
+        if !(section.isClassDef && section.flags.is(Flags.Module) && objectForm(section.maybeOwner))
+        then misplacedBlock(form, rhs)
+        SectionBlock(form, v, state, body)
+      }
+    case _ => None
+
+  // The refusal of a block written anywhere but as the right-hand side of a section's val.
+  def misplacedBlock(form: String, at: Tree): Nothing =
+    fail(
+      at,
+      s"`$form { ... }` declares a member of a machine object's section, `val held = $form { ... }` " +
+        "in `object states`, and is written nowhere else"
+    )
 
   // A stable path, `a` or `a.b.c`: what an alias is a name for.
   def path(t: Term): Boolean = t match

@@ -1,0 +1,2540 @@
+{
+  "source": "model: fixture.blocks.Blocked$.capabilities, fixture.blocks.Blocked$.queries, fixture.blocks.Defined$.capabilities, fixture.blocks.Defined$.queries",
+  "types": [ {
+    "name": "fixture.blocks.Fact",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 20
+    },
+    "enum": {
+      "cases": [ {
+        "name": "started"
+      }, {
+        "name": "paused"
+      }, {
+        "name": "finished"
+      } ]
+    }
+  }, {
+    "name": "fixture.blocks.Job",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 13
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.blocks.Phase"
+        }
+      }, {
+        "name": "retried",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.blocks.Outcome",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 15
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  }, {
+    "name": "fixture.blocks.Phase",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 10
+    },
+    "enum": {
+      "cases": [ {
+        "name": "idle"
+      }, {
+        "name": "running"
+      }, {
+        "name": "paused"
+      }, {
+        "name": "done"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "blocked.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 41
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.blocks.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 41
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 41
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.blocks.Fact",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Blocks.scala",
+              "line": 41
+            },
+            "literal": {
+              "text": "started"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.blocks.Fact",
+                "case": "paused"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Blocks.scala",
+              "line": 41
+            },
+            "literal": {
+              "text": "paused"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.blocks.Fact",
+                "case": "finished"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Blocks.scala",
+              "line": 41
+            },
+            "literal": {
+              "text": "finished"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "blocked.property.blocked.pausedStays",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 37
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 37
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 37
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 37
+              },
+              "call": {
+                "function": "fixture.blocks.Blocked$.states$.paused",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 37
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 37
+          },
+          "call": {
+            "function": "fixture.blocks.Blocked$.states$.paused",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 37
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 37
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "blocked.property.pausedKept",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 61
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 61
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 61
+              },
+              "call": {
+                "function": "fixture.blocks.Blocked$.states$.paused",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 61
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 61
+          },
+          "call": {
+            "function": "fixture.blocks.Blocked$.states$.paused",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 61
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 61
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "blocked.rules.finish",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 58
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 58
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 55
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 55
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 58
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 58
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.blocks.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 58
+          },
+          "call": {
+            "function": "fixture.blocks.Blocked$.effects$.finish",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 58
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 58
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "blocked.rules.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 57
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 57
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 57
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 57
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 55
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Blocks.scala",
+                        "line": 55
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 57
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Blocks.scala",
+                        "line": 57
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.blocks.Phase",
+                          "case": "running"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 57
+              },
+              "call": {
+                "function": "fixture.blocks.Blocked$.states$.busy",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 57
+                  },
+                  "var": "s"
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 57
+          },
+          "call": {
+            "function": "fixture.blocks.Blocked$.effects$.pause",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 57
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 57
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "blocked.rules.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 56
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 56
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 56
+          },
+          "call": {
+            "function": "fixture.blocks.Blocked$.states$.paused",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 56
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 56
+          },
+          "call": {
+            "function": "fixture.blocks.Blocked$.effects$.start",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 56
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 56
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "defined.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 71
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.blocks.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 71
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 71
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.blocks.Fact",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Blocks.scala",
+              "line": 71
+            },
+            "literal": {
+              "text": "started"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.blocks.Fact",
+                "case": "paused"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Blocks.scala",
+              "line": 71
+            },
+            "literal": {
+              "text": "paused"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.blocks.Fact",
+                "case": "finished"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Blocks.scala",
+              "line": 71
+            },
+            "literal": {
+              "text": "finished"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "defined.property.defined.pausedStays",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 37
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 37
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 37
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 37
+              },
+              "call": {
+                "function": "fixture.blocks.Defined$.states$.paused",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 37
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 37
+          },
+          "call": {
+            "function": "fixture.blocks.Defined$.states$.paused",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 37
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 37
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "defined.property.pausedKept",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 91
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 91
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 91
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 91
+              },
+              "call": {
+                "function": "fixture.blocks.Defined$.states$.paused",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 91
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 91
+          },
+          "call": {
+            "function": "fixture.blocks.Defined$.states$.paused",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 91
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 91
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "defined.rules.finish",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 88
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 88
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 88
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 85
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 85
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 88
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 88
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.blocks.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 88
+          },
+          "call": {
+            "function": "fixture.blocks.Defined$.effects$.finish",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 88
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 88
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "defined.rules.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 87
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 87
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 87
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 87
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 85
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Blocks.scala",
+                        "line": 85
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 87
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Blocks.scala",
+                        "line": 87
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.blocks.Phase",
+                          "case": "running"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 87
+              },
+              "call": {
+                "function": "fixture.blocks.Defined$.states$.busy",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 87
+                  },
+                  "var": "s"
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 87
+          },
+          "call": {
+            "function": "fixture.blocks.Defined$.effects$.pause",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 87
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 87
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "defined.rules.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 86
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 86
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 86
+          },
+          "call": {
+            "function": "fixture.blocks.Defined$.states$.paused",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 86
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 86
+          },
+          "call": {
+            "function": "fixture.blocks.Defined$.effects$.start",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 86
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 86
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Blocked$.effects$.finish",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 53
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 53
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 53
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 18
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 53
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 53
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Blocks.scala",
+                      "line": 53
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.blocks.Phase",
+                        "case": "done"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 53
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 53
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.blocks.Fact",
+                      "case": "finished"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 53
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Blocked$.effects$.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 52
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 52
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 52
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 18
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 52
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 52
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Blocks.scala",
+                      "line": 52
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.blocks.Phase",
+                        "case": "paused"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 52
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 52
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.blocks.Fact",
+                      "case": "paused"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 52
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Blocked$.effects$.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 51
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 51
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 51
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 18
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 51
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 51
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Blocks.scala",
+                      "line": 51
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.blocks.Phase",
+                        "case": "running"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 51
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 51
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.blocks.Fact",
+                      "case": "started"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 51
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Blocked$.states$.busy",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 47
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 47
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 47
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 47
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 47
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 47
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Phase",
+                  "case": "running"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 47
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Phase",
+                  "case": "paused"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Blocked$.states$.over",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 48
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 48
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 48
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 48
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 48
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Phase",
+                  "case": "done"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 48
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 48
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 48
+                  },
+                  "var": "s"
+                },
+                "field": "retried"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Blocked$.states$.paused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 46
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 46
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 46
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 46
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.blocks.Phase",
+              "case": "paused"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Defined$.effects$.finish",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 83
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 83
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 83
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 18
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 83
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 83
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Blocks.scala",
+                      "line": 83
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.blocks.Phase",
+                        "case": "done"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 83
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 83
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.blocks.Fact",
+                      "case": "finished"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 83
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Defined$.effects$.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 82
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 82
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 82
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 18
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 82
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 82
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Blocks.scala",
+                      "line": 82
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.blocks.Phase",
+                        "case": "paused"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 82
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 82
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.blocks.Fact",
+                      "case": "paused"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 82
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Defined$.effects$.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 81
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 81
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 81
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 18
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 81
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 81
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Blocks.scala",
+                      "line": 81
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.blocks.Phase",
+                        "case": "running"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 81
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 81
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.blocks.Fact",
+                      "case": "started"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 81
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Defined$.states$.busy",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 77
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 77
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 77
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 77
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 77
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 77
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Phase",
+                  "case": "running"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 77
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Phase",
+                  "case": "paused"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Defined$.states$.over",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 78
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 78
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 78
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 78
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 78
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 78
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.blocks.Phase",
+                  "case": "done"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 78
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 78
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Blocks.scala",
+                    "line": 78
+                  },
+                  "var": "s"
+                },
+                "field": "retried"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.blocks.Defined$.states$.paused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 76
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.blocks.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 76
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 76
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 76
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 76
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.blocks.Phase",
+              "case": "paused"
+            }
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.blocks.user.finish",
+    "name": "finish",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 30
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.blocks.user.pause",
+    "name": "pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 29
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.blocks.user.start",
+    "name": "start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 28
+    },
+    "actor": "user"
+  } ],
+  "machines": [ {
+    "family": "fixture.blocks",
+    "name": "blocked",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 41
+    },
+    "stateType": "fixture.blocks.Job",
+    "outcomeType": "fixture.blocks.Outcome",
+    "factType": "fixture.blocks.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.blocks.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.blocks.Phase",
+              "case": "idle"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 42
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 43
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.blocks.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 43
+          },
+          "call": {
+            "function": "fixture.blocks.Blocked$.states$.over",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 43
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.blocks.user.start",
+      "function": "blocked.rules.start",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 56
+      }
+    }, {
+      "action": "fixture.blocks.user.pause",
+      "function": "blocked.rules.pause",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 57
+      }
+    }, {
+      "action": "fixture.blocks.user.finish",
+      "function": "blocked.rules.finish",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 58
+      }
+    } ],
+    "evidence": "blocked.evidence"
+  }, {
+    "family": "fixture.blocks",
+    "name": "defined",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 71
+    },
+    "stateType": "fixture.blocks.Job",
+    "outcomeType": "fixture.blocks.Outcome",
+    "factType": "fixture.blocks.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 72
+      },
+      "construct": {
+        "type": "fixture.blocks.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 72
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.blocks.Phase",
+              "case": "idle"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 72
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 73
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.blocks.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 73
+          },
+          "call": {
+            "function": "fixture.blocks.Defined$.states$.over",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Blocks.scala",
+                "line": 73
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.blocks.user.start",
+      "function": "defined.rules.start",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 86
+      }
+    }, {
+      "action": "fixture.blocks.user.pause",
+      "function": "defined.rules.pause",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 87
+      }
+    }, {
+      "action": "fixture.blocks.user.finish",
+      "function": "defined.rules.finish",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 88
+      }
+    } ],
+    "evidence": "defined.evidence"
+  } ],
+  "properties": [ {
+    "machine": "blocked",
+    "name": "blocked.pausedStays",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 64
+    },
+    "holds": "blocked.property.blocked.pausedStays",
+    "transition": true,
+    "origin": {
+      "name": "fixture.blocks.Pausable.pausedStays",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 37
+      }
+    }
+  }, {
+    "machine": "blocked",
+    "name": "pausedKept",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 61
+    },
+    "holds": "blocked.property.pausedKept",
+    "transition": true
+  }, {
+    "machine": "defined",
+    "name": "defined.pausedStays",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 94
+    },
+    "holds": "defined.property.defined.pausedStays",
+    "transition": true,
+    "origin": {
+      "name": "fixture.blocks.Pausable.pausedStays",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 37
+      }
+    }
+  }, {
+    "machine": "defined",
+    "name": "pausedKept",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 91
+    },
+    "holds": "defined.property.pausedKept",
+    "transition": true
+  } ],
+  "scenarios": [ {
+    "machine": "blocked",
+    "name": "blocked.pausedStays",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 64
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.blocks.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.blocks.Phase",
+              "case": "idle"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 42
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "blocked",
+    "name": "starting",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 68
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.blocks.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.blocks.Phase",
+              "case": "idle"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 42
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.blocks.user.start"
+    } ]
+  }, {
+    "machine": "defined",
+    "name": "defined.pausedStays",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 94
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 72
+      },
+      "construct": {
+        "type": "fixture.blocks.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 72
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.blocks.Phase",
+              "case": "idle"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 72
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "defined",
+    "name": "starting",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 98
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Blocks.scala",
+        "line": 72
+      },
+      "construct": {
+        "type": "fixture.blocks.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 72
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.blocks.Phase",
+              "case": "idle"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Blocks.scala",
+            "line": 72
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.blocks.user.start"
+    } ]
+  } ],
+  "queries": [ {
+    "name": "blocked.pausedStays",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 64
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "blocked",
+      "name": "blocked.pausedStays"
+    },
+    "scenario": {
+      "machine": "blocked",
+      "name": "blocked.pausedStays"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "48"
+  }, {
+    "name": "blockedKept",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 69
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "blocked",
+      "name": "pausedKept"
+    },
+    "scenario": {
+      "machine": "blocked",
+      "name": "starting"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "8"
+  }, {
+    "name": "defined.pausedStays",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 94
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "defined",
+      "name": "defined.pausedStays"
+    },
+    "scenario": {
+      "machine": "defined",
+      "name": "defined.pausedStays"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "48"
+  }, {
+    "name": "definedKept",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Blocks.scala",
+      "line": 99
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "defined",
+      "name": "pausedKept"
+    },
+    "scenario": {
+      "machine": "defined",
+      "name": "starting"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "8"
+  } ]
+}

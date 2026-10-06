@@ -115,6 +115,7 @@ private[irgen] trait Expressions:
     case r: Ref if boundFunctions.contains(r.symbol) => Some(boundFunctions(r.symbol))
     case r: Ref if isFunction(r.symbol)              => Some(r.symbol)
     case c: Apply if throughCall(c)                  => Some(through(c))
+    case c: Apply if blockCall(c).nonEmpty           => misplacedBlock(blockCall(c).get._1, c)
     case _                                           =>
       lambda(t).flatMap { (params, body) =>
         def forwards(args: List[Term]) = args.map(_.symbol) == params.map(_.symbol)
@@ -228,7 +229,7 @@ private[irgen] trait Expressions:
   // declaring function being folded names the def its call binds it to.
   def callee(named: Symbol, at: Tree): String =
     val sym = boundFunctions.getOrElse(named, named)
-    throughOf.get(sym).fold(defCallee(sym, at))(throughCallee)
+    throughOf.get(sym).fold(blockVal(sym).fold(defCallee(sym, at))(blockCallee))(throughCallee)
 
   // The function a `through` stands for, lifted on its first call: `s => read(s.<path>)`.
   private def throughCallee(t: Through): String =
@@ -245,6 +246,72 @@ private[irgen] trait Expressions:
         body = Some(expr(t.at)(E.Call(ir.Call(read, Seq(member)))))
       )
     t.name
+
+  // The function a section's block declares, lifted on its first call (`blockFunction`).
+  private def blockCallee(b: SectionBlock): String =
+    val name = b.at.symbol.fullName
+    if !functions.contains(name) then
+      functions(name) = ir.Function.defaultInstance
+      functions(name) = alternativeOf(inside = false)(blockFunction(name, b))
+    name
+
+  // An `is { ... }` block as the function its method form lifts to, `def held(s: S) = ...`: the
+  // block has no state parameter of its own, so the function takes one named `s` of the block's
+  // state type, which the block's view of the state is read as. A block nested in it is refused.
+  def blockFunction(name: String, b: SectionBlock): ir.Function =
+    val (views, body) = lambda(b.body)
+      .filter((ps, _) => ps.forall(_.symbol.flags.is(Flags.Given)))
+      .getOrElse(
+        fail(b.body, s"`${b.form} { ... }` is given its body as a block, not ${b.body.show}")
+      )
+    object nested extends TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit = tree match
+        case t: Term if blockCall(t).nonEmpty =>
+          fail(
+            t,
+            s"`${blockCall(t).get._1} { ... }` is nested in the block of ${b.at.name}: a block " +
+              "declares a section member of its own, `val held = is { ... }`, and reads no other block"
+          )
+        case _ => super.traverseTree(tree)(owner)
+    nested.traverseTree(body)(b.at.symbol)
+    views.foreach(v => renamed(v.symbol) = "s")
+    functionOf(name, Seq(ir.Param("s", Some(typeRef(b.state, b.at)))), body, b.at)
+
+  // A call of a field accessor, `phase(using v)` in a block: a read of that field of the state the
+  // block's view stands for. An accessor has one shape,
+  // `def phase(using v: View[State]): Phase = v.get(_.phase)`, and any other is refused, so it reads
+  // the field the IR records.
+  def accessorRead(fn: Symbol, args: List[Term], at: Tree): ir.Expr =
+    val field = defs.get(fn) match
+      case Some(DefDef(_, List(TermParamClause(List(v))), _, Some(rhs)))
+          if v.symbol.flags.is(Flags.Given) && isNamed(v.tpt.tpe, "umpire.View") =>
+        rhs match
+          case Apply(TypeApply(Select(r: Ident, "get"), _), List(selector))
+              if r.symbol == v.symbol =>
+            lambda(selector).collect { case (List(p), body) => fieldPath(p, body) }.flatten match
+              case Some(List(field)) => Some(field)
+              case _                 => None
+          case _ => None
+      case _ => None
+    val view = args match
+      case List(v) => v
+      case _       => fail(at, s"${fn.name} reads the state of the block it is called in")
+    field.fold(
+      fail(
+        at,
+        s"${fn.name}, declared at ${defs.get(fn).fold(fn.fullName)(where)}, takes the state of a " +
+          "block and is no field accessor: an accessor reads one field, " +
+          "`def phase(using v: View[State]): Phase = v.get(_.phase)`"
+      )
+    )(f => expr(at)(E.Field(ir.FieldAccess(Some(lift(view)), f))))
+
+  // Whether a def takes the state of a block, a `View` (an `effect`'s draft is one too): an accessor.
+  def accessor(fn: Symbol): Boolean = defs.get(fn) match
+    case Some(d: DefDef) =>
+      d.termParamss.flatMap(_.params).exists(_.tpt.tpe.widen.dealias.derivesFrom(viewClass))
+    case _ => false
+
+  private lazy val viewClass = Symbol.requiredClass("umpire.View")
 
   private def defCallee(sym: Symbol, at: Tree): String =
     if lifting(sym.fullName) then
@@ -275,7 +342,10 @@ private[irgen] trait Expressions:
     sym.fullName
 
   def function(name: String, params: List[ValDef], body: Term, at: Tree): ir.Function =
-    val ps = parameters(params, body)
+    functionOf(name, parameters(params, body), body, at)
+
+  // The function `name` over the parameters `ps`, its precondition and its body lifted.
+  def functionOf(name: String, ps: Seq[ir.Param], body: Term, at: Tree): ir.Function =
     val (requires, rest) = stripContracts(body)
     ir.Function(
       name = name,
@@ -322,6 +392,9 @@ private[irgen] trait Expressions:
   def lift(t: Term, expected: Option[TypeRepr] = None): ir.Expr = t match
     // A step made where no step function is: the expression is at the wrong level.
     case _: Apply if makesSteps(t.tpe) && !making._1 => wrongLevel(t)
+
+    // A block written where no section's val declares it.
+    case _ if blockCall(t).nonEmpty => misplacedBlock(blockCall(t).get._1, t)
 
     // `enter`, `stay`, `disabled`, `in`, `implies` and `records`, as their core forms lift.
     case _ if sugared(t) => sugar(t)
@@ -461,10 +534,15 @@ private[irgen] trait Expressions:
           ir.Construct(`type` = irTypeName(cls), args = lifted)
       expr(t)(E.Construct(c))
 
+    // A field read in a block, by its accessor.
+    case Apply(fn, args) if accessor(fn.symbol) => accessorRead(fn.symbol, args, t)
     // A call of another function of the lifted sources, or of a function-valued parameter bound to
     // one.
     case Apply(fn, args) if isFunction(fn.symbol) => call(fn.symbol, args, t)
     case Apply(Select(f: Ref, "apply"), args) if boundFunctions.contains(f.symbol) =>
+      call(f.symbol, args, t)
+    // A section member a block declares, called: `states.over(s)`.
+    case Apply(Select(f: Ref, "apply"), args) if blockVal(f.symbol).nonEmpty =>
       call(f.symbol, args, t)
     case Apply(Select(f: Ref, "apply"), _)
         if f.symbol.flags.is(Flags.Param) && f.tpe.widen.dealias.isFunctionType =>

@@ -1,3 +1,7 @@
+lift: model/irgen/testdata/lifts/BlockRejects.scala:35: `is { ... }` declares a member of a machine object's section, `val held = is { ... }` in `object states`, and is written nowhere else
+lift: model/irgen/testdata/lifts/BlockRejects.scala:25: `is { ... }` declares a member of a machine object's section, `val held = is { ... }` in `object states`, and is written nowhere else
+lift: model/irgen/testdata/lifts/BlockRejects.scala:16: `is { ... }` is nested in the block of nested: a block declares a section member of its own, `val held = is { ... }`, and reads no other block
+lift: model/irgen/testdata/lifts/BlockRejects.scala:45: idle, declared at model/irgen/testdata/lifts/BlockRejects.scala:10, takes the state of a block and is no field accessor: an accessor reads one field, `def phase(using v: View[State]): Phase = v.get(_.phase)`
 lift: model/irgen/testdata/lifts/CapabilityRejects.scala:67: againJob declares Pollable here and at model/irgen/testdata/lifts/CapabilityRejects.scala:65: a machine declares each capability once, with one binding
 lift: model/irgen/testdata/lifts/CapabilityRejects.scala:103: cited names its server code as a string literal or a val of one, not fixture.capabilities.Answer.gone.toString()
 lift: model/irgen/testdata/lifts/CapabilityRejects.scala:44: job declares Pollable twice: a machine declares each capability once, with one binding
