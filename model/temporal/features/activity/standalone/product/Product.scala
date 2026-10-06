@@ -32,56 +32,28 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
   val init = product.State(scheduled)
   def end(s: State) = states.over(s)
 
-  // The product's status sets and the constant its capabilities cite.
   object states:
     def phase(s: State) = s.phase
-
     def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
-
-    // A path ends where the activity is over: `end` reads this named predicate.
     def over(s: State) = terminal(s.phase)
-
-    // A paused activity, which no worker is given.
     def paused(s: State) = s.phase == Phase.paused
-
     def running(s: State) = s.phase == started
-
-    // Where a worker holds the attempt, so its answer settles the activity.
     def held(s: State) = s.phase.in(started, cancelRequested)
-
-    // Where a pause takes effect: before an attempt starts or while one runs.
     def pausable(s: State) = s.phase.in(scheduled, started)
-
-    // The server code that answers a control of an activity that is over NotFound
-    // (activity.go:106). Only the lifter reads a citation.
     val notFoundCode = "chasm/lib/activity/activity.go"
 
   object effects:
     import Fact.*
-
     def startAttempt(s: State) = enter(s.copy(phase = started), statusStarted)
-
     def complete(s: State) = enter(s.copy(phase = completed), statusCompleted)
-
     def fail(s: State) = enter(s.copy(phase = failed), statusFailed)
-
     def retry(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
-
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
-
     def pause(s: State) = enter(s.copy(phase = Phase.paused), statusPaused)
-
     def resume(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
-
-    def requestCancel(s: State) =
-      enter(s.copy(phase = cancelRequested), statusCancelRequested)
-
+    def requestCancel(s: State) = enter(s.copy(phase = cancelRequested), statusCancelRequested)
     def terminate(s: State) = enter(s.copy(phase = terminated), statusTerminated)
-
-    // One of the activity's deadlines firing. Which deadline is the System's account of how.
     def timeOut(s: State) = enter(s.copy(phase = timedOut), statusTimedOut)
-
-    // A control on an activity that is over is not found.
     def notFound(s: State) = reject(Outcome.notFound, s)
 
   object rules extends Rules(_.phase):
