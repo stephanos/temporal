@@ -4,11 +4,12 @@ date: "2026-10-06"
 track: bug
 category: integration
 module: model/irgen/src/main/scala/modelir/lint/Structure.scala
-tags: [umpire, model, structure-lint, refinement]
+tags: [umpire, model, structure-lint, refinement, ownership]
 problem_type: integration
 symptoms: Malformed Product/System layouts passed when both suffixes were wrong or System omitted refinement
 root_cause: Sibling validation was conditional on partial resolution and two-level intent was inferred too narrowly
 resolution_type: fix
+last_updated: "2026-10-06"
 related_to: [bug/integration/behavior-neutral-refactors-must-not-2026-09-04, bug/integration/channel-catalogs-and-visible-results-2026-09-30, bug/integration/check-unbounded-lean-numbers-before-2026-09-07, bug/integration/contract-work-bounds-must-follow-typed-2026-09-04, bug/integration/coverage-findings-must-retain-2026-09-05, bug/integration/every-scenario-command-scenario-carries-2026-09-27, bug/integration/full-integration-gates-must-select-the-2026-09-04, bug/integration/joint-conflict-scopes-require-realized-2026-09-05, bug/integration/keep-raw-semantics-behind-checked-input-2026-09-05, bug/integration/nested-admission-diagnostics-must-2026-09-05, bug/integration/portable-carriers-must-keep-the-checked-2026-09-09, bug/integration/portable-execution-boundaries-must-2026-09-03, bug/integration/portable-model-plans-need-exact-2026-09-03, bug/integration/portable-schemas-must-preserve-source-2026-09-03, bug/integration/program-admission-must-validate-2026-09-04, bug/integration/reconciliation-must-preserve-authority-2026-09-05, bug/integration/reusable-cases-need-run-coordinates-and-2026-09-05, bug/integration/test-output-parsers-must-accept-tlog-2026-09-27, bug/integration/validate-protobuf-descriptor-structure-2026-09-05]
 ---
 
@@ -23,3 +24,17 @@ Resolve Product and System machines independently from their level files, valida
 
 ## Prevention
 For structural validators over paired artifacts, create one negative fixture per independently required invariant and one compound-invalid fixture. Do not let successful resolution of one artifact gate validation of its sibling.
+
+## Update 2026-10-06
+
+## Problem
+The structure lint accepted malformed two-level layouts through two independent gaps. Product and System name/refinement validation once short-circuited through a sibling, and later root-name refusals did not require level-owned `Phase`, `State`, and `Fact` to be declared in the canonical level files. The ownership migration also left System-only timer and composition types in the feature root.
+
+## What Didn't Work
+Checking only forbidden root spellings proves where a few known declarations are not; it does not prove where the required declarations are. Likewise, treating every root type as shared without checking its consumers leaves level-only vocabulary behind. A blanket exemption for `shared` packages would turn the task queue's named `QueueView`/`QueueDetail` exception into a general loophole.
+
+## Solution
+Resolve Product and System machines independently, require the System refinement, and when their state or fact types differ require `Phase`, `State`, and `Fact` in each canonical `product/Product.scala` and `system/System.scala`. Reject those names in sibling level files. Exempt only `temporal.shared.taskqueue`, whose cross-level vocabulary is explicitly shared. Move types consumed only by the System level into `system/System.scala`, then prove regenerated IR/Cases equivalent through the exact type-identity ledger.
+
+## Prevention
+For paired structural artifacts, test absence, wrong placement, and independent sibling failures rather than only known forbidden names. During ownership migrations, search every remaining root type's consumers and keep it there only when both levels use it. Encode named exceptions as exact identities, not category-wide exclusions.
