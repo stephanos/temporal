@@ -485,6 +485,23 @@ class GateSuite extends munit.FunSuite:
     irFiles.foreach(file => Files.writeString(ir.resolve(file), "{\"lifted\": true}\n"))
     repository
 
+  test("package-only Model headers use the normal compiler, without ignoring compiler errors"):
+    val headerCompiler =
+      """case " $* " in *" package "*)
+        |  case "$out" in */model-scala.jar)
+        |    case " $* " in *" --server=false "*) ;; *) echo '[error] No input files provided'; exit 0;; esac
+        |  ;; esac
+        |;; esac
+        |""".stripMargin
+    val repository = Repository(scalaCli = headerCompiler + lifting)
+    val ir = Files.createDirectories(repository.root.resolve("model/ir"))
+    irFiles.foreach(file => Files.writeString(ir.resolve(file), "{\"lifted\": true}\n"))
+    val answer = gate(repository.tools, "--skip-go-checks")
+    assertEquals(answer.status, 0, answer.err)
+    val packaged = repository.ran.find(_.contains("model-scala.jar")).get
+    assert(packaged.contains(" --server=false "), packaged)
+
+
   test("the gate stops at a mention the vocabulary check finds, and shows where"):
     val found = "model/umpire/Table.scala:7\\n--- FAIL: TestModelNamesNoRetiredFrontEnd (0.05s)"
     val repository = currentRepository(vocabulary(found, exit = 1))
