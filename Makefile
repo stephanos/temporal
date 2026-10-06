@@ -574,10 +574,10 @@ umpire-check-live-tests:
 # live test that records it into the file the variable names, and the offline test that admits
 # it. A Testpilot protocol change moves the Driver catalog, and a Case change the Case identity;
 # either leaves the record stale or crossed until it is recorded again live. The current control
-# probe reads its Case from model/cases; the legacy replay pair and receipt goldens remain history.
+# probe reads its Case from model/cases; the legacy replay pair, receipt goldens and the canary's
+# kind-extraction record remain history.
 UMPIRE_PINNED_RUNS := \
-	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:common/testing/testpilot/replay/testdata/nexus-workflow-control-forgedCompletion-run.json:./tools/umpire/cmd/umpire-assess:TestAssessWithAModelReproducesTheLiveAssessment \
-	TestTestpilotCanaryLifecycle:UMPIRE_CANARY_RECORD:tools/canary/assessment/testdata/nexus-workflow-syncCompletion-run.json:./tools/canary/assessment:TestAdmitRecordsAClosedRunAndAdmitsIt
+	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:common/testing/testpilot/replay/testdata/nexus-workflow-control-forgedCompletion-run.json:./tools/umpire/cmd/umpire-assess:TestAssessWithAModelReproducesTheLiveAssessment
 
 # Re-records every current pinned Run its probe rejects as stale or crossed and leaves a current
 # one alone. A probe failing for any other reason stops the target: re-recording would hide it.
