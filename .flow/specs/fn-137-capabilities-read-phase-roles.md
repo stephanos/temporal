@@ -1,0 +1,138 @@
+# Capabilities read phase roles
+
+## Conversation Evidence
+
+> user (turn 1, part 1): "Yes—an optional `Phased` capability would put that knowledge in one place without requiring every machine to have a lifecycle."
+> user (turn 1, part 2): "Terminal classification would also feed existing terminal-state properties—without implying those properties automatically hold."
+> user (turn 2, part 1): "actually think a little harder; could we provide more reusability evne?"
+> user (turn 2, part 3): "is there a way we could have several pre-defined reusable states like \"is terminal\""
+> user (turn 3): "could we do sth more composable instead? we don't want to define all these types head. we want each of these to be a trait and then connect the actual enum with them"
+> user (turn 6): "no problem; I accept the proposal. write a flow next spec"
+> user (turn 7, selected): "Roles + caps + Retries"
+> user (turn 8, selected): "split-as-proposed"
+> user (amendment, 2026-10-06, turn 1): "why is extends _.phase needed?"
+> user (amendment, 2026-10-06, turn 2): "isn't there a spec that changes how phase etc is defined? can we leverage that? would it help if we had a trait \"Phased\" or sth"
+> user (amendment, 2026-10-06, turn 3): "perfect, yes write amendment to fn-137"
+
+## Goal & Context
+<!-- scope: business -->
+<!-- Goal & Context: 60% [paraphrase], 20% [user], 20% [inferred] -->
+
+Capabilities such as Closable and Pausable take the phase sets they need as loose predicate parameters: Closable a `terminal: P => Boolean`, Pausable a `paused: S => Boolean`, and the pause-with-polling Property a `running` predicate as well. Every machine that declares them restates sets its phase enum now already says through roles (sibling spec fn-136 ("Phase roles on lifecycle enums")).
+
+The owner's original intent was that the terminal classification "would also feed existing terminal-state properties—without implying those properties automatically hold". This spec carries that out. A capability reads the roles of the machine's phase directly, so declaring Closable names the phase and the rejection, and no longer a terminal predicate. The Properties a capability brings stay claims checked against the machine. Roles make them shorter to declare, not true by construction.
+
+**Amendment (2026-10-06): where the phase sits is declared once.** [paraphrase] Once roles say what each phase is, the only thing a machine still says about its phase is where it sits, the projection `S => P`, and it says that in several places: `object rules extends Rules(_.phase)`, its `end` (`states.terminal(s.phase)`), and each lifecycle capability's `status = states.phase`. The owner asked whether "a trait \"Phased\"" could put that in one place. It is the machine half of the "optional `Phased` capability" from the original conversation's first turn, which fn-136 left out when it moved the classification onto the enum. This spec adds it, because the capabilities here are the first readers that need the projection and nothing else.
+
+## Architecture & Data Models
+<!-- scope: technical -->
+
+**A capability reads roles through a phase projection.** [paraphrase] A capability that concerns the lifecycle takes the machine's phase projection (`S => P`, already Closable's `status`) and reads roles of `P` with a role test. It no longer takes a predicate a role states. *Amended:* the projection comes from the machine's `Phased` declaration below, not from a field of the capability.
+
+**Role tests in generic code.** [paraphrase] A capability is generic in its phase type, and a bare `isInstanceOf[R]` on an abstract type gives an unchecked warning, which the build's warning flags refuse. The capability therefore takes a type witness for each role it reads (a `TypeTest` or equivalent, as a `using` argument). The witness resolves where the capability is declared, against the concrete enum. [inferred] The lifter lowers a witnessed role test like a direct one (sibling spec R3), so the IR is the same either way.
+
+**Builds on fn-134's capability shape.** [inferred] fn-134 moves capabilities to companion-defined Properties declared in a `capabilities` section. This spec changes the binding fields of Closable, Pausable and Pollable in that shape and doesn't reintroduce `Implements` or laws.
+
+**Roles a capability owns count as its fields.** [planning review] fn-134 brings a capability Property exactly when every capability whose fields it reads is declared, and refuses a Property that reads no field of its own capability. Pausable and Pollable stay separate (fn-134). Once the predicate fields go, `Closable.terminalStatesAreFinal` and `Pausable.pausedIsNotDispatched` read no field, so fn-134's rule is extended: each capability owns the roles it reads, and reading an owned role counts as reading that capability's field. Closable owns `Closed`, Pausable owns `Suspended` ("paused"), and Pollable owns `Held` ("running"). `pausedIsNotDispatched` reads `Suspended` and `Held`, so it is still brought only where both Pausable and Pollable are declared, and `terminalStatesAreFinal` reads Closable's own role. The projection itself comes from `Phased` and is owned by no capability.
+
+**`Phased`: an optional mixin naming the machine's phase.** [paraphrase] A machine or composition with a lifecycle mixes in `Phased` with its state and phase types and its projection: `object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase)`. A composition names a nested phase, `Phased[OverQueue, Phase](_.activity.phase)`. The projection is whatever `in(...)` reads, a lifecycle or not: the task queue system's `_.custody`, the task queue product's `_.outstanding`, and the close-policy machine's `_.caller`, none of which carry roles. Plain `Machine` stays as it is: a machine that does not mix in `Phased` names no phase. `Phased` makes the projection available to the machine's sections as a given, the same way the machine already makes its `Owner` available, and that given pins the phase type that argument-less `Rules` can no longer infer from a lambda. A derived machine or derived composition declares no `Phased` of its own and counts as `Phased` through its source, as it keeps its source's rules and `end`. The phase type must survive the derivation for capabilities declared on it to resolve a role witness: `rebind` on a `Phased` machine and `withMember` on a `Phased` composition return a derivation that carries `P`, and `Derived(...)` and `Composition(derivation)` re-export its typed given. Today the IR has Closable and Pausable Properties on four derived objects (`trustingActivityRecord`, `trustingRecordOverQueue`, `trustingRecordOverMatching`, `recordOverLossyMatching`), so this is required, not optional.
+
+**The spelling names both types.** [planning probe, Scala 3.9.0] As a trait parent, the bare `Phased(_.phase)` is refused (`value phase is not a member of Any`): a trait parent's lambda gets no parameter type from the rest of the parents. `Phased[State, Phase](_.phase)` compiles, as does `Phased((s: State) => s.phase)`. The explicit type arguments are the form, matching how `Machine[State, Outcome, Fact]` is already written next to it.
+
+**Every reader takes the projection from `Phased`.** [paraphrase]
+- `Rules` takes no projection argument. `object rules extends Rules:` reads the machine's `Phased` given, and `in(p1, p2)` and `in(states.terminal)` test that projection as `Rules(_.phase)` does today. `Rules(projection)` is retired, so there aren't two ways to say the same thing (as in the Decision Context below).
+- Closable, Pausable and Pollable bind no phase projection or phase-set field. They read the machine's `Phased`, directly or through a derivation's source, and they are refused on a machine with neither.
+- `end` gets a default when `Phased` is mixed in, on machines and compositions alike: the phase is `Closed`. A machine whose stopping point differs (`ActivityRecord`, which ends at a pause too) overrides it, as fn-136 already allows. Scala can't tell at compile time whether an enum has a `Closed` case (a role type test exists for any enum), and a trait can't tell without reflection whether a subclass overrides `end`. So relying on the default with no `Closed` case is refused by the lifter, which sees whether the object declares `end`, and by the default `end` itself on its first evaluation, naming the object and its phase type.
+
+**The lifter reads the mixin, not the `Rules` argument.** [inferred, confirmed by planning research] The IR generator currently reads the projection from the `Rules(...)` constructor call. It now reads it from the machine's or composition's `Phased[...](...)` parent argument, or from a derived machine's source, and lowers `in(...)`, role tests and the default `end` against it. The machine's `end` is read today as a def of the object. A default `end` is not one, so the lifter synthesizes it from the projection and the `Closed` role. The IR gains no construct: a reader sees the same `s.phase` field access and case-set membership as before. The rules' disjointness check calls the projection while `rules` initializes. `Phased`'s argument is a constructor argument of the machine object, so it is already initialized when that happens, and the lifter's initialization-order check learns that.
+
+**Order of work.** [planning] `Phased`, argument-less `Rules` and the lifter lookup (R4, R5, R7) need neither roles nor fn-134's capability shape. The default `end` (R6) needs fn-136's `Closed` role, and the capabilities (R1 to R3) need both fn-136 and fn-134. The tasks are ordered so the projection work is done and proven byte-equal before any role is read. For one release the old and new forms coexist, so every task leaves the gate green.
+
+## API Contracts
+<!-- scope: technical -->
+
+- [paraphrase] **Closable**: binds the rejection outcome. The `terminal` field is removed; "closed" is the `Closed` role of the machine's `Phased` phase. *Amended:* the phase projection field (`status`) is removed as well.
+- [paraphrase] **Pausable**: binds the pause and unpause inputs. The `paused` field is removed; "paused" is `Suspended`. *Amended:* it reads the phase from the machine's `Phased` and binds no projection.
+- [planning review] **Pollable**: binds the dispatch input. The `running` field is removed; "running" is `Held`. The pause-with-polling Property stays Pausable's and reads Pollable's role, so it is brought only where both are declared (fn-134's rule, with owned roles counting as fields).
+- [paraphrase] **Role witness**: a capability reading role `R` of phase type `P` requires a type witness for `R` over `P`, resolved at the declaration.
+- [paraphrase] **`Phased[S, P](projection: S => P)`**: an optional mixin on `Machine` and `Composition` objects (a derived machine or derived composition inherits its source's, typed). It declares the phase projection once for `Rules`, lifecycle capabilities and the default `end`.
+- [paraphrase] **`Rules`**: no constructor argument. Both `in(...)` forms, phases and a named set, require the machine to be `Phased` at compile time. Without a `Phased` given the phase type is `Nothing`, and `in(set: P => Boolean)` would accept any predicate by contravariance, so both forms take evidence that the phase type is not `Nothing`.
+
+## Edge Cases & Constraints
+<!-- scope: technical -->
+
+- [inferred] A capability declared for a machine whose phase enum has no case with a role it reads is refused, naming the capability and the role, instead of generating a Property that holds vacuously.
+- [inferred] Where a capability's current predicate is not the same set as the role it now reads, the regeneration shows the difference and it is resolved explicitly, never absorbed. See Parked unknowns.
+- `in(...)`, in either form, in the rules of a machine that is not `Phased` does not compile. The message names the fix, mixing in `Phased[State, Phase](_.phase)`, as the `PhasesOf` message names `Rules(_.phase)` today. The lifter's own refusal names the same fix.
+- Closable or Pausable on a machine that is not `Phased` is refused, naming the machine and the capability.
+- A `Phased` machine whose phase type has no `Closed` case must write its own `end`. Relying on the default is refused by the lifter and on the default's first evaluation, rather than defaulting to an `end` that never holds.
+- A derived machine or derived composition that mixes in `Phased` itself is refused: its projection is its source's.
+- The "phase type has no case with role R" refusal is one shared check, used by the default `end`, Closable, Pausable and Pollable, so the refusals can't drift apart.
+- A machine that mixes in `Phased` but uses neither `in(...)` nor a lifecycle capability nor the default `end` is allowed. Naming the phase is harmless.
+- Line and column expectations in the lifter's refusal fixtures move when fixtures gain a `Phased` parent. They are updated alongside, not loosened.
+
+## Acceptance Criteria
+<!-- scope: both -->
+
+- **R1:** [paraphrase] Closable reads "closed" as the `Closed` role of the machine's phase and takes no terminal predicate; every declaration of it binds only the rejection, its phase coming from the machine's `Phased` (R4). A derived machine or derived composition declares Closable against its source's typed phase, and `terminalStatesAreFinal` is brought by reading Closable's own `Closed` role. Errors: a Closable declared for a machine whose phase has no `Closed` case is refused by the IR generator, naming the machine.
+- **R2:** [paraphrase] Pausable reads "paused" as `Suspended` of the machine's phase, and Pollable reads "running" as `Held`. Neither takes a paused or running predicate or a phase projection; their phase comes from the machine's `Phased` (R4). `pausedIsNotDispatched` reads both roles and is still brought exactly where Pausable and Pollable are both declared. The activity record's `pausedWhileHeld` takes the role the owner decides in this spec, recorded on its enum. Errors: a Pausable declared for a machine whose phase has no `Suspended` case, or whose pause-with-polling Property is brought for a phase with no `Held` case, is refused by the IR generator, naming the missing role.
+- **R3:** [paraphrase] A capability reads a role of its generic phase type through a type witness resolved at its declaration; the build gives no unchecked warning, and the lifter lowers the witnessed test to the same case set as a direct role test. Errors: a declaration whose phase type is left abstract (a shared generic base with no concrete enum) has no witness and does not compile.
+- **R4:** [paraphrase] The framework provides an optional `Phased[S, P](projection)` mixin for `Machine` and `Composition` objects, and a machine's sections read its projection from it; a `Derived` machine reads its source's. Every Temporal Model object whose rules name phases, or that declares Closable or Pausable, mixes it in: the activity system, product and record, the Nexus workflow and standalone systems, the Nexus product, `TrustingCaller`, `HeldDispatch`, the worker (`_.phase`), the task queue system (`_.custody`) and product (`_.outstanding`), the close-policy machine (`_.caller`), and the activity-over-queue and Nexus compositions (`_.activity.phase`, `_.operation.phase`). Derived machines and derived compositions are `Phased` through their source, with its phase type. Errors: Closable, Pausable or Pollable on a machine that is neither `Phased` nor derived from one is refused, naming the machine and the capability; a derived machine or derived composition that mixes in `Phased` itself is refused, naming it.
+- **R5:** [paraphrase] `Rules` takes no projection argument and reads the machine's `Phased`. Every `object rules extends Rules(<projection>)`, in the Models and in the framework's and lifter's own tests and fixtures, becomes `object rules extends Rules:`, and the `Rules(projection)` form is removed. The README's machine reading order, the semantics document and the `Rules` and `Owner` doc comments say so. Errors: `in(...)`, with phases or a named set, in the rules of a machine that is not `Phased` does not compile, and the lifter refuses it, both naming `Phased[State, Phase](_.phase)` as the fix.
+- **R6:** [paraphrase] A `Phased` machine or composition gets a default `end`, "the phase is `Closed`", and objects whose hand-written `end` says only that drop it: the activity and Nexus workflow systems, `TrustingCaller`, and the activity and Nexus compositions. `ActivityRecord` and any object whose stopping point differs keep an override. Errors: an object that relies on the default while its phase type has no `Closed` case is refused by the lifter and by the default `end` on its first evaluation, both naming the object and its phase type.
+- **R7:** [confirmed by planning research] The lifter reads the projection from the `Phased` parent argument, or a derived machine's source, for `in(...)`, role tests and the default `end`, and the IR gains no construct. Errors: none beyond R4's, R5's and R6's refusals.
+
+Each R-ID's regeneration keeps every generated Query's name, answer, receipt and Definition ID unchanged except where a Parked unknown below is resolved by changing them on purpose. R4 to R7 change only how the projection is declared, so they change no IR, fixture or Case byte. *Amended 2026-10-06 (batching, see MILESTONES.md):* all tasks run in the DSL batch, with no regeneration per R-ID; these claims are checked at the batch's single regeneration against the batch baseline.
+
+## Early proof point
+
+Task fn-137-capabilities-read-phase-roles.1 proves the core approach: a `Phased` given can pin the phase type for argument-less `Rules`, and `in(...)` and the overlap check run through it at object initialization, beside the old form. If it fails, re-evaluate the mixin shape (a `PhasedMachine` base class, or a member `def phase`) before continuing with .2+.
+
+## Quick commands
+
+```bash
+mise exec -- scala-cli test model/umpire   # framework tests, incl. Rules
+make umpire-check-model                    # gate: build, lift, compare IR and Cases
+make umpire-gen-model && git diff --stat -- model/ir model/cases   # regenerate; expect no change for R4-R7
+make lint-model                            # syntax/comment rules, scalafix
+```
+
+## Boundaries
+<!-- scope: business -->
+
+- [paraphrase] Terminable, Cancelable and other capabilities that read no phase set are untouched.
+- [paraphrase] No new capability here. Retries and Deadline are the sibling spec fn-138 ("Retries and Deadline capabilities").
+- [user] Roles feed the capability Properties "without implying those properties automatically hold".
+- [paraphrase] *Amended:* `Phased` is optional. fn-136's boundary, no mandatory phase parameter or required mixin on `Machine`, holds: a machine that names no phase is a plain `Machine`. Its architecture note "No mixin and no type parameter is added to `Machine`" is narrowed by this spec to "no required one".
+- [paraphrase] *Amended:* `Describable`'s `status` (the realization's status mapping) is not a phase projection and is untouched.
+
+## Decision Context
+<!-- scope: both -->
+
+[paraphrase] Reading roles in the capability, instead of each declaration passing predicates, removes the one place machines still restate their phase sets. A capability that took both a role and an overriding predicate was rejected: it would keep two ways to say the same thing. [inferred] Sequencing after fn-134 avoids two specs editing the binding fields of Closable and Pausable at the same time.
+
+[planning] A `PhasedMachine[S, P](projection)` base class also compiles, but it was rejected because it would need a sibling for `Composition`. A member `def phase(s: State)` was rejected because it gives `Rules` no given to pin the phase type without an extra type member. A compile-time refusal of a missing `Closed` case was rejected as needing a macro. An initialization-time refusal was rejected because a trait can't see an override without reflection. The lifter plus first evaluation is what is detectable.
+
+[planning review] Merging Pausable and Pollable, as an earlier draft assumed, was rejected by fn-134. Extending fn-134's binding rule so owned roles count as fields keeps the pair-brought Property without merging.
+
+Maintainability (plan review): duplication - the "phase has no Closed case" refusal was planned three times (default end at initialization, default end in the lifter, Closable in the lifter), now one shared check; structure - none identified
+
+[paraphrase] *Amended:* the `Phased` mixin was weighed against leaving the projection on each reader. Before roles existed, the projection was only an argument of `Rules`. With roles, `Rules`, the default `end` and every lifecycle capability need it, so one declaration replaces about three per machine. It goes in this spec rather than a new sibling because this spec already changes the capabilities' phase binding, and splitting the work would mean editing those fields twice. A required mixin, or a phase type parameter on `Machine`, was rejected again for the reason fn-136 gives: workers and queues have no lifecycle. Keeping `Rules(projection)` next to `Phased` was rejected as two ways to say one thing.
+
+[paraphrase] This spec is one of three split from one conversation. It depends on fn-136 ("Phase roles on lifecycle enums") and on fn-134; fn-138 ("Retries and Deadline capabilities") depends on it.
+
+## Parked unknowns
+
+- [planning review] The role of the activity record's `pausedWhileHeld`. fn-136 leaves it role-less and hands the decision here (its R5 and Boundaries). This spec owns it: task .7 asks the owner unconditionally whether it is `Suspended`, `Held`, or a model-specific role extending one of them (fn-136 R4 forbids both), assigns it on the enum, then regenerates and compares. Left role-less it would read as "does not exist yet" to fn-138's `Live` readers. Today `ActivityRecord`'s Pausable reads "paused" as `paused` alone and "running" as `started` alone.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | [paraphrase] Closable reads "closed" as the `Closed` role of the machine's phase and takes no terminal predicate; every declaration of it binds only the rejection, its phase coming from the machine's `Phased` (R4). A derived machine or derived composition declares Closable against its source's typed phase, and `terminalStatesAreFinal` is brought by reading Closable's own `Closed` role. Errors: a Closable declared for a machine whose phase has no `Closed` case is refused by the IR generator, naming the machine. | fn-137-capabilities-read-phase-roles.6 | — |
+| R2 | [paraphrase] Pausable reads "paused" as `Suspended` of the machine's phase, and Pollable reads "running" as `Held`. Neither takes a paused or running predicate or a phase projection; their phase comes from the machine's `Phased` (R4). `pausedIsNotDispatched` reads both roles and is still brought exactly where Pausable and Pollable are both declared. The activity record's `pausedWhileHeld` takes the role the owner decides in this spec, recorded on its enum. Errors: a Pausable declared for a machine whose phase has no `Suspended` case, or whose pause-with-polling Property is brought for a phase with no `Held` case, is refused by the IR generator, naming the missing role. | fn-137-capabilities-read-phase-roles.7 | — |
+| R3 | [paraphrase] A capability reads a role of its generic phase type through a type witness resolved at its declaration; the build gives no unchecked warning, and the lifter lowers the witnessed test to the same case set as a direct role test. Errors: a declaration whose phase type is left abstract (a shared generic base with no concrete enum) has no witness and does not compile. | fn-137-capabilities-read-phase-roles.6, fn-137-capabilities-read-phase-roles.7 | — |
+| R4 | [paraphrase] The framework provides an optional `Phased[S, P](projection)` mixin for `Machine` and `Composition` objects, and a machine's sections read its projection from it; a `Derived` machine reads its source's. Every Temporal Model object whose rules name phases, or that declares Closable or Pausable, mixes it in: the activity system, product and record, the Nexus workflow and standalone systems, the Nexus product, `TrustingCaller`, `HeldDispatch`, the worker (`_.phase`), the task queue system (`_.custody`) and product (`_.outstanding`), the close-policy machine (`_.caller`), and the activity-over-queue and Nexus compositions (`_.activity.phase`, `_.operation.phase`). Derived machines and derived compositions are `Phased` through their source, with its phase type. Errors: Closable, Pausable or Pollable on a machine that is neither `Phased` nor derived from one is refused, naming the machine and the capability; a derived machine or derived composition that mixes in `Phased` itself is refused, naming it. | fn-137-capabilities-read-phase-roles.1, fn-137-capabilities-read-phase-roles.3 | — |
+| R5 | [paraphrase] `Rules` takes no projection argument and reads the machine's `Phased`. Every `object rules extends Rules(<projection>)`, in the Models and in the framework's and lifter's own tests and fixtures, becomes `object rules extends Rules:`, and the `Rules(projection)` form is removed. The README's machine reading order, the semantics document and the `Rules` and `Owner` doc comments say so. Errors: `in(...)`, with phases or a named set, in the rules of a machine that is not `Phased` does not compile, and the lifter refuses it, both naming `Phased[State, Phase](_.phase)` as the fix. | fn-137-capabilities-read-phase-roles.1, fn-137-capabilities-read-phase-roles.2, fn-137-capabilities-read-phase-roles.3, fn-137-capabilities-read-phase-roles.4 | — |
+| R6 | [paraphrase] A `Phased` machine or composition gets a default `end`, "the phase is `Closed`", and objects whose hand-written `end` says only that drop it: the activity and Nexus workflow systems, `TrustingCaller`, and the activity and Nexus compositions. `ActivityRecord` and any object whose stopping point differs keep an override. Errors: an object that relies on the default while its phase type has no `Closed` case is refused by the lifter and by the default `end` on its first evaluation, both naming the object and its phase type. | fn-137-capabilities-read-phase-roles.5 | — |
+| R7 | [confirmed by planning research] The lifter reads the projection from the `Phased` parent argument, or a derived machine's source, for `in(...)`, role tests and the default `end`, and the IR gains no construct. Errors: none beyond R4's, R5's and R6's refusals. | fn-137-capabilities-read-phase-roles.2, fn-137-capabilities-read-phase-roles.5 | — |

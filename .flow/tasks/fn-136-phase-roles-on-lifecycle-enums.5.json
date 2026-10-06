@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T17:12:16.398014Z",
+  "depends_on": [
+    "fn-136-phase-roles-on-lifecycle-enums.4"
+  ],
+  "id": "fn-136-phase-roles-on-lifecycle-enums.5",
+  "priority": null,
+  "spec": "fn-136-phase-roles-on-lifecycle-enums",
+  "spec_path": ".flow/tasks/fn-136-phase-roles-on-lifecycle-enums.5.md",
+  "status": "todo",
+  "title": "Retire role-set states predicates; callers read roles directly (bounded IR change)",
+  "updated_at": "2026-10-06T17:27:46.959190Z"
+}

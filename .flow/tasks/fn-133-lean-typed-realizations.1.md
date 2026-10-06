@@ -4,6 +4,7 @@ satisfies: [R3, R11, R14]
 # fn-133-lean-typed-realizations.1 Literal and call scopes: proto[T] { ... }, response reads, literal helpers
 
 ## Description
+**Batch:** DSL batch (see MILESTONES.md, DSL batch). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at the batch's single regeneration against the batch baseline (the tree at fn-132's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
 Part A, R3, R11, R14 (fields). Paths are fn-132's.
 
 - **`proto[T] { field(_.x) := … }`.** A protobuf literal scope modelled on the `rpc` request scope: nested messages, enums, maps, roles and payloads, with types inferred. The lifter lowers it to the same IR as `Proto[T](ProtoField.typed(…))`, which stays the core form.

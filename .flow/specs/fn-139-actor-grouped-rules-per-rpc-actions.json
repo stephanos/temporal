@@ -1,0 +1,103 @@
+{
+  "branch_name": "fn-139-actor-grouped-rules-per-rpc-actions",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-06T17:47:49.881606Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-132-group-the-nexus-and-activity-models-by"
+  ],
+  "id": "fn-139-actor-grouped-rules-per-rpc-actions",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-06T18:22:07.833906Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "7287f84b53f955d48e5810ceb896e644b185868a64f83d22af3486aaf87f4d17",
+      "backend": "claude",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a054fcf7cb3c7bb724c044feae7e247c2ef1f2c8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 10972,
+      "output_sha256": "608e69c091acc1ebf05439690b27683571c9d88b361268133f6ce054aa28fabe",
+      "reservation_id": "0b09344757344abaaea0e4db5af8aaf9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-06T18:19:11.720336Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b8226f04b5c7cdb1620e5c518298d22533f8e8cbc19f39421e16feac70a1968a",
+      "backend": "claude",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ce7643fb908ff8238e4aef202f5e3b68377cb645",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3700,
+      "output_sha256": "37eca853a174850ca4bf91ed5216060bea34f83ca8eb282e18489c4c03349098",
+      "reservation_id": "13ffb402c28a482caf9baa1177c7c2c7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-06T18:22:07.830573Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-139-actor-grouped-rules-per-rpc-actions.md",
+  "status": "open",
+  "title": "Actor-grouped rules, per-RPC actions, shared rejections",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-06T18:25:18.800251Z"
+}

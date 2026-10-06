@@ -4,7 +4,9 @@
   "depends_on_epics": [
     "fn-126-read-each-feature-top-to-bottom-one",
     "fn-132-group-the-nexus-and-activity-models-by",
-    "fn-133-lean-typed-realizations"
+    "fn-133-lean-typed-realizations",
+    "fn-134-capabilities-own-their-properties",
+    "fn-135-effect-and-is-blocks-for-effects-and"
   ],
   "id": "fn-128-close-the-activitys-precision-gaps",
   "next_task": 1,
@@ -24,5 +26,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T12:36:35.696363Z"
+  "updated_at": "2026-10-06T16:12:37.020502Z"
 }

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T18:09:29.776644Z",
+  "depends_on": [
+    "fn-139-actor-grouped-rules-per-rpc-actions.1"
+  ],
+  "id": "fn-139-actor-grouped-rules-per-rpc-actions.2",
+  "priority": null,
+  "spec": "fn-139-actor-grouped-rules-per-rpc-actions",
+  "spec_path": ".flow/tasks/fn-139-actor-grouped-rules-per-rpc-actions.2.md",
+  "status": "todo",
+  "title": "Framework: from(declarer) with leading import, when case forms, multi-action on, overlap across blocks, beside the old forms",
+  "updated_at": "2026-10-06T18:09:29.776644Z"
+}

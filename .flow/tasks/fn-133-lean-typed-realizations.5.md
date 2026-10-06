@@ -4,6 +4,7 @@ satisfies: [R7, R8]
 # fn-133-lean-typed-realizations.5 Name collisions and the activity realization's local fixes
 
 ## Description
+**Batch:** DSL batch (see MILESTONES.md, DSL batch). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at the batch's single regeneration against the batch baseline (the tree at fn-132's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
 Part B, R7, R8.
 
 Apply the activity fixes in `model/temporal/features/activity/standalone/system/Realization.scala`, preserving the System placement introduced by fn-126.11 and carried through fn-132. Do not recreate the historical root realization file.

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T18:00:28.462983Z",
+  "depends_on": [],
+  "id": "fn-138-retries-and-deadline-capabilities.1",
+  "priority": null,
+  "spec": "fn-138-retries-and-deadline-capabilities",
+  "spec_path": ".flow/tasks/fn-138-retries-and-deadline-capabilities.1.md",
+  "status": "todo",
+  "title": "Retries capability: kit Properties and lifter refusals (owner question first)",
+  "updated_at": "2026-10-06T18:05:11.353939Z"
+}

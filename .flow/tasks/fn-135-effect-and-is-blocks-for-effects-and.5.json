@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T17:59:19.813079Z",
+  "depends_on": [
+    "fn-135-effect-and-is-blocks-for-effects-and.3"
+  ],
+  "id": "fn-135-effect-and-is-blocks-for-effects-and.5",
+  "priority": null,
+  "spec": "fn-135-effect-and-is-blocks-for-effects-and",
+  "spec_path": ".flow/tasks/fn-135-effect-and-is-blocks-for-effects-and.5.md",
+  "status": "todo",
+  "title": "Status declarations on phase cases: derived facts, lifting and refusals",
+  "updated_at": "2026-10-06T18:02:11.354856Z"
+}

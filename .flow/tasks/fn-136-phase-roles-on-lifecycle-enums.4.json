@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T17:12:16.397481Z",
+  "depends_on": [
+    "fn-136-phase-roles-on-lifecycle-enums.3"
+  ],
+  "id": "fn-136-phase-roles-on-lifecycle-enums.4",
+  "priority": null,
+  "spec": "fn-136-phase-roles-on-lifecycle-enums",
+  "spec_path": ".flow/tasks/fn-136-phase-roles-on-lifecycle-enums.4.md",
+  "status": "todo",
+  "title": "in[R] and p.is[R]: short role-test spellings, lifted like in(...) and isInstanceOf",
+  "updated_at": "2026-10-06T17:27:46.481710Z"
+}

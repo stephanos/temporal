@@ -168,7 +168,7 @@ Paths are fn-132's (`features/activity/standalone`, `features/nexus/{workflow,st
 ## Ordering
 - After fn-126 closes (IDs as fully qualified names, structure lint) and after fn-132 closes (paths).
 - Before fn-128 starts.
-- Inside the spec: Part A, then Part B, then Part C, then Part D (task 8), then close (task 7). Each regenerates `model/ir` and is proved on its own.
+- Inside the spec: Part A, then Part B, then Part C, then Part D (task 8), then close (task 7). Each regenerates `model/ir` and is proved on its own. *Amended 2026-10-06 (batching, see MILESTONES.md):* all tasks run in the DSL batch; each task's projection proof is checked at the batch's single regeneration against the batch baseline, with its declared renames and additions in the batch's expected delta.
 
 ## Verification
 

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T18:09:29.776938Z",
+  "depends_on": [
+    "fn-139-actor-grouped-rules-per-rpc-actions.7"
+  ],
+  "id": "fn-139-actor-grouped-rules-per-rpc-actions.8",
+  "priority": null,
+  "spec": "fn-139-actor-grouped-rules-per-rpc-actions",
+  "spec_path": ".flow/tasks/fn-139-actor-grouped-rules-per-rpc-actions.8.md",
+  "status": "todo",
+  "title": "Rejection to RPC status code table and conformance check",
+  "updated_at": "2026-10-06T18:09:29.776938Z"
+}

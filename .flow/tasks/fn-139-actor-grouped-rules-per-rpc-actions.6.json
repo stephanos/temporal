@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T18:09:29.776870Z",
+  "depends_on": [
+    "fn-139-actor-grouped-rules-per-rpc-actions.1",
+    "fn-139-actor-grouped-rules-per-rpc-actions.4"
+  ],
+  "id": "fn-139-actor-grouped-rules-per-rpc-actions.6",
+  "priority": null,
+  "spec": "fn-139-actor-grouped-rules-per-rpc-actions",
+  "spec_path": ".flow/tasks/fn-139-actor-grouped-rules-per-rpc-actions.6.md",
+  "status": "todo",
+  "title": "Nexus and the shared worker on the shared Outcome; alreadyCompleted becomes rejected(failedPrecondition)",
+  "updated_at": "2026-10-06T18:20:57.887790Z"
+}

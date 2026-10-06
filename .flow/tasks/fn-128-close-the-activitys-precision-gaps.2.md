@@ -4,6 +4,7 @@ satisfies: [R2]
 # fn-128-close-the-activitys-precision-gaps.2 Rejections are rows: failedPrecondition and invalidArgument
 
 ## Description
+**Batch:** deferred Model batch (see MILESTONES.md, Deferred, fn-128). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at that batch's single regeneration against its baseline (the tree at the DSL batch's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
 R2 (comparison P1-3, P1-4). `Outcome` gains `failedPrecondition` and `invalidArgument`. Every (state, action class) the server answers with one of them becomes a rule with that outcome, citing the server code, in both `ActivityProduct` and `ActivitySystem`; the refinement maps outcomes by name. The seven `silent-rejection` acceptances in `model/ir/activity-standalone*.lint.json` are removed. `closedIsRejectedUniformly` keeps `notFound` for closed activities. A repeated `RequestCancel` in `cancelRequested` answers `failedPrecondition` (`model.go:201-202`).
 
 Each realized control declares the gRPC code of each outcome through fn-133.1's `answers(…)` (read from the Run's `InstructionOutcome.protocol_code`), so the evidence confirms the rejection, not only that a call returned. Runs after task 1 so the rows are written against the dispatch field.

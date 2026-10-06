@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T18:09:29.776797Z",
+  "depends_on": [
+    "fn-139-actor-grouped-rules-per-rpc-actions.3"
+  ],
+  "id": "fn-139-actor-grouped-rules-per-rpc-actions.4",
+  "priority": null,
+  "spec": "fn-139-actor-grouped-rules-per-rpc-actions",
+  "spec_path": ".flow/tasks/fn-139-actor-grouped-rules-per-rpc-actions.4.md",
+  "status": "todo",
+  "title": "Standalone activity: one action per RPC with a Failure enum; every consumer on the new actions",
+  "updated_at": "2026-10-06T18:20:55.922653Z"
+}

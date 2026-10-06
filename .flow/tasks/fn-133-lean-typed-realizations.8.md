@@ -4,6 +4,7 @@ satisfies: [R17]
 # fn-133-lean-typed-realizations.8 Derive per-class carrier schemas from typed realizations
 
 ## Description
+**Batch:** DSL batch (see MILESTONES.md, DSL batch). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at the batch's single regeneration against the batch baseline (the tree at fn-132's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
 Replace the unpaired action-level .schema[T] lists with carrier mappings derived from typed realization bindings. The authoritative association is perform(actionClass -> instruction): for example control(pause) -> pauseActivity -> METHOD_PAUSE_ACTIVITY_EXECUTION -> PauseActivityExecutionRequest. Derive metadata per realization and concrete action class, preserving the binding's pattern semantics and supporting withFields variants, derived realizations, multiple carriers, protobuf command payloads, and typed worker/handler messages. Actions without a realization have no inferred carrier: keep model declarations independent and let R6 report missing realizations where required. Retire the duplicate .schema authoring form and teach the mapping in README. Model and Testpilot behavior remains unchanged; record deliberate Umpire metadata changes.
 
 ## Acceptance

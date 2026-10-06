@@ -4,6 +4,7 @@ satisfies: [R4, R5, R14]
 # fn-133-lean-typed-realizations.3 One instruction convention, own names, named evidence arguments, ids from facts
 
 ## Description
+**Batch:** DSL batch (see MILESTONES.md, DSL batch). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at the batch's single regeneration against the batch baseline (the tree at fn-132's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
 Part B, R4, R5, R14 (ids).
 
 - **Lower-case instruction forms.** Feature files write only `fault`, `hold`, `release`, `finish` and `command`. The upper-case case classes stay core forms. Lint: an upper-case instruction form in a feature file.

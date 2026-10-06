@@ -4,6 +4,7 @@ satisfies: [R6, R13]
 # fn-133-lean-typed-realizations.4 Coverage report, class-pattern rule, deadlines bound once, action-level onPath
 
 ## Description
+**Batch:** DSL batch (see MILESTONES.md, DSL batch). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at the batch's single regeneration against the batch baseline (the tree at fn-132's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
 Part B, R6, R13.
 
 1. **Settle the class-pattern rule first.** Read the lifter and the Go lowering to find whether `caller.start(scheduleToStart := expires)` names one exact class or every class with that input. Record the answer in the spec (closing its Parked unknown) and in README.

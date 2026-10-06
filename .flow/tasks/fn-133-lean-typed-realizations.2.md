@@ -4,6 +4,7 @@ satisfies: [R1, R2, R12]
 # fn-133-lean-typed-realizations.2 Kit evidence modules: described status, history evidence, request base
 
 ## Description
+**Batch:** DSL batch (see MILESTONES.md, DSL batch). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at the batch's single regeneration against the batch baseline (the tree at fn-132's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
 Part A, R1, R2, R12.
 
 - **`describedStatus`.** One declaration of a describe method, its info field, its operation key and a fact→status table. It yields the evidence of each fact and an `await(fact)`. The activity and standalone Nexus realizations use it, and their `status`/`awaitStatus` helpers and per-fact await vals go.

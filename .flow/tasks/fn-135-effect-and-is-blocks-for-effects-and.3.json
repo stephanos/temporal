@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T16:12:28.424521Z",
+  "depends_on": [
+    "fn-135-effect-and-is-blocks-for-effects-and.2"
+  ],
+  "id": "fn-135-effect-and-is-blocks-for-effects-and.3",
+  "priority": null,
+  "spec": "fn-135-effect-and-is-blocks-for-effects-and",
+  "spec_path": ".flow/tasks/fn-135-effect-and-is-blocks-for-effects-and.3.md",
+  "status": "todo",
+  "title": "Lift effect { } blocks with their statement refusals",
+  "updated_at": "2026-10-06T16:23:08.195729Z"
+}
