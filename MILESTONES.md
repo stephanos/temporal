@@ -190,7 +190,7 @@ Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06.
 
 ### fn-142: Split `model/temporal/shared` into `foundations` and `actors`
 
-Gate: after the DSL batch closes. Mechanical move: the task queue goes to `foundations/taskqueue`, the worker to `actors/worker`, `Client.scala` to `actors/`, and `Bounds.scala` to `model/temporal/`; the IR differs only in paths and positions.
+Gate: after the DSL batch closes. Mechanical move: the task queue goes to `foundations/taskqueue`, the worker to `actors/worker`, `Client.scala` to `actors/client/`, and `Bounds.scala` to `model/temporal/`; the IR differs only in paths and positions.
 
 | Task | Status | What |
 | --- | --- | --- |
