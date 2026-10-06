@@ -111,13 +111,13 @@ Gate: the DSL batch. Source: review of the realizations, 2026-10-05. Tasks run i
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-133.1 | ⬜ todo | `proto[T] { … }` literal scope, response reads in the call scope, literal helpers |
-| fn-133.2 | ⬜ todo | Kit evidence modules: described status, history evidence, request base |
-| fn-133.3 | ⬜ todo | Lower-case instruction forms, no borrowed command names, named evidence arguments, ids from facts |
-| fn-133.4 | ⬜ todo | Coverage report, class-pattern rule, `deadlines(…)` binding, action-level `onPath` |
-| fn-133.5 | ⬜ todo | Name collisions removed; activity realization local fixes |
-| fn-133.6 | ⬜ todo | Typed realization objects; derived operation, roles, server steps; derived realizations |
-| fn-133.8 | ⬜ todo | Per-class carrier schemas derived from typed realizations |
+| fn-133.1 | 🔄 in progress | `proto[T] { … }` literal scope, response reads in the call scope, literal helpers |
+| fn-133.2 | 🔄 in progress | Kit evidence modules: described status, history evidence, request base |
+| fn-133.3 | 🔄 in progress | Lower-case instruction forms, no borrowed command names, named evidence arguments, ids from facts |
+| fn-133.4 | 🔄 in progress | Coverage report, class-pattern rule, `deadlines(…)` binding, action-level `onPath` |
+| fn-133.5 | 🔄 in progress | Name collisions removed; activity realization local fixes |
+| fn-133.6 | 🔄 in progress | Typed realization objects; derived operation, roles, server steps; derived realizations |
+| fn-133.8 | 🔄 in progress | Per-class carrier schemas derived from typed realizations |
 | fn-133.7 | ⬜ todo | Line counts, docs; close |
 
 ### fn-134: Capabilities own their properties
@@ -151,10 +151,10 @@ Gate: the DSL batch. Tasks run in the batch order. R7 (positions only, for tasks
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-136.1 | ⬜ todo | Role traits; lifter lowers role tests (`isInstanceOf`, type patterns) to case-set membership and refuses conflicting roles |
+| fn-136.1 | 🔄 in progress | Role traits; lifter lowers role tests (`isInstanceOf`, type patterns) to case-set membership and refuses conflicting roles |
 | fn-136.2 | ⬜ todo | Activity product, system and record carry roles; `states` bodies become role tests; refinement closedness check |
 | fn-136.3 | ⬜ todo | Nexus workflow, standalone and product carry roles; docs |
-| fn-136.4 | ⬜ todo | `in[R]` and `p.is[R]` role-test spellings; lifter lowers them like `in(...)` and `isInstanceOf` |
+| fn-136.4 | 🔄 in progress | `in[R]` and `p.is[R]` role-test spellings; lifter lowers them like `in(...)` and `isInstanceOf` |
 | fn-136.5 | ⬜ todo | Role-set `states` predicates retire, callers read roles directly; bounded IR change (R9); docs; close |
 
 ### fn-137: Capabilities read phase roles
@@ -163,8 +163,8 @@ Gate: the DSL batch. Task 7 asks the owner about `pausedWhileHeld` before it is 
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-137.1 | ⬜ todo | `Phased` mixin; argument-less `Rules` reads it beside the old form (early proof) |
-| fn-137.2 | ⬜ todo | Lifter reads the projection from the `Phased` parent |
+| fn-137.1 | 🔄 in progress | `Phased` mixin; argument-less `Rules` reads it beside the old form (early proof) |
+| fn-137.2 | 🔄 in progress | Lifter reads the projection from the `Phased` parent |
 | fn-137.3 | ⬜ todo | Every Model migrated to `Phased` and argument-less `Rules` |
 | fn-137.4 | ⬜ todo | `Rules(projection)` retired: framework, lifter fallback, fixtures, docs |
 | fn-137.5 | ⬜ todo | Default `end` for `Phased` objects (needs fn-136's `Closed` role) |
@@ -179,9 +179,9 @@ Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-139.1 | ⬜ todo | Shared `Outcome`/`Rejection` and `rejects(r).because(text)` in framework and lifter; parameterized outcome admitted by the Go reader (early proof) |
-| fn-139.2 | ⬜ todo | Framework: `from(declarer)` with leading import, `when` case forms, multi-action `on`, overlap across blocks, beside the old forms |
-| fn-139.3 | ⬜ todo | Lifter reads `from`/`when`/multi-action `on`; block-form rule in the model gate |
+| fn-139.1 | 🔄 in progress | Shared `Outcome`/`Rejection` and `rejects(r).because(text)` in framework and lifter; parameterized outcome admitted by the Go reader (early proof) |
+| fn-139.2 | 🔄 in progress | Framework: `from(declarer)` with leading import, `when` case forms, multi-action `on`, overlap across blocks, beside the old forms |
+| fn-139.3 | 🔄 in progress | Lifter reads `from`/`when`/multi-action `on`; block-form rule in the model gate |
 | fn-139.4 | ⬜ todo | Standalone activity: one action per RPC with a `Failure` enum; every consumer on the new actions |
 | fn-139.5 | ⬜ todo | Activity product and System rules in `from` blocks, grouped by meaning; activity on the shared `Outcome` |
 | fn-139.6 | ⬜ todo | Nexus and the shared worker on the shared `Outcome`; `alreadyCompleted` becomes `rejected(failedPrecondition)` |
