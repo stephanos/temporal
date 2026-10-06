@@ -81,8 +81,8 @@ Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after 
 | fn-126.3 | ✅ done | Actions grouped by actor in section objects that keep Definition IDs |
 | fn-126.4 | ✅ done | Machine objects with effects, rules and sections; lifter reshaped; standalone activity converted |
 | fn-126.5 | ✅ done | Remaining Models as machine objects; builder forms retired |
-| fn-126.6 | 🔄 in progress | `product/` and `system/` folders; zoom-ins flattened; structure lint (a)(c); IDs frozen |
-| fn-126.7 | ⬜ todo | Definition IDs are fully qualified Scala names; pins and families removed |
+| fn-126.6 | ✅ done | `product/` and `system/` folders; zoom-ins flattened; structure lint (a)(c); IDs frozen |
+| fn-126.7 | 🔄 in progress | Definition IDs are fully qualified Scala names; pins and families removed |
 | fn-126.8 | ⬜ todo | Rename batch (Product and System, history record, actions, designs); level-name lint; docs; close |
 | fn-126.9 | ✅ done | `stuck-state` lint: a reachable non-end state that enables nothing |
 
