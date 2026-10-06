@@ -11,7 +11,7 @@ import umpire.realize.*
 
 private def join(left: String, right: String): String = left + right
 
-val schema = action("start", Party("caller"))
+val schema = action("start", Actor("caller"))
   .schema("temporal.api.workflowservice.v1.StartActivityExecutionRequest")
 val rpc = Instruction.Rpc(
   "endpoint",

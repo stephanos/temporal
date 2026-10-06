@@ -59,7 +59,7 @@ func TestAssessRetainsTheRecordedControlsAuthoredGap(t *testing.T) {
 	decision := Assess(subject, localEphemeral(t), nil)
 	require.Equal(t, DecisionRejected, decision.Outcome)
 	require.Equal(t, []string{"verdict-violated", "known-gap-blocking"}, reasonNames(decision))
-	require.Equal(t, []KnownGapRef{{Kind: "capability", Code: "temporal.nexus.control.action.forgedCompletion.inspect.unobserved"}}, decision.KnownGaps)
+	require.Equal(t, []KnownGapRef{{Kind: "capability", Code: "temporal.features.nexuscaller.system.action.forgedCompletion.inspect.unobserved"}}, decision.KnownGaps)
 }
 
 // Every reason decides as the fixed precedence says, every reason that holds is listed in the fixed
@@ -199,7 +199,7 @@ func TestAssessDecidesADisagreeingVerdictByTheWorse(t *testing.T) {
 func assessment(edit func(*testpilot.Assessment)) *testpilot.Assessment {
 	assessed := &testpilot.Assessment{
 		Model:       "goir.model/v1:sha256:model",
-		Query:       "temporal.nexus.control/forgedCompletion/forgedCompletion#query",
+		Query:       "temporal.features.nexuscaller.system/forgedCompletion/forgedCompletion#query",
 		Conformance: testpilot.ConformanceAssessment{Status: testpilot.ConformanceConformant, SupportingEventSequences: []int64{8, 27}},
 		Properties: []testpilot.PropertyAssessment{
 			{ID: "forgedSuccess", Status: testpilot.PropertySatisfied, SupportingEventSequences: []int64{27}},

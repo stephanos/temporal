@@ -32,7 +32,7 @@ private[check] object SourceMetrics:
   )
 
   private val declaring =
-    "(?s).*\\b(?:internal|action|timer|assume|Party|Entity|Observation|Limits|property|scenario|query|machine|compose|monitor|hole|channel)\\s*(?:\\[[^\\]]*\\])?\\s*\\(\\s*(?:[A-Za-z_][A-Za-z0-9_.]*\\s*,\\s*)?"
+    "(?s).*\\b(?:internal|action|timer|assume|Actor|Entity|Observation|Limits|property|scenario|query|machine|compose|monitor|hole|channel)\\s*(?:\\[[^\\]]*\\])?\\s*\\(\\s*(?:[A-Za-z_][A-Za-z0-9_.]*\\s*,\\s*)?"
   private val composition =
     "(?s).*\\.(?:sync|actionKeys|replaces|whenAction)\\s*\\((?:\\s*,?)*"
   private val evidence = "(?s).*\\bcase\\s+[A-Za-z_][A-Za-z0-9_.]*(?:\\([^)]*\\))?\\s*=>\\s*"

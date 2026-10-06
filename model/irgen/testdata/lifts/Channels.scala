@@ -5,8 +5,6 @@ package fixture.channels
 
 import umpire.*
 
-given Family = Family("fixture.channels")
-
 enum Note derives Finite:
   case ping, pong
 
@@ -32,8 +30,8 @@ given Finite[RelayState] =
 enum Outcome derives Finite:
   case accepted, dropped
 
-val talk = action(Party("fixture")).input[Note]("note")
-val flash = action(Party("fixture")).input[Signal]("signal")
+val talk = action(Actor("fixture")).input[Note]("note")
+val flash = action(Actor("fixture")).input[Signal]("signal")
 
 def talkStep(r: RelayState, n: Note): List[Step[RelayState, Outcome, Nothing]] =
   if r.wire.isFull then Nil else List(Step(Outcome.accepted, r.copy(wire = r.wire.send(n))))

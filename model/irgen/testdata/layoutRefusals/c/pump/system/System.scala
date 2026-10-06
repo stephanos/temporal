@@ -11,11 +11,11 @@ object PumpSystem extends Machine[Pump, Outcome, Nothing]:
   object refinement extends Refinement(PumpProduct):
     def toProduct(s: State) = s
 
-  object effects extends Section:
+  object effects:
     def started(s: State): List[PumpStep] = enter(s.copy(running = true))
 
   object rules extends Rules:
-    when(!_.running)(operator.start ~> effects.started)
+    on(operator.start)(where(!_.running) ~> effects.started)
 
 // A type after the machine: a level folder's file reads as a feature file, its exports aside.
 final case class Gauge(reading: Boolean) derives Finite

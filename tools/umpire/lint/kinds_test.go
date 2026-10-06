@@ -116,7 +116,7 @@ func TestUnperformedActions(t *testing.T) {
 		for _, s := range realization(ir, "activityProtocol").GetScripts() {
 			s.Items = slices.DeleteFunc(s.Items, func(item *umpirespb.Item) bool {
 				return slices.ContainsFunc(item.GetPerforms(), func(p *umpirespb.Performance) bool {
-					return p.GetStep().GetAction() == "temporal.worker.Worker$package$.workerStop"
+					return p.GetStep().GetAction() == "temporal.shared.worker.worker.workerStop"
 				})
 			})
 		}
@@ -291,7 +291,7 @@ func TestStuckState(t *testing.T) {
 		for _, d := range ir.GetMachines() {
 			if d.GetName() == "disk" {
 				d.Steps = slices.DeleteFunc(d.Steps, func(b *umpirespb.StepBinding) bool {
-					return b.GetAction() == "fixture.declarations.Declarations$package$.flush"
+					return b.GetAction() == "fixture.declarations.flush"
 				})
 			}
 		}

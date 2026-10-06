@@ -25,16 +25,12 @@ import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure}
 import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionOutcome}
 import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 
-import ActivityFamily.given
 import Timeout.expires
 import shared.worker.worker as process
 import system.{history, ActivityProtocol, AdmissionFact, AdmissionResponseFact}
 import system.{AdmissionResponseLoss, HeldAdmission}
 
 object ActivityRealization:
-  // Moved from temporal.standaloneactivity; the pin keeps its Definition IDs.
-  given DefinitionScope = DefinitionScope("temporal.standaloneactivity.ActivityRealization$")
-
   /** A status DescribeActivityExecution reports, each kind in its own source: a poll reads one. */
   private def status(fact: Fact) = Evidence.read(
     id = evidenceId(fact),
@@ -325,7 +321,7 @@ object ActivityRealization:
       controller(
         everyCase(startUnreached),
         perform(history.dispatch -> holdDispatch),
-        perform(shared.taskqueue.faults.ackLoss -> loseAdmissionResponse)
+        perform(shared.taskqueue.fault.ackLoss -> loseAdmissionResponse)
       )
     ),
     evidence = Vector(

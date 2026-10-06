@@ -412,7 +412,8 @@ private[irgen] trait Claims:
       folded.getOrElseUpdate(
         sym,
         valDef(sym, r, "a declaration") match
-          case _ if objectForm(sym) => Decl.Model(modelOfObject(moduleClassOf(sym), r))
+          case _ if objectForm(sym)       => Decl.Model(modelOfObject(moduleClassOf(sym), r))
+          case _ if implementsObject(sym) => implementsOf(sym, r)
           case d if isNamed(d.tpt.tpe, "umpire.Machine")     => Decl.Model(machineOf(sym, r).name)
           case d if isNamed(d.tpt.tpe, "umpire.Composition") =>
             Decl.Model(compositionOf(sym, r).name)

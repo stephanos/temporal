@@ -55,17 +55,11 @@ enum DoorFact derives Finite:
 
 type DoorStep = Step[DoorState, DoorOutcome, DoorFact]
 
-/**
- * The doors' family and entity, in objects of their own, which the machine objects read while they
- * initialize.
- */
-object DoorFamily:
-  val family: umpire.Family = umpire.Family("fixture.realizations.door")
-
+/** The doors' entity, in an object of its own, which the machine objects read while they initialize. */
 object DoorEntity:
   val door: Entity = Entity(key = "doorId")
 
-val doorkeeper: Party = Party()
+object doorkeeper extends Actor
 val push = action(doorkeeper) on door
 
 /** A push opens a closed door, and says why; an open door takes no push. */
@@ -77,13 +71,7 @@ def pushStep(s: DoorState): List[DoorStep] = s match
 def doorEvidence(f: DoorFact): String = f match
   case DoorFact.doorOpened => "doorOpened"
 
-object Door
-    extends Machine[DoorState, DoorOutcome, DoorFact](using
-      DoorFamily.family,
-      summon,
-      summon,
-      summon
-    ):
+object Door extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
   def end(doorState: State) = doorState == DoorState.open
@@ -224,13 +212,7 @@ private def doorCorrelation(scope: String) = Correlation(
 // ### A learned run id, read by two branches
 
 /** A door the start call opens. A machine runs under one realization, so it is a door of its own. */
-object Run
-    extends Machine[DoorState, DoorOutcome, DoorFact](using
-      DoorFamily.family,
-      summon,
-      summon,
-      summon
-    ):
+object Run extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
   def end(doorState: State) = doorState == DoorState.open
@@ -396,13 +378,7 @@ val dispatchChannel: Channel[DoorFact] =
   )
 
 /** A door the race pushes while the dispatch is held. */
-object Race
-    extends Machine[DoorState, DoorOutcome, DoorFact](using
-      DoorFamily.family,
-      summon,
-      summon,
-      summon
-    ):
+object Race extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
   def end(doorState: State) = doorState == DoorState.open
@@ -535,19 +511,13 @@ val staysOpen: Monitor[DoorState, DoorOutcome, DoorFact, Seen] =
   monitor[DoorState, DoorOutcome, DoorFact, Seen](Seen.shut)(seen)(_ == Seen.reopened)
 
 /** A door with authored monitors, which no realization above runs. */
-object Watched
-    extends Machine[DoorState, DoorOutcome, DoorFact](using
-      DoorFamily.family,
-      summon,
-      summon,
-      summon
-    ):
+object Watched extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
   def end(doorState: State) = doorState == DoorState.open
   val evidence: DoorFact => String = doorEvidence
 
-  object monitors extends Section:
+  object monitors:
     val once = opensOnce
     val open = staysOpen
 
@@ -607,15 +577,12 @@ enum ErrandFact derives Finite:
 
 type ErrandStep = Step[ErrandState, ErrandOutcome, ErrandFact]
 
-/** The errand's family and entity, in objects of their own, as the doors' are. */
-object ErrandFamily:
-  val family: umpire.Family = umpire.Family("fixture.realizations.errand")
-
+/** The errand's entity, in an object of its own, as the doors' is. */
 object ErrandEntity:
   val errand: Entity = Entity(key = "errandId")
 
-val requester: Party = Party()
-val runner: Party = Party()
+object requester extends Actor
+object runner extends Actor
 val request = action(requester).creates(errand)
 val deliver = action(runner) on errand
 val answer = action(runner).on(errand).input[ErrandAnswer]("answer")
@@ -650,13 +617,7 @@ def errandEvidence(f: ErrandFact): String = f match
   case ErrandFact.errandClosed    => "errandClosed"
   case ErrandFact.errandWithdrawn => "errandWithdrawn"
 
-object Errand
-    extends Machine[ErrandState, ErrandOutcome, ErrandFact](using
-      ErrandFamily.family,
-      summon,
-      summon,
-      summon
-    ):
+object Errand extends Machine[ErrandState, ErrandOutcome, ErrandFact]:
   val entity = errand
   val init = ErrandState.idle
   def end(s: State) = s == ErrandState.done || s == ErrandState.withdrawn
@@ -906,13 +867,7 @@ val errandRealization: Realization = Realization(
 // ### What no Case carries yet
 
 /** A second door, for a realization of its own: a machine runs under one. */
-object Tally
-    extends Machine[DoorState, DoorOutcome, DoorFact](using
-      DoorFamily.family,
-      summon,
-      summon,
-      summon
-    ):
+object Tally extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
   def end(doorState: State) = doorState == DoorState.open

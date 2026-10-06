@@ -132,7 +132,7 @@ func instruction(t *testing.T, c *testpilotspb.Case, entrypoint, id string) *tes
 // each Scenario of Claims.scala pins placed in them, and the clauses each Property fixes, bounded by
 // where the Scenario places the Property's action.
 func TestALoweredCaseCarriesWhatTheScalaDeclares(t *testing.T) {
-	const property = "temporal.nexus.caller.property."
+	const property = "temporal.features.nexuscaller.system.property."
 	workflow := []string{"start-nexus-operation", "await-nexus-operation", "finish-workflow"}
 	controller := func(between ...string) []string {
 		return append(append([]string{"start-workflow", "await-scheduled"}, between...), "await-close", "history")
@@ -191,7 +191,7 @@ func TestALoweredCaseCarriesWhatTheScalaDeclares(t *testing.T) {
 			started := instruction(t, lowered, "controller", "start-workflow").GetInstruction().GetInvokeRpc().GetRequestAssignments()
 			require.Equal(t, "workflow_type.name", started[2].GetTarget())
 			require.Equal(t, workflowType, started[2].GetValue().GetLiteral().GetTextValue())
-			require.Equal(t, "temporal.nexus.caller.testpilot", lowered.GetProvenance().GetProducerId())
+			require.Equal(t, "temporal.features.nexuscaller.testpilot", lowered.GetProvenance().GetProducerId())
 		})
 	}
 }
@@ -270,7 +270,7 @@ func TestALoweredCaseDeclaresTheHistoryKindsOffItsPath(t *testing.T) {
 			kinds := map[testpilotspb.CorrelatedEvidenceMeaning][]string{}
 			for _, rule := range c.GetContract().GetCorrelated().GetProjectionRules() {
 				kinds[rule.GetMeaning()] = append(kinds[rule.GetMeaning()],
-					strings.TrimPrefix(defined(names, rule.GetKind()), "temporal.nexus.caller.evidence."))
+					strings.TrimPrefix(defined(names, rule.GetKind()), "temporal.features.nexuscaller.evidence."))
 			}
 			require.Len(t, kinds, 2)
 			confirmed, off := kinds[testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED], kinds[testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT]
@@ -341,13 +341,13 @@ func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) 
 		}, "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes.schedule_to_close_timeout is of kind message, and a role is written into it"},
 		{"a history event kind the event does not have", func(r *umpirespb.Realization) {
 			r.Evidence[2].From = &umpirespb.Evidence_History{History: "nexus_operation_finished_event_attributes"}
-		}, "evidence temporal.nexus.caller.evidence.completed: a history event has no attributes nexus_operation_finished_event_attributes"},
+		}, "evidence temporal.features.nexuscaller.evidence.completed: a history event has no attributes nexus_operation_finished_event_attributes"},
 		{"an operation key the recorded message does not have", func(r *umpirespb.Realization) { r.Evidence[0].Operation = "event_number" },
 			"temporal.api.history.v1.HistoryEvent has no field event_number"},
 		{"an operation key that is a message", func(r *umpirespb.Realization) { r.Evidence[0].Operation = "event_time" },
-			"evidence temporal.nexus.caller.evidence.scheduled keys its operation by event_time, which is no single scalar of temporal.api.history.v1.HistoryEvent"},
+			"evidence temporal.features.nexuscaller.evidence.scheduled keys its operation by event_time, which is no single scalar of temporal.api.history.v1.HistoryEvent"},
 		{"evidence read from one value", func(r *umpirespb.Realization) { r.Evidence[0].GetRead().Path = "history" },
-			"evidence temporal.nexus.caller.evidence.scheduled is read from history, which is no repeated message"},
+			"evidence temporal.features.nexuscaller.evidence.scheduled is read from history, which is no repeated message"},
 		{"a method the service does not have", func(r *umpirespb.Realization) {
 			command(r, "controller", "start-workflow").GetRpc().Method = "/temporal.api.workflowservice.v1.WorkflowService/BeginWorkflowExecution"
 		}, "temporal.api.workflowservice.v1.WorkflowService has no method BeginWorkflowExecution"},

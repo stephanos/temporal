@@ -6,11 +6,6 @@
 package fixture.declarations
 
 import umpire.*
-import DeclarationsFamily.given
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object DeclarationsFamily:
-  given family: Family = Family("fixture.declarations")
 
 enum Kept derives Finite:
   case nothing, held
@@ -23,9 +18,9 @@ enum Outcome derives Finite:
 enum Fact derives Finite:
   case stored, staged
 
-val put = action(Party("client"))
+val put = action(Actor("client"))
 val flush = internal
-val crash = action(Party("fault"))
+val crash = action(Actor("fault"))
 
 val storeOpaque: Assumption = assume
 val flushRuns: Assumption = assume("flushEventuallyRuns").fair(flush)
@@ -41,7 +36,7 @@ object Store extends Machine[StoreState, Outcome, Fact]:
   def end(s: State) = s.kept == Kept.held
   val evidence: Fact => String = evidenceOf
 
-  object monitors extends Section:
+  object monitors:
     val opaque = storeOpaque
 
   object rules
@@ -107,7 +102,7 @@ object Disk extends Machine[DiskState, Outcome, Fact], FailureModel:
     val visible = (f: Fact) => f == Fact.stored
     val visibleOutcomes = (o: Outcome) => o == Outcome.accepted
 
-  object monitors extends Section:
+  object monitors:
     val once = storedOnce
     val durableAtEnd = endsDurable
     val stagedFirst = stagedBeforeDurable

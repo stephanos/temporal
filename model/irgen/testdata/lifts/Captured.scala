@@ -1,23 +1,15 @@
-// A Model with every name taken from its val: the family is a given, the machines state their
-// types once, the composition names its members, syncs and Scenario classes by field selectors, the
-// Scenarios start where their machines do, the evidence lists only the fact whose evidence is not
-// its name, and the refined read needs no given. The file's DefinitionScope, and the one of
-// `object Watched` beside it, keep every symbol-based Definition ID the owner
-// fixture.spelled.Spelled$package$ gives, and every top-level type's name in fixture.spelled. The
-// lifter's tests compare its IR with expected/captured.json and check those IDs and names.
+// A Model with every name taken from its val or object: the machines state their types once, the
+// composition names its members, syncs and Scenario classes by field selectors, the Scenarios start
+// where their machines do, the evidence lists only the fact whose evidence is not its name, and the
+// refined read needs no given. Every Definition ID is its declaration's fully qualified name, the
+// objects it sits in included, and every family the package fixture.captured. The lifter's tests
+// compare its IR with expected/captured.json and check those IDs and names.
 package fixture.captured
 
 import umpire.*
 import umpire.realize.*, temporal.realize.{Role, RoleKind}
 import temporal.server.api.testpilot.v1.CorrelatedEvidence
-import CapturedFamily.given
 import Entities.{entry, lostData}
-
-given DefinitionScope = DefinitionScope("fixture.spelled.Spelled$package$")
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object CapturedFamily:
-  given family: Family = Family("fixture.spelled")
 
 enum Kept derives Finite:
   case nothing, held
@@ -40,22 +32,22 @@ object Entities:
   val entry: Entity = Entity(key = "entryId", refer = Map("owner" -> owner))
   val lostData: Observation = Observation(on = entry, read = "lost")
 
-// The actions, grouped by who takes them (fn-126 R14). An actor object is the party of its name,
-// and it and the sections are transparent to Definition IDs: each action keeps the ID the file's
-// pin gives it, fixture.spelled.Spelled$package$.<name>, as the lifter's tests check.
+// The actions, grouped by who takes them (fn-126 R14). An actor object is the actor of its name, and
+// each action is named after where it is declared, fixture.captured.client.put, as the lifter's
+// tests check.
 
-/** The party `client`, whose members are the actions it takes. */
+/** The actor `client`, whose members are the actions it takes. */
 object client extends Actor:
   val put = action(this)
 
 /** The system's own steps: a flush and a timer. */
-object background extends Section:
+object background:
   val flush = internal
   val expire = timer
 
-/** A fault, taken by a party named by its argument. */
-object faults extends Section:
-  val crash = action(Party("fault"))
+/** A fault, taken by an actor named in place. */
+object faults:
+  val crash = action(Actor("fault"))
 
 val storeOpaque = assume
 val flushRuns = assume.fair(background.flush)
@@ -76,7 +68,7 @@ object Store extends Machine[StoreState, Outcome, Fact]:
   def end(s: State) = s.kept == Kept.held
   val evidence: PartialFunction[Fact, String] = { case Fact.lost(_) => lostData.name }
 
-  object monitors extends Section:
+  object monitors:
     val opaque = storeOpaque
 
   object rules extends Bindings(client.put ~> putStore, background.expire ~> expireStore)
@@ -111,11 +103,8 @@ def countStored(seen: Seen, before: DiskState, after: Step[DiskState, Outcome, F
 val storedOnce =
   monitor[DiskState, Outcome, Fact, Seen](Seen.never)(countStored)(seen => seen == Seen.twice)
 
-// A second owner that pins the same former owner, as a feature's machine object does beside its
-// file (fn-126 R6): its monitor keeps the ID that owner gives, apart from the file's by its name.
+// A monitor in an object of its own, named after it: fixture.captured.Watched.storedTwice.
 object Watched:
-  given DefinitionScope = DefinitionScope("fixture.spelled.Spelled$package$")
-
   val storedTwice =
     monitor[DiskState, Outcome, Fact, Seen](Seen.never)(countStored)(seen => seen == Seen.twice)
 
@@ -131,7 +120,7 @@ object Disk extends Machine[DiskState, Outcome, Fact], FailureModel:
       if d.stage == Stage.empty then StoreState(Kept.nothing) else StoreState(Kept.held)
     val visible = (f: Fact) => f == Fact.stored
 
-  object monitors extends Section:
+  object monitors:
     val once = storedOnce
     val twice = Watched.storedTwice
 
@@ -244,8 +233,8 @@ given Finite[RelayState] =
 enum Note derives Finite:
   case heard, missed
 
-/** The client's send, which names the actor object as its party. */
-object relaying extends Section:
+/** The client's send, which names the actor object as its actor. */
+object relaying:
   val send = action(client)
 
 def sendStep(r: RelayState): List[Step[RelayState, Outcome, Note]] =

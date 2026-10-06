@@ -27,8 +27,6 @@ import temporal.server.api.testpilot.v1.{
   InstructionOutcomeStatus
 }
 
-given Family = Family("fixture.scripts")
-
 // ### With the helpers and the kit
 
 private val statusPaused = Evidence.read(

@@ -317,7 +317,7 @@ message ListValue {
   repeated Value items = 1;
 }
 
-// An action: a party's side effect or a timer the system owns, with its finite inputs.
+// An action: an actor's side effect or a timer the system owns, with its finite inputs.
 // The system owns its other steps too: an internal step, and a channel's delivery or loss.
 message Action {
   // The key the IR names it by: the front end's qualified name.
@@ -325,7 +325,8 @@ message Action {
   // The name its classes are keyed by.
   string name = 2;
   Position position = 3;
-  string party = 4;
+  // The actor who takes it, by name: `system` for a timer and the system's other steps.
+  string actor = 4;
   bool timer = 5;
   repeated Param inputs = 6;
   string on = 7;
@@ -351,6 +352,8 @@ message Example {
 // states it may end in, the evidence for each fact, and the machine it refines.
 // It also names the monitors that watch it and the assumptions checking it makes.
 message Machine {
+  // The root the IDs derived from it hang off (`<family>.query.<name>`, its target, its claims):
+  // the front end's name of the package that declares it.
   string family = 1;
   string name = 2;
   Position position = 3;
@@ -466,6 +469,7 @@ message Hole {
 
 // A composition: one Model from machines of different entities, a state with one field per member.
 message Composition {
+  // As a machine's: the front end's name of the package that declares it.
   string family = 1;
   string name = 2;
   Position position = 3;

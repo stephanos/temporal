@@ -12,14 +12,11 @@
 // deadline and a deadline on a step that is no timer.
 package fixture.hints
 
-import umpire.*
 import umpire.realize.*
 import temporal.realize.*
 import temporal.features.standaloneactivity.{activity, deadline, worker}
 import temporal.features.standaloneactivity.system.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
-
-given Family = Family("fixture.hints")
 
 private def realizing(serverSteps: Vector[ServerStep], behavior: ApiBehavior) =
   temporalRealization(

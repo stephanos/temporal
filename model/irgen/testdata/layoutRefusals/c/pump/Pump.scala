@@ -3,8 +3,6 @@ package fixture.shared.pump
 
 import umpire.*
 
-given Family = Family("fixture.pump")
-
 final case class Pump(running: Boolean) derives Finite
 
 enum Outcome derives Finite:

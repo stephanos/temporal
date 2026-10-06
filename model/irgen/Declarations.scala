@@ -36,13 +36,13 @@ private[irgen] trait Declarations:
   def actionOf(id: String, sym: Symbol, chain: Term): ir.Action =
     val tokens = mutable.ArrayBuffer.empty[Option[Symbol]]
     def named(name: String): ir.Action =
-      ir.Action(id = id, position = Some(pos(chain)), name = name, party = "system")
+      ir.Action(id = id, position = Some(pos(chain)), name = name, actor = "system")
     def captured: ir.Action = named(capturedName(sym, chain, "an action"))
     def walk(t: Term): ir.Action = t match
-      case Apply(Ident("action"), List(name, party)) =>
-        named(constString(name)).withParty(partyName(party))
+      case Apply(Ident("action"), List(name, actor)) =>
+        named(constString(name)).withActor(actorName(actor))
       // The forms that take their name from the val.
-      case Apply(Ident("action"), List(party))      => captured.withParty(partyName(party))
+      case Apply(Ident("action"), List(actor))      => captured.withActor(actorName(actor))
       case Ident("timer")                           => captured.withTimer(true)
       case Ident("internal")                        => captured.withInternal(true)
       case Apply(Select(inner, "on"), List(e))      => walk(inner).withOn(constString(e))
@@ -73,22 +73,23 @@ private[irgen] trait Declarations:
     declared
 
   /**
-   * The name of the party an action names: an actor object's, `object caller extends Actor` named
-   * `caller` and written `this` among its members, with its first letter lowered; or a party
-   * value's.
+   * The name of the actor an action names: an actor object's, `object caller extends Actor` named
+   * `caller` and written `this` among its members, with its first letter lowered; or the name an
+   * actor is given in place, `Actor("fixture")`, as `Actor.system` is.
    */
-  def partyName(t: Term): String = t match
-    case Typed(e, _)                  => partyName(e)
-    case Inlined(_, Nil, e)           => partyName(e)
-    case This(_) if isActor(t.symbol) => actorName(t.symbol)
+  def actorName(t: Term): String = t match
+    case Typed(e, _)                  => actorName(e)
+    case Inlined(_, Nil, e)           => actorName(e)
+    case This(_) if isActor(t.symbol) => objectActor(t.symbol)
     case r: Ref if r.symbol.flags.is(Flags.Module) && isActor(r.symbol.moduleClass) =>
-      actorName(r.symbol.moduleClass)
-    case _ => constString(t)
+      objectActor(r.symbol.moduleClass)
+    case r: Ref if r.symbol.fullName == "umpire.Actor$.system" => "system"
+    case _                                                     => constString(t)
 
   private lazy val actorClass = Symbol.requiredClass("umpire.Actor")
   private def isActor(cls: Symbol): Boolean =
     cls.isClassDef && cls.flags.is(Flags.Module) && cls.typeRef.derivesFrom(actorClass)
-  private def actorName(cls: Symbol): String =
+  private def objectActor(cls: Symbol): String =
     val name = cls.name.stripSuffix("$")
     name.take(1).toLowerCase + name.drop(1)
 
@@ -140,10 +141,17 @@ private[irgen] trait Declarations:
 
   // ### Machine objects: `object M extends Machine[S, O, F]`, its header members and its sections
 
-  /** How a rule's heading says when it fires: a guard of the state, or phases of its projection. */
+  /**
+   * Where a rule fires, as its case says: a condition of the state (`where(g)`), phases of its
+   * projection (`in(p1, p2)`), a named set of them (`in(states.open)`), every state (`always`), or
+   * one of these where a condition also holds (`in(...).where(g)`).
+   */
   enum Heading:
     case When(guard: Term)
     case In(projection: Term, phases: List[Term])
+    case InSet(projection: Term, set: Term)
+    case Always
+    case And(heading: Heading, guard: Term)
 
   /**
    * One rule of a machine's `rules`, as written: its place among them, its heading, the action it
@@ -170,11 +178,7 @@ private[irgen] trait Declarations:
   def parentArguments(c: ClassDef): List[List[Term]] =
     c.parents.collectFirst { case t: Term => t }.flatMap(call).fold(Nil)(_._2)
 
-  /** The family an object form's parent constructor receives, from the `given Family`. */
-  def familyArgument(c: ClassDef): Option[Term] =
-    parentArguments(c).flatten.find(a => isNamed(a.tpe, "umpire.Family"))
-
-  /** A member section of an object form: `object effects extends Section` and the like. */
+  /** A member section of an object form: `object effects` and the like. */
   def sectionOf(c: ClassDef, name: String): Option[ClassDef] = c.body.collectFirst {
     case s: ClassDef if s.symbol.flags.is(Flags.Module) && s.name.stripSuffix("$") == name => s
   }
@@ -205,9 +209,8 @@ private[irgen] trait Declarations:
       parentArguments(c) match
         case List(List(derivation)) =>
           derivation match
-            case Derivation(_, _, _, family) =>
-              derivedMachine(derivation, constString(family), name)
-            case other =>
+            case Derivation(_, _, _) => derivedMachine(derivation, familyOf(cls), name)
+            case other               =>
               fail(
                 other,
                 s"$name derives from ${other.show}: a derived machine is `Derived(m.op(...))` of " +
@@ -219,9 +222,8 @@ private[irgen] trait Declarations:
       val (s, o, f) = machineType.typeArgs match
         case List(s, o, f) => (s, o, f)
         case _             => fail(c, s"$name is a machine of three types, `Machine[S, O, F]`")
-      val family = familyArgument(c).getOrElse(fail(c, s"$name has no family"))
       val declared = ir.Machine(
-        family = constString(family),
+        family = familyOf(cls),
         name = name,
         position = Some(pos(c)),
         stateType = typeRef(s, c).getNamed,
@@ -348,10 +350,32 @@ private[irgen] trait Declarations:
             .flatMap(varargs)
             .map(stepBinding(_, name, "a core binding is `action ~> function`"))
         else ruleSteps(name, typeRef(s, c), rules)
-      val folded = watched.addAllSteps(steps)
+      val folded = inferredEntity(watched.addAllSteps(steps), c)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
       checkChannels(m, irTypeName(s.dealias.typeSymbol), c)
       m
+
+  /**
+   * A machine object's entity where it names none: the one entity the actions it binds are `on` or
+   * create. A machine whose actions name several entities, or none, names its own, `val entity`.
+   */
+  def inferredEntity(m: ir.Machine, at: Tree): ir.Machine =
+    if m.entity.nonEmpty then m
+    else
+      val named = m.steps
+        .map(b => actions(b.action))
+        .flatMap(a => Seq(a.on, a.creates))
+        .filter(_.nonEmpty)
+        .distinct
+      named match
+        case Seq(entity) => m.withEntity(entity)
+        case Seq()       => m
+        case several     =>
+          fail(
+            at,
+            s"${m.name}'s actions are on ${several.sorted.mkString(", ")}: name the entity it " +
+              "keeps state for, `val entity = ...`"
+          )
 
   /**
    * A declared machine with its default evidence, held to the checks every declared machine is: its
@@ -383,54 +407,40 @@ private[irgen] trait Declarations:
 
   /**
    * The step of each action a machine's `rules` name, in the order each is first named: its rules
-   * lowered to one step function, or no step where it is `disabled`.
+   * lowered to one step function, or no step where it is `disabled`. Each `on` block names an action,
+   * or one class of it, once, and holds its cases alone.
    */
   def ruleSteps(machine: String, state: ir.TypeRef, rules: ClassDef): Seq[ir.StepBinding] =
     val projection = parentArguments(rules).flatten.find(a => lambda(a).nonEmpty)
     val written = mutable.ArrayBuffer.empty[LiftedRule]
     val order = mutable.LinkedHashMap.empty[String, Tree]
     val off = mutable.Set.empty[String]
-    def rule(heading: Heading, t: Term): Unit = call(t) match
-      case Some(("~>", List(List(receiver), List(effect)))) if t.symbol.maybeOwner == rulesClass =>
-        val (id, cls) = unwrapped(receiver) match
-          case r if isNamed(r.tpe, "umpire.Class") =>
-            val c = classOf(r)
-            c.action -> Some(c.inputs)
-          case r => action(r) -> None
-        if off(id) then
-          fail(
-            t,
-            s"${actions(id).name} is disabled and fired by a rule of $machine: a rule fires it"
-          )
-        written += LiftedRule(written.size + 1, heading, id, cls, effect, t)
-        order.getOrElseUpdate(id, t): Unit
-      case Some((heading @ ("when" | "in" | "disabled"), _)) =>
-        fail(t, s"$heading sits under a heading of $machine's rules: a heading holds rules alone")
-      case _ =>
-        fail(t, s"not a rule: ${t.show}; a rule is `action ~> effect` under a heading")
-    def body(heading: Heading, t: Term): Unit = unwrapped(t) match
-      case Block(stats, last) =>
-        stats.foreach {
-          case s: Term => rule(heading, s)
-          case other   => fail(other, s"not a rule: ${other.show}")
-        }
-        last match
-          case Literal(UnitConstant()) => ()
-          case e                       => rule(heading, e)
-      case e => rule(heading, e)
+    val blocks = mutable.Map.empty[(String, Option[Seq[ir.Value]]), Tree]
     for stat <- statements(rules) do
       stat match
         case t: Term if t.symbol.maybeOwner == rulesClass =>
           call(t) match
-            case Some(("when", List(List(guard), List(rs))))        => body(Heading.When(guard), rs)
-            case Some(("in", List(List(first, rest), List(rs), _))) =>
-              val p = projection.getOrElse(
+            case Some(("on", List(List(target), List(block)))) =>
+              val (id, cls) = unwrapped(target) match
+                case r if isNamed(r.tpe, "umpire.Class") =>
+                  val c = classOf(r)
+                  c.action -> Some(c.inputs)
+                case r => action(r) -> None
+              if off(id) then
                 fail(
                   t,
-                  s"in names phases, and $machine's rules declare no projection: `Rules(_.phase)`"
+                  s"${actions(id).name} is disabled and fired by a rule of $machine: a rule fires it"
                 )
-              )
-              body(Heading.In(p, first :: varargs(rest)), rs)
+              for first <- blocks.get(id -> cls) do
+                fail(
+                  t,
+                  s"on(${unwrapped(target).show}) is written twice in $machine's rules, first at " +
+                    s"${where(first)}: an action, or a class of it, has one block of cases"
+                )
+              blocks(id -> cls) = t
+              for (heading, effect, at) <- cases(block, machine) do
+                written += LiftedRule(written.size + 1, heading, id, cls, effect, at)
+              order.getOrElseUpdate(id, t): Unit
             case Some(("disabled", List(List(as)))) =>
               for a <- varargs(as) do
                 val id = action(a)
@@ -438,20 +448,98 @@ private[irgen] trait Declarations:
                   fail(a, s"${actions(id).name} is disabled twice, or disabled and fired by a rule")
                 off += id
                 order.getOrElseUpdate(id, a): Unit
-            case Some(("~>", _)) =>
+            case _ =>
               fail(
                 t,
-                s"a rule of $machine sits under no heading: write it under `when(...)` or `in(...)`"
+                s"not a rule of $machine: ${t.show}; its rules are `on(action) { case ~> effect }` " +
+                  "blocks and `disabled(action)`"
               )
-            case _ => fail(t, s"not a rule of $machine: ${t.show}")
         case _: Definition => fail(stat, s"$machine's rules declare rules alone, not ${stat.show}")
         case other         => fail(other, s"not a rule of $machine: ${other.show}")
-    val byAction = written.toVector.groupBy(_.action)
+    for r <- written do
+      if headingNames(r.heading).exists(_ == "in") && projection.isEmpty then
+        fail(r.at, s"in names phases, and $machine's rules declare no projection: `Rules(_.phase)`")
+    val withProjection =
+      written.toVector.map(r => r.copy(heading = projected(r.heading, projection)))
+    val byAction = withProjection.groupBy(_.action)
     rulesOf(machine) = rulesOf.getOrElse(machine, Map.empty) ++ byAction
     order.toSeq.map { (id, at) =>
       val function = lowered(machine, state, id, byAction.getOrElse(id, Vector.empty), at)
       ir.StepBinding(id, function, Some(pos(at)))
     }
+
+  /** The kinds of case a heading is made of, `in` among them where it names phases. */
+  private def headingNames(h: Heading): List[String] = h match
+    case Heading.In(_, _) | Heading.InSet(_, _) => List("in")
+    case Heading.And(inner, _)                  => headingNames(inner)
+    case _                                      => Nil
+
+  /** A heading whose phases read the rules' projection, which `cases` leaves unread. */
+  private def projected(h: Heading, projection: Option[Term]): Heading = h match
+    case Heading.In(_, phases) => Heading.In(projection.get, phases)
+    case Heading.InSet(_, set) => Heading.InSet(projection.get, set)
+    case Heading.And(inner, g) => Heading.And(projected(inner, projection), g)
+    case other                 => other
+
+  /**
+   * The cases of an `on` block, each `case ~> effect`: where it fires, its effect, and where it is
+   * written. A case's phases are read with the rules' projection later, so here they read none.
+   */
+  def cases(block: Term, machine: String): List[(Heading, Term, Term)] =
+    def one(t: Term): (Heading, Term, Term) = unwrapped(t) match
+      case b if b.symbol.name == "on" && b.symbol.maybeOwner == rulesClass =>
+        fail(b, s"on sits in a block of $machine's rules: a block holds its cases alone")
+      case b @ Apply(inner, List(_)) if b.symbol.name == "~>" && b.symbol.maybeOwner == caseClass =>
+        def effectOf(fn: Term): (Term, Term) = fn match
+          case Apply(sel, List(effect)) => (receiverOf(sel), effect)
+          case other => fail(other, s"not a case of $machine's rules: ${other.show}")
+        val (c, effect) = effectOf(inner)
+        (heading(c, machine), effect, t)
+      case other =>
+        fail(
+          other,
+          s"not a case of $machine's rules: ${other.show}; a case is `in(...) ~> effect`, " +
+            "`where(g) ~> effect`, `in(...).where(g) ~> effect` or `always ~> effect`"
+        )
+    unwrapped(contextBody(block)) match
+      case Block(stats, last) =>
+        val all = stats.map {
+          case s: Term => one(s)
+          case other   => fail(other, s"not a case of $machine's rules: ${other.show}")
+        }
+        last match
+          case Literal(UnitConstant()) => all
+          case e                       => all :+ one(e)
+      case e => List(one(e))
+
+  /** The term a method is selected from, through its type applications. */
+  private def receiverOf(fn: Term): Term = fn match
+    case TypeApply(f, _) => receiverOf(f)
+    case Select(q, _)    => q
+    case other           => fail(other, s"not a case: ${other.show}")
+
+  private lazy val caseClass = Symbol.requiredClass("umpire.Case")
+
+  /** Where a case fires: `in(...)`, `where(g)`, `always`, or one of them `.where(g)`. */
+  private def heading(c: Term, machine: String): Heading = unwrapped(c) match
+    case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == caseClass =>
+      Heading.And(heading(inner, machine), g)
+    case t =>
+      val owner = t.symbol.maybeOwner
+      call(t) match
+        case Some(("in", List(List(first, rest), _))) if owner == rulesClass =>
+          Heading.In(first, first :: varargs(rest))
+        case Some(("in", List(List(set)))) if owner == rulesClass => Heading.InSet(set, set)
+        case Some(("where", List(_, List(g)))) if owner.fullName == syntaxPackage => Heading.When(g)
+        case Some(("always", List(_))) if owner.fullName == syntaxPackage         => Heading.Always
+        case _                                                                    =>
+          fail(
+            t,
+            s"not a case of $machine's rules: ${t.show}; a case says where its action fires, " +
+              "`in(phases)`, `in(states.set)`, `where(g)` or `always`"
+          )
+
+  private val syntaxPackage = "umpire.Syntax$package$"
 
   /** A term without the wrappers an argument arrives in. */
   def unwrapped(t: Term): Term = t match
@@ -509,24 +597,34 @@ private[irgen] trait Declarations:
     def stateVar(at: Tree) = expr(at)(E.Var(stateName))
     def bind(params: List[ValDef], names: List[String]): Unit =
       params.zip(names).foreach((p, n) => renamed(p.symbol) = n)
-    def guard(r: LiftedRule): ir.Expr = makingIn(false, "the guard of a rule"):
-      r.heading match
-        case Heading.When(g) =>
-          lambda(g) match
-            case Some((List(p), body)) =>
-              bind(List(p), List(stateName))
-              lift(body)
-            case _ =>
-              forwardedDef(g)
-                .map(d => expr(g)(E.Call(ir.Call(callee(d, g), Seq(stateVar(g))))))
-                .getOrElse(fail(g, s"a rule's guard is a function of the state, not ${g.show}"))
-        case Heading.In(projection, phases) =>
-          val p = lambda(projection) match
-            case Some((List(p), body)) =>
-              bind(List(p), List(stateName))
-              lift(body)
-            case _ => fail(projection, "a rules' projection is a function of the state, `_.phase`")
-          binary(ir.Binary.Op.OP_CONTAINS, p, list(phases.map(lift(_)), r.at), r.at)
+    def condition(g: Term): ir.Expr =
+      lambda(g) match
+        case Some((List(p), body)) =>
+          bind(List(p), List(stateName))
+          lift(body)
+        case _ =>
+          forwardedDef(g)
+            .map(d => expr(g)(E.Call(ir.Call(callee(d, g), Seq(stateVar(g))))))
+            .getOrElse(fail(g, s"a rule's condition is a function of the state, not ${g.show}"))
+    def phaseOf(projection: Term): ir.Expr = lambda(projection) match
+      case Some((List(p), body)) =>
+        bind(List(p), List(stateName))
+        lift(body)
+      case _ => fail(projection, "a rules' projection is a function of the state, `_.phase`")
+    def heading(h: Heading, at: Tree): ir.Expr = h match
+      case Heading.When(g)                => condition(g)
+      case Heading.In(projection, phases) =>
+        binary(ir.Binary.Op.OP_CONTAINS, phaseOf(projection), list(phases.map(lift(_)), at), at)
+      case Heading.InSet(projection, set) =>
+        val d = forwardedDef(set).getOrElse(
+          fail(set, s"in names a set of phases by a def of the machine's states, not ${set.show}")
+        )
+        expr(set)(E.Call(ir.Call(callee(d, set), Seq(phaseOf(projection)))))
+      case Heading.Always        => expr(at)(E.Literal(ir.Value(ir.Value.Kind.Bool(true))))
+      case Heading.And(inner, g) =>
+        binary(ir.Binary.Op.OP_AND, heading(inner, at), condition(g), at)
+    def guard(r: LiftedRule): ir.Expr =
+      makingIn(false, "the guard of a rule")(heading(r.heading, r.at))
     def effect(r: LiftedRule): ir.Expr =
       val (params, body) = lambda(r.effect).getOrElse(
         fail(r.effect, s"the effect of a rule of $machine is a function, not ${r.effect.show}")
@@ -579,9 +677,7 @@ private[irgen] trait Declarations:
     name
 
   /** Whether a def is a member of a machine's `effects` section. */
-  def inEffects(sym: Symbol): Boolean =
-    val owner = sym.maybeOwner
-    isSection(owner) && owner.name.stripSuffix("$") == "effects"
+  def inEffects(sym: Symbol): Boolean = isSection(sym.maybeOwner, "effects")
 
   /**
    * Refuses an effect that gives no step where it is reached: the rules say where it fires. It reads
@@ -639,45 +735,38 @@ private[irgen] trait Declarations:
       contextBody(body)
     case _ => t
 
-  /** `when(g) { action ~> effect, ... }` of a derivation: the guard and the bindings. */
-  def whenGroup(t: Term): Option[(Term, List[Term])] = t match
-    case Typed(e, _)        => whenGroup(e)
-    case Inlined(_, Nil, e) => whenGroup(e)
-    case Apply(Apply(Apply(TypeApply(Ident("when"), _), _), List(guard)), List(items))
-        if t.symbol.maybeOwner.fullName == "umpire.Syntax$package$" =>
-      Some(guard -> varargs(items))
+  /** `on(action) { case ~> effect ... }` of a derivation: its action and its block of cases. */
+  def onGroup(t: Term): Option[(Term, Term)] = t match
+    case Typed(e, _)        => onGroup(e)
+    case Inlined(_, Nil, e) => onGroup(e)
+    case Apply(Apply(Apply(TypeApply(Ident("on"), _), _), List(a)), List(block))
+        if t.symbol.maybeOwner.fullName == syntaxPackage =>
+      Some(a -> block)
     case _ => None
 
   /**
-   * One derivation of a machine: the operation, the machine it derives from, its arguments and the
-   * family. A chain of them is lifted from the val that declares the last.
+   * One derivation of a machine: the operation, the machine it derives from and its arguments. A
+   * chain of them is lifted from the val that declares the last.
    */
   object Derivation:
-    def unapply(t: Term): Option[(String, Term, List[Term], Term)] = t match
-      case Apply(
-            Apply(
-              Select(source, op @ ("restrict" | "rebind" | "extend" | "assuming")),
-              List(items)
-            ),
-            List(f)
-          ) if isMachine(source.tpe) =>
-        Some((op, source, List(items), f))
-      case Apply(
-            Apply(Apply(TypeApply(Select(source, "refining"), _), List(p)), List(map)),
-            List(f)
-          ) if isMachine(source.tpe) =>
-        Some(("refining", source, List(p, map), f))
-      case Apply(Select(source, "unmonitored"), List(f)) if isMachine(source.tpe) =>
-        Some(("unmonitored", source, Nil, f))
+    def unapply(t: Term): Option[(String, Term, List[Term])] = t match
+      case Apply(Select(source, op @ ("restrict" | "rebind" | "extend" | "assuming")), List(items))
+          if isMachine(source.tpe) =>
+        Some((op, source, List(items)))
+      case Apply(Apply(TypeApply(Select(source, "refining"), _), List(p)), List(map))
+          if isMachine(source.tpe) =>
+        Some(("refining", source, List(p, map)))
+      case Select(source, "unmonitored") if isMachine(source.tpe) =>
+        Some(("unmonitored", source, Nil))
       case _ => None
 
   /**
    * A machine derived by `restrict`, `rebind`, `extend`, `refining`, `assuming` and `unmonitored`:
-   * its source's declaration with only what the operations change, in the family and under the name
-   * of the val that declares it, as a restricted machine owns its own.
+   * its source's declaration with only what the operations change, in the family of the object that
+   * declares it and under its name, as a restricted machine owns its own.
    */
   def derivedMachine(rhs: Term, family: String, name: String): ir.Machine =
-    // Each item a bare binding, `action ~> function`, or a group of rules, `when(g) { ... }`: the
+    // Each item a bare binding, `action ~> function`, or one action's rules, `on(a) { ... }`: the
     // step it binds, and the rules it lowers from where it binds rules. A bare binding of an action
     // the source binds by rules keeps their guards, and their classes, and replaces their effect:
     // refused where whole-action rules have several effects, and not where each rule fires one
@@ -685,19 +774,27 @@ private[irgen] trait Declarations:
     def bound(src: ir.Machine, items: Term, op: String): Seq[(ir.StepBinding, Term)] =
       val bindings = varargs(items).flatMap { item =>
         val b = contextBody(item)
-        whenGroup(b) match
-          case Some((guard, members)) =>
-            members.map { m =>
-              val (a, effect) = coreBinding(m, s"$op takes `action ~> function` bindings")
-              val id = action(a)
-              val rule = LiftedRule(1, Heading.When(guard), id, None, effect, m)
-              rulesOf(name) = rulesOf.getOrElse(name, Map.empty).updated(id, Vector(rule))
+        onGroup(b) match
+          case Some((a, block)) =>
+            val id = action(a)
+            val rules = cases(block, name).zipWithIndex.map { case ((heading, effect, at), i) =>
+              heading match
+                case Heading.When(_) | Heading.Always => ()
+                case _                                =>
+                  fail(
+                    at,
+                    s"$name's rules name no phase: a derivation's case is `where(g)` or `always`"
+                  )
+              LiftedRule(i + 1, heading, id, None, effect, at)
+            }.toVector
+            rulesOf(name) = rulesOf.getOrElse(name, Map.empty).updated(id, rules)
+            Seq(
               ir.StepBinding(
                 id,
-                lowered(name, named(src.stateType), id, Vector(rule), m),
-                Some(pos(m))
-              ) -> m
-            }
+                lowered(name, named(src.stateType), id, rules, b),
+                Some(pos(b))
+              ) -> b
+            )
           case None =>
             val (a, effect) = coreBinding(b, s"$op takes `action ~> function` bindings")
             val id = action(a)
@@ -720,7 +817,7 @@ private[irgen] trait Declarations:
                     b,
                     s"$name rebinds ${actions(id).name}, which ${src.name} binds by ${rules.size} " +
                       s"rules$what with different effects, to one effect: rebind its rules with " +
-                      "`when(...) { ... }`, which replace them"
+                      "`on(action) { ... }`, which replace them"
                   )
                 val rules = kept.map(_.copy(effect = effect, at = b))
                 rulesOf(name) = rulesOf.getOrElse(name, Map.empty).updated(id, rules)
@@ -735,7 +832,7 @@ private[irgen] trait Declarations:
                 fail(
                   b,
                   s"$name extends ${src.name}, whose actions are bound by rules, by a bare " +
-                    "binding: extend takes rules, `extend(when(...) { action ~> effect })`"
+                    "binding: extend takes rules, `extend(on(action) { where(g) ~> effect })`"
                 )
               case _ => Seq(stepBinding(b, name, s"$op takes `action ~> function` bindings") -> b)
       }
@@ -743,12 +840,12 @@ private[irgen] trait Declarations:
         fail(b, s"$name ${op}s ${actions(s.action).name} twice: a machine binds an action once")
       bindings
     def derive(t: Term): ir.Machine = t match
-      case Derivation("restrict", source, List(keep), _) =>
+      case Derivation("restrict", source, List(keep)) =>
         val src = derive(source)
         val kept = varargs(keep).map(action).toSet
         // It keeps its source's monitors and assumptions, which are about the state and the machine.
         src.copy(steps = src.steps.filter(s => kept(s.action)), unobservable = Nil, refines = None)
-      case Derivation("rebind", source, List(items), _) =>
+      case Derivation("rebind", source, List(items)) =>
         val src = derive(source)
         val replaced = bound(src, items, "rebind").map { (s, b) =>
           if !src.steps.exists(_.action == s.action) then
@@ -760,7 +857,7 @@ private[irgen] trait Declarations:
           s.action -> s
         }.toMap
         src.withSteps(src.steps.map(s => replaced.getOrElse(s.action, s)))
-      case Derivation("extend", source, List(items), _) =>
+      case Derivation("extend", source, List(items)) =>
         val src = derive(source)
         val added = bound(src, items, "extend").map { (s, b) =>
           if src.steps.exists(_.action == s.action) then
@@ -772,7 +869,7 @@ private[irgen] trait Declarations:
           s
         }
         src.addAllSteps(added)
-      case Derivation("refining", source, List(product, map), _) =>
+      case Derivation("refining", source, List(product, map)) =>
         val src = derive(source)
         val replacement = machineOf(resolveSymbol(product), product)
         val replaced = src.refines
@@ -800,7 +897,7 @@ private[irgen] trait Declarations:
             map = stepFunction(map, name, "refines")
           )
         )
-      case Derivation("assuming", source, List(items), _) =>
+      case Derivation("assuming", source, List(items)) =>
         val src = derive(source)
         val added = varargs(items).foldLeft(Vector.empty[String]) { (added, a) =>
           val id = assumptionOf(resolveSymbol(a), a)
@@ -812,19 +909,19 @@ private[irgen] trait Declarations:
           added :+ id
         }
         src.addAllAssumes(added)
-      case Derivation("unmonitored", source, Nil, _) =>
+      case Derivation("unmonitored", source, Nil) =>
         derive(source).copy(monitors = Nil, refines = None)
       case source => machineOf(resolveSymbol(source), source)
     // Only a binding a derivation adds is checked: a restriction keeps a subset of its source's,
     // which no check has ever held to the channels its state holds.
     def binds(t: Term): Boolean = t match
-      case Derivation(op, source, _, _) => op == "rebind" || op == "extend" || binds(source)
-      case _                            => false
+      case Derivation(op, source, _) => op == "rebind" || op == "extend" || binds(source)
+      case _                         => false
     val src = derive(rhs)
     // A derivation keeps the rules of the actions it binds as its source did.
     def sourceOf(t: Term): Option[String] = t match
-      case Derivation(_, source, _, _) => sourceOf(source)
-      case source                      => Some(machineOf(resolveSymbol(source), source).name)
+      case Derivation(_, source, _) => sourceOf(source)
+      case source                   => Some(machineOf(resolveSymbol(source), source).name)
     for from <- sourceOf(rhs); kept <- rulesOf.get(from) do
       val own = rulesOf.getOrElse(name, Map.empty)
       rulesOf(name) = kept.filter((id, _) => src.steps.exists(_.action == id)) ++ own
@@ -1129,7 +1226,7 @@ private[irgen] trait Declarations:
       val a = ir.Action(
         id = id,
         position = Some(channel.getPosition),
-        party = "system",
+        actor = "system",
         internal = true,
         inputs = Seq(ir.Param("message", Some(channel.getMessage)))
       )
@@ -1217,7 +1314,7 @@ private[irgen] trait Declarations:
       for other <- monitors.values if other.name == m.name do
         fail(
           d,
-          s"two monitors are named ${m.name}: ${other.id} and $id, and would share one Definition ID"
+          s"two monitors are named ${m.name}: ${other.id} and $id, and the IR names them by name"
         )
       monitors(id) = m
     id

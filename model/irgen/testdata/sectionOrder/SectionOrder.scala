@@ -3,15 +3,13 @@
 // read; the rest do not, at the lines the lint refuses: sections out of order; vocabulary outside
 // `states`, a refinement's member outside `refinement`, a monitor in the wrong section, an effect
 // and a monitor outside their sections, a Property over another machine object; a step function
-// bound by hand, in a machine, in a rebind's source and as a machine's core rules; a section in a section, one in an object of
-// the signature and a machine's section at the top level; two sections' timers that would share an
-// ID, each read by a machine of its own; and a guard that reads a val its rules declare after it,
-// which the rules' disjointness check calls while they initialize.
+// bound by hand, in a machine, in a rebind's source and as a machine's core rules; an object in a
+// section, and a machine's section at the top level; and a case that reads a val its rules declare
+// after it, which the rules' disjointness check calls while they initialize. Two objects' timers of
+// one name, each read by a machine of its own, are named apart by their objects, and refused nothing.
 package fixture.features.sectionorder
 
 import umpire.*
-
-given Family = Family("fixture.sectionorder")
 
 final case class Lamp(lit: Boolean) derives Finite
 
@@ -26,43 +24,43 @@ object hand extends Actor:
   val flip = action(this)
   val tap = action(this)
 
-object clock extends Section:
+object clock:
   val tick = timer
 
-// Its tick takes the ID clock's takes, the file's: a section is transparent to Definition IDs.
-object metronome extends Section:
+// Its tick is named after its object, apart from clock's: no refusal (fn-126 decision 23).
+object metronome:
   val tick = timer
 
-// A section in an object of the signature, and a machine's section at the top level.
+// An object in an object of the signature, named after both, and a machine's section at the top.
 object Holder:
-  object spare extends Section:
+  object spare:
     val bell = timer
 
-object implements extends Section
+object implements
 
 object Switch extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: Lamp) = true
 
-  object states extends Section:
+  object states:
     def lit(s: Lamp) = s.lit
 
-  object effects extends Section:
+  object effects:
     def flipped(s: Lamp): List[Step[Lamp, Outcome, Nothing]] =
       List(Step(Outcome.accepted, s.copy(lit = !s.lit)))
     def kept(s: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(Step(Outcome.accepted, s))
 
-  object monitors extends Section:
+  object monitors:
     val staysLit = sticky[Lamp, Outcome, Nothing](after => after.state.lit)
 
   object rules extends Rules(_.lit):
-    in(false, true)(hand.flip ~> effects.flipped)
-    when(s => !states.lit(s))(clock.tick ~> effects.kept)
+    on(hand.flip)(in(false, true) ~> effects.flipped)
+    on(clock.tick)(where(s => !states.lit(s)) ~> effects.kept)
 
-  object properties extends Section:
+  object properties:
     val turnsOn = property when hand.flip holds (after => after.state.lit)
 
-  object queries extends Section:
+  object queries:
     val flipped = scenario.actions(hand.flip)
     val asked = query verify properties.turnsOn in flipped limits one total 2
 
@@ -75,11 +73,11 @@ object Dimmer extends Machine[Lamp, Outcome, Nothing]:
     def toProduct(s: Lamp) = s
     val unobservable = List(clock.tick)
 
-  object effects extends Section:
+  object effects:
     def kept(s: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(Step(Outcome.accepted, s))
 
   object rules extends Rules:
-    when(_ => true)(clock.tick ~> effects.kept)
+    on(clock.tick)(always ~> effects.kept)
 
 /** A bare binding in a derivation keeps the rules' guards: no step function bound by hand. */
 object Kept extends Derived(Switch.rebind(hand.flip ~> Switch.effects.kept))
@@ -90,24 +88,24 @@ object Twins extends Composition[Pair](_.left -> Switch, _.right -> Kept):
   object syncs extends Syncs:
     sync(_.left -> hand.flip, _.right -> hand.flip)
 
-  object properties extends Section:
+  object properties:
     val bothFlip = property holds (after => after.state.left == after.state.right)
 
 object Backwards extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: Lamp) = true
 
-  object effects extends Section:
+  object effects:
     def kept(s: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(Step(Outcome.accepted, s))
 
-  object states extends Section:
+  object states:
     def dark(s: Lamp) = !s.lit
 
-  object properties extends Section:
+  object properties:
     val stays = property when metronome.tick holds (after => !after.state.lit)
 
   object rules extends Rules:
-    when(states.dark)(metronome.tick ~> effects.kept)
+    on(metronome.tick)(where(states.dark) ~> effects.kept)
 
 object Misfiled extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
@@ -118,13 +116,13 @@ object Misfiled extends Machine[Lamp, Outcome, Nothing]:
   def lit(s: Lamp) = s.lit
   def toProduct(s: Lamp) = s
 
-  object effects extends Section:
+  object effects:
     def kept(s: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(Step(Outcome.accepted, s))
 
   object rules extends Rules:
-    when(_ => true)(hand.tap ~> effects.kept)
+    on(hand.tap)(always ~> effects.kept)
 
-  object properties extends Section:
+  object properties:
     val dim = sticky[Lamp, Outcome, Nothing](after => !after.state.lit)
     val borrowed = Switch.property when hand.flip holds (after => after.state.lit)
 
@@ -132,26 +130,26 @@ object HandBound extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: Lamp) = true
 
-  object states extends Section:
+  object states:
     val bound = hand.tap ~> Switch.effects.kept
 
-  object effects extends Section:
-    object more extends Section:
+  object effects:
+    object more:
       def kept(s: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(Step(Outcome.accepted, s))
 
   object rules extends Rules:
-    when(_ => true)(hand.tap ~> effects.more.kept)
+    on(hand.tap)(always ~> effects.more.kept)
 
 object Guarded extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: Lamp) = true
 
-  object effects extends Section:
+  object effects:
     def flipped(s: Lamp): List[Step[Lamp, Outcome, Nothing]] =
       List(Step(Outcome.accepted, s.copy(lit = !s.lit)))
 
   object rules extends Rules:
-    when(s => s.lit == armed)(hand.flip ~> effects.flipped)
+    on(hand.flip)(where(s => s.lit == armed) ~> effects.flipped)
     val armed = true
 
 /** A bare binding in the source a rebind derives from, which no rebind keeps: bound by hand. */

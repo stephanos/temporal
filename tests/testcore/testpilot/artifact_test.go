@@ -307,15 +307,15 @@ func TestLeanNexusCallerCasePreparesWithCheckedProvenance(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	prepareUnchanged(t, source, asyncNexusProfile(catalog))
-	require.Equal(t, "temporal.nexus.caller.testpilot", source.GetProvenance().GetProducerId())
+	require.Equal(t, "temporal.features.nexuscaller.testpilot", source.GetProvenance().GetProducerId())
 	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
 
 	provenance := source.GetProvenance()
 	require.Equal(t, []string{
-		"temporal.nexus.caller.target.nexusProtocol",
-		"temporal.nexus.caller.behavior.asyncThenSucceeded",
-		"temporal.nexus.caller.query.asyncCompletion",
-		"temporal.nexus.caller.property.completionSucceeds",
+		"temporal.features.nexuscaller.system.target.nexusProtocol",
+		"temporal.features.nexuscaller.system.behavior.asyncThenSucceeded",
+		"temporal.features.nexuscaller.system.query.asyncCompletion",
+		"temporal.features.nexuscaller.system.property.completionSucceeds",
 	}, definitionIDs(provenance.GetDefinitions()))
 	require.Equal(t, []testpilotspb.DefinitionKind{
 		testpilotspb.DEFINITION_KIND_TARGET,

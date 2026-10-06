@@ -7,5 +7,5 @@ import umpire.*
 // A root that names nothing.
 val unknownRoot = irFile("unknown")(noSuchDeclaration)
 
-// A channel, which is no root: an IR file holds what a machine or a claim reaches.
-val channelRoot = irFile("channel")(wire)
+// A channel is no root either, which the lifter refuses as it lifts the root (lifts/Rejects.scala):
+// an object may be a machine's section, so the root's type admits any object.

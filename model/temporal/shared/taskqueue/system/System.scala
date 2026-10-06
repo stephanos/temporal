@@ -10,6 +10,7 @@ package system
 import scala.annotation.unused
 import umpire.*
 import product.{DispatchQueue, DispatchQueueUnderStorageLoss}
+import QueueOutcome.given
 
 // ### The detailed provider, and the providers derived from it. The violating providers each differ
 // from the detailed provider in what one ordinary crash does, and neither assumes storage loss. They
@@ -17,12 +18,12 @@ import product.{DispatchQueue, DispatchQueueUnderStorageLoss}
 
 /** The detailed provider, under ordinary crashes and lost answers to the poller. */
 object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], FailureModel:
-  val entity = taskQueueEntity
   val init = states.idleQueue
   def end(d: State) = states.queueEnds(d)
 
-  object states extends Section:
-    val idleQueue = QueueDetail(Custody.nowhere, false, Delivered.never)
+  object states:
+    val idleQueue =
+      QueueDetail(custody = Custody.nowhere, polled = false, delivered = Delivered.never)
 
     def queueEnds(d: State) = d.custody == Custody.nowhere
 
@@ -67,13 +68,13 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
 
     def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal
 
-  object effects extends Section:
+  object effects:
     def enqueueDetail(s: State) =
       choose(
         enqueueCommits -> List(
           Step(
             QueueOutcome.committed,
-            QueueDetail(Custody.history, false, Delivered.never),
+            QueueDetail(custody = Custody.history, polled = false, delivered = Delivered.never),
             List(QueueFact.enqueueCommitted)
           )
         ),
@@ -82,13 +83,13 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
       )
 
     /** An invocation implies no receiver effect: nothing durable changes until matching persists. */
-    def invokeDetail(s: State): List[QueueDetailStep] =
+    def invokeDetail(s: State) =
       enter(s.copy(custody = Custody.invoked), QueueFact.addInvoked)
 
-    def persistDetail(s: State): List[QueueDetailStep] =
+    def persistDetail(s: State) =
       enter(s.copy(custody = Custody.persisted), QueueFact.taskPersisted)
 
-    def reserveDetail(s: State): List[QueueDetailStep] =
+    def reserveDetail(s: State) =
       enter(s.copy(custody = Custody.reserved), QueueFact.matchReserved)
 
     def deliverDetail(s: State) =
@@ -108,7 +109,7 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
      * The answer to the poller is lost. A persisted task stays queued; a sync match fails back to the
      * invocation, which history retries.
      */
-    def ackLossDetail(s: State): List[QueueDetailStep] =
+    def ackLossDetail(s: State) =
       if s.custody == Custody.reserved then
         enter(s.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
       else enter(s.copy(polled = false), QueueFact.ackLost)
@@ -118,7 +119,7 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
      * nothing durable: history still holds its dispatch task and retries, and a persisted task is
      * still queued.
      */
-    def crashDetail(s: State): List[QueueDetailStep] = s.custody match
+    def crashDetail(s: State) = s.custody match
       case Custody.invoked | Custody.reserved =>
         enter(s.copy(custody = Custody.history, polled = false), QueueFact.crashed)
       case Custody.nowhere | Custody.history | Custody.persisted =>
@@ -133,7 +134,7 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
      * AddActivityTask, before matching persists anything, so a crash there leaves no custodian for a
      * message the interface still calls committed.
      */
-    def forgetfulCrash(s: State): List[QueueDetailStep] = s.custody match
+    def forgetfulCrash(s: State) = s.custody match
       case Custody.invoked | Custody.reserved => enter(states.idleQueue, QueueFact.crashed)
       case Custody.nowhere | Custody.history | Custody.persisted =>
         enter(s.copy(polled = false), QueueFact.crashed)
@@ -142,7 +143,7 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
      * Bound by VolatileQueue alone. A crash wipes the tasks matching persisted, which history no
      * longer backs.
      */
-    def volatileCrash(s: State): List[QueueDetailStep] = s.custody match
+    def volatileCrash(s: State) = s.custody match
       case Custody.persisted                  => enter(states.idleQueue, QueueFact.crashed)
       case Custody.invoked | Custody.reserved =>
         enter(s.copy(custody = Custody.history, polled = false), QueueFact.crashed)
@@ -153,17 +154,17 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
   object rules extends Rules(_.custody):
     import Custody.*
 
-    in(nowhere)(queue.enqueue ~> effects.enqueueDetail)
-    in(history)(queue.addActivityTask ~> effects.invokeDetail)
-    in(invoked)(queue.persistTask ~> effects.persistDetail)
-    in(invoked)(queue.syncMatch ~> effects.reserveDetail)
-    when(states.deliverable)(queue.deliver ~> effects.deliverDetail)
-    when(states.answerable)(queue.acknowledge ~> effects.acknowledgeDetail)
-    when(s => s.polled)(faults.ackLoss ~> effects.ackLossDetail)
-    when(_ => true)(faults.crash ~> effects.crashDetail)
+    on(queue.enqueue)(in(nowhere) ~> effects.enqueueDetail)
+    on(queue.addActivityTask)(in(history) ~> effects.invokeDetail)
+    on(queue.persistTask)(in(invoked) ~> effects.persistDetail)
+    on(queue.syncMatch)(in(invoked) ~> effects.reserveDetail)
+    on(queue.deliver)(where(states.deliverable) ~> effects.deliverDetail)
+    on(queue.acknowledge)(where(states.answerable) ~> effects.acknowledgeDetail)
+    on(fault.ackLoss)(where(_.polled) ~> effects.ackLossDetail)
+    on(fault.crash)(always ~> effects.crashDetail)
 
   /** What a provider promises. */
-  object properties extends Section:
+  object properties:
     /**
      * The laws of the provider `m`: a delivery hands the message out, and a message a custodian holds
      * stays held until it is acknowledged. Each takes its name explicitly, so every provider's
@@ -177,13 +178,12 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
     )
 
   /** The crash cuts: one crash at each point of the route, and the delivery that must still follow it. */
-  object queries extends Section:
+  object queries:
     /**
      * One crash after the invocation, after the sync match, after persistence and after a delivery,
-     * declared on the provider `m`. After the acknowledgment nothing is left to deliver. `anyTotal`
-     * is the static combination count of its free `any` Query.
+     * declared on the provider `m`. After the acknowledgment nothing is left to deliver.
      */
-    def providerQueries(m: Machine[State, QueueOutcome, QueueFact], anyTotal: Int) =
+    def providerQueries(m: Machine[State, QueueOutcome, QueueFact]) =
       val laws = properties.queueLaws(m)
       Vector(
         query(s"${m.name}.crashAfterInvocation") find laws.delivers in
@@ -191,31 +191,31 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
             .actions(
               queue.enqueue,
               queue.addActivityTask,
-              faults.crash,
+              fault.crash,
               queue.addActivityTask,
               queue.persistTask,
               queue.deliver
-            ) limits seven total 180,
+            ) limits seven,
         query(s"${m.name}.crashAfterSyncMatch") find laws.delivers in
           m.scenario("crashAfterSyncMatch")
             .actions(
               queue.enqueue,
               queue.addActivityTask,
               queue.syncMatch,
-              faults.crash,
+              fault.crash,
               queue.addActivityTask,
               queue.syncMatch,
               queue.deliver
-            ) limits seven total 210,
+            ) limits seven,
         query(s"${m.name}.crashAfterPersistence") find laws.delivers in
           m.scenario("crashAfterPersistence")
             .actions(
               queue.enqueue,
               queue.addActivityTask,
               queue.persistTask,
-              faults.crash,
+              fault.crash,
               queue.deliver
-            ) limits seven total 150,
+            ) limits seven,
         query(s"${m.name}.crashAfterDelivery") find laws.delivers in
           m.scenario("crashAfterDelivery")
             .actions(
@@ -223,9 +223,9 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
               queue.addActivityTask,
               queue.persistTask,
               queue.deliver,
-              faults.crash,
+              fault.crash,
               queue.deliver
-            ) limits seven total 180,
+            ) limits seven,
         query(s"${m.name}.crashAfterAcknowledgment") verify laws.committedStays in
           m.scenario("crashAfterAcknowledgment")
             .actions(
@@ -234,13 +234,12 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
               queue.persistTask,
               queue.deliver,
               queue.acknowledge,
-              faults.crash
-            ) limits seven total 180,
-        query verify laws.committedStays in m.scenario("any").free limits twelve total anyTotal
+              fault.crash
+            ) limits seven,
+        query verify laws.committedStays in m.scenario("any").free limits twelve
       )
 
-    // Eight bound actions for every provider but the lossy one, which binds storage loss as a ninth.
-    val matchingQueueQueries = providerQueries(MatchingQueue, anyTotal = 2880)
+    val matchingQueueQueries = providerQueries(MatchingQueue)
 
 /**
  * The detailed provider with the storage-loss fault, which only its assumption allows. It refines
@@ -249,27 +248,27 @@ object MatchingQueue extends Machine[QueueDetail, QueueOutcome, QueueFact], Fail
 object LossyMatchingQueue
     extends Derived(
       MatchingQueue
-        .extend(when(MatchingQueue.states.held) {
-          faults.storageLoss ~> MatchingQueue.effects.storageLossDetail
+        .extend(on(fault.storageLoss) {
+          where(MatchingQueue.states.held) ~> MatchingQueue.effects.storageLossDetail
         })
         .refining(DispatchQueueUnderStorageLoss)(MatchingQueue.refinement.toProduct)
         .assuming(storageLossAssumed)
     ),
       FailureModel:
-  object properties extends Section:
+  object properties:
     /**
      * Storage loss drops a committed message, and the queue records that it did. Only the lossy
      * provider binds the loss, so this is its own Property, not a law of every provider.
      */
     val storageLossDrops =
-      property when faults.storageLoss holds { after =>
+      property when fault.storageLoss holds { after =>
         after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost)
       }
 
   /** The crash cuts of every provider, and the storage loss. */
-  object queries extends Section:
+  object queries:
     val lossyMatchingQueueQueries =
-      MatchingQueue.queries.providerQueries(LossyMatchingQueue, anyTotal = 3240)
+      MatchingQueue.queries.providerQueries(LossyMatchingQueue)
 
     val storageLossQuery =
       query("lossyMatchingQueue.storageLoss") find properties.storageLossDrops in
@@ -277,20 +276,20 @@ object LossyMatchingQueue
           queue.enqueue,
           queue.addActivityTask,
           queue.persistTask,
-          faults.storageLoss
-        ) limits seven total 120
+          fault.storageLoss
+        ) limits seven
 
 /** A crash that loses the message history dropped on invoking AddActivityTask. */
 object ForgetfulQueue
-    extends Derived(MatchingQueue.rebind(faults.crash ~> MatchingQueue.effects.forgetfulCrash)),
+    extends Derived(MatchingQueue.rebind(fault.crash ~> MatchingQueue.effects.forgetfulCrash)),
       NegativeControl:
-  object queries extends Section:
+  object queries:
     val forgetfulQueueQueries =
-      MatchingQueue.queries.providerQueries(ForgetfulQueue, anyTotal = 2880)
+      MatchingQueue.queries.providerQueries(ForgetfulQueue)
 
 /** A crash that wipes the tasks matching persisted. */
 object VolatileQueue
-    extends Derived(MatchingQueue.rebind(faults.crash ~> MatchingQueue.effects.volatileCrash)),
+    extends Derived(MatchingQueue.rebind(fault.crash ~> MatchingQueue.effects.volatileCrash)),
       NegativeControl:
-  object queries extends Section:
-    val volatileQueueQueries = MatchingQueue.queries.providerQueries(VolatileQueue, anyTotal = 2880)
+  object queries:
+    val volatileQueueQueries = MatchingQueue.queries.providerQueries(VolatileQueue)

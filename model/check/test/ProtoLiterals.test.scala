@@ -35,9 +35,7 @@ class ProtoLiteralsSuite extends munit.FunSuite:
 
   test("Model identifiers, payload map data and comments are not proto names"):
     val source =
-      """val family = Family("temporal.activity.standalone")
-        |val nested = Family("temporal.activity.some_state")
-        |val role = Role("temporal.workflow-service", RoleKind.endpoint)
+      """val role = Role("temporal.workflow-service", RoleKind.endpoint)
         |val dottedRole = Role("temporal.workflow_service.v1", RoleKind.endpoint)
         |val evidenceId = "temporal.activity.some_state.evidence.run"
         |val evidence = Evidence.read(evidenceId, records = "scheduled")

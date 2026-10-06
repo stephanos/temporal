@@ -3858,16 +3858,17 @@ func (x *ListValue) GetItems() []*Value {
 	return nil
 }
 
-// An action: a party's side effect or a timer the system owns, with its finite inputs.
+// An action: an actor's side effect or a timer the system owns, with its finite inputs.
 // The system owns its other steps too: an internal step, and a channel's delivery or loss.
 type Action struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key the IR names it by: the front end's qualified name.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// The name its classes are keyed by.
-	Name     string     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Position *Position  `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
-	Party    string     `protobuf:"bytes,4,opt,name=party,proto3" json:"party,omitempty"`
+	Name     string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Position *Position `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
+	// The actor who takes it, by name: `system` for a timer and the system's other steps.
+	Actor    string     `protobuf:"bytes,4,opt,name=actor,proto3" json:"actor,omitempty"`
 	Timer    bool       `protobuf:"varint,5,opt,name=timer,proto3" json:"timer,omitempty"`
 	Inputs   []*Param   `protobuf:"bytes,6,rep,name=inputs,proto3" json:"inputs,omitempty"`
 	On       string     `protobuf:"bytes,7,opt,name=on,proto3" json:"on,omitempty"`
@@ -3936,9 +3937,9 @@ func (x *Action) GetPosition() *Position {
 	return nil
 }
 
-func (x *Action) GetParty() string {
+func (x *Action) GetActor() string {
 	if x != nil {
-		return x.Party
+		return x.Actor
 	}
 	return ""
 }
@@ -4070,13 +4071,15 @@ func (x *Example) GetExample() string {
 // states it may end in, the evidence for each fact, and the machine it refines.
 // It also names the monitors that watch it and the assumptions checking it makes.
 type Machine struct {
-	state       protoimpl.MessageState `protogen:"open.v1"`
-	Family      string                 `protobuf:"bytes,1,opt,name=family,proto3" json:"family,omitempty"`
-	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Position    *Position              `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
-	Entity      string                 `protobuf:"bytes,4,opt,name=entity,proto3" json:"entity,omitempty"`
-	StateType   string                 `protobuf:"bytes,5,opt,name=state_type,json=stateType,proto3" json:"state_type,omitempty"`
-	OutcomeType string                 `protobuf:"bytes,6,opt,name=outcome_type,json=outcomeType,proto3" json:"outcome_type,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The root the IDs derived from it hang off (`<family>.query.<name>`, its target, its claims):
+	// the front end's name of the package that declares it.
+	Family      string    `protobuf:"bytes,1,opt,name=family,proto3" json:"family,omitempty"`
+	Name        string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Position    *Position `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
+	Entity      string    `protobuf:"bytes,4,opt,name=entity,proto3" json:"entity,omitempty"`
+	StateType   string    `protobuf:"bytes,5,opt,name=state_type,json=stateType,proto3" json:"state_type,omitempty"`
+	OutcomeType string    `protobuf:"bytes,6,opt,name=outcome_type,json=outcomeType,proto3" json:"outcome_type,omitempty"`
 	// Empty when the machine records no facts.
 	FactType string  `protobuf:"bytes,7,opt,name=fact_type,json=factType,proto3" json:"fact_type,omitempty"`
 	Starts   []*Expr `protobuf:"bytes,8,rep,name=starts,proto3" json:"starts,omitempty"`
@@ -4775,13 +4778,14 @@ func (x *Hole) GetPosition() *Position {
 
 // A composition: one Model from machines of different entities, a state with one field per member.
 type Composition struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	Family    string                 `protobuf:"bytes,1,opt,name=family,proto3" json:"family,omitempty"`
-	Name      string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Position  *Position              `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
-	StateType string                 `protobuf:"bytes,4,opt,name=state_type,json=stateType,proto3" json:"state_type,omitempty"`
-	Members   []*Member              `protobuf:"bytes,5,rep,name=members,proto3" json:"members,omitempty"`
-	Syncs     []*Sync                `protobuf:"bytes,6,rep,name=syncs,proto3" json:"syncs,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// As a machine's: the front end's name of the package that declares it.
+	Family    string    `protobuf:"bytes,1,opt,name=family,proto3" json:"family,omitempty"`
+	Name      string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Position  *Position `protobuf:"bytes,3,opt,name=position,proto3" json:"position,omitempty"`
+	StateType string    `protobuf:"bytes,4,opt,name=state_type,json=stateType,proto3" json:"state_type,omitempty"`
+	Members   []*Member `protobuf:"bytes,5,rep,name=members,proto3" json:"members,omitempty"`
+	Syncs     []*Sync   `protobuf:"bytes,6,rep,name=syncs,proto3" json:"syncs,omitempty"`
 	// A predicate over the composed state.
 	Ends          *Expr `protobuf:"bytes,7,opt,name=ends,proto3" json:"ends,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -10561,7 +10565,7 @@ const file_temporal_server_api_umpire_v1_ir_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12C\n" +
 	"\bposition\x18\x03 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12\x14\n" +
-	"\x05party\x18\x04 \x01(\tR\x05party\x12\x14\n" +
+	"\x05actor\x18\x04 \x01(\tR\x05actor\x12\x14\n" +
 	"\x05timer\x18\x05 \x01(\bR\x05timer\x12<\n" +
 	"\x06inputs\x18\x06 \x03(\v2$.temporal.server.api.umpire.v1.ParamR\x06inputs\x12\x0e\n" +
 	"\x02on\x18\a \x01(\tR\x02on\x12\x18\n" +

@@ -192,8 +192,48 @@ private[irgen] trait Capabilities:
         "umpire.Capabilities$package"
       ) || sym.maybeOwner.fullName == "umpire.Declares")) ||
       (sym.maybeOwner.fullName == "umpire.Capabilities" &&
-        Set("except", "overriding", "claim")(sym.name))
+        Set("except", "overriding", "claim")(sym.name)) ||
+      (sym.maybeOwner.fullName == "umpire.Implements" && sym.name == "claim")
     case _ => false
+
+  /** Whether a symbol names an `implements` section, `object implements extends Implements(...)`. */
+  def implementsObject(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.typeRef.derivesFrom(implementsClass)
+
+  private lazy val implementsClass = Symbol.requiredClass("umpire.Implements")
+
+  /**
+   * An `implements` section, `object implements extends Implements(limits = three)(...)`: the
+   * capability declaration of the machine or composition object it sits in, with the waivers its
+   * body states, `except(law, because = ...)` and `overriding(law -> def, because = ...)`.
+   */
+  def implementsOf(sym: Symbol, at: Tree): Decl =
+    val cls = moduleClassOf(sym)
+    val c = objectBody(cls, at)
+    val owner = cls.maybeOwner
+    if !objectForm(owner) || cls.name.stripSuffix("$") != "implements" then
+      fail(
+        c,
+        s"${cls.name.stripSuffix("$")} extends Implements outside a machine or composition " +
+          "object: a machine's capabilities are its `object implements`"
+      )
+    val (limits, items, catalog) = parentArguments(c) match
+      case List(_, List(limits), items, List(catalog)) => (limits, items.flatMap(varargs), catalog)
+      case _ => fail(c, "implements is `object implements extends Implements(limits = ...)(...)`")
+    val waivers = statements(c).flatMap {
+      case _: Definition => None
+      case t: Term       =>
+        waiverOf(t).orElse(
+          fail(
+            t,
+            s"not a waiver: ${t.show}; implements states `except(law, because = ...)` and " +
+              "`overriding(law -> def, because = ...)` alone"
+          )
+        )
+      case other => fail(other, s"not a waiver: ${other.show}")
+    }
+    declare(This(owner), limits, items, catalog, waivers, Map.empty)
 
   private def plain(t: Term): Term = t match
     case Typed(e, _)        => plain(e)
@@ -248,6 +288,20 @@ private[irgen] trait Capabilities:
           "capabilities are declared as `capabilities(m, limits)(capability, ...)` with a given " +
             s"Catalog, not ${base.show}"
         )
+    declare(m, limits, items, catalogTerm, waivers, env)
+
+  /**
+   * The declaration of the capabilities `items` of the machine or composition `m`, whose laws'
+   * Queries run under `limits`, with the laws `catalogTerm` brings and the waivers stated.
+   */
+  private def declare(
+      m: Term,
+      limits: Term,
+      items: List[Term],
+      catalogTerm: Term,
+      waivers: List[Waived],
+      env: Map[Symbol, Decl]
+  ): Decl =
     val machine = modelName(fold(plain(m), env), m)
     val state = machineNamed(machine)
       .map(_.stateType)
@@ -348,9 +402,15 @@ private[irgen] trait Capabilities:
 
   /** The waivers chained onto a declaration, in the order written, and the declaration under them. */
   private def peel(t: Term, waived: List[Waived]): (Term, List[Waived]) = arguments(plain(t)) match
-    case Apply(Select(base, "except"), List(law, because)) if capable(t) =>
-      peel(base, Waived("except", law, None, because) :: waived)
-    case Apply(Select(base, "overriding"), List(pair, because)) if capable(t) =>
+    case Apply(Select(base, "except" | "overriding"), List(_, _)) if capable(t) =>
+      peel(base, waiverOf(t).get :: waived)
+    case other => (other, waived)
+
+  /** A waiver, `except(law, because)` or `overriding(law -> def, because)`, as written. */
+  private def waiverOf(t: Term): Option[Waived] = arguments(plain(t)) match
+    case w @ Apply(_, List(law, because)) if w.symbol.name == "except" =>
+      Some(Waived("except", law, None, because))
+    case w @ Apply(_, List(pair, because)) if w.symbol.name == "overriding" =>
       val (law, by) = plain(pair) match
         case Apply(TypeApply(Select(arrow, "->"), _), List(by)) =>
           plain(arrow) match
@@ -358,8 +418,8 @@ private[irgen] trait Capabilities:
             case other => fail(other, s"overriding names `law -> def`, not ${pair.show}")
         case Apply(_, List(law, by)) => (law, by)
         case other => fail(other, s"overriding names `law -> def`, not ${pair.show}")
-      peel(base, Waived("overriding", law, Some(by), because) :: waived)
-    case other => (other, waived)
+      Some(Waived("overriding", law, Some(by), because))
+    case _ => None
 
   /** A capability, from its constructor's call: its kind, its fields' arguments and its type arguments. */
   private def declaredOf(t: Term): Declared =
@@ -705,6 +765,27 @@ private[irgen] trait Capabilities:
   private def bindingText(a: Term): String = forwardedDef(a) match
     case Some(sym) => functionName(sym)
     case None      => plain(a).show
+
+  /**
+   * The total a Query that asserts none takes: its static combination count, which Go holds it to as
+   * it holds an author's. A Query whose states the lifter cannot count, such as one of a state that
+   * holds a channel, asserts its own.
+   */
+  def countedTotal(q: ir.Query): Long =
+    val at = q.getPosition
+    val scenario = scenarios.getOrElse(
+      (q.getScenario.machine, q.getScenario.name),
+      throw LiftError(s"${at.file}:${at.line}", s"Query ${q.name} has no lifted Scenario to count")
+    )
+    try staticTotal(q.getScenario.machine, scenario, q.getLimits, Literal(UnitConstant()))
+    catch
+      case e: LiftError =>
+        throw LiftError(
+          s"${at.file}:${at.line}",
+          s"Query ${q.name} asserts no total, and the lifter cannot count it (${e.message}): " +
+            "write `.total(n)` with n its static combination count, which model/README.md shows " +
+            "how to compute"
+        )
 
   /**
    * A Query's static combination count, as model/SEMANTICS.md (Query totals) and Go's `Validate`

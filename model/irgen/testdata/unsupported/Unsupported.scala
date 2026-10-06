@@ -4,8 +4,6 @@ package temporal.fixture
 
 import umpire.*
 
-given Family = Family("temporal.fixture")
-
 enum Phase derives Finite:
   case idle, done
 
@@ -14,7 +12,7 @@ final case class State(phase: Phase) derives Finite
 enum Outcome derives Finite:
   case accepted
 
-val go = action(Party("fixture"))
+val go = action(Actor("fixture"))
 
 def goStep(s: State): List[Step[State, Outcome, Nothing]] =
   var out = List.empty[Step[State, Outcome, Nothing]]

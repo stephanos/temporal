@@ -6,25 +6,23 @@ package fixture.features.misnamed
 
 import umpire.*
 
-given Family = Family("fixture.misnamed")
-
 final case class Lamp(lit: Boolean) derives Finite
 
 enum Outcome derives Finite:
   case accepted
 
-val flip = action(Party("fixture"))
+val flip = action(Actor("fixture"))
 
 object Switch extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(lamp: State) = true
 
-  object effects extends Section:
+  object effects:
     def flipped(s: Lamp): List[Step[Lamp, Outcome, Nothing]] =
       List(Step(Outcome.accepted, s.copy(lit = !s.lit)))
 
   object rules extends Rules:
-    when(_ => true)(flip ~> effects.flipped)
+    on(flip)(always ~> effects.flipped)
 
 def loose: Property[Lamp] = Switch.property holds (after => after.state.lit)
 

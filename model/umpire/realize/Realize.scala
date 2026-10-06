@@ -24,6 +24,15 @@ import com.google.protobuf.ByteString
 import umpire.{Channel, ClassRef, Machine, Monitor}
 
 /**
+ * The root of the Definition IDs a realization declares, such as its evidence's,
+ * `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR
+ * generator writes in its place wherever a realization's declarations reach it, through the
+ * functions of a realization kit shared by several features too. Nobody writes it: a declaration's
+ * package is where its IDs come from. Nothing reads it at run time, where it is empty.
+ */
+val family: String = ""
+
+/**
  * How the find Queries of one machine run against a system. Declared with named arguments and no
  * `name`, it is named after the `val` that declares it.
  */

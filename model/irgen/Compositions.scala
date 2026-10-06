@@ -141,7 +141,7 @@ private[irgen] trait Compositions:
   private def derivedComposition(
       base: Term,
       member: Term,
-      family: Term,
+      family: String,
       name: String,
       at: Tree,
       walk: Term => ir.Composition
@@ -149,7 +149,7 @@ private[irgen] trait Compositions:
     val c = base match
       case r: Ref => compositionOf(resolveSymbol(r), r)
       case chain  => walk(chain)
-    withMember(c, member).copy(family = constString(family), name = name, position = Some(pos(at)))
+    withMember(c, member).copy(family = family, name = name, position = Some(pos(at)))
 
   /** The name of a sync written without one: its first member's action's. */
   private def syncName(first: Term): String =
@@ -204,7 +204,7 @@ private[irgen] trait Compositions:
     val members = statements(c).collect { case d: Definition => d }
     val end = members.collectFirst { case d: DefDef if d.name == "end" => d }
     val syncs = sectionOf(c, "syncs")
-    parentArguments(c).flatten.filterNot(a => isNamed(a.tpe, "umpire.Family")) match
+    parentArguments(c).flatten match
       case List(derivation) if isComposition(derivation.tpe) =>
         for d <- end.orElse(syncs) do
           fail(
@@ -213,13 +213,16 @@ private[irgen] trait Compositions:
               "declares neither"
           )
         unwrapped(derivation) match
-          case Apply(Apply(Select(inner, "withMember"), List(member)), List(family)) =>
+          case Apply(Select(inner, "withMember"), List(member)) =>
             def walk(t: Term): ir.Composition = t match
-              case Apply(Apply(Select(i, "withMember"), List(m)), List(f)) =>
-                derivedComposition(i, m, f, name, t, walk)
+              case Apply(Select(i, "withMember"), List(m)) =>
+                derivedComposition(i, m, familyOf(cls), name, t, walk)
               case r: Ref => compositionOf(resolveSymbol(r), r)
               case other  => fail(other, s"not a composition derivation: ${other.show}")
-            checkedSyncs(derivedComposition(inner, member, family, name, derivation, walk), c)
+            checkedSyncs(
+              derivedComposition(inner, member, familyOf(cls), name, derivation, walk),
+              c
+            )
           case other =>
             fail(
               other,
@@ -231,11 +234,10 @@ private[irgen] trait Compositions:
           .typeArgs
           .headOption
           .getOrElse(fail(c, s"$name is a composition of one state type, `Composition[S]`"))
-        val family = familyArgument(c).getOrElse(fail(c, s"$name has no family"))
         val selectors = parentArguments(c).headOption.getOrElse(Nil) match
           case List(items) => items
           case _ => fail(c, s"$name composes its members, `Composition[S](_.a -> m, ...)`")
-        val declared = declaredComposition(s, constString(family), name, selectors, selectors, c)
+        val declared = declaredComposition(s, familyOf(cls), name, selectors, selectors, c)
         val ended = end match
           case Some(d) => declared.withEnds(endOf(d))
           case None    =>

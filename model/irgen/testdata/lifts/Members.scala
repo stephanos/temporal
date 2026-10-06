@@ -9,11 +9,6 @@
 package fixture.members
 
 import umpire.*
-import MembersFamily.given
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object MembersFamily:
-  given family: Family = Family("fixture.members")
 
 // ### Separators in composed keys, and actions spelled alike in two members
 
@@ -28,16 +23,16 @@ final case class Switch(on: Boolean) derives Finite
 /** The two switches' state, named apart from the composition object `Switches`. */
 final case class SwitchesState(left_side: Switch, right_side: Switch)
 
-val turnOn = action("turn-on", Party("fixture")).input[Level]("level")
+val turnOn = action("turn-on", Actor("fixture")).input[Level]("level")
 
 /** The left switch's actions, spelled as the right switch's are. */
 object Left:
-  val tap = action(Party("fixture"))
-  val flick = action(Party("fixture"))
+  val tap = action(Actor("fixture"))
+  val flick = action(Actor("fixture"))
 
 object Right:
-  val tap = action(Party("fixture"))
-  val flick = action(Party("fixture"))
+  val tap = action(Actor("fixture"))
+  val flick = action(Actor("fixture"))
 
 def toggle(s: Switch): List[Step[Switch, Switched, Nothing]] = List(
   Step(Switched.accepted, Switch(!s.on))

@@ -13,8 +13,8 @@ object UrnProduct extends Machine[Urn, Outcome, Nothing]:
   val init = Urn(full = false)
   def end(s: State) = true
 
-  object effects extends Section:
+  object effects:
     def filled(s: State): List[UrnStep] = enter(s.copy(full = true))
 
   object rules extends Rules:
-    when(!_.full)(brewer.fill ~> effects.filled)
+    on(brewer.fill)(where(!_.full) ~> effects.filled)

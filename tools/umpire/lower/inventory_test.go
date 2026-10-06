@@ -215,11 +215,11 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 		"command workflow/start-nexus-operation [schedule-unset-expires-unset]": InCase,
 		"command workflow/start-nexus-operation [schedule-unset-unset-unset]":   OffPath,
 		"command workflow/await-nexus-operation":                                InCase,
-		"evidence temporal.nexus.caller.evidence.scheduled":                     InCase,
-		"evidence temporal.nexus.caller.evidence.timedOut":                      InCase,
+		"evidence temporal.features.nexuscaller.evidence.scheduled":             InCase,
+		"evidence temporal.features.nexuscaller.evidence.timedOut":              InCase,
 		// The completed event is exhaustive, so the Case carries it though the path records none.
-		"evidence temporal.nexus.caller.evidence.completed":       InCase,
-		"evidence temporal.nexus.caller.evidence.pendingAttempts": OffPath,
+		"evidence temporal.features.nexuscaller.evidence.completed":       InCase,
+		"evidence temporal.features.nexuscaller.evidence.pendingAttempts": OffPath,
 		"realization name": Names,
 	} {
 		require.Equal(t, want, dispositions[id], id)
@@ -286,13 +286,13 @@ func TestAnInventoryThatDoesNotCloseIsAnError(t *testing.T) {
 		{"a learned value in no slot", func(c *testpilotspb.Case) { c.GetProgram().Slots = nil },
 			"learned completion-authority of realization asyncNexus is in no part of the Case"},
 		{"another producer", func(c *testpilotspb.Case) { c.GetProvenance().ProducerId = "someone.else" },
-			`realization producer of realization asyncNexus is "temporal.nexus.caller.testpilot", and the Case's provenance.producer_id carries "someone.else"`},
+			`realization producer of realization asyncNexus is "temporal.features.nexuscaller.testpilot", and the Case's provenance.producer_id carries "someone.else"`},
 		{"another producer version", func(c *testpilotspb.Case) { c.GetProvenance().ProducerVersion = "2" },
 			`realization producer_version of realization asyncNexus is "1", and the Case's provenance.producer_version carries "2"`},
 		{"another target", func(c *testpilotspb.Case) { c.GetProvenance().GetDefinitions()[0].DefinitionId = "elsewhere" },
-			`realization machine of realization asyncNexus is "temporal.nexus.caller.target.nexusProtocol", and the Case's provenance.definitions carries "elsewhere"`},
+			`realization machine of realization asyncNexus is "temporal.features.nexuscaller.system.target.nexusProtocol", and the Case's provenance.definitions carries "elsewhere"`},
 		{"no target", func(c *testpilotspb.Case) { c.GetProvenance().Definitions = c.GetProvenance().GetDefinitions()[1:] },
-			`realization machine of realization asyncNexus is "temporal.nexus.caller.target.nexusProtocol", and the Case's provenance.definitions carries ""`},
+			`realization machine of realization asyncNexus is "temporal.features.nexuscaller.system.target.nexusProtocol", and the Case's provenance.definitions carries ""`},
 		{"no cleanup", func(c *testpilotspb.Case) { c.GetProgram().Cleanup = nil },
 			`realization cleanup of realization asyncNexus is "cleanup", and the Case's program.cleanup carries ""`},
 		{"another projection", func(c *testpilotspb.Case) { c.GetContract().GetCorrelated().ProjectionId = "elsewhere" },
@@ -314,7 +314,7 @@ func TestAnInventoryThatDoesNotCloseIsAnError(t *testing.T) {
 		{"an exhaustive kind with no closing read", func(c *testpilotspb.Case) {
 			controller := c.GetProgram().GetEntrypoints()[0]
 			controller.Instructions = controller.GetInstructions()[:len(controller.GetInstructions())-1]
-		}, "evidence temporal.nexus.caller.evidence.started is exhaustive, and the Case carries no controller/history to close it"},
+		}, "evidence temporal.features.nexuscaller.evidence.started is exhaustive, and the Case carries no controller/history to close it"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			changed := proto.CloneOf(produced)
@@ -381,7 +381,7 @@ func TestTheRequiredSettingsAreTheProgramsAsDeclared(t *testing.T) {
 // it is recorded, and the fields it keeps. The Case here is produced first and the declaration changed
 // after, so each change is one the Case does not carry.
 func TestAKindOfEvidenceTheCaseDoesNotCarryAsDeclaredDoesNotClose(t *testing.T) {
-	const completed = "evidence temporal.nexus.caller.evidence.completed"
+	const completed = "evidence temporal.features.nexuscaller.evidence.completed"
 	for name, test := range map[string]struct {
 		change func(e *umpirespb.Evidence)
 		want   string
@@ -406,7 +406,7 @@ func TestAKindOfEvidenceTheCaseDoesNotCarryAsDeclaredDoesNotClose(t *testing.T) 
 		t.Run(name, func(t *testing.T) {
 			l, produced := ready(t, loaded(t, "nexus-caller"), "syncCompletion")
 			for _, e := range l.a.r.GetEvidence() {
-				if e.GetId() == "temporal.nexus.caller.evidence.completed" {
+				if e.GetId() == "temporal.features.nexuscaller.evidence.completed" {
 					test.change(e)
 				}
 			}

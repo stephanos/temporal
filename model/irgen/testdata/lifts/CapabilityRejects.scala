@@ -12,8 +12,6 @@ import temporal.capabilities.{given, *}
 import fixture.capabilities.{kill, poll, three, Answer, Job, Jobs, JobState, Note, Phase}
 import fixture.capabilities.{pause, resume, Pair, PairState}
 
-given Family = Family("fixture.capabilityrejects")
-
 /** Answers like the law, with its parameters in another order. */
 def reordered[S, P](m: Declares[S])(
     terminal: P => Boolean,

@@ -8,7 +8,7 @@ import (
 	"slices"
 )
 
-// Family is the root a model's Definition IDs hang off, such as "temporal.nexus.caller". Lean
+// Family is the root a model's Definition IDs hang off, such as "temporal.features.nexuscaller.system". Lean
 // derives it from the namespace below Temporal.Feature; Go packages name it explicitly.
 type Family string
 

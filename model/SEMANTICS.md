@@ -166,15 +166,18 @@ reader's table (`tools/umpire/model`, `Table`) over the derived keys.
 
 The IR binds each action to one step function; a Model writes when it fires and what it does
 apart, and the IR generator lowers the two to that function (`model/umpire/Syntax.scala`, `Rules`).
-A machine object's `rules` lists rules under headings: `when(g)` fires while the guard `g` of the
-state holds, and `in(p1, …)` while the rules' phase projection, `Rules(_.phase)`, is one of the
-phases listed. A rule names a whole action, `a ~> e`, or one class of it, `a(v) ~> e`, and an effect
-`e` of the machine's `effects`, which says what happens and never whether: it gives at least one
-step. `disabled(a)` binds an action no state enables.
+A machine object's `rules` holds one block per action, `on(a) { … }`, or per class of one,
+`on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`: the
+case `in(p1, …)` holds while the rules' phase projection, `Rules(_.phase)`, is one of the phases
+listed, `in(set)` while it is in the named set `set`, `where(g)` while the guard `g` of the state
+holds, `in(…).where(g)` while both do and `always` in every state; `e` is an effect of the machine's
+`effects`, which says what happens and never whether: it gives at least one step. `disabled(a)`
+binds an action no state enables.
 
 The rules of one action lower, in the order written, to the step function
 `<machine>.rules.<action>`: `if g1(s) then e1(s, i) else if g2(s) then e2(s, i) else Nil`, where
-`gk` is the k-th rule's guard (for `in`, `List(p1, …).contains(projection(s))`). Where a rule fires
+`gk` is the k-th case's guard (for `in`, `List(p1, …).contains(projection(s))`; for `in(set)`,
+`set(projection(s))`; for `.where(g)`, the case's guard `&&` `g(s)`; for `always`, `true`). Where a rule fires
 one class, the function first matches the inputs, one case per class in catalog order, and tries
 there the rules that fire that class, so the state alone chooses among them. `disabled(a)` lowers to
 a function that gives `Nil` for every state. The table derived from the lowered function is the one
@@ -189,7 +192,7 @@ each result with `choose` ([Named choices](#named-choices)), never two rules. Be
 disjoint, their order changes no row: it fixes only the order of the arms of the lowered function.
 
 A derivation rebinds rules in its source's place: `rebind(a ~> e)` keeps the guards (and classes) of
-`a`'s rules and gives each the effect `e`; `rebind(when(g) { a ~> e })` replaces them; `extend` adds
+`a`'s rules and gives each the effect `e`; `rebind(on(a) { where(g) ~> e })` replaces them; `extend` adds
 rules for actions its source does not bind. `rebind(a ~> e)` is refused where it would merge rules
 the source tells apart by their effects: two rules of the whole action, or two rules of one class,
 with different effects. Rules that each fire another class may differ, since `e` reads the class's
@@ -201,8 +204,8 @@ its step functions by hand, `object rules extends Bindings(a ~> f, …)`, which 
 A machine's table says what may happen, and the claims about it what must. A row is permission with
 fixed results: its class may happen in its state, with exactly the results the row lists, each named
 choice among them. A disabled pair is prohibition for an action the system takes, a timer or an
-internal action: the system does not take it there. For an action of a party, such as a caller's
-request, it is silence: the party can always try it, and the Model does not say what the system
+internal action: the system does not take it there. For an action of an actor, such as a caller's
+request, it is silence: the actor can always try it, and the Model does not say what the system
 answers, as a row with a rejecting outcome and its `because` would. A hole row is neither
 ([Holes](#holes)). Obligations are the claims: a same-step Property is a postcondition on the results
 of its class's rows, read only where a row exists; a progress claim says that a state must follow;
@@ -212,7 +215,7 @@ is a stutter (Machines 6), and does not by itself preserve obligation: a Propert
 machine holds of the refining one only where a verify Query reads it `through` the refinement, and a
 progress claim only where the refining machine declares its own. Lint (`tools/umpire/lint`) prints
 each machine's table in these terms and reports where they leave a gap as specification holes: a
-pair disabled by a wildcard arm, a party's request the Model is silent on, a result no claim
+pair disabled by a wildcard arm, an actor's request the Model is silent on, a result no claim
 constrains and a Property only a `find` asks.
 
 ### Named choices
@@ -404,8 +407,9 @@ family, the machine or composition it is declared on, and its name, which keeps 
 
 ## Query totals
 
-A Query's `total` is its author's count of its static combinations, which the reader recomputes and
-holds the author to. For a pinned Scenario it is the Scenario machine's whole state catalog times the
+A Query's `total` is the count of its static combinations. The gate computes it for every Query; an
+author may still write one, which is then an optional check the lifter and the reader hold to the
+computed count. For a pinned Scenario it is the Scenario machine's whole state catalog times the
 scheduled slots within the step limit, `min(steps, scheduled classes or keys)`. For a free Scenario it
 is the state catalog times the machine's finite action-class catalog, one class for every input
 assignment of every bound action (a composition's: each member's classes no sync takes plus every
@@ -416,8 +420,8 @@ and a named choice's alternatives are results of one class, not classes of their
 and capacity figure, not a prediction of the paths the search visits or the steps a Run executes. A
 step limit of 0, or an empty pinned schedule, counts 0. `total` is metadata: no table, fingerprint,
 Definition ID, answer, lowering, Case or exploration identity reads it. It is unset only in IR lifted
-before it existed; every Query a current Model declares states one, and an exploration candidate
-whose schedule differs from its source Scenario's is counted again.
+before it existed; every Query of current IR carries one, written or computed, and an exploration
+candidate whose schedule differs from its source Scenario's is counted again.
 
 ## Progress
 
@@ -552,7 +556,7 @@ through it is the same for every realization:
 2. A script becomes one entrypoint. A plain command is carried by every Case; a command with `when`
    by the Cases whose path takes one of those classes; a performance by the Cases whose path takes
    its class, once per step that takes it, in path order, a class taken again under its ordinal. A
-   step of the path that a party takes and neither a performance binds nor an activity script starts
+   step of the path that an actor takes and neither a performance binds nor an activity script starts
    with is refused; a step of the system needs no command.
 3. A command that reads a learned text runs only where every one it reads is bound.
 4. A step of the path is confirmed by one kind of evidence, and one piece of a kind confirms each

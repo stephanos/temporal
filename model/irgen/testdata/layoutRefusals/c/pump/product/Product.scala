@@ -7,8 +7,8 @@ object PumpProduct extends Machine[Pump, Outcome, Nothing]:
   val init = Pump(running = false)
   def end(s: State) = true
 
-  object effects extends Section:
+  object effects:
     def started(s: State): List[PumpStep] = enter(s.copy(running = true))
 
   object rules extends Rules:
-    when(!_.running)(operator.start ~> effects.started)
+    on(operator.start)(where(!_.running) ~> effects.started)

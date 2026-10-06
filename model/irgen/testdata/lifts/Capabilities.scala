@@ -16,11 +16,6 @@ import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
 import umpire.realize.{statusTable, Cleanup, Conformance, Disposition, PropertyOutcome}
 import umpire.realize.{Reason, RunExpectation}
 import temporal.capabilities.{given, *}
-import CapabilitiesFamily.given
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object CapabilitiesFamily:
-  given family: Family = Family("fixture.capabilities")
 
 enum Phase derives Finite:
   case queued, running, paused, done, killed
@@ -36,8 +31,8 @@ given Ok[Answer] = Ok(Answer.ok)
 enum Note derives Finite:
   case started, held, resumed, killedNote, cancelAsked, finished
 
-val client: Party = Party()
-val worker: Party = Party()
+object client extends Actor
+object worker extends Actor
 
 val poll = action(worker)
 val finish = action(worker)

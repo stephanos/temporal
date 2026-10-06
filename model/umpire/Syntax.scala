@@ -29,6 +29,12 @@ def enter[S, O, F](state: S, facts: F*)(using ok: Ok[O]): List[Step[S, O, F]] =
 def stay[S, O, F](s: S)(using ok: Ok[O]): List[Step[S, O, F]] =
   List(Step(ok.outcome, s))
 
+/**
+ * One step with the outcome `outcome` that keeps the state and records nothing, such as a request
+ * the machine refuses: `reject(Outcome.notFound, s)`. Core form: `List(Step(Outcome.notFound, s))`.
+ */
+def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(Step(outcome, s))
+
 /** No step: the action is disabled here. Core form: `Nil`. */
 val disabled: List[Nothing] = Nil
 
@@ -44,8 +50,13 @@ extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).co
  */
 extension (a: Boolean) infix def implies(b: => Boolean): Boolean = !a || b
 
-/** `after.records(fact)`: whether the step records the fact. Core form: `after.facts.contains(fact)`. */
-extension [S, O, F](step: Step[S, O, F]) def records(fact: F): Boolean = step.facts.contains(fact)
+/**
+ * `after.records(fact)`: whether the step records the fact, which is of the step's own fact type:
+ * a step's facts are covariant, so the evidence keeps a fact of another type from widening it.
+ * Core form: `after.facts.contains(fact)`.
+ */
+extension [S, O, F](step: Step[S, O, F])
+  def records[G](fact: G)(using G <:< F): Boolean = step.facts.contains(fact)
 
 /**
  * `after.records(_.member, fact)`: whether a composition's step records the fact of the member the
@@ -213,20 +224,103 @@ def stickyAcross[S, O, F](promise: (S, Step[S, O, F]) => Boolean): Monitor[S, O,
   )
 
 /**
+ * A case of an `on` block: where in the state space its action fires, `in(placed)`, `in(open)`,
+ * `where(g)`, `always` or `in(open).where(g)`, and through `~>` the effect it has there,
+ * `in(placed) ~> effects.ship`. Core form: the arm `if g(s) then e(s, inputs) else ...` of the
+ * action's step function.
+ */
+final class Case[S, O, F] private[umpire] (
+    private[umpire] val heading: String,
+    private[umpire] val guard: S => Boolean
+):
+  /**
+   * This case where `condition` also holds of the state, beyond its phases:
+   * `in(open).where(_.deadline == Timeout.expires)`. Core form: `g(s) && condition(s)`.
+   */
+  def where(condition: S => Boolean): Case[S, O, F] =
+    Case(s"$heading.where", s => guard(s) && condition(s))
+
+  /**
+   * The effect of the block's action where this case holds, read of the state alone:
+   * `in(placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
+   * function.
+   */
+  infix def ~>(effect: S => List[Step[S, O, F]])(using firing: Firing[S, O, F, ?]): Unit =
+    firing.bind(this, (s, _) => effect(s))
+
+  /**
+   * The effect of the block's action, of one input, where this case holds, read of the state and
+   * the input: `in(open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
+   */
+  @targetName("readsOne")
+  infix def ~>[A](effect: (S, A) => List[Step[S, O, F]])(using
+      firing: Firing[S, O, F, A *: EmptyTuple]
+  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
+
+  /**
+   * The effect of the block's action, of two inputs, read of the state and its inputs. Core form:
+   * the arm `if g(s) then e(s, x, y)`.
+   */
+  @targetName("readsTwo")
+  infix def ~>[A, B](effect: (S, A, B) => List[Step[S, O, F]])(using
+      firing: Firing[S, O, F, (A, B)]
+  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
+
+  /**
+   * The effect of the block's action, of three inputs, read of the state and its inputs:
+   * `in(unplaced) ~> effects.open`. Core form: the arm `if g(s) then open(s, x, y, z)`.
+   */
+  @targetName("readsThree")
+  infix def ~>[A, B, C](effect: (S, A, B, C) => List[Step[S, O, F]])(using
+      firing: Firing[S, O, F, (A, B, C)]
+  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
+
+/**
+ * The action, or the one class of it, an `on` block fires, and where its cases go, given to the
+ * block's cases. Core form: none of its own; it is the `action` of `action ~> stepFunction`, whose
+ * arms the block's cases are.
+ */
+final class Firing[S, O, F, I <: Tuple] private[umpire] (
+    private[umpire] val decl: ActionDecl,
+    private[umpire] val values: Option[List[Any]],
+    private[umpire] val action: String,
+    add: (Case[S, O, F], (S, List[Any]) => List[Step[S, O, F]]) => Unit
+):
+  private[umpire] def bind(c: Case[S, O, F], effect: (S, List[Any]) => List[Step[S, O, F]]): Unit =
+    add(c, effect)
+
+/**
+ * A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
+ * Core form: `if condition(s) then e(s) else ...`.
+ */
+def where[S, O, F](using Firing[S, O, F, ?])(condition: S => Boolean): Case[S, O, F] =
+  Case("where", condition)
+
+/**
+ * A case that holds in every state: `always ~> effects.keep`. Core form:
+ * `if true then e(s) else ...`.
+ */
+def always[S, O, F](using Firing[S, O, F, ?]): Case[S, O, F] = Case("always", _ => true)
+
+/**
  * When each action of a machine fires, written as the machine object's `object rules extends
- * Rules`, or `Rules(_.phase)` where its rules name phases: one rule per line under a heading,
- * `in(placed) { clerk.ship ~> effects.send }`, and the actions no state enables,
- * `disabled(courier.strike)`. A rule fires a whole action, `buyer.change ~> effects.notFound`,
- * or one class of it, `buyer.change(Change.hold) ~> effects.hold`, whose effect then reads the
- * state alone. The rules of one action class hold in no common state: each rule is checked against
- * the earlier ones as it is declared, over every state of the `Finite` state type and every class,
- * and an overlap is refused naming the machine, the class, both rules and a state where both hold.
- * Core form: one step function per action, the rules of the action in order,
+ * Rules`, or `Rules(_.phase)` where its cases name phases: one block per action or action class,
+ * `on(clerk.ship) { in(placed) ~> effects.send }`, whose cases each say where the action fires,
+ * `in(...)` of phases or of a named set of them, `where(g)` of the state, `in(...).where(g)` of
+ * both or `always`, and what it does there, `~> effects.x`; and the actions no state enables,
+ * `disabled(courier.strike)`. A block fires a whole action, `on(buyer.change)`, or one class of it,
+ * `on(buyer.change(Change.hold))`, whose effects then read the state alone; an effect that takes
+ * arguments beyond the state binds them in place, `effects.timeOut(_, Deadline.close)`. Where no
+ * case holds, the action is disabled: there is no catch-all. The cases of one action class hold in
+ * no common state: each is checked against the earlier ones as it is declared, over every state of
+ * the `Finite` state type and every class, and an overlap is refused naming the machine, the class,
+ * both rules and a state where both hold. Core form: one step function per action, the cases of the
+ * action in order,
  * `action ~> ((s, i) => if g1(s) && c1(i) then e1(s, i) else if g2(s) then e2(s, i) else Nil)`, and
  * `action ~> (_ => Nil)` for an action no state enables.
  *
- * A rule's `~>` is `inline`, with an `inline` receiver: the one sanctioned exception to "no inline on
- * the author surface" (.plans/DSL_OPERATORS.md, rule 5). An action's runtime name is `""`, since the
+ * `on` is `inline`, with an `inline` action: the one sanctioned exception to "no inline on the
+ * author surface" (.plans/DSL_OPERATORS.md, rule 5). An action's runtime name is `""`, since the
  * lifter names it after its `val`, so `scala.compiletime.codeOf` names the action in an overlap
  * message. TASTy is pickled before inlining, so the lifter reads the unexpanded call, and it refuses
  * an expanded one loudly ("not a rule") rather than lift it.
@@ -237,47 +331,74 @@ abstract class Rules[S, O, F, P](using owner: Owner[S, O, F])(
   private val written = mutable.ArrayBuffer.empty[Rule[S, O, F]]
   private val never = mutable.ArrayBuffer.empty[ActionDecl]
   private val order = mutable.LinkedHashSet.empty[ActionDecl]
-  private var heading: Option[(String, S => Boolean)] = None // scalafix:ok DisableSyntax.var
+  private val blocks = mutable.ArrayBuffer.empty[(ActionDecl, Option[List[Any]])]
+  private var open: Option[String] = None // scalafix:ok DisableSyntax.var
 
-  private def under(name: String, guard: S => Boolean)(rules: => Unit): Unit =
-    require(heading.isEmpty, s"$name sits under ${heading.get._1}: a rule has one heading")
-    heading = Some(name -> guard)
-    try rules
-    finally heading = None
-
-  /** Registers a rule, refusing one that overlaps an earlier rule of its class. */
-  private[umpire] def bind(
+  /** Runs one block's cases, refusing a block in a block and a second block of one target. */
+  private[umpire] def block[I <: Tuple](
       decl: ActionDecl,
       values: Option[List[Any]],
+      code: String
+  )(cases: Firing[S, O, F, I] ?=> Unit): Unit =
+    val action = writtenAction(code)
+    require(open.isEmpty, s"on($action) sits in on(${open.get}): a block holds cases alone")
+    require(!never.contains(decl), s"$action is disabled and fired by a rule")
+    require(
+      !blocks.contains(decl -> values),
+      s"on($action) is written twice: an action, or a class of it, has one block"
+    )
+    blocks += decl -> values
+    open = Some(action)
+    val firing =
+      Firing[S, O, F, I](decl, values, action, (c, effect) => bind(decl, values, c, effect, code))
+    try cases(using firing)
+    finally open = None
+
+  /** Registers a rule, refusing one that overlaps an earlier rule of its class. */
+  private def bind(
+      decl: ActionDecl,
+      values: Option[List[Any]],
+      c: Case[S, O, F],
       effect: (S, List[Any]) => List[Step[S, O, F]],
       code: String
   ): Unit =
-    val (name, guard) = heading.getOrElse(
-      throw IllegalArgumentException(
-        s"${writtenAction(code)} is bound with no heading: write it under `when(...)` or `in(...)`"
-      )
-    )
-    require(!never.contains(decl), s"${writtenAction(code)} is disabled and bound by a rule")
-    val rule = Rule(written.size + 1, name, writtenAction(code), decl, values, guard, effect)
+    val rule = Rule(written.size + 1, c.heading, writtenAction(code), decl, values, c.guard, effect)
     for refused <- overlap(owner.machine.name, owner.machine.fs, written.toSeq, rule) do
       throw IllegalArgumentException(refused)
     written += rule
     order += decl
 
   /**
-   * The rules that fire while `guard` holds of the state. Core form: each rule's guard, `g(s)`, in
-   * the condition of its arm of the lowered step function, `if g(s) then e(s) else ...`.
+   * The cases of a whole action: `on(clerk.ship) { in(placed) ~> effects.send }`. Core form: the
+   * action's step function, whose arms are the cases in order.
    */
-  def when(guard: S => Boolean)(rules: => Unit): Unit = under("when", guard)(rules)
+  inline def on[I <: Tuple](inline a: Action[I])(cases: Firing[S, O, F, I] ?=> Unit): Unit =
+    block[I](a.decl, None, codeOf(a))(cases)
 
   /**
-   * The rules that fire in the phases listed, as the projection of `Rules(_.phase)` reads them; rules
-   * that declare no projection name no phase. Core form: `if List(p1, p2).contains(s.phase) then
-   * e(s) else ...`.
+   * The cases of one class of an action, whose effects read the state alone:
+   * `on(courier.report(Report.delivered)) { in(sent) ~> effects.deliver }`. Core form: the arms
+   * `if g(s) && result == Report.delivered then deliver(s)` of the action's step function.
    */
-  def in[Q](first: Q, rest: Q*)(rules: => Unit)(using PhasesOf[P, Q]): Unit =
+  inline def on(inline c: Class)(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
+    block[EmptyTuple](c.decl, Some(c.values), codeOf(c))(cases)
+
+  /**
+   * A case that holds in the phases listed, as the projection of `Rules(_.phase)` reads them; rules
+   * that declare no projection name no phase. Core form: `List(p1, p2).contains(s.phase)`.
+   */
+  def in[Q](first: Q, rest: Q*)(using PhasesOf[P, Q]): Case[S, O, F] =
     val phases = first +: rest
-    under(s"in(${phases.mkString(", ")})", s => phases.contains(phase(s)))(rules)
+    Case(s"in(${phases.mkString(", ")})", s => phases.contains(phase(s)))
+
+  /**
+   * A case that holds in a named set of phases, a predicate of the projection the machine's
+   * `states` declares: `in(states.terminal)`. Core form: `terminal(s.phase)`.
+   */
+  inline def in(inline set: P => Boolean): Case[S, O, F] = phases(set, codeOf(set))
+
+  private[umpire] def phases(set: P => Boolean, code: String): Case[S, O, F] =
+    Case(s"in(${code.trim})", s => set(phase(s)))
 
   /**
    * Actions no state enables, which the machine binds all the same, such as a courier's strike it does
@@ -293,75 +414,9 @@ abstract class Rules[S, O, F, P](using owner: Owner[S, O, F])(
       order += a.decl
 
   /**
-   * `phase.in(a, b)` in a guard, as outside the rules. Core form: `List(a, b).contains(phase)`.
+   * `phase.in(a, b)` in a condition, as outside the rules. Core form: `List(a, b).contains(phase)`.
    */
   extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
-
-  /**
-   * A rule of an action with no input: `timers.backoff ~> effects.retry`. Core form: the arm
-   * `if g(s) then retry(s)` of the action's step function.
-   */
-  extension (inline a: Action[EmptyTuple])
-    inline infix def ~>(effect: S => List[Step[S, O, F]]): Unit =
-      bind(a.decl, None, (s, _) => effect(s), codeOf(a))
-
-  /**
-   * A rule of every class of an action with one input, whose effect reads it, or reads the state
-   * alone: `buyer.change ~> effects.notFound`. Core form: the arm `if g(s) then e(s, c)` of the
-   * action's step function.
-   */
-  extension [A](inline a: Action[A *: EmptyTuple])
-    inline infix def ~>(effect: (S, A) => List[Step[S, O, F]]): Unit =
-      bind(a.decl, None, effectOf(a.decl, effect), codeOf(a))
-
-    /**
-     * A rule of every class of an action with one input whose effect reads the state alone.
-     * Core form: the arm `if g(s) then e(s)` of the action's step function.
-     */
-    @targetName("bindsOneState")
-    inline infix def ~>(effect: S => List[Step[S, O, F]]): Unit =
-      bind(a.decl, None, (s, _) => effect(s), codeOf(a))
-
-  /**
-   * A rule of every class of an action with two inputs. Core form: the arm `if g(s) then e(s, x, y)`
-   * of the action's step function.
-   */
-  extension [A, B](inline a: Action[(A, B)])
-    inline infix def ~>(effect: (S, A, B) => List[Step[S, O, F]]): Unit =
-      bind(a.decl, None, effectOf(a.decl, effect), codeOf(a))
-
-    /**
-     * A rule of every class of an action with two inputs whose effect reads the state alone.
-     * Core form: the arm `if g(s) then e(s)` of the action's step function.
-     */
-    @targetName("bindsTwoState")
-    inline infix def ~>(effect: S => List[Step[S, O, F]]): Unit =
-      bind(a.decl, None, (s, _) => effect(s), codeOf(a))
-
-  /**
-   * A rule of every class of an action with three inputs: `buyer.place ~> effects.open`.
-   * Core form: the arm `if g(s) then e(s, x, y, z)` of the action's step function.
-   */
-  extension [A, B, C](inline a: Action[(A, B, C)])
-    inline infix def ~>(effect: (S, A, B, C) => List[Step[S, O, F]]): Unit =
-      bind(a.decl, None, effectOf(a.decl, effect), codeOf(a))
-
-    /**
-     * A rule of every class of an action with three inputs whose effect reads the state alone.
-     * Core form: the arm `if g(s) then e(s)` of the action's step function.
-     */
-    @targetName("bindsThreeState")
-    inline infix def ~>(effect: S => List[Step[S, O, F]]): Unit =
-      bind(a.decl, None, (s, _) => effect(s), codeOf(a))
-
-  /**
-   * A rule of one class of an action, whose effect reads the state alone:
-   * `courier.report(Report.delivered) ~> effects.deliver`. Core form: the arm
-   * `if g(s) && result == AttemptResult.completed then complete(s)` of the action's step function.
-   */
-  extension (inline c: Class)
-    inline infix def ~>(effect: S => List[Step[S, O, F]]): Unit =
-      bind(c.decl, Some(c.values), (s, _) => effect(s), codeOf(c))
 
   private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     order.toVector.map: decl =>
@@ -369,7 +424,7 @@ abstract class Rules[S, O, F, P](using owner: Owner[S, O, F])(
                else Bound.Ruled(written.filter(_.decl == decl).toVector))
 
 /**
- * Evidence that a heading's phases are of the type the rules' projection reads: the rules of
+ * Evidence that a case's phases are of the type the rules' projection reads: the rules of
  * `object rules extends Rules(_.phase)` name phases with `in`, and rules that declare no projection
  * name none. Core form: none of its own; `in(p1, p2)` is `List(p1, p2).contains(s.phase)`.
  */
@@ -380,7 +435,7 @@ abstract class Rules[S, O, F, P](using owner: Owner[S, O, F])(
 final class PhasesOf[P, Q] private ()
 
 /**
- * The one projection a heading's phases are of: its own. Core form: `List(p1, p2).contains(s.phase)`.
+ * The one projection a case's phases are of: its own. Core form: `List(p1, p2).contains(s.phase)`.
  */
 object PhasesOf:
   /**
@@ -390,33 +445,39 @@ object PhasesOf:
   given [P]: PhasesOf[P, P] = PhasesOf()
 
 /**
- * Rules a derivation binds in its source's place, under one heading:
- * `rebind(when(_ => true) { clerk.ship ~> OrderRecord.effects.send })`, each a whole
- * action's. Its bindings are `inline`, as a rule's `~>` is (`Rules`), so that an overlap names
- * each action as written. Core form: the step function
+ * The rules of one action a derivation binds in its source's place:
+ * `rebind(on(clerk.ship) { always ~> OrderRecord.effects.send })`, each case `where(g)` or
+ * `always`, since a derivation's rules name no phase. Its action is `inline`, as a rule block's is
+ * (`Rules`), so that an overlap names it as written. Core form: the step function
  * `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`.
  */
-inline def when[S, O, F](using
+inline def on[S, O, F, I <: Tuple](using
     owner: Owner[S, O, F]
-)(guard: S => Boolean)(
-    inline bindings: StepBinding[S, O, F]*
-): RuleGroup[S, O, F] = derivedRules(owner, guard, bindings, codeOf(bindings))
+)(inline a: Action[I])(
+    cases: Firing[S, O, F, I] ?=> Unit
+): RuleGroup[S, O, F] = derivedRules(owner, a.decl, codeOf(a))(cases)
 
-/** The rules of a derivation's `when`, each named by its action as `written` spells them. */
-private[umpire] def derivedRules[S, O, F](
+/** The rules of a derivation's `on`, each named by its action as `written` spells it. */
+private[umpire] def derivedRules[S, O, F, I <: Tuple](
     owner: Owner[S, O, F],
-    guard: S => Boolean,
-    bindings: Seq[StepBinding[S, O, F]],
+    decl: ActionDecl,
     written: String
-): RuleGroup[S, O, F] =
-  val names = writtenActions(written)
-  val rules = bindings.zipWithIndex.toVector.map: (b, i) =>
-    val action = names.lift(i).getOrElse(b.decl.name)
-    Rule(i + 1, "when", action, b.decl, None, guard, effectOf[S, O, F](b.decl, b.function))
+)(cases: Firing[S, O, F, I] ?=> Unit): RuleGroup[S, O, F] =
+  val action = writtenAction(written)
+  val rules = mutable.ArrayBuffer.empty[Rule[S, O, F]]
   // The derived machine is not made yet, so the overlap names the machine it derives from.
   val machine = owner.machine.name match
     case ""     => "a derivation"
     case source => s"a derivation of $source"
-  for (r, i) <- rules.zipWithIndex; refused <- overlap(machine, owner.machine.fs, rules.take(i), r)
-  do throw IllegalArgumentException(refused)
-  RuleGroup(rules)
+  val firing = Firing[S, O, F, I](
+    decl,
+    None,
+    action,
+    (c, effect) =>
+      val rule = Rule(rules.size + 1, c.heading, action, decl, None, c.guard, effect)
+      for refused <- overlap(machine, owner.machine.fs, rules.toSeq, rule) do
+        throw IllegalArgumentException(refused)
+      rules += rule
+  )
+  cases(using firing)
+  RuleGroup(rules.toVector)

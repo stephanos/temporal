@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	activityFamily   = "temporal.activity.standalone"
+	activityFamily   = "temporal.features.standaloneactivity.system"
 	activityMachine  = "activityProtocol"
-	activityEvidence = activityFamily + ".evidence."
+	activityEvidence = "temporal.features.standaloneactivity.evidence."
 	activityRunID    = testpilot.RunIDPrefix + "00000000-0000-4000-8000-000000000001"
 )
 

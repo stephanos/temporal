@@ -60,14 +60,10 @@ import io.temporal.api.nexus.v1.{Failure as NexusFailure, HandlerError, StartOpe
 import com.google.protobuf.duration.Duration
 import shared.worker.worker
 
-import CallerFamily.given
 import Timeout.expires
-import system.{inspection, ForgedCompletion, NexusProtocol}
+import system.{ForgedCompletion, NexusProtocol}
 
 object NexusRealization:
-  // Moved from temporal.nexuscaller; the pin keeps its Definition IDs.
-  given DefinitionScope = DefinitionScope("temporal.nexuscaller.NexusRealization$")
-
   // ### Evidence
   //
   // The scheduled event is read out of history as soon as it exists, the other events of the
@@ -519,4 +515,4 @@ object NexusRealization:
   val asyncNexus = realization(NexusProtocol)
 
   val forgedCompletion =
-    realization(ForgedCompletion, perform(inspection.inspect -> inspectWorkflow))
+    realization(ForgedCompletion, perform(caller.inspect -> inspectWorkflow))

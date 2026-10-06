@@ -76,7 +76,7 @@ func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
 	for _, row := range c.Table.Rows {
 		source, err := c.State(row.Source)
 		require.NoError(t, err)
-		require.Equal(t, "temporal.standaloneactivity.OverQueue", source.Type)
+		require.Equal(t, "temporal.features.standaloneactivity.system.OverQueue", source.Type)
 		require.Len(t, source.Fields, 2)
 		for _, res := range row.Results {
 			step, err := c.Step(res)

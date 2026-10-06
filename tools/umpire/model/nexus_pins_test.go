@@ -24,20 +24,20 @@ const productClaimProbes = `{
       "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
       "body": {"binary": {"op": "OP_EQ",
         "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
-        "right": {"literal": {"enum": {"type": "temporal.nexuscaller.ProductPhase", "case": "timedOut"}}}}}}],
+        "right": {"literal": {"enum": {"type": "temporal.features.nexuscaller.ProductPhase", "case": "timedOut"}}}}}}],
   "properties": [
     {"machine": "nexusProduct", "name": "timesOut", "holds": "nexusProduct.property.timesOut",
-      "whenClass": {"action": "temporal.nexuscaller.Model$package$.timeout"},
+      "whenClass": {"action": "temporal.features.nexuscaller.timers.timeout"},
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"}}],
   "scenarios": [
     {"machine": "nexusProtocol", "name": "everywhere", "free": true,
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
-      "start": {"construct": {"type": "temporal.nexuscaller.ProtocolState", "args": [
-        {"literal": {"enum": {"type": "temporal.nexuscaller.Phase", "case": "unscheduled"}}},
+      "start": {"construct": {"type": "temporal.features.nexuscaller.ProtocolState", "args": [
+        {"literal": {"enum": {"type": "temporal.features.nexuscaller.Phase", "case": "unscheduled"}}},
         {"literal": {"int": "0"}},
-        {"literal": {"enum": {"type": "temporal.nexuscaller.Timeout", "case": "unset"}}},
-        {"literal": {"enum": {"type": "temporal.nexuscaller.Timeout", "case": "unset"}}},
-        {"literal": {"enum": {"type": "temporal.nexuscaller.Timeout", "case": "unset"}}}]}}}],
+        {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}},
+        {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}},
+        {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}}]}}}],
   "queries": [
     {"name": "terminalHoldsEverywhere", "form": "FORM_VERIFY", "through": true,
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
@@ -194,7 +194,7 @@ func TestNexusQueries(t *testing.T) {
 	terminal := receiptOf(t, r, "query nexusProtocol terminalHolds")
 	require.Equal(t, Verified, terminal.Kind)
 	require.True(t, terminal.Exercised)
-	require.Equal(t, ClaimKey{Family: "temporal.nexus.caller", Owner: "nexusProduct", Name: "terminalIsFinal"}, terminal.Property)
+	require.Equal(t, ClaimKey{Family: "temporal.features.nexuscaller.product", Owner: "nexusProduct", Name: "terminalIsFinal"}, terminal.Property)
 }
 
 // The search keeps one fired bit per Property and visits 111 product states. The count is a search

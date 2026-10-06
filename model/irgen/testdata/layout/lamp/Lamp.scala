@@ -22,8 +22,6 @@ import umpire.*
 import product.LampProduct
 import system.{Bulb, LampSystem}
 
-given Family = Family("fixture.lamp")
-
 // ### Types
 // Every enum, state record and alias the levels share sits here. A subject's own types sit in its
 // file, as system/Bulb.scala keeps its Filament.
@@ -41,7 +39,7 @@ type LampStep = Step[Lamp, Outcome, Nothing]
 type CircuitStep = Step[Circuit, Outcome, Nothing]
 
 // ### Signature
-// Who acts, and the actions each takes, as the objects of their parties. Every level binds them.
+// Who acts, and the actions each takes, as the objects of their actors. Every level binds them.
 
 /** The user switches the lamp on and off. */
 object user extends Actor:

@@ -4,7 +4,7 @@
     {
       "model": "nexus-caller.json",
       "query": {
-        "Family": "temporal.nexus.caller",
+        "Family": "temporal.features.nexuscaller.system",
         "Owner": "nexusProtocol",
         "Name": "asyncCompletion"
       },
@@ -27,7 +27,7 @@
     {
       "model": "nexus-caller.json",
       "query": {
-        "Family": "temporal.nexus.caller",
+        "Family": "temporal.features.nexuscaller.system",
         "Owner": "nexusProtocol",
         "Name": "asyncFailure"
       },
@@ -50,7 +50,7 @@
     {
       "model": "nexus-caller.json",
       "query": {
-        "Family": "temporal.nexus.caller",
+        "Family": "temporal.features.nexuscaller.system",
         "Owner": "nexusProtocol",
         "Name": "handlerError"
       },
@@ -73,7 +73,7 @@
     {
       "model": "nexus-caller.json",
       "query": {
-        "Family": "temporal.nexus.caller",
+        "Family": "temporal.features.nexuscaller.system",
         "Owner": "nexusProtocol",
         "Name": "retry"
       },
@@ -96,7 +96,7 @@
     {
       "model": "nexus-caller.json",
       "query": {
-        "Family": "temporal.nexus.caller",
+        "Family": "temporal.features.nexuscaller.system",
         "Owner": "nexusProtocol",
         "Name": "scheduleToStartTimeout"
       },
@@ -119,7 +119,7 @@
     {
       "model": "nexus-caller.json",
       "query": {
-        "Family": "temporal.nexus.caller",
+        "Family": "temporal.features.nexuscaller.system",
         "Owner": "nexusProtocol",
         "Name": "startToCloseTimeout"
       },
@@ -142,7 +142,7 @@
     {
       "model": "nexus-caller.json",
       "query": {
-        "Family": "temporal.nexus.caller",
+        "Family": "temporal.features.nexuscaller.system",
         "Owner": "nexusProtocol",
         "Name": "syncCompletion"
       },
@@ -164,7 +164,7 @@
     {
       "model": "nexus-control.json",
       "query": {
-        "Family": "temporal.nexus.control",
+        "Family": "temporal.features.nexuscaller.system",
         "Owner": "forgedCompletion",
         "Name": "forgedCompletion"
       },

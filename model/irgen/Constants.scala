@@ -44,8 +44,8 @@ private[irgen] trait Constants:
 
   def constString(t: Term): String = resolve(t) match
     case Literal(StringConstant(s)) => s
-    // `x.name` of a case class value declared elsewhere: the argument its constructor got, or for a
-    // party, entity or observation declared with no name, the name of its val.
+    // `x.name` of a case class value declared elsewhere: the argument its constructor got, or for an
+    // entity or observation declared with no name, the name of its val.
     case Select(qual, field) =>
       resolve(qual) match
         case Apply(Select(companion, "apply"), args) =>
@@ -55,25 +55,18 @@ private[irgen] trait Constants:
           else if field == "name" && namedByVal(cls) && isDefault(args(i)) then constString(qual)
           else constString(args(i))
         case other => fail(t, s"cannot fold ${other.show} to a string")
-    // `Party()`, `Entity(key = …)` and `Observation(on = …, read = …)`, named after their val.
+    // `Entity(key = …)` and `Observation(on = …, read = …)`, named after their val.
     case Apply(Select(companion, "apply"), name :: _)
         if namedByVal(companion.tpe.typeSymbol.companionClass) && isDefault(name) =>
       val kind = companion.tpe.typeSymbol.companionClass.name
-      val article = if kind == "Party" then "a" else "an"
-      captured(resolvedVal(t), s"$article $kind", s"`$kind(\"...\")`", t)
-    // A family's root, which every Definition ID it names hangs off, written out.
-    case Apply(Select(companion, "apply"), List(root))
-        if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Family" =>
-      resolve(root) match
-        case Literal(StringConstant(s)) => s
-        case other => fail(root, s"a Family names its root as a string literal, not ${other.show}")
-    // Party(...), Entity(...), Observation(...): the name is the first argument.
+      captured(resolvedVal(t), s"an $kind", s"`$kind(\"...\")`", t)
+    // Actor(...), Entity(...), Observation(...): the name is the first argument.
     case Apply(Select(_, "apply"), first :: _) => constString(first)
     case other                                 => fail(t, s"expected a string, got ${other.show}")
 
   /** Whether a declaration of this class takes its name from its val where it states none. */
   def namedByVal(cls: Symbol): Boolean =
-    Set("umpire.Party", "umpire.Entity", "umpire.Observation")(cls.fullName)
+    Set("umpire.Entity", "umpire.Observation")(cls.fullName)
 
   /** The val whose right-hand side `resolve` reaches: the last of the vals it goes through. */
   private def resolvedVal(t: Term): Option[Symbol] = t match

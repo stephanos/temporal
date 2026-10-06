@@ -7,8 +7,6 @@ package fixture.choices
 
 import umpire.*
 
-given Family = Family("fixture.choices")
-
 enum Phase derives Finite:
   case scheduled, started, paused
 
@@ -36,12 +34,12 @@ val held = choice
 val dropped = choice
 val refused = choice
 
-val admit = action(Party("matching"))
-val pause = action(Party("user"))
-val poll = action(Party("worker"))
-val answer = action(Party("worker"))
-val retry = action(Party("matching"))
-val resume = action(Party("user"))
+val admit = action(Actor("matching"))
+val pause = action(Actor("user"))
+val poll = action(Actor("worker"))
+val answer = action(Actor("worker"))
+val retry = action(Actor("matching"))
+val resume = action(Actor("user"))
 
 def oneMore(a: Active): Active = a match
   case Active.none => Active.one

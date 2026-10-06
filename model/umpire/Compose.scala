@@ -32,25 +32,27 @@ import scala.deriving.Mirror
  */
 abstract class Composition[S <: Product] private (
     private[umpire] val shape: Composition.Shape[S],
-    val family: Family,
     private[umpire] val mirror: Mirror.ProductOf[S]
 ) extends Declares[S]:
   type Outcome = String
   type Fact = String
 
   /** A composition of these members, each named by a selector of its field. */
-  def this(members: (S => (Any, Model))*)(using family: Family, mirror: Mirror.ProductOf[S]) =
-    this(Composition.Shape.Members(members.toVector), family, mirror)
+  def this(members: (S => (Any, Model))*)(using mirror: Mirror.ProductOf[S]) =
+    this(Composition.Shape.Members(members.toVector), mirror)
 
   /** The composition a derivation of another makes, such as `c.withMember(...)`. */
   def this(derivation: Composition[S]) =
-    this(Composition.Shape.Of(derivation), derivation.family, derivation.mirror)
+    this(Composition.Shape.Of(derivation), derivation.mirror)
 
   /** The object's name with its first letter lowered. */
   def name: String = objectName(this)
 
   /** The owner its `syncs` read the composed state type from. */
   protected given compositionOwner: Composer[S] = Composer(this)
+
+  /** What its `implements` declares the capabilities of: this composition. */
+  protected given declaring: Declaring[S, String, String] = Declaring(this)
 
   /** The members, each constructed: the machines and compositions it composes. */
   private[umpire] def members: Vector[Model] = shape match
@@ -62,14 +64,14 @@ abstract class Composition[S <: Product] private (
   /**
    * This composition with one member replaced, `OrderOverQueue.withMember(_.order ->
    * LateRecord)`: the same syncs, ends and member order, named after the object that declares it,
-   * `object LateOverQueue extends Composition(OrderOverQueue.withMember(...))`, in the `given
-   * Family`. A member that stands in for another machine here stands in
+   * `object LateOverQueue extends Composition(OrderOverQueue.withMember(...))`. A member that stands
+   * in for another machine here stands in
    * for the one its new machine declares it refines; the lifter refuses a new machine of another
    * state type, one that binds no action a sync of the member pairs, and one that refines nothing
    * where the member replaces a machine.
    */
-  def withMember(member: S => (Any, Model))(using family: Family): Composition[S] =
-    new Composition[S](Composition.Shape.With(this, member), family, mirror) {}
+  def withMember(member: S => (Any, Model)): Composition[S] =
+    new Composition[S](Composition.Shape.With(this, member), mirror) {}
 
   /**
    * The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
@@ -113,7 +115,7 @@ final class Composer[S <: Product] private[umpire] (val composition: Composition
  * DispatchQueue)` says a member stands in for an opaque machine. The IR generator reads them from the
  * source, in order.
  */
-abstract class Syncs[S <: Product](using @unused composer: Composer[S]) extends Section:
+abstract class Syncs[S <: Product](using @unused composer: Composer[S]):
   /** Pairs two members' actions into one step named after the first member's action. */
   def sync(@unused first: S => (Any, Action[?]), @unused second: S => (Any, Action[?])): Unit = ()
 

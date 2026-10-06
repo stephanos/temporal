@@ -12,7 +12,7 @@ final case class Elsewhere(on: Boolean) derives Finite
 def elsewhereOn(e: Elsewhere): Boolean = e.on
 def hereOn(h: Here): Boolean = h.on
 
-val flick = action("flick", Party("fixture"))
+val flick = action("flick", Actor("fixture"))
 val ticks = Limits(steps = 1, actions = 1, search = 4)
 
 // A predicate of another state type than the machine's.

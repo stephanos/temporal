@@ -86,7 +86,7 @@ func taken(w *Trace) []string {
 }
 
 const (
-	crashHole = admDeclaredPkg + "crashUnmodeled"
+	crashHole = admDeclaredID + "crashUnmodeled"
 	declared  = "fixture.declarations"
 )
 
@@ -394,10 +394,10 @@ func TestAReplacingMemberKeepsEveryAssumptionItDeclares(t *testing.T) {
 	m := mutated(t, "declarations", noCrash, func(m *umpirespb.Model) {
 		for _, a := range m.GetAssumptions() {
 			if a.GetName() == "storeOpaque" {
-				a.Fair = []string{admDeclaredPkg + "put"}
+				a.Fair = []string{admDeclaredID + "put"}
 			}
 		}
-		admMachine(m, "disk").Assumes = []string{admDeclaredPkg + "storeOpaque", admDeclaredPkg + "flushRuns"}
+		admMachine(m, "disk").Assumes = []string{admDeclaredID + "storeOpaque", admDeclaredID + "flushRuns"}
 		admComposition(m, "detailedPair").Syncs = nil
 		m.Scenarios = slicesDelete(m.GetScenarios(), func(s *umpirespb.Scenario) bool { return s.GetMachine() == "detailedPair" })
 		m.Queries = slicesDelete(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "bothPut" })
@@ -413,7 +413,7 @@ func TestAReplacingMemberKeepsEveryAssumptionItDeclares(t *testing.T) {
 	// The replaced store's own storeOpaque is not the disk's: a disk that does not declare it brings
 	// none, and the composition's is the front store's alone.
 	admComposition(m, "detailedPair").GetMembers()[1].Replaces = "store"
-	admMachine(m, "disk").Assumes = []string{admDeclaredPkg + "flushRuns"}
+	admMachine(m, "disk").Assumes = []string{admDeclaredID + "flushRuns"}
 	want[0].Fair = []string{"front_put"}
 	require.Equal(t, want, composedTable(t, m, "detailedPair").Assumptions)
 }
@@ -1130,8 +1130,8 @@ func TestAHoleInsideAClaimFunctionIsUnknownEvidence(t *testing.T) {
 	}{
 		"a Property":          {"disk.property.durableStays", "query disk durableStays", claim("empty-put")},
 		"a monitor's next":    {admDeclaredPkg + "countStored", "query disk durableStays", claim("empty-put")},
-		"a monitor's verdict": {admDeclaredPkg + "storedOnce.violated", "query disk durableStays", claim("empty-put")},
-		"a monitor's point":   {admDeclaredPkg + "stagedBeforeDurable.after", "query disk durableStays", claim("empty-put")},
+		"a monitor's verdict": {admDeclaredID + "storedOnce.violated", "query disk durableStays", claim("empty-put")},
+		"a monitor's point":   {admDeclaredID + "stagedBeforeDurable.after", "query disk durableStays", claim("empty-put")},
 		// The claim cannot be read at the start, so nothing past it is: each kind of violation is ruled
 		// out by nothing, and says so apart.
 		"a progress claim's from": {"disk.progress.durableEventually.from", "progress disk durableEventually deadline",
@@ -1267,18 +1267,18 @@ func TestARejectedRefinementIsOneResultWhereverItIsMet(t *testing.T) {
 	}
 	r := checked(t, lifted(t, "admission"))
 	rejected := receiptOf(t, r, "refinement staleAdmission activityProduct")
-	require.Equal(t, "temporal.activity.standalone.admission.target.staleAdmission", rejected.Target)
+	require.Equal(t, "fixture.specimens.admission.target.staleAdmission", rejected.Target)
 	require.NotEmpty(t, rejected.Fingerprint)
 	require.Equal(t, len(built(t, lifted(t, "admission"))["staleAdmission"].Table.Rows), rejected.TableRows)
 	require.Zero(t, rejected.Explored, "the generic check does not say how many rows it read before the one it rejects")
 	through := receiptOf(t, r, "query staleAdmission staleAdmission.product.pausedIsNotDispatched")
 	require.Equal(t, Limits{Name: "three", Steps: 3, Actions: 3, Search: 4096}, through.Limits)
-	require.Equal(t, ClaimKey{Family: "fixture.specimens.admission.product", Owner: "activityProduct", Name: "pausedIsNotDispatched"}, through.Property)
+	require.Equal(t, ClaimKey{Family: "fixture.specimens.admission", Owner: "activityProduct", Name: "pausedIsNotDispatched"}, through.Property)
 	require.Equal(t, as(rejected, through), through)
 
 	// The disk is given an assumption, so the rejection carries one to compare.
 	r = checked(t, mutated(t, "declarations", noCrash, returning("disk.visible", boolValue(true)), func(m *umpirespb.Model) {
-		admMachine(m, "disk").Assumes = []string{admDeclaredPkg + "flushRuns"}
+		admMachine(m, "disk").Assumes = []string{admDeclaredID + "flushRuns"}
 	}))
 	rejected = receiptOf(t, r, "refinement disk store")
 	require.Equal(t, []any{"fixture.declarations.target.disk", []string{"flushEventuallyRuns"}, 2, 0},
@@ -1315,10 +1315,10 @@ func TestMalformedDeclarationsAreLocatedErrors(t *testing.T) {
 			"pair.keptTogether: pair.property.keptTogether is 3 for the step into held_held, not a Boolean"},
 		"a monitor's next": {returning(admDeclaredPkg+"countStored", kept("held")), "query disk durableStays",
 			"monitor storedOnce: " + admDeclaredPkg + "countStored is held after the step into staged, which is outside its states"},
-		"a monitor's verdict": {returning(admDeclaredPkg+"storedOnce.violated", three), "query disk durableStays",
-			"monitor storedOnce: " + admDeclaredPkg + "storedOnce.violated is 3 at once, not a Boolean"},
-		"a monitor's point": {returning(admDeclaredPkg+"stagedBeforeDurable.after", three), "query disk durableStays",
-			"monitor stagedBeforeDurable: " + admDeclaredPkg + "stagedBeforeDurable.after is 3 for the step into staged, not a Boolean"},
+		"a monitor's verdict": {returning(admDeclaredID+"storedOnce.violated", three), "query disk durableStays",
+			"monitor storedOnce: " + admDeclaredID + "storedOnce.violated is 3 at once, not a Boolean"},
+		"a monitor's point": {returning(admDeclaredID+"stagedBeforeDurable.after", three), "query disk durableStays",
+			"monitor stagedBeforeDurable: " + admDeclaredID + "stagedBeforeDurable.after is 3 for the step into staged, not a Boolean"},
 		"a monitor's initial state": {func(m *umpirespb.Model) {
 			mo := admMonitor(m, "storedOnce")
 			mo.Initial = admLiteral(mo.GetInitial(), kept("held"))
@@ -1454,7 +1454,7 @@ func TestSiblingClaimsStayApart(t *testing.T) {
 	r := checked(t, lifted(t, "admission"))
 	current := receiptOf(t, r, "query currentAdmission currentAdmission.any.notAdmittedWhilePaused")
 	stale := receiptOf(t, r, "query staleAdmission staleAdmission.any.notAdmittedWhilePaused")
-	const family = "temporal.activity.standalone.admission"
+	const family = "fixture.specimens.admission"
 	require.Equal(t, ClaimKey{Family: family, Owner: "currentAdmission", Name: "notAdmittedWhilePaused"}, current.Property)
 	require.Equal(t, ClaimKey{Family: family, Owner: "staleAdmission", Name: "notAdmittedWhilePaused"}, stale.Property)
 	require.Equal(t, []ReceiptKind{Verified, Counterexample}, []ReceiptKind{current.Kind, stale.Kind})
@@ -1671,7 +1671,7 @@ func (c counter) model() *umpirespb.Model {
 			{Name: "Two", Position: at(3), Shape: &umpirespb.Type_Record{Record: &umpirespb.Record{Fields: []*umpirespb.Field{
 				{Name: "left", Type: named("Counter")}, {Name: "right", Type: named("Counter")}}}}},
 		},
-		Actions: []*umpirespb.Action{{Id: "generic.tick", Name: "tick", Position: at(10), Party: "generic"}},
+		Actions: []*umpirespb.Action{{Id: "generic.tick", Name: "tick", Position: at(10), Actor: "generic"}},
 		Functions: []*umpirespb.Function{
 			fn("generic.tickStep", state, expr(&umpirespb.If{
 				Condition: binary(umpirespb.Binary_OP_LT, n, expr(admIntValue(c.k))),
@@ -1710,7 +1710,7 @@ func (c counter) model() *umpirespb.Model {
 			From: "generic.atZero", To: "generic.atTop", Within: int32(c.k)}},
 	}
 	if c.skip {
-		m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic.skip", Name: "skip", Position: at(11), Party: "generic"})
+		m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic.skip", Name: "skip", Position: at(11), Actor: "generic"})
 		m.Functions = append(m.Functions, fn("generic.skipStep", state, step("skipped", expr("s"))))
 		m.Machines[0].Steps = append(m.Machines[0].Steps, &umpirespb.StepBinding{Action: "generic.skip", Function: "generic.skipStep", Position: at(32)})
 		// The composition and the progress claim are about the counter that only ticks.

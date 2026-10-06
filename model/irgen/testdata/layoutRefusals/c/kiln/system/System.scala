@@ -11,8 +11,8 @@ object KilnSystem extends Machine[Kiln, Outcome, Nothing]:
   object refinement extends Refinement(KilnProduct):
     def toProduct(s: State) = s
 
-  object effects extends Section:
+  object effects:
     def fired(s: State): List[KilnStep] = enter(s.copy(hot = true))
 
   object rules extends Rules:
-    when(!_.hot)(potter.fire ~> effects.fired)
+    on(potter.fire)(where(!_.hot) ~> effects.fired)

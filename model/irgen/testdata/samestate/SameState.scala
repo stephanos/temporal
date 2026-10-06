@@ -1,10 +1,6 @@
 package fixture.samestate
 
 import umpire.*
-import SameStateFamily.given
-
-object SameStateFamily:
-  given family: Family = Family("fixture.samestate")
 
 final case class State(on: Boolean) derives Finite
 

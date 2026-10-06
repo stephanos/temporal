@@ -4,7 +4,7 @@
     "name": "fixture.channels.Heard",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 21
+      "line": 19
     },
     "enum": {
       "cases": [ {
@@ -19,7 +19,7 @@
     "name": "fixture.channels.Note",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 10
+      "line": 8
     },
     "enum": {
       "cases": [ {
@@ -32,7 +32,7 @@
     "name": "fixture.channels.Outcome",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 32
+      "line": 30
     },
     "enum": {
       "cases": [ {
@@ -45,7 +45,7 @@
     "name": "fixture.channels.RelayState",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 25
+      "line": 23
     },
     "record": {
       "fields": [ {
@@ -56,12 +56,12 @@
       }, {
         "name": "wire",
         "type": {
-          "channel": "fixture.channels.Channels$package$.wire"
+          "channel": "fixture.channels.wire"
         }
       }, {
         "name": "radio",
         "type": {
-          "channel": "fixture.channels.Channels$package$.radio"
+          "channel": "fixture.channels.radio"
         }
       } ]
     }
@@ -69,7 +69,7 @@
     "name": "fixture.channels.Signal",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 13
+      "line": 11
     },
     "enum": {
       "cases": [ {
@@ -82,7 +82,7 @@
     "name": "fixture.channels.Tally",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 74
+      "line": 72
     },
     "record": {
       "fields": [ {
@@ -93,7 +93,7 @@
       }, {
         "name": "counts",
         "type": {
-          "channel": "fixture.channels.Channels$package$.tally"
+          "channel": "fixture.channels.tally"
         }
       } ]
     }
@@ -102,7 +102,7 @@
     "name": "fixture.channels.Channels$package$.countStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 82
+      "line": 80
     },
     "params": [ {
       "name": "t",
@@ -113,27 +113,27 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 83
+        "line": 81
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 83
+            "line": 81
           },
           "inbox": {
             "op": "OP_IS_EMPTY",
-            "channel": "fixture.channels.Channels$package$.tally",
+            "channel": "fixture.channels.tally",
             "contents": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 83
+                "line": 81
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 83
+                    "line": 81
                   },
                   "var": "t"
                 },
@@ -145,20 +145,20 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 83
+            "line": 81
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 83
+                "line": 81
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 83
+                    "line": 81
                   },
                   "literal": {
                     "enum": {
@@ -169,13 +169,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 83
+                    "line": 81
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Channels.scala",
-                        "line": 83
+                        "line": 81
                       },
                       "var": "t"
                     },
@@ -184,21 +184,21 @@
                       "value": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Channels.scala",
-                          "line": 83
+                          "line": 81
                         },
                         "inbox": {
                           "op": "OP_SEND",
-                          "channel": "fixture.channels.Channels$package$.tally",
+                          "channel": "fixture.channels.tally",
                           "contents": {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Channels.scala",
-                              "line": 83
+                              "line": 81
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/irgen/testdata/lifts/Channels.scala",
-                                  "line": 83
+                                  "line": 81
                                 },
                                 "var": "t"
                               },
@@ -208,7 +208,7 @@
                           "message": {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Channels.scala",
-                              "line": 83
+                              "line": 81
                             },
                             "literal": {
                               "int": "2"
@@ -221,13 +221,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 83
+                    "line": 81
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 83
+                    "line": 81
                   },
                   "literal": {
                     "text": ""
@@ -240,7 +240,7 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 83
+            "line": 81
           },
           "list": { }
         }
@@ -250,7 +250,7 @@
     "name": "fixture.channels.Channels$package$.counted",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 85
+      "line": 83
     },
     "params": [ {
       "name": "t",
@@ -266,27 +266,27 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 86
+        "line": 84
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 86
+            "line": 84
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 86
+                "line": 84
               },
               "var": "n"
             },
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 86
+                "line": 84
               },
               "literal": {
                 "int": "2"
@@ -297,20 +297,20 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 86
+            "line": 84
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 86
+                "line": 84
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 86
+                    "line": 84
                   },
                   "literal": {
                     "enum": {
@@ -321,13 +321,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 86
+                    "line": 84
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Channels.scala",
-                        "line": 86
+                        "line": 84
                       },
                       "var": "t"
                     },
@@ -336,7 +336,7 @@
                       "value": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Channels.scala",
-                          "line": 86
+                          "line": 84
                         },
                         "literal": {
                           "enum": {
@@ -350,13 +350,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 86
+                    "line": 84
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 86
+                    "line": 84
                   },
                   "literal": {
                     "text": ""
@@ -369,7 +369,7 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 86
+            "line": 84
           },
           "list": { }
         }
@@ -379,507 +379,7 @@
     "name": "fixture.channels.Channels$package$.fade",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 51
-    },
-    "params": [ {
-      "name": "r",
-      "type": {
-        "named": "fixture.channels.RelayState"
-      }
-    }, {
-      "name": "s",
-      "type": {
-        "named": "fixture.channels.Signal"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 51
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 52
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 52
-              },
-              "literal": {
-                "enum": {
-                  "type": "fixture.channels.Outcome",
-                  "case": "dropped"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 52
-              },
-              "var": "r"
-            }, {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 52
-              },
-              "list": { }
-            }, {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 52
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "fixture.channels.Channels$package$.flashStep",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 41
-    },
-    "params": [ {
-      "name": "r",
-      "type": {
-        "named": "fixture.channels.RelayState"
-      }
-    }, {
-      "name": "s",
-      "type": {
-        "named": "fixture.channels.Signal"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 42
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 42
-          },
-          "inbox": {
-            "op": "OP_IS_EMPTY",
-            "channel": "fixture.channels.Channels$package$.radio",
-            "contents": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 42
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 42
-                  },
-                  "var": "r"
-                },
-                "field": "radio"
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 42
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 42
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 42
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.channels.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 42
-                  },
-                  "copy": {
-                    "base": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Channels.scala",
-                        "line": 42
-                      },
-                      "var": "r"
-                    },
-                    "updates": [ {
-                      "name": "radio",
-                      "value": {
-                        "position": {
-                          "file": "model/irgen/testdata/lifts/Channels.scala",
-                          "line": 42
-                        },
-                        "inbox": {
-                          "op": "OP_SEND",
-                          "channel": "fixture.channels.Channels$package$.radio",
-                          "contents": {
-                            "position": {
-                              "file": "model/irgen/testdata/lifts/Channels.scala",
-                              "line": 42
-                            },
-                            "field": {
-                              "base": {
-                                "position": {
-                                  "file": "model/irgen/testdata/lifts/Channels.scala",
-                                  "line": 42
-                                },
-                                "var": "r"
-                              },
-                              "field": "radio"
-                            }
-                          },
-                          "message": {
-                            "position": {
-                              "file": "model/irgen/testdata/lifts/Channels.scala",
-                              "line": 42
-                            },
-                            "var": "s"
-                          }
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 42
-                  },
-                  "list": { }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 42
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 42
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "fixture.channels.Channels$package$.hear",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 45
-    },
-    "params": [ {
-      "name": "r",
-      "type": {
-        "named": "fixture.channels.RelayState"
-      }
-    }, {
-      "name": "n",
-      "type": {
-        "named": "fixture.channels.Note"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 46
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 46
-          },
-          "binary": {
-            "op": "OP_EQ",
-            "left": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 46
-              },
-              "var": "n"
-            },
-            "right": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 46
-              },
-              "literal": {
-                "enum": {
-                  "type": "fixture.channels.Note",
-                  "case": "ping"
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 46
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 46
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 46
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.channels.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 46
-                  },
-                  "copy": {
-                    "base": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Channels.scala",
-                        "line": 46
-                      },
-                      "var": "r"
-                    },
-                    "updates": [ {
-                      "name": "heard",
-                      "value": {
-                        "position": {
-                          "file": "model/irgen/testdata/lifts/Channels.scala",
-                          "line": 46
-                        },
-                        "literal": {
-                          "enum": {
-                            "type": "fixture.channels.Heard",
-                            "case": "note"
-                          }
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 46
-                  },
-                  "list": { }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 46
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 46
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "fixture.channels.Channels$package$.talkStep",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 38
-    },
-    "params": [ {
-      "name": "r",
-      "type": {
-        "named": "fixture.channels.RelayState"
-      }
-    }, {
-      "name": "n",
-      "type": {
-        "named": "fixture.channels.Note"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 39
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 39
-          },
-          "inbox": {
-            "op": "OP_IS_FULL",
-            "channel": "fixture.channels.Channels$package$.wire",
-            "contents": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 39
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 39
-                  },
-                  "var": "r"
-                },
-                "field": "wire"
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 39
-          },
-          "list": { }
-        },
-        "else": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 39
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 39
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 39
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.channels.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 39
-                  },
-                  "copy": {
-                    "base": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Channels.scala",
-                        "line": 39
-                      },
-                      "var": "r"
-                    },
-                    "updates": [ {
-                      "name": "wire",
-                      "value": {
-                        "position": {
-                          "file": "model/irgen/testdata/lifts/Channels.scala",
-                          "line": 39
-                        },
-                        "inbox": {
-                          "op": "OP_SEND",
-                          "channel": "fixture.channels.Channels$package$.wire",
-                          "contents": {
-                            "position": {
-                              "file": "model/irgen/testdata/lifts/Channels.scala",
-                              "line": 39
-                            },
-                            "field": {
-                              "base": {
-                                "position": {
-                                  "file": "model/irgen/testdata/lifts/Channels.scala",
-                                  "line": 39
-                                },
-                                "var": "r"
-                              },
-                              "field": "wire"
-                            }
-                          },
-                          "message": {
-                            "position": {
-                              "file": "model/irgen/testdata/lifts/Channels.scala",
-                              "line": 39
-                            },
-                            "var": "n"
-                          }
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 39
-                  },
-                  "list": { }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 39
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "fixture.channels.Channels$package$.tune",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 48
+      "line": 49
     },
     "params": [ {
       "name": "r",
@@ -901,14 +401,514 @@
         "items": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 49
+            "line": 50
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 49
+                "line": 50
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.channels.Outcome",
+                  "case": "dropped"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 50
+              },
+              "var": "r"
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 50
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 50
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.channels.Channels$package$.flashStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Channels.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "r",
+      "type": {
+        "named": "fixture.channels.RelayState"
+      }
+    }, {
+      "name": "s",
+      "type": {
+        "named": "fixture.channels.Signal"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Channels.scala",
+        "line": 40
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 40
+          },
+          "inbox": {
+            "op": "OP_IS_EMPTY",
+            "channel": "fixture.channels.radio",
+            "contents": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 40
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 40
+                  },
+                  "var": "r"
+                },
+                "field": "radio"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 40
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 40
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 40
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.channels.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 40
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Channels.scala",
+                        "line": 40
+                      },
+                      "var": "r"
+                    },
+                    "updates": [ {
+                      "name": "radio",
+                      "value": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Channels.scala",
+                          "line": 40
+                        },
+                        "inbox": {
+                          "op": "OP_SEND",
+                          "channel": "fixture.channels.radio",
+                          "contents": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Channels.scala",
+                              "line": 40
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/irgen/testdata/lifts/Channels.scala",
+                                  "line": 40
+                                },
+                                "var": "r"
+                              },
+                              "field": "radio"
+                            }
+                          },
+                          "message": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Channels.scala",
+                              "line": 40
+                            },
+                            "var": "s"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 40
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 40
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 40
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.channels.Channels$package$.hear",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Channels.scala",
+      "line": 43
+    },
+    "params": [ {
+      "name": "r",
+      "type": {
+        "named": "fixture.channels.RelayState"
+      }
+    }, {
+      "name": "n",
+      "type": {
+        "named": "fixture.channels.Note"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Channels.scala",
+        "line": 44
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 44
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 44
+              },
+              "var": "n"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 44
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.channels.Note",
+                  "case": "ping"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 44
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 44
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 44
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.channels.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 44
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Channels.scala",
+                        "line": 44
+                      },
+                      "var": "r"
+                    },
+                    "updates": [ {
+                      "name": "heard",
+                      "value": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Channels.scala",
+                          "line": 44
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.channels.Heard",
+                            "case": "note"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 44
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 44
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 44
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.channels.Channels$package$.talkStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Channels.scala",
+      "line": 36
+    },
+    "params": [ {
+      "name": "r",
+      "type": {
+        "named": "fixture.channels.RelayState"
+      }
+    }, {
+      "name": "n",
+      "type": {
+        "named": "fixture.channels.Note"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Channels.scala",
+        "line": 37
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 37
+          },
+          "inbox": {
+            "op": "OP_IS_FULL",
+            "channel": "fixture.channels.wire",
+            "contents": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 37
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 37
+                  },
+                  "var": "r"
+                },
+                "field": "wire"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 37
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 37
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 37
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 37
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.channels.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 37
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Channels.scala",
+                        "line": 37
+                      },
+                      "var": "r"
+                    },
+                    "updates": [ {
+                      "name": "wire",
+                      "value": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Channels.scala",
+                          "line": 37
+                        },
+                        "inbox": {
+                          "op": "OP_SEND",
+                          "channel": "fixture.channels.wire",
+                          "contents": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Channels.scala",
+                              "line": 37
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/irgen/testdata/lifts/Channels.scala",
+                                  "line": 37
+                                },
+                                "var": "r"
+                              },
+                              "field": "wire"
+                            }
+                          },
+                          "message": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Channels.scala",
+                              "line": 37
+                            },
+                            "var": "n"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 37
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Channels.scala",
+                    "line": 37
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.channels.Channels$package$.tune",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Channels.scala",
+      "line": 46
+    },
+    "params": [ {
+      "name": "r",
+      "type": {
+        "named": "fixture.channels.RelayState"
+      }
+    }, {
+      "name": "s",
+      "type": {
+        "named": "fixture.channels.Signal"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Channels.scala",
+        "line": 47
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Channels.scala",
+            "line": 47
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Channels.scala",
+                "line": 47
               },
               "literal": {
                 "enum": {
@@ -919,13 +919,13 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 49
+                "line": 47
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Channels.scala",
-                    "line": 49
+                    "line": 47
                   },
                   "var": "r"
                 },
@@ -934,7 +934,7 @@
                   "value": {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Channels.scala",
-                      "line": 49
+                      "line": 47
                     },
                     "literal": {
                       "enum": {
@@ -948,13 +948,13 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 49
+                "line": 47
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Channels.scala",
-                "line": 49
+                "line": 47
               },
               "literal": {
                 "text": ""
@@ -966,22 +966,22 @@
     }
   } ],
   "actions": [ {
-    "id": "fixture.channels.Channels$package$.count",
+    "id": "fixture.channels.count",
     "name": "count",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 80
+      "line": 78
     },
-    "party": "system",
+    "actor": "system",
     "timer": true
   }, {
-    "id": "fixture.channels.Channels$package$.flash",
+    "id": "fixture.channels.flash",
     "name": "flash",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 36
+      "line": 34
     },
-    "party": "fixture",
+    "actor": "fixture",
     "inputs": [ {
       "name": "signal",
       "type": {
@@ -989,13 +989,13 @@
       }
     } ]
   }, {
-    "id": "fixture.channels.Channels$package$.radio.deliver",
+    "id": "fixture.channels.radio.deliver",
     "name": "radioDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 18
+      "line": 16
     },
-    "party": "system",
+    "actor": "system",
     "inputs": [ {
       "name": "message",
       "type": {
@@ -1003,15 +1003,15 @@
       }
     } ],
     "internal": true,
-    "delivers": "fixture.channels.Channels$package$.radio"
+    "delivers": "fixture.channels.radio"
   }, {
-    "id": "fixture.channels.Channels$package$.radio.lose",
+    "id": "fixture.channels.radio.lose",
     "name": "radioLoss",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 18
+      "line": 16
     },
-    "party": "system",
+    "actor": "system",
     "inputs": [ {
       "name": "message",
       "type": {
@@ -1019,15 +1019,15 @@
       }
     } ],
     "internal": true,
-    "loses": "fixture.channels.Channels$package$.radio"
+    "loses": "fixture.channels.radio"
   }, {
-    "id": "fixture.channels.Channels$package$.talk",
+    "id": "fixture.channels.talk",
     "name": "talk",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 35
+      "line": 33
     },
-    "party": "fixture",
+    "actor": "fixture",
     "inputs": [ {
       "name": "note",
       "type": {
@@ -1035,13 +1035,13 @@
       }
     } ]
   }, {
-    "id": "fixture.channels.Channels$package$.tally.deliver",
+    "id": "fixture.channels.tally.deliver",
     "name": "tallyDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 69
+      "line": 67
     },
-    "party": "system",
+    "actor": "system",
     "inputs": [ {
       "name": "message",
       "type": {
@@ -1051,15 +1051,15 @@
       }
     } ],
     "internal": true,
-    "delivers": "fixture.channels.Channels$package$.tally"
+    "delivers": "fixture.channels.tally"
   }, {
-    "id": "fixture.channels.Channels$package$.wire.deliver",
+    "id": "fixture.channels.wire.deliver",
     "name": "wireDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 16
+      "line": 14
     },
-    "party": "system",
+    "actor": "system",
     "inputs": [ {
       "name": "message",
       "type": {
@@ -1067,28 +1067,28 @@
       }
     } ],
     "internal": true,
-    "delivers": "fixture.channels.Channels$package$.wire"
+    "delivers": "fixture.channels.wire"
   } ],
   "machines": [ {
     "family": "fixture.channels",
     "name": "relay",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 55
+      "line": 53
     },
     "stateType": "fixture.channels.RelayState",
     "outcomeType": "fixture.channels.Outcome",
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 56
+        "line": 54
       },
       "construct": {
         "type": "fixture.channels.RelayState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 56
+            "line": 54
           },
           "literal": {
             "enum": {
@@ -1099,7 +1099,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 56
+            "line": 54
           },
           "literal": {
             "list": { }
@@ -1107,7 +1107,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 56
+            "line": 54
           },
           "literal": {
             "list": { }
@@ -1118,7 +1118,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 57
+        "line": 55
       },
       "lambda": {
         "params": [ {
@@ -1130,7 +1130,7 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 57
+            "line": 55
           },
           "literal": {
             "bool": true
@@ -1139,39 +1139,39 @@
       }
     },
     "steps": [ {
-      "action": "fixture.channels.Channels$package$.talk",
+      "action": "fixture.channels.talk",
       "function": "fixture.channels.Channels$package$.talkStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Channels.scala",
+        "line": 59
+      }
+    }, {
+      "action": "fixture.channels.flash",
+      "function": "fixture.channels.Channels$package$.flashStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Channels.scala",
+        "line": 60
+      }
+    }, {
+      "action": "fixture.channels.wire.deliver",
+      "function": "fixture.channels.Channels$package$.hear",
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
         "line": 61
       }
     }, {
-      "action": "fixture.channels.Channels$package$.flash",
-      "function": "fixture.channels.Channels$package$.flashStep",
+      "action": "fixture.channels.radio.deliver",
+      "function": "fixture.channels.Channels$package$.tune",
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
         "line": 62
       }
     }, {
-      "action": "fixture.channels.Channels$package$.wire.deliver",
-      "function": "fixture.channels.Channels$package$.hear",
-      "position": {
-        "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 63
-      }
-    }, {
-      "action": "fixture.channels.Channels$package$.radio.deliver",
-      "function": "fixture.channels.Channels$package$.tune",
-      "position": {
-        "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 64
-      }
-    }, {
-      "action": "fixture.channels.Channels$package$.radio.lose",
+      "action": "fixture.channels.radio.lose",
       "function": "fixture.channels.Channels$package$.fade",
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 65
+        "line": 63
       }
     } ]
   }, {
@@ -1179,21 +1179,21 @@
     "name": "tallying",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 88
+      "line": 86
     },
     "stateType": "fixture.channels.Tally",
     "outcomeType": "fixture.channels.Outcome",
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 89
+        "line": 87
       },
       "construct": {
         "type": "fixture.channels.Tally",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 89
+            "line": 87
           },
           "literal": {
             "enum": {
@@ -1204,7 +1204,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 89
+            "line": 87
           },
           "literal": {
             "list": { }
@@ -1215,7 +1215,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 90
+        "line": 88
       },
       "lambda": {
         "params": [ {
@@ -1227,7 +1227,7 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Channels.scala",
-            "line": 90
+            "line": 88
           },
           "literal": {
             "bool": true
@@ -1236,27 +1236,27 @@
       }
     },
     "steps": [ {
-      "action": "fixture.channels.Channels$package$.count",
+      "action": "fixture.channels.count",
       "function": "fixture.channels.Channels$package$.countStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 92
+        "line": 90
       }
     }, {
-      "action": "fixture.channels.Channels$package$.tally.deliver",
+      "action": "fixture.channels.tally.deliver",
       "function": "fixture.channels.Channels$package$.counted",
       "position": {
         "file": "model/irgen/testdata/lifts/Channels.scala",
-        "line": 92
+        "line": 90
       }
     } ]
   } ],
   "channels": [ {
-    "id": "fixture.channels.Channels$package$.radio",
+    "id": "fixture.channels.radio",
     "name": "radio",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 18
+      "line": 16
     },
     "message": {
       "named": "fixture.channels.Signal"
@@ -1265,11 +1265,11 @@
     "order": "ORDER_UNORDERED",
     "lossy": true
   }, {
-    "id": "fixture.channels.Channels$package$.tally",
+    "id": "fixture.channels.tally",
     "name": "tally",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 69
+      "line": 67
     },
     "message": {
       "intRange": {
@@ -1279,11 +1279,11 @@
     "capacity": 1,
     "order": "ORDER_FIFO"
   }, {
-    "id": "fixture.channels.Channels$package$.wire",
+    "id": "fixture.channels.wire",
     "name": "wire",
     "position": {
       "file": "model/irgen/testdata/lifts/Channels.scala",
-      "line": 16
+      "line": 14
     },
     "message": {
       "named": "fixture.channels.Note"

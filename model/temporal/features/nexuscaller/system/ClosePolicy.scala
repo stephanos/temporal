@@ -30,15 +30,6 @@ package system
 // `Answer` here is the designs' delivery answer.
 import umpire.*
 import Answer.given
-import ClosePolicyFamily.given
-
-// Moved from temporal.nexuscaller.closepolicy; the pin keeps its Definition IDs and type names.
-given closePolicyScope: DefinitionScope =
-  DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")
-
-/** The family of the designs' machines, apart from the System level's other subjects'. */
-object ClosePolicyFamily:
-  given family: Family = Family("temporal.nexus.caller.closepolicy")
 
 // ### Types: one logical operation, the original run and one reset successor
 
@@ -126,8 +117,6 @@ enum Fact derives Finite:
   case handlerFinished(result: Resolution)
   case nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled, nexusOperationTimedOut
   case outcomeRetained, outcomeReapplied, completionDropped
-
-type CloseResetStep = Step[CloseResetState, Answer, Fact]
 
 /** Where a completion goes once the original run can no longer take it. */
 enum Policy derives Finite:
@@ -244,23 +233,22 @@ object Inputs:
   val principal = input[Principal]
 
 // Who acts in the designs, grouped by side: the caller's and the handler's own actions here are
-// taken by the parties the Nexus caller declares, whose actions the designs read too
-// (`handler.complete`). The sections are not named `caller` and `handler`, which would name the
-// same class files as the types `Caller` and `Handler` on a case-insensitive file system. Sections
-// are transparent to Definition IDs, so each action keeps the ID this file's pin gives it.
+// taken by the actors the Nexus caller declares, whose actions the designs read too
+// (`handler.complete`). The objects are not named `caller` and `handler`, which would name the
+// same class files as the types `Caller` and `Handler` on a case-insensitive file system.
 
 /** What the designs' caller workflow does: it closes, is reset, and requests a cancel. */
-object callerSide extends Section:
+object callerSide:
   val callerClose = action(caller) on workflow
   val reset = action(caller) on workflow
   val requestCancel = action(caller).on(operation).input(Inputs.principal)
 
 /** The handler finishes the operation's work. */
-object handlerSide extends Section:
+object handlerSide:
   val handlerFinish = action(handler).on(operation).input(result)
 
 /** The server's own step: the cancel request reaches the handler. */
-object history extends Section:
+object history:
   val deliverCancel = internal
 
 // The bounds. They search further than the caller's of the same names, `four` among them.
@@ -320,18 +308,14 @@ val recovery = assume("currentOwnerEventuallyRecoversAndReappliesRetainedOutcome
  * so that the checks that must refute it are seen to.
  */
 object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], NegativeControl:
-  // Moved from temporal.nexuscaller.closepolicy, as the file's declarations were: its monitors keep
-  // the Definition IDs they had there.
-  given DefinitionScope = DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")
-
   val entity = nexusRequest
   val init = CloseResetState(
-    Caller.open,
-    Intent.none,
-    Handler.running,
-    Completion.none,
-    Retained.none,
-    Knowledge.none
+    caller = Caller.open,
+    intent = Intent.none,
+    handler = Handler.running,
+    channel = Completion.none,
+    retained = Retained.none,
+    known = Knowledge.none
   )
   def end(s: State) = states.settled(s)
   val evidence: PartialFunction[Fact, String] = {
@@ -340,7 +324,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
   }
 
   /** What the designs read of a state: the handler's work, the channel, the owner and the promises. */
-  object states extends Section:
+  object states:
     def working(h: Handler) = h.in(Handler.running, Handler.cancelReceived)
 
     /**
@@ -427,14 +411,14 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
      * the operation's retention, or a report still in flight. An operation its deadline resolved
      * waits for no outcome.
      */
-    def outcomePreserved(after: CloseResetStep) = after.state.handler match
+    def outcomePreserved(after: Step[CloseResetState, Answer, Fact]) = after.state.handler match
       case Handler.done(r) =>
         ownerKnows(after.state, r) ||
         after.state.retained == Retained.pending(r) || carries(after.state.channel, r) ||
         after.state.known == Knowledge.expired
       case _ => true
 
-    def keptOrOwed(after: CloseResetStep, r: Resolution) =
+    def keptOrOwed(after: Step[CloseResetState, Answer, Fact], r: Resolution) =
       after.outcome.in(Answer.accepted, Answer.retained) implies
         (after.state.channel != Completion.none || ownerKnows(after.state, r) ||
           after.state.retained == Retained.pending(r))
@@ -443,10 +427,11 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
      * An acknowledgment ends the handler's report only once the owner committed or the operation
      * retained the outcome.
      */
-    def ackOnlyWhenKept(before: State, after: CloseResetStep) = before.channel match
-      case Completion.inFlight(r) => keptOrOwed(after, r)
-      case Completion.retried(r)  => keptOrOwed(after, r)
-      case Completion.none        => true
+    def ackOnlyWhenKept(before: State, after: Step[CloseResetState, Answer, Fact]) =
+      before.channel match
+        case Completion.inFlight(r) => keptOrOwed(after, r)
+        case Completion.retried(r)  => keptOrOwed(after, r)
+        case Completion.none        => true
 
     def isDone(s: State) = !working(s.handler)
 
@@ -483,7 +468,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
       case Asked.lost   => Asked.lost
 
   /** What each step does. Where it fires is the rules'. */
-  object effects extends Section:
+  object effects:
     def close(s: State) = enter(s.copy(caller = Caller.closed), Fact.workflowClosed)
 
     /** One cancellation, by the principal that asks for it. */
@@ -559,7 +544,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
         )
 
     /** A permanent rejection ends the report: the handler stops reporting. */
-    def dropped(s: State): List[CloseResetStep] =
+    def dropped(s: State) =
       List(
         Step(
           Answer.rejectedPermanent,
@@ -616,7 +601,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
 
   // Monitors: the outcome stays where an owner can learn it, an acknowledgment keeps it, no run
   // records two outcomes, and a cancel request stays its principal's. Every design watches them.
-  object monitors extends Section:
+  object monitors:
     /**
      * Whether a step lost a decided outcome: no owner knows it, and nothing retains or carries it.
      */
@@ -643,38 +628,45 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
       )(asked => asked == Asked.lost)
 
   object rules extends Rules(_.caller):
-    in(Caller.open)(callerSide.callerClose ~> effects.close)
-    in(Caller.open, Caller.closed) {
-      callerSide.reset ~> (s => effects.reset(Reset.reapplies, s))
-    }
-    when(s => states.cancellable(s))(callerSide.requestCancel ~> effects.requestCancel)
-    when(s => states.cancelInFlight(s))(history.deliverCancel ~> effects.deliverCancel)
+    on(callerSide.callerClose)(in(Caller.open) ~> effects.close)
+    on(callerSide.reset)(in(Caller.open, Caller.closed) ~> (effects.reset(Reset.reapplies, _)))
+    on(callerSide.requestCancel)(where(states.cancellable) ~> effects.requestCancel)
+    on(history.deliverCancel)(where(states.cancelInFlight) ~> effects.deliverCancel)
 
     // A canceled result needs the handler to have received the cancel request; having received it,
     // the handler may still succeed or fail.
-    when(s => s.handler == Handler.running) {
-      handlerSide.handlerFinish(Resolution.succeeded) ~> (s =>
-        effects.finish(s, Resolution.succeeded)
-      )
-      handlerSide.handlerFinish(Resolution.failed) ~> (s => effects.finish(s, Resolution.failed))
+    on(handlerSide.handlerFinish(Resolution.succeeded)) {
+      where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.succeeded))
     }
-    when(s => s.handler == Handler.cancelReceived)(handlerSide.handlerFinish ~> effects.finish)
+    on(handlerSide.handlerFinish(Resolution.failed)) {
+      where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.failed))
+    }
+    on(handlerSide.handlerFinish)(where(_.handler == Handler.cancelReceived) ~> effects.finish)
 
     // A completion is delivered while the channel carries its result.
-    when(s => states.carries(s.channel, Resolution.succeeded)) {
-      handler.complete(Resolution.succeeded) ~> (s =>
-        effects.deliver(Policy.rejectAfterClose, Redelivery.untilAck, s, Resolution.succeeded)
-      )
+    on(handler.complete(Resolution.succeeded)) {
+      where(s => states.carries(s.channel, Resolution.succeeded)) ~> (effects.deliver(
+        Policy.rejectAfterClose,
+        Redelivery.untilAck,
+        _,
+        Resolution.succeeded
+      ))
     }
-    when(s => states.carries(s.channel, Resolution.failed)) {
-      handler.complete(Resolution.failed) ~> (s =>
-        effects.deliver(Policy.rejectAfterClose, Redelivery.untilAck, s, Resolution.failed)
-      )
+    on(handler.complete(Resolution.failed)) {
+      where(s => states.carries(s.channel, Resolution.failed)) ~> (effects.deliver(
+        Policy.rejectAfterClose,
+        Redelivery.untilAck,
+        _,
+        Resolution.failed
+      ))
     }
-    when(s => states.carries(s.channel, Resolution.canceled)) {
-      handler.complete(Resolution.canceled) ~> (s =>
-        effects.deliver(Policy.rejectAfterClose, Redelivery.untilAck, s, Resolution.canceled)
-      )
+    on(handler.complete(Resolution.canceled)) {
+      where(s => states.carries(s.channel, Resolution.canceled)) ~> (effects.deliver(
+        Policy.rejectAfterClose,
+        Redelivery.untilAck,
+        _,
+        Resolution.canceled
+      ))
     }
 
   // What the designs promise. Every promise below is an authored design promise, written once and
@@ -683,19 +675,20 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
   // completionSucceeds and completionFails, which an open caller keeps as nexusProtocol does. A
   // design names its monitors, and a verify also reports the first violation a watching monitor
   // meets, whatever Property it asks.
-  object properties extends Section:
+  object properties:
     /**
      * A closed run's history is frozen: no step of a caller that stays closed changes what it holds.
      */
-    def closedHistoryIsFrozen(before: CloseResetState, after: CloseResetStep) =
+    def closedHistoryIsFrozen(before: CloseResetState, after: Step[CloseResetState, Answer, Fact]) =
       before.caller == Caller.closed && after.state.caller == Caller.closed implies
         (after.state.known == before.known && after.state.intent == before.intent)
 
     /** An outcome a history records is the handler's. */
-    def knownIsTheHandlersOutcome(after: CloseResetStep) = after.state.known match
-      case Knowledge.original(r)  => after.state.handler == Handler.done(r)
-      case Knowledge.successor(r) => after.state.handler == Handler.done(r)
-      case _                      => true
+    def knownIsTheHandlersOutcome(after: Step[CloseResetState, Answer, Fact]) =
+      after.state.known match
+        case Knowledge.original(r)  => after.state.handler == Handler.done(r)
+        case Knowledge.successor(r) => after.state.handler == Handler.done(r)
+        case _                      => true
 
     def knows(k: Knowledge, r: Resolution) =
       k.in(Knowledge.original(r), Knowledge.successor(r))
@@ -703,10 +696,11 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
     /**
      * A recorded outcome stays recorded: a redelivery changes nothing, and a reset carries it over.
      */
-    def knowledgeIsFinal(before: CloseResetState, after: CloseResetStep) = before.known match
-      case Knowledge.original(r)  => knows(after.state.known, r)
-      case Knowledge.successor(r) => knows(after.state.known, r)
-      case _                      => true
+    def knowledgeIsFinal(before: CloseResetState, after: Step[CloseResetState, Answer, Fact]) =
+      before.known match
+        case Knowledge.original(r)  => knows(after.state.known, r)
+        case Knowledge.successor(r) => knows(after.state.known, r)
+        case _                      => true
 
     /** The handler's outcome is decided, and nothing holds or still carries it. */
     def nothingOwed(s: CloseResetState) = s.handler match
@@ -718,7 +712,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
      * its report is still owed. A deadline that fires with nothing owed ends a wait for an outcome
      * the design already lost.
      */
-    def noUnnecessaryWait(before: CloseResetState, after: CloseResetStep) =
+    def noUnnecessaryWait(before: CloseResetState, after: Step[CloseResetState, Answer, Fact]) =
       before.known != Knowledge.expired && after.state.known == Knowledge.expired implies
         !nothingOwed(before)
 
@@ -852,7 +846,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
       "outcomeReachesOwner"
     )(states.isDone, states.settled, within = 6, reporting, deliveryFair)
 
-  object queries extends Section:
+  object queries:
     /** Every claim and path of the specimen, declared on one design. */
     def designQueries(m: Machine[CloseResetState, Answer, Fact]) =
       val claims = properties.designClaims(m)
@@ -878,9 +872,9 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
       val any = m.scenario.free
       Vector(
         query(s"${m.name}.closedThenFinished") verify claims.outcomePreserved in
-          closedThenFinished limits four total 26880,
-        query verify claims.ackOnlyWhenKept in resetThenDelivered limits four total 20160,
-        query verify claims.outcomePreserved in resetThenDelivered limits four total 20160,
+          closedThenFinished limits four,
+        query verify claims.ackOnlyWhenKept in resetThenDelivered limits four,
+        query verify claims.outcomePreserved in resetThenDelivered limits four,
         // The request, its delivery to the handler and the handler's effect are three steps here.
         query(s"${m.name}.canceledAcrossReset") verify claims.outcomePreserved in
           m.scenario("canceledAcrossReset")
@@ -890,21 +884,21 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
               handlerSide.handlerFinish(Resolution.canceled),
               callerSide.reset,
               handler.complete(Resolution.canceled)
-            ) limits five total 33600,
+            ) limits five,
         query(s"${m.name}.ackedThenReset") verify claims.outcomePreserved in
           m.scenario("ackedThenReset")
             .actions(
               handlerSide.handlerFinish(Resolution.succeeded),
               handler.complete(Resolution.succeeded),
               callerSide.reset
-            ) limits four total 20160,
+            ) limits four,
         query(s"${m.name}.duplicateCompletion") verify claims.knowledgeIsFinal in
           m.scenario("duplicateCompletion")
             .actions(
               handlerSide.handlerFinish(Resolution.succeeded),
               handler.complete(Resolution.succeeded),
               handler.complete(Resolution.succeeded)
-            ) limits four total 20160,
+            ) limits four,
         // A reset between the commit and its acknowledgment, and between a rejection and the retry.
         query(s"${m.name}.resetBetweenCommitAndAcknowledgment") verify claims.ackOnlyWhenKept in
           m.scenario("resetBetweenDeliveries")
@@ -913,38 +907,38 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
               handler.complete(Resolution.failed),
               callerSide.reset,
               handler.complete(Resolution.failed)
-            ) limits four total 26880,
-        query verify claims.outcomePreserved in any limits twelve total 806400,
-        query verify claims.ackOnlyWhenKept in any limits twelve total 806400,
-        query verify claims.closedHistoryIsFrozen in any limits twelve total 806400,
-        query verify claims.handlerEffectIsIrreversible in any limits twelve total 806400,
-        query verify claims.knownIsTheHandlersOutcome in any limits twelve total 806400,
-        query verify claims.knowledgeIsFinal in any limits twelve total 806400,
+            ) limits four,
+        query verify claims.outcomePreserved in any limits twelve,
+        query verify claims.ackOnlyWhenKept in any limits twelve,
+        query verify claims.closedHistoryIsFrozen in any limits twelve,
+        query verify claims.handlerEffectIsIrreversible in any limits twelve,
+        query verify claims.knownIsTheHandlersOutcome in any limits twelve,
+        query verify claims.knowledgeIsFinal in any limits twelve,
         query(s"${m.name}.detachedWorkProceeds") find claims.finishesAfterClose in
           m.scenario("detachedWork")
             .actions(
               callerSide.callerClose,
               handlerSide.handlerFinish(Resolution.succeeded)
-            ) limits four total 13440,
+            ) limits four,
         query(s"${m.name}.intentWithoutReceipt") find claims.requestedButUnreceived in
           m.scenario("cancelRequested")
             .actions(
               callerSide.requestCancel(Principal.callerWorkflow)
-            ) limits four total 6720,
+            ) limits four,
         query(s"${m.name}.receiptWithoutEffect") find claims.receivedButSucceeded in
           m.scenario("cancelReceivedThenSucceeded")
             .actions(
               callerSide.requestCancel(Principal.callerWorkflow),
               history.deliverCancel,
               handlerSide.handlerFinish(Resolution.succeeded)
-            ) limits four total 20160,
+            ) limits four,
         query(s"${m.name}.effectWithoutKnowledge") find claims.canceledButUnknown in
           m.scenario("cancelReceivedThenCanceled")
             .actions(
               callerSide.requestCancel(Principal.callerWorkflow),
               history.deliverCancel,
               handlerSide.handlerFinish(Resolution.canceled)
-            ) limits four total 20160,
+            ) limits four,
         query(s"${m.name}.canceledIsKnown") find claims.completionCancels in
           m.scenario("canceledThenDelivered")
             .actions(
@@ -952,31 +946,31 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
               history.deliverCancel,
               handlerSide.handlerFinish(Resolution.canceled),
               handler.complete(Resolution.canceled)
-            ) limits four total 26880,
+            ) limits four,
         query(s"${m.name}.asyncCompletion") find claims.completionSucceeds in
           m.scenario("finishedThenSucceeded")
             .actions(
               handlerSide.handlerFinish(Resolution.succeeded),
               handler.complete(Resolution.succeeded)
-            ) limits four total 13440,
+            ) limits four,
         query(s"${m.name}.asyncFailure") find claims.completionFails in
           m.scenario("finishedThenFailed")
             .actions(
               handlerSide.handlerFinish(Resolution.failed),
               handler.complete(Resolution.failed)
-            ) limits four total 13440,
+            ) limits four,
         query(s"${m.name}.transientRejectionAfterClose").find(claims.rejectedTransiently) in
-          deliveredToClosed limits four total 20160,
+          deliveredToClosed limits four,
         query(s"${m.name}.permanentRejectionAfterClose").find(claims.rejectedPermanently) in
-          deliveredToClosed limits four total 20160,
+          deliveredToClosed limits four,
         query(s"${m.name}.lostAfterReset") find claims.lostAfterReset in
-          closedThenFinished limits four total 26880,
+          closedThenFinished limits four,
         query(s"${m.name}.resetAfterRetention")
           .find(claims.reappliesRetained) in closedThenFinished limits
-          four total 26880,
+          four,
         query(s"${m.name}.resetBeforeRetention")
           .find(claims.routedToSuccessor) in resetThenDelivered limits
-          four total 20160
+          four
       )
 
     // The two pinned controls and the two promises, over another channel.
@@ -993,16 +987,16 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
               handlerSide.handlerFinish(Resolution.succeeded),
               handler.complete(Resolution.succeeded),
               callerSide.reset
-            ) limits four total 26880,
+            ) limits four,
         query verify claims.ackOnlyWhenKept in m
           .scenario("resetThenDelivered")
           .actions(
             handlerSide.handlerFinish(Resolution.failed),
             callerSide.reset,
             handler.complete(Resolution.failed)
-          ) limits four total 20160,
-        query verify claims.outcomePreserved in any limits twelve total 806400,
-        query verify claims.ackOnlyWhenKept in any limits twelve total 806400
+          ) limits four,
+        query verify claims.outcomePreserved in any limits twelve,
+        query verify claims.ackOnlyWhenKept in any limits twelve
       )
 
     // The deadline. With a schedule-to-close deadline the state a lost outcome leaves has a step.
@@ -1020,17 +1014,17 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
               handlerSide.handlerFinish(Resolution.succeeded),
               handler.complete(Resolution.succeeded),
               callerSide.reset
-            ) limits four total 26880,
+            ) limits four,
         query verify claims.ackOnlyWhenKept in m
           .scenario("resetThenDelivered")
           .actions(
             handlerSide.handlerFinish(Resolution.failed),
             callerSide.reset,
             handler.complete(Resolution.failed)
-          ) limits four total 20160,
-        query verify claims.outcomePreserved in any limits twelve total 887040,
-        query verify claims.ackOnlyWhenKept in any limits twelve total 887040,
-        query verify claims.noUnnecessaryWait in any limits twelve total 887040,
+          ) limits four,
+        query verify claims.outcomePreserved in any limits twelve,
+        query verify claims.ackOnlyWhenKept in any limits twelve,
+        query verify claims.noUnnecessaryWait in any limits twelve,
         query(s"${m.name}.expiredAfterClosedLoss").find(claims.expiresWithNothingOwed) in
           m.scenario("closedLossThenExpired")
             .actions(
@@ -1039,7 +1033,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
               handler.complete(Resolution.succeeded),
               callerSide.reset,
               deadline.scheduleToClose
-            ) limits five total 33600,
+            ) limits five,
         query(s"${m.name}.expiredAfterResetLoss").find(claims.expiresWithNothingOwed) in
           m.scenario("resetLossThenExpired")
             .actions(
@@ -1047,23 +1041,23 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
               callerSide.reset,
               handler.complete(Resolution.failed),
               deadline.scheduleToClose
-            ) limits five total 26880,
+            ) limits five,
         query(s"${m.name}.expiredWhileReported").find(claims.expiresWhileOwed) in
           m.scenario("reportedThenExpired")
             .actions(
               handlerSide.handlerFinish(Resolution.succeeded),
               deadline.scheduleToClose
-            ) limits four total 13440,
+            ) limits four,
         query(s"${m.name}.lateCompletionIsDropped").find(claims.lateCompletionIsDropped) in
           m.scenario("expiredThenDelivered")
             .actions(
               handlerSide.handlerFinish(Resolution.succeeded),
               deadline.scheduleToClose,
               handler.complete(Resolution.succeeded)
-            ) limits four total 20160
+            ) limits four
       )
 
-    val all = designQueries(RejectAfterClose)
+    val rejectAfterCloseQueries = designQueries(RejectAfterClose)
 
 /**
  * The faulty policy: after a reset the original run acknowledges the completion, and the successor
@@ -1074,13 +1068,12 @@ object AckByOriginal
       RejectAfterClose
         .assuming(retentionDurable)
         .rebind(
-          handler.complete ~> ((s, r) =>
-            RejectAfterClose.effects.deliver(Policy.ackByOriginal, Redelivery.untilAck, s, r)
-          )
+          handler.complete ~> (RejectAfterClose.effects
+            .deliver(Policy.ackByOriginal, Redelivery.untilAck, _, _))
         )
     ),
       NegativeControl:
-  object properties extends Section:
+  object properties:
     val ackByOriginalProgress = AckByOriginal.leadsTo("outcomeReachesOwner")(
       RejectAfterClose.states.isDone,
       RejectAfterClose.states.settled,
@@ -1089,8 +1082,8 @@ object AckByOriginal
       deliveryFair
     )
 
-  object queries extends Section:
-    val all = RejectAfterClose.queries.designQueries(AckByOriginal)
+  object queries:
+    val ackByOriginalQueries = RejectAfterClose.queries.designQueries(AckByOriginal)
 
 /** The corrected policy: retain at the operation and route to the current owner. */
 object RetainAndRoute
@@ -1098,12 +1091,11 @@ object RetainAndRoute
       RejectAfterClose
         .assuming(retentionDurable)
         .rebind(
-          handler.complete ~> ((s, r) =>
-            RejectAfterClose.effects.deliver(Policy.retainAndRoute, Redelivery.untilAck, s, r)
-          )
+          handler.complete ~> (RejectAfterClose.effects
+            .deliver(Policy.retainAndRoute, Redelivery.untilAck, _, _))
         )
     ):
-  object properties extends Section:
+  object properties:
     val retainAndRouteProgress = RetainAndRoute.leadsTo("outcomeReachesOwner")(
       RejectAfterClose.states.isDone,
       RejectAfterClose.states.settled,
@@ -1130,8 +1122,8 @@ object RetainAndRoute
       deliveryFair
     )
 
-  object queries extends Section:
-    val all = RejectAfterClose.queries.designQueries(RetainAndRoute)
+  object queries:
+    val retainAndRouteQueries = RejectAfterClose.queries.designQueries(RetainAndRoute)
 
 /**
  * The corrected policy with a faulty reset that forgets the cancel request, and with it who made
@@ -1140,12 +1132,12 @@ object RetainAndRoute
 object ForgetsCancelOnReset
     extends Derived(
       RetainAndRoute.rebind(
-        callerSide.reset ~> (s => RejectAfterClose.effects.reset(Reset.forgetsCancel, s))
+        callerSide.reset ~> (RejectAfterClose.effects.reset(Reset.forgetsCancel, _))
       )
     ),
       NegativeControl:
-  object queries extends Section:
-    val all = RejectAfterClose.queries.designQueries(ForgetsCancelOnReset)
+  object queries:
+    val forgetsCancelOnResetQueries = RejectAfterClose.queries.designQueries(ForgetsCancelOnReset)
 
 /**
  * The corrected policy with a faulty reset that does not reapply what the original run recorded. A
@@ -1154,12 +1146,12 @@ object ForgetsCancelOnReset
 object TruncatesOnReset
     extends Derived(
       RetainAndRoute.rebind(
-        callerSide.reset ~> (s => RejectAfterClose.effects.reset(Reset.truncates, s))
+        callerSide.reset ~> (RejectAfterClose.effects.reset(Reset.truncates, _))
       )
     ),
       NegativeControl:
-  object queries extends Section:
-    val all = RejectAfterClose.queries.designQueries(TruncatesOnReset)
+  object queries:
+    val truncatesOnResetQueries = RejectAfterClose.queries.designQueries(TruncatesOnReset)
 
 /** The corrected design over the channel that redelivers once. */
 object RetainAndRouteBoundedRetry
@@ -1167,12 +1159,11 @@ object RetainAndRouteBoundedRetry
       RetainAndRoute
         .assuming(retryFair)
         .rebind(
-          handler.complete ~> ((s, r) =>
-            RejectAfterClose.effects.deliver(Policy.retainAndRoute, Redelivery.once, s, r)
-          )
+          handler.complete ~> (RejectAfterClose.effects
+            .deliver(Policy.retainAndRoute, Redelivery.once, _, _))
         )
     ):
-  object properties extends Section:
+  object properties:
     val retainAndRouteBoundedRetryProgress =
       RetainAndRouteBoundedRetry.leadsTo("outcomeReachesOwner")(
         RejectAfterClose.states.isDone,
@@ -1192,8 +1183,9 @@ object RetainAndRouteBoundedRetry
         recovery
       )
 
-  object queries extends Section:
-    val all = RejectAfterClose.queries.safetyQueries(RetainAndRouteBoundedRetry)
+  object queries:
+    val retainAndRouteBoundedRetryQueries =
+      RejectAfterClose.queries.safetyQueries(RetainAndRouteBoundedRetry)
 
 // The three policies with a schedule-to-close deadline, over the channel that redelivers once.
 
@@ -1203,18 +1195,17 @@ object RejectAfterCloseWithDeadline
       RejectAfterClose
         .assuming(retryFair, deadlineExpires)
         .rebind(
-          handler.complete ~> ((s, r) =>
-            RejectAfterClose.effects.deliver(Policy.rejectAfterClose, Redelivery.once, s, r)
-          )
+          handler.complete ~> (RejectAfterClose.effects
+            .deliver(Policy.rejectAfterClose, Redelivery.once, _, _))
         )
         .extend(
-          when(s => RejectAfterClose.states.expirable(s))(
-            deadline.scheduleToClose ~> RejectAfterClose.effects.expire
-          )
+          on(deadline.scheduleToClose) {
+            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.effects.expire
+          }
         )
     ),
       NegativeControl:
-  object properties extends Section:
+  object properties:
     val rejectAfterCloseWithDeadlineProgress =
       RejectAfterCloseWithDeadline.leadsTo("outcomeReachesOwner")(
         RejectAfterClose.states.isDone,
@@ -1224,8 +1215,9 @@ object RejectAfterCloseWithDeadline
         deliveryFair
       )
 
-  object queries extends Section:
-    val all = RejectAfterClose.queries.deadlineQueries(RejectAfterCloseWithDeadline)
+  object queries:
+    val rejectAfterCloseWithDeadlineQueries =
+      RejectAfterClose.queries.deadlineQueries(RejectAfterCloseWithDeadline)
 
 /** The faulty policy the original run acknowledges, with the deadline. A deliberately wrong design. */
 object AckByOriginalWithDeadline
@@ -1233,18 +1225,17 @@ object AckByOriginalWithDeadline
       AckByOriginal
         .assuming(retryFair, deadlineExpires)
         .rebind(
-          handler.complete ~> ((s, r) =>
-            RejectAfterClose.effects.deliver(Policy.ackByOriginal, Redelivery.once, s, r)
-          )
+          handler.complete ~> (RejectAfterClose.effects
+            .deliver(Policy.ackByOriginal, Redelivery.once, _, _))
         )
         .extend(
-          when(s => RejectAfterClose.states.expirable(s))(
-            deadline.scheduleToClose ~> RejectAfterClose.effects.expire
-          )
+          on(deadline.scheduleToClose) {
+            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.effects.expire
+          }
         )
     ),
       NegativeControl:
-  object properties extends Section:
+  object properties:
     val ackByOriginalWithDeadlineProgress =
       AckByOriginalWithDeadline.leadsTo("outcomeReachesOwner")(
         RejectAfterClose.states.isDone,
@@ -1254,8 +1245,9 @@ object AckByOriginalWithDeadline
         deliveryFair
       )
 
-  object queries extends Section:
-    val all = RejectAfterClose.queries.deadlineQueries(AckByOriginalWithDeadline)
+  object queries:
+    val ackByOriginalWithDeadlineQueries =
+      RejectAfterClose.queries.deadlineQueries(AckByOriginalWithDeadline)
 
 /** The corrected design over the channel that redelivers once, with the deadline. */
 object RetainAndRouteWithDeadline
@@ -1263,12 +1255,12 @@ object RetainAndRouteWithDeadline
       RetainAndRouteBoundedRetry
         .assuming(deadlineExpires)
         .extend(
-          when(s => RejectAfterClose.states.expirable(s))(
-            deadline.scheduleToClose ~> RejectAfterClose.effects.expire
-          )
+          on(deadline.scheduleToClose) {
+            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.effects.expire
+          }
         )
     ):
-  object properties extends Section:
+  object properties:
     val retainAndRouteWithDeadlineProgress =
       RetainAndRouteWithDeadline.leadsTo("outcomeReachesOwner")(
         RejectAfterClose.states.isDone,
@@ -1278,5 +1270,6 @@ object RetainAndRouteWithDeadline
         deliveryFair
       )
 
-  object queries extends Section:
-    val all = RejectAfterClose.queries.deadlineQueries(RetainAndRouteWithDeadline)
+  object queries:
+    val retainAndRouteWithDeadlineQueries =
+      RejectAfterClose.queries.deadlineQueries(RetainAndRouteWithDeadline)

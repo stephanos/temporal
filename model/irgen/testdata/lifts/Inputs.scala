@@ -6,11 +6,6 @@
 package fixture.inputs
 
 import umpire.*
-import InputsFamily.given
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object InputsFamily:
-  given family: Family = Family("fixture.inputs")
 
 enum Outcome derives Finite:
   case accepted
@@ -42,13 +37,13 @@ val answer = input[Answer]
 val urgent = input[Boolean]
 val control = input[Control]
 
-val start = action(Party("caller"))
+val start = action(Actor("caller"))
   .input(closeBy)
   .input(startBy)
   .input(runBy)
-val respond = action(Party("worker")).input(answer).input(urgent)
+val respond = action(Actor("worker")).input(answer).input(urgent)
 // Reports results by name: the IR keeps the text, and no `Delivery` enum is declared.
-val steer = action(Party("caller")).input(control).results("Delivery")
+val steer = action(Actor("caller")).input(control).results("Delivery")
 
 /**
  * Five stages, a counter of 0 to 2 bounded by its type and three deadlines: 120 states. Named apart

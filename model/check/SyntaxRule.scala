@@ -47,7 +47,12 @@ private[check] object SyntaxRule:
     "stickyAcross",
     ":=",
     "field",
-    "when",
+    "reject",
+    "on",
+    "where",
+    "always",
+    "Case",
+    "Firing",
     "Rules",
     "PhasesOf"
   )

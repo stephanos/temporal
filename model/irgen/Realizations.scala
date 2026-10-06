@@ -81,7 +81,9 @@ private[irgen] trait Realizations:
 
   /**
    * What a term is once the names it goes through are followed: a helper function of the lifted
-   * sources by its body with its parameters bound, a val by its definition.
+   * sources by its body with its parameters bound, a val by its definition. A declaration followed
+   * reads `umpire.realize.family` as its own package, and a kit's function, of `temporal.realize`,
+   * as the package of the declaration that called it.
    */
   def reduce(b: Bound): Bound = b.term match
     case Typed(e, _)                                => reduce(Bound(e, b.env))
@@ -96,10 +98,17 @@ private[irgen] trait Realizations:
         case (_, other) => fail(other, s"not a declaration: ${other.show}")
       }
       reduce(Bound(e, inner))
+    case r: Ref if r.symbol == familySymbol =>
+      reduce(
+        b.env.getOrElse(
+          familySymbol,
+          fail(r, "family is the package of the realization that reads it, and none reads it here")
+        )
+      )
     case r: Ref if b.env.contains(r.symbol) => reduce(b.env(r.symbol))
     case r: Ref if isFunction(r.symbol)     =>
       defs(r.symbol) match
-        case d: DefDef if d.rhs.nonEmpty => reduce(Bound(d.rhs.get, Map.empty))
+        case d: DefDef if d.rhs.nonEmpty => reduce(Bound(d.rhs.get, familyScope(r.symbol, b)))
         case _                           => b
     case r: Ref
         if !isEnumCase(r.symbol) && !factCase(r.symbol) && !namedByIR(
@@ -108,11 +117,11 @@ private[irgen] trait Realizations:
           resolveSymbol(r)
         ) && !vocabularyMember(resolveSymbol(r)) =>
       defs(resolveSymbol(r)) match
-        case ValDef(_, _, Some(rhs)) => reduce(Bound(rhs, Map.empty))
+        case ValDef(_, _, Some(rhs)) => reduce(Bound(rhs, familyScope(resolveSymbol(r), b)))
         case _                       => b
     // A val naming a value no val declares, such as an enum case: `val cancelAttempt = AttemptCanceled`.
     case r: Ref if !isEnumCase(r.symbol) && r.symbol.isValDef && aliasOf(r.symbol).nonEmpty =>
-      reduce(Bound(aliasOf(r.symbol).get, Map.empty))
+      reduce(Bound(aliasOf(r.symbol).get, familyScope(r.symbol, b)))
     case t =>
       applied(t) match
         case Some((sel @ Select(table, "apply"), List(fact)))
@@ -124,10 +133,26 @@ private[irgen] trait Realizations:
             case d: DefDef if d.rhs.nonEmpty =>
               val params = d.termParamss.flatMap(_.params).map(_.symbol)
               reduce(
-                Bound(d.rhs.get, params.zip(args.map(Bound(_, b.env))).toMap)
+                Bound(
+                  d.rhs.get,
+                  familyScope(fn.symbol, b) ++ params.zip(args.map(Bound(_, b.env))).toMap
+                )
               )
             case _ => b
         case _ => b
+
+  /** `umpire.realize.family`, which a realization reads as its own package. */
+  private lazy val familySymbol: Symbol =
+    Symbol.requiredModule("umpire.realize.Realize$package").moduleClass.declaredField("family")
+
+  /**
+   * The family a declaration followed reads: its own package, or for a kit's, the one of the
+   * declaration it is followed from, `from`.
+   */
+  def familyScope(sym: Symbol, from: Bound): Map[Symbol, Bound] =
+    if inVocabulary(sym) then
+      from.env.get(familySymbol).fold(Map.empty)(f => Map(familySymbol -> f))
+    else Map(familySymbol -> Bound(Literal(StringConstant(ctx.familyOf(sym))), Map.empty))
 
   private def aliasOf(sym: Symbol): Option[Term] = defs.get(sym) match
     case Some(ValDef(_, _, Some(rhs: Ref))) if !namedByIR(rhs.tpe) => Some(rhs)
@@ -730,7 +755,7 @@ private[irgen] trait Realizations:
         textOfBound(args.find(_._1 == "id").get._2)
       case t if identified.exists(declares(t.tpe, _)) => idOf(b)
       case r: Ref if factCase(r.symbol)               => r.symbol.name
-      // A party's, entity's or observation's name, which its val gives where it states none.
+      // An entity's or observation's name, which its val gives where it states none.
       case Select(qual, "name") if namedByVal(qual.tpe.widen.dealias.typeSymbol) =>
         constString(follow(Bound(qual, b.env)).term)
       case Select(qual, field) if fieldOfDeclaration(Bound(qual, b.env), field).nonEmpty =>
@@ -1057,9 +1082,10 @@ private[irgen] trait Realizations:
         val d = valDef(sym, at, "a realization")
         factsNamed.clear()
         // A realization is where its val declares it, though a kit function may write its record.
-        val emitted = emit(ir.Realization, Bound(d.rhs.get, Map.empty))
-          .withId(id)
-          .withPosition(pos(d.rhs.get))
+        val emitted =
+          emit(ir.Realization, Bound(d.rhs.get, familyScope(sym, Bound(d.rhs.get, Map.empty))))
+            .withId(id)
+            .withPosition(pos(d.rhs.get))
         ownFacts(emitted)
         val r =
           if emitted.name.nonEmpty then emitted

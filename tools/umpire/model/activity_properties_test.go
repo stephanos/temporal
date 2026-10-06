@@ -374,7 +374,7 @@ func TestActivityQueriesAnswerAlongTheirPaths(t *testing.T) {
 	verified := func(explored, expanded int) pathAnswer {
 		return pathAnswer{Kind: Verified, Explored: explored, Expanded: expanded, Exercised: true}
 	}
-	// accepted is a step every party's request on these paths is answered by.
+	// accepted is a step every actor's request on these paths is answered by.
 	accepted := func(class, state string, facts ...string) string { return witnessStep(class, "accepted", state, facts) }
 	var (
 		scheduled       = accepted("start-unset-unset-unset", "scheduled-0-unset-unset-unset", "statusScheduled")
@@ -528,7 +528,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 			mutate: func(t *testing.T, m *umpirespb.Model) {
 				f := activityFunction(t, m, "activityProduct.property.activityProduct.pausedIsNotDispatched")
 				narrowed(f, binary(umpirespb.Binary_OP_NE, stateField(f, 1, "phase"),
-					expr(admEnum("temporal.standaloneactivity.ProductPhase", "terminated"))))
+					expr(admEnum("temporal.features.standaloneactivity.ProductPhase", "terminated"))))
 			},
 			rows: []string{
 				"activityProduct.pausedIsNotDispatched on activityProduct at scheduled-control-terminate",

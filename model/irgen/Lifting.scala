@@ -19,8 +19,9 @@ final private[irgen] class Lifting(val ctx: Context)
   import ctx.quotes.reflect.*
 
   /**
-   * A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, or
-   * a capability declaration.
+   * A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, a
+   * capability declaration, an `implements` section, which is its object's, or a `queries` section,
+   * which roots every Query, list of Queries and progress claim it declares, in the order written.
    */
   def liftRoot(root: String): Unit =
     val sym = defs.keys
@@ -30,6 +31,19 @@ final private[irgen] class Lifting(val ctx: Context)
     // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
     if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d)
     else if objectForm(sym) then compositionOf(sym, d)
+    else if implementsObject(sym) then fold(Ref(sym), Map.empty): Unit
+    else if queriesSection(sym) then
+      for q <- statements(objectBody(moduleClassOf(sym), d)) do
+        q match
+          case v: ValDef if claimRoot(v.tpt.tpe) => liftRoot(v.symbol.fullName)
+          case v: ValDef if readAtRunTime(v)     =>
+            fail(
+              v,
+              s"${v.name} is a ${v.tpt.tpe.widen.dealias.show}, which the IR file reads at run " +
+                "time but the IR does not: a `queries` section declares a Query, a List or Vector " +
+                "of Queries, or a progress claim"
+            )
+          case _ => ()
     else if isNamed(d.tpt.tpe, "umpire.Machine") then machineOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.Composition") then compositionOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.realize.Realization") then realizationOf(sym, d)
@@ -44,9 +58,34 @@ final private[irgen] class Lifting(val ctx: Context)
       then
         fail(
           d,
-          s"$root is a ${kind.show}; a root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization"
+          s"$root is a ${kind.show}; a root is a machine, a composition, a Query, a list of Queries, " +
+            "a progress claim, a realization, or a machine's `implements` or `queries` section"
         )
       fold(Ref(sym), Map.empty)
+
+  /** Whether a symbol names the `queries` section of a machine or composition object. */
+  private def queriesSection(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" && objectForm(cls.maybeOwner)
+
+  /**
+   * Whether the IR file reads a val of a `queries` section at run time (`IrFile.queriesOf`): a
+   * public one that is a Query or a sequence. One the lifter does not root is refused, so the IR and
+   * the run never disagree on a section's Queries.
+   */
+  private def readAtRunTime(v: ValDef): Boolean =
+    val kind = v.tpt.tpe.widen.dealias
+    !v.symbol.flags.is(Flags.Private) && !v.symbol.flags.is(Flags.Protected) &&
+    (kind.baseClasses.exists(_.fullName == "umpire.Query") ||
+      kind.baseClasses.exists(_.fullName == "scala.collection.Seq"))
+
+  /** Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim. */
+  private def claimRoot(t: TypeRepr): Boolean =
+    val kind = t.widen.dealias
+    val listed =
+      isList(kind.typeSymbol) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
+    Set("umpire.Query", "umpire.Progress")(kind.typeSymbol.fullName) ||
+    (listed && kind.typeArgs.headOption.exists(a => isNamed(a, "umpire.Query")))
 
   /**
    * The IR files the lifted sources declare, `val f = irFile("name")(root, ...)`: each file's name

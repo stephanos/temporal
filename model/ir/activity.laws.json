@@ -13,7 +13,7 @@
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:128"
+    "position": "model/temporal/features/standaloneactivity/product/Product.scala:123"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -29,7 +29,7 @@
       "running": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:133"
+    "position": "model/temporal/features/standaloneactivity/product/Product.scala:128"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -41,7 +41,7 @@
       "terminal": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:128"
+    "position": "model/temporal/features/standaloneactivity/product/Product.scala:123"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.cancelIsRequested",
@@ -55,7 +55,7 @@
       "requested": "temporal.features.standaloneactivity.ProtocolFact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/System.scala:278"
+    "position": "model/temporal/features/standaloneactivity/system/System.scala:292"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.terminateSettles",
@@ -69,7 +69,7 @@
       "settled": "temporal.features.standaloneactivity.ProtocolFact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/System.scala:272"
+    "position": "model/temporal/features/standaloneactivity/system/System.scala:286"
   } ],
   "waivers": [ ],
   "catalog": [ {
@@ -81,7 +81,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "activityProtocol",
-      "state": "temporal.standaloneactivity.ProtocolState"
+      "state": "temporal.features.standaloneactivity.ProtocolState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:11"
   }, {
@@ -93,7 +93,7 @@
     "parameters": [ "rejected" ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.standaloneactivity.ProductState"
+      "state": "temporal.features.standaloneactivity.ProductState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:9"
   }, {
@@ -105,7 +105,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.standaloneactivity.ProductState"
+      "state": "temporal.features.standaloneactivity.ProductState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:12"
   }, {
@@ -117,7 +117,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.standaloneactivity.ProductState"
+      "state": "temporal.features.standaloneactivity.ProductState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:9"
   }, {
@@ -129,7 +129,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "activityProtocol",
-      "state": "temporal.standaloneactivity.ProtocolState"
+      "state": "temporal.features.standaloneactivity.ProtocolState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:10"
   } ]

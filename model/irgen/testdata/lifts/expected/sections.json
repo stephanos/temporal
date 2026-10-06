@@ -1,10 +1,10 @@
 {
-  "source": "model: fixture.sections.Switch",
+  "source": "model: fixture.sections.Clapper, fixture.sections.Switch",
   "types": [ {
     "name": "fixture.sections.Light",
     "position": {
       "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 13
+      "line": 12
     },
     "record": {
       "fields": [ {
@@ -18,7 +18,7 @@
     "name": "fixture.sections.Outcome",
     "position": {
       "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 15
+      "line": 14
     },
     "enum": {
       "cases": [ {
@@ -30,7 +30,7 @@
     "name": "fixture.sections.Switch$.flipStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 35
+      "line": 39
     },
     "params": [ {
       "name": "l",
@@ -41,20 +41,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Sections.scala",
-        "line": 35
+        "line": 40
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Sections.scala",
-            "line": 35
+            "line": 40
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 35
+                "line": 40
               },
               "literal": {
                 "enum": {
@@ -65,27 +65,27 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 35
+                "line": 40
               },
               "construct": {
                 "type": "fixture.sections.Light",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Sections.scala",
-                    "line": 35
+                    "line": 40
                   },
                   "unary": {
                     "op": "OP_NOT",
                     "operand": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Sections.scala",
-                        "line": 35
+                        "line": 40
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Sections.scala",
-                            "line": 35
+                            "line": 40
                           },
                           "var": "l"
                         },
@@ -98,13 +98,13 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 35
+                "line": 40
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 35
+                "line": 40
               },
               "literal": {
                 "text": ""
@@ -118,7 +118,7 @@
     "name": "fixture.sections.Switch$.pressStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 36
+      "line": 41
     },
     "params": [ {
       "name": "l",
@@ -129,20 +129,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Sections.scala",
-        "line": 36
+        "line": 42
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Sections.scala",
-            "line": 36
+            "line": 42
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 36
+                "line": 42
               },
               "literal": {
                 "enum": {
@@ -153,14 +153,14 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 36
+                "line": 42
               },
               "construct": {
                 "type": "fixture.sections.Light",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Sections.scala",
-                    "line": 36
+                    "line": 42
                   },
                   "literal": {
                     "bool": true
@@ -170,13 +170,13 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 36
+                "line": 42
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 36
+                "line": 42
               },
               "literal": {
                 "text": ""
@@ -190,7 +190,7 @@
     "name": "fixture.sections.Switch$.resetStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 37
+      "line": 43
     },
     "params": [ {
       "name": "l",
@@ -201,20 +201,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Sections.scala",
-        "line": 37
+        "line": 44
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Sections.scala",
-            "line": 37
+            "line": 44
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 37
+                "line": 44
               },
               "literal": {
                 "enum": {
@@ -225,14 +225,14 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 37
+                "line": 44
               },
               "construct": {
                 "type": "fixture.sections.Light",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Sections.scala",
-                    "line": 37
+                    "line": 44
                   },
                   "literal": {
                     "bool": false
@@ -242,13 +242,13 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 37
+                "line": 44
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Sections.scala",
-                "line": 37
+                "line": 44
               },
               "literal": {
                 "text": ""
@@ -260,51 +260,67 @@
     }
   } ],
   "actions": [ {
-    "id": "fixture.sections.Sections$package$.flip",
-    "name": "flip",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 25
-    },
-    "party": "panel"
-  }, {
-    "id": "fixture.sections.Sections$package$.reset",
-    "name": "reset",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 21
-    },
-    "party": "system",
-    "internal": true
-  }, {
-    "id": "fixture.sections.Switch$.press",
+    "id": "fixture.sections.Switch.operator.press",
     "name": "press",
     "position": {
       "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 33
+      "line": 37
     },
-    "party": "operator"
+    "actor": "operator"
+  }, {
+    "id": "fixture.sections.leftHand.clap",
+    "name": "clap",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 26
+    },
+    "actor": "fixture"
+  }, {
+    "id": "fixture.sections.panel.flip",
+    "name": "flip",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 22
+    },
+    "actor": "panel"
+  }, {
+    "id": "fixture.sections.reset",
+    "name": "reset",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 18
+    },
+    "actor": "system",
+    "internal": true
+  }, {
+    "id": "fixture.sections.rightHand.clap",
+    "name": "clap",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 29
+    },
+    "actor": "fixture"
   } ],
   "machines": [ {
     "family": "fixture.sections",
-    "name": "switch",
+    "name": "clapper",
     "position": {
       "file": "model/irgen/testdata/lifts/Sections.scala",
-      "line": 27
+      "line": 55
     },
     "stateType": "fixture.sections.Light",
     "outcomeType": "fixture.sections.Outcome",
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Sections.scala",
-        "line": 28
+        "line": 56
       },
       "construct": {
         "type": "fixture.sections.Light",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Sections.scala",
-            "line": 28
+            "line": 56
           },
           "literal": {
             "bool": false
@@ -315,7 +331,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Sections.scala",
-        "line": 29
+        "line": 57
       },
       "lambda": {
         "params": [ {
@@ -327,7 +343,7 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Sections.scala",
-            "line": 29
+            "line": 57
           },
           "literal": {
             "bool": true
@@ -336,25 +352,90 @@
       }
     },
     "steps": [ {
-      "action": "fixture.sections.Sections$package$.flip",
+      "action": "fixture.sections.rightHand.clap",
       "function": "fixture.sections.Switch$.flipStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Sections.scala",
-        "line": 40
+        "line": 58
+      }
+    } ]
+  }, {
+    "family": "fixture.sections",
+    "name": "switch",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 31
+    },
+    "stateType": "fixture.sections.Light",
+    "outcomeType": "fixture.sections.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 32
+      },
+      "construct": {
+        "type": "fixture.sections.Light",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Sections.scala",
+            "line": 32
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 33
+      },
+      "lambda": {
+        "params": [ {
+          "name": "light",
+          "type": {
+            "named": "fixture.sections.Light"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Sections.scala",
+            "line": 33
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.sections.panel.flip",
+      "function": "fixture.sections.Switch$.flipStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 48
       }
     }, {
-      "action": "fixture.sections.Switch$.press",
+      "action": "fixture.sections.Switch.operator.press",
       "function": "fixture.sections.Switch$.pressStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Sections.scala",
-        "line": 40
+        "line": 49
       }
     }, {
-      "action": "fixture.sections.Sections$package$.reset",
+      "action": "fixture.sections.reset",
       "function": "fixture.sections.Switch$.resetStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Sections.scala",
-        "line": 40
+        "line": 50
+      }
+    }, {
+      "action": "fixture.sections.leftHand.clap",
+      "function": "fixture.sections.Switch$.flipStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 51
       }
     } ]
   } ]

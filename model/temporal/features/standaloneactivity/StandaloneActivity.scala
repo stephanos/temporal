@@ -30,17 +30,6 @@ import io.temporal.api.workflowservice.v1.*
 import product.ActivityProduct
 import system.{ActivityProtocol, StandaloneActivity}
 
-// Moved from temporal.standaloneactivity; the pin keeps its Definition IDs and type names.
-given DefinitionScope = DefinitionScope("temporal.standaloneactivity.Model$package$")
-
-/** The family of the activity's machines; the system contract takes `SystemFamily`. */
-object ActivityFamily:
-  given family: Family = Family("temporal.activity.standalone")
-
-/** The system contract's family; the shared task queue, first written there, keeps it too. */
-object SystemFamily:
-  given family: Family = Family("temporal.activity.standalone.system")
-
 // ### Types
 
 /** Whether the start request sets a deadline. */
@@ -71,8 +60,6 @@ enum ProductFact derives Finite:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut
 
-type ProductStep = Step[ProductState, Outcome, ProductFact]
-
 /** The protocol machine's phases. It begins before the activity exists, so unstarted is one. */
 enum Phase derives Finite:
   case unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested
@@ -101,8 +88,6 @@ enum ProtocolFact derives Finite:
   case statusTimedOut(timeoutType: TimeoutType)
   case attemptCount
 
-type ProtocolStep = Step[ProtocolState, Outcome, ProtocolFact]
-
 final case class StandaloneActivityState(activity: ProtocolState, worker: WorkerState)
 
 // ### Signature
@@ -120,8 +105,8 @@ val result = input[AttemptResult]
 object Inputs:
   val control = input[Control]
 
-// Who acts, and on what. Actor and section objects are transparent to Definition IDs, so every
-// action keeps the ID the file's pin gives it.
+// Who acts, and on what: each action is declared in the object of who takes it, and named after
+// where it is declared, `temporal.features.standaloneactivity.caller.start`.
 
 /** The caller starts and controls the activity. */
 object caller extends Actor:
@@ -144,12 +129,11 @@ object caller extends Actor:
     .results("Delivery")
 
 /**
- * The shared worker party's actions on this activity: its poll receives the task for the current
- * attempt, and its answer settles it. The worker's stop is the party's own action,
- * `process.workerStop`: nothing it records names the activity, so the activity's machines keep
- * their state.
+ * The shared worker's actions on this activity: its poll receives the task for the current attempt,
+ * and its answer settles it. The worker's stop is the worker's own action, `process.workerStop`:
+ * nothing it records names the activity, so the activity's machines keep their state.
  */
-object worker extends Section:
+object worker:
   val attemptStart = action(process).on(activity).schema[PollActivityTaskQueueResponse]
 
   val attemptResult = action(process)
@@ -162,12 +146,12 @@ object worker extends Section:
     .example(AttemptResult.failed(true), "ApplicationFailureRetryable")
 
 /** One of the activity's deadlines firing, as the product machine sees it, and the backoff. */
-object timers extends Section:
+object timers:
   val timeout = timer
   val backoff = timer
 
 /** The protocol's three deadlines, each armed by the start's input of its name. */
-object deadline extends Section:
+object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
   val startToClose = timer
@@ -191,30 +175,27 @@ object exports:
   val activity = irFile("activity")(
     StandaloneActivity,
     ActivityProduct,
-    ActivityProtocol.queries.all,
-    ActivityProduct.implements.all,
-    ActivityProtocol.implements.all,
-    ActivityProtocol.queries.cancelRequest,
-    StandaloneActivity.queries.stoppedWorkerStartsNothing,
+    ActivityProduct.implements,
+    ActivityProtocol.implements,
+    ActivityProtocol.queries,
+    StandaloneActivity.queries,
     ActivityRealization.standalone
   )
 
   // Its system contract, the admission designs, and the shared task queue's providers it composes.
   // A composition no Query runs over is a root of its own.
   val activitySystem = irFile("activity-system")(
-    system.CurrentAdmission.queries.currentQueries,
-    system.StaleAdmission.queries.staleQueries,
-    ActivityProtocol.queries.competingTimers,
-    shared.taskqueue.system.MatchingQueue.queries.matchingQueueQueries,
-    shared.taskqueue.system.ForgetfulQueue.queries.forgetfulQueueQueries,
-    shared.taskqueue.system.VolatileQueue.queries.volatileQueueQueries,
-    shared.taskqueue.system.LossyMatchingQueue.queries.lossyMatchingQueueQueries,
-    shared.taskqueue.system.LossyMatchingQueue.queries.storageLossQuery,
-    system.CurrentOverQueue.queries.currentOverQueueQueries,
-    system.StaleOverQueue.queries.staleOverQueueQueries,
-    system.CurrentOverMatching.queries.currentOverMatchingQueries,
-    system.StaleOverMatching.queries.staleOverMatchingQueries,
-    system.CurrentOverLossyMatching.queries.currentOverLossyMatchingQueries,
+    system.CurrentAdmission.queries,
+    system.StaleAdmission.queries,
+    shared.taskqueue.system.MatchingQueue.queries,
+    shared.taskqueue.system.ForgetfulQueue.queries,
+    shared.taskqueue.system.VolatileQueue.queries,
+    shared.taskqueue.system.LossyMatchingQueue.queries,
+    system.CurrentOverQueue.queries,
+    system.StaleOverQueue.queries,
+    system.CurrentOverMatching.queries,
+    system.StaleOverMatching.queries,
+    system.CurrentOverLossyMatching.queries,
     system.CurrentOverForgetful,
     system.CurrentOverVolatile
   )
@@ -222,8 +203,8 @@ object exports:
   // The held race a server is run through, and the realization that runs it. It is a Model of its
   // own, so the system contract's Queries are the ones its checkers were given.
   val activityRace = irFile("activity-race")(
-    system.HeldAdmission.queries.heldStaleDelivery,
+    system.HeldAdmission.queries,
     ActivityRealization.heldDelivery,
-    system.AdmissionResponseLoss.queries.lostAdmissionResponseQuery,
+    system.AdmissionResponseLoss.queries,
     ActivityRealization.lostAdmissionResponse
   )

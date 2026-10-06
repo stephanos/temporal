@@ -12,8 +12,8 @@ object KettleSystem extends Machine[Kettle, Outcome, Nothing]:
   object refinement extends Refinement(KettleProduct):
     def toProduct(s: State) = s
 
-  object effects extends Section:
+  object effects:
     def boiled(s: State): List[KettleStep] = enter(s.copy(hot = true))
 
   object rules extends Rules:
-    when(!_.hot)(cook.boil ~> effects.boiled)
+    on(cook.boil)(where(!_.hot) ~> effects.boiled)

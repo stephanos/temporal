@@ -62,7 +62,7 @@ private[check] object ProtoLiterals:
   private def usedAsModelData(code: String, name: String): Boolean =
     val quoted = Pattern.quote(name)
     val firstArgument =
-      s"\\b(?:Family|Role|ProtoEntry\\.typed|Evidence\\.(?:read|single|keyed|runEvent)|Observed(?:\\[[^\\]]+\\])?|WorkerActivation\\.NexusHandler)\\s*\\(\\s*$quoted\\b"
+      s"\\b(?:Role|ProtoEntry\\.typed|Evidence\\.(?:read|single|keyed|runEvent)|Observed(?:\\[[^\\]]+\\])?|WorkerActivation\\.NexusHandler)\\s*\\(\\s*$quoted\\b"
     val namedArgument =
       s"\\b(?:Evidence\\.(?:read|single|keyed|runEvent)|Correlation|Role|Realization)\\s*\\([^)]*\\b(?:id|evidenceId|roleId|source|producer|namespace|resource|service|operation|evidence|role|projection|run|observation)\\s*=\\s*$quoted\\b"
     val closingEvidence = s"\\bcloses\\s*=\\s*Vector\\s*\\([^)]*\\b$quoted\\b"
@@ -74,7 +74,7 @@ private[check] object ProtoLiterals:
       case declaration(name) => Some(name)
       case _                 => None
     val modelIdOrData = context.matches(
-      "(?s).*(?:\\b(?:Family|Role)\\s*\\(\\s*|\\bEvidence\\.(?:read|single|keyed|runEvent)\\s*\\(\\s*|\\bProtoEntry\\.typed\\s*\\(\\s*|[,(]\\s*(?:id|evidenceId|roleId|source|producer|namespace|resource|service)\\s*=\\s*)"
+      "(?s).*(?:\\bRole\\s*\\(\\s*|\\bEvidence\\.(?:read|single|keyed|runEvent)\\s*\\(\\s*|\\bProtoEntry\\.typed\\s*\\(\\s*|[,(]\\s*(?:id|evidenceId|roleId|source|producer|namespace|resource|service)\\s*=\\s*)"
     ) || declaredName.exists(name => usedAsModelData(code, name))
     val protoRoot = value.startsWith("temporal.api.") ||
       value.startsWith("temporal.server.api.") || value.startsWith("google.protobuf.")

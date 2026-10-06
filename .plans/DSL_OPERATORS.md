@@ -206,11 +206,13 @@ field path or a `read` that is not a def; one lifting fixture and one refusal fi
   completes them.
 - **`disabled unless cond`** or `guard(cond) { ... }`: `if cond then ... else disabled` is plain Scala
   and lifts as `if`.
-  *Reversed by the owner (fn-126, decisions 7 and R16):* a step function no longer mixes when an
-  action fires with what it does. `when(g) { action ~> effects.x }` and `in(p1, p2) { … }` are rule
-  headings in a machine's `object rules extends Rules`, which lower to the guarded step function
-  (`model/SEMANTICS.md`, Rules); an effect never returns `disabled`. `when` and `in` are rule
-  headings only, never a guard inside a step or an effect, and there is no standalone guard helper.
+  *Reversed by the owner (fn-126, decisions 7, 27 and R16):* a step function no longer mixes when an
+  action fires with what it does. A machine's `object rules extends Rules` holds one block per
+  action, `on(action) { in(p1, p2) ~> effects.x; where(g) ~> effects.y }`, which lowers to the
+  guarded step function (`model/SEMANTICS.md`, Rules); an effect never returns `disabled`. The
+  cases, `in`, `where` and `always`, say where an action fires only, never a guard inside a step or
+  an effect, and there is no standalone guard helper. `when` is no rule heading any more (decision
+  27).
 
 ## Do not do
 

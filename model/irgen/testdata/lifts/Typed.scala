@@ -19,7 +19,7 @@ import temporal.server.api.testpilot.v1.InstructionOutcome
 import umpire.*
 import umpire.realize.*, temporal.realize.{Role, RoleKind, WorkerInstruction}
 
-val one = action(Party("caller")).schema[StartActivityExecutionRequest]
+val one = action(Actor("caller")).schema[StartActivityExecutionRequest]
 
 enum State derives Finite:
   case idle
@@ -31,8 +31,7 @@ def step(s: State): List[Step[State, Result, Nothing]] = List(
   Step(Result.accepted, s)
 )
 
-object Typed
-    extends Machine[State, Result, Nothing](using Family("fixture.typed"), summon, summon, summon):
+object Typed extends Machine[State, Result, Nothing]:
   val init = State.idle
   def end(state: State) = true
 

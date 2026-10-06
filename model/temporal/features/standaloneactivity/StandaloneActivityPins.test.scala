@@ -12,7 +12,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       CurrentAdmission.effects.admit(CurrentAdmission.init).map(_.state)
     )
     assertEquals(choices.map(_.state.lossAvailable), List(false, false))
-    // A consumed budget ends the path: the rule `when(_.lossAvailable)` fires no further loss.
+    // A consumed budget ends the path: the rules' `where(_.lossAvailable)` fire no further loss.
     assert(choices.forall(c => AdmissionResponseLoss.end(c.state)))
     assertEquals(choices.map(_.facts), List(List(AdmissionResponseFact.attemptAdmitted), Nil))
   }

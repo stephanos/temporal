@@ -19,8 +19,6 @@ import temporal.features.standaloneactivity.system.ActivityProtocol as activityP
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus
 
-given Family = Family("fixture.scriptrejects")
-
 private def realizing(items: Item*) = temporalRealization(
   machine = activityProtocol,
   operation = activity,

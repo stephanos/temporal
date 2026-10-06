@@ -23,18 +23,17 @@ import scala.collection.mutable
  *     implements, queries; a declaration in a section other than its kind's, vocabulary outside
  *     `states`, a refinement's member outside `refinement`, an effect outside `effects` and a
  *     monitor outside `monitors`; a step function bound by hand, `action ~> step`, outside a
- *     derivation's `rebind`; a machine's section outside its object; and an object that holds a
- *     Model declaration and is no machine or composition object;
- *   - over every inspected file, not just what one IR file lifts: a section (umpire.Section) that
- *     sits anywhere but at the top level of a file or directly in a machine's object, and two
- *     actions, monitors, assumptions, holes or channels that would take one Definition ID.
+ *     derivation's `rebind`; a machine's section outside its object, or in another section; and
+ *     an object that holds a Model declaration and is no machine or composition object.
+ *
+ * A section is an object of a machine or composition object named as one, `object effects`: its name
+ * says what it holds (the structure lint, Structure.scala, refuses any other name there).
  *
  * A read inside a def, a lambda, a by-name argument or a lazy val of the owner itself, and an object
  * declared but not read, initializes nothing. A context function the DSL applies at once is read
- * as written, and so are a rule heading's rules and its guard,
- * and the phase projection of `Rules(_.phase)`, which the rules' disjointness check calls while they
- * initialize. A def called while its owner initializes is not followed, so a val it reads is not
- * checked.
+ * as written, and so are a rule block's cases and their conditions, and the phase projection of
+ * `Rules(_.phase)`, which the rules' disjointness check calls while they initialize. A def called
+ * while its owner initializes is not followed, so a val it reads is not checked.
  *
  * Scala's own checkers do not serve: `-Wsafe-init` checks classes, not objects (Scala 3.9), and
  * `-Ysafe-init-global`, which checks objects, stops the compiler on a read of a ScalaPB gRPC method
@@ -59,7 +58,6 @@ final private[irgen] class Order(index: Index):
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
     checked.foreach(initialization)
     cycles()
-    placesAndIdentities(checked)
     // A source is compiled to a tree per top-level type and one for its top-level definitions.
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1)
     sources.foreach((path, trees) => layout(path, trees, sources.map(_._1)))
@@ -87,15 +85,12 @@ final private[irgen] class Order(index: Index):
 
   private val machineClass = Symbol.requiredClass("umpire.Machine")
   private val compositionClass = Symbol.requiredClass("umpire.Composition")
-  private val sectionClass = Symbol.requiredClass("umpire.Section")
   private val rulesClass = Symbol.requiredClass("umpire.Rules")
+  private val caseClass = Symbol.requiredClass("umpire.Case")
 
   /** Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`. */
   private def objectForm(c: Symbol): Boolean =
     isOwner(c) && (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(compositionClass))
-
-  /** Whether `c` is a section object, `object timers extends Section`, an actor or `rules`. */
-  private def isSection(c: Symbol): Boolean = isOwner(c) && c.typeRef.derivesFrom(sectionClass)
 
   // ### (a) and (b): what each owner reads while it initializes
 
@@ -207,16 +202,17 @@ final private[irgen] class Order(index: Index):
       initReads.traverseTree(init)(owner)
 
   /**
-   * A call that runs its function arguments while it is made: a rule heading of `rules`, `when(g)`
-   * or `in(p*)`, whose rules run at once and whose guard the disjointness check calls; `Rules`'s
-   * constructor, whose phase projection the guards of `in` call; and a derivation's rules,
-   * `when(g)(bindings*)`, whose guard it calls too.
+   * A call that runs its function arguments while it is made: a rule block, `on(a) { ... }` of
+   * `rules` or of a derivation, whose cases run at once; a case, `in(set)`, `where(g)` or
+   * `.where(g)`, whose condition the disjointness check calls; and `Rules`'s constructor, whose
+   * phase projection the conditions of `in` call.
    */
   private def appliesAtOnce(s: Symbol): Boolean =
     s.exists && {
       val owner = s.maybeOwner
-      (owner == rulesClass && (s.isClassConstructor || s.name == "when" || s.name == "in")) ||
-      (s.name == "when" && owner.fullName == "umpire.Syntax$package$")
+      (owner == rulesClass && (s.isClassConstructor || s.name == "on" || s.name == "in")) ||
+      (owner == caseClass && s.name == "where") ||
+      (Set("on", "where")(s.name) && owner.fullName == "umpire.Syntax$package$")
     }
 
   /**
@@ -265,140 +261,6 @@ final private[irgen] class Order(index: Index):
           "one before it initializes, so one of them is read half made: read it in a def, a " +
           "lambda or a lazy val, or move what is read into an object of its own"
       )
-
-  // ### Where sections sit, and the Definition IDs their members take, over every inspected file
-
-  /**
-   * Refuses, over every inspected file rather than what one IR file lifts (R14, R6): a section that
-   * sits anywhere but at the top level of a file or directly in a machine's object, each at its
-   * line; and two declarations that would take one Definition ID, at the later. IDs are taken as
-   * the lifter takes them (Context.definitionId): a val's owner and name, the owner by the former
-   * owner its `DefinitionScope` pins if it pins one, and a section's member as a member of the
-   * section's enclosing owner, the file's package object at the top level of a file.
-   */
-  private def placesAndIdentities(checked: List[Tree]): Unit =
-    val sectionObjects = mutable.ArrayBuffer.empty[ClassDef]
-    val declarations = mutable.ArrayBuffer.empty[ValDef]
-    val packageObjects = mutable.Map.empty[(Symbol, String), Symbol]
-    object collect extends TreeTraverser:
-      override def traverseTree(t: Tree)(o: Symbol): Unit =
-        t match
-          case c: ClassDef if isOwner(c.symbol) && static(c.symbol) =>
-            if c.name.endsWith("$package$") then
-              packageObjects((c.symbol.maybeOwner, fileOf(c))) = c.symbol
-            if isSection(c.symbol) then sectionObjects += c
-          case v: ValDef if isOwner(v.symbol.maybeOwner) && static(v.symbol.maybeOwner) =>
-            if declaresId(v) then declarations += v
-          case _ => ()
-        super.traverseTree(t)(o)
-    for t <- checked if !fileOf(t).startsWith("model/umpire/") do
-      collect.traverseTree(t)(Symbol.spliceOwner)
-
-    def ownerId(o: Symbol) = pins.getOrElse(o, o.fullName)
-    // The owner whose IDs a section's members take, or none where the section is refused.
-    def sectionOwner(section: Symbol): Option[String] =
-      val enclosing = section.maybeOwner
-      if isSection(enclosing) then None
-      else if enclosing.isPackageDef then
-        treeOf(section).flatMap(t => packageObjects.get(enclosing -> fileOf(t))).map(ownerId)
-      else Option.when(machineObjectAt(enclosing))(ownerId(enclosing))
-
-    for s <- sectionObjects do
-      val name = plain(s.name)
-      val enclosing = s.symbol.maybeOwner
-      if isSection(enclosing) then
-        refuse(
-          s,
-          s"the section $name sits in the section ${plain(enclosing.name)}: a section sits at the " +
-            "top level of a Model file or directly in a machine's object, never in another"
-        )
-      else if enclosing.isPackageDef then
-        if !packageObjects.contains(enclosing -> fileOf(s)) &&
-          declarations.exists(_.symbol.maybeOwner == s.symbol)
-        then
-          refuse(
-            s,
-            s"the section $name sits at the top level of a file that declares nothing there, so " +
-              "the file has no package object whose Definition IDs its members could take: " +
-              "declare its actions directly, or the section in a machine's object"
-          )
-      else if !machineObjectAt(enclosing) then
-        refuse(
-          s,
-          s"the section $name sits in ${plain(enclosing.fullName)}, which is no machine's " +
-            "object: a section sits at the top level of a Model file or directly in a machine's " +
-            "object"
-        )
-
-    val taken = mutable.LinkedHashMap.empty[String, mutable.ArrayBuffer[ValDef]]
-    for v <- declarations do
-      val owner = v.symbol.maybeOwner
-      val id =
-        if isSection(owner) then sectionOwner(owner).map(o => s"$o.${v.name}")
-        else Some(pins.get(owner).fold(v.symbol.fullName)(p => s"$p.${v.name}"))
-      for i <- id do taken.getOrElseUpdate(i, mutable.ArrayBuffer.empty) += v
-    for (id, vs) <- taken if vs.map(_.symbol).distinct.sizeIs > 1 do
-      val sorted = vs.distinctBy(_.symbol).sortBy(v => (fileOf(v), lineOf(v))).toList
-      val first = sorted.head
-      for v <- sorted.tail do
-        val why =
-          if isSection(v.symbol.maybeOwner) || isSection(first.symbol.maybeOwner) then
-            "a section is transparent to Definition IDs, so the members of one owner's sections " +
-              "and the owner's own members keep distinct names"
-          else "two declarations pinned to one former owner keep the distinct names they had there"
-        refuse(
-          v,
-          s"${v.symbol.fullName} and ${first.symbol.fullName} would share the Definition ID " +
-            s"$id: $why"
-        )
-
-  /** Whether `owner` and every object it sits in is an object, one of a Model, not an instance's. */
-  private def static(owner: Symbol): Boolean =
-    Iterator
-      .iterate(owner)(_.maybeOwner)
-      .takeWhile(o => !o.isNoSymbol && !o.isPackageDef)
-      .forall(isOwner)
-
-  /**
-   * Whether `owner` is a machine's object, as the lifter reads one (Context.machineObject): an
-   * object at a file's top level that is a machine or a composition.
-   */
-  private def machineObjectAt(owner: Symbol): Boolean =
-    isOwner(owner) && owner.maybeOwner.isPackageDef && !isSection(owner) && objectForm(owner)
-
-  // The former owner each owner's `DefinitionScope` pins, read as the lifter reads it.
-  private lazy val pins: Map[Symbol, String] = index.defs.values.toList.flatMap {
-    case v: ValDef if typed(v, Set("umpire.DefinitionScope")) =>
-      v.rhs.collect {
-        case Apply(Select(_, "apply"), List(Literal(StringConstant(s)))) if s.nonEmpty =>
-          v.symbol.maybeOwner -> s
-      }
-    case _ => None
-  }.toMap
-
-  private val idKinds =
-    Set("umpire.Action", "umpire.Monitor", "umpire.Assumption", "umpire.Hole", "umpire.Channel")
-
-  /**
-   * Whether a val declares an action, monitor, assumption, hole or channel, which takes a Definition
-   * ID of its own: a call that makes one, such as `action(caller).input(...)` or `timer`, rather than
-   * another declaration's name, such as `caller.start`.
-   */
-  private def declaresId(v: ValDef): Boolean =
-    idKinds(v.tpt.tpe.widen.dealias.typeSymbol.fullName) && v.rhs.exists { rhs =>
-      def framework(s: Symbol) =
-        s.isDefDef && s.maybeOwner.fullName.startsWith("umpire.") &&
-          !s.maybeOwner.fullName.endsWith("$package$")
-      @tailrec def root(t: Term): Term = t match
-        case Inlined(_, Nil, e)                      => root(e)
-        case Typed(e, _)                             => root(e)
-        case Block(Nil, e)                           => root(e)
-        case Apply(fn, _)                            => root(fn)
-        case TypeApply(fn, _)                        => root(fn)
-        case s @ Select(q, _) if framework(s.symbol) => root(q)
-        case other                                   => other
-      scala.util.Try(root(rhs).symbol).toOption.exists(s => s.exists && s.isDefDef)
-    }
 
   // ### (c) and (d): the reading order and the places of a feature file
 
@@ -535,8 +397,6 @@ final private[irgen] class Order(index: Index):
   private def noModelIn(c: ClassDef, where: String): Unit =
     for m <- members(c) do
       objectOf(m) match
-        // A section here is refused where it sits, by `placesAndIdentities`.
-        case Some(o) if isSection(o.symbol)      => ()
         case Some(o) if sectionNamed(o).nonEmpty =>
           refuse(
             o,
@@ -560,9 +420,6 @@ final private[irgen] class Order(index: Index):
   private def typed(d: Definition, names: Set[String]): Boolean = d match
     case v: ValDef => names(v.tpt.tpe.widen.dealias.typeSymbol.fullName)
     case _         => false
-
-  private def familyObject(c: ClassDef): Boolean =
-    members(c).nonEmpty && members(c).forall(typed(_, Set("umpire.Family")))
 
   private def layout(path: String, trees: List[Tree], sources: Seq[String]): Unit =
     val folder = path.take(path.lastIndexOf('/') + 1)
@@ -632,14 +489,12 @@ final private[irgen] class Order(index: Index):
     def rank(d: Definition): Int = objectOf(d) match
       case Some(c) =>
         if plain(c.name) == "exports" then if level then -1 else 4
-        else if familyObject(c) then 0
         else if holdsModel(c) then 3
         else 2
       case None =>
         d match
-          case _: ClassDef | _: TypeDef                                      => 1
-          case _ if typed(d, Set("umpire.DefinitionScope", "umpire.Family")) => 0
-          case _                                                             => 2
+          case _: ClassDef | _: TypeDef => 1
+          case _                        => 2
     if level then ordered(declared, rank, fileOrder.init, "a level folder's file")
     else ordered(declared, rank, fileOrder, "a feature file")
 
@@ -689,9 +544,7 @@ final private[irgen] class Order(index: Index):
     // that refines another names them in its `refinement`.
     val refines = members(c).flatMap(objectOf).exists(o => plain(o.name) == "refinement")
     val header = Set("init", "end", "entity", "evidence") ++ Option.when(!refines)("unobservable")
-    // The object's pin (R6) heads it with the header members.
-    def headed(d: Definition) =
-      header(d.name) || typed(d, Set("umpire.DefinitionScope", "umpire.Family"))
+    def headed(d: Definition) = header(d.name)
     val refinement =
       Set("refines", "visible", "visibleOutcomes", "toProduct") ++ Option.when(refines)(
         "unobservable"
@@ -710,8 +563,8 @@ final private[irgen] class Order(index: Index):
     for m <- members(c) do
       objectOf(m) match
         case Some(s) if sectionNamed(s).nonEmpty => section(c, s)
-        // A section of its own, such as a machine's own timers, is refused if misplaced by
-        // `placesAndIdentities`, and holds no Model declaration; any other object is vocabulary.
+        // An object of another name is refused once, by the structure lint (Structure.scala), and
+        // here only where it holds a Model declaration.
         case Some(o) =>
           if holdsModelWithin(o) then
             refuse(
@@ -719,7 +572,6 @@ final private[irgen] class Order(index: Index):
               s"${plain(o.name)} holds a Model declaration in $owner, and is none of its sections, " +
                 s"${sectionNames.mkString(", ")}: its declarations belong in them"
             )
-          else if !isSection(o.symbol) then vocabulary(o)
         case None =>
           kindOf(m) match
             case Some(k) =>
@@ -742,14 +594,14 @@ final private[irgen] class Order(index: Index):
    * Refuses a step function bound by hand, `action ~> step` (umpire.Machine's core binding), in a
    * machine or composition object (R17): its `rules` say when each action fires. A derivation's
    * `rebind(action ~> effect)`, which keeps the action's rules, and the rules a derivation binds,
-   * `when(g) { action ~> effect }`, are no hand-written step function.
+   * `on(action) { where(g) ~> effect }`, are no hand-written step function.
    */
   private def handBound(c: ClassDef, owner: String): Unit =
     def core(s: Symbol) =
       s.exists && s.name == "~>" && s.maybeOwner.fullName == "umpire.Machine$package$"
     def derivation(s: Symbol) =
       s.exists && ((s.name == "rebind" && s.maybeOwner == machineClass) ||
-        (s.name == "when" && s.maybeOwner.fullName == "umpire.Syntax$package$"))
+        (s.name == "on" && s.maybeOwner.fullName == "umpire.Syntax$package$"))
     object bindings extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit = t match
         // The rebind's own bindings keep rules; whatever it is applied to is still read.
@@ -764,8 +616,8 @@ final private[irgen] class Order(index: Index):
           refuse(
             t,
             s"a step function is bound by hand, `action ~> step`, in $owner: a machine object " +
-              "says when each action fires in its `rules`, `when(g) { action ~> effects.x }`, and " +
-              "a derivation binds one in `rebind`"
+              "says when each action fires in its `rules`, `on(action) { in(p) ~> effects.x }`, " +
+              "and a derivation binds one in `rebind`"
           )
         case _ => super.traverseTree(t)(o)
     bindings.traverseTree(c)(c.symbol)
@@ -789,9 +641,7 @@ final private[irgen] class Order(index: Index):
       ordered(members(s), rank, Seq("its Scenarios", "its Queries"), s"$owner.queries")
     val written = plain(s.name)
     for o <- members(s).flatMap(objectOf) do
-      // A section in a section is refused where it sits, by `placesAndIdentities`.
-      if isSection(o.symbol) then ()
-      else if sectionNamed(o).nonEmpty then
+      if sectionNamed(o).nonEmpty then
         refuse(
           o,
           s"the section ${plain(o.name)} sits in the section $owner.$written: a machine's " +
@@ -834,11 +684,18 @@ final private[irgen] class Order(index: Index):
       else if m.symbol.flags.is(Flags.Module) && objectForm(m.symbol.moduleClass) &&
         m.symbol.moduleClass != machineObject
       then found += ((m.symbol.moduleClass, m.symbol.moduleClass, where))
+    // A Query whose Scenario is written in it may sit with another machine object of its package,
+    // the one the IR file it is exported to is about (fn-126 decision 24), since the ID derived from
+    // it hangs off that package either way.
+    def samePackage(m: Term) =
+      def pkg(s: Symbol) =
+        Iterator.iterate(s)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
+      kindOf(d).contains(Kind.Query) && pkg(m.symbol) == pkg(machineObject)
     object names extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit =
         t match
-          case Select(m, "property") => machine(m, ".properties")
-          case Select(m, "scenario") => machine(m, ".queries")
+          case Select(m, "property")                    => machine(m, ".properties")
+          case Select(m, "scenario") if !samePackage(m) => machine(m, ".queries")
           case Apply(fn, (m: Ref) :: _) if fn.symbol.name == "capabilities" =>
             machine(m, ".implements")
           case r: Ref

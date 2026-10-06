@@ -3,23 +3,22 @@ package umpire
 import scalapb.{GeneratedMessage, GeneratedMessageCompanion}
 
 /**
- * The root a model's Definition IDs hang off, such as `example.orders`. A Model names it
- * explicitly; it is not derived from the Scala package. A declaration that takes its name from its
- * `val` takes its family from the `given Family` in scope.
+ * Who takes an action: an object that extends it, `object caller extends Actor`, whose members are
+ * the actions it takes, `val start = action(this)`, named after its object with the first letter
+ * lowered; or one named in place, `Actor("fixture")`. `system` is reserved for the steps a machine
+ * takes of its own: its timers, its internal steps and a channel's deliveries and losses.
  */
-final case class Family(root: String):
-  override def toString: String = root
+open class Actor(named: String = ""):
+  /** The actor's name: the one it is given, or its object's with the first letter lowered. */
+  def name: String = if named.nonEmpty then named else objectName(this)
+  override def toString: String = name
 
-/**
- * Who performs an action, named after the `val` that declares it, `val caller: Party = Party()`, or
- * by `name`. `system` is reserved for timers, which a machine owns. It is open so that an object
- * may be one: an `Actor` is a party named after its object.
- */
-case class Party(name: String = "")
+object Actor:
+  /** An actor named in place, rather than by an object of its own. */
+  def apply(name: String): Actor = new Actor(name)
 
-object Party:
-  // `system` also performs the steps `internal` declares and a channel's deliveries and losses.
-  val system: Party = Party("system")
+  // `system` also takes the steps `internal` declares and a channel's deliveries and losses.
+  val system: Actor = Actor("system")
 
 /**
  * What a machine keeps state for, named after its `val` unless `name` names it. `key` names the
@@ -40,12 +39,12 @@ final case class Observation(name: String = "", on: Entity, read: String)
 final case class ClassExample(value: Any, example: String)
 
 /**
- * One declared action's untyped part: a party's side effect, or a timer the system owns. Its
+ * One declared action's untyped part: an actor's side effect, or a timer the system owns. Its
  * inputs are finite domains; each assignment of them is one class.
  */
 final case class ActionDecl(
     name: String,
-    party: Party,
+    actor: Actor,
     on: Option[Entity] = None,
     creates: Option[Entity] = None,
     schemas: List[String] = Nil,
@@ -176,26 +175,26 @@ final class Input[A] private[umpire] (val domain: Finite[A]) extends Slot[A]
 /** Declares an input token of type `A`, named after the `val` that declares it. */
 def input[A](using f: Finite[A]): Input[A] = Input(f)
 
-/** Declares an action a party performs. */
-def action(name: String, party: Party): Action[EmptyTuple] = Action(ActionDecl(name, party))
+/** Declares an action an actor takes. */
+def action(name: String, actor: Actor): Action[EmptyTuple] = Action(ActionDecl(name, actor))
 
 /**
- * Declares an action a party performs, named after the `val` that declares it. The name is read by
+ * Declares an action an actor takes, named after the `val` that declares it. The name is read by
  * the lifter, so the declaration's own `name` is empty here.
  */
-def action(party: Party): Action[EmptyTuple] = Action(ActionDecl("", party))
+def action(actor: Actor): Action[EmptyTuple] = Action(ActionDecl("", actor))
 
 /**
  * Declares a timer, an action with no input that the system performs, named after the `val` that
  * declares it.
  */
-def timer: Action[EmptyTuple] = Action(ActionDecl("", Party.system, timer = true))
+def timer: Action[EmptyTuple] = Action(ActionDecl("", Actor.system, timer = true))
 
 /**
  * Declares a step of the system that is not a timer, such as a dispatch or a commit, named after
  * the `val` that declares it.
  */
-def internal: Action[EmptyTuple] = Action(ActionDecl("", Party.system, internal = true))
+def internal: Action[EmptyTuple] = Action(ActionDecl("", Actor.system, internal = true))
 
 /** One class of an action: the action with one assignment of its inputs. */
 final case class Class(decl: ActionDecl, values: List[Any])

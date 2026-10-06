@@ -138,7 +138,7 @@ func TestAnActivityScriptLowersToItsAttemptsInOrder(t *testing.T) {
 	// The deliveries and the failed attempt record nothing a caller reads: each is a Known Gap.
 	var silent []string
 	for _, gap := range c.GetProvenance().GetKnownGaps() {
-		silent = append(silent, strings.TrimPrefix(gap.GetSubject(), "fixture.realizations.errand.action.errand."))
+		silent = append(silent, strings.TrimPrefix(gap.GetSubject(), "fixture.realizations.action.errand."))
 	}
 	require.Equal(t, []string{"deliver", "answer-failed"}, silent)
 
@@ -470,12 +470,12 @@ func TestAnExhaustiveKindIsCarriedWithItsClosingRead(t *testing.T) {
 	for _, n := range l.Case.GetProvenance().GetLocalNames() {
 		local[n.GetDefinitionId()] = n.GetLocalName()
 	}
-	const completed, scheduled = "temporal.nexus.caller.evidence.completed", "temporal.nexus.caller.evidence.scheduled"
+	const completed, scheduled = "temporal.features.nexuscaller.evidence.completed", "temporal.features.nexuscaller.evidence.scheduled"
 	require.Equal(t, []string{"program.evidence[" + local[completed] + "]", "contract.correlated.sources",
 		"program.entrypoints[controller].instructions[history]"}, as["evidence "+completed])
 	require.Equal(t, []string{"program.evidence[" + local[scheduled] + "]", "contract.correlated.sources"}, as["evidence "+scheduled])
 	// The started event is exhaustive too, so the Case carries it though no step of the path records it.
-	const started = "temporal.nexus.caller.evidence.started"
+	const started = "temporal.features.nexuscaller.evidence.started"
 	require.Equal(t, []string{"program.evidence[" + local[started] + "]", "contract.correlated.sources",
 		"program.entrypoints[controller].instructions[history]"}, as["evidence "+started])
 }
@@ -565,10 +565,10 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	}
 	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
 	require.NoError(t, err)
-	const evidence = "temporal.activity.standalone.evidence."
+	const evidence = "temporal.features.standaloneactivity.evidence."
 	// The Run numbers its own record, so the kinds read from it count in one source, in the order the
 	// Run records them; each status is read by a poll of its own, and counts in a source of its own.
-	const recordSource = "temporal.activity.standalone.source.record"
+	const recordSource = "temporal.features.standaloneactivity.source.record"
 	polledSources := map[string]bool{}
 	got := map[string]recordedKind{}
 	for _, e := range r.GetEvidence() {
@@ -739,7 +739,7 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 	require.Nil(t, l)
 	var refused *cp.Error
 	require.ErrorAs(t, err, &refused)
-	require.Equal(t, &cp.Error{Definition: "temporal.activity.standalone.action.activityProtocol.workerStop", Construct: "evidence.action-unmapped"}, refused)
+	require.Equal(t, &cp.Error{Definition: "temporal.features.standaloneactivity.system.action.activityProtocol.workerStop", Construct: "evidence.action-unmapped"}, refused)
 	require.ErrorContains(t, err, "model/temporal/features/standaloneactivity/system/System.scala:")
 }
 
@@ -749,7 +749,7 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 func TestAClassTakenAgainThatNoKindNamesIsAnError(t *testing.T) {
 	m := loaded(t, "activity")
 	for _, e := range m.GetRealizations()[0].GetEvidence() {
-		if e.GetId() == "temporal.activity.standalone.evidence.attemptCount" {
+		if e.GetId() == "temporal.features.standaloneactivity.evidence.attemptCount" {
 			e.Confirms = e.GetConfirms()[:1]
 		}
 	}
@@ -759,7 +759,7 @@ func TestAClassTakenAgainThatNoKindNamesIsAnError(t *testing.T) {
 	require.Nil(t, l)
 	var refused *cp.Error
 	require.ErrorAs(t, err, &refused)
-	require.Equal(t, &cp.Error{Definition: "temporal.activity.standalone.action.activityProtocol.attemptStart", Construct: "evidence.taking-unrecorded"}, refused)
+	require.Equal(t, &cp.Error{Definition: "temporal.features.standaloneactivity.system.action.activityProtocol.attemptStart", Construct: "evidence.taking-unrecorded"}, refused)
 	// The Queries whose path takes the class once are not touched by it.
 	completion, err := p.Lower("completion", cp.IdentityFor("temporal.case", "standaloneActivityTests", "completion"))
 	require.NoError(t, err)

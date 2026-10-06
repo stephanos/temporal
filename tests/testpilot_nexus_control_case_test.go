@@ -167,7 +167,7 @@ func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
 	require.NoError(t, json.Unmarshal(stdout.Bytes(), &report), stdout.String())
 	require.Equal(t, replay.StatusAdmitted, report.Admission.Status)
 	require.Equal(t, replay.StatusReproduced, report.SemanticReplay.Status)
-	require.Contains(t, report.Key, "temporal.nexus.control.property.forgedSuccess")
+	require.Contains(t, report.Key, "temporal.features.nexuscaller.system.property.forgedSuccess")
 	require.Len(t, report.Identity, 64)
 	require.Equal(t, replay.ClassReproduced, report.Reproduction.Class, "reruns: %+v", report.Reproduction.Reruns)
 	require.Equal(t, "minimized", report.Reduction.Status)
