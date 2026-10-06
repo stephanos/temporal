@@ -20,7 +20,7 @@ const (
 	controlCasePath = "testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "testdata/nexusCallerControl-forgedCompletion-run.json"
 	controlProfile  = "nexus-control-forgedCompletion-profile"
-	controlKey      = "temporal.nexus.control.property.forgedSuccess.fact-nexusOperationCompleted@correlated.violated[temporal.nexus.caller.evidence.failed]"
+	controlKey      = "temporal.features.nexuscaller.system.property.forgedSuccess.fact-nexusOperationCompleted@correlated.violated[temporal.features.nexuscaller.evidence.failed]"
 )
 
 // controlPreparer prepares under the names the live control test binds to, so the recorded
