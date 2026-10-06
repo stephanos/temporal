@@ -6,8 +6,6 @@ package fixture.objectforms
 
 import umpire.*
 
-given Family = Family("fixture.objectforms")
-
 enum Glow derives Finite:
   case dim, bright
 
@@ -24,22 +22,22 @@ object hand extends Actor:
 object Lit extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
-  object effects extends Section:
+  object effects:
     def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
   object rules extends Rules(_.glow):
-    in(Glow.dim)(hand.push ~> effects.brighten)
+    on(hand.push)(in(Glow.dim) ~> effects.brighten)
 
 /** No init. */
 object Unstarted extends Machine[Bulb, Outcome, Nothing]:
   def end(s: Bulb) = true
   object rules extends Rules:
-    when(_ => true)(hand.push ~> Lit.effects.brighten)
+    on(hand.push)(always ~> Lit.effects.brighten)
 
 /** No end. */
 object Endless extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   object rules extends Rules:
-    when(_ => true)(hand.push ~> Lit.effects.brighten)
+    on(hand.push)(always ~> Lit.effects.brighten)
 
 /** No rules. */
 object Ruleless extends Machine[Bulb, Outcome, Nothing]:
@@ -49,4 +47,4 @@ object Ruleless extends Machine[Bulb, Outcome, Nothing]:
 /** A derived machine with rules of its own: its rules are its derivation's. */
 object Overruled extends Derived(Lit.restrict(hand.push)):
   object rules extends Rules:
-    when(_ => true)(hand.push ~> Lit.effects.brighten)
+    on(hand.push)(always ~> Lit.effects.brighten)

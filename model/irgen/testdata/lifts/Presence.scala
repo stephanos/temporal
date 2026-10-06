@@ -5,8 +5,6 @@ package fixture.presence
 
 import umpire.*
 
-given Family = Family("fixture.presence")
-
 enum Result derives Finite:
   case succeeded, failed
 
@@ -37,9 +35,9 @@ given Finite[State] =
 enum Outcome derives Finite:
   case accepted, ignored
 
-val send = action(Party("fixture")).input[Result]("result")
-val keep = action(Party("fixture"))
-val forget = action(Party("fixture"))
+val send = action(Actor("fixture")).input[Result]("result")
+val keep = action(Actor("fixture"))
+val forget = action(Actor("fixture"))
 val poll = timer
 
 def sendStep(s: State, r: Result): List[Step[State, Outcome, Nothing]] = s.report match

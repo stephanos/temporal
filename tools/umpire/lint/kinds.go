@@ -91,9 +91,9 @@ func unfiredVerifies(m *Model) ([]Tally, error) {
 }
 
 // system is whether an action is the system's own, which no realization performs: a timer, an
-// internal step, a channel's delivery or loss, or an action of the party `system`.
+// internal step, a channel's delivery or loss, or an action of the actor `system`.
 func system(a *umpirespb.Action) bool {
-	return a.GetParty() == "system" || a.GetTimer() || a.GetInternal() || a.GetDelivers() != "" || a.GetLoses() != ""
+	return a.GetActor() == "system" || a.GetTimer() || a.GetInternal() || a.GetDelivers() != "" || a.GetLoses() != ""
 }
 
 // realized is each machine some realization runs, by name, and its realizations.
@@ -149,7 +149,7 @@ func unperformedActions(m *Model) ([]Tally, error) {
 			}
 			seen[a.GetId()] = true
 			t.add(name, performed[a.GetId()], a.GetName(), a.GetPosition(),
-				"%s, an action of %s, is performed by no realization", a.GetName(), a.GetParty())
+				"%s, an action of %s, is performed by no realization", a.GetName(), a.GetActor())
 		}
 	}
 	return t.list(), nil

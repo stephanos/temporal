@@ -1,180 +1,170 @@
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:69: againJob declares Pollable here and at model/irgen/testdata/lifts/CapabilityRejects.scala:67: a machine declares each capability once, with one binding
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:105: cited names its server code as a string literal or a val of one, not fixture.capabilities.Answer.gone.toString()
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:46: job declares Pollable twice: a machine declares each capability once, with one binding
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:41: status of Closable names a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.JobState) => j.phase): declare it as `def status(...)` and pass that
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:77: status of terminalStatesAreFinal names a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.JobState) => j.phase): declare it as `def status(...)` and pass that
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:55: except of terminalStatesAreFinal is refused without a reason: say why job differs from the law, citing the server code
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:51: job is brought no law terminateSettles to waive: for Pollable the catalog brings it none
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:59: reordered takes (m)(terminal, status, rejected), and the law closedIsRejectedUniformly it overrides takes (m)(status, terminal, rejected): an overriding def takes the law's parameters
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:149: overriding pausedIsNotDispatched names a def that takes the law's parameters, not a member's def read with through: umpire.Compose$package.through[fixture.capabilities.PairState, fixture.capabilities.JobState, scala.Boolean](((p: fixture.capabilities.PairState) => p.left), ((j: fixture.capabilities.JobState) => fixture.capabilities.Jobs.paused(j)))
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:94: job is brought no law terminalStatesAreFinal to waive: for Closable the catalog brings it none
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:128: through reads a member by its field path, such as `_.activity`, not ((_$2: fixture.capabilities.PairState) => _$2.left.copy(phase = fixture.capabilities.Phase.queued))
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:136: through reads the member with a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.JobState) => j.phase.==(fixture.capabilities.Phase.paused)): declare it as a `def` and pass that
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:33: terminate of Terminable is kill, which pollOnly does not bind: name an action it binds among its steps
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:98: cited names the server code that answers the value so, as a path from the repository's root: cite at least one, and none blank
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:84: Unkinded is no capability kind: a capability's companion object extends umpire.CapabilityKind, which the catalog keys its laws by
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:115: citesNoParameter names rejected among its cited parameters, which its apply does not take: it takes status, terminal
-lift: model/irgen/testdata/lifts/CapabilityRejects.scala:73: legacyJob generates no terminalStatesAreFinal: its capabilities do not bring it, or it waives it
-lift: model/irgen/testdata/lifts/HintRejects.scala:33: the read of a visibility is a generated gRPC method constant, not io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
-lift: model/irgen/testdata/lifts/HintRejects.scala:29: the write of a visibility is a generated gRPC method constant, not io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
-lift: model/irgen/testdata/lifts/Rejects.scala:491: aliasFirst is an alias of itself, through aliasFirst, aliasSecond: an alias names a value declared without it
-lift: model/irgen/testdata/lifts/Rejects.scala:297: Limits takes its name from the val that declares it, and given_Limits is a name the compiler made up: declare it with a val of the name it has
-lift: model/irgen/testdata/lifts/Rejects.scala:458: assumedAgain assumes lampOpaque twice: a machine names each assumption once
-lift: model/irgen/testdata/lifts/Rejects.scala:412: two assumptions are named opaque: fixture.rejects.OpaqueA$.opaque and fixture.rejects.OpaqueB$.opaque, and the IR names them by name
-lift: model/irgen/testdata/lifts/Rejects.scala:462: assumingTwice assumes lampFaulty twice: a machine names each assumption once
-lift: model/irgen/testdata/lifts/Rejects.scala:179: channel batches's messages are lists, which have no finite catalog in the IR: give them an enum or a record
-lift: model/irgen/testdata/lifts/Rejects.scala:928: the alternative lampOff of a choose is not one step written out: write its step itself, as `enter(...)`, `stay(s)` or `List(Step(...))`, one per alternative, or call a function that gives at most one
-lift: model/irgen/testdata/lifts/Rejects.scala:920: the alternative lampOn of a choose calls lampBothStep, which gives 2 steps at model/irgen/testdata/lifts/Rejects.scala:1002: a function an alternative calls gives no step or one step written out in each branch
-lift: model/irgen/testdata/lifts/Rejects.scala:946: the alternative lampOn of a choose is not one step written out: write its step itself, as `enter(...)`, `stay(s)` or `List(Step(...))`, one per alternative, or call a function that gives at most one
-lift: model/irgen/testdata/lifts/Rejects.scala:964: an alternative of a choose is written in the call as `token -> step`, not keptOn
-lift: model/irgen/testdata/lifts/Rejects.scala:1009: the alternative lampOn of a choose calls lampKeptStep, which gives steps it does not write out at model/irgen/testdata/lifts/Rejects.scala:1007: a function an alternative calls gives no step or one step written out in each branch
-lift: model/irgen/testdata/lifts/Rejects.scala:936: the alternative lampOn of a choose is not one step written out: write its step itself, as `enter(...)`, `stay(s)` or `List(Step(...))`, one per alternative, or call a function that gives at most one
-lift: model/irgen/testdata/lifts/Rejects.scala:956: a choice is named by the token a val declares, as `val committed = choice` and `choose(committed -> ...)`, not a token no val declares
-lift: model/irgen/testdata/lifts/Rejects.scala:904: choose names lampOn twice: an alternative is named by its token's val, so give each alternative a name of its own
-lift: model/irgen/testdata/lifts/Rejects.scala:280: a DefinitionScope names its former owner as a nonempty string literal, not umpire.DefinitionScope.apply("fixture.rejects.".+("Former$package$"))
-lift: model/irgen/testdata/lifts/Rejects.scala:289: a Family names its root as a string literal, not "fixture.".+("rejects")
-lift: model/irgen/testdata/lifts/Rejects.scala:518: enter answers the outcome a `given Ok[O] = Ok(o)` of the lifted sources names, not fixture.rejects.ComputedOk.given_Ok_Outcome
-lift: model/irgen/testdata/lifts/Rejects.scala:72: countdown calls itself, directly or through another function: a recursive function has no IR form, so write the bounded computation out
-lift: model/irgen/testdata/lifts/Rejects.scala:162: channel counts's messages are Int, and their catalog umpire.Finite.of[scala.Int](1, 5) is not `Finite.upTo(n)`: the IR carries an Int only as a range from 0, so declare the channel with one or give its messages an opaque type with a range
-lift: model/irgen/testdata/lifts/Rejects.scala:1229: squeeze is disabled and fired by a rule of disabledFired: a rule fires it
-lift: model/irgen/testdata/lifts/Rejects.scala:66: fixture.rejects.Twice holds channel leaky in first and second; a state holds a channel in one field
-lift: model/irgen/testdata/lifts/Rejects.scala:1195: brighten is an effect outside `effects`: a rule's effect is a def of a machine's `effects` section
-lift: model/irgen/testdata/lifts/Rejects.scala:1203: brighten is an effect and gives no step here: an effect says what an action does, never whether, so it returns no `disabled` or `Nil`; the rules say where it fires
-lift: model/irgen/testdata/lifts/Rejects.scala:1256: endedTwice is derived from another composition, whose end and syncs it keeps: it declares neither
-lift: model/irgen/testdata/lifts/Rejects.scala:1245: endless declares no end: a composition object declares `def end(s: S) = ...`
-lift: model/irgen/testdata/lifts/Rejects.scala:508: because explains the steps a step function writes out and does not explain, such as `enter(...)` or `List(Step(...))`: give each other step its explanation where it is written
-lift: model/irgen/testdata/lifts/Rejects.scala:442: extendBound extends oneStart by flip, which it binds already: rebind replaces the step function of an action the source binds
-lift: model/irgen/testdata/lifts/Rejects.scala:1232: extendedBare extends ruled, whose actions are bound by rules, by a bare binding: extend takes rules, `extend(when(...) { action ~> effect })`
-lift: model/irgen/testdata/lifts/Rejects.scala:427: two holes are named gap: fixture.rejects.GapA$.gap and fixture.rejects.GapB$.gap, and the IR names them by name
-lift: model/irgen/testdata/lifts/Rejects.scala:211: channel guessed's loss is umpire.Loss.valueOf("reliable"), not a case of Loss: a channel names its loss as Loss.lossy or Loss.reliable
-lift: model/irgen/testdata/lifts/Rejects.scala:1220: in sits under a heading of headingTwice's rules: a heading holds rules alone
-lift: model/irgen/testdata/lifts/Rejects.scala:20: fixture.rejects.Unbounded.notes is a list, which has no bound: a state holds messages in a channel's Inbox
-lift: model/irgen/testdata/lifts/Rejects.scala:1111: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1050: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1058: lampStep(...) makes a step in a function that gives String: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1074: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1068: lampStep(...) makes a step in a function that gives Lamp: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1085: lampStep(...) makes a step in the precondition of a function: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1043: lampStep(...) makes a step in a declared value: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:54: listening holds the lossy channel leaky and binds no leakyLoss step: a lossy channel's loss is a step whose meaning the machine says
-lift: model/irgen/testdata/lifts/CollidingRejects.scala:11: fixture.rejects.Lookalike and fixture.rejects.elsewhere.Lookalike are both named lookalike, and claims name a machine or composition by its name
-lift: model/irgen/testdata/lifts/Rejects.scala:487: LoopFirst is derived from itself, through LoopFirst, LoopSecond: a machine derives from a machine declared without it
-lift: model/irgen/testdata/lifts/Rejects.scala:751: LoopPair is derived from itself, through LoopPair, LoopPairBack: a composition derives from a composition declared without it
-lift: model/irgen/testdata/lifts/Rejects.scala:1262: toProduct is a member of looseRefinement's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
-lift: model/irgen/testdata/lifts/Rejects.scala:558: right of memberIncompatible holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
-lift: model/irgen/testdata/lifts/Rejects.scala:547: memberNoField names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
-lift: model/irgen/testdata/lifts/Rejects.scala:152: middle replaces first, and no member fills middle
-lift: model/irgen/testdata/lifts/MovedRejects.scala:13: fixture.rejects.moved.Gauge and fixture.rejects.Gauge would both be named fixture.rejects.Gauge in the IR: a type moved under a DefinitionScope keeps a name no other type of the Model has
-lift: model/irgen/testdata/lifts/Rejects.scala:1284: brighten is an effect and gives no step here: an effect says what an action does, never whether, so it returns no `disabled` or `Nil`; the rules say where it fires
-lift: model/irgen/testdata/lifts/Rejects.scala:400: evidence covers only some values of fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
-lift: model/irgen/testdata/lifts/Rejects.scala:647: a Party takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `Party("...")`
-lift: model/irgen/testdata/lifts/Rejects.scala:237: fixture.rejects.PinnedTwice$ pins its Definition IDs twice, at model/irgen/testdata/lifts/Rejects.scala:236 and here: an owner has one DefinitionScope
-lift: model/irgen/testdata/lifts/Rejects.scala:248: fixture.rejects.PinsOuter$.PinsInner$ pins its Definition IDs inside fixture.rejects.PinsOuter$, which pins its own: a DefinitionScope pins the declarations of one owner, not of the owners nested in it
-lift: model/irgen/testdata/lifts/Rejects.scala:1315: rebindOneClass rebinds turn, which classRuled binds by 2 rules of the class bright with different effects, to one effect: rebind its rules with `when(...) { ... }`, which replace them
-lift: model/irgen/testdata/lifts/Rejects.scala:439: rebindPush rebinds push, which oneStart does not bind: extend binds an action the source does not
-lift: model/irgen/testdata/lifts/Rejects.scala:1235: rebindSeveral rebinds squeeze, which ruled binds by 2 rules with different effects, to one effect: rebind its rules with `when(...) { ... }`, which replace them
-lift: model/irgen/testdata/lifts/Rejects.scala:1239: rebindUnbound rebinds twist, which ruled does not bind: extend binds an action the source does not
-lift: model/irgen/testdata/lifts/Rejects.scala:448: reboundTwice rebinds flip twice: a machine binds an action once
-lift: model/irgen/testdata/lifts/Rejects.scala:465: refinedNothing replaces the refinement of oneStart, which declares none: declare it in the machine's `object refinement extends Refinement(product)`
-lift: model/irgen/testdata/lifts/Rejects.scala:483: refinedOtherwise refines glance of fixture.rejects.Glimpse, fixture.rejects.Seen, Nothing in place of first of fixture.rejects.Flag, fixture.rejects.Outcome, Nothing: a replacement refines a machine of the same state, outcome and fact types, whose facts and outcomes the kept refinement names
-lift: model/irgen/testdata/lifts/Rejects.scala:346: Query asked is declared twice, and both would share one Definition ID
-lift: model/irgen/testdata/lifts/Rejects.scala:735: own names the action dim, which takes inputs, and a Scenario lists classes: name one with `dim(...)`
-lift: model/irgen/testdata/lifts/Rejects.scala:355: limits bound are declared twice with different bounds, here and at model/irgen/testdata/lifts/Rejects.scala:352: a Query's receipt names its limits by name
-lift: model/irgen/testdata/lifts/Rejects.scala:119: crossedRead reads flips, a Property of second, through the refinement of refining, which refines first
-lift: model/irgen/testdata/lifts/Rejects.scala:818: shade is no input of bright, which takes level, glow: supply an input the action declares
-lift: model/irgen/testdata/lifts/Rejects.scala:768: from finishes the `never(...)` written directly before it, not neverLit: chain it onto that call
-lift: model/irgen/testdata/lifts/Rejects.scala:835: doubleTint declares the input shade twice: an action takes each input once
-lift: model/irgen/testdata/lifts/Rejects.scala:763: a keeps projection is a field path, such as `_.phase` or `_.activity.phase`, or a def whose body is one, not ((l: fixture.rejects.Lamp) => l.lit.unary_!)
-lift: model/irgen/testdata/lifts/Rejects.scala:1102: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1107: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1093: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1116: lampStep(...) makes a step in a declared value: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:1098: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
-lift: model/irgen/testdata/lifts/Rejects.scala:976: fixture.rejects.Mixed bundles no claims, since count holds no Property, Scenario or Query: a case class bundles the claims a shared def declares together when its every field holds one
-lift: model/irgen/testdata/lifts/Rejects.scala:731: Scenario mixedFlips of flipPair lists push beside composed classes: a composition's Scenario selects each of its classes with `.synced(_.member -> action)` or `.own(_.member, action)`
-lift: model/irgen/testdata/lifts/Rejects.scala:831: level is no input of dim, which declares no input by a token: supply an input the action declares
-lift: model/irgen/testdata/lifts/Rejects.scala:122: limits backwards declare -1 steps; a bound is at least 0
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:67: againJob declares Pollable here and at model/irgen/testdata/lifts/CapabilityRejects.scala:65: a machine declares each capability once, with one binding
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:103: cited names its server code as a string literal or a val of one, not fixture.capabilities.Answer.gone.toString()
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:44: job declares Pollable twice: a machine declares each capability once, with one binding
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:39: status of Closable names a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.JobState) => j.phase): declare it as `def status(...)` and pass that
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:75: status of terminalStatesAreFinal names a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.JobState) => j.phase): declare it as `def status(...)` and pass that
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:53: except of terminalStatesAreFinal is refused without a reason: say why job differs from the law, citing the server code
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:49: job is brought no law terminateSettles to waive: for Pollable the catalog brings it none
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:57: reordered takes (m)(terminal, status, rejected), and the law closedIsRejectedUniformly it overrides takes (m)(status, terminal, rejected): an overriding def takes the law's parameters
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:147: overriding pausedIsNotDispatched names a def that takes the law's parameters, not a member's def read with through: umpire.Compose$package.through[fixture.capabilities.PairState, fixture.capabilities.JobState, scala.Boolean](((p: fixture.capabilities.PairState) => p.left), ((j: fixture.capabilities.JobState) => fixture.capabilities.Jobs.paused(j)))
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:92: job is brought no law terminalStatesAreFinal to waive: for Closable the catalog brings it none
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:126: through reads a member by its field path, such as `_.activity`, not ((_$2: fixture.capabilities.PairState) => _$2.left.copy(phase = fixture.capabilities.Phase.queued))
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:134: through reads the member with a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.JobState) => j.phase.==(fixture.capabilities.Phase.paused)): declare it as a `def` and pass that
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:31: terminate of Terminable is kill, which pollOnly does not bind: name an action it binds among its steps
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:96: cited names the server code that answers the value so, as a path from the repository's root: cite at least one, and none blank
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:82: Unkinded is no capability kind: a capability's companion object extends umpire.CapabilityKind, which the catalog keys its laws by
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:113: citesNoParameter names rejected among its cited parameters, which its apply does not take: it takes status, terminal
+lift: model/irgen/testdata/lifts/CapabilityRejects.scala:71: legacyJob generates no terminalStatesAreFinal: its capabilities do not bring it, or it waives it
+lift: model/irgen/testdata/lifts/HintRejects.scala:30: the read of a visibility is a generated gRPC method constant, not io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
+lift: model/irgen/testdata/lifts/HintRejects.scala:26: the write of a visibility is a generated gRPC method constant, not io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
+lift: model/irgen/testdata/lifts/Rejects.scala:425: aliasFirst is an alias of itself, through aliasFirst, aliasSecond: an alias names a value declared without it
+lift: model/irgen/testdata/lifts/Rejects.scala:231: Limits takes its name from the val that declares it, and given_Limits is a name the compiler made up: declare it with a val of the name it has
+lift: model/irgen/testdata/lifts/Rejects.scala:392: assumedAgain assumes lampOpaque twice: a machine names each assumption once
+lift: model/irgen/testdata/lifts/Rejects.scala:346: two assumptions are named opaque: fixture.rejects.OpaqueA.opaque and fixture.rejects.OpaqueB.opaque, and the IR names them by name
+lift: model/irgen/testdata/lifts/Rejects.scala:396: assumingTwice assumes lampFaulty twice: a machine names each assumption once
+lift: model/irgen/testdata/lifts/Rejects.scala:177: channel batches's messages are lists, which have no finite catalog in the IR: give them an enum or a record
+lift: model/irgen/testdata/lifts/Rejects.scala:1094: on(fixture.rejects.bulbHand.squeeze) is written twice in blockRepeated's rules, first at model/irgen/testdata/lifts/Rejects.scala:1093: an action, or a class of it, has one block of cases
+lift: model/irgen/testdata/lifts/Rejects.scala:1085: on sits in a block of blockTwice's rules: a block holds its cases alone
+lift: model/irgen/testdata/lifts/Rejects.scala:852: the alternative lampOff of a choose is not one step written out: write its step itself, as `enter(...)`, `stay(s)` or `List(Step(...))`, one per alternative, or call a function that gives at most one
+lift: model/irgen/testdata/lifts/Rejects.scala:844: the alternative lampOn of a choose calls lampBothStep, which gives 2 steps at model/irgen/testdata/lifts/Rejects.scala:909: a function an alternative calls gives no step or one step written out in each branch
+lift: model/irgen/testdata/lifts/Rejects.scala:870: the alternative lampOn of a choose is not one step written out: write its step itself, as `enter(...)`, `stay(s)` or `List(Step(...))`, one per alternative, or call a function that gives at most one
+lift: model/irgen/testdata/lifts/Rejects.scala:888: an alternative of a choose is written in the call as `token -> step`, not keptOn
+lift: model/irgen/testdata/lifts/Rejects.scala:916: the alternative lampOn of a choose calls lampKeptStep, which gives steps it does not write out at model/irgen/testdata/lifts/Rejects.scala:914: a function an alternative calls gives no step or one step written out in each branch
+lift: model/irgen/testdata/lifts/Rejects.scala:860: the alternative lampOn of a choose is not one step written out: write its step itself, as `enter(...)`, `stay(s)` or `List(Step(...))`, one per alternative, or call a function that gives at most one
+lift: model/irgen/testdata/lifts/Rejects.scala:880: a choice is named by the token a val declares, as `val committed = choice` and `choose(committed -> ...)`, not a token no val declares
+lift: model/irgen/testdata/lifts/Rejects.scala:828: choose names lampOn twice: an alternative is named by its token's val, so give each alternative a name of its own
+lift: model/irgen/testdata/lifts/Rejects.scala:452: enter answers the outcome a `given Ok[O] = Ok(o)` of the lifted sources names, not fixture.rejects.ComputedOk.given_Ok_Outcome
+lift: model/irgen/testdata/lifts/Rejects.scala:70: countdown calls itself, directly or through another function: a recursive function has no IR form, so write the bounded computation out
+lift: model/irgen/testdata/lifts/Rejects.scala:160: channel counts's messages are Int, and their catalog umpire.Finite.of[scala.Int](1, 5) is not `Finite.upTo(n)`: the IR carries an Int only as a range from 0, so declare the channel with one or give its messages an opaque type with a range
+lift: model/irgen/testdata/lifts/Rejects.scala:1109: squeeze is disabled and fired by a rule of disabledFired: a rule fires it
+lift: model/irgen/testdata/lifts/Rejects.scala:64: fixture.rejects.Twice holds channel leaky in first and second; a state holds a channel in one field
+lift: model/irgen/testdata/lifts/Rejects.scala:1060: brighten is an effect outside `effects`: a rule's effect is a def of a machine's `effects` section
+lift: model/irgen/testdata/lifts/Rejects.scala:1068: brighten is an effect and gives no step here: an effect says what an action does, never whether, so it returns no `disabled` or `Nil`; the rules say where it fires
+lift: model/irgen/testdata/lifts/Rejects.scala:1136: endedTwice is derived from another composition, whose end and syncs it keeps: it declares neither
+lift: model/irgen/testdata/lifts/Rejects.scala:1125: endless declares no end: a composition object declares `def end(s: S) = ...`
+lift: model/irgen/testdata/lifts/Rejects.scala:442: because explains the steps a step function writes out and does not explain, such as `enter(...)` or `List(Step(...))`: give each other step its explanation where it is written
+lift: model/irgen/testdata/lifts/Rejects.scala:376: extendBound extends oneStart by flip, which it binds already: rebind replaces the step function of an action the source binds
+lift: model/irgen/testdata/lifts/Rejects.scala:1112: extendedBare extends ruled, whose actions are bound by rules, by a bare binding: extend takes rules, `extend(on(action) { where(g) ~> effect })`
+lift: model/irgen/testdata/lifts/Rejects.scala:361: two holes are named gap: fixture.rejects.GapA.gap and fixture.rejects.GapB.gap, and the IR names them by name
+lift: model/irgen/testdata/lifts/Rejects.scala:209: channel guessed's loss is umpire.Loss.valueOf("reliable"), not a case of Loss: a channel names its loss as Loss.lossy or Loss.reliable
+lift: model/irgen/testdata/lifts/Rejects.scala:18: fixture.rejects.Unbounded.notes is a list, which has no bound: a state holds messages in a channel's Inbox
+lift: model/irgen/testdata/lifts/Rejects.scala:1018: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:957: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:965: lampStep(...) makes a step in a function that gives String: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:981: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:975: lampStep(...) makes a step in a function that gives Lamp: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:992: lampStep(...) makes a step in the precondition of a function: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:950: lampStep(...) makes a step in a declared value: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:52: listening holds the lossy channel leaky and binds no leakyLoss step: a lossy channel's loss is a step whose meaning the machine says
+lift: model/irgen/testdata/lifts/CollidingRejects.scala:9: fixture.rejects.Lookalike and fixture.rejects.elsewhere.Lookalike are both named lookalike, and claims name a machine or composition by its name
+lift: model/irgen/testdata/lifts/Rejects.scala:421: LoopFirst is derived from itself, through LoopFirst, LoopSecond: a machine derives from a machine declared without it
+lift: model/irgen/testdata/lifts/Rejects.scala:678: LoopPair is derived from itself, through LoopPair, LoopPairBack: a composition derives from a composition declared without it
+lift: model/irgen/testdata/lifts/Rejects.scala:1142: toProduct is a member of looseRefinement's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
+lift: model/irgen/testdata/lifts/Rejects.scala:492: right of memberIncompatible holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
+lift: model/irgen/testdata/lifts/Rejects.scala:481: memberNoField names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
+lift: model/irgen/testdata/lifts/Rejects.scala:150: middle replaces first, and no member fills middle
+lift: model/irgen/testdata/lifts/Rejects.scala:1164: brighten is an effect and gives no step here: an effect says what an action does, never whether, so it returns no `disabled` or `Nil`; the rules say where it fires
+lift: model/irgen/testdata/lifts/Rejects.scala:334: evidence covers only some values of fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
+lift: model/irgen/testdata/lifts/Rejects.scala:1101: in names a set of phases by a def of the machine's states, not ((g: fixture.rejects.Glow) => g.==(fixture.rejects.Glow.dim))
+lift: model/irgen/testdata/lifts/Rejects.scala:1197: rebindOneClass rebinds turn, which classRuled binds by 2 rules of the class bright with different effects, to one effect: rebind its rules with `on(action) { ... }`, which replace them
+lift: model/irgen/testdata/lifts/Rejects.scala:373: rebindPush rebinds push, which oneStart does not bind: extend binds an action the source does not
+lift: model/irgen/testdata/lifts/Rejects.scala:1115: rebindSeveral rebinds squeeze, which ruled binds by 2 rules with different effects, to one effect: rebind its rules with `on(action) { ... }`, which replace them
+lift: model/irgen/testdata/lifts/Rejects.scala:1119: rebindUnbound rebinds twist, which ruled does not bind: extend binds an action the source does not
+lift: model/irgen/testdata/lifts/Rejects.scala:382: reboundTwice rebinds flip twice: a machine binds an action once
+lift: model/irgen/testdata/lifts/Rejects.scala:399: refinedNothing replaces the refinement of oneStart, which declares none: declare it in the machine's `object refinement extends Refinement(product)`
+lift: model/irgen/testdata/lifts/Rejects.scala:417: refinedOtherwise refines glance of fixture.rejects.Glimpse, fixture.rejects.Seen, Nothing in place of first of fixture.rejects.Flag, fixture.rejects.Outcome, Nothing: a replacement refines a machine of the same state, outcome and fact types, whose facts and outcomes the kept refinement names
+lift: model/irgen/testdata/lifts/Rejects.scala:280: Query asked is declared twice, and both would share one Definition ID
+lift: model/irgen/testdata/lifts/Rejects.scala:662: own names the action dim, which takes inputs, and a Scenario lists classes: name one with `dim(...)`
+lift: model/irgen/testdata/lifts/Rejects.scala:289: limits bound are declared twice with different bounds, here and at model/irgen/testdata/lifts/Rejects.scala:286: a Query's receipt names its limits by name
+lift: model/irgen/testdata/lifts/Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a umpire.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Query, a list of Queries, a progress claim, a realization, or a machine's `implements` or `queries` section
+lift: model/irgen/testdata/lifts/Rejects.scala:117: crossedRead reads flips, a Property of second, through the refinement of refining, which refines first
+lift: model/irgen/testdata/lifts/Rejects.scala:745: shade is no input of bright, which takes level, glow: supply an input the action declares
+lift: model/irgen/testdata/lifts/Rejects.scala:695: from finishes the `never(...)` written directly before it, not neverLit: chain it onto that call
+lift: model/irgen/testdata/lifts/Rejects.scala:762: doubleTint declares the input shade twice: an action takes each input once
+lift: model/irgen/testdata/lifts/Rejects.scala:690: a keeps projection is a field path, such as `_.phase` or `_.activity.phase`, or a def whose body is one, not ((l: fixture.rejects.Lamp) => l.lit.unary_!)
+lift: model/irgen/testdata/lifts/Rejects.scala:1009: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:1014: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:1000: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:1023: lampStep(...) makes a step in a declared value: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:1005: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
+lift: model/irgen/testdata/lifts/Rejects.scala:900: fixture.rejects.Mixed bundles no claims, since count holds no Property, Scenario or Query: a case class bundles the claims a shared def declares together when its every field holds one
+lift: model/irgen/testdata/lifts/Rejects.scala:658: Scenario mixedFlips of flipPair lists push beside composed classes: a composition's Scenario selects each of its classes with `.synced(_.member -> action)` or `.own(_.member, action)`
+lift: model/irgen/testdata/lifts/Rejects.scala:758: level is no input of dim, which declares no input by a token: supply an input the action declares
+lift: model/irgen/testdata/lifts/Rejects.scala:120: limits backwards declare -1 steps; a bound is at least 0
 lift: root fixture.rejects.Rejects$package$.noSuchRoot: names no declaration of the lifted sources
-lift: model/irgen/testdata/lifts/Rejects.scala:643: input unreached of reach has no values to default to: supply it
-lift: model/irgen/testdata/lifts/Rejects.scala:581: own names spare, which no member of spareless fills: a selector names a member of the composition
-lift: model/irgen/testdata/lifts/Rejects.scala:727: own names tap of left, and tapLamp binds no action of fixture.rejects.TapB$.tap: name the action left binds, not one of another declaration spelled alike
-lift: model/irgen/testdata/lifts/Rejects.scala:716: sync flipBoth pairs flip of left, which steps only with its pair: name it with `.synced(_.left -> flip)`
-lift: model/irgen/testdata/lifts/Rejects.scala:796: lit of litBy is a function parameter, which names a def only where a declaring function of the lifted sources is called with one: call the def itself
-lift: model/irgen/testdata/lifts/Rejects.scala:783: records reads the fixture.rejects.Note fact ping of left, and its member oneStart records no facts
-lift: model/irgen/testdata/lifts/Rejects.scala:781: records reads the facts of the member one field of the composed state names, such as `_.activity`, not `_.left.lit`
-lift: model/irgen/testdata/lifts/Rejects.scala:792: records reads the facts of spare, and no member of spared fills it
-lift: model/irgen/testdata/lifts/Rejects.scala:891: total of flipQueries takes an integer literal the author computed at each call, such as a Query's total, not fixture.rejects.Rejects$package.twoStates.+(0)
-lift: model/irgen/testdata/lifts/Rejects.scala:773: lit of litStays names a def of the lifted sources, which the lifter binds, not ((l: fixture.rejects.Lamp) => l.lit): declare it as `def lit(...)` and pass that
-lift: model/irgen/testdata/lifts/Rejects.scala:822: bright is given level twice: supply each input once
-lift: model/irgen/testdata/lifts/Rejects.scala:827: an input supplied by name is written `token := value` in the call, not keptLevel
-lift: model/irgen/testdata/lifts/Rejects.scala:719: synced names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
-lift: model/irgen/testdata/lifts/Rejects.scala:579: synced names spare, which no member of spareless fills: a selector names a member of the composition
-lift: model/irgen/testdata/lifts/Rejects.scala:602: no sync of flipPair pairs push of right: name the step right takes alone with `.own(_.right, push)`
-lift: model/irgen/testdata/lifts/Rejects.scala:613: syncs flipRight, flipSpare of flipTrio each pair flip of left, and synced names one: a sync is selected by a member action it alone pairs
-lift: model/irgen/testdata/lifts/Rejects.scala:847: an input is declared by the token a val names, as `val level = input[T]` and `.input(level)`, not a token no val declares
-lift: model/irgen/testdata/lifts/Rejects.scala:877: Query totalComputed asserts its total as fixture.rejects.Rejects$package.twoStates.*(1); a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
-lift: model/irgen/testdata/lifts/Rejects.scala:880: Query totalKept asserts its total as fixture.rejects.Rejects$package.twoStates; a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
-lift: model/irgen/testdata/lifts/Rejects.scala:883: Query totalNegative asserts the total -2; a total counts combinations, so it is at least 0
-lift: model/irgen/testdata/lifts/Rejects.scala:874: Query totaledTwice asserts its total twice: 2 and 2; a Query has one total
-lift: model/irgen/testdata/lifts/Rejects.scala:311: a Property takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `.property("...")`
-lift: model/irgen/testdata/lifts/Rejects.scala:319: a Scenario takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `.scenario("...")`
-lift: model/irgen/testdata/lifts/Rejects.scala:306: this Query of flips in secondFlips takes the name second.secondFlips.flips from its Scenario and Property, which another Query has: name it with `query("...")` or with a val
-lift: model/irgen/testdata/lifts/Rejects.scala:405: unrelatedRead pairs flips, a Property of second, with lampFlips, a Scenario of oneStart, and reads it through no refinement
-lift: model/irgen/testdata/lifts/Rejects.scala:871: Query untotaled asserts no total: write `.total(n)` with n its static combination count, which model/README.md shows how to compute
-lift: model/irgen/testdata/lifts/Rejects.scala:858: UpTo[-1] has no values: a counter counts from 0 to a bound of at least 0
-lift: model/irgen/testdata/lifts/Rejects.scala:1321: fixture.rejects.Rejects$package$.valComposition is not a composition object of the lifted sources: a composition is an object, `object C extends Composition[S](...)`
-lift: model/irgen/testdata/lifts/Rejects.scala:1318: fixture.rejects.Rejects$package$.valMachine is not a machine object of the lifted sources: a machine is an object, `object M extends Machine[S, O, F]` or `object M extends Derived(...)`
-lift: model/irgen/testdata/lifts/Rejects.scala:702: elsewhereWatch is a monitor second does not watch: name one the Query's machine lists under `monitors`
-lift: model/irgen/testdata/lifts/Rejects.scala:664: a monitor is named by the val that declares it, not fixture.rejects.Rejects$package.flipWatch: declare it with a val and refer to it by value
-lift: model/irgen/testdata/lifts/Rejects.scala:679: unwatched is a monitor no lifted machine watches: name one the Query's machine lists under `monitors`
-lift: model/irgen/testdata/lifts/Rejects.scala:739: whenAction names every class of an action, and own names a class of dim: name the action dim without its inputs
-lift: model/irgen/testdata/lifts/Rejects.scala:759: stays declares litAfterFlip about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`
-lift: model/irgen/testdata/lifts/Rejects.scala:747: spare replaces first, and no member fills spare
-lift: model/irgen/testdata/lifts/Rejects.scala:1135: the section heldSection sits in fixture.rejects.Holder, which is no machine's object: a section sits at the top level of a Model file or directly in a machine's object
-lift: model/irgen/testdata/lifts/Rejects.scala:1125: the section innerSection sits in the section outerSection: a section sits at the top level of a Model file or directly in a machine's object, never in another
-lift: model/irgen/testdata/lifts/Rejects.scala:1157: the section pinningSection pins its Definition IDs, and a section is transparent to them: its members take the IDs of its enclosing owner, which pins them
-lift: model/irgen/testdata/lifts/Rejects.scala:1148: fixture.rejects.rightHand$.clap and fixture.rejects.leftHand$.clap would share the Definition ID fixture.rejects.Rejects$package$.clap: a section is transparent to Definition IDs, so the members of one owner's sections and the owner's own members keep distinct names
-lift: model/irgen/testdata/lifts/Rejects.scala:271: fixture.rejects.Self$ pins its Definition IDs to itself, which changes none of them: pin an owner only where its declarations came from another
-lift: model/irgen/testdata/lifts/Rejects.scala:262: fixture.rejects.SharedB$.share and fixture.rejects.SharedA$.share would share the Definition ID fixture.rejects.Shared$.share: two declarations pinned to one former owner keep the distinct names they had there
-lift: model/irgen/testdata/lifts/Rejects.scala:196: channel shuffled's order is umpire.Order.fromOrdinal(1), not a case of Order: a channel names its order as Order.fifo or Order.unordered
-lift: model/irgen/testdata/lifts/Rejects.scala:912: choose names lampOn twice, by fixture.rejects.Rejects$package$.lampOn and fixture.rejects.Elsewhere$.lampOn: an alternative is named by its token's val, so give each alternative a name of its own
-lift: model/irgen/testdata/lifts/Rejects.scala:501: in lists its members, so a list passed as `xs*` has no IR form: write them out
-lift: model/irgen/testdata/lifts/Rejects.scala:624: syncNamedTwice pairs two syncs named flip, and the IR keys a sync by its name: a sync is named after its first member's action unless it names itself, `.sync("name", ...)`
-lift: model/irgen/testdata/lifts/Rejects.scala:555: sync flipSpare names spare, which no member of syncNoMember fills: a selector names a member of the composition
-lift: model/irgen/testdata/lifts/Rejects.scala:566: sync tapFlip pairs tap of left, and tapLamp binds no action of fixture.rejects.TapB$.tap: a sync pairs the action its member binds, not one of another declaration
-lift: model/irgen/testdata/lifts/Rejects.scala:369: tapped binds two actions named tap, fixture.rejects.TapA$.tap and fixture.rejects.TapB$.tap: a machine's actions have distinct names
-lift: model/irgen/testdata/lifts/Rejects.scala:330: fixture.rejects.TwinA$.Twin and fixture.rejects.TwinB$.Twin are both named twin, and claims name a machine or composition by its name
-lift: model/irgen/testdata/lifts/Rejects.scala:384: fact lost has fields, so the evidence of its name alone does not say what confirms it: declare `evidence { case Dropped.lost(...) => ... }`
-lift: model/irgen/testdata/lifts/Rejects.scala:1212: a rule of unheaded sits under no heading: write it under `when(...)` or `in(...)`
-lift: model/irgen/testdata/lifts/Rejects.scala:393: evidence names no line for fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
-lift: model/irgen/testdata/lifts/Rejects.scala:1032: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not an unnamed list of 2 steps
-lift: model/irgen/testdata/lifts/Rejects.scala:1024: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not steps joined with `++`
-lift: model/irgen/testdata/lifts/Rejects.scala:1017: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not an unnamed list of 2 steps
-lift: model/irgen/testdata/lifts/Rejects.scala:1327: unobservable is a member of unobservedRefiner's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
-lift: model/irgen/testdata/lifts/Rejects.scala:143: visible is a member of unrefined's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
-lift: model/irgen/testdata/lifts/Rejects.scala:158: visibleOutcomes is a member of unrefinedOutcomes's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
-lift: model/irgen/testdata/lifts/Rejects.scala:30: channel closed holds at most 0 messages; a channel holds at least one
-lift: model/irgen/testdata/lifts/Rejects.scala:128: two monitors are named twice: fixture.rejects.Rejects$package$.twiceFirst and fixture.rejects.Rejects$package$.twiceSecond, and would share one Definition ID
-lift: model/irgen/testdata/lifts/Rejects.scala:1296: elsewhere is a monitor of fixture.rejects.Flag, and watchesElsewhere's states are fixture.rejects.Lamp: a machine watches monitors of its own state type
-lift: model/irgen/testdata/lifts/Rejects.scala:573: left of spareless holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
-lift: model/irgen/testdata/lifts/Rejects.scala:572: withMember names spare, which no member of spareless fills: a selector names a member of the composition
-lift: model/irgen/testdata/lifts/Rejects.scala:589: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
-lift: model/irgen/testdata/lifts/Rejects.scala:596: tapLamp binds no action flip, which sync flipBoth of flipPair pairs for left: a member's new machine binds the actions its syncs pair
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:112: pause is a case of Control, and activityProtocol records facts of temporal.standaloneactivity.ProtocolFact: a realization names the facts its machine records
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:88: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:100: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:41: onPath names at least one class whose path carries the command
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:38: perform names at least one class it binds
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:47: the status table lists statusPaused twice
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:71: the status table lists no statusCompleted: add `statusCompleted -> value` to it
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:35: a command is named after the val that declares it: declare it as a val and refer to it by value
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:86: refinedControl is a negative control, and controlRefiner refines it: a deliberately wrong design is no machine's Product, so nothing refines it
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:38: faultUnmarked binds the fault blowout and is marked neither a FailureModel, the real design under the fault, nor a NegativeControl, a deliberately wrong one: mix in the one it is
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:44: faultlessFailure is a failure model and binds no fault: bind an action of the party `fault` or of a `faults` section that some state enables
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:50: hopelessFailure is a failure model, and every Query of it expects its Run to violate the promise: a failure model's promise holds under its fault; a design the checks must refuse is a negative control
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:106: systemicControl is a negative control, and declares a refinement of its own, as a feature's System does: a deliberately wrong design derives from the design it gets wrong
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:126: tornMarkers is marked a failure model and a negative control: it is one
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:153: faultlessPair is a failure model and binds no fault: bind an action of the party `fault` or of a `faults` section that some state enables
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:147: unmarkedPair composes a member that binds the fault blowout and is marked neither a FailureModel, the real design under the fault, nor a NegativeControl, a deliberately wrong one: mix in the one it is
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:161: derivedControl is a negative control that nothing the run checks can refute: ask a `verify` of it, whose answer may be a counterexample, or a Query whose Run is expected violated, or check it against a refinement
-lift: model/irgen/testdata/lifts/MarkerRejects.scala:73: unrefutedControl is a negative control that nothing the run checks can refute: ask a `verify` of it, whose answer may be a counterexample, or a Query whose Run is expected violated, or check it against a refinement
+lift: model/irgen/testdata/lifts/Rejects.scala:577: input unreached of reach has no values to default to: supply it
+lift: model/irgen/testdata/lifts/Rejects.scala:515: own names spare, which no member of spareless fills: a selector names a member of the composition
+lift: model/irgen/testdata/lifts/Rejects.scala:654: own names tap of left, and tapLamp binds no action of fixture.rejects.TapB.tap: name the action left binds, not one of another declaration spelled alike
+lift: model/irgen/testdata/lifts/Rejects.scala:643: sync flipBoth pairs flip of left, which steps only with its pair: name it with `.synced(_.left -> flip)`
+lift: model/irgen/testdata/lifts/Rejects.scala:723: lit of litBy is a function parameter, which names a def only where a declaring function of the lifted sources is called with one: call the def itself
+lift: model/irgen/testdata/lifts/Rejects.scala:710: records reads the fixture.rejects.Note fact ping of left, and its member oneStart records no facts
+lift: model/irgen/testdata/lifts/Rejects.scala:708: records reads the facts of the member one field of the composed state names, such as `_.activity`, not `_.left.lit`
+lift: model/irgen/testdata/lifts/Rejects.scala:719: records reads the facts of spare, and no member of spared fills it
+lift: model/irgen/testdata/lifts/Rejects.scala:815: total of flipQueries takes an integer literal the author computed at each call, such as a Query's total, not fixture.rejects.Rejects$package.twoStates.+(0)
+lift: model/irgen/testdata/lifts/Rejects.scala:700: lit of litStays names a def of the lifted sources, which the lifter binds, not ((l: fixture.rejects.Lamp) => l.lit): declare it as `def lit(...)` and pass that
+lift: model/irgen/testdata/lifts/Rejects.scala:749: bright is given level twice: supply each input once
+lift: model/irgen/testdata/lifts/Rejects.scala:754: an input supplied by name is written `token := value` in the call, not keptLevel
+lift: model/irgen/testdata/lifts/Rejects.scala:646: synced names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
+lift: model/irgen/testdata/lifts/Rejects.scala:513: synced names spare, which no member of spareless fills: a selector names a member of the composition
+lift: model/irgen/testdata/lifts/Rejects.scala:536: no sync of flipPair pairs push of right: name the step right takes alone with `.own(_.right, push)`
+lift: model/irgen/testdata/lifts/Rejects.scala:547: syncs flipRight, flipSpare of flipTrio each pair flip of left, and synced names one: a sync is selected by a member action it alone pairs
+lift: model/irgen/testdata/lifts/Rejects.scala:774: an input is declared by the token a val names, as `val level = input[T]` and `.input(level)`, not a token no val declares
+lift: model/irgen/testdata/lifts/Rejects.scala:801: Query totalComputed asserts its total as fixture.rejects.Rejects$package.twoStates.*(1); a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
+lift: model/irgen/testdata/lifts/Rejects.scala:804: Query totalKept asserts its total as fixture.rejects.Rejects$package.twoStates; a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
+lift: model/irgen/testdata/lifts/Rejects.scala:807: Query totalNegative asserts the total -2; a total counts combinations, so it is at least 0
+lift: model/irgen/testdata/lifts/Rejects.scala:798: Query totaledTwice asserts its total twice: 2 and 2; a Query has one total
+lift: model/irgen/testdata/lifts/Rejects.scala:245: a Property takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `.property("...")`
+lift: model/irgen/testdata/lifts/Rejects.scala:253: a Scenario takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `.scenario("...")`
+lift: model/irgen/testdata/lifts/Rejects.scala:240: this Query of flips in secondFlips takes the name second.secondFlips.flips from its Scenario and Property, which another Query has: name it with `query("...")` or with a val
+lift: model/irgen/testdata/lifts/Rejects.scala:339: unrelatedRead pairs flips, a Property of second, with lampFlips, a Scenario of oneStart, and reads it through no refinement
+lift: model/irgen/testdata/lifts/Rejects.scala:785: UpTo[-1] has no values: a counter counts from 0 to a bound of at least 0
+lift: model/irgen/testdata/lifts/Rejects.scala:1203: fixture.rejects.Rejects$package$.valComposition is not a composition object of the lifted sources: a composition is an object, `object C extends Composition[S](...)`
+lift: model/irgen/testdata/lifts/Rejects.scala:1200: fixture.rejects.Rejects$package$.valMachine is not a machine object of the lifted sources: a machine is an object, `object M extends Machine[S, O, F]` or `object M extends Derived(...)`
+lift: model/irgen/testdata/lifts/Rejects.scala:629: elsewhereWatch is a monitor second does not watch: name one the Query's machine lists under `monitors`
+lift: model/irgen/testdata/lifts/Rejects.scala:591: a monitor is named by the val that declares it, not fixture.rejects.Rejects$package.flipWatch: declare it with a val and refer to it by value
+lift: model/irgen/testdata/lifts/Rejects.scala:606: unwatched is a monitor no lifted machine watches: name one the Query's machine lists under `monitors`
+lift: model/irgen/testdata/lifts/Rejects.scala:666: whenAction names every class of an action, and own names a class of dim: name the action dim without its inputs
+lift: model/irgen/testdata/lifts/Rejects.scala:686: stays declares litAfterFlip about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`
+lift: model/irgen/testdata/lifts/Rejects.scala:674: spare replaces first, and no member fills spare
+lift: model/irgen/testdata/lifts/Rejects.scala:194: channel shuffled's order is umpire.Order.fromOrdinal(1), not a case of Order: a channel names its order as Order.fifo or Order.unordered
+lift: model/irgen/testdata/lifts/Rejects.scala:836: choose names lampOn twice, by fixture.rejects.Rejects$package$.lampOn and fixture.rejects.Elsewhere$.lampOn: an alternative is named by its token's val, so give each alternative a name of its own
+lift: model/irgen/testdata/lifts/Rejects.scala:435: in lists its members, so a list passed as `xs*` has no IR form: write them out
+lift: model/irgen/testdata/lifts/Rejects.scala:558: syncNamedTwice pairs two syncs named flip, and the IR keys a sync by its name: a sync is named after its first member's action unless it names itself, `.sync("name", ...)`
+lift: model/irgen/testdata/lifts/Rejects.scala:489: sync flipSpare names spare, which no member of syncNoMember fills: a selector names a member of the composition
+lift: model/irgen/testdata/lifts/Rejects.scala:500: sync tapFlip pairs tap of left, and tapLamp binds no action of fixture.rejects.TapB.tap: a sync pairs the action its member binds, not one of another declaration
+lift: model/irgen/testdata/lifts/Rejects.scala:303: tapped binds two actions named tap, fixture.rejects.TapA.tap and fixture.rejects.TapB.tap: a machine's actions have distinct names
+lift: model/irgen/testdata/lifts/Rejects.scala:264: fixture.rejects.TwinA$.Twin and fixture.rejects.TwinB$.Twin are both named twin, and claims name a machine or composition by its name
+lift: model/irgen/testdata/lifts/Rejects.scala:318: fact lost has fields, so the evidence of its name alone does not say what confirms it: declare `evidence { case Dropped.lost(...) => ... }`
+lift: model/irgen/testdata/lifts/Rejects.scala:1077: not a rule of unheaded: umpire.Machine$package.~>(fixture.rejects.bulbHand.squeeze)[fixture.rejects.Bulb, fixture.rejects.Outcome, scala.Any](((s: fixture.rejects.Bulb) => fixture.rejects.Ruled.effects.brighten(s)))
+lift: model/irgen/testdata/lifts/Rejects.scala:327: evidence names no line for fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
+lift: model/irgen/testdata/lifts/Rejects.scala:939: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not an unnamed list of 2 steps
+lift: model/irgen/testdata/lifts/Rejects.scala:931: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not steps joined with `++`
+lift: model/irgen/testdata/lifts/Rejects.scala:924: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not an unnamed list of 2 steps
+lift: model/irgen/testdata/lifts/Rejects.scala:1209: unobservable is a member of unobservedRefiner's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
+lift: model/irgen/testdata/lifts/Rejects.scala:141: visible is a member of unrefined's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
+lift: model/irgen/testdata/lifts/Rejects.scala:156: visibleOutcomes is a member of unrefinedOutcomes's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
+lift: model/irgen/testdata/lifts/Rejects.scala:28: channel closed holds at most 0 messages; a channel holds at least one
+lift: model/irgen/testdata/lifts/Rejects.scala:126: two monitors are named twice: fixture.rejects.twiceFirst and fixture.rejects.twiceSecond, and the IR names them by name
+lift: model/irgen/testdata/lifts/Rejects.scala:1176: elsewhere is a monitor of fixture.rejects.Flag, and watchesElsewhere's states are fixture.rejects.Lamp: a machine watches monitors of its own state type
+lift: model/irgen/testdata/lifts/Rejects.scala:507: left of spareless holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
+lift: model/irgen/testdata/lifts/Rejects.scala:506: withMember names spare, which no member of spareless fills: a selector names a member of the composition
+lift: model/irgen/testdata/lifts/Rejects.scala:523: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
+lift: model/irgen/testdata/lifts/Rejects.scala:530: tapLamp binds no action flip, which sync flipBoth of flipPair pairs for left: a member's new machine binds the actions its syncs pair
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:110: pause is a case of Control, and activityProtocol records facts of temporal.features.standaloneactivity.ProtocolFact: a realization names the facts its machine records
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:86: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:98: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:39: onPath names at least one class whose path carries the command
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:36: perform names at least one class it binds
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:45: the status table lists statusPaused twice
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:69: the status table lists no statusCompleted: add `statusCompleted -> value` to it
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:33: a command is named after the val that declares it: declare it as a val and refer to it by value
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:83: refinedControl is a negative control, and controlRefiner refines it: a deliberately wrong design is no machine's Product, so nothing refines it
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:35: faultUnmarked binds the fault blowout and is marked neither a FailureModel, the real design under the fault, nor a NegativeControl, a deliberately wrong one: mix in the one it is
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:41: faultlessFailure is a failure model and binds no fault: bind an action of the actor `fault` that some state enables
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:47: hopelessFailure is a failure model, and every Query of it expects its Run to violate the promise: a failure model's promise holds under its fault; a design the checks must refuse is a negative control
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:103: systemicControl is a negative control, and declares a refinement of its own, as a feature's System does: a deliberately wrong design derives from the design it gets wrong
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:123: tornMarkers is marked a failure model and a negative control: it is one
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:150: faultlessPair is a failure model and binds no fault: bind an action of the actor `fault` that some state enables
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:144: unmarkedPair composes a member that binds the fault blowout and is marked neither a FailureModel, the real design under the fault, nor a NegativeControl, a deliberately wrong one: mix in the one it is
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:158: derivedControl is a negative control that nothing the run checks can refute: ask a `verify` of it, whose answer may be a counterexample, or a Query whose Run is expected violated, or check it against a refinement
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:70: unrefutedControl is a negative control that nothing the run checks can refute: ask a `verify` of it, whose answer may be a counterexample, or a Query whose Run is expected violated, or check it against a refinement

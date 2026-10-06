@@ -17,8 +17,8 @@ class Inputs extends munit.FunSuite:
   private val startToClose = input[Timeout]
   private val answer = input[Answer]
   private val start =
-    action(Party("p")).input(scheduleToClose).input(scheduleToStart).input(startToClose)
-  private val respond = action(Party("p")).input(answer)
+    action(Actor("p")).input(scheduleToClose).input(scheduleToStart).input(startToClose)
+  private val respond = action(Actor("p")).input(answer)
 
   test("UpTo[2] lists 0, 1 and 2, and a record varies its last field fastest"):
     assertEquals(Finite[UpTo[2]].values.toList, List(0, 1, 2))

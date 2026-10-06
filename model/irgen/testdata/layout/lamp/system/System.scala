@@ -18,10 +18,10 @@ object LampSystem extends Machine[Circuit, Outcome, Nothing]:
   object refinement extends Refinement(LampProduct):
     def toProduct(s: State) = Lamp(lit = s.closed)
 
-  object effects extends Section:
+  object effects:
     def close(s: State): List[CircuitStep] = enter(s.copy(closed = true))
     def open(s: State): List[CircuitStep] = enter(s.copy(closed = false))
 
   object rules extends Rules:
-    when(!_.closed)(user.switchOn ~> effects.close)
-    when(_.closed)(user.switchOff ~> effects.open)
+    on(user.switchOn)(where(!_.closed) ~> effects.close)
+    on(user.switchOff)(where(_.closed) ~> effects.open)

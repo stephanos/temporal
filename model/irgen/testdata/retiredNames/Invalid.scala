@@ -11,8 +11,6 @@ package fixture.retiredNames
 
 import umpire.*
 
-given Family = Family("fixture.retiredNames")
-
 enum Note derives Finite:
   case ping
 
@@ -23,7 +21,7 @@ enum Outcome derives Finite:
 
 final case class PairState(left: LampState, right: LampState)
 
-val press = action(Party("fixture"))
+val press = action(Actor("fixture"))
 object Lamp extends Machine[LampState, Outcome, Nothing]:
   val init = LampState(false)
   def end(lampState: State) = true
@@ -42,14 +40,14 @@ val wire = channel[Note](capacity = 1, order = Order.fifo, loss = Loss.reliable)
 val wireSpelled = channel[Note]("wire", capacity = 1, order = Order.fifo, loss = Loss.reliable)
 
 object PressOnly extends Derived(Lamp.restrict(press))
-val pressOnlySpelled = Lamp.restrict(summon[Family], "pressOnly")(press)
+val pressOnlySpelled = Lamp.restrict("pressOnly")(press)
 
 object Pair extends Composition[PairState](_.left -> Lamp, _.right -> Lamp):
   def end(pairState: State) = true
   object syncs extends Syncs:
     sync(_.left -> press, _.right -> press)
     replaces(_.left, Lamp)
-object PairSpelled extends Composition[PairState](summon[Family], "pair")
+object PairSpelled extends Composition[PairState]("pair")
 object PairKeyed extends Composition[PairState]("left" -> Lamp, "right" -> Lamp)
 object PairSynced extends Composition[PairState](_.left -> Lamp, _.right -> Lamp):
   def end(pairState: State) = true

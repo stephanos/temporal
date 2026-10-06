@@ -246,113 +246,50 @@ final private[irgen] class Context(val index: Index):
       )
     sym.name
 
-  // Each owner's `DefinitionScope` declarations, by owner, read once from every inspected file.
-  lazy val scopes: Map[Symbol, List[ValDef]] =
-    defs.values
-      .collect { case v: ValDef if v.rhs.nonEmpty && isScope(v.tpt.tpe) => v }
+  /**
+   * The name a declaration is known by: its fully qualified Scala name, the package and every object
+   * it sits in, section and actor objects too, then its own name, `temporal.features.lamp.user.press`
+   * or `temporal.features.lamp.system.LampSystem.monitors.lit`. A file's top-level definitions sit
+   * in its package, not in the object the compiler makes of the file, so moving a declaration between
+   * files of one package keeps its name. A declaration inside anything but objects, such as a class
+   * or a def, has no such name, and is refused.
+   */
+  def qualifiedName(sym: Symbol, at: Tree): String =
+    val owners = Iterator
+      .iterate(sym.maybeOwner)(_.maybeOwner)
+      .takeWhile(o => !o.isNoSymbol && !o.isPackageDef)
       .toList
-      .sortBy(v => (pos(v).file, pos(v).line, v.name))
-      .groupBy(_.symbol.owner)
-  private def isScope(t: TypeRepr): Boolean =
-    t.widen.dealias.typeSymbol.fullName == "umpire.DefinitionScope"
-
-  // The declaration each symbol-based Definition ID was taken by, so two never share one.
-  private val idTakenBy = mutable.Map.empty[String, Symbol]
-
-  /**
-   * The Definition ID of an action, monitor, assumption, hole, channel or realization: its val's
-   * owner and name, where the owner is the former owner its `DefinitionScope` pins, if it pins one.
-   * A section object (umpire.Section) is transparent: its member takes the ID it would take as a
-   * direct member of the section's enclosing owner.
-   */
-  def definitionId(sym: Symbol, at: Tree): String =
-    val owner = sym.owner
-    val id =
-      if isSection(owner) then s"${sectionOwner(owner, at)}.${sym.name}"
-      else pinOf(owner).fold(sym.fullName)(_ + "." + sym.name)
-    idTakenBy.get(id) match
-      case Some(other) if other != sym =>
-        val why =
-          if isSection(owner) || isSection(other.owner) then
-            "a section is transparent to Definition IDs, so the members of one owner's sections " +
-              "and the owner's own members keep distinct names"
-          else "two declarations pinned to one former owner keep the distinct names they had there"
-        fail(
-          at,
-          s"${sym.fullName} and ${other.fullName} would share the Definition ID $id: $why"
-        )
-      case _ => idTakenBy(id) = sym
-    id
-
-  private lazy val sectionClass = Symbol.requiredClass("umpire.Section")
-
-  /** Whether `owner` is a section object, `object timers extends Section` or an actor object. */
-  def isSection(owner: Symbol): Boolean =
-    owner.isClassDef && owner.flags.is(Flags.Module) && owner.typeRef.derivesFrom(sectionClass)
-
-  /**
-   * The owner whose Definition IDs a section's members take, as its pin or its full name: at the
-   * top level of a file, the file's package object; directly in a machine's object, that object. A
-   * section anywhere else, a section in a section and a section that pins are refused at its line.
-   */
-  private def sectionOwner(section: Symbol, member: Tree): String =
-    val at: Tree = scala.util.Try(section.tree).getOrElse(member)
-    val name = section.name.stripSuffix("$")
-    for scope <- scopes.get(section).flatMap(_.headOption) do
-      fail(
-        scope,
-        s"the section $name pins its Definition IDs, and a section is transparent to them: its " +
-          "members take the IDs of its enclosing owner, which pins them"
-      )
-    val enclosing = section.maybeOwner
-    if isSection(enclosing) then
+    for o <- owners.find(o => !(o.isClassDef && o.flags.is(Flags.Module))) do
       fail(
         at,
-        s"the section $name sits in the section ${enclosing.name.stripSuffix("$")}: a section " +
-          "sits at the top level of a Model file or directly in a machine's object, never in " +
-          "another"
+        s"${sym.fullName} sits in ${o.fullName.stripSuffix("$")}, which is no object: a " +
+          "declaration is named after its package and the objects it sits in, so it sits in objects"
       )
-    else if enclosing.isPackageDef then
-      val owner = fileObject(enclosing, pos(at).file).getOrElse(
-        fail(
-          at,
-          s"the section $name sits at the top level of a file that declares nothing there, so " +
-            "the file has no package object whose Definition IDs its members could take: declare " +
-            "its actions directly, or the section in a machine's object"
-        )
-      )
-      pinOf(owner).getOrElse(owner.fullName)
-    else if machineObject(enclosing) then pinOf(enclosing).getOrElse(enclosing.fullName)
-    else
-      fail(
-        at,
-        s"the section $name sits in ${enclosing.fullName.stripSuffix("$")}, which is no machine's " +
-          "object: a section sits at the top level of a Model file or directly in a machine's object"
-      )
+    val objects =
+      owners.reverse.filterNot(_.name.endsWith("$package$")).map(_.name.stripSuffix("$"))
+    (familyOf(sym) +: objects :+ sym.name.stripSuffix("$")).filter(_.nonEmpty).mkString(".")
 
   /**
-   * The package object of the file `file` in the package `pkg`, `<File>$package$`, as the compiler
-   * named it: the owner of a top-level definition of that file among the lifted sources, rather
-   * than a name spelled from the file's.
+   * The family of a declaration: the package it is declared in, whose name every ID derived from a
+   * machine hangs off (`<family>.query.<name>`), as the IR's `family` names it.
    */
-  private def fileObject(pkg: Symbol, file: String): Option[Symbol] =
-    defs.values.collectFirst {
-      case d
-          if d.symbol.maybeOwner.isClassDef && d.symbol.maybeOwner.flags.is(Flags.Module) &&
-            d.symbol.maybeOwner.name.endsWith(
-              "$package$"
-            ) && d.symbol.maybeOwner.maybeOwner == pkg &&
-            pos(d).file == file =>
-        d.symbol.maybeOwner
-    }
+  def familyOf(sym: Symbol): String =
+    Iterator
+      .iterate(sym)(_.maybeOwner)
+      .find(o => o.isNoSymbol || o.isPackageDef)
+      .filter(_.isPackageDef)
+      .fold("")(_.fullName)
 
   /**
-   * Whether `owner` is a machine's object: an object at a file's top level that is a machine or a
-   * composition (`object M extends Machine[...]`, `Derived(...)` or `Composition(...)`).
+   * The Definition ID of an action, monitor, assumption, hole, channel or realization: the fully
+   * qualified name of its val (`qualifiedName`). Scala names no two of them alike.
    */
-  private def machineObject(owner: Symbol): Boolean =
-    owner.isClassDef && owner.flags.is(Flags.Module) && owner.maybeOwner.isPackageDef &&
-      !isSection(owner) && objectForm(owner)
+  def definitionId(sym: Symbol, at: Tree): String = qualifiedName(sym, at)
+
+  /** Whether `owner` is the section `name` of an object, such as a machine's `effects`. */
+  def isSection(owner: Symbol, name: String): Boolean =
+    owner.isClassDef && owner.flags.is(Flags.Module) && owner.name.stripSuffix("$") == name &&
+      !owner.maybeOwner.isPackageDef
 
   // ### Object forms: an object that is a machine or a composition (umpire.Machine, umpire.Derived,
   // umpire.Composition), and the sections it reads
@@ -395,75 +332,20 @@ final private[irgen] class Context(val index: Index):
   private val typeNames = mutable.Map.empty[Symbol, String]
 
   /**
-   * The name the IR gives the type `sym`: its full name, or, for a type at the top level of a file
-   * whose declarations pin a former file owner `<package>.<File>$package$`, the name it had in that
-   * package. A top-level type is its package's, not its file's, so the file's pin is the one that
-   * says where it came from. Two types the lift reads that would share a name are refused.
+   * The name the IR gives the type `sym`: its fully qualified name (`qualifiedName`). Two types the
+   * lift reads that would share a name are refused, which only a name the compiler made up allows.
    */
   def irTypeName(sym: Symbol): String = typeNames.getOrElseUpdate(
     sym, {
-      val name = pinnedTypeName(sym)
+      val name = qualifiedName(sym, scala.util.Try(sym.tree).getOrElse(Literal(UnitConstant())))
       typeTakenBy.get(name) match
         case Some(other) if other != sym =>
           fail(
             sym.tree,
-            s"${sym.fullName} and ${other.fullName} would both be named $name in the IR: a type " +
-              "moved under a DefinitionScope keeps a name no other type of the Model has"
+            s"${sym.fullName} and ${other.fullName} would both be named $name in the IR: name " +
+              "each type of a Model apart"
           )
         case _ => typeTakenBy(name) = sym
       name
     }
   )
-
-  private def pinnedTypeName(sym: Symbol): String =
-    val file = Option
-      .when(sym.maybeOwner.isPackageDef)(scala.util.Try(pos(sym.tree).file).toOption)
-      .flatten
-    val former = file.flatMap { f =>
-      scopes.keys
-        .find(o => o.maybeOwner == sym.owner && o.name.endsWith("$package$") && scopeFile(o) == f)
-        .flatMap(pinOf)
-        .filter(_.endsWith("$package$"))
-    }
-    former.fold(sym.fullName)(f => s"${f.take(f.lastIndexOf('.'))}.${sym.name}")
-
-  // The file a pinned owner's DefinitionScope is declared in.
-  private def scopeFile(owner: Symbol): String =
-    scopes.get(owner).flatMap(_.headOption).map(pos(_).file).getOrElse("")
-
-  /** The former owner `owner` pins, refusing a pin that is doubled, nested, or of itself. */
-  private def pinOf(owner: Symbol): Option[String] =
-    scopes.get(owner).map {
-      case List(scope) =>
-        val enclosing = Iterator
-          .iterate(owner.maybeOwner)(_.maybeOwner)
-          .takeWhile(o => !o.isNoSymbol && !o.isPackageDef)
-          .find(scopes.contains)
-        for outer <- enclosing do
-          fail(
-            scope,
-            s"${owner.fullName} pins its Definition IDs inside ${outer.fullName}, which pins its own: " +
-              "a DefinitionScope pins the declarations of one owner, not of the owners nested in it"
-          )
-        val former = scope.rhs.get match
-          case Apply(Select(_, "apply"), List(Literal(StringConstant(s)))) if s.nonEmpty => s
-          case other                                                                     =>
-            fail(
-              scope,
-              s"a DefinitionScope names its former owner as a nonempty string literal, not ${other.show}"
-            )
-        if former == owner.fullName then
-          fail(
-            scope,
-            s"${owner.fullName} pins its Definition IDs to itself, which changes none of them: pin an " +
-              "owner only where its declarations came from another"
-          )
-        former
-      case first :: second :: _ =>
-        fail(
-          second,
-          s"${owner.fullName} pins its Definition IDs twice, at ${where(first)} and here: an owner " +
-            "has one DefinitionScope"
-        )
-      case Nil => sys.error("unreachable: an owner's scopes are grouped from its declarations")
-    }

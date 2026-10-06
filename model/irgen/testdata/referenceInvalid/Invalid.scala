@@ -19,7 +19,7 @@ import temporal.realize.*, temporal.realize.WorkerInstruction.Fault
 val startWorkflow = rpc(workflowService, METHOD_START_WORKFLOW_EXECUTION) {
   field(_.namespace) := workerNamespace
 }
-val start = action(Party())
+val start = action(Actor("fixture"))
 val completionAuthority = Learned("completion-authority", LearnedKind.handle)
 val historyEvent = Observed[HistoryEvent]("history-event")
 val started = Evidence.keyed(

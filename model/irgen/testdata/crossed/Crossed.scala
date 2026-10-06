@@ -17,7 +17,6 @@ final case class Here(on: Boolean) derives Finite
 
 final case class There(on: Boolean) derives Finite
 
-given Family = Family("fixture.crossed")
 val wire: Channel[Note] = channel[Note](capacity = 1, order = Order.fifo, loss = Loss.reliable)
 
 final case class Holding(inbox: Inbox[Note])

@@ -19,8 +19,9 @@ final private[irgen] class Lifting(val ctx: Context)
   import ctx.quotes.reflect.*
 
   /**
-   * A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, or
-   * a capability declaration.
+   * A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, a
+   * capability declaration, an `implements` section, which is its object's, or a `queries` section,
+   * which roots every Query, list of Queries and progress claim it declares, in the order written.
    */
   def liftRoot(root: String): Unit =
     val sym = defs.keys
@@ -30,6 +31,12 @@ final private[irgen] class Lifting(val ctx: Context)
     // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
     if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d)
     else if objectForm(sym) then compositionOf(sym, d)
+    else if implementsObject(sym) then fold(Ref(sym), Map.empty): Unit
+    else if queriesSection(sym) then
+      for q <- statements(objectBody(moduleClassOf(sym), d)) do
+        q match
+          case v: ValDef if claimRoot(v.tpt.tpe) => liftRoot(v.symbol.fullName)
+          case _                                 => ()
     else if isNamed(d.tpt.tpe, "umpire.Machine") then machineOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.Composition") then compositionOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.realize.Realization") then realizationOf(sym, d)
@@ -44,9 +51,23 @@ final private[irgen] class Lifting(val ctx: Context)
       then
         fail(
           d,
-          s"$root is a ${kind.show}; a root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization"
+          s"$root is a ${kind.show}; a root is a machine, a composition, a Query, a list of Queries, " +
+            "a progress claim, a realization, or a machine's `implements` or `queries` section"
         )
       fold(Ref(sym), Map.empty)
+
+  /** Whether a symbol names the `queries` section of a machine or composition object. */
+  private def queriesSection(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" && objectForm(cls.maybeOwner)
+
+  /** Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim. */
+  private def claimRoot(t: TypeRepr): Boolean =
+    val kind = t.widen.dealias
+    val listed =
+      isList(kind.typeSymbol) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
+    Set("umpire.Query", "umpire.Progress")(kind.typeSymbol.fullName) ||
+    (listed && kind.typeArgs.headOption.exists(a => isNamed(a, "umpire.Query")))
 
   /**
    * The IR files the lifted sources declare, `val f = irFile("name")(root, ...)`: each file's name

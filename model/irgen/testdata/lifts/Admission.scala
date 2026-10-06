@@ -8,20 +8,12 @@
 package fixture.specimens.admission
 
 import umpire.*
-import AdmissionFamily.given
 import Entities.activity
 
 // ### The product: what a caller reads of the activity, as far as the designs' refinement reads it
 
-/**
- * The product's own family, so its claims stay apart from the designs'. The families sit in objects
- * of their own, which the machine objects read while they initialize.
- */
-object ProductFamily:
-  val family: Family = Family("fixture.specimens.admission.product")
-
-val caller = Party()
-val worker = Party()
+object caller extends Actor
+object worker extends Actor
 
 /** The entity, in an object of its own, which the machine objects read while they initialize. */
 object Entities:
@@ -78,13 +70,7 @@ object Product:
     else disabled
 
 /** No unpause is in scope, so a path may end paused, as the designs' paths may. */
-object ActivityProduct
-    extends Machine[ProductState, Outcome, ProductFact](using
-      ProductFamily.family,
-      summon,
-      summon,
-      summon
-    ):
+object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
   val entity = activity
   val init = ProductState(ProductPhase.scheduled)
   def end(s: State) = s.phase == ProductPhase.completed || s.phase == ProductPhase.paused
@@ -100,10 +86,6 @@ object ActivityProduct
 val pausedIsNotDispatched = ActivityProduct.property
   .never(_.state.phase == ProductPhase.started)
   .from(_.phase == ProductPhase.paused)
-
-/** The designs' family. */
-object AdmissionFamily:
-  given family: Family = Family("temporal.activity.standalone.admission")
 
 // ### System vocabulary: one logical activity, one dispatch message, the attempts admission committed
 
@@ -316,7 +298,7 @@ object CurrentAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
   object refinement extends Refinement(ActivityProduct):
     def toProduct(s: AdmissionState) = productOfAdmission(s)
 
-  object monitors extends Section:
+  object monitors:
     val oneActive = atMostOneActiveAttempt
     val finality = terminalFinality
 
@@ -337,7 +319,7 @@ object StaleAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
   object refinement extends Refinement(ActivityProduct):
     def toProduct(s: AdmissionState) = productOfAdmission(s)
 
-  object monitors extends Section:
+  object monitors:
     val oneActive = atMostOneActiveAttempt
     val finality = terminalFinality
 

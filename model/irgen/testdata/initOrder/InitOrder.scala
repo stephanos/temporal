@@ -10,8 +10,6 @@ package fixture.features.initorder
 
 import umpire.*
 
-given Family = Family("fixture.initorder")
-
 final case class Lamp(lit: Boolean) derives Finite
 
 enum Outcome derives Finite:
@@ -23,7 +21,7 @@ final case class Bulb(lit: Boolean)
 object Bulb:
   object BulbLamp extends Derived(Switch.unmonitored)
 
-val flip = action(Party("fixture"))
+val flip = action(Actor("fixture"))
 val one = Limits(steps = 1, actions = 1, search = 8)
 
 // A Model declaration at the top level.
@@ -38,23 +36,23 @@ object Switch extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(lamp: State) = true
 
-  object states extends Section:
+  object states:
     def lit(s: Lamp) = s.lit
 
-  object effects extends Section:
+  object effects:
     def flipped(s: Lamp): List[Step[Lamp, Outcome, Nothing]] =
       List(Step(Outcome.accepted, s.copy(lit = !s.lit)))
 
   object rules extends Rules:
-    when(_ => true)(flip ~> effects.flipped)
+    on(flip)(always ~> effects.flipped)
 
-  object properties extends Section:
+  object properties:
     val turnsOn = property holds (after => after.state.lit)
 
-  object implements extends Section:
+  object implements:
     val reported = SwitchRealization.reported
 
-  object queries extends Section:
+  object queries:
     val flipped = scenario.actions(flip)
     val asked = query verify properties.turnsOn in flipped limits one total 2
 
@@ -64,10 +62,10 @@ object Backwards extends Machine[Lamp, Outcome, Nothing]:
 
   object rules extends Rules
 
-  object queries extends Section:
+  object queries:
     val stays = scenario.free
 
-  object properties extends Section:
+  object properties:
     val unlit = property holds (after => !after.state.lit)
 
 final case class Late(lit: Boolean)
@@ -83,7 +81,7 @@ object Misplaced extends Machine[Lamp, Outcome, Nothing]:
 
   val lit = property holds (after => after.state.lit)
 
-  object properties extends Section:
+  object properties:
     val switchLit = Switch.property holds (after => after.state.lit)
 
 // A Scenario after a Query, and a Query over another object's Scenario.
@@ -93,10 +91,10 @@ object Asked extends Machine[Lamp, Outcome, Nothing]:
 
   object rules extends Rules
 
-  object properties extends Section:
+  object properties:
     val stays = property holds (after => !after.state.lit)
 
-  object queries extends Section:
+  object queries:
     val first = query verify properties.stays in scenario("any").free limits one total 2
     val late = scenario.free
     val borrowed = query verify properties.stays in Switch.queries.flipped limits one total 2

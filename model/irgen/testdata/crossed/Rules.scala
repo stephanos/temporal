@@ -10,7 +10,7 @@ object flipper extends Actor:
 object Unprojected extends Machine[Here, Outcome, Nothing]:
   val init = Here(false)
   def end(s: Here) = true
-  object effects extends Section:
+  object effects:
     def turn(s: Here) = List(Step[Here, Outcome, Nothing](Outcome.accepted, Here(!s.on)))
   object rules extends Rules:
-    in(true)(flipper.flip ~> effects.turn)
+    on(flipper.flip)(in(true) ~> effects.turn)

@@ -24,8 +24,8 @@ import scala.collection.mutable
  *     agree.
  *   - (c) in a machine or composition object, a nested object whose name is none of the sections',
  *     `states`, `refinement`, `effects`, `monitors`, `rules`, `syncs`, `properties`, `implements`
- *     and `queries`, with or without `extends Section`: the name is what makes it a section. The
- *     signature's actor and section objects, at the top level of a file, are named freely. And an
+ *     and `queries`: the name is what makes it a section. The signature's actor objects and the
+ *     objects that group its actions, at the top level of a file, are named freely. And an
  *     `object exports` anywhere but the root feature file; under `features`, a root feature file
  *     without one (under `shared`, a feature has at most one).
  *   - (b) is fn-126.8's, after the R18 renames: `product/Product.scala` declares `<P>Product`,

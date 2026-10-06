@@ -5,8 +5,6 @@ package fixture.derived
 
 import umpire.*
 
-given Family = Family("fixture.derived")
-
 enum Light derives Finite:
   case off, on, broken
 
@@ -19,9 +17,9 @@ enum Outcome derives Finite:
 enum Fact derives Finite:
   case lit, darkened, burnedOut
 
-val press = action(Party("user"))
+val press = action(Actor("user"))
 val wear = timer
-val burnOut = action(Party("fault"))
+val burnOut = action(Actor("fault"))
 
 val lampOpaque = assume
 val burnOutAssumed = assume
@@ -100,7 +98,7 @@ object Lamp extends Machine[LampState, Outcome, Fact]:
     val visibleOutcomes = (o: Outcome) => o == Outcome.accepted
     val unobservable = List(wear)
 
-  object monitors extends Section:
+  object monitors:
     val lit = litAgain
     val opaque = lampOpaque
 
@@ -121,7 +119,7 @@ object StiffLampSpelled extends Machine[LampState, Outcome, Fact]:
     val visibleOutcomes = (o: Outcome) => o == Outcome.accepted
     val unobservable = List(wear)
 
-  object monitors extends Section:
+  object monitors:
     val lit = litAgain
     val opaque = lampOpaque
 
@@ -149,7 +147,7 @@ object FaultyLampSpelled extends Machine[LampState, Outcome, Fact], FailureModel
     val visibleOutcomes = (o: Outcome) => o == Outcome.accepted
     val unobservable = List(wear)
 
-  object monitors extends Section:
+  object monitors:
     val lit = litAgain
     val opaque = lampOpaque
     val faults = burnOutAssumed
@@ -165,7 +163,7 @@ object PlainLampSpelled extends Machine[LampState, Outcome, Fact]:
   val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
   val unobservable = List(wear)
 
-  object monitors extends Section:
+  object monitors:
     val opaque = lampOpaque
 
   object rules extends Bindings(press ~> pressLamp, wear ~> wearLamp)
@@ -184,7 +182,7 @@ object PlainStiffLampSpelled extends Machine[LampState, Outcome, Fact]:
   val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
   val unobservable = List(wear)
 
-  object monitors extends Section:
+  object monitors:
     val opaque = lampOpaque
 
   object rules
@@ -201,7 +199,7 @@ object StiffPressOnlySpelled extends Machine[LampState, Outcome, Fact]:
   def end(l: State) = l.light != Light.broken
   val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
 
-  object monitors extends Section:
+  object monitors:
     val lit = litAgain
     val opaque = lampOpaque
 

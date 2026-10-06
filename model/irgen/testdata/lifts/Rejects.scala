@@ -6,15 +6,13 @@ package fixture.rejects
 
 import umpire.*
 
-val Family: umpire.Family = umpire.Family("fixture.rejects")
-
 enum Note derives Finite:
   case ping
 
 enum Outcome derives Finite:
   case accepted
 
-val go = action(Party("fixture"))
+val go = action(Actor("fixture"))
 
 /** A list in a state has no bound. */
 final case class Unbounded(notes: List[Note])
@@ -85,7 +83,7 @@ object Counter extends Machine[CounterState, Outcome, Nothing]:
 
 final case class Flag(on: Boolean) derives Finite
 
-val flip = action(Party("fixture"))
+val flip = action(Actor("fixture"))
 
 def flipStep(f: Flag): List[Step[Flag, Outcome, Nothing]] = List(
   Step(Outcome.accepted, Flag(!f.on))
@@ -131,7 +129,7 @@ val twiceSecond: Monitor[Flag, Outcome, Nothing, Boolean] =
 object Watched extends Machine[Flag, Outcome, Nothing]:
   val init = Flag(false)
   def end(s: State) = true
-  object monitors extends Section:
+  object monitors:
     val firstTwice = twiceFirst
     val secondTwice = twiceSecond
   object rules extends Bindings(flip ~> flipStep)
@@ -222,75 +220,11 @@ object Guessing extends Machine[GuessingState, Outcome, Nothing]:
   def end(s: State) = true
   object rules extends Bindings()
 
-// Every fixture takes its family from this given, and its name from its object or val.
-given umpire.Family = Family
-
 final case class Lamp(lit: Boolean) derives Finite
 
 def lampStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(
   Step(Outcome.accepted, Lamp(!l.lit))
 )
-
-/** An owner that pins its Definition IDs twice. */
-object PinnedTwice:
-  given DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
-  val again: DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
-  val twiceTick = action(Party("fixture"))
-  object PinnedTwice extends Machine[Lamp, Outcome, Nothing]:
-    val init = Lamp(false)
-    def end(s: State) = true
-    object rules extends Bindings(twiceTick ~> lampStep)
-
-/** A pin in an object nested in an object that pins its own. */
-object PinsOuter:
-  given DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
-  object PinsInner:
-    given DefinitionScope = DefinitionScope("fixture.rejects.Other$package$")
-    val innerTick = action(Party("fixture"))
-  object PinnedNested extends Machine[Lamp, Outcome, Nothing]:
-    val init = Lamp(false)
-    def end(s: State) = true
-    object rules extends Bindings(PinsInner.innerTick ~> lampStep)
-
-/** Two owners pinned to one former owner, each with an action of one name. */
-object SharedA:
-  given DefinitionScope = DefinitionScope("fixture.rejects.Shared$")
-  val share = action(Party("fixture"))
-
-object SharedB:
-  given DefinitionScope = DefinitionScope("fixture.rejects.Shared$")
-  val share = action(Party("fixture"))
-
-object SharedIds extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(false)
-  def end(s: State) = true
-  object rules extends Bindings(SharedA.share ~> lampStep, SharedB.share ~> lampStep)
-
-/** An owner pinned to itself. */
-object Self:
-  given DefinitionScope = DefinitionScope("fixture.rejects.Self$")
-  val selfTick = action(Party("fixture"))
-  object PinnedSelf extends Machine[Lamp, Outcome, Nothing]:
-    val init = Lamp(false)
-    def end(s: State) = true
-    object rules extends Bindings(selfTick ~> lampStep)
-
-/** A pin computed rather than written as a literal. */
-object Computed:
-  given DefinitionScope = DefinitionScope("fixture.rejects." + "Former$package$")
-  val computedTick = action(Party("fixture"))
-  object PinnedComputed extends Machine[Lamp, Outcome, Nothing]:
-    val init = Lamp(false)
-    def end(s: State) = true
-    object rules extends Bindings(computedTick ~> lampStep)
-
-/** A family whose root is computed rather than written as a literal. */
-object ComputedFamily:
-  given umpire.Family = umpire.Family("fixture." + "rejects")
-  object FamilyComputed extends Machine[Lamp, Outcome, Nothing]:
-    val init = Lamp(false)
-    def end(s: State) = true
-    object rules extends Bindings(flip ~> lampStep)
 
 /** Limits named after an anonymous given, a name the compiler made up. */
 object Anonymous:
@@ -361,10 +295,10 @@ val boundTwice: Vector[Query] = Vector(
 
 /** Two actions named alike in two objects, bound by one machine. */
 object TapA:
-  val tap = action(Party("fixture"))
+  val tap = action(Actor("fixture"))
 
 object TapB:
-  val tap = action(Party("fixture"))
+  val tap = action(Actor("fixture"))
 
 object Tapped extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
@@ -414,7 +348,7 @@ object OpaqueB:
 object AssumedTwice extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
-  object monitors extends Section:
+  object monitors:
     val opaqueA = OpaqueA.opaque
     val opaqueB = OpaqueB.opaque
   object rules extends Bindings()
@@ -435,7 +369,7 @@ object GapTwice extends Machine[Lamp, Outcome, Nothing]:
   object rules extends Bindings(flip ~> gapStep)
 
 /** A derivation that rebinds an action its source does not bind. */
-val push = action(Party("fixture"))
+val push = action(Actor("fixture"))
 object RebindPush extends Derived(OneStart.rebind(push ~> lampStep))
 
 /** A derivation that extends its source by an action it binds already. */
@@ -452,7 +386,7 @@ val lampOpaque = assume
 object AssumingLamp extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
-  object monitors extends Section:
+  object monitors:
     val opaque = lampOpaque
   object rules extends Bindings(flip ~> lampStep)
 object AssumedAgain extends Derived(AssumingLamp.assuming(lampOpaque))
@@ -528,7 +462,7 @@ final case class Trio(left: Lamp, right: Lamp, spare: Lamp)
 enum Dim derives Finite:
   case low, high
 
-val dim = action(Party("fixture")).input[Dim]("level")
+val dim = action(Actor("fixture")).input[Dim]("level")
 def dimStep(l: Lamp, level: Dim): List[Step[Lamp, Outcome, Nothing]] = List(
   Step(Outcome.accepted, Lamp(true))
 )
@@ -631,7 +565,7 @@ object emptied:
     given Finite[Unreached] = Finite.upTo(-1)
 
 val unreached = input[emptied.Unreached]
-val reach = action(Party("fixture")).input(unreached)
+val reach = action(Actor("fixture")).input(unreached)
 def reachStep(l: Lamp, u: emptied.Unreached): List[Step[Lamp, Outcome, Nothing]] = Nil
 object ReachLamp extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
@@ -642,13 +576,6 @@ val reachLit = ReachLamp.property holds (after => after.state.lit)
 /** `reach()`, whose input has no first value to take. */
 val reachOnce = ReachLamp.scenario.actions(reach())
 val omittedEmpty: Query = query verify reachLit in reachOnce limits one
-
-/** A party no val declares, which states no name. */
-val partyUnnamed = action(Party())
-object PartyUnnamedLamp extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(false)
-  def end(s: State) = true
-  object rules extends Bindings(partyUnnamed ~> lampStep)
 
 /** A monitor a Query's expected Run names by a def, which no val declares. */
 def flipWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
@@ -688,7 +615,7 @@ val elsewhereWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
 object WatchingElsewhere extends Machine[Flag, Outcome, Nothing]:
   val init = Flag(false)
   def end(s: State) = true
-  object monitors extends Section:
+  object monitors:
     val watch = elsewhereWatch
   object rules extends Bindings(flip ~> flipStep)
 val elsewhereFlips: Property[Flag] =
@@ -802,8 +729,8 @@ val paramCalled: Query = query verify litByParam in lampFlips limits one
 val level = input[Dim]
 val glow = input[Dim]
 val shade = input[Dim]
-val bright = action(Party("fixture")).input(level).input(glow)
-val tint = action(Party("fixture")).input(shade)
+val bright = action(Actor("fixture")).input(level).input(glow)
+val tint = action(Actor("fixture")).input(shade)
 def brightStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] =
   List(Step(Outcome.accepted, Lamp(a == b)))
 def tintStep(l: Lamp, a: Dim): List[Step[Lamp, Outcome, Nothing]] =
@@ -832,7 +759,7 @@ val strungDim = BrightLamp.scenario.actions(dim(level := Dim.high))
 val namedNoTokens: Query = query verify brightLit in strungDim limits one
 
 /** An action that declares one token twice. */
-val doubleTint = action(Party("fixture")).input(shade).input(shade)
+val doubleTint = action(Actor("fixture")).input(shade).input(shade)
 def doubleTintStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] =
   List(Step(Outcome.accepted, Lamp(a == b)))
 object DoubleTintLamp extends Machine[Lamp, Outcome, Nothing]:
@@ -844,7 +771,7 @@ val doubleTintFree = DoubleTintLamp.scenario.free
 val inputTwice: Query = query verify doubleTintLit in doubleTintFree limits one
 
 /** An input token no val declares, so it has no name. */
-val unnamedTint = action(Party("fixture")).input(input[Dim])
+val unnamedTint = action(Actor("fixture")).input(input[Dim])
 object UnnamedTintLamp extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
@@ -866,9 +793,6 @@ val upToNegative: Query = query verify belowAny in belowFree limits one
 // ### fn-112.11: the total each Query asserts (2 states of Flag x 1 scheduled flip = 2)
 
 val twoStates: Int = 2
-
-/** A Query that asserts no total. */
-val untotaled: Query = query verify flips in secondFlips limits one
 
 /** A Query that asserts its total twice. */
 val totaledTwice: Query = query verify flips in secondFlips limits one total 2 total 2
@@ -979,23 +903,6 @@ def mixedQueries(m: Machine[Flag, Outcome, Nothing]): Vector[Query] =
   Vector(query(s"${m.name}.mixedFlips") verify laws.flipped in secondFlips limits one total 2)
 val mixedBundle: Vector[Query] = mixedQueries(Second)
 
-// ### A type moved under a DefinitionScope keeps its former name (MovedRejects.scala, fn-112.12)
-
-/** The gauge fixture.rejects keeps, whose name the Gauge MovedRejects.scala moved out still takes. */
-enum Gauge derives Finite:
-  case low, high
-
-final case class Gauges(kept: Gauge, taken: moved.Gauge) derives Finite
-
-val gaugeTick = action(Party("fixture"))
-def gaugeStep(g: Gauges): List[Step[Gauges, Outcome, Nothing]] = List(Step(Outcome.accepted, g))
-
-/** One machine whose state reads both gauges, which the IR would name alike. */
-object MovedNameTaken extends Machine[Gauges, Outcome, Nothing]:
-  val init = Gauges(Gauge.low, moved.Gauge.empty)
-  def end(s: State) = true
-  object rules extends Bindings(gaugeTick ~> gaugeStep)
-
 // ### Functions a choose calls, and unnamed branching (fn-120.2)
 
 /** A function a choose calls that gives two steps, each named already. */
@@ -1076,7 +983,7 @@ val levelWatch: Monitor[Lamp, Outcome, Nothing, Boolean] =
 object LevelMonitor extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
-  object monitors extends Section:
+  object monitors:
     val watch = levelWatch
   object rules extends Bindings(flip ~> lampStep)
 
@@ -1118,50 +1025,6 @@ val levelLit = OneStart.property holds (after => after.state.lit)
 val levelScenario: Query =
   query verify levelLit in levelStarted.actions(flip) limits one total 2
 
-// ### Sections (fn-126 R14): transparent to Definition IDs, so where one may sit is narrow
-
-/** A section in a section: a section sits at a file's top level or in a machine's object. */
-object outerSection extends Section:
-  object innerSection extends Section:
-    val nestedTick = action(Party("fixture"))
-
-object SectionNested extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(false)
-  def end(s: State) = true
-  object rules extends Bindings(outerSection.innerSection.nestedTick ~> lampStep)
-
-/** A section in an object that holds no machine. */
-object Holder:
-  object heldSection extends Section:
-    val heldTick = action(Party("fixture"))
-
-object SectionMisplaced extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(false)
-  def end(s: State) = true
-  object rules extends Bindings(Holder.heldSection.heldTick ~> lampStep)
-
-/** Two sections of one owner, each with an action of one name, which would share its ID. */
-object leftHand extends Section:
-  val clap = action(Party("fixture"))
-
-object rightHand extends Section:
-  val clap = action(Party("fixture"))
-
-object SectionTwins extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(false)
-  def end(s: State) = true
-  object rules extends Bindings(leftHand.clap ~> lampStep, rightHand.clap ~> lampStep)
-
-/** A section that pins: its members take the IDs of the owner it stands in. */
-object pinningSection extends Section:
-  given DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
-  val pinnedTick = action(Party("fixture"))
-
-object SectionPinned extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(false)
-  def end(s: State) = true
-  object rules extends Bindings(pinningSection.pinnedTick ~> lampStep)
-
 // ### Machine objects, rules and effects (fn-126 R15, R16): each refused at its line
 
 enum Glow derives Finite:
@@ -1179,12 +1042,14 @@ object bulbHand extends Actor:
 object Ruled extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
-  object effects extends Section:
+  object effects:
     def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
     def darken(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.dim))
   object rules extends Rules(_.glow):
-    in(Glow.dim)(bulbHand.squeeze ~> effects.brighten)
-    in(Glow.bright)(bulbHand.squeeze ~> effects.darken)
+    on(bulbHand.squeeze) {
+      in(Glow.dim) ~> effects.brighten
+      in(Glow.bright) ~> effects.darken
+    }
 
 /** A rule whose effect is no def of `effects`. */
 object EffectOutside extends Machine[Bulb, Outcome, Nothing]:
@@ -1192,33 +1057,48 @@ object EffectOutside extends Machine[Bulb, Outcome, Nothing]:
   def end(s: Bulb) = true
   def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
   object rules extends Rules:
-    when(_ => true)(bulbHand.squeeze ~> brighten)
+    on(bulbHand.squeeze)(always ~> brighten)
 
 /** An effect that gives no step in one branch: the rules say where it fires. */
 object EmptyEffect extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
-  object effects extends Section:
+  object effects:
     def brighten(s: Bulb) =
       if s.glow == Glow.bright then disabled else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
   object rules extends Rules:
-    when(_ => true)(bulbHand.squeeze ~> effects.brighten)
+    on(bulbHand.squeeze)(always ~> effects.brighten)
 
-/** A rule under no heading. */
+/** A step function bound by hand among the rules, in no `on` block. */
 object Unheaded extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
   object rules extends Rules:
     bulbHand.squeeze ~> Ruled.effects.brighten
 
-/** A heading under a heading. */
-object HeadingTwice extends Machine[Bulb, Outcome, Nothing]:
+/** A block in a block. */
+object BlockTwice extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
   object rules extends Rules(_.glow):
-    when(_ => true) {
-      in(Glow.dim)(bulbHand.squeeze ~> Ruled.effects.brighten)
+    on(bulbHand.squeeze) {
+      on(bulbHand.twist)(in(Glow.dim) ~> Ruled.effects.brighten)
     }
+
+/** One action's block written twice. */
+object BlockRepeated extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object rules extends Rules(_.glow):
+    on(bulbHand.squeeze)(in(Glow.dim) ~> Ruled.effects.brighten)
+    on(bulbHand.squeeze)(in(Glow.bright) ~> Ruled.effects.darken)
+
+/** A set of phases written as a lambda, which names no def of the machine's states. */
+object PhaseLambda extends Machine[Bulb, Outcome, Nothing]:
+  val init = Bulb(Glow.dim)
+  def end(s: Bulb) = true
+  object rules extends Rules(_.glow):
+    on(bulbHand.squeeze)(in((g: Glow) => g == Glow.dim) ~> Ruled.effects.brighten)
 
 /** An action both disabled and fired by a rule. */
 object DisabledFired extends Machine[Bulb, Outcome, Nothing]:
@@ -1226,7 +1106,7 @@ object DisabledFired extends Machine[Bulb, Outcome, Nothing]:
   def end(s: Bulb) = true
   object rules extends Rules(_.glow):
     disabled(bulbHand.squeeze)
-    in(Glow.dim)(bulbHand.squeeze ~> Ruled.effects.brighten)
+    on(bulbHand.squeeze)(in(Glow.dim) ~> Ruled.effects.brighten)
 
 /** A bare binding where the source's actions are bound by rules: extend takes rules. */
 object ExtendedBare extends Derived(Ruled.extend(bulbHand.twist ~> Ruled.effects.darken))
@@ -1236,7 +1116,7 @@ object RebindSeveral extends Derived(Ruled.rebind(bulbHand.squeeze ~> Ruled.effe
 
 /** Rules for an action class the source does not bind. */
 object RebindUnbound
-    extends Derived(Ruled.rebind(when(_ => true)(bulbHand.twist ~> Ruled.effects.darken)))
+    extends Derived(Ruled.rebind(on(bulbHand.twist)(always ~> Ruled.effects.darken)))
 
 /** A derivation of the ruled bulb, the member `EndedTwice` puts in place of another. */
 object Colliding extends Derived(Ruled.restrict(bulbHand.squeeze))
@@ -1261,14 +1141,14 @@ object LooseRefinement extends Machine[Bulb, Outcome, Nothing]:
   def end(s: Bulb) = true
   def toProduct(s: Bulb) = s
   object rules extends Rules:
-    when(_ => true)(bulbHand.squeeze ~> Ruled.effects.brighten)
+    on(bulbHand.squeeze)(always ~> Ruled.effects.brighten)
 
 /** A machine object whose name another package's object has too (CollidingRejects.scala). */
 object Lookalike extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: State) = true
   object rules extends Rules:
-    when(_ => true)(bulbHand.squeeze ~> Ruled.effects.darken)
+    on(bulbHand.squeeze)(always ~> Ruled.effects.darken)
 
 object LookalikePair extends Composition[Bulbs](_.a -> Lookalike, _.b -> elsewhere.Lookalike):
   def end(s: State) = true
@@ -1279,11 +1159,11 @@ object LookalikePair extends Composition[Bulbs](_.a -> Lookalike, _.b -> elsewhe
 object NilEffect extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: State) = true
-  object effects extends Section:
+  object effects:
     def brighten(s: State) =
       if s.glow == Glow.bright then Nil else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
   object rules extends Rules:
-    when(_ => true)(bulbHand.squeeze ~> effects.brighten)
+    on(bulbHand.squeeze)(always ~> effects.brighten)
 
 /** A monitor of another state type than the machine that watches it. */
 val flagWatch =
@@ -1292,7 +1172,7 @@ val flagWatch =
 object WatchesElsewhere extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
-  object monitors extends Section:
+  object monitors:
     val elsewhere = flagWatch
   object rules extends Bindings(flip ~> lampStep)
 
@@ -1305,11 +1185,13 @@ object dialHand extends Actor:
 object ClassRuled extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
-  object effects extends Section:
+  object effects:
     def set(s: Bulb, g: Glow) = enter[Bulb, Outcome, Nothing](s.copy(glow = g))
   object rules extends Rules(_.glow):
-    in(Glow.dim)(dialHand.turn(Glow.bright) ~> Ruled.effects.brighten)
-    in(Glow.bright)(dialHand.turn(Glow.bright) ~> Ruled.effects.darken)
+    on(dialHand.turn(Glow.bright)) {
+      in(Glow.dim) ~> Ruled.effects.brighten
+      in(Glow.bright) ~> Ruled.effects.darken
+    }
 
 /** One effect in place of the different effects of two rules of one class. */
 object RebindOneClass extends Derived(ClassRuled.rebind(dialHand.turn ~> ClassRuled.effects.set))

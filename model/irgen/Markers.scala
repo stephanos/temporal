@@ -17,7 +17,7 @@ import io.temporal.server.api.umpire.v1 as ir
  *     puts a provider in place only of a machine it refines), and it declares no refinement of its
  *     own, as a feature's System does: it is no feature's Product or System.
  *   - A failure model is the real design under a fault the environment can cause. It binds a fault,
- *     an action of the party `fault` or of a `faults` section (a composition binds its members'),
+ *     an action the actor `fault` takes (a composition binds its members'),
  *     and its promise holds: its Queries expect it to, unless one declares otherwise, so not every
  *     Query of it expects its Run violated.
  *   - A machine or composition that binds a fault says what it is for: it is marked one or the
@@ -121,8 +121,8 @@ private[irgen] trait Markers:
       if bound.isEmpty then
         refuse(
           at,
-          s"$name is a failure model and binds no fault: bind an action of the party `fault` or " +
-            "of a `faults` section that some state enables"
+          s"$name is a failure model and binds no fault: bind an action of the actor `fault` " +
+            "that some state enables"
         )
       val asked = over(name)
       if asked.nonEmpty && asked.forall(violated) then
@@ -167,17 +167,6 @@ private[irgen] trait Markers:
         )
     (refused.result(), refutations.result())
 
-  /**
-   * The Definition IDs of the faults: the actions of the party `fault`, and every action declared in
-   * a `faults` section.
-   */
+  /** The Definition IDs of the faults: the actions the actor `fault` takes. */
   private def faultActions: Set[String] =
-    val inSections = defs.toSeq.flatMap {
-      case (sym, v: ValDef)
-          if sym.exists && isSection(sym.maybeOwner) &&
-            sym.maybeOwner.name
-              .stripSuffix("$") == "faults" && isNamed(v.tpt.tpe, "umpire.Action") =>
-        scala.util.Try(definitionId(sym, v)).toOption
-      case _ => None
-    }
-    (actions.values.filter(_.party == "fault").map(_.id) ++ inSections).toSet
+    actions.values.filter(_.actor == "fault").map(_.id).toSet

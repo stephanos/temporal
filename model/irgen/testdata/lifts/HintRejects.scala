@@ -4,14 +4,11 @@
 // rejected declarations and compare the diagnostics with expected/rejects.txt.
 package fixture.hintrejects
 
-import umpire.*
 import umpire.realize.*
 import temporal.realize.*
 import temporal.features.standaloneactivity.activity
 import temporal.features.standaloneactivity.system.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
-given Family = Family("fixture.hintrejects")
-
 private def realizing(hint: Visibility) = temporalRealization(
   machine = activityProtocol,
   operation = activity,

@@ -62,7 +62,7 @@ final class Channel[M] private[umpire] (
   val deliver: Action[M *: EmptyTuple] = Action(
     ActionDecl(
       s"${name}Delivery",
-      Party.system,
+      Actor.system,
       inputs = List("message"),
       domains = List(messages),
       internal = true,
@@ -74,7 +74,7 @@ final class Channel[M] private[umpire] (
   val lose: Action[M *: EmptyTuple] = Action(
     ActionDecl(
       s"${name}Loss",
-      Party.system,
+      Actor.system,
       inputs = List("message"),
       domains = List(messages),
       internal = true,

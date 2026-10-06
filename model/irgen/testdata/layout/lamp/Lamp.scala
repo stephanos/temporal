@@ -22,8 +22,6 @@ import umpire.*
 import product.LampProduct
 import system.{Bulb, LampSystem}
 
-given Family = Family("fixture.lamp")
-
 // ### Types
 // Every enum, state record and alias the levels share sits here. A subject's own types sit in its
 // file, as system/Bulb.scala keeps its Filament.

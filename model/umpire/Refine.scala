@@ -10,8 +10,7 @@ import scala.annotation.unused
  * `unobservable`, the timers whose step records nothing a Run can read. A machine refines at most
  * one machine. The IR generator reads it from the source.
  */
-abstract class Refinement[S, P](using @unused owner: Owner[S, ?, ?])(val of: Machine[P, ?, ?])
-    extends Section:
+abstract class Refinement[S, P](using @unused owner: Owner[S, ?, ?])(val of: Machine[P, ?, ?]):
   /** The state of the refined machine a state of this one reads as. */
   def toProduct(s: S): P
 

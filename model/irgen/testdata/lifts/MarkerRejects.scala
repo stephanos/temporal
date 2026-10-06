@@ -10,8 +10,6 @@ package fixture.markers
 import umpire.*
 import umpire.realize.*
 
-given Family = Family("fixture.markers")
-
 final case class Lamp(lit: Boolean) derives Finite
 
 enum Outcome derives Finite:
@@ -24,10 +22,9 @@ val markedLimits = Limits(steps = 1, actions = 1, search = 16)
 object hand extends Actor:
   val flip = action(this)
 
-val fault = Party()
-
-object faults extends Section:
-  val blowout = action(fault)
+/** The fault the environment can cause: a blown bulb. */
+object fault extends Actor:
+  val blowout = action(this)
 
 /** The steps the lamps share. */
 object Steps:
@@ -38,7 +35,7 @@ object Steps:
 object FaultUnmarked extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
-  object rules extends Bindings(hand.flip ~> Steps.toggle, faults.blowout ~> Steps.dark)
+  object rules extends Bindings(hand.flip ~> Steps.toggle, fault.blowout ~> Steps.dark)
 
 /** A failure model with no fault. */
 object FaultlessFailure extends Machine[Lamp, Outcome, Nothing], FailureModel:
@@ -50,10 +47,10 @@ object FaultlessFailure extends Machine[Lamp, Outcome, Nothing], FailureModel:
 object HopelessFailure extends Machine[Lamp, Outcome, Nothing], FailureModel:
   val init = Lamp(false)
   def end(s: State) = true
-  object rules extends Bindings(hand.flip ~> Steps.toggle, faults.blowout ~> Steps.dark)
-  object properties extends Section:
+  object rules extends Bindings(hand.flip ~> Steps.toggle, fault.blowout ~> Steps.dark)
+  object properties:
     val lit = property when hand.flip holds (_.state.lit)
-  object queries extends Section:
+  object queries:
     val brokenHopelessFailure =
       (query find properties.lit in scenario("flipped").actions(
         hand.flip
@@ -74,9 +71,9 @@ object UnrefutedControl extends Machine[Lamp, Outcome, Nothing], NegativeControl
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(hand.flip ~> Steps.toggle)
-  object properties extends Section:
+  object properties:
     val lit = property when hand.flip holds (_.state.lit)
-  object queries extends Section:
+  object queries:
     val foundUnrefutedControl =
       query find properties.lit in scenario("flipped").actions(
         hand.flip
@@ -87,9 +84,9 @@ object RefinedControl extends Machine[Lamp, Outcome, Nothing], NegativeControl:
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(hand.flip ~> Steps.toggle)
-  object properties extends Section:
+  object properties:
     val lit = property when hand.flip holds (_.state.lit)
-  object queries extends Section:
+  object queries:
     val askedRefinedControl =
       query verify properties.lit in scenario("flipped").actions(
         hand.flip
@@ -109,9 +106,9 @@ object SystemicControl extends Machine[Lamp, Outcome, Nothing], NegativeControl:
   object refinement extends Refinement(PlainLamp):
     def toProduct(s: Lamp) = s
   object rules extends Bindings(hand.flip ~> Steps.toggle)
-  object properties extends Section:
+  object properties:
     val lit = property when hand.flip holds (_.state.lit)
-  object queries extends Section:
+  object queries:
     val askedSystemicControl =
       query verify properties.lit in scenario("flipped").actions(
         hand.flip
@@ -126,10 +123,10 @@ object PlainLamp extends Machine[Lamp, Outcome, Nothing]:
 object TornMarkers extends Machine[Lamp, Outcome, Nothing], FailureModel, NegativeControl:
   val init = Lamp(false)
   def end(s: State) = true
-  object rules extends Bindings(hand.flip ~> Steps.toggle, faults.blowout ~> Steps.dark)
-  object properties extends Section:
+  object rules extends Bindings(hand.flip ~> Steps.toggle, fault.blowout ~> Steps.dark)
+  object properties:
     val lit = property when hand.flip holds (_.state.lit)
-  object queries extends Section:
+  object queries:
     val askedTornMarkers =
       query verify properties.lit in scenario("flipped").actions(
         hand.flip
@@ -141,7 +138,7 @@ final case class Lamps(left: Lamp, right: Lamp)
 object Blowing extends Machine[Lamp, Outcome, Nothing], FailureModel:
   val init = Lamp(false)
   def end(s: State) = true
-  object rules extends Bindings(hand.flip ~> Steps.toggle, faults.blowout ~> Steps.dark)
+  object rules extends Bindings(hand.flip ~> Steps.toggle, fault.blowout ~> Steps.dark)
 
 /** A composition whose member binds a fault, and no marker. */
 object UnmarkedPair extends Composition[Lamps](_.left -> Blowing, _.right -> PlainLamp):
@@ -159,9 +156,9 @@ object FaultlessPair
 
 /** A derived negative control that nothing refutes: no verify, and no refinement it keeps. */
 object DerivedControl extends Derived(PlainLamp.unmonitored), NegativeControl:
-  object properties extends Section:
+  object properties:
     val lit = property when hand.flip holds (_.state.lit)
-  object queries extends Section:
+  object queries:
     val foundDerivedControl =
       query find properties.lit in scenario("flipped").actions(
         hand.flip

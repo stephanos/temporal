@@ -7,8 +7,8 @@ object KettleProduct extends Machine[Kettle, Outcome, Nothing]:
   val init = Kettle(hot = false)
   def end(s: State) = true
 
-  object effects extends Section:
+  object effects:
     def boiled(s: State): List[KettleStep] = enter(s.copy(hot = true))
 
   object rules extends Rules:
-    when(!_.hot)(cook.boil ~> effects.boiled)
+    on(cook.boil)(where(!_.hot) ~> effects.boiled)

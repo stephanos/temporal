@@ -20,10 +20,10 @@ object Bulb extends Machine[Filament, Outcome, Nothing]:
   object refinement extends Refinement(LampSystem):
     def toProduct(s: State) = Circuit(closed = s.glowing)
 
-  object effects extends Section:
+  object effects:
     def heat(s: State): List[FilamentStep] = enter(s.copy(glowing = true))
     def cool(s: State): List[FilamentStep] = enter(s.copy(glowing = false))
 
   object rules extends Rules:
-    when(!_.glowing)(user.switchOn ~> effects.heat)
-    when(_.glowing)(user.switchOff ~> effects.cool)
+    on(user.switchOn)(where(!_.glowing) ~> effects.heat)
+    on(user.switchOff)(where(_.glowing) ~> effects.cool)

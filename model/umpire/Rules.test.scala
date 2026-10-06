@@ -18,14 +18,13 @@ object RulesFixture:
   enum Knob derives Finite:
     case up, down
 
-  given Family = Family("test.rules")
   given Ok[Said] = Ok(Said.ok)
 
   object hand extends Actor:
     val press = action(this)
     val turn = action(this).input[Knob]("knob")
 
-  object clock extends Section:
+  object clock:
     val tick = timer
 
   /** What initialized, in order, so the tests read when each object is constructed. */
@@ -38,7 +37,7 @@ object RulesFixture:
     def end(s: Lamp) = s.light == Lit.broken
     def presses(s: Lamp): UpTo[2] = UpTo((s.presses + 1).min(2))
 
-    object effects extends Section:
+    object effects:
       Trace.initialized += "Switch.effects"
       def light(s: Lamp) = enter[Lamp, Said, Nothing](s.copy(light = Lit.on, presses = presses(s)))
       def dark(s: Lamp) = enter[Lamp, Said, Nothing](s.copy(light = Lit.off))
@@ -51,34 +50,36 @@ object RulesFixture:
 
     object rules extends Rules(_.light):
       Trace.initialized += "Switch.rules"
-      in(Lit.off)(hand.press ~> effects.light)
-      in(Lit.on) {
-        hand.press ~> effects.dark
-        hand.turn(Knob.down) ~> effects.dark
-        hand.turn(Knob.up) ~> effects.light
+      on(hand.press) {
+        in(Lit.off) ~> effects.light
+        in(Lit.on) ~> effects.dark
       }
-      in(Lit.off)(hand.turn ~> effects.turned)
-      in(Lit.broken)(hand.turn ~> effects.refuse)
-      when(s => s.presses == 2 && s.light != Lit.broken)(clock.tick ~> effects.wear)
+      on(hand.turn(Knob.down))(in(Lit.on) ~> effects.dark)
+      on(hand.turn(Knob.up))(in(Lit.on) ~> effects.light)
+      on(hand.turn) {
+        in(Lit.off) ~> effects.turned
+        in(Lit.broken) ~> effects.refuse
+      }
+      on(clock.tick)(where(s => s.presses == 2 && s.light != Lit.broken) ~> effects.wear)
 
   /** The switch whose press is its own effect wherever it fires, and whose tick never fires. */
   object Stuck extends Derived(Switch.rebind(hand.press ~> Switch.effects.wear))
 
   /** The switch whose press fires everywhere, under one rule. */
-  object Loose extends Derived(Switch.rebind(when(_ => true)(hand.press ~> Switch.effects.wear)))
+  object Loose extends Derived(Switch.rebind(on(hand.press)(always ~> Switch.effects.wear)))
 
   object Overlapping extends Machine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
     object rules extends Rules(_.light):
-      in(Lit.off, Lit.on)(hand.turn(Knob.up) ~> Switch.effects.light)
-      when(_.presses == 1)(hand.turn ~> Switch.effects.turned)
+      on(hand.turn(Knob.up))(in(Lit.off, Lit.on) ~> Switch.effects.light)
+      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
 
   object Unfelt extends Machine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
     object rules extends Rules:
-      when(_ => true)(hand.press ~> Switch.effects.light)
+      on(hand.press)(always ~> Switch.effects.light)
       disabled(clock.tick)
 
   final case class Pair(left: Lamp, right: Lamp)
@@ -91,7 +92,7 @@ object RulesFixture:
   object Odd extends Composition(Twins.withMember(_.right -> Stuck))
 
 class RulesTest extends munit.FunSuite:
-  import RulesFixture.{given, *}
+  import RulesFixture.*
   type Press = Lamp => List[Step[Lamp, Said, Nothing]]
   type Turn = (Lamp, Knob) => List[Step[Lamp, Said, Nothing]]
 
@@ -107,7 +108,7 @@ class RulesTest extends munit.FunSuite:
     step(m, hand.turn).asInstanceOf[Turn](s, k) // scalafix:ok DisableSyntax.asInstanceOf
 
   val off = Lamp(Lit.off, UpTo(0))
-  val on = Lamp(Lit.on, UpTo(1))
+  val lit = Lamp(Lit.on, UpTo(1))
 
   test("a machine object is named after its object, and its sections initialize on first use") {
     assertEquals(Switch.name, "switch")
@@ -124,11 +125,11 @@ class RulesTest extends munit.FunSuite:
   test("each action's rules lower to one step function: the first rule that fires, else no step") {
     assertEquals(Switch.bindings.map(_.decl), List(hand.press, hand.turn, clock.tick).map(_.decl))
     assertEquals(press(Switch, off), List(Lamp(Lit.on, UpTo(1))))
-    assertEquals(press(Switch, on), List(on.copy(light = Lit.off)))
+    assertEquals(press(Switch, lit), List(lit.copy(light = Lit.off)))
     assertEquals(press(Switch, Lamp(Lit.broken, UpTo(0))), Nil)
     // One class's rule, or the whole action's: down darkens a lit lamp, up keeps it lit.
-    assertEquals(turn(Switch, on, Knob.down).map(_.state.light), List(Lit.off))
-    assertEquals(turn(Switch, on, Knob.up).map(_.state.light), List(Lit.on))
+    assertEquals(turn(Switch, lit, Knob.down).map(_.state.light), List(Lit.off))
+    assertEquals(turn(Switch, lit, Knob.up).map(_.state.light), List(Lit.on))
     assertEquals(
       turn(Switch, Lamp(Lit.broken, UpTo(0)), Knob.up).map(_.outcome),
       List(Said.refused)
@@ -147,7 +148,7 @@ class RulesTest extends munit.FunSuite:
     assertEquals(press(Stuck, off).map(_.light), List(Lit.broken))
     assertEquals(press(Stuck, Lamp(Lit.broken, UpTo(0))), Nil)
     assertEquals(press(Loose, Lamp(Lit.broken, UpTo(0))).map(_.light), List(Lit.broken))
-    assertEquals(turn(Stuck, on, Knob.down).map(_.state.light), List(Lit.off))
+    assertEquals(turn(Stuck, lit, Knob.down).map(_.state.light), List(Lit.off))
   }
 
   test(
@@ -162,22 +163,23 @@ class RulesTest extends munit.FunSuite:
     assertEquals(
       refused.getMessage,
       "overlapping fires turn-up by two rules in Lamp(off,1): rule 1, in(off, on), and rule 2, " +
-        "when: the rules of one action class hold in no common state, so write alternatives as " +
+        "where: the rules of one action class hold in no common state, so write alternatives as " +
         "one effect that names each with `choose`"
     )
   }
 
   test("a derivation's rules are checked as it binds them") {
     val refused = intercept[IllegalArgumentException](
-      Switch.rebind(
-        when(_ => true)(hand.press ~> Switch.effects.wear, hand.press ~> Switch.effects.dark)
-      )
+      Switch.rebind(on(hand.press) {
+        always ~> Switch.effects.wear
+        where(_.light == Lit.off) ~> Switch.effects.dark
+      })
     )
     assertEquals(
       refused.getMessage,
-      "a derivation of switch fires press by two rules in Lamp(off,0): rule 1, when, and rule 2, " +
-        "when: the rules of one action class hold in no common state, so write alternatives as " +
-        "one effect that names each with `choose`"
+      "a derivation of switch fires press by two rules in Lamp(off,0): rule 1, always, and rule " +
+        "2, where: the rules of one action class hold in no common state, so write alternatives " +
+        "as one effect that names each with `choose`"
     )
   }
 
@@ -197,12 +199,4 @@ class RulesTest extends munit.FunSuite:
       "change"
     )
     assertEquals(writtenAction("umpire.apply[(A, B)](example.orders.buyer.place)(x := y)"), "place")
-    assertEquals(
-      writtenActions(
-        "[\n  umpire.~>(example.orders.clerk.ship)[A,\n    B, Nothing]((s: A) =>\n    f(s)),\n" +
-          "  umpire.~>(example.orders.buyer.place)[A, B, Nothing]((s: A) => g(s))\n :\n" +
-          "  umpire.StepBinding[A, B, Nothing\n    ]\n]*"
-      ),
-      List("ship", "place")
-    )
   }

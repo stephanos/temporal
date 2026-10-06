@@ -9,8 +9,6 @@ package fixture.rules
 
 import umpire.*
 
-given Family = Family("fixture.rules")
-
 enum Light derives Finite:
   case off, on, broken
 
@@ -35,7 +33,7 @@ object hand extends Actor:
   val press = action(this)
   val turn = action(this).input(knob)
 
-object clock extends Section:
+object clock:
   val tick = timer
   val rest = timer
   val dim = timer
@@ -45,7 +43,7 @@ object Switch extends Machine[Lamp, Outcome, Fact]:
   def end(s: State) = states.broken(s)
   val evidence: PartialFunction[Fact, String] = { case Fact.worn => "wear" }
 
-  object states extends Section:
+  object states:
     /** A broken lamp, its state named through the machine, `State`, and as `Lamp` (below). */
     def broken(s: State) = s.light == Light.broken
     def brokenLamp(s: Lamp) = s.light == Light.broken
@@ -53,7 +51,7 @@ object Switch extends Machine[Lamp, Outcome, Fact]:
     /** The presses counted so far, one more, up to two. */
     def worn(p: UpTo[2]): UpTo[2] = UpTo((p + 1).min(2))
 
-  object effects extends Section:
+  object effects:
     def light(s: Lamp) = enter(s.copy(light = Light.on, presses = states.worn(s.presses)), Fact.lit)
     def dark(s: Lamp) = enter(s.copy(light = Light.off), Fact.darkened)
     def refuse(s: Lamp, k: Knob) = List(Step[Lamp, Outcome, Fact](Outcome.refused, s))
@@ -62,25 +60,27 @@ object Switch extends Machine[Lamp, Outcome, Fact]:
     def wear(s: Lamp) = enter(s.copy(light = Light.broken), Fact.worn)
     def keep(s: Lamp) = stay[Lamp, Outcome, Fact](s)
 
-  object monitors extends Section:
+  object monitors:
     val neverWorn = sticky[Lamp, Outcome, Fact](after => !after.records(Fact.worn))
 
   object rules extends Rules(_.light):
-    in(Light.off)(hand.press ~> effects.light)
-    in(Light.on) {
-      hand.press ~> effects.dark
-      hand.turn(Knob.down) ~> effects.dark
-      hand.turn(Knob.up) ~> effects.light
+    on(hand.press) {
+      in(Light.off) ~> effects.light
+      in(Light.on) ~> effects.dark
     }
-    in(Light.off)(hand.turn ~> effects.turned)
-    in(Light.broken)(hand.turn ~> effects.refuse)
-    when(s => s.presses == 2 && s.light.in(Light.off, Light.on))(clock.tick ~> effects.wear)
+    on(hand.turn(Knob.down))(in(Light.on) ~> effects.dark)
+    on(hand.turn(Knob.up))(in(Light.on) ~> effects.light)
+    on(hand.turn) {
+      in(Light.off) ~> effects.turned
+      in(Light.broken) ~> effects.refuse
+    }
+    on(clock.tick)(where(s => s.presses == 2 && s.light.in(Light.off, Light.on)) ~> effects.wear)
     disabled(clock.rest)
 
-  object properties extends Section:
+  object properties:
     val pressLights = property when hand.press holds (after => after.state.light != Light.broken)
 
-  object queries extends Section:
+  object queries:
     val pressedTwice = scenario.actions(hand.press, hand.press)
     val pressing = query verify properties.pressLights in pressedTwice limits two total 18
     val wornOut =
@@ -120,7 +120,7 @@ object CoreSwitch extends Machine[Lamp, Outcome, Fact]:
   def end(s: State) = s.light == Light.broken
   val evidence: PartialFunction[Fact, String] = { case Fact.worn => "wear" }
 
-  object monitors extends Section:
+  object monitors:
     val neverWorn = Switch.monitors.neverWorn
 
   object rules
@@ -139,20 +139,22 @@ object Mirror extends Machine[Lamp, Outcome, Fact]:
     def toProduct(s: Lamp) = s
     val unobservable = List(clock.rest)
   object rules extends Rules(_.light):
-    in(Light.off)(hand.press ~> Switch.effects.light)
-    in(Light.on)(hand.press ~> Switch.effects.dark)
+    on(hand.press) {
+      in(Light.off) ~> Switch.effects.light
+      in(Light.on) ~> Switch.effects.dark
+    }
     disabled(clock.rest)
 
 /** A tick that keeps the lamp where a tick fires: the rules' guards, another effect. */
 object Steady extends Derived(Switch.rebind(clock.tick ~> Switch.effects.keep))
 
 /** A press that keeps the lamp in every state: rules in place of the press's rules. */
-object Loose extends Derived(Switch.rebind(when(_ => true)(hand.press ~> Switch.effects.keep)))
+object Loose extends Derived(Switch.rebind(on(hand.press)(always ~> Switch.effects.keep)))
 
 /** A lamp that also dims while it is off: rules a derivation adds. */
 object Dimming
     extends Derived(
-      Switch.extend(when(s => s.light == Light.off)(clock.dim ~> Switch.effects.keep))
+      Switch.extend(on(clock.dim)(where(_.light == Light.off) ~> Switch.effects.keep))
     )
 
 object Plain extends Derived(Switch.unmonitored)
@@ -175,10 +177,8 @@ object Dial extends Machine[Lamp, Outcome, Fact]:
   val init = Lamp(Light.off, UpTo(0))
   def end(s: State) = Switch.states.broken(s)
   object rules extends Rules(_.light):
-    in(Light.off, Light.on) {
-      hand.turn(Knob.up) ~> Switch.effects.light
-      hand.turn(Knob.down) ~> Switch.effects.dark
-    }
+    on(hand.turn(Knob.up))(in(Light.off, Light.on) ~> Switch.effects.light)
+    on(hand.turn(Knob.down))(in(Light.off, Light.on) ~> Switch.effects.dark)
 
 /** One effect, which reads the class, in place of the two classes' effects, each keeping its guard. */
 object Turned extends Derived(Dial.rebind(hand.turn ~> Switch.effects.turned))

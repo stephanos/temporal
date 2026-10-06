@@ -11,8 +11,8 @@ object UrnSystem extends Machine[Urn, Outcome, Nothing]:
   object refinement extends Refinement(UrnProduct):
     def toProduct(s: State) = s
 
-  object effects extends Section:
+  object effects:
     def filled(s: State): List[UrnStep] = enter(s.copy(full = true))
 
   object rules extends Rules:
-    when(!_.full)(brewer.fill ~> effects.filled)
+    on(brewer.fill)(where(!_.full) ~> effects.filled)

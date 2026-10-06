@@ -41,7 +41,7 @@ const (
 	UnfiredVerify Kind = "unfired-verify"
 	// UnevidencedFact is a fact of a realized machine that no evidence kind of its realization records.
 	UnevidencedFact Kind = "unevidenced-fact"
-	// UnperformedAction is an action of a realized machine whose party is not `system` that no
+	// UnperformedAction is an action of a realized machine whose actor is not `system` that no
 	// performance binds and no activity script starts with.
 	UnperformedAction Kind = "unperformed-action"
 	// UnrealizedFind is a find Query whose machine no realization runs.
@@ -60,7 +60,7 @@ const (
 	// DisabledByDefault (H1) is a disabled pair whose empty result a default arm decided: a wildcard
 	// `match` case, or an `if` whose condition names no field of the state.
 	DisabledByDefault Kind = "disabled-by-default"
-	// SilentRejection (H2) is a disabled pair of a party action in a reachable state that is no end.
+	// SilentRejection (H2) is a disabled pair of an actor's action in a reachable state that is no end.
 	SilentRejection Kind = "silent-rejection"
 	// UnconstrainedResult (H3) is a class with enabled pairs whose results no claim constrains.
 	UnconstrainedResult Kind = "unconstrained-result"

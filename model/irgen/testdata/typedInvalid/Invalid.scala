@@ -19,7 +19,7 @@ import temporal.server.api.testpilot.v1.InstructionOutcome
 import umpire.*
 import umpire.realize.*
 
-val nonMessage = action("bad", Party("caller")).schema[String]
+val nonMessage = action("bad", Actor("caller")).schema[String]
 val wrongRequest = Instruction.rpc(
   "endpoint",
   WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION

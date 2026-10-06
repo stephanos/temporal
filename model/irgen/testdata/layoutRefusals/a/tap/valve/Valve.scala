@@ -9,8 +9,8 @@ object Valve extends Machine[Tap, Outcome, Nothing]:
   val init = Tap(open = false)
   def end(s: State) = true
 
-  object effects extends Section:
+  object effects:
     def shut(s: State): List[Step[Tap, Outcome, Nothing]] = enter(s.copy(open = false))
 
   object rules extends Rules:
-    when(_.open)(plumber.turn ~> effects.shut)
+    on(plumber.turn)(where(_.open) ~> effects.shut)

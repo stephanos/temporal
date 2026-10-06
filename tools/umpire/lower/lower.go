@@ -823,15 +823,15 @@ func (l *lowering) performed() error {
 			}
 		}
 	}
-	party := map[string]string{}
+	actor := map[string]string{}
 	for _, class := range l.mm.Classes {
-		party[class.Key] = class.Action.GetParty()
+		actor[class.Key] = class.Action.GetActor()
 	}
 	var unperformed []error
 	for _, key := range l.keys {
-		if !bound[key] && party[key] != "system" {
+		if !bound[key] && actor[key] != "system" {
 			unperformed = append(unperformed, errorAt(l.a.scenario.GetPosition(), "scenario %s takes %s, a step of %s, and no script of realization %s performs it",
-				l.a.scenario.GetName(), key, party[key], l.a.r.GetName()))
+				l.a.scenario.GetName(), key, actor[key], l.a.r.GetName()))
 		}
 	}
 	return errors.Join(unperformed...)

@@ -5,8 +5,6 @@ package fixture.features.urn
 
 import umpire.*
 
-given Family = Family("fixture.urn")
-
 final case class Urn(full: Boolean) derives Finite
 
 enum Outcome derives Finite:

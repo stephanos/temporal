@@ -4,8 +4,6 @@ package fixture.features.tap
 import umpire.*
 import product.Faucet
 
-given Family = Family("fixture.tap")
-
 final case class Tap(open: Boolean) derives Finite
 
 enum Outcome derives Finite:

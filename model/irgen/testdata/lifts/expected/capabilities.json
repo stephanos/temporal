@@ -4,7 +4,7 @@
     "name": "fixture.capabilities.Answer",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 31
+      "line": 26
     },
     "enum": {
       "cases": [ {
@@ -17,7 +17,7 @@
     "name": "fixture.capabilities.JobState",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 29
+      "line": 24
     },
     "record": {
       "fields": [ {
@@ -31,7 +31,7 @@
     "name": "fixture.capabilities.Note",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 36
+      "line": 31
     },
     "enum": {
       "cases": [ {
@@ -52,7 +52,7 @@
     "name": "fixture.capabilities.PairState",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 158
+      "line": 153
     },
     "record": {
       "fields": [ {
@@ -71,7 +71,7 @@
     "name": "fixture.capabilities.Phase",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 25
+      "line": 20
     },
     "enum": {
       "cases": [ {
@@ -91,7 +91,7 @@
     "name": "fixture.capabilities.Capabilities$package$.runs",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 163
+      "line": 158
     },
     "params": [ {
       "name": "p",
@@ -102,21 +102,21 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 163
+        "line": 158
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 163
+            "line": 158
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 163
+            "line": 158
           },
           "literal": {
             "enum": {
@@ -131,7 +131,7 @@
     "name": "fixture.capabilities.Jobs$.cancel",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 75
+      "line": 70
     },
     "params": [ {
       "name": "j",
@@ -142,26 +142,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 76
+        "line": 71
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 76
+            "line": 71
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.terminal",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 76
+                "line": 71
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 76
+                    "line": 71
                   },
                   "var": "j"
                 },
@@ -173,14 +173,14 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 76
+            "line": 71
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.closed",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 76
+                "line": 71
               },
               "var": "j"
             } ]
@@ -189,20 +189,20 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 76
+            "line": 71
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 76
+                "line": 71
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 34
+                    "line": 29
                   },
                   "literal": {
                     "enum": {
@@ -213,19 +213,19 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 76
+                    "line": 71
                   },
                   "var": "j"
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 76
+                    "line": 71
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 76
+                        "line": 71
                       },
                       "literal": {
                         "enum": {
@@ -238,7 +238,7 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 76
+                    "line": 71
                   },
                   "literal": {
                     "text": ""
@@ -254,7 +254,7 @@
     "name": "fixture.capabilities.Jobs$.closed",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 59
+      "line": 54
     },
     "params": [ {
       "name": "j",
@@ -265,20 +265,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 59
+        "line": 54
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 59
+            "line": 54
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 59
+                "line": 54
               },
               "literal": {
                 "enum": {
@@ -289,19 +289,19 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 59
+                "line": 54
               },
               "var": "j"
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 59
+                "line": 54
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 59
+                "line": 54
               },
               "literal": {
                 "text": ""
@@ -315,7 +315,7 @@
     "name": "fixture.capabilities.Jobs$.finish",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 63
+      "line": 58
     },
     "params": [ {
       "name": "j",
@@ -326,26 +326,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 64
+        "line": 59
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 64
+            "line": 59
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 64
+                "line": 59
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 64
+                    "line": 59
                   },
                   "var": "j"
                 },
@@ -355,7 +355,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 64
+                "line": 59
               },
               "literal": {
                 "enum": {
@@ -369,20 +369,20 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 64
+            "line": 59
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 64
+                "line": 59
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 34
+                    "line": 29
                   },
                   "literal": {
                     "enum": {
@@ -393,14 +393,14 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 64
+                    "line": 59
                   },
                   "construct": {
                     "type": "fixture.capabilities.JobState",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 64
+                        "line": 59
                       },
                       "literal": {
                         "enum": {
@@ -413,13 +413,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 64
+                    "line": 59
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 64
+                        "line": 59
                       },
                       "literal": {
                         "enum": {
@@ -432,7 +432,7 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 64
+                    "line": 59
                   },
                   "literal": {
                     "text": ""
@@ -445,7 +445,7 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 64
+            "line": 59
           },
           "list": { }
         }
@@ -455,7 +455,7 @@
     "name": "fixture.capabilities.Jobs$.kill",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 73
+      "line": 68
     },
     "params": [ {
       "name": "j",
@@ -466,26 +466,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 74
+        "line": 69
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 74
+            "line": 69
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.terminal",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 74
+                "line": 69
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 74
+                    "line": 69
                   },
                   "var": "j"
                 },
@@ -497,14 +497,14 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 74
+            "line": 69
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.closed",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 74
+                "line": 69
               },
               "var": "j"
             } ]
@@ -513,20 +513,20 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 74
+            "line": 69
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 74
+                "line": 69
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 34
+                    "line": 29
                   },
                   "literal": {
                     "enum": {
@@ -537,14 +537,14 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 74
+                    "line": 69
                   },
                   "construct": {
                     "type": "fixture.capabilities.JobState",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 74
+                        "line": 69
                       },
                       "literal": {
                         "enum": {
@@ -557,13 +557,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 74
+                    "line": 69
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 74
+                        "line": 69
                       },
                       "literal": {
                         "enum": {
@@ -576,7 +576,7 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 74
+                    "line": 69
                   },
                   "literal": {
                     "text": ""
@@ -592,7 +592,7 @@
     "name": "fixture.capabilities.Jobs$.over",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 57
+      "line": 52
     },
     "params": [ {
       "name": "j",
@@ -603,20 +603,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 57
+        "line": 52
       },
       "call": {
         "function": "fixture.capabilities.Jobs$.terminal",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 57
+            "line": 52
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 57
+                "line": 52
               },
               "var": "j"
             },
@@ -629,7 +629,7 @@
     "name": "fixture.capabilities.Jobs$.pause",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 65
+      "line": 60
     },
     "params": [ {
       "name": "j",
@@ -640,26 +640,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 66
+        "line": 61
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 66
+            "line": 61
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.terminal",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 66
+                "line": 61
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 66
+                    "line": 61
                   },
                   "var": "j"
                 },
@@ -671,14 +671,14 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 66
+            "line": 61
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.closed",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 66
+                "line": 61
               },
               "var": "j"
             } ]
@@ -687,26 +687,26 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 67
+            "line": 62
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 67
+                "line": 62
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 67
+                    "line": 62
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 67
+                        "line": 62
                       },
                       "var": "j"
                     },
@@ -716,13 +716,13 @@
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 67
+                    "line": 62
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 67
+                        "line": 62
                       },
                       "literal": {
                         "enum": {
@@ -733,7 +733,7 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 67
+                        "line": 62
                       },
                       "literal": {
                         "enum": {
@@ -749,20 +749,20 @@
             "then": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 67
+                "line": 62
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 67
+                    "line": 62
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 34
+                        "line": 29
                       },
                       "literal": {
                         "enum": {
@@ -773,14 +773,14 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 67
+                        "line": 62
                       },
                       "construct": {
                         "type": "fixture.capabilities.JobState",
                         "args": [ {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                            "line": 67
+                            "line": 62
                           },
                           "literal": {
                             "enum": {
@@ -793,13 +793,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 67
+                        "line": 62
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                            "line": 67
+                            "line": 62
                           },
                           "literal": {
                             "enum": {
@@ -812,7 +812,7 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 67
+                        "line": 62
                       },
                       "literal": {
                         "text": ""
@@ -825,7 +825,7 @@
             "else": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 68
+                "line": 63
               },
               "list": { }
             }
@@ -837,7 +837,7 @@
     "name": "fixture.capabilities.Jobs$.paused",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 55
+      "line": 50
     },
     "params": [ {
       "name": "j",
@@ -848,20 +848,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 55
+        "line": 50
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 55
+            "line": 50
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 55
+                "line": 50
               },
               "var": "j"
             },
@@ -871,7 +871,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 55
+            "line": 50
           },
           "literal": {
             "enum": {
@@ -886,7 +886,7 @@
     "name": "fixture.capabilities.Jobs$.phase",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 53
+      "line": 48
     },
     "params": [ {
       "name": "j",
@@ -897,13 +897,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 53
+        "line": 48
       },
       "field": {
         "base": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 53
+            "line": 48
           },
           "var": "j"
         },
@@ -912,494 +912,6 @@
     }
   }, {
     "name": "fixture.capabilities.Jobs$.poll",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 61
-    },
-    "params": [ {
-      "name": "j",
-      "type": {
-        "named": "fixture.capabilities.JobState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 62
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 62
-          },
-          "binary": {
-            "op": "OP_EQ",
-            "left": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 62
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 62
-                  },
-                  "var": "j"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 62
-              },
-              "literal": {
-                "enum": {
-                  "type": "fixture.capabilities.Phase",
-                  "case": "queued"
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 62
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 62
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 34
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.capabilities.Answer",
-                      "case": "ok"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 62
-                  },
-                  "construct": {
-                    "type": "fixture.capabilities.JobState",
-                    "args": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 62
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.capabilities.Phase",
-                          "case": "running"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 62
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 62
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.capabilities.Note",
-                          "case": "started"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 62
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 62
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "fixture.capabilities.Jobs$.resume",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 69
-    },
-    "params": [ {
-      "name": "j",
-      "type": {
-        "named": "fixture.capabilities.JobState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 70
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 70
-          },
-          "call": {
-            "function": "fixture.capabilities.Jobs$.terminal",
-            "args": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 70
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 70
-                  },
-                  "var": "j"
-                },
-                "field": "phase"
-              }
-            } ]
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 70
-          },
-          "call": {
-            "function": "fixture.capabilities.Jobs$.closed",
-            "args": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 70
-              },
-              "var": "j"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 71
-          },
-          "if": {
-            "condition": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 71
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 71
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 71
-                      },
-                      "var": "j"
-                    },
-                    "field": "phase"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 71
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.capabilities.Phase",
-                      "case": "paused"
-                    }
-                  }
-                }
-              }
-            },
-            "then": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 71
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 71
-                  },
-                  "construct": {
-                    "type": "umpire.Step",
-                    "args": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 34
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.capabilities.Answer",
-                          "case": "ok"
-                        }
-                      }
-                    }, {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 71
-                      },
-                      "construct": {
-                        "type": "fixture.capabilities.JobState",
-                        "args": [ {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                            "line": 71
-                          },
-                          "literal": {
-                            "enum": {
-                              "type": "fixture.capabilities.Phase",
-                              "case": "queued"
-                            }
-                          }
-                        } ]
-                      }
-                    }, {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 71
-                      },
-                      "list": {
-                        "items": [ {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                            "line": 71
-                          },
-                          "literal": {
-                            "enum": {
-                              "type": "fixture.capabilities.Note",
-                              "case": "resumed"
-                            }
-                          }
-                        } ]
-                      }
-                    }, {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 71
-                      },
-                      "literal": {
-                        "text": ""
-                      }
-                    } ]
-                  }
-                } ]
-              }
-            },
-            "else": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 72
-              },
-              "list": { }
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "fixture.capabilities.Jobs$.rogueDispatch",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 79
-    },
-    "params": [ {
-      "name": "j",
-      "type": {
-        "named": "fixture.capabilities.JobState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 80
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 80
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 80
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 80
-                  },
-                  "var": "j"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 80
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 80
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.capabilities.Phase",
-                      "case": "queued"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 80
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.capabilities.Phase",
-                      "case": "paused"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 80
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 80
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 34
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.capabilities.Answer",
-                      "case": "ok"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 80
-                  },
-                  "construct": {
-                    "type": "fixture.capabilities.JobState",
-                    "args": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 80
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.capabilities.Phase",
-                          "case": "running"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 80
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 80
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.capabilities.Note",
-                          "case": "started"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 80
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 81
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "fixture.capabilities.Jobs$.running",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
       "line": 56
@@ -1413,20 +925,508 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 56
+        "line": 57
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 57
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 57
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 57
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 57
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilities.Phase",
+                  "case": "queued"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 57
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 57
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 29
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 57
+                  },
+                  "construct": {
+                    "type": "fixture.capabilities.JobState",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 57
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Phase",
+                          "case": "running"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 57
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 57
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Note",
+                          "case": "started"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 57
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 57
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.resume",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Capabilities.scala",
+      "line": 64
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.JobState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+        "line": 65
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 65
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.terminal",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 65
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 65
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 65
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.closed",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 65
+              },
+              "var": "j"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 66
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 66
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 66
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 66
+                      },
+                      "var": "j"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 66
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Phase",
+                      "case": "paused"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 66
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 66
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 29
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Answer",
+                          "case": "ok"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 66
+                      },
+                      "construct": {
+                        "type": "fixture.capabilities.JobState",
+                        "args": [ {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                            "line": 66
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilities.Phase",
+                              "case": "queued"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 66
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                            "line": 66
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilities.Note",
+                              "case": "resumed"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 66
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 67
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.rogueDispatch",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Capabilities.scala",
+      "line": 74
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.JobState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+        "line": 75
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 75
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 75
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 75
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 75
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 75
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Phase",
+                      "case": "queued"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 75
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Phase",
+                      "case": "paused"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 75
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                "line": 75
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 29
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 75
+                  },
+                  "construct": {
+                    "type": "fixture.capabilities.JobState",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 75
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Phase",
+                          "case": "running"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 75
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                        "line": 75
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Note",
+                          "case": "started"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Capabilities.scala",
+                    "line": 75
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Capabilities.scala",
+            "line": 76
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.running",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Capabilities.scala",
+      "line": 51
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.JobState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Capabilities.scala",
+        "line": 51
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 56
+            "line": 51
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 56
+                "line": 51
               },
               "var": "j"
             },
@@ -1436,7 +1436,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 56
+            "line": 51
           },
           "literal": {
             "enum": {
@@ -1451,7 +1451,7 @@
     "name": "fixture.capabilities.Jobs$.terminal",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 54
+      "line": 49
     },
     "params": [ {
       "name": "p",
@@ -1462,27 +1462,27 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 54
+        "line": 49
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 54
+            "line": 49
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 54
+            "line": 49
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 54
+                "line": 49
               },
               "literal": {
                 "enum": {
@@ -1493,7 +1493,7 @@
             }, {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 54
+                "line": 49
               },
               "literal": {
                 "enum": {
@@ -1510,7 +1510,7 @@
     "name": "fixture.capabilities.PairState.through.left.fixture.capabilities.Jobs$.paused",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 174
+      "line": 169
     },
     "params": [ {
       "name": "s",
@@ -1521,20 +1521,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 174
+        "line": 169
       },
       "call": {
         "function": "fixture.capabilities.Jobs$.paused",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 174
+            "line": 169
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 174
+                "line": 169
               },
               "var": "s"
             },
@@ -1547,7 +1547,7 @@
     "name": "fixture.capabilities.PairState.through.left.phase.fixture.capabilities.Capabilities$package$.runs",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 176
+      "line": 171
     },
     "params": [ {
       "name": "s",
@@ -1558,26 +1558,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 176
+        "line": 171
       },
       "call": {
         "function": "fixture.capabilities.Capabilities$package$.runs",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 176
+            "line": 171
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 176
+                "line": 171
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 176
+                    "line": 171
                   },
                   "var": "s"
                 },
@@ -1593,7 +1593,7 @@
     "name": "fixture.capabilities.PairState.through.right.fixture.capabilities.Jobs$.paused",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 236
+      "line": 231
     },
     "params": [ {
       "name": "s",
@@ -1604,20 +1604,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 236
+        "line": 231
       },
       "call": {
         "function": "fixture.capabilities.Jobs$.paused",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 236
+            "line": 231
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 236
+                "line": 231
               },
               "var": "s"
             },
@@ -1630,7 +1630,7 @@
     "name": "fixture.capabilities.Pairs$.over",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 161
+      "line": 156
     },
     "params": [ {
       "name": "p",
@@ -1641,27 +1641,27 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 161
+        "line": 156
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 161
+            "line": 156
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.over",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 161
+                "line": 156
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 161
+                    "line": 156
                   },
                   "var": "p"
                 },
@@ -1673,20 +1673,20 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 161
+            "line": 156
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.over",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 161
+                "line": 156
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 161
+                    "line": 156
                   },
                   "var": "p"
                 },
@@ -1701,7 +1701,7 @@
     "name": "job.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 92
+      "line": 87
     },
     "params": [ {
       "name": "note",
@@ -1712,13 +1712,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 92
+        "line": 87
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 92
+            "line": 87
           },
           "var": "note"
         },
@@ -1734,7 +1734,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 92
+              "line": 87
             },
             "literal": {
               "text": "started"
@@ -1752,7 +1752,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 92
+              "line": 87
             },
             "literal": {
               "text": "held"
@@ -1770,7 +1770,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 92
+              "line": 87
             },
             "literal": {
               "text": "resumed"
@@ -1788,7 +1788,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 92
+              "line": 87
             },
             "literal": {
               "text": "killedNote"
@@ -1806,7 +1806,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 92
+              "line": 87
             },
             "literal": {
               "text": "cancelAsked"
@@ -1824,7 +1824,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 92
+              "line": 87
             },
             "literal": {
               "text": "finished"
@@ -1855,7 +1855,7 @@
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 138
+            "line": 133
           },
           "literal": {
             "enum": {
@@ -2005,7 +2005,7 @@
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 132
+                    "line": 127
                   },
                   "literal": {
                     "enum": {
@@ -2265,7 +2265,7 @@
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 135
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -2296,7 +2296,7 @@
     "name": "keptJob.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 194
+      "line": 189
     },
     "params": [ {
       "name": "note",
@@ -2307,13 +2307,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 194
+        "line": 189
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 194
+            "line": 189
           },
           "var": "note"
         },
@@ -2329,7 +2329,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 194
+              "line": 189
             },
             "literal": {
               "text": "started"
@@ -2347,7 +2347,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 194
+              "line": 189
             },
             "literal": {
               "text": "held"
@@ -2365,7 +2365,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 194
+              "line": 189
             },
             "literal": {
               "text": "resumed"
@@ -2383,7 +2383,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 194
+              "line": 189
             },
             "literal": {
               "text": "killedNote"
@@ -2401,7 +2401,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 194
+              "line": 189
             },
             "literal": {
               "text": "cancelAsked"
@@ -2419,7 +2419,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 194
+              "line": 189
             },
             "literal": {
               "text": "finished"
@@ -2432,7 +2432,7 @@
     "name": "keptJob.property.keptJob.statusStaysClosed",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 189
+      "line": 184
     },
     "params": [ {
       "name": "before",
@@ -2448,28 +2448,28 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 189
+        "line": 184
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 189
+            "line": 184
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 189
+                "line": 184
               },
               "call": {
                 "function": "keptJob.property.keptJob.statusStaysClosed.once",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 189
+                    "line": 184
                   },
                   "var": "before"
                 } ]
@@ -2480,26 +2480,26 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 189
+            "line": 184
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 189
+                "line": 184
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 189
+                    "line": 184
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 189
+                        "line": 184
                       },
                       "var": "after"
                     },
@@ -2512,13 +2512,13 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 189
+                "line": 184
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 189
+                    "line": 184
                   },
                   "var": "before"
                 },
@@ -2533,7 +2533,7 @@
     "name": "keptJob.property.keptJob.statusStaysClosed.once",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 189
+      "line": 184
     },
     "params": [ {
       "name": "s",
@@ -2544,21 +2544,21 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 189
+        "line": 184
       },
       "call": {
         "function": "fixture.capabilities.Jobs$.terminal",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 189
+            "line": 184
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.phase",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 189
+                "line": 184
               },
               "var": "s"
             } ]
@@ -2570,7 +2570,7 @@
     "name": "legacyJob.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 107
+      "line": 102
     },
     "params": [ {
       "name": "note",
@@ -2581,13 +2581,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 107
+        "line": 102
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 107
+            "line": 102
           },
           "var": "note"
         },
@@ -2603,7 +2603,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 107
+              "line": 102
             },
             "literal": {
               "text": "started"
@@ -2621,7 +2621,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 107
+              "line": 102
             },
             "literal": {
               "text": "held"
@@ -2639,7 +2639,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 107
+              "line": 102
             },
             "literal": {
               "text": "resumed"
@@ -2657,7 +2657,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 107
+              "line": 102
             },
             "literal": {
               "text": "killedNote"
@@ -2675,7 +2675,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 107
+              "line": 102
             },
             "literal": {
               "text": "cancelAsked"
@@ -2693,7 +2693,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 107
+              "line": 102
             },
             "literal": {
               "text": "finished"
@@ -2706,7 +2706,7 @@
     "name": "legacyJob.property.legacyJob.closedIsRejectedUniformly",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 89
+      "line": 84
     },
     "params": [ {
       "name": "before",
@@ -2722,35 +2722,35 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 89
+        "line": 84
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 89
+            "line": 84
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 89
+                "line": 84
               },
               "call": {
                 "function": "fixture.capabilities.Jobs$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 89
+                    "line": 84
                   },
                   "call": {
                     "function": "fixture.capabilities.Jobs$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                        "line": 89
+                        "line": 84
                       },
                       "var": "before"
                     } ]
@@ -2763,20 +2763,20 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 89
+            "line": 84
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 89
+                "line": 84
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                    "line": 89
+                    "line": 84
                   },
                   "var": "after"
                 },
@@ -2786,7 +2786,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 89
+                "line": 84
               },
               "var": "before"
             }
@@ -2798,7 +2798,7 @@
     "name": "pair.property.neverHeld",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 231
+      "line": 226
     },
     "params": [ {
       "name": "after",
@@ -2809,21 +2809,21 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 231
+        "line": 226
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 231
+            "line": 226
           },
           "call": {
             "function": "pair.property.neverHeld.never",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 231
+                "line": 226
               },
               "var": "after"
             } ]
@@ -2835,7 +2835,7 @@
     "name": "pair.property.neverHeld.never",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 231
+      "line": 226
     },
     "params": [ {
       "name": "s",
@@ -2846,20 +2846,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 231
+        "line": 226
       },
       "call": {
         "function": "fixture.capabilities.PairState.through.right.fixture.capabilities.Jobs$.paused",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 231
+            "line": 226
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 231
+                "line": 226
               },
               "var": "s"
             },
@@ -2985,7 +2985,7 @@
     "name": "rogueJob.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 214
+      "line": 209
     },
     "params": [ {
       "name": "note",
@@ -2996,13 +2996,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 214
+        "line": 209
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 214
+            "line": 209
           },
           "var": "note"
         },
@@ -3018,7 +3018,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 214
+              "line": 209
             },
             "literal": {
               "text": "started"
@@ -3036,7 +3036,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 214
+              "line": 209
             },
             "literal": {
               "text": "held"
@@ -3054,7 +3054,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 214
+              "line": 209
             },
             "literal": {
               "text": "resumed"
@@ -3072,7 +3072,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 214
+              "line": 209
             },
             "literal": {
               "text": "killedNote"
@@ -3090,7 +3090,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 214
+              "line": 209
             },
             "literal": {
               "text": "cancelAsked"
@@ -3108,7 +3108,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Capabilities.scala",
-              "line": 214
+              "line": 209
             },
             "literal": {
               "text": "finished"
@@ -3232,60 +3232,60 @@
     }
   } ],
   "actions": [ {
-    "id": "fixture.capabilities.Capabilities$package$.cancel",
+    "id": "fixture.capabilities.cancel",
     "name": "cancel",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 47
-    },
-    "party": "client"
-  }, {
-    "id": "fixture.capabilities.Capabilities$package$.finish",
-    "name": "finish",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 43
-    },
-    "party": "worker"
-  }, {
-    "id": "fixture.capabilities.Capabilities$package$.kill",
-    "name": "kill",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 46
-    },
-    "party": "client"
-  }, {
-    "id": "fixture.capabilities.Capabilities$package$.pause",
-    "name": "pause",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 44
-    },
-    "party": "client"
-  }, {
-    "id": "fixture.capabilities.Capabilities$package$.poll",
-    "name": "poll",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
       "line": 42
     },
-    "party": "worker"
+    "actor": "client"
   }, {
-    "id": "fixture.capabilities.Capabilities$package$.resume",
+    "id": "fixture.capabilities.finish",
+    "name": "finish",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Capabilities.scala",
+      "line": 38
+    },
+    "actor": "worker"
+  }, {
+    "id": "fixture.capabilities.kill",
+    "name": "kill",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Capabilities.scala",
+      "line": 41
+    },
+    "actor": "client"
+  }, {
+    "id": "fixture.capabilities.pause",
+    "name": "pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Capabilities.scala",
+      "line": 39
+    },
+    "actor": "client"
+  }, {
+    "id": "fixture.capabilities.poll",
+    "name": "poll",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Capabilities.scala",
+      "line": 37
+    },
+    "actor": "worker"
+  }, {
+    "id": "fixture.capabilities.resume",
     "name": "resume",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 45
+      "line": 40
     },
-    "party": "client"
+    "actor": "client"
   } ],
   "machines": [ {
     "family": "fixture.capabilities",
     "name": "job",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 92
+      "line": 87
     },
     "stateType": "fixture.capabilities.JobState",
     "outcomeType": "fixture.capabilities.Answer",
@@ -3293,14 +3293,14 @@
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 93
+        "line": 88
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -3314,7 +3314,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 94
+        "line": 89
       },
       "lambda": {
         "params": [ {
@@ -3326,14 +3326,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 94
+            "line": 89
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.over",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 94
+                "line": 89
               },
               "var": "j"
             } ]
@@ -3342,46 +3342,46 @@
       }
     },
     "steps": [ {
-      "action": "fixture.capabilities.Capabilities$package$.poll",
+      "action": "fixture.capabilities.poll",
       "function": "fixture.capabilities.Jobs$.poll",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 98
+        "line": 93
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.finish",
+      "action": "fixture.capabilities.finish",
       "function": "fixture.capabilities.Jobs$.finish",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 99
+        "line": 94
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.pause",
+      "action": "fixture.capabilities.pause",
       "function": "fixture.capabilities.Jobs$.pause",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 100
+        "line": 95
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.resume",
+      "action": "fixture.capabilities.resume",
       "function": "fixture.capabilities.Jobs$.resume",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 101
+        "line": 96
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.kill",
+      "action": "fixture.capabilities.kill",
       "function": "fixture.capabilities.Jobs$.kill",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 102
+        "line": 97
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.cancel",
+      "action": "fixture.capabilities.cancel",
       "function": "fixture.capabilities.Jobs$.cancel",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 103
+        "line": 98
       }
     } ],
     "evidence": "job.evidence"
@@ -3390,7 +3390,7 @@
     "name": "keptJob",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 194
+      "line": 189
     },
     "stateType": "fixture.capabilities.JobState",
     "outcomeType": "fixture.capabilities.Answer",
@@ -3398,14 +3398,14 @@
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 195
+        "line": 190
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 195
+            "line": 190
           },
           "literal": {
             "enum": {
@@ -3419,7 +3419,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 196
+        "line": 191
       },
       "lambda": {
         "params": [ {
@@ -3431,14 +3431,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 196
+            "line": 191
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.over",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 196
+                "line": 191
               },
               "var": "j"
             } ]
@@ -3447,25 +3447,25 @@
       }
     },
     "steps": [ {
-      "action": "fixture.capabilities.Capabilities$package$.poll",
+      "action": "fixture.capabilities.poll",
       "function": "fixture.capabilities.Jobs$.poll",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 198
+        "line": 193
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.finish",
+      "action": "fixture.capabilities.finish",
       "function": "fixture.capabilities.Jobs$.finish",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 198
+        "line": 193
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.kill",
+      "action": "fixture.capabilities.kill",
       "function": "fixture.capabilities.Jobs$.kill",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 198
+        "line": 193
       }
     } ],
     "evidence": "keptJob.evidence"
@@ -3474,7 +3474,7 @@
     "name": "legacyJob",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 107
+      "line": 102
     },
     "stateType": "fixture.capabilities.JobState",
     "outcomeType": "fixture.capabilities.Answer",
@@ -3482,14 +3482,14 @@
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 108
+        "line": 103
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 108
+            "line": 103
           },
           "literal": {
             "enum": {
@@ -3503,7 +3503,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 109
+        "line": 104
       },
       "lambda": {
         "params": [ {
@@ -3515,14 +3515,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 109
+            "line": 104
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.over",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 109
+                "line": 104
               },
               "var": "j"
             } ]
@@ -3531,25 +3531,25 @@
       }
     },
     "steps": [ {
-      "action": "fixture.capabilities.Capabilities$package$.poll",
+      "action": "fixture.capabilities.poll",
       "function": "fixture.capabilities.Jobs$.poll",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 111
+        "line": 106
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.finish",
+      "action": "fixture.capabilities.finish",
       "function": "fixture.capabilities.Jobs$.finish",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 111
+        "line": 106
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.kill",
+      "action": "fixture.capabilities.kill",
       "function": "fixture.capabilities.Jobs$.kill",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 111
+        "line": 106
       }
     } ],
     "evidence": "legacyJob.evidence"
@@ -3558,7 +3558,7 @@
     "name": "rogueJob",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 214
+      "line": 209
     },
     "stateType": "fixture.capabilities.JobState",
     "outcomeType": "fixture.capabilities.Answer",
@@ -3566,14 +3566,14 @@
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 215
+        "line": 210
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 215
+            "line": 210
           },
           "literal": {
             "enum": {
@@ -3587,7 +3587,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 216
+        "line": 211
       },
       "lambda": {
         "params": [ {
@@ -3599,14 +3599,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 216
+            "line": 211
           },
           "call": {
             "function": "fixture.capabilities.Jobs$.over",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 216
+                "line": 211
               },
               "var": "j"
             } ]
@@ -3615,25 +3615,25 @@
       }
     },
     "steps": [ {
-      "action": "fixture.capabilities.Capabilities$package$.poll",
+      "action": "fixture.capabilities.poll",
       "function": "fixture.capabilities.Jobs$.rogueDispatch",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 219
+        "line": 214
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.pause",
+      "action": "fixture.capabilities.pause",
       "function": "fixture.capabilities.Jobs$.pause",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 219
+        "line": 214
       }
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.resume",
+      "action": "fixture.capabilities.resume",
       "function": "fixture.capabilities.Jobs$.resume",
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 219
+        "line": 214
       }
     } ],
     "evidence": "rogueJob.evidence"
@@ -3643,7 +3643,7 @@
     "name": "pair",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 165
+      "line": 160
     },
     "stateType": "fixture.capabilities.PairState",
     "members": [ {
@@ -3656,7 +3656,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 166
+        "line": 161
       },
       "lambda": {
         "params": [ {
@@ -3668,14 +3668,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 166
+            "line": 161
           },
           "call": {
             "function": "fixture.capabilities.Pairs$.over",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 166
+                "line": 161
               },
               "var": "p"
             } ]
@@ -3692,7 +3692,7 @@
       "line": 25
     },
     "whenClass": {
-      "action": "fixture.capabilities.Capabilities$package$.cancel"
+      "action": "fixture.capabilities.cancel"
     },
     "holds": "job.property.job.cancelIsRequested"
   }, {
@@ -3730,7 +3730,7 @@
       "line": 28
     },
     "whenClass": {
-      "action": "fixture.capabilities.Capabilities$package$.kill"
+      "action": "fixture.capabilities.kill"
     },
     "holds": "job.property.job.terminateSettles"
   }, {
@@ -3738,7 +3738,7 @@
     "name": "keptJob.statusStaysClosed",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 189
+      "line": 184
     },
     "holds": "keptJob.property.keptJob.statusStaysClosed",
     "transition": true
@@ -3747,7 +3747,7 @@
     "name": "legacyJob.closedIsRejectedUniformly",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 89
+      "line": 84
     },
     "holds": "legacyJob.property.legacyJob.closedIsRejectedUniformly",
     "transition": true
@@ -3756,7 +3756,7 @@
     "name": "neverHeld",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 231
+      "line": 226
     },
     "holds": "pair.property.neverHeld"
   }, {
@@ -3783,19 +3783,19 @@
     "name": "job.cancelIsRequested",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 136
+      "line": 131
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 93
+        "line": 88
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -3807,28 +3807,28 @@
       }
     },
     "actions": [ {
-      "action": "fixture.capabilities.Capabilities$package$.poll"
+      "action": "fixture.capabilities.poll"
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.cancel"
+      "action": "fixture.capabilities.cancel"
     } ]
   }, {
     "machine": "job",
     "name": "job.closedIsRejectedUniformly",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 132
+      "line": 127
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 93
+        "line": 88
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -3845,19 +3845,19 @@
     "name": "job.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 133
+      "line": 128
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 93
+        "line": 88
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -3874,19 +3874,19 @@
     "name": "job.terminalStatesAreFinal",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 132
+      "line": 127
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 93
+        "line": 88
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -3903,19 +3903,19 @@
     "name": "job.terminateSettles",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 135
+      "line": 130
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 93
+        "line": 88
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -3927,28 +3927,28 @@
       }
     },
     "actions": [ {
-      "action": "fixture.capabilities.Capabilities$package$.poll"
+      "action": "fixture.capabilities.poll"
     }, {
-      "action": "fixture.capabilities.Capabilities$package$.kill"
+      "action": "fixture.capabilities.kill"
     } ]
   }, {
     "machine": "job",
     "name": "queuedThenKilled",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 208
+      "line": 203
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 93
+        "line": 88
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "literal": {
             "enum": {
@@ -3960,26 +3960,26 @@
       }
     },
     "actions": [ {
-      "action": "fixture.capabilities.Capabilities$package$.kill"
+      "action": "fixture.capabilities.kill"
     } ]
   }, {
     "machine": "keptJob",
     "name": "keptJob.statusStaysClosed",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 202
+      "line": 197
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 195
+        "line": 190
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 195
+            "line": 190
           },
           "literal": {
             "enum": {
@@ -3996,19 +3996,19 @@
     "name": "legacyJob.closedIsRejectedUniformly",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 147
+      "line": 142
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 108
+        "line": 103
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 108
+            "line": 103
           },
           "literal": {
             "enum": {
@@ -4025,26 +4025,26 @@
     "name": "pair.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 171
+      "line": 166
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 171
+        "line": 166
       },
       "construct": {
         "type": "fixture.capabilities.PairState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "construct": {
             "type": "fixture.capabilities.JobState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 93
+                "line": 88
               },
               "literal": {
                 "enum": {
@@ -4057,14 +4057,14 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 108
+            "line": 103
           },
           "construct": {
             "type": "fixture.capabilities.JobState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 108
+                "line": 103
               },
               "literal": {
                 "enum": {
@@ -4083,26 +4083,26 @@
     "name": "pairAny",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 234
+      "line": 229
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 234
+        "line": 229
       },
       "construct": {
         "type": "fixture.capabilities.PairState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 93
+            "line": 88
           },
           "construct": {
             "type": "fixture.capabilities.JobState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 93
+                "line": 88
               },
               "literal": {
                 "enum": {
@@ -4115,14 +4115,14 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 108
+            "line": 103
           },
           "construct": {
             "type": "fixture.capabilities.JobState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Capabilities.scala",
-                "line": 108
+                "line": 103
               },
               "literal": {
                 "enum": {
@@ -4141,19 +4141,19 @@
     "name": "rogueJob.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 223
+      "line": 218
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Capabilities.scala",
-        "line": 215
+        "line": 210
       },
       "construct": {
         "type": "fixture.capabilities.JobState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Capabilities.scala",
-            "line": 215
+            "line": 210
           },
           "literal": {
             "enum": {
@@ -4170,7 +4170,7 @@
     "name": "job.cancelIsRequested",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 136
+      "line": 131
     },
     "form": "FORM_FIND",
     "property": {
@@ -4200,7 +4200,7 @@
     "name": "job.closedIsRejectedUniformly",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 132
+      "line": 127
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4222,7 +4222,7 @@
     "name": "job.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 133
+      "line": 128
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4244,7 +4244,7 @@
     "name": "job.terminalStatesAreFinal",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 132
+      "line": 127
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4266,7 +4266,7 @@
     "name": "job.terminateSettles",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 135
+      "line": 130
     },
     "form": "FORM_FIND",
     "property": {
@@ -4296,7 +4296,7 @@
     "name": "keptJob.statusStaysClosed",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 202
+      "line": 197
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4318,7 +4318,7 @@
     "name": "killedWhileQueued",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 210
+      "line": 205
     },
     "form": "FORM_FIND",
     "property": {
@@ -4340,7 +4340,7 @@
     "name": "legacyJob.closedIsRejectedUniformly",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 147
+      "line": 142
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4362,7 +4362,7 @@
     "name": "pair.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 171
+      "line": 166
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4384,7 +4384,7 @@
     "name": "rightNeverHeld",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 236
+      "line": 231
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4406,7 +4406,7 @@
     "name": "rogueJob.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Capabilities.scala",
-      "line": 223
+      "line": 218
     },
     "form": "FORM_VERIFY",
     "property": {

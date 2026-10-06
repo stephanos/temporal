@@ -81,6 +81,7 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
               val chosen = declared.filter((name, _) => only.isEmpty || only.contains(name))
               for (name, roots) <- chosen.sortBy(_._1) do liftFile(index, name, roots)
         errors ++= unrefuted(refutations.toSeq).map("" -> _)
+        errors ++= derivedIdTwins(models.toSeq).map("" -> _)
     catch case e: LiftError => errors += "" -> e
 
   private def liftFile(index: Index, file: String, roots: Seq[String]): Unit =
@@ -94,19 +95,15 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
 
     // Every root is lifted, and one that fails is reported without stopping the others. Nothing is
     // written once one failed, so what a failed root left behind matters only as the functions it
-    // was still lifting. A root that lifted is then held to a total on each Query it declared; one
-    // that failed already reports no Query of its own as missing one.
+    // was still lifting. A root that lifted then gives each Query it declared that asserts no total
+    // the static combination count the lifter computes (model/SEMANTICS.md, Query totals), which Go
+    // holds every total to, as it holds an author's.
     for root <- roots.distinct.sorted do
       val before = queries.keySet.toSet
       try
         concerns.liftRoot(root)
-        for (name, q) <- queries if !before(name) && q.total.isEmpty do
-          val at = q.getPosition
-          errors += file -> LiftError(
-            s"${at.file}:${at.line}",
-            s"Query $name asserts no total: write `.total(n)` with n its static combination " +
-              "count, which model/README.md shows how to compute"
-          )
+        for (name, q) <- queries.toSeq if !before(name) && q.total.isEmpty do
+          queries(name) = q.withTotal(concerns.countedTotal(q))
       catch
         case e: LiftError =>
           errors += file -> e
@@ -137,6 +134,41 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
       realizations = sorted(realizations)
     )
     for laws <- lawSidecar(ctx) do sidecars(file) = laws
+
+/**
+ * The refusal of two declarations of one package that derive one ID across the IR files of a run:
+ * two machines or compositions of one name (`<family>.target.<name>`), or two Queries of one name
+ * (`<family>.query.<name>`), the family the package their machine is declared in. Scala names no
+ * two declarations alike, but these IDs are derived from names, so two files of one package may
+ * declare `completion` twice. One declaration lifted into several files is one.
+ */
+private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftError] =
+  def at(p: Option[ir.Position]) = p.fold("")(p => s"${p.file}:${p.line}")
+  val declared = models.flatMap { (_, m) =>
+    val family = (m.machines.map(x => x.name -> x.family) ++
+      m.compositions.map(x => x.name -> x.family)).toMap
+    m.machines.map(x => (s"${x.family}.target.${x.name}", at(x.position))) ++
+      m.compositions.map(x => (s"${x.family}.target.${x.name}", at(x.position))) ++
+      m.queries.flatMap(q =>
+        family.get(q.getScenario.machine).map(f => (s"$f.query.${q.name}", at(q.position)))
+      )
+  }
+  declared
+    .groupBy(_._1)
+    .toSeq
+    .sortBy(_._1)
+    .flatMap { (id, ats) =>
+      ats.map(_._2).distinct.sorted match
+        case first +: again if again.nonEmpty =>
+          again.map(where =>
+            LiftError(
+              where,
+              s"this declaration and the one at $first derive the ID $id: name them apart, since " +
+                "an ID derived from a name is unique in its package"
+            )
+          )
+        case _ => Nil
+    }
 
 /**
  * `lift <model.jar> <classpath file> <out.json> <source prefix> <root>...`: lift the machines named

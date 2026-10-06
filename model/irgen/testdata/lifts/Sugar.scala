@@ -6,11 +6,6 @@
 package fixture.sugar
 
 import umpire.*
-import SugarFamily.given
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object SugarFamily:
-  given family: Family = Family("fixture.sugar")
 
 enum Phase derives Finite:
   case idle, running, paused, done
@@ -25,13 +20,13 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 enum Fact derives Finite:
   case started, paused, finished
 
-val start = action(Party("user"))
-val pause = action(Party("user"))
-val resume = action(Party("user"))
-val finish = action(Party("worker"))
-val poke = action(Party("user"))
-val retry = action(Party("user"))
-val idle = action(Party("user"))
+val start = action(Actor("user"))
+val pause = action(Actor("user"))
+val resume = action(Actor("user"))
+val finish = action(Actor("worker"))
+val poke = action(Actor("user"))
+val retry = action(Actor("user"))
+val idle = action(Actor("user"))
 
 val retryUnknown = hole
 
@@ -177,7 +172,7 @@ object Watched extends Machine[Job, Outcome, Fact]:
   val init = Job(Phase.idle, false)
   def end(j: State) = j.phase == Phase.done
 
-  object monitors extends Section:
+  object monitors:
     val refused = refusedOnce
     val refusedSpelled = refusedOnceSpelled
     val retried = retriedLost

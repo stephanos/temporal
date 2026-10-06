@@ -1,18 +1,14 @@
 // The total each Query asserts: written infix and dotted, before and after `.expect(...)`, and as the
-// Int parameter of a shared def over a machine, supplied as a literal at each call. The lifter's tests
-// lift `queries`, `lampTotals` and `plainLampTotals` and require each spelling's record to differ
-// from its twin's in nothing but its name and position, and the shared def's instances in nothing
-// but their machine and total. Two claims one shared def declares together, as a case-class bundle
+// Int parameter of a shared def over a machine, supplied as a literal at each call; and none, which
+// the lifter counts (fn-126 decision 28). The lifter's tests lift `queries`, `lampTotals`,
+// `plainLampTotals`, `lampCounted` and `plainLampCounted` and require each spelling's record to
+// differ from its twin's in nothing but its name and position, and the shared def's instances in
+// nothing but their machine and total. Two claims one shared def declares together, as a case-class bundle
 // its Queries read by field, lift (`bundledLamp`, `bundledPlainLamp`) as the same claims declared
 // directly (`directLamp`, `directPlainLamp`) do, but for the words `bundled` and `direct` in their names.
 package fixture.totals
 
 import umpire.*
-import TotalsFamily.given
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object TotalsFamily:
-  given family: Family = Family("fixture.totals")
 
 /** A lamp's state, named apart from the machine object `Lamp`. */
 final case class LampState(lit: Boolean) derives Finite
@@ -25,8 +21,8 @@ enum Outcome derives Finite:
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-val flip = action(Party("user"))
-val dim = action(Party("user")).input[Dim]("level")
+val flip = action(Actor("user"))
+val dim = action(Actor("user")).input[Dim]("level")
 
 def flipStep(l: LampState): List[Step[LampState, Outcome, Nothing]] = enter(LampState(!l.lit))
 def dimStep(l: LampState, level: Dim): List[Step[LampState, Outcome, Nothing]] =
@@ -75,9 +71,22 @@ def lampQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Que
   )) in m.scenario("any").free limits two total total
 )
 
-val queries: Vector[Query] = Vector(infixTotal, dottedTotal, totalThenExpect, expectThenTotal)
+/** No total: the lifter counts the 4 the author writes for `infixTotal`. */
+val countedTotal = query find litOnce in flipTwice limits two
+
+/** The shared def's Query with no total: the lifter counts 12 on `lamp` and 4 on `plainLamp`. */
+def countedQueries(m: Machine[LampState, Outcome, Nothing]): Vector[Query] = Vector(
+  query(s"${m.name}.anyLit") find (m.property(s"${m.name}.lit") holds (after =>
+    after.state.lit
+  )) in m.scenario("any").free limits two
+)
+
+val queries: Vector[Query] =
+  Vector(infixTotal, dottedTotal, totalThenExpect, expectThenTotal, countedTotal)
 val lampTotals: Vector[Query] = lampQueries(Lamp, 12)
 val plainLampTotals: Vector[Query] = lampQueries(PlainLamp, 4)
+val lampCounted: Vector[Query] = countedQueries(Lamp)
+val plainLampCounted: Vector[Query] = countedQueries(PlainLamp)
 
 // ### Two claims a shared def declares together, as a bundle read back by field
 

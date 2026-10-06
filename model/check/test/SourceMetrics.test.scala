@@ -13,13 +13,13 @@ class SourceMetricsSuite extends munit.FunSuite:
         |val notPaused = m.property("notAdmittedWhilePaused")
         |def evidence(f: Fact): String = f match
         |  case Fact.started => "started"
-        |val c = compose[S](Family, "over")("activity" -> record).sync("admit", "activity" -> a)
+        |val c = compose[S]("over")("activity" -> record).sync("admit", "activity" -> a)
         |val q = query(s"${m.name}.any")
         |val step = Step(accepted, s, Nil, because = "the worker learns of it")
         |val m = "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution"
         |val keyed = Vector("activity_control-pause")
         |val again = accepted("dispatch", start)
-        |val family = Family("temporal.activity.standalone")
+        |val role = Role("temporal.workflow-service", RoleKind.endpoint)
         |""".stripMargin
     )
     Files.writeString(dir.resolve("Model.test.scala"), "val left = \"out\"\n")

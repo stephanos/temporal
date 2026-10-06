@@ -512,7 +512,7 @@ func (v *view) cell(state string, c model.Class) (Cell, error) {
 	if decided && (last.Wildcard || !last.Match() && !last.State) {
 		cell.Holes = append(cell.Holes, DisabledByDefault)
 	}
-	system := c.Action.GetParty() == "system" || c.Action.GetTimer() || c.Action.GetInternal()
+	system := c.Action.GetActor() == "system" || c.Action.GetTimer() || c.Action.GetInternal()
 	if !system && !v.ends[state] {
 		cell.Holes = append(cell.Holes, SilentRejection)
 	}
@@ -673,7 +673,7 @@ type holeCount struct {
 
 var holeMessages = map[Kind]string{
 	DisabledByDefault: "disabled by a default arm, which no author decided",
-	SilentRejection:   "disabled where a party may send it, so the Model is silent on what it is answered",
+	SilentRejection:   "disabled where an actor may send it, so the Model is silent on what it is answered",
 	MustNotPinned:     "disabled, and no transition claim pins it",
 }
 

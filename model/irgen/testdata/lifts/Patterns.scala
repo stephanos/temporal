@@ -6,11 +6,6 @@
 package fixture.patterns
 
 import umpire.*
-import PatternsFamily.given
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object PatternsFamily:
-  given family: Family = Family("fixture.patterns")
 
 enum Phase derives Finite:
   case idle, running, paused, done
@@ -29,9 +24,9 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 enum Fact derives Finite:
   case started, paused, finished, released
 
-val start = action(Party("user"))
-val pause = action(Party("user"))
-val finish = action(Party("worker"))
+val start = action(Actor("user"))
+val pause = action(Actor("user"))
+val finish = action(Actor("worker"))
 
 type JobStep = Step[JobState, Outcome, Fact]
 
@@ -57,7 +52,7 @@ final case class LampState(lit: Boolean) derives Finite
 enum LampFact derives Finite:
   case flipped
 
-val flip = action(Party("user"))
+val flip = action(Actor("user"))
 
 def flipStep(l: LampState): List[Step[LampState, Outcome, LampFact]] =
   enter(LampState(!l.lit), LampFact.flipped)

@@ -9,11 +9,6 @@ import temporal.shared.taskqueue.*
 import temporal.shared.taskqueue.product.DispatchQueue
 import temporal.shared.taskqueue.system.{ForgetfulQueue, MatchingQueue}
 import umpire.*
-import TaskQueueFamily.given
-
-/** The family, in an object of its own: the machine objects read it while they initialize. */
-object TaskQueueFamily:
-  given family: Family = Family("fixture.taskqueue")
 
 // ### The job
 
@@ -122,7 +117,7 @@ def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
     .actions(
       c.synced(_.job -> send),
       c.own(_.queue, queue.addActivityTask),
-      c.own(_.queue, faults.crash),
+      c.own(_.queue, fault.crash),
       c.own(_.queue, queue.addActivityTask),
       c.own(_.queue, queue.persistTask),
       c.synced(_.job -> start),
