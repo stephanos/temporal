@@ -8,8 +8,8 @@ import umpire.realize.Realization
  * value beside the Models it holds:
  *
  * {{{
- * val nexusControl =
- *   irFile("nexus-control")(TrustingCaller.queries.forgedCompletion, NexusRealization.forgedCompletion)
+ * val orders =
+ *   irFile("orders")(OrdersSystem.queries.delayed, OrdersRealization.delayed)
  * }}}
  *
  * The IR generator (model/irgen) reads every such val and writes each file, in one run, from its
