@@ -1823,10 +1823,12 @@ class Fixtures extends munit.FunSuite:
     for machine <- Seq("lampProduct", "lampSystem", "bulb") do
       assert(lifted.contains(s"\"$machine\""), s"lamp.json lifts no machine $machine")
     val parsed = new com.fasterxml.jackson.databind.ObjectMapper().readTree(lifted)
-    val realization = Option(parsed.get("realizations"))
-      .toSeq.flatMap(_.elements().asScala.toSeq)
+    val realization = Option(parsed.get("realizations")).toSeq.flatMap(_.elements().asScala.toSeq)
     assertEquals(realization.size, 1)
-    assertEquals(realization.head.get("id").asText(), "fixture.features.lamp.system.LampRealization.system")
+    assertEquals(
+      realization.head.get("id").asText(),
+      "fixture.features.lamp.system.LampRealization.system"
+    )
     assertEquals(realization.head.get("machine").asText(), "lampSystem")
     assertEquals(
       realization.head.get("position").get("file").asText(),
