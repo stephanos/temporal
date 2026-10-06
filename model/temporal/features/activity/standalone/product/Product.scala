@@ -68,16 +68,9 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
 
     def fail(s: State) = enter(s.copy(phase = failed), statusFailed)
 
-    /**
-     * Unlike the Nexus client, a retryable failure reads SCHEDULED again with a higher attempt count
-     * (TransitionRescheduled); the System adds the backoff.
-     */
     def retry(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
 
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
-
-    /** A control on an activity that is over is not found. */
-    def notFound(s: State) = reject(Outcome.notFound, s)
 
     def pause(s: State) = enter(s.copy(phase = Phase.paused), statusPaused)
 
@@ -90,6 +83,9 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
 
     /** One of the activity's deadlines firing. Which deadline is the System's account of how. */
     def timeOut(s: State) = enter(s.copy(phase = timedOut), statusTimedOut)
+
+    /** A control on an activity that is over is not found. */
+    def notFound(s: State) = reject(Outcome.notFound, s)
 
   object rules extends Rules(_.phase):
     on(worker.poll)(in(scheduled) ~> effects.startAttempt)
@@ -121,14 +117,6 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
     disabled(process.stop)
     on(timers.timeout)(in(scheduled, started, paused, cancelRequested) ~> effects.timeOut)
 
-  /**
-   * What the product machine is, as the laws of model/temporal/capabilities read it, and so the laws
-   * it receives without listing them: it closes, and a control of an activity that is over is not
-   * found, by the code `states.notFoundCode` cites; it pauses; and a worker's poll hands out its work. It
-   * receives terminalStatesAreFinal, closedIsRejectedUniformly and pausedIsNotDispatched (pause with
-   * poll), each `activityProduct.<law>`, read on the System through the map under the bound held
-   * there.
-   */
   object implements
       extends Implements(limits = three)(
         Closable(
