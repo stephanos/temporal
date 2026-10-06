@@ -33,6 +33,9 @@ func TestAComposedReadingIsTheCompositionCheckReads(t *testing.T) {
 					var rejected *RefinementError
 					require.ErrorAs(t, err, &rejected, owner)
 					require.Equal(t, x.Failure, rejected.Kind)
+					table, err := r.TransitionTable(owner)
+					require.NoError(t, err, "a refinement rejection does not prevent constructing transitions")
+					require.NotEmpty(t, table.Reachable)
 					continue
 				case Unsupported, DeclarationError, ResourceLimit:
 					continue
@@ -42,6 +45,10 @@ func TestAComposedReadingIsTheCompositionCheckReads(t *testing.T) {
 				require.Equal(t, x.Target, c.Table.Family.Target(c.Table.OwnerName()), owner)
 				require.Equal(t, x.Fingerprint, c.Table.TargetFingerprint(), owner)
 				require.Len(t, c.Table.Rows, x.TableRows, owner)
+				table, err := r.TransitionTable(owner)
+				require.NoError(t, err, owner)
+				require.Equal(t, c.Table.TargetFingerprint(), table.TargetFingerprint(), owner)
+				require.Equal(t, c.Table.Unknown, table.Unknown, owner)
 				if x.Witness != nil {
 					require.NoError(t, c.Table.Replay(x.Witness), "%s %s", owner, x.Key.Name)
 				}
@@ -135,6 +142,9 @@ func TestAComposedReadingKeepsTheCeilingAndTheNames(t *testing.T) {
 	var limit *ComposeLimitError
 	require.ErrorAs(t, err, &limit)
 	require.Equal(t, "states", limit.Resource)
+	_, err = r.TransitionTable("standaloneActivity")
+	require.ErrorAs(t, err, &limit)
+	require.Equal(t, "states", limit.Resource)
 
 	r, err = NewRealizer(m, DefaultScope)
 	require.NoError(t, err)
@@ -143,4 +153,9 @@ func TestAComposedReadingKeepsTheCeilingAndTheNames(t *testing.T) {
 	require.NotErrorAs(t, err, &limit)
 	_, err = r.Composition("nothing")
 	require.Error(t, err)
+	_, err = r.TransitionTable("nothing")
+	require.ErrorContains(t, err, "no machine or composition nothing")
+	table, err := r.TransitionTable("activitySystem")
+	require.NoError(t, err)
+	require.Equal(t, r.Machine("activitySystem").Table.TargetFingerprint(), table.TargetFingerprint())
 }

@@ -281,8 +281,8 @@ func (b *binding) spelled(v Value) string {
 // it gives is the Query Check answers: the same Property read on the same step records, the same
 // Scenario, Limits and watching monitors, over the machine's table with its hole rows as unknown
 // pairs. That table also carries each state's fields and the machine's Abstraction Claims. It gives
-// only what the Model declares, by the key Check gives a Query's receipt, so nothing it binds is
-// without one.
+// only what the Model declares, by the key Check gives a Query's receipt. TransitionTable also
+// reads transitions independently of refinement and Property checks.
 type Realizer struct {
 	b *binding
 	// prints holds each table's Behavior Fingerprint, as a checker's do.

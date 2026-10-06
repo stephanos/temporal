@@ -523,34 +523,51 @@ func neverEnabled(m *Model) ([]Tally, error) {
 	return t.list(), nil
 }
 
-// stuckStates is each reachable state of a machine that is no end and in which no row has a result:
+// stuckStates is each reachable state of a machine or composition that is no end and in which no row has a result:
 // no action class, a timer's and an internal step's included, can happen there. A state with a hole
 // row is not stuck: a hole declares that unmodeled behavior may happen there, not a forgotten rule,
 // as the progress check reads it (model/SEMANTICS.md, Progress). The finding is at the machine and
 // carries the shortest path from a start to the state.
 func stuckStates(m *Model) ([]Tally, error) {
 	t := tally(StuckState)
-	for _, decl := range m.IR.GetMachines() {
-		machine := m.Machines[decl.GetName()]
-		if machine == nil {
-			continue
-		}
-		table := machine.Table
+	inspect := func(name string, at *umpirespb.Position, table *model.Table) {
 		steps := map[string]bool{}
 		for _, row := range table.Rows {
 			if len(row.Results) > 0 {
 				steps[row.Source] = true
 			}
 		}
-		for _, h := range machine.Holes {
+		for _, h := range table.Unknown {
 			steps[h.Source] = true
 		}
 		for _, s := range table.Reachable {
-			t.add(decl.GetName(), steps[s] || slices.Contains(table.Ends, s), s, decl.GetPosition(),
+			if steps[s] || slices.Contains(table.Ends, s) {
+				t.add(name, true, s, at, "")
+				continue
+			}
+			t.add(name, false, s, at,
 				"%s is reachable, is no end and enables no action class: no action can happen in it, so a timer or an "+
 					"internal step may be missing a rule; if it is meant to be final, declare it in the machine's ends; "+
 					"reached by %s", s, spellPath(table.PathTo(s)))
 		}
+	}
+	for _, decl := range m.IR.GetMachines() {
+		machine := m.Machines[decl.GetName()]
+		if machine == nil {
+			continue
+		}
+		table, err := m.realizer.TransitionTable(decl.GetName())
+		if err != nil {
+			return nil, err
+		}
+		inspect(decl.GetName(), decl.GetPosition(), table)
+	}
+	for _, decl := range m.IR.GetCompositions() {
+		table, err := m.realizer.TransitionTable(decl.GetName())
+		if err != nil {
+			return nil, err
+		}
+		inspect(decl.GetName(), decl.GetPosition(), table)
 	}
 	return t.list(), nil
 }

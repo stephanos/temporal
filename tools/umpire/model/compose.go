@@ -47,10 +47,14 @@ func (c *composedState) key(state Value) string {
 // the composition's state record, and its outcome and facts are strings, the composed keys
 // `<field>_<key>`.
 func (b *binding) compositionSubject(c *umpirespb.Composition) *subject {
+	return b.composeSubject(c, true)
+}
+
+func (b *binding) composeSubject(c *umpirespb.Composition, checkReplacements bool) *subject {
 	s := &subject{name: c.GetName(), family: c.GetFamily(), at: c.GetPosition(), stateType: c.GetStateType()}
 	spec := umpire.ComposeSpec{Family: Family(c.GetFamily()), Name: c.GetName(), Ceiling: b.scope.Compose}
 	var state *composedState
-	if state, s.err = b.composedMembers(c, s, &spec); s.err != nil {
+	if state, s.err = b.composedMembers(c, s, &spec, checkReplacements); s.err != nil {
 		return s
 	}
 	for _, sync := range c.GetSyncs() {
@@ -104,7 +108,7 @@ func (b *binding) compositionSubject(c *umpirespb.Composition) *subject {
 // composedMembers resolves a composition's members into its spec, and says how its states read. It
 // also notes why a Query over the composition is not supported, which does not wait on whether the
 // composition builds.
-func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *umpire.ComposeSpec) (*composedState, error) {
+func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *umpire.ComposeSpec, checkReplacements bool) (*composedState, error) {
 	fields := b.in.types[c.GetStateType()].GetRecord().GetFields()
 	state := &composedState{stateType: c.GetStateType(), filledBy: slices.Repeat([]int{-1}, len(fields))}
 	var unbuilt []error
@@ -125,7 +129,11 @@ func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *um
 			err = errorAt(s.at, "composition %s: its member %s is no field of %s", s.name, mb.GetField(), c.GetStateType())
 		default:
 			state.filledBy[k] = i
-			err = b.replacement(spec, mb, member)
+			if checkReplacements {
+				err = b.replacement(spec, mb, member)
+			} else {
+				spec.Members = append(spec.Members, umpire.ComposeMember{Field: mb.GetField(), Table: member.table})
+			}
 		}
 		state.members = append(state.members, member)
 		if err != nil {
@@ -145,6 +153,20 @@ func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *um
 		return nil, errorAt(s.at, "composition %s: no member fills the field %s of %s", s.name, fields[k].GetName(), c.GetStateType())
 	}
 	return state, nil
+}
+
+// TransitionTable reads a machine's or composition's transitions, ends and unknown pairs within
+// the Realizer's scope, independently of its refinement and Property verdicts. Composition keeps
+// those checks; this reading still refuses member, structure, end-predicate and ceiling failures.
+func (r *Realizer) TransitionTable(name string) (*Table, error) {
+	for _, c := range r.b.model.GetCompositions() {
+		if c.GetName() == name {
+			s := r.b.composeSubject(c, false)
+			return s.table, s.err
+		}
+	}
+	s := r.b.subject(name)
+	return s.table, s.err
 }
 
 // unbuiltMembers is why a composition is not built when several of its members could not be read

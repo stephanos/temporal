@@ -262,7 +262,7 @@ func TestNeverEnabled(t *testing.T) {
 func TestStuckState(t *testing.T) {
 	// The passing fixture: every reachable state of the activity's machines is an end or takes a step.
 	r := run(t, read(t, activityIR), stuckStates)
-	require.Equal(t, map[string]int{"activityProduct": 9, "activitySystem": 238, "activityWorker": 2, "polling": 2}, r.population)
+	require.Equal(t, map[string]int{"activityProduct": 9, "activitySystem": 238, "activityWorker": 2, "polling": 2, "standaloneActivity": 476}, r.population)
 	require.Empty(t, r.subjects)
 
 	// The finding fixture: putOnly is the disk without its flush, an internal step, so the staged disk
@@ -314,7 +314,8 @@ func TestCompositionStuckState(t *testing.T) {
 				ir.Queries, ir.Scenarios, ir.Progress, ir.Properties = nil, nil, nil, nil
 				ir.Compositions = slices.DeleteFunc(ir.Compositions, func(c *umpirespb.Composition) bool { return c.GetName() != "pair" })
 				if !terminal {
-					ir.Compositions[0].Ends = nil
+					ir.Compositions[0].Ends.GetLambda().Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{
+						Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: false}}}}
 				}
 			})
 			r := run(t, m, stuckStates)
@@ -332,6 +333,11 @@ func TestCompositionStuckState(t *testing.T) {
 			f := tallies[i].Findings[0]
 			require.Equal(t, where(m.IR.Compositions[0].GetPosition()), f.Position)
 			require.Contains(t, f.Message, "reached by nothing_nothing -putBoth/front_accepted-> held_held")
+			table, err := m.realizer.TransitionTable("pair")
+			require.NoError(t, err)
+			witness := table.PathTo("held_held")
+			require.Len(t, witness.Steps, 1, "one synchronized step is the shortest path from the distinct start")
+			require.NoError(t, table.Replay(witness))
 		})
 	}
 }
@@ -352,6 +358,39 @@ func TestCompositionStuckStateWithUnknownReplacement(t *testing.T) {
 	r := run(t, m, stuckStates)
 	require.Equal(t, 2, r.population["detailedPair"], "the constructible composition is still inspected")
 	require.Empty(t, r.subjects, "the member's hole is an unknown composed pair, not a deadlock")
+}
+
+func TestCompositionStuckStateWithRejectedReplacement(t *testing.T) {
+	m := read(t, declarationsIR, func(ir *umpirespb.Model) {
+		ir.Queries, ir.Scenarios, ir.Progress, ir.Properties = nil, nil, nil, nil
+		ir.Compositions = slices.DeleteFunc(ir.Compositions, func(c *umpirespb.Composition) bool { return c.GetName() != "detailedPair" })
+		ir.Compositions[0].Ends = nil
+		for _, d := range ir.GetMachines() {
+			if d.GetName() == "store" {
+				d.Starts[0].GetConstruct().Args[0].GetLiteral().GetEnum().Case = "held"
+			}
+		}
+	})
+	_, err := m.realizer.Composition("detailedPair")
+	var rejected *model.RefinementError
+	require.ErrorAs(t, err, &rejected)
+	r := run(t, m, stuckStates)
+	require.Equal(t, 1, r.population["detailedPair"])
+	require.Equal(t, map[string][]string{"detailedPair": {"held_empty"}}, r.subjects)
+	require.True(t, slices.ContainsFunc(m.Verified.Receipts, func(r model.Receipt) bool {
+		return r.Subject == model.CompositionSubject && r.Key.Owner == "detailedPair" && r.Kind == model.RefinementRejected
+	}), "the refinement diagnostic is retained")
+}
+
+func TestCompositionStuckStateConstructionFailure(t *testing.T) {
+	m := read(t, declarationsIR, func(ir *umpirespb.Model) {
+		ir.Queries, ir.Scenarios, ir.Progress, ir.Properties = nil, nil, nil, nil
+		ir.Compositions = slices.DeleteFunc(ir.Compositions, func(c *umpirespb.Composition) bool { return c.GetName() != "pair" })
+		ir.Compositions[0].Ends.GetLambda().Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{
+			Literal: &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: 1}}}}
+	})
+	_, err := stuckStates(m)
+	require.ErrorContains(t, err, "pair: ends is 1 at held_held, not a Boolean")
 }
 
 func TestUnproduced(t *testing.T) {

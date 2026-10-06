@@ -174,7 +174,9 @@ line of what it names:
 | `silent-rejection` | an actor's action disabled in a reachable state that is no end, by class and phase | a rule whose outcome says how the system answers it |
 | `stuck-state` | a reachable state that is no end and enables no action class, a timer's and an internal step's included, with a shortest path to it; a state with a hole is not stuck, since the hole declares that unmodeled behavior may happen there | the rule a timer or an internal step is missing, or the state in the machine's `ends` if it is final |
 
-Like `never-enabled`, `stuck-state` reads each machine's table, not a composition's composed table.
+`stuck-state` also reads each composition's reachable table, even where a member's refinement check
+fails. A table that cannot be constructed remains a reader error; a failed refinement does not hide
+an otherwise constructible table. A shortest witness is constructed only for a finding.
 
 Lint reads the law sidecar beside an IR file (`model/ir/<file>.laws.json`) for the law kinds, each at
 the Scala line the sidecar records:
