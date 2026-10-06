@@ -60,7 +60,7 @@ This spec makes realizations as lean and checkable as the machines fn-126 reshap
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-Paths are fn-132's (`features/activity/standalone`, `features/nexus/{workflow,standalone}`); names are fn-126's.
+Paths are fn-132's (`features/activity/standalone`, `features/nexus/{workflow,standalone}`); names are fn-126's. Preserve fn-126.11's level placement: the activity realization lives at `model/temporal/features/activity/standalone/system/Realization.scala` after fn-132 moves the feature (currently `features/standaloneactivity/system/Realization.scala`). Its three existing System realizations stay there when Part C replaces the wrapper objects; do not reintroduce a root or Product realization file for them. The root path in the review context above is historical.
 
 **Part A. Kit modules (no meaning change).**
 - **A described status.** One kit module covers what the activity and standalone Nexus realizations each write by hand: a status table, the read of a describe method keyed by the operation id, the evidence for each listed fact, and an await per fact. The author writes the table and the method once. Sketch:

@@ -6,6 +6,8 @@ satisfies: [R7, R8]
 ## Description
 Part B, R7, R8.
 
+Apply the activity fixes in `model/temporal/features/activity/standalone/system/Realization.scala`, preserving the System placement introduced by fn-126.11 and carried through fn-132. Do not recreate the historical root realization file.
+
 - **Collisions.** Rename the kit's `deadline` operand, and settle how a realization names the shared worker party next to a feature's `worker` section (consistent with fn-126.8's names), so no realization imports `deadline as requestDeadline` or `worker as process`.
 - **Activity realization fixes:**
   - name `stopWorkerUntilReleased` for what it is (the pause path's stop);
