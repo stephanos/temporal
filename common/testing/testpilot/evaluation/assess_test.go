@@ -59,7 +59,7 @@ func TestAssessRetainsTheRecordedControlsAuthoredGap(t *testing.T) {
 	decision := Assess(subject, localEphemeral(t), nil)
 	require.Equal(t, DecisionRejected, decision.Outcome)
 	require.Equal(t, []string{"verdict-violated", "known-gap-blocking"}, reasonNames(decision))
-	require.Equal(t, []KnownGapRef{{Kind: "capability", Code: "temporal.features.nexuscaller.system.action.forgedCompletion.inspect.unobserved"}}, decision.KnownGaps)
+	require.Equal(t, []KnownGapRef{{Kind: "capability", Code: "temporal.features.nexuscaller.system.action.trustingCaller.inspect.unobserved"}}, decision.KnownGaps)
 }
 
 // Every reason decides as the fixed precedence says, every reason that holds is listed in the fixed
