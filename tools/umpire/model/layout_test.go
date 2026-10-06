@@ -185,8 +185,8 @@ var retiredVocabularyRoots = []string{
 // pinned canary. They are archives, not live artifacts generated from model/temporal.
 var retiredVocabularyArchives = map[string]bool{
 	"tools/canary/assessment/testdata/nexusCallerCanary-syncCompletion-case.json": true,
-	"tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json":       true,
-	"tests/testcore/testpilot/testdata/workerOutageTests-survived-case.json":       true,
+	"tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json":     true,
+	"tests/testcore/testpilot/testdata/workerOutageTests-survived-case.json":      true,
 }
 
 var retiredLevelProse = regexp.MustCompile(`(?i)\b(?:protocol machine|system contract)\b`)

@@ -48,7 +48,7 @@ Paths: `M` = `/Users/stephan/Workspace/skunkworks/umpire/temporal/model`; `SA` =
 | realization: `perform(x -> cmd)` + `onPath(x)(await)` pairs | 20 / 13 | `SA/Realization.scala:122-145` | pattern, see section 4 |
 | Realization lines vs Model lines | 973 vs 1,062 | NC 536 vs 513 | realizations are as long as the Models they realize |
 
-Longest declarations: `closepolicy/Queries.scala:18-133 designQueries` 116 lines, `closepolicy/Properties.scala:82-159 designClaims` 78, `SA/Model.scala:293-322 Protocol.control` 30.
+Longest declarations: `closepolicy/Queries.scala:18-133 designQueries` 116 lines, `closepolicy/Properties.scala:82-159 designClaims` 78, `SA/Model.scala:293-322 System.control` 30.
 
 ### 2. Scala 3.9 syntax: can we have Quint's `action`?
 
@@ -145,7 +145,7 @@ What steps already imply (facts/outcomes lists, evidence defaults, start default
 
 #### 4b. Action naming: actor and direction
 
-Survey (43 actions: 24 party, 10 timers, 9 internal; all `val x = action(party)`): the actor is in the declaration (`action(shared.worker.party)`, `SA/Model.scala:64`) and invisible at every call site (`Paths.completed = …actions(start(), poll, respond(completed))`). Encoding it in names (`workerTakesAttempt`) makes Scenarios long. Proposal: **show the party by structure, at the call site** — declare actions in per-actor objects, so Scenarios read as scripts: `actions(caller.start(), worker.poll, worker.respond(completed))`. This fits the module layout (actions are shared by product/protocol/admission machines, so they live at feature level, and feature-level objects are where the layout spec puts the pins).
+Survey (43 actions: 24 party, 10 timers, 9 internal; all `val x = action(party)`): the actor is in the declaration (`action(shared.worker.party)`, `SA/Model.scala:64`) and invisible at every call site (`Paths.completed = …actions(start(), poll, respond(completed))`). Encoding it in names (`workerTakesAttempt`) makes Scenarios long. Proposal: **show the party by structure, at the call site** — declare actions in per-actor objects, so Scenarios read as scripts: `actions(caller.start(), worker.poll, worker.respond(completed))`. This fits the module layout (actions are shared by Product/System/record machines, so they live at feature level, and feature-level objects are where the layout spec puts the pins).
 
 | Feature | today | proposed (object.val) | note |
 |---|---|---|---|
@@ -165,7 +165,7 @@ Survey (43 actions: 24 party, 10 timers, 9 internal; all `val x = action(party)`
 
 | today | what it models | proposed | fits the module layout as |
 |---|---|---|---|
-| `admission/` | history's record of one activity and whether a delivery becomes a started attempt | `record/` (package), machine `historyRecord` | `object HistoryRecord` section after the protocol |
+| `admission/` | history's record of one activity and whether a delivery becomes a started attempt | `record/` (package), machine `historyRecord` | `object HistoryRecord` section after the System |
 | `activityRecord` / `trustingActivityRecord` | design that re-reads eligibility / design that trusts the message | `recheckingRecord` / `trustingRecord` | derived machines inside the object |
 | `heldDispatch` | the race run against a server with the dispatch held | `heldDispatchRecord` | same |
 | `admissionResponseLoss` | one lost start answer | `lostStartAnswer` | same |

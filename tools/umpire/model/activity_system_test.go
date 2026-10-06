@@ -126,20 +126,20 @@ func TestActivitySystemResults(t *testing.T) {
 	report := systemModel(t).report
 	require.Empty(t, report.Unsupported())
 	want := map[string]ReceiptKind{
-		"refinement activitySystem activityProduct": Verified,
-		"refinement activityRecord activityProduct": Verified,
-		"refinement trustingActivityRecord activityProduct":   RefinementRejected,
+		"refinement activitySystem activityProduct":         Verified,
+		"refinement activityRecord activityProduct":         Verified,
+		"refinement trustingActivityRecord activityProduct": RefinementRejected,
 
-		"refinement taskQueueSystem taskQueueProduct":                      Verified,
+		"refinement taskQueueSystem taskQueueProduct":                    Verified,
 		"refinement lossyMatchingQueue taskQueueProductUnderStorageLoss": Verified,
 		"refinement forgetfulQueue taskQueueProduct":                     RefinementRejected,
 		"refinement volatileQueue taskQueueProduct":                      RefinementRejected,
 
-		"composition recordOverMatching":      Verified,
-		"composition trustingRecordOverMatching":        Verified,
-		"composition recordOverLossyMatching": Verified,
-		"composition recordOverForgetful":     RefinementRejected,
-		"composition recordOverVolatile":      RefinementRejected,
+		"composition recordOverMatching":         Verified,
+		"composition trustingRecordOverMatching": Verified,
+		"composition recordOverLossyMatching":    Verified,
+		"composition recordOverForgetful":        RefinementRejected,
+		"composition recordOverVolatile":         RefinementRejected,
 
 		"query activitySystem competingTimers.scheduleToStartFirst": Found,
 		"query activitySystem competingTimers.scheduleToCloseFirst": Found,
@@ -177,7 +177,7 @@ func TestActivitySystemResults(t *testing.T) {
 	}
 	// A crash cut is found where the message survives the crash and is delivered after it.
 	for provider, cuts := range map[string][6]ReceiptKind{
-		"taskQueueSystem":      {Found, Found, Found, Found, Verified, Verified},
+		"taskQueueSystem":    {Found, Found, Found, Found, Verified, Verified},
 		"lossyMatchingQueue": {Found, Found, Found, Found, Verified, Counterexample},
 		"forgetfulQueue":     {NotFound, NotFound, Found, Found, Verified, Counterexample},
 		"volatileQueue":      {Found, Found, NotFound, NotFound, Verified, Counterexample},
@@ -188,8 +188,8 @@ func TestActivitySystemResults(t *testing.T) {
 		}
 	}
 	for composition, kinds := range map[string][7]ReceiptKind{
-		"recordOverQueue": {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
-		"trustingRecordOverQueue":   {Counterexample, Verified, Counterexample, Verified, Counterexample, Counterexample, Counterexample},
+		"recordOverQueue":         {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
+		"trustingRecordOverQueue": {Counterexample, Verified, Counterexample, Verified, Counterexample, Counterexample, Counterexample},
 	} {
 		for i, name := range []string{"staleDelivery", "admittedBeforePause", "duplicateDelivery", "failedCommit",
 			"pausedIsNotDispatched", "any.atMostOneActive", "terminalStatesAreFinal"} {
@@ -197,9 +197,9 @@ func TestActivitySystemResults(t *testing.T) {
 		}
 	}
 	for composition, kinds := range map[string][7]ReceiptKind{
-		"recordOverMatching":      {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
-		"recordOverLossyMatching": {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
-		"trustingRecordOverMatching":        {Counterexample, Verified, Counterexample, Counterexample, Counterexample, Counterexample, Counterexample},
+		"recordOverMatching":         {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
+		"recordOverLossyMatching":    {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
+		"trustingRecordOverMatching": {Counterexample, Verified, Counterexample, Counterexample, Counterexample, Counterexample, Counterexample},
 	} {
 		for i, name := range []string{"staleDelivery", "admittedBeforePause", "deliveredAgainAfterLostAck",
 			"crashAfterAdmissionCommit", "pausedIsNotDispatched", "any.atMostOneActive", "terminalStatesAreFinal"} {
@@ -351,8 +351,8 @@ func TestActivityCompetingTimers(t *testing.T) {
 	c := systemModel(t)
 	for query, table := range map[string][2]string{
 		"query activitySystem competingTimers.": {"activitySystem", "scheduled-0-expires-expires-unset"},
-		current: {"activityRecord", "scheduled-none-settled"},
-		stale:   {"trustingActivityRecord", "scheduled-none-settled"},
+		current:                                 {"activityRecord", "scheduled-none-settled"},
+		stale:                                   {"trustingActivityRecord", "scheduled-none-settled"},
 	} {
 		mm := c.built[table[0]]
 		over := map[string]string{}

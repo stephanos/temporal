@@ -5402,7 +5402,7 @@
     "name": "standaloneActivity.property.startedByPollingWorker",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 408
+      "line": 407
     },
     "params": [ {
       "name": "step",
@@ -5413,32 +5413,32 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 408
+        "line": 407
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 408
+            "line": 407
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 408
+                "line": 407
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 408
+                    "line": 407
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 408
+                        "line": 407
                       },
                       "var": "step"
                     },
@@ -5454,7 +5454,7 @@
         "right": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 408
+            "line": 407
           },
           "literal": {
             "enum": {
@@ -9865,7 +9865,7 @@
     "name": "activityWorker",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 388
+      "line": 387
     },
     "entity": "worker",
     "stateType": "temporal.shared.worker.State",
@@ -10011,7 +10011,7 @@
     "name": "standaloneActivity",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 393
+      "line": 392
     },
     "stateType": "temporal.features.standaloneactivity.StandaloneActivityState",
     "members": [ {
@@ -10045,7 +10045,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 398
+        "line": 397
       },
       "lambda": {
         "params": [ {
@@ -10057,26 +10057,26 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 398
+            "line": 397
           },
           "call": {
             "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 398
+                "line": 397
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 398
+                    "line": 397
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 398
+                        "line": 397
                       },
                       "var": "s"
                     },
@@ -10284,7 +10284,7 @@
     "name": "startedByPollingWorker",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 406
+      "line": 405
     },
     "whenAction": "poll",
     "holds": "standaloneActivity.property.startedByPollingWorker"
@@ -11391,12 +11391,12 @@
     "name": "stoppedBeforeRetry",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 418
+      "line": 417
     },
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 419
+        "line": 418
       },
       "construct": {
         "type": "temporal.features.standaloneactivity.StandaloneActivityState",
@@ -11464,14 +11464,14 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 419
+            "line": 418
           },
           "construct": {
             "type": "temporal.shared.worker.State",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 419
+                "line": 418
               },
               "literal": {
                 "enum": {
@@ -11829,7 +11829,7 @@
     "name": "stoppedWorkerStartsNothing",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 429
+      "line": 428
     },
     "form": "FORM_VERIFY",
     "property": {

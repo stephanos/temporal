@@ -289,7 +289,7 @@
     "name": "nexusCaller.property.repliedByPollingWorker",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 431
+      "line": 430
     },
     "params": [ {
       "name": "step",
@@ -300,32 +300,32 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 431
+        "line": 430
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 431
+            "line": 430
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 431
+                "line": 430
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 431
+                    "line": 430
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/system/System.scala",
-                        "line": 431
+                        "line": 430
                       },
                       "var": "step"
                     },
@@ -341,7 +341,7 @@
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 431
+            "line": 430
           },
           "literal": {
             "enum": {
@@ -7036,7 +7036,7 @@
     "name": "handlerWorker",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 403
+      "line": 402
     },
     "entity": "worker",
     "stateType": "temporal.shared.worker.State",
@@ -7463,7 +7463,7 @@
     "name": "nexusCaller",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 413
+      "line": 412
     },
     "stateType": "temporal.features.nexuscaller.NexusCallerState",
     "members": [ {
@@ -7497,7 +7497,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 418
+        "line": 417
       },
       "lambda": {
         "params": [ {
@@ -7509,26 +7509,26 @@
         "body": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 418
+            "line": 417
           },
           "call": {
             "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 418
+                "line": 417
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 418
+                    "line": 417
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/system/System.scala",
-                        "line": 418
+                        "line": 417
                       },
                       "var": "s"
                     },
@@ -7548,7 +7548,7 @@
     "name": "repliedByPollingWorker",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 429
+      "line": 428
     },
     "whenAction": "reply",
     "holds": "nexusCaller.property.repliedByPollingWorker"
@@ -7677,12 +7677,12 @@
     "name": "repliedThenStopped",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 440
+      "line": 439
     },
     "start": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 441
+        "line": 440
       },
       "construct": {
         "type": "temporal.features.nexuscaller.NexusCallerState",
@@ -7750,14 +7750,14 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 441
+            "line": 440
           },
           "construct": {
             "type": "temporal.shared.worker.State",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 441
+                "line": 440
               },
               "literal": {
                 "enum": {
@@ -8658,7 +8658,7 @@
     "name": "stoppedWorkerRepliesNothing",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 449
+      "line": 448
     },
     "form": "FORM_VERIFY",
     "property": {

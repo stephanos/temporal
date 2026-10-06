@@ -16,4 +16,3 @@ object KettleSystem extends Machine[Kettle, Outcome, Nothing]:
 
   object rules extends Rules:
     on(cook.boil)(where(!_.hot) ~> effects.boil)
-

@@ -206,12 +206,12 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 		dispositions[e.Kind+" "+e.ID], as[e.Kind+" "+e.ID] = e.Disposition, e.As
 	}
 	for id, want := range map[string]Disposition{
-		"command controller/stop-handler-worker [stop]":                   InCase,
+		"command controller/stop-handler-worker [stop]":                         InCase,
 		"command controller/pending-attempts":                                   OffPath,
 		"command controller/await-completion-authority":                         OffPath,
 		"command controller/complete-nexus-operation [complete-succeeded]":      OffPath,
-		"command handler/respond-sync [reply-syncSuccess]":               OffPath,
-		"command handler/respond-async [reply-async]":                    OffPath,
+		"command handler/respond-sync [reply-syncSuccess]":                      OffPath,
+		"command handler/respond-async [reply-async]":                           OffPath,
 		"command workflow/start-nexus-operation [schedule-unset-expires-unset]": InCase,
 		"command workflow/start-nexus-operation [schedule-unset-unset-unset]":   OffPath,
 		"command workflow/await-nexus-operation":                                InCase,

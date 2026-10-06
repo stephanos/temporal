@@ -399,8 +399,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
 // action no sync line names would stay executable on its own and admit a stop, a resume and then a
 // reply; the operation's timers settle every state a stop leaves.
 
-object HandlerWorker
-    extends Derived(shared.worker.Polling.restrict(worker.stop, worker.serve))
+object HandlerWorker extends Derived(shared.worker.Polling.restrict(worker.stop, worker.serve))
 
 // ### The operation and the handler's worker
 //
@@ -438,12 +437,12 @@ object NexusCaller
      * shared/worker/Worker.scala.
      */
     val repliedThenStopped = scenario
-        .starts(NexusCallerState(NexusSystem.init, WorkerState(WorkerPhase.polling)))
-        .actions(
-          own(_.operation, caller.schedule(scheduleToStart := expires)),
-          synced(_.operation -> handler.reply(Reply.handlerError(true))),
-          synced(_.operation -> worker.stop),
-          own(_.operation, deadline.scheduleToStart)
-        )
+      .starts(NexusCallerState(NexusSystem.init, WorkerState(WorkerPhase.polling)))
+      .actions(
+        own(_.operation, caller.schedule(scheduleToStart := expires)),
+        synced(_.operation -> handler.reply(Reply.handlerError(true))),
+        synced(_.operation -> worker.stop),
+        own(_.operation, deadline.scheduleToStart)
+      )
     val stoppedWorkerRepliesNothing =
       query verify properties.repliedByPollingWorker in repliedThenStopped limits four

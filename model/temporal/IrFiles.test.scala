@@ -51,8 +51,8 @@ class IrFilesTest extends munit.FunSuite:
   }
 
   test("standalone public API callers share the Temporal Client actor") {
-    assert(features.standaloneactivity.client.isInstanceOf[Client])
-    assert(features.nexusoperation.client.isInstanceOf[Client])
-    assertEquals(features.standaloneactivity.client.name, "client")
-    assertEquals(features.nexusoperation.client.name, "client")
+    val standaloneClient: Client = features.standaloneactivity.client
+    val operationClient: Client = features.nexusoperation.client
+    assertEquals(standaloneClient.name, "client")
+    assertEquals(operationClient.name, "client")
   }

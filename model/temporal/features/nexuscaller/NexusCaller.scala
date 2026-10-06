@@ -28,7 +28,7 @@ import io.temporal.api.command.v1.ScheduleNexusOperationCommandAttributes
 import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import shared.worker.State as WorkerState
 import product.NexusProduct
-import system.{TrustingCaller, HandlerWorker, NexusCaller, NexusSystem}
+import system.{HandlerWorker, NexusCaller, NexusSystem, TrustingCaller}
 
 // ### Types
 //

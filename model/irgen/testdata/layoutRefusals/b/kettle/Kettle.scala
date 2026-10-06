@@ -16,4 +16,3 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 
 object exports:
   val kettle = irFile("kettle")(KettleContract, KettleSystem)
-

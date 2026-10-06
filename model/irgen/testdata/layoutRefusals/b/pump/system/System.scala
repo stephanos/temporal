@@ -16,4 +16,3 @@ object PumpProtocol extends Machine[Pump, Outcome, Nothing]:
 
   object rules extends Rules:
     on(operator.start)(where(!_.on) ~> effects.start)
-

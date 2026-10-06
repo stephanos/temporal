@@ -657,7 +657,7 @@ replaces its rules. A composition is `object RecordOverQueue extends Composition
 RecordMember, _.queue -> TaskQueueProduct)` with its `def end(s)` and `object syncs extends Syncs`;
 one with a member replaced is `object TrustingRecordOverQueue extends Composition(RecordOverQueue.withMember(
 _.activity -> TrustingRecordMember))`. A section object is initialized on first use: an `implements` that reads
-the realization, as the protocol's `Describable` does, leaves the machine object free for the
+the realization, as the System's `Describable` does, leaves the machine object free for the
 realization to read. A machine that is a failure model, the real design under a fault the
 environment can cause, mixes in `FailureModel`, and a negative control, a deliberately wrong design
 the checks must refuse, `NegativeControl` (`object TrustingActivityRecord extends Derived(...),
@@ -939,7 +939,7 @@ line, as `lift: <file>:<line>: …`:
 | Kind | Refused | Fix |
 | --- | --- | --- |
 | (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
-| (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the protocol's `implements` is |
+| (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the System's `implements` is |
 | (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's header and sections, or a Scenario after a Query in `queries` | move it |
 | (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `implements`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario (but a Query whose Scenario is written in it may sit in the `queries` of another machine object of its package, the one its IR file is about, as `competingTimers` over `ActivitySystem` sits in `ActivityRecord.queries`); beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
 
@@ -1033,13 +1033,13 @@ A function that declares the capabilities of several designs, such as the admiss
 The first gives `activityProduct.terminalStatesAreFinal` and `activityProduct.closedIsRejectedUniformly`
 (Closable), and `activityProduct.pausedIsNotDispatched`, because the product declares both Pausable
 and Pollable; nobody lists the pair. Each is a transition Property, verified over the product's free
-Scenario under `three`, and the protocol reads them through its refinement. The second gives
+Scenario under `three`, and the System reads them through its refinement. The second gives
 `activitySystem.terminateSettles` and `activitySystem.cancelIsRequested`, each a same-step
 Property asked by a `find` that starts the activity, stops the worker and then takes the control; a
 find has a realization, so they lower to the Cases `activity-activitySystem.terminateSettles` and
 `activity-activitySystem.cancelIsRequested`, whose awaited status comes from the `Describable`
-table. The functional laws sit on the protocol because a find lowers only through a realization,
-which is the protocol's. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
+table. The functional laws sit on the System because a find lowers only through a realization,
+which is the System's. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
 activity's own files any more; the admission designs and both composition families declare the same
 three capabilities on their record, and the Nexus operation (`features/nexusoperation`) declares
 Closable, Terminable, Cancelable and Describable.
@@ -1119,9 +1119,9 @@ the laws it is held to: per law its claim, what it promises and does not promise
 it pins (MUST NOT for a transition law, of its results where the cell is a MAY; MUST for a same-step
 one, which a find asks on its path only) on the cells of its capabilities' actions, beside each
 cell's own modality; a law whose
-capabilities name no action, Closable's, pins its cells on every class. A product law the protocol
+capabilities name no action, Closable's, pins its cells on every class. A product law the System
 reads through its refinement is marked `inherited`, and `unchecked` where no Query over the
-protocol's own Scenarios asks it. Then come the cells of the capabilities' actions that no law pins,
+System's own Scenarios asks it. Then come the cells of the capabilities' actions that no law pins,
 and the laws the machine waives with `except`. A law pins cells the step function wrote; it never
 adds, removes or rewrites a row:
 

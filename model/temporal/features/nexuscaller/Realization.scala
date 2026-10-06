@@ -61,7 +61,7 @@ import com.google.protobuf.duration.Duration
 import shared.worker.worker
 
 import Timeout.expires
-import system.{TrustingCaller, NexusSystem}
+import system.{NexusSystem, TrustingCaller}
 
 object NexusRealization:
   // ### Evidence

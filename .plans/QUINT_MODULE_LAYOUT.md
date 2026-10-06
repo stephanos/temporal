@@ -35,7 +35,7 @@ A spec reads top to bottom: types/consts → vars → pure defs → actions → 
 
 | To understand `activityProduct`/`standaloneActivity` an author opens | Lines |
 |---|---|
-| `features/standaloneactivity/Model.scala` (enums, actions :56-84, `object Product` :111-181, machine :178-188, protocol, composition :401-405) | 405 |
+| `features/standaloneactivity/Model.scala` (enums, actions :56-84, `object Product` :111-181, machine :178-188, System, composition :401-405) | 405 |
 | `shared/worker/Model.scala` (member machine) | 85 |
 | `Properties.scala` (claims; `pause` has **no** authored claim: it comes from `Pausable`+`Pollable` law expansion in `temporal/capabilities/Pause.scala:11-24`) | 77 |
 | `Queries.scala` (`object Paths`, Limits, `object Functional`) | 146 |
@@ -51,7 +51,7 @@ Typical hop count: 5 files to Query, 9-11 to Case. Cross-file references are all
 |---|---|---|
 | Model vs Properties vs Queries | yes, fn-112 | Properties are "the specification a reviewer reads on its own"; monitors stay in Model because two *files* would init-cycle (`.flow/specs/fn-112:46-50`, `model/README.md:518-521`) |
 | `admission/`, `compositions/` folders | yes, fn-112 | by subject first, else "three unrelated subjects in each file" (`fn-112:278-284`); subpackages so `Model$package$` names don't collide |
-| Vocabulary objects `Product`/`Protocol` | yes, fn-112 | "objects let both machines say `poll`" (`fn-112:278-280`) — already halfway to a module per machine |
+| Vocabulary objects `Product`/`System` | yes, fn-112 | "objects let both machines say `poll`" (`fn-112:278-280`) — already halfway to a module per machine |
 | `Capabilities.scala` | content placement yes (fn-122.8), separate file stylistic (`.flow/tasks/fn-122…8.md:4-6`) |
 | `IrFiles.scala` | the `irFile` value yes (fn-114:99-101), its own file unexplained |
 | `Realization.scala` | never argued; predates fn-112 |
@@ -132,7 +132,7 @@ Migration: 3 features + `shared/` ≈ 15 files merged into ~6, one golden-config
 
 `fn-126-read-each-feature-top-to-bottom-one` adopts (a) with these changes to the sketch above:
 
-- **Actions stay in the feature's top-level signature section.** Product, Protocol, the composition and the realization all bind them. Inside one object, a step function named after its action would shadow it. Keeping actions at the top level also keeps every action ID under the existing file-level pin.
+- **Actions stay in the feature's top-level signature section.** Product, System, the composition and the realization all bind them. Inside one object, a step function named after its action would shadow it. Keeping actions at the top level also keeps every action ID under the existing file-level pin.
 - **Machine `val`s keep their names** (`Product.activityProduct`), rather than `val machine` plus a name literal, which fn-114 removed. Derived Query names and law names therefore stay the same.
 - **The existing vocabulary objects become the module objects**, so the function symbols of the status sets do not move.
 - **The feature section is an object.** The module objects read the top-level signature, so top-level vals that read the module objects would re-create fn-112's init cycle. Capabilities that read the realization (`protocolCapabilities`) live in this object.

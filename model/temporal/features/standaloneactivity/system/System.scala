@@ -384,8 +384,7 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
 
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 
-object ActivityWorker
-    extends Derived(shared.worker.Polling.restrict(process.stop, process.serve))
+object ActivityWorker extends Derived(shared.worker.Polling.restrict(process.stop, process.serve))
 
 // ### With the worker of its task queue, the stop is the worker's own phase change and every
 // attempt start is the worker serving, so an attempt has a row only while the worker polls.
@@ -416,14 +415,14 @@ object StandaloneActivity
      * positions.
      */
     val stoppedBeforeRetry = scenario
-        .starts(StandaloneActivityState(ActivitySystem.init, WorkerState(WorkerPhase.polling)))
-        .actions(
-          own(_.activity, client.start(scheduleToStart := expires)),
-          synced(_.activity -> worker.poll),
-          own(_.activity, worker.respond(AttemptResult.failed(true))),
-          own(_.activity, timers.backoff),
-          synced(_.activity -> process.stop),
-          own(_.activity, deadline.scheduleToStart)
-        )
+      .starts(StandaloneActivityState(ActivitySystem.init, WorkerState(WorkerPhase.polling)))
+      .actions(
+        own(_.activity, client.start(scheduleToStart := expires)),
+        synced(_.activity -> worker.poll),
+        own(_.activity, worker.respond(AttemptResult.failed(true))),
+        own(_.activity, timers.backoff),
+        synced(_.activity -> process.stop),
+        own(_.activity, deadline.scheduleToStart)
+      )
     val stoppedWorkerStartsNothing =
       query verify properties.startedByPollingWorker in stoppedBeforeRetry limits six

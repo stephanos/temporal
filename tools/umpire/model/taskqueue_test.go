@@ -25,10 +25,10 @@ func TestTaskQueueResults(t *testing.T) {
 	c := taskQueueModel(t)
 	require.Empty(t, c.report.Unsupported())
 	require.Equal(t, map[string]ReceiptKind{
-		"refinement taskQueueSystem taskQueueProduct":  Verified,
-		"refinement forgetfulQueue taskQueueProduct": RefinementRejected,
-		"composition jobOverMatching":             Verified,
-		"composition jobOverForgetful":            RefinementRejected,
+		"refinement taskQueueSystem taskQueueProduct": Verified,
+		"refinement forgetfulQueue taskQueueProduct":  RefinementRejected,
+		"composition jobOverMatching":                 Verified,
+		"composition jobOverForgetful":                RefinementRejected,
 
 		"query jobOverQueue jobOverQueue.duplicateDelivery":                Found,
 		"query jobOverQueue jobOverQueue.any.settledLeavesNothing":         Verified,

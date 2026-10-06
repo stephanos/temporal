@@ -357,8 +357,8 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 func TestGoMonitorVerdictsAreTheSpecimens(t *testing.T) {
 	want := map[string]map[string][]string{
 		"activity-record": {
-			"activityRecord": nil,
-			"trustingActivityRecord":   {"atMostOneActiveAttempt", "terminalFinality"},
+			"activityRecord":         nil,
+			"trustingActivityRecord": {"atMostOneActiveAttempt", "terminalFinality"},
 		},
 		"nexus-close": {
 			"retainAndRoute":             nil,

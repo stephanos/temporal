@@ -16,4 +16,3 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 
 object exports:
   val pump = irFile("pump")(PumpProduct, PumpProtocol)
-

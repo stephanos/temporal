@@ -108,8 +108,8 @@ func TestQuintVerifyAgreesWithGo(t *testing.T) {
 	t.Cleanup(StopVerifier)
 	cases := map[string]map[string][]string{
 		"activity-record": {
-			"activityRecord": {"atMostOneActiveAttempt", "terminalFinality"},
-			"trustingActivityRecord":   {"atMostOneActiveAttempt", "terminalFinality"},
+			"activityRecord":         {"atMostOneActiveAttempt", "terminalFinality"},
+			"trustingActivityRecord": {"atMostOneActiveAttempt", "terminalFinality"},
 		},
 	}
 	for model, machines := range cases {

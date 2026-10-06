@@ -1471,7 +1471,8 @@ class Fixtures extends munit.FunSuite:
     val designs = "temporal.features.standaloneactivity.system."
     def designObject(d: String) = designs + d.head.toUpper + d.tail
     val overQueue = Seq("recordOverQueue", "trustingRecordOverQueue")
-    val overMatching = Seq("recordOverMatching", "trustingRecordOverMatching", "recordOverLossyMatching")
+    val overMatching =
+      Seq("recordOverMatching", "trustingRecordOverMatching", "recordOverLossyMatching")
     val unqueried = Seq("recordOverForgetful", "recordOverVolatile")
     val roots =
       (overQueue ++ overMatching).map(d => s"${designObject(d)}$$.queries$$.${d}Queries") ++

@@ -206,8 +206,8 @@ func TestQueriesAreAnsweredByTheGenericSearch(t *testing.T) {
 func TestTheAdmissionDesignsAreToldApart(t *testing.T) {
 	r := checked(t, lifted(t, "admission"))
 	require.Equal(t, map[string]ReceiptKind{
-		"refinement activityRecord activityProduct": Verified,
-		"refinement trustingActivityRecord activityProduct":   RefinementRejected,
+		"refinement activityRecord activityProduct":         Verified,
+		"refinement trustingActivityRecord activityProduct": RefinementRejected,
 
 		"query activityRecord activityRecord.staleDelivery":                 Verified,
 		"query activityRecord activityRecord.admittedBeforePause":           Verified,

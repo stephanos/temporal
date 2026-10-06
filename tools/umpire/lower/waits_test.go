@@ -80,15 +80,15 @@ var derivedWaits = map[string]map[string]map[string]wait{
 		"pauseResume":         {"controller/await-paused": readOnce, "controller/await-completed": deliveredAnswered},
 		"scheduleToStartTimeout": {"controller/await-timed-out": {interval: 250,
 			hints: []string{"deadline.scheduleToStart=2000", "cause.timer=3000"}}},
-		"terminate":                          {"controller/await-terminated": readOnce},
+		"terminate":                        {"controller/await-terminated": readOnce},
 		"activitySystem.terminateSettles":  {"controller/await-terminated": readOnce},
 		"activitySystem.cancelIsRequested": {},
 		"retry": {"controller/await-completed": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityAnswer=2000",
 			"deadline.backoff=1000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}},
 	},
 	"activity-race": {
-		"heldDispatch.staleDelivery":     {"controller/await-paused": readOnce},
-		"lostStartAnswer.committed": {},
+		"heldDispatch.staleDelivery": {"controller/await-paused": readOnce},
+		"lostStartAnswer.committed":  {},
 	},
 	"nexus-caller": {
 		"syncCompletion": scheduled, "asyncCompletion": scheduled, "asyncFailure": scheduled, "handlerError": scheduled,
