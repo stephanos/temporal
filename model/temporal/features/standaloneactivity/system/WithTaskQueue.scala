@@ -1,6 +1,6 @@
 /* The admission designs composed with the task queue (temporal/shared/taskqueue), over its opaque
  * contract and over the matching, violating and storage-loss providers that replace it. The queue
- * and its providers are the queue's; this folder adds how the activity's dispatch, admission and
+ * and its providers are the queue's; this file adds how the activity's dispatch, admission and
  * answer synchronize with it, and what the activity promises across both: the record's
  * capabilities, read through the `activity` member's projection, as the laws of
  * model/temporal/capabilities read them.
@@ -15,17 +15,19 @@
  */
 package temporal
 package features.standaloneactivity
-package withTaskQueue
+package system
 
 import umpire.*
 import temporal.capabilities.{given, *}
 import shared.Bounds.three
-import shared.taskqueue.*
-import record.*
+import shared.taskqueue.{faults, queue, seven, twelve, Outstanding, QueueDetail, QueueView}
+import shared.taskqueue.product.DispatchQueue
+import shared.taskqueue.system.{ForgetfulQueue, LossyMatchingQueue, MatchingQueue, VolatileQueue}
 import SystemFamily.given
 
 // First written in System.scala: the state types keep the IR names they had there.
-given DefinitionScope = DefinitionScope("temporal.standaloneactivity.System$package$")
+given withTaskQueueScope: DefinitionScope =
+  DefinitionScope("temporal.standaloneactivity.System$package$")
 
 // ### Types
 
@@ -75,7 +77,7 @@ object CurrentOverQueue
     /**
      * Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
      * steps after the record closes, so a composed step moves the state; the record's own
-     * declaration (record/) holds the record to the law.
+     * declaration (Record.scala) holds the record to the law.
      */
     val queueStepsOn =
       "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"

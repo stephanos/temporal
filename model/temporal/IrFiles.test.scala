@@ -12,7 +12,6 @@ class IrFilesTest extends munit.FunSuite:
   val declaring: Seq[AnyRef] = Seq(
     features.standaloneactivity.exports,
     features.nexuscaller.exports,
-    features.nexuscaller.closepolicy.exports,
     features.nexusoperation.exports
   )
 
@@ -39,7 +38,7 @@ class IrFilesTest extends munit.FunSuite:
     (ir \ "machines" \ "name").children.collect { case JString(n) => n }.toSet
 
   test("every IR file is declared by a feature's exports, and every root of each constructs") {
-    assertEquals(declaring.size, 4)
+    assertEquals(declaring.size, 3)
     val declared = IrFile.declared
     assertEquals(declared.map(_.name).toSet, checkedIn)
     for file <- declared do

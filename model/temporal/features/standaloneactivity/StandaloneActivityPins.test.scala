@@ -2,7 +2,7 @@ package temporal
 package features.standaloneactivity
 // What the standalone activity Model's effects do, run as Scala.
 
-import record.*
+import system.*
 
 class StandaloneActivityPins extends munit.FunSuite:
   test("one lost admission response consumes its budget for either durable outcome") {

@@ -185,7 +185,7 @@ func TestAStepNoScriptPerformsIsRefused(t *testing.T) {
 	require.NoError(t, err)
 	_, err = p.Lower("syncCompletion", nexusIdentity("syncCompletion"))
 	require.ErrorContains(t, err, "scenario syncReplied takes handlerReply-syncSuccess, a step of handler, and no script of realization asyncNexus performs it")
-	require.ErrorContains(t, err, "model/temporal/features/nexuscaller/NexusCaller.scala:")
+	require.ErrorContains(t, err, "model/temporal/features/nexuscaller/system/System.scala:")
 	_, err = p.Lower("asyncCompletion", nexusIdentity("asyncCompletion"))
 	require.NoError(t, err, "a path that takes only performed steps still lowers")
 }

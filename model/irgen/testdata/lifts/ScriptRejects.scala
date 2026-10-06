@@ -15,7 +15,7 @@ import temporal.features.standaloneactivity.{
   ProtocolFact,
   Timeout
 }
-import temporal.features.standaloneactivity.ActivityProtocol as activityProtocol
+import temporal.features.standaloneactivity.system.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus
 

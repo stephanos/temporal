@@ -18,21 +18,27 @@
  * handler's actions, the bounds, and the assumptions the designs add or their progress claims are
  * conditional on); then one object per design -- RejectAfterClose, the first, whose status sets,
  * effects, monitors and declaring functions every design reads, and the eight designs derived from
- * it, each with its own progress claim and Queries; and last exports, its IR file. The faulty
- * policies and resets are deliberately wrong designs, marked as negative controls.
+ * it, each with its own progress claim and Queries. A subject of the System level, beside
+ * system/System.scala (fn-126 decisions 16 and 22); its IR file is among the feature's exports, in
+ * NexusCaller.scala. The faulty policies and resets are deliberately wrong designs, marked as
+ * negative controls.
  */
 package temporal
 package features.nexuscaller
-package closepolicy
+package system
 
 // `Answer` here is the designs' delivery answer.
 import umpire.*
+import Answer.given
+import ClosePolicyFamily.given
 
 // Moved from temporal.nexuscaller.closepolicy; the pin keeps its Definition IDs and type names.
-given DefinitionScope = DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")
+given closePolicyScope: DefinitionScope =
+  DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")
 
-/** The family of the designs' machines. */
-given Family = Family("temporal.nexus.caller.closepolicy")
+/** The family of the designs' machines, apart from the System level's other subjects'. */
+object ClosePolicyFamily:
+  given family: Family = Family("temporal.nexus.caller.closepolicy")
 
 // ### Types: one logical operation, the original run and one reset successor
 
@@ -103,6 +109,11 @@ final case class CloseResetState(
 /** What a delivery attempt reports back to the handler. */
 enum Answer derives Finite:
   case accepted, retained, rejectedTransient, rejectedPermanent
+
+object Answer:
+  // Kept in the companion, and imported by this file alone: the System level's other subjects, in
+  // this package, answer the feature's Outcome.
+  given Ok[Answer] = Ok(Answer.accepted)
 
 /**
  * What a step records. The history events carry the baseline's names; the rest is what a design
@@ -221,8 +232,6 @@ final case class DeadlineClaims(
  * cannot follow the operation into a reset successor; the request identity can.
  */
 val nexusRequest = Entity(key = "requestId", refer = Map("owner" -> workflow))
-
-given Ok[Answer] = Ok(Answer.accepted)
 
 val result = input[Resolution]
 
@@ -1271,29 +1280,3 @@ object RetainAndRouteWithDeadline
 
   object queries extends Section:
     val all = RejectAfterClose.queries.deadlineQueries(RetainAndRouteWithDeadline)
-
-// ### The checked-in IR file of the Nexus caller close and reset designs (umpire.irFile).
-
-object exports:
-  // Each design's Queries are a root, and so is each progress claim.
-  val nexusClose = irFile("nexus-close")(
-    RejectAfterClose.queries.all,
-    AckByOriginal.queries.all,
-    RetainAndRoute.queries.all,
-    ForgetsCancelOnReset.queries.all,
-    TruncatesOnReset.queries.all,
-    RetainAndRouteBoundedRetry.queries.all,
-    RejectAfterCloseWithDeadline.queries.all,
-    AckByOriginalWithDeadline.queries.all,
-    RetainAndRouteWithDeadline.queries.all,
-    RejectAfterClose.properties.rejectAfterCloseProgress,
-    AckByOriginal.properties.ackByOriginalProgress,
-    RetainAndRoute.properties.retainAndRouteProgress,
-    RetainAndRouteBoundedRetry.properties.retainAndRouteBoundedRetryProgress,
-    RejectAfterCloseWithDeadline.properties.rejectAfterCloseWithDeadlineProgress,
-    AckByOriginalWithDeadline.properties.ackByOriginalWithDeadlineProgress,
-    RetainAndRouteWithDeadline.properties.retainAndRouteWithDeadlineProgress,
-    RetainAndRoute.properties.retainedReachesOwner,
-    RetainAndRoute.properties.retainedWaitsWithoutRecovery,
-    RetainAndRouteBoundedRetry.properties.retainedReachesOwnerBoundedRetry
-  )

@@ -5,7 +5,7 @@
  * Three identities stay apart. The logical activity is the entity. An attempt is what admission
  * commits, counted in the record. A delivery is one dispatch message, which the queue holds and may
  * hand out more than once. The record and the queue are separate machines, checked together by a
- * composition (withTaskQueue/). The stale design is a deliberately faulty control, not a claim about
+ * composition (WithTaskQueue.scala). The stale design is a deliberately faulty control, not a claim about
  * a known server defect.
  *
  * Read top to bottom: the types; the signature (history's internal steps and admission's choices);
@@ -17,7 +17,7 @@
  */
 package temporal
 package features.standaloneactivity
-package record
+package system
 
 import umpire.*
 import umpire.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
@@ -25,10 +25,12 @@ import umpire.realize.{Reason, RunExpectation}
 import temporal.capabilities.{given, *}
 import temporal.realize.satisfied
 import shared.Bounds.{four, three}
+import product.ActivityProduct
 import SystemFamily.given
 
 // First written in System.scala: it keeps the Definition IDs and type names it was checked with.
-given DefinitionScope = DefinitionScope("temporal.standaloneactivity.System$package$")
+given recordScope: DefinitionScope =
+  DefinitionScope("temporal.standaloneactivity.System$package$")
 
 // ### Types. Both deadlines are armed in every state, which lets them compete with a delivery.
 
@@ -97,7 +99,7 @@ val committedThenLost = choice
 val failedThenLost = choice
 
 // ### The corrected design. A design alone takes a delivery whenever one could arrive: what holds of
-// it holds over every queue, and what fails of it is confirmed over a queue (withTaskQueue/).
+// it holds over every queue, and what fails of it is confirmed over a queue (WithTaskQueue.scala).
 
 /** The corrected design, whose status sets a composition reads through `activity`. */
 object CurrentAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:

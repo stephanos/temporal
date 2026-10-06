@@ -41,7 +41,10 @@ import scala.collection.mutable
  * descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization makes (through 3.10.0-RC3).
  *
  * A feature file is a source named after its folder, case aside, in a package under `features` or
- * `shared`, as every Model's is: `features/standaloneactivity/StandaloneActivity.scala`. A file of
+ * `shared`, as every Model's is: `features/standaloneactivity/StandaloneActivity.scala`. A file of a
+ * level folder, `product/` or `system/` (fn-126 R20), reads as one too, the level's own file and each
+ * subject's beside it, without `object exports`, which only the root feature file holds; only the
+ * root feature file has siblings that declare no Model, such as `Realization.scala`. A file of
  * declarations the lifter must refuse, `*Rejects.scala` among its fixtures (model/irgen/testdata),
  * holds specimens of other refusals, a val read before it is declared among them, and is left to
  * those refusals.
@@ -60,6 +63,7 @@ final private[irgen] class Order(index: Index):
     // A source is compiled to a tree per top-level type and one for its top-level definitions.
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1)
     sources.foreach((path, trees) => layout(path, trees, sources.map(_._1)))
+    refused ++= Structure(index).refusals(exempt) // R20, the folders and sections of a feature
     refused.toSeq.sortBy((file, line, e) => (file, line, e.message)).map(_._3).distinct
 
   // ### Positions
@@ -453,20 +457,8 @@ final private[irgen] class Order(index: Index):
     case Kind.Laws if inObjectForm  => "the `implements` object of its machine's object"
     case _                          => k.belongs
 
-  /**
-   * The sections of a machine or composition object, in R2's order: its vocabulary, its refinement,
-   * then its declarations by kind; a composition's `syncs` takes the place of `rules`.
-   */
-  private val formSections = Seq(
-    "states",
-    "refinement",
-    "effects",
-    "monitors",
-    "rules",
-    "properties",
-    "implements",
-    "queries"
-  )
+  /** The sections of a machine or composition object, in R2's order (Structure.formSections). */
+  private val formSections = Structure.formSections
   private def plain(name: String) = name.stripSuffix("$")
 
   /** The section of a machine or composition object an object is named as, `syncs` as `rules`. */
@@ -576,11 +568,14 @@ final private[irgen] class Order(index: Index):
     val folder = path.take(path.lastIndexOf('/') + 1)
     def inFolder(other: String) =
       other.startsWith(folder) && !other.drop(folder.length).contains('/')
-    if featureFile(path, trees) then
-      featureLayout(topLevel(trees))
+    // A file of a level folder, product/ or system/, reads as a feature file without exports (R20).
+    val level = Structure.levelFile(path) && modelPackage(trees)
+    if level || featureFile(path, trees) then
+      featureLayout(topLevel(trees), level)
       for c <- companions(trees) do noModelIn(c, s"${plain(c.name)}, the companion of a type")
     else
-      // Beside a feature file, a file declares no Model of its own: the feature file holds them.
+      // Beside a feature file, a file declares no Model of its own: the feature file holds them. A
+      // level folder's files all read as feature files, so this holds for the root's siblings.
       val beside = sources
         .filter(inFolder)
         .filter(other => featureFile(other, index.trees.filter(t => fileOf(t) == other)))
@@ -628,11 +623,15 @@ final private[irgen] class Order(index: Index):
     "object exports"
   )
 
-  private def featureLayout(declared: List[Definition]): Unit =
+  /**
+   * A feature file's layout, or, where `level`, a level folder's file's, whose order ends with its
+   * machine and composition objects: its `object exports` is refused by the structure lint (R20).
+   */
+  private def featureLayout(declared: List[Definition], level: Boolean): Unit =
     // (c): the file's order, each top-level declaration by its rank in it.
     def rank(d: Definition): Int = objectOf(d) match
       case Some(c) =>
-        if plain(c.name) == "exports" then 4
+        if plain(c.name) == "exports" then if level then -1 else 4
         else if familyObject(c) then 0
         else if holdsModel(c) then 3
         else 2
@@ -641,7 +640,8 @@ final private[irgen] class Order(index: Index):
           case _: ClassDef | _: TypeDef                                      => 1
           case _ if typed(d, Set("umpire.DefinitionScope", "umpire.Family")) => 0
           case _                                                             => 2
-    ordered(declared, rank, fileOrder, "a feature file")
+    if level then ordered(declared, rank, fileOrder.init, "a level folder's file")
+    else ordered(declared, rank, fileOrder, "a feature file")
 
     // (d): the top level declares no Model; a machine object and its sections hold them.
     for d <- declared do

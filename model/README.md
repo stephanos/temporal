@@ -25,11 +25,11 @@ A **Model** is the description of one feature: its state machines and everything
 them. A **machine** is a finite state machine: its states, the actions that can happen, and a step
 function per action that says what the next state is and which facts the step records. The Nexus
 caller Model is in `model/temporal/features/nexuscaller`, and its machine `nexusProtocol` is declared in
-its feature file, `NexusCaller.scala`, as the object `NexusProtocol`, which is the machine: its rules
-say when each action fires and its effects what it does.
+its System level's file, `system/System.scala`, as the object `NexusProtocol`, which is the machine:
+its rules say when each action fires and its effects what it does.
 
 A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/features/nexuscaller/NexusCaller.scala`, line 476, in
+example's Property (`model/temporal/features/nexuscaller/system/System.scala`, line 205, in
 `NexusProtocol.properties`), named after its `val`; inside the machine's object, `property` is the
 machine's own:
 
@@ -50,7 +50,7 @@ The path starts where the machine does, in `unscheduled`, the state before the o
 `unset`; `caller.schedule(scheduleToStart := expires)` sets one by name.
 
 A **Query** is a bounded question that joins the two: find a path of this Scenario on which the
-Property is put to work, or verify that the Property holds on every path of it (line 559, in
+Property is put to work, or verify that the Property holds on every path of it (line 288, in
 `NexusProtocol.queries`, without its exploration settings). A Scenario one Query uses is written
 inside it, under its name:
 
@@ -228,8 +228,8 @@ entry there, without the `exploration` field:
 {
   "name": "syncCompletion",
   "position": {
-    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-    "line": 585
+    "file": "model/temporal/features/nexuscaller/system/System.scala",
+    "line": 288
   },
   "form": "FORM_FIND",
   "property": {
@@ -538,34 +538,54 @@ binds. A monitor a Query's expected Run names by value is refused where no `val`
 Query's machine does not watch it, and a `given Family` whose root is not a string literal.
 
 A feature reads top to bottom in one feature file per folder, named after the folder, beside its
-`Realization.scala` and its tests; its larger subjects are subfolders laid out the same way. Every
-Model folder is laid out so, and the standalone activity is the example:
+`Realization.scala` and its tests. A feature whose Models include a refinement pair has two levels,
+each in a folder of its own because different people read them: `product/`, what a caller reads,
+and `system/`, how the server gets there. Its root feature file keeps the types, the signature and
+`object exports`; each level folder holds the level's own file, named after the folder, and one file
+per subject beside it, a zoom-in on how the System keeps its promise among them. A feature of one
+level keeps its machines in its feature file. Every Model folder is laid out so (the structure lint
+of "Starting a new feature" below holds it), and the standalone activity is the example:
 
 ```text
 features/
   standaloneactivity/
-    StandaloneActivity.scala   types, signature; ActivityProduct, ActivityProtocol, ActivityWorker, StandaloneActivity; exports
+    StandaloneActivity.scala   types, signature; exports
     Realization.scala          the realization
-    record/
+    product/
+      Product.scala            ActivityProduct
+    system/
+      System.scala             ActivityProtocol, ActivityWorker, StandaloneActivity
       Record.scala             the record and its designs: CurrentAdmission, StaleAdmission, HeldAdmission, AdmissionResponseLoss
-    withTaskQueue/
       WithTaskQueue.scala      the designs over the task queue: CurrentRecord, StaleRecord, CurrentOverQueue, …
   nexuscaller/
-    NexusCaller.scala          NexusProduct, NexusProtocol, HandlerWorker, NexusCaller, ForgedCompletion; exports
+    NexusCaller.scala          types, signature; exports, the close and reset designs' among them
     Realization.scala
-    closepolicy/
-      ClosePolicy.scala        RejectAfterClose and the nine designs derived from it; exports
+    product/
+      Product.scala            NexusProduct
+    system/
+      System.scala             NexusProtocol, HandlerWorker, NexusCaller
+      ForgedCompletion.scala   ForgedCompletion, the forged control
+      ClosePolicy.scala        RejectAfterClose and the eight designs derived from it
   nexusoperation/
     NexusOperation.scala       NexusOperation; exports
     Realization.scala
 shared/
   Bounds.scala                 the bounds more than one folder's Queries run under
   taskqueue/
-    TaskQueue.scala            DispatchQueue, the opaque contract, and its storage-loss variant; MatchingQueue,
-                               the provider that refines it, and the lossy, forgetful and volatile providers
+    TaskQueue.scala            types, signature (the queue's actions, its faults, the storage-loss assumption)
+    product/
+      Product.scala            DispatchQueue, the opaque contract, and its storage-loss variant
+    system/
+      System.scala             MatchingQueue, the provider that refines it, and the lossy, forgetful and
+                               volatile providers
   worker/
     Worker.scala               Polling
 ```
+
+The files of one level folder share its package, so their top-level names are shared too: a
+subject's own types, signature and givens sit in its file, and a given another subject must not see
+lives in an object of its own or in its type's companion, as the close policy's `ClosePolicyFamily`
+and `Answer`'s `Ok` do.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/model`
@@ -622,8 +642,8 @@ its rules. A composition is `object CurrentOverQueue extends Composition[OverQue
 CurrentRecord, _.queue -> DispatchQueue)` with its `def end(s)` and `object syncs extends Syncs`;
 one with a member replaced is `object StaleOverQueue extends Composition(CurrentOverQueue.withMember(
 _.activity -> StaleRecord))`. A machine object that holds a monitor, assumption, hole or channel
-pins its former owner, as `record/`'s `CurrentAdmission` pins `…System$package$` beside its file's
-own pin of the same owner. A section object is initialized on first use: an `implements` that reads
+pins its former owner, as `system/Record.scala`'s `CurrentAdmission` pins `…System$package$` beside
+its file's own pin of the same owner. A section object is initialized on first use: an `implements` that reads
 the realization, as the protocol's `Describable` does, leaves the machine object free for the
 realization to read. A machine that is a failure model, the real design under a fault the
 environment can cause, mixes in `FailureModel`, and a negative control, a deliberately wrong design
@@ -646,16 +666,16 @@ Go tests that pin each Query's answer and each refinement's receipt (`tools/umpi
 
 The markers change no ID, name or line of the IR. The core of a machine's rules, its step functions
 bound by hand, `object rules extends Bindings(a ~> f, …)`, is the spelling of the IR generator's core
-fixtures, and a Model may not use it. A folder
-is a subpackage (`package standaloneactivity; package record`), so it reads its parent's vocabulary
-without imports. A section that declares Properties over a machine argument returns them as a bundle
+fixtures, and a Model may not use it. A level folder
+is a subpackage (`package features.standaloneactivity; package system`), so it reads its feature's
+types and signature without imports. A section that declares Properties over a machine argument returns them as a bundle
 (below), so its Queries read them by field rather than declaring them.
 
 Two families in one package cannot both be package-level givens, since each file would see both.
 Each then lives in an object of its own, `object SystemFamily: given family: Family = …`, and each
 file imports the one its declarations take (`import SystemFamily.given`), as the standalone
 activity's files do: its feature file declares `ActivityFamily` and `SystemFamily`, and the files of
-its `record/` and `withTaskQueue/` import `SystemFamily.given`.
+its `system/Record.scala` and `system/WithTaskQueue.scala` import `SystemFamily.given`.
 
 An action, monitor, assumption, hole, channel with the actions it derives, or realization takes its
 Definition ID from its `val`'s owner and name. Declarations moved to a new owner keep their IDs
@@ -759,7 +779,7 @@ atMostOneActive(c)(through(_.activity, Admission.twoActive))
 
 The IR generator lifts each `through` as one function of the composed state,
 `<state>.through.<path>.<def>` (here
-`temporal.features.standaloneactivity.withTaskQueue.OverQueue.through.activity.temporal.features.standaloneactivity.record.Admission$.paused`),
+`temporal.features.standaloneactivity.system.OverQueue.through.activity.temporal.features.standaloneactivity.system.CurrentAdmission$.states$.paused`),
 which the law calls as it calls a def. `select` is a field path, `_.activity` or `_.left.phase`, and
 `read` a def of the lifted sources; each other selector and a lambda for `read` are refused at their
 line, as a lambda is, and a `read` over another type than the member's does not compile. Its two
@@ -774,7 +794,7 @@ opaque contract `DispatchQueue` and its storage-loss variant, the providers that
 (`MatchingQueue` and the lossy one, failure models, and the forgetful and volatile negative
 controls), the laws `queueLaws` every provider is held to, and the provider Queries.
 A feature keeps its own syncs and its cross-entity claims, as the standalone activity's
-`withTaskQueue/` does. The queue is a bounded abstraction, not a general queue: one message at a
+`system/WithTaskQueue.scala` does. The queue is a bounded abstraction, not a general queue: one message at a
 time, delivered at most twice before its acknowledgment. The detailed provider's table, and a
 design composed with it, has depth ten, so its free Queries run within `twelve`. Its declarations
 keep the family, Definition IDs and type names they had in the standalone activity's system
@@ -929,6 +949,20 @@ method descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization make
 standalone activity and `jobsCode` in a lifter fixture; each was `null` at run time, where only the
 lifter, which reads the trees, had read it.
 
+### Starting a new feature
+
+Copy the template, `model/irgen/testdata/layout/lamp/`, to `model/temporal/features/<feature>/`, and
+name its feature file after the folder and its machines after the feature. A feature whose Models
+include a refinement pair keeps its types, signature and `object exports` in that file, its Product
+in `product/Product.scala`, and its System in `system/System.scala` with each zoom-in in a file of its
+own beside it; a feature of one level keeps its machines in its feature file and has neither folder.
+The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
+object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
+`syncs`, `properties`, `implements` or `queries`; its refusal fixtures are under
+`model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter
+fixture once it has a `product/` or `system/` folder. A file of a level folder reads in a feature
+file's order, without `object exports`, which only the root feature file holds.
+
 ### Capabilities and their laws
 
 A capability is what an entity can do, declared on its machine as a binding of a protocol's
@@ -954,9 +988,9 @@ citations and the one `given Catalog` live in `model/temporal/capabilities`:
 | `Describable` | `status`, the realization's fact-to-status table | none of its own: the generated finds' awaits read its table |
 
 **The worked example.** The standalone activity declares its capabilities in two declarations, the
-`implements` objects of its `ActivityProduct` and `ActivityProtocol` in
-`model/temporal/features/standaloneactivity/StandaloneActivity.scala`, each `capabilities(limits)(…)`
-of the machine it sits in:
+`implements` objects of its `ActivityProduct` in
+`model/temporal/features/standaloneactivity/product/Product.scala` and its `ActivityProtocol` in
+`system/System.scala`, each `capabilities(limits)(…)` of the machine it sits in:
 
 ```scala
 import temporal.capabilities.{given, *}
@@ -1071,13 +1105,13 @@ adds, removes or rewrites a row:
 
 ```text
 laws model/ir/activity.json activityProduct
-  activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/StandaloneActivity.scala:274
+  activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/product/Product.scala:133
     promises: while an entity is paused no work is handed to a worker: no step from paused lands in running
     does not promise: what a pause of held work does (…), what a second pause or an unpause of a live entity answers, …
     attemptStart (Pollable.dispatch)    paused  MUST NOT  cell: ? s.phase != scheduled
     control-pause (Pausable.pause)      paused  MUST NOT  cell: ? !pausable(s)
     control-unpause (Pausable.unpause)  paused  MUST NOT of its results  cell: MAY accepted -> scheduled [statusScheduled]
-  activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/StandaloneActivity.scala:269
+  activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/product/Product.scala:128
     …
     every class  completed, failed, canceled, terminated, timedOut  MUST NOT
   no law pins
@@ -1309,7 +1343,7 @@ Runs reproduce the same failure again. An incomplete or unreproduced failure pro
 `TestTestpilotNexusControlReplaysThroughTheCommand` run both against an in-process server; set
 `UMPIRE_EXPLORATION_DIR` to keep their Cases, Runs, reports and HTML traces.
 
-The control machine `ForgedCompletion` (`forgedCompletion`, `model/temporal/features/nexuscaller/NexusCaller.scala`)
+The control machine `ForgedCompletion` (`forgedCompletion`, `model/temporal/features/nexuscaller/system/ForgedCompletion.scala`)
 deliberately admits a forged success beside the real failed callback. It is a negative control,
 marked `NegativeControl`, that shows a violated Verdict being found and replayed, not a server
 defect.

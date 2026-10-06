@@ -28,7 +28,8 @@ import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 import ActivityFamily.given
 import Timeout.expires
 import shared.worker.worker as process
-import record.{history, AdmissionFact, AdmissionResponseFact, AdmissionResponseLoss, HeldAdmission}
+import system.{history, ActivityProtocol, AdmissionFact, AdmissionResponseFact}
+import system.{AdmissionResponseLoss, HeldAdmission}
 
 object ActivityRealization:
   // Moved from temporal.standaloneactivity; the pin keeps its Definition IDs.

@@ -191,7 +191,7 @@ var closeDefaultQuery = regexp.MustCompile(`query\s+(?:verify|find)\s+claims\.(\
 // closeSource is every name the Scala sources of the designs declare, as "<kind> <name>".
 func closeSource(t *testing.T) []string {
 	t.Helper()
-	files, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "temporal", "features", "nexuscaller", "closepolicy", "*.scala"))
+	files, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "temporal", "features", "nexuscaller", "system", "ClosePolicy.scala"))
 	require.NoError(t, err)
 	require.NotEmpty(t, files)
 	found := map[string]bool{}
@@ -340,7 +340,7 @@ func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	// compiler's name, in the package the Model moved to (fn-114.9) and the object and section that
 	// hold it (fn-126).
 	const model = "temporal.nexuscaller.closepolicy.Model$package$."
-	const functions, properties = "temporal.features.nexuscaller.closepolicy.RejectAfterClose$.states$.", "temporal.features.nexuscaller.closepolicy.RejectAfterClose$.properties$."
+	const functions, properties = "temporal.features.nexuscaller.system.RejectAfterClose$.states$.", "temporal.features.nexuscaller.system.RejectAfterClose$.properties$."
 	names := map[string]string{}
 	fair := map[string][]string{}
 	for _, a := range m.GetAssumptions() {

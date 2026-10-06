@@ -1457,7 +1457,7 @@ class Fixtures extends munit.FunSuite:
     import com.fasterxml.jackson.databind.JsonNode
     // Each design is an object, named as the composition is with the first letter raised: its
     // Queries in its `queries`, or the design itself where no Query runs over it.
-    val designs = "temporal.features.standaloneactivity.withTaskQueue."
+    val designs = "temporal.features.standaloneactivity.system."
     def designObject(d: String) = designs + d.head.toUpper + d.tail
     val overQueue = Seq("currentOverQueue", "staleOverQueue")
     val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")
@@ -1788,4 +1788,113 @@ class Fixtures extends munit.FunSuite:
     assert(
       usage.output.contains("usage: lift <jar=prefix>,... <classpath file> <out.json> <root>..."),
       usage.output
+    )
+
+  // ### fn-126 R20: the structure lint, over fixtures of features with their level folders
+
+  /** A fixture whose features have folders, copied with them, its jar's path resolved. */
+  private def materializeTree(fixture: String): Path =
+    val from = testdata.resolve(fixture)
+    val to = Files.createDirectories(scratch.resolve(fixture))
+    val jar = java.util.regex.Matcher.quoteReplacement(modelJar.toString)
+    val stream = Files.walk(from)
+    try
+      for source <- stream.iterator.asScala.toList if source.toString.endsWith(".scala") do
+        val copy = to.resolve(from.relativize(source).toString)
+        Files.createDirectories(copy.getParent)
+        Files.writeString(
+          copy,
+          Files.readString(source).replaceAll("""(\.\./)+build/model-scala\.jar""", jar)
+        )
+    finally stream.close()
+    to
+
+  // The template a new feature copies (layout/lamp): a feature with its two levels and a zoom-in,
+  // which the lint refuses nothing of and the lifter lifts.
+  concurrently("the layout template lifts with no refusal"):
+    val jar = packaged("layout", materializeTree("layout"))
+    val out = scratch.resolve("layout-out")
+    val result = liftIr(out, s"$jar=${stored("layout")},$modelJar=model/", "lamp")
+    assertEquals(refused(result), Nil)
+    assert(!result.failed, result.diagnostics)
+    assertEquals(listed(out), Seq("lamp.json"))
+    val lifted = Files.readString(out.resolve("lamp.json"))
+    for machine <- Seq("lampProduct", "lampSystem", "bulb") do
+      assert(lifted.contains(s"\"$machine\""), s"lamp.json lifts no machine $machine")
+
+  // R20 (a): the folders of a feature with two levels, a missing root feature file or level file,
+  // a feature of one level with a subfolder, and a package that does not mirror its folder
+  // (layoutRefusals/a).
+  concurrently("the structure lint refuses a feature's levels out of their folders"):
+    val jar = packaged("layoutRefusals-a", materializeTree("layoutRefusals/a"))
+    val out = scratch.resolve("layoutRefusals-a-out")
+    val at = stored("layoutRefusals/a")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    val two = "KettleSystem refines KettleProduct, so kettle has two levels, each in its folder: " +
+      "the Product in product/Product.scala, the System in system/System.scala, beside the root " +
+      "feature file named after the feature's folder, which holds the types, the signature and " +
+      "object exports (model/irgen/testdata/layout/lamp is the template)"
+    val urn = two.replace(
+      "KettleSystem refines KettleProduct, so kettle",
+      "UrnSystem refines UrnProduct, so urn"
+    )
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: ${at}kettle/Kettle.scala:30: Stray is a machine object in kettle's root folder, " +
+          s"${at}kettle/, whose feature file holds the types, the signature and object exports " +
+          "alone: a feature with two levels declares its machines in product/ and system/",
+        s"lift: ${at}kettle/system/Heater.scala:12: $two; ${at}kettle/system/System.scala is " +
+          "missing",
+        s"lift: ${at}kettle/system/element/Element.scala:8: Element is a machine object in " +
+          s"${at}kettle/system/element/, which is no level folder of kettle: a feature with two " +
+          "levels keeps its Models in product/ and system/, one file per subject beside the " +
+          "level's own file, with no folder below them",
+        s"lift: ${at}tap/fittings/Washer.scala:5: ${at}tap/fittings/Washer.scala declares package " +
+          s"fixture.features.tap, which its folder, ${at}tap/fittings/, does not mirror: a " +
+          "feature's subpackages are its folders, named alike, since the structure lint reads a " +
+          "source's package and the order lint its path",
+        s"lift: ${at}tap/product/Product.scala:6: tap has no machine that refines another of its " +
+          "own, so it has one level, whose Models sit in its feature file: it has no product/ " +
+          "folder",
+        s"lift: ${at}tap/valve/Valve.scala:8: tap has no machine that refines another of its " +
+          "own, so it has one level, whose Models sit in its feature file: it has no valve/ folder",
+        s"lift: ${at}urn/system/System.scala:11: $urn; ${at}urn/ has no root feature file",
+        s"lift: ${at}urn/system/System.scala:11: $urn; ${at}urn/product/Product.scala is missing"
+      )
+    )
+
+  // R20 (c): a machine's sections by their closed names, with or without `extends Section`, and
+  // one object exports per feature, in its root feature file (layoutRefusals/c); a level folder's
+  // file is held to a feature file's order, which has no exports there.
+  concurrently("the structure lint refuses an unnamed section and a misplaced exports"):
+    val jar = packaged("layoutRefusals-c", materializeTree("layoutRefusals/c"))
+    val out = scratch.resolve("layoutRefusals-c-out")
+    val at = stored("layoutRefusals/c")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    val product = s"${at}kiln/product/Product.scala"
+    val none = "and none of its sections, states, refinement, effects, monitors, rules, syncs, " +
+      "properties, implements, queries: a section of another name sits at the top level of the " +
+      "file, in the signature, and anything else in one of these"
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: ${at}kiln/Kiln.scala:11: kiln declares no object exports in its root feature " +
+          s"file, ${at}kiln/Kiln.scala: a feature under features names its IR files there, in " +
+          "one object exports",
+        s"lift: $product:17: timers is an object in KilnProduct $none",
+        s"lift: $product:21: helpers is an object in KilnProduct $none",
+        s"lift: $product:21: helpers is vocabulary of KilnProduct, declared outside its " +
+          "sections: it belongs in the `states` object of its machine's object",
+        s"lift: ${at}pump/system/System.scala:21: Gauge belongs before PumpSystem at " +
+          s"${at}pump/system/System.scala:7: a level folder's file reads its header, then its " +
+          "types, then its signature, then its machine and composition objects",
+        s"lift: ${at}pump/system/System.scala:24: object exports sits in " +
+          s"${at}pump/system/System.scala, not in pump's root feature file: a feature names its " +
+          "IR files in one object exports, there"
+      )
     )

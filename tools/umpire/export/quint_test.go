@@ -296,7 +296,7 @@ func function(m *umpirespb.Model, name string) *umpirespb.Function {
 // phase, to both memberships at once: an activity is over only when it is completed and timed out, which no
 // state is, so terminal finality is never closed and never reopened.
 func overAtOnce(m *umpirespb.Model) {
-	body := function(m, "temporal.features.standaloneactivity.record.CurrentAdmission$.states$.terminal").GetBody()
+	body := function(m, "temporal.features.standaloneactivity.system.CurrentAdmission$.states$.terminal").GetBody()
 	in := body.GetBinary()
 	is := func(item *umpirespb.Expr) *umpirespb.Expr {
 		return &umpirespb.Expr{Position: item.GetPosition(), Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{
@@ -573,7 +573,7 @@ func TestQuintStopsWhereTheModelHasNoValue(t *testing.T) {
 	found := needs(t, QuintTool)
 	reference := openNamed(t, "nexus-caller")
 	mutant := proto.Clone(reference.Model).(*umpirespb.Model)
-	function(mutant, "temporal.features.nexuscaller.NexusProtocol$.states$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
+	function(mutant, "temporal.features.nexuscaller.system.NexusProtocol$.states$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
 	_, err := RunQuint(t.Context(), found, exportedAsWritten(t, reference, mutant), workDir(t))
 	require.ErrorContains(t, err, "Runtime error")
 }
@@ -820,7 +820,7 @@ func TestAgreementRejectsATamperedComposition(t *testing.T) {
 // the order its result list holds them.
 func admittedSteps(m *umpirespb.Model) []*umpirespb.Construct {
 	var out []*umpirespb.Construct
-	for _, item := range function(m, "temporal.features.standaloneactivity.record.CurrentAdmission$.effects$.admit").GetBody().GetList().GetItems() {
+	for _, item := range function(m, "temporal.features.standaloneactivity.system.CurrentAdmission$.effects$.admit").GetBody().GetList().GetItems() {
 		out = append(out, item.GetConstruct())
 	}
 	return out
@@ -963,7 +963,7 @@ func TestQuintRefusesANameItCannotWrite(t *testing.T) {
 			m := proto.Clone(loadModel(t, "activity-system")).(*umpirespb.Model)
 			steps := admittedSteps(m)
 			steps[0].Choice, steps[1].Choice = "accepts", name
-			at := function(m, "temporal.features.standaloneactivity.record.CurrentAdmission$.effects$.admit").GetBody().GetList().GetItems()[1].GetPosition()
+			at := function(m, "temporal.features.standaloneactivity.system.CurrentAdmission$.effects$.admit").GetBody().GetList().GetItems()[1].GetPosition()
 			s, err := Open(m)
 			require.NoError(t, err)
 			_, err = s.Quint()

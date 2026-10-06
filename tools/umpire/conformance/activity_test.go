@@ -4,7 +4,7 @@ package conformance
 // would not record: evidence out of the path's order, and evidence on a Run Event its source does not
 // take. The Run's own record is evidence here, so the Run Event that carries a piece of evidence is
 // itself read. The expectations are read off model/temporal/features/standaloneactivity
-// (StandaloneActivity.scala, Realization.scala). The Runs the Cases record live are in played_test.go.
+// (system/System.scala, Realization.scala). The Runs the Cases record live are in played_test.go.
 
 import (
 	"path/filepath"

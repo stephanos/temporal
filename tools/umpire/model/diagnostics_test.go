@@ -78,7 +78,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 			walk(x, func(x *umpirespb.Expr) {
 				if c := x.GetCall(); c != nil && (strings.HasSuffix(c.GetFunction(), "NexusProtocol$.states$.saturatingSucc") ||
 					strings.HasSuffix(c.GetFunction(), "NexusProtocol$.states$.validAttempts")) {
-					c.Function = "temporal.features.nexuscaller.NexusProtocol$.states$.move"
+					c.Function = "temporal.features.nexuscaller.system.NexusProtocol$.states$.move"
 				}
 			})
 		}
@@ -88,7 +88,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	lines := strings.Split(err.Error(), "\n")
 	require.GreaterOrEqual(t, len(lines), 5, "every renamed call is reported, not only the first")
 	for _, l := range lines {
-		require.Regexp(t, `^model/temporal/features/nexuscaller/NexusCaller\.scala:\d+: no function temporal\.features\.nexuscaller\.NexusProtocol\$\.states\$\.move$`, l)
+		require.Regexp(t, `^model/temporal/features/nexuscaller/system/System\.scala:\d+: no function temporal\.features\.nexuscaller\.system\.NexusProtocol\$\.states\$\.move$`, l)
 	}
 }
 
@@ -101,7 +101,7 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/NexusCaller.scala:450: nexusProtocol.rules.backoff "+
+	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/system/System.scala:179: nexusProtocol.rules.backoff "+
 		"steps handlerReply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 
@@ -120,7 +120,7 @@ func TestValidateReportsUnrelatedSameStateMachinesAtQueryPosition(t *testing.T) 
 	require.NotNil(t, other)
 	q.Scenario = proto.Clone(other.GetScenario()).(*umpirespb.ClaimRef)
 	// The refusal is at the Query's own line, wherever the Query sits in its file.
-	require.EqualError(t, Validate(m), fmt.Sprintf("model/temporal/features/nexuscaller/closepolicy/ClosePolicy.scala:%d: query ackByOriginal.ackedThenReset "+
+	require.EqualError(t, Validate(m), fmt.Sprintf("model/temporal/features/nexuscaller/system/ClosePolicy.scala:%d: query ackByOriginal.ackedThenReset "+
 		"pairs a Property of ackByOriginal with a Scenario of rejectAfterClose", q.GetPosition().GetLine()))
 }
 

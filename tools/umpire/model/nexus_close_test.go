@@ -1,10 +1,11 @@
 package model
 
-// The Nexus caller close and reset designs, lifted from scala/temporal/nexuscaller/closepolicy into
-// ir/nexus-close.json and checked here through Check alone. What each test expects is the trace oracle
-// of model/specimens/nexus.md it names, in the keys of the lifted Model. A state key spells
-// caller, cancel intent, handler, channel, retained, known: the specimen's six fields, with the cancel
-// intent carrying its principal and the handler its receipt of the cancel request.
+// The Nexus caller close and reset designs, lifted from
+// features/nexuscaller/system/ClosePolicy.scala into ir/nexus-close.json and checked here through
+// Check alone. What each test expects is the trace oracle of model/specimens/nexus.md it names, in
+// the keys of the lifted Model. A state key spells caller, cancel intent, handler, channel,
+// retained, known: the specimen's six fields, with the cancel intent carrying its principal and the
+// handler its receipt of the cancel request.
 //
 // Every claim here is an authored design promise: no server has a close policy, an operation-level
 // retention or a reset that reapplies it. nexus_close_baseline_test.go compares the one behavior the Go
