@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T00:23:46.173582Z",
+  "depends_on": [
+    "fn-133-lean-typed-realizations.4"
+  ],
+  "id": "fn-133-lean-typed-realizations.5",
+  "priority": 50,
+  "spec": "fn-133-lean-typed-realizations",
+  "spec_path": ".flow/tasks/fn-133-lean-typed-realizations.5.md",
+  "status": "todo",
+  "title": "Name collisions and the activity realization's local fixes",
+  "updated_at": "2026-10-06T00:23:46.173582Z"
+}

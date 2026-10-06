@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T05:22:12.925306Z",
+  "depends_on": [
+    "fn-133-lean-typed-realizations.6"
+  ],
+  "id": "fn-133-lean-typed-realizations.8",
+  "priority": 65,
+  "spec": "fn-133-lean-typed-realizations",
+  "spec_path": ".flow/tasks/fn-133-lean-typed-realizations.8.md",
+  "status": "todo",
+  "title": "Derive per-class carrier schemas from typed realizations",
+  "updated_at": "2026-10-06T05:22:12.925306Z"
+}
