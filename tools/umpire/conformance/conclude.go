@@ -28,7 +28,7 @@ type tally struct {
 	tainted bool
 }
 
-// Why a conclusion is what it is: the IR's reason, whose id (umpiremodel.ExpectationID) an Assessment
+// Why a conclusion is what it is: the IR's reason, whose id (ir.ExpectationID) an Assessment
 // reports and an expected Run names, and its prose, a detail of an Assessment and no stable API. This
 // table is the one place a reason is worded.
 type reason = umpirespb.RunExpectation_Reason

@@ -19,7 +19,7 @@ type firstReader int
 const (
 	// byNone finds nothing wrong: the guard is well formed for all three readers.
 	byNone firstReader = iota
-	// byAdmission is umpiremodel.Validate, which reads no descriptor.
+	// byAdmission is ir.Validate, which reads no descriptor.
 	byAdmission
 	// byLowering is the lowering to a Case, which reads the payload's descriptor.
 	byLowering

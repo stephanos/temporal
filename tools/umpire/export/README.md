@@ -71,11 +71,11 @@ one, by index (`nondet n = oneOf(rs.indices())`). A composed step record carries
 Go's composed results do.
 
 `QuintAgreement` decodes the dump by the IR's types and compares it key by key with Go's tables: a
-machine's from `umpiremodel.Build`, a composition's from `Realizer.Composition`, the reading `umpiremodel.Check`
+machine's from `interp.Build`, a composition's from `Realizer.Composition`, the reading `check.Check`
 answers it from. A pair the dump leaves out is a difference; it is never read as disabled.
 
 Go's side of the monitor product evaluates each monitor's `next`, evaluation point and `violated`
-with the reader's interpreter. `umpiremodel.Check` then confirms it through ordinary admission: one verify over
+with the reader's interpreter. `check.Check` then confirms it through ordinary admission: one verify over
 every path from each start, and one over the classes of each counterexample.
 
 `quint verify` adds a model checker's verdict where it runs. Each of the four activity checks
@@ -91,7 +91,7 @@ are compared by the evaluator's product alone.
 
 ## Compositions
 
-`umpiremodel.Realizer.Composition` gives the composed table `umpiremodel.Check` builds for a composition's claims,
+`check.Realizer.Composition` gives the composed table `check.Check` builds for a composition's claims,
 the state record and step record each key stands for, and the composition's Properties as the
 checker binds them. That is Go's side of the comparison.
 
@@ -172,7 +172,7 @@ The pins are in `tools_test.go`. Under `UMPIRE_BACKENDS=require` the tests take 
 | `composed.go` | The composition's translation and the reading of its part of a dump |
 | `itf.go` | Reading ITF values back by the IR's types |
 | `agreement.go` | The comparison of a dump with Go |
-| `checked.go` | Confirmation of monitor verdicts and counterexamples through `umpiremodel.Check` |
+| `checked.go` | Confirmation of monitor verdicts and counterexamples through `check.Check` |
 | `verify.go` | The Apalache run and its verdict's comparison |
 | `tool.go` | Running the tools |
 | `tools_test.go`, `quint.sh` | The opt-in, the pinned tools and the Quint launcher |

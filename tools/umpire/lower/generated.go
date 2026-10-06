@@ -31,7 +31,7 @@ type ExpectedClaim struct {
 }
 
 // ExpectedRun is what a Query's expected Run declares, each value the IR enum value's id
-// (umpiremodel.ExpectationID): the Contract's Verdict, the Run's disposition and cleanup, the model
+// (ir.ExpectationID): the Contract's Verdict, the Run's disposition and cleanup, the model
 // assessment's conformance and, when it is not conformant, the judge's reason for it, and the
 // selected Property's and each monitor's conclusion.
 type ExpectedRun struct {
@@ -324,7 +324,7 @@ func validateExpectedRun(expected *ExpectedRun, key string) error {
 	return nil
 }
 
-// reasonID reports whether id names a judge's reason exactly as umpiremodel.ExpectationID spells
+// reasonID reports whether id names a judge's reason exactly as ir.ExpectationID spells
 // it, the one spelling rule for a claim's reason and the conformance reason.
 func reasonID(id string) bool {
 	reason, named := umpirespb.RunExpectation_Reason_value["REASON_"+strings.ToUpper(id)]
@@ -408,7 +408,7 @@ func (e *ExpectedRun) Check(run *testpilotspb.Run, verdict *testpilotspb.Verdict
 	return errors.Join(problems...)
 }
 
-// testpilotID is a Testpilot enum value as an expected Run names it (umpiremodel.EnumID).
+// testpilotID is a Testpilot enum value as an expected Run names it (ir.EnumID).
 func testpilotID(value protoreflect.Enum, prefix string) string {
 	return ir.EnumID(value, prefix)
 }

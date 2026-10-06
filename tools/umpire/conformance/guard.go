@@ -14,7 +14,7 @@ import (
 // evidence a realization declares with a Run Event source. The source names a kind of event, the
 // command that records it, and a guard over the event's payload, the instruction outcome.
 //
-// What a well-formed guard is, admission and the lowering to a Case decide by umpiremodel.GuardProblem, and
+// What a well-formed guard is, admission and the lowering to a Case decide by realization.GuardProblem, and
 // so does this file, against the descriptor of the payload it evaluates: a guard one of the three
 // refuses is refused by all, in the same words, whatever the event holds. A guard that is well formed
 // is then evaluated, and the one thing that can keep it from a value is the event: it compares,
@@ -78,7 +78,7 @@ func admits(source *umpirespb.RunEventSource, event *testpilotspb.RunEvent) (boo
 	}
 }
 
-// value is one value a well-formed guard computes. Its type is the one umpiremodel.TypeOf gave it, so only
+// value is one value a well-formed guard computes. Its type is the one realization.TypeOf gave it, so only
 // the part of that type is set: a flag, a number, a text or the name of an enum value, or a message.
 type value struct {
 	// absent is a value the payload does not hold: a message that is unset, a oneof member that is not
