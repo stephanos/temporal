@@ -431,7 +431,7 @@ final private[irgen] class Structure(index: Index):
       "SystemState" -> ("System", "State", "system/System.scala"),
       "SystemFact" -> ("System", "Fact", "system/System.scala")
     )
-    if twoLevels then
+    if twoLevels || general then
       for
         root <- rootFile.toSeq
         d <- root.top
@@ -439,10 +439,11 @@ final private[irgen] class Structure(index: Index):
         written = plain(d.name)
         (level, owned, file) <- prefixedLevelVocabulary.get(written)
       do
+        val destination = if general && level == "System" then s"a form's $file" else file
         refuse(
           d,
           s"$written is $level level vocabulary declared in $name's root feature file: " +
-            s"declare it as $owned in $file"
+            s"declare it as $owned in $destination"
         )
       for
         root <- rootFile.toSeq
@@ -451,10 +452,13 @@ final private[irgen] class Structure(index: Index):
         written = plain(d.name)
         if Set("Phase", "State", "Fact")(written)
       do
+        val destination =
+          if general then "the kind Product file or a form's level file"
+          else "product/Product.scala or system/System.scala"
         refuse(
           d,
           s"$written is level vocabulary declared in $name's root feature file: declare it in " +
-            "product/Product.scala or system/System.scala"
+            destination
         )
 
       // Distinct Product and System state/fact types make the vocabulary level-owned rather than

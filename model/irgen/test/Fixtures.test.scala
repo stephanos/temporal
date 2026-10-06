@@ -1926,6 +1926,14 @@ class Fixtures extends munit.FunSuite:
       "one general feature file"
     ),
     (
+      "general-vocabulary",
+      "activity/Activity.scala",
+      Some(
+        "package fixture.features.activity\nimport umpire.Finite\nenum Phase derives Finite:\n  case idle\n"
+      ),
+      "Phase is level vocabulary declared in activity's root feature file"
+    ),
+    (
       "wrong-form-package",
       "nexus/standalone/Mismatch.scala",
       Some("package fixture.features.nexus.workflow\nfinal case class Marker(value: Boolean)\n"),
