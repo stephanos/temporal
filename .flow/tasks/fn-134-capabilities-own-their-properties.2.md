@@ -43,9 +43,66 @@ Memory `consolidated-extractor-dropped-a-2026-09-27`: when two paths are folded 
 - [ ] Old `Implements`/`Law` path unchanged: `make umpire-check-model` passes with `model/ir` byte-identical.
 
 ## Done summary
-TBD
+The new form now sits beside the old one in the framework, the lifter and the gate. A machine's `object capabilities extends Capabilities` section, or one extending a shared base, `object capabilities extends Shared(this)`, brings each Property defined in a declared kind's companion. The lifter expands each into `<machine>.<property>` with an inert `origin`, bounds it from a `queries` statement `capabilities.bound(limits, <Capability>.<property> -> limits)`, and the gate writes the section's waivers into `<file>.lint.json`. The old `Implements`/`Law`/`Catalog` path is untouched: its fixtures (capabilities.json, capabilities.laws.json, every other expected file) lift byte-identical.
 
+stage: impl-review - skipped(config: REVIEW_MODE=none, DSL batch reviews at the batch end)
+
+Tier: IMPLEMENTER claude-opus-5-5 at high (actual_model: claude-opus-5-5)
+
+### What was built
+- Framework (`model/umpire/Capabilities.scala`): the old value class `Capabilities[S]` is now `LawDeclaration[S]`; its matches in Machine.scala, IrFile.scala, irgen `capable`, Order.scala `kindOf` and Lifting.scala are updated. The new `abstract class Capabilities[S, O, F](using Declaring[S, O, F])` provides:
+  - `protected type Capability = CapabilityOf[S, O, F]`
+  - protected `except` and `overriding`
+  - `claim(property)`
+  - `bound(limits, overrides*)`
+
+  `IrFile.construct` admits the section as a root.
+- Lifter (`model/irgen/Capabilities.scala`): `capabilitiesSectionOf` reads the section's body and the chain of source base classes it extends. Base constructor params are bound to the section's folded arguments, accessors included, so shared vals such as `c.own(_.left, hold)` and `through(...)` resolve. A capability Property is a companion def returning `Property`. It is brought when every parameter after the model is a field of exactly one declared capability. `expand` is shared with the old path, which still builds its `LawClaim` the same way. The generated Property takes its position from the capability's val. Its origin is the def's qualified name and position, and an `overriding` def keeps the origin of the Property it replaces.
+- Refusals, each naming the Property, the capabilities and positions:
+  - R1: reads no field of its own kind; a parameter no kind of the lifted sources has; a parameter two declared capabilities both bind; a kind declared twice (both positions).
+  - R2: a waiver of an unbrought Property; an empty reason.
+  - R3: a brought Property no `queries` statement bounds; an override of an unbrought or a waived Property; a second bound statement.
+  - Both forms on one machine, refused from either section.
+- Waivers: the lifter writes `<file>.waivers.json` (the section machines plus `(machine, <machine>.<property>, reason)` for each waiver) beside the IR. `Gate.settle` ignores it. `Gate.acceptWaivers` merges it into `<file>.lint.json` under `waived-law`:
+  - an existing acceptance keeps its place and takes the current reason;
+  - a stale one owned by a section machine is dropped;
+  - a new one is appended;
+  - every other entry stays.
+
+  `--update` writes the merged file. Check mode fails, naming the missing and stale subjects. The encoder matches Go's `Accepted.Encode` byte for byte, and a test round-trips every `model/ir/*.lint.json`. The JSON reader uses only the standard library, as the gate requires.
+- Order and structure: `capabilities` follows `implements` in `formSections` and in the order lint. The cycle detector now counts the body of every source base class a section object extends as part of that object's own initialization. Red-first: without that edge the new initOrder fixture's cycle went unreported.
+
+### Tests (acceptance)
+- `lifts/CapabilitySections.scala` → `expected/capabilitySections.json` and `capabilitySections.waivers.json`:
+  - Task has its own section, its `queries` bounds it with three plus a `sealedIsRefused -> two` override, and a `claim` Query reads a generated Property.
+  - Chore declares Holdable without Takeable, so it gets no `heldIsNotTaken`; it waives one Property with `except` and replaces one with `overriding`.
+  - TaskPair and MirrorPair are compositions extending `PairCapabilities(this)` and inherit its waiver; MirrorPair adds a waiver of its own.
+  - The new test "a generated Property's origin is the capability Property it was expanded from" pins every origin and checks no other Property carries one.
+- `lifts/CapabilitySectionRejects.scala` (10 roots, lines in `rejects.txt`): one per R1/R2/R3 error plus both forms.
+- `crossed/Sections.scala`: a capability of another state, outcome or fact type does not compile (3 positions).
+- `initOrder`: Dimmer.capabilities → DimmerRealization → Dimmer.capabilities, through the base class Dimmed.
+- Gate tests cover merge in place, stale drop, other entries kept, check-mode failure text, no file created for zero waivers, and the Go-format round trip.
+- The lift fixtures need my own kinds (Sealable, Holdable, Takeable): `CapabilityVocabularySuite` forbids naming Temporal kinds in `model/irgen` and `model/umpire`, and the kit's companions only gain Property defs in .3.
+
+### Declared IR delta
+None for `model/ir`, `model/cases` or Model lift expectations: no Model uses the new form yet, and the old path's output is unchanged (verified on its fixtures). The new fixture files and the 10 new rejects.txt lines are this task's deliberate fixture changes. The Scala IR jar was repackaged because fn-134.1's ir.proto was newer than it.
+
+### Decisions (recorded in the spec's Decision Context)
+- The shared base is feasible, so the shared-def fallback was not used. A base takes `(using Declaring[S, O, F])` to pass the machine's types on.
+- Capability vals are typed `: Capability`. This is what makes a mistyped capability fail to compile and gives a phantom state type the machine's. The lifter also refuses an untyped val that does not conform.
+- `bound` is a statement rather than a val, so `IrFile.queriesOf` reads nothing new. The lifter searches every `queries` section of the lifted sources for it, so the five Record designs and the WithTaskQueue designs in .3 can be bounded wherever their Queries live.
+- A shared def can take the section as a `Capabilities[S, O, F]` parameter and call `.claim` on it, which .3 needs for Record and WithTaskQueue (`valued` in Claims.scala now folds such a parameter). At run time `claim`'s Property has an empty name; the IR generator names it.
+
+### Notes for the conductor and later tasks
+- Go conflict until .5: `umpire-lint --update` runs `lint.Forward`, which deletes every `waived-law` acceptance the law sidecar does not list, and its check fails on the same difference. Once .3 migrates the Models and the sidecars are gone, umpire-lint would strip the acceptances this gate writes until .5 removes the Forward. That ordering is the batch plan (.5 runs before the batch gates). Running `make umpire-check-model` between .3 and .5 would fail.
+- No `queries` fixture of the Models used: the lifter reads the bounds wherever the statement sits, so .3 needs no particular `queries` layout.
+- Not covered: a machine declared with both the old function form `capabilities(m, limits)(...)` and a new section is refused only when both declare the same kind. Section-versus-section is refused outright.
+- Model owner edits seen during the run, all left untouched: `MILESTONES.md`, `.flow/specs/fn-123-*`, untracked `.flow/tasks/fn-123-*` and `fn-141-*`, `.plans/PROTO_ANNOTATIONS.md`. The owner also committed 5be6e3060a between my base and my commits, so the evidence lists my two commits instead of a range.
+- No MILESTONES.md edit is needed from this task.
+- Follow-up for .6 (docs): model/README.md and SEMANTICS.md should describe the section, `Capability`, `bound` and the waiver file.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4409cccffc, ff50aef53f
+- Tests: make model/build/ir-scalapb.jar model/build/api-scalapb.jar model/build/model-scala.jar (packaging only; ir jar was stale against fn-134.1's ir.proto), baseline: green (mise exec -- scala-cli test model/irgen: 89 passed, 1 skipped, pre-edit), UMPIRE_LIFTER_UPDATE=1 mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen (writes this task's own fixture expectations only), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen (check mode: 92 passed, 1 skipped), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check (69 passed), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal (23 passed), make lint-model-irgen lint-model-check lint-model-models lint-model-irgen-lifts lint-model-syntax (each rc=0, run one by one), scala-cli fmt --check on every changed Scala file, GATE_SKIPPED:umpire-check-model:batch - DSL batch rule: make umpire-check-model and the byte-identical model/ir check run at the batch's single regeneration, GATE_SKIPPED:go-suite:batch - DSL batch rule: the full Go suite runs at the batch end
 - PRs:
