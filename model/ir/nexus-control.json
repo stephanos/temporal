@@ -4,7 +4,7 @@
     "name": "temporal.features.nexuscaller.Outcome",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 56
+      "line": 57
     },
     "enum": {
       "cases": [ {
@@ -14,35 +14,10 @@
       } ]
     }
   }, {
-    "name": "temporal.features.nexuscaller.Phase",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 71
-    },
-    "enum": {
-      "cases": [ {
-        "name": "unscheduled"
-      }, {
-        "name": "scheduled"
-      }, {
-        "name": "backingOff"
-      }, {
-        "name": "started"
-      }, {
-        "name": "succeeded"
-      }, {
-        "name": "failed"
-      }, {
-        "name": "canceled"
-      }, {
-        "name": "timedOut"
-      } ]
-    }
-  }, {
     "name": "temporal.features.nexuscaller.Reply",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 44
+      "line": 45
     },
     "enum": {
       "cases": [ {
@@ -67,7 +42,7 @@
     "name": "temporal.features.nexuscaller.Resolution",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 49
+      "line": 50
     },
     "enum": {
       "cases": [ {
@@ -79,10 +54,38 @@
       } ]
     }
   }, {
-    "name": "temporal.features.nexuscaller.SystemFact",
+    "name": "temporal.features.nexuscaller.Timeout",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 90
+      "line": 41
+    },
+    "enum": {
+      "cases": [ {
+        "name": "unset"
+      }, {
+        "name": "expires"
+      } ]
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.TimeoutType",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+      "line": 64
+    },
+    "enum": {
+      "cases": [ {
+        "name": "scheduleToClose"
+      }, {
+        "name": "scheduleToStart"
+      }, {
+        "name": "startToClose"
+      } ]
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.Fact",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/System.scala",
+      "line": 33
     },
     "enum": {
       "cases": [ {
@@ -108,16 +111,41 @@
       } ]
     }
   }, {
-    "name": "temporal.features.nexuscaller.SystemState",
+    "name": "temporal.features.nexuscaller.system.Phase",
     "position": {
-      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 82
+      "file": "model/temporal/features/nexuscaller/system/System.scala",
+      "line": 21
+    },
+    "enum": {
+      "cases": [ {
+        "name": "unscheduled"
+      }, {
+        "name": "scheduled"
+      }, {
+        "name": "backingOff"
+      }, {
+        "name": "started"
+      }, {
+        "name": "succeeded"
+      }, {
+        "name": "failed"
+      }, {
+        "name": "canceled"
+      }, {
+        "name": "timedOut"
+      } ]
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.State",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/System.scala",
+      "line": 25
     },
     "record": {
       "fields": [ {
         "name": "phase",
         "type": {
-          "named": "temporal.features.nexuscaller.Phase"
+          "named": "temporal.features.nexuscaller.system.Phase"
         }
       }, {
         "name": "attempts",
@@ -143,64 +171,36 @@
         }
       } ]
     }
-  }, {
-    "name": "temporal.features.nexuscaller.Timeout",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 40
-    },
-    "enum": {
-      "cases": [ {
-        "name": "unset"
-      }, {
-        "name": "expires"
-      } ]
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.TimeoutType",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 78
-    },
-    "enum": {
-      "cases": [ {
-        "name": "scheduleToClose"
-      }, {
-        "name": "scheduleToStart"
-      }, {
-        "name": "startToClose"
-      } ]
-    }
   } ],
   "functions": [ {
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.backOff",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 143
+      "line": 172
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 145
+        "line": 174
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 145
+            "line": 174
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 167
+                "line": 135
               },
               "literal": {
                 "enum": {
@@ -211,13 +211,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 146
+                "line": 175
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 146
+                    "line": 175
                   },
                   "var": "s"
                 },
@@ -226,11 +226,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 146
+                      "line": 175
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.nexuscaller.Phase",
+                        "type": "temporal.features.nexuscaller.system.Phase",
                         "case": "backingOff"
                       }
                     }
@@ -240,20 +240,20 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 146
+                      "line": 175
                     },
                     "call": {
                       "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.saturatingSucc",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 146
+                          "line": 175
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 146
+                              "line": 175
                             },
                             "var": "s"
                           },
@@ -267,17 +267,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 147
+                "line": 176
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 147
+                    "line": 176
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.SystemFact",
+                      "type": "temporal.features.nexuscaller.system.Fact",
                       "case": "pendingAttempts"
                     }
                   }
@@ -286,7 +286,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 145
+                "line": 174
               },
               "literal": {
                 "text": ""
@@ -299,20 +299,20 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 144
+        "line": 173
       },
       "call": {
         "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 144
+            "line": 173
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 144
+                "line": 173
               },
               "var": "s"
             },
@@ -325,12 +325,12 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 165
+      "line": 194
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "resolution",
@@ -341,33 +341,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 166
+        "line": 195
       },
       "let": {
         "name": "startedFirst",
         "value": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 167
+            "line": 196
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/system/System.scala",
-                        "line": 167
+                        "line": 196
                       },
                       "var": "s"
                     },
@@ -377,11 +377,11 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "started"
                     }
                   }
@@ -391,17 +391,17 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.SystemFact",
+                      "type": "temporal.features.nexuscaller.system.Fact",
                       "case": "nexusOperationStarted"
                     }
                   }
@@ -411,7 +411,7 @@
             "else": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "list": { }
             }
@@ -420,13 +420,13 @@
         "body": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 168
+            "line": 197
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 168
+                "line": 197
               },
               "var": "resolution"
             },
@@ -442,20 +442,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 170
+                  "line": 199
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 170
+                      "line": 199
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -466,13 +466,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "var": "s"
                           },
@@ -481,11 +481,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 170
+                                "line": 199
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "succeeded"
                                 }
                               }
@@ -495,31 +495,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 170
+                                  "line": 199
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationCompleted"
                                   }
                                 }
@@ -530,7 +530,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "literal": {
                           "text": ""
@@ -552,20 +552,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 172
+                  "line": 201
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 172
+                      "line": 201
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -576,13 +576,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "var": "s"
                           },
@@ -591,11 +591,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 172
+                                "line": 201
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "failed"
                                 }
                               }
@@ -605,31 +605,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 172
+                                  "line": 201
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationFailed"
                                   }
                                 }
@@ -640,7 +640,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "literal": {
                           "text": ""
@@ -662,20 +662,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 174
+                  "line": 203
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 174
+                      "line": 203
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -686,13 +686,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "var": "s"
                           },
@@ -701,11 +701,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 174
+                                "line": 203
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "canceled"
                                 }
                               }
@@ -715,31 +715,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 174
+                                  "line": 203
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationCanceled"
                                   }
                                 }
@@ -750,7 +750,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "literal": {
                           "text": ""
@@ -769,12 +769,12 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete$forged",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 165
+      "line": 194
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "resolution",
@@ -785,33 +785,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 166
+        "line": 195
       },
       "let": {
         "name": "startedFirst",
         "value": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 167
+            "line": 196
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/system/System.scala",
-                        "line": 167
+                        "line": 196
                       },
                       "var": "s"
                     },
@@ -821,11 +821,11 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "started"
                     }
                   }
@@ -835,17 +835,17 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.SystemFact",
+                      "type": "temporal.features.nexuscaller.system.Fact",
                       "case": "nexusOperationStarted"
                     }
                   }
@@ -855,7 +855,7 @@
             "else": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "list": { }
             }
@@ -864,13 +864,13 @@
         "body": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 168
+            "line": 197
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 168
+                "line": 197
               },
               "var": "resolution"
             },
@@ -886,20 +886,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 170
+                  "line": 199
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 170
+                      "line": 199
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -910,13 +910,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "var": "s"
                           },
@@ -925,11 +925,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 170
+                                "line": 199
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "succeeded"
                                 }
                               }
@@ -939,31 +939,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 170
+                                  "line": 199
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationCompleted"
                                   }
                                 }
@@ -974,7 +974,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "literal": {
                           "text": ""
@@ -997,20 +997,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 172
+                  "line": 201
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 172
+                      "line": 201
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -1021,13 +1021,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "var": "s"
                           },
@@ -1036,11 +1036,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 172
+                                "line": 201
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "failed"
                                 }
                               }
@@ -1050,31 +1050,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 172
+                                  "line": 201
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationFailed"
                                   }
                                 }
@@ -1085,7 +1085,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "literal": {
                           "text": ""
@@ -1108,20 +1108,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 174
+                  "line": 203
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 174
+                      "line": 203
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -1132,13 +1132,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "var": "s"
                           },
@@ -1147,11 +1147,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 174
+                                "line": 203
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "canceled"
                                 }
                               }
@@ -1161,31 +1161,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 174
+                                  "line": 203
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationCanceled"
                                   }
                                 }
@@ -1196,7 +1196,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "literal": {
                           "text": ""
@@ -1216,12 +1216,12 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete$sent",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 165
+      "line": 194
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "resolution",
@@ -1232,33 +1232,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 166
+        "line": 195
       },
       "let": {
         "name": "startedFirst",
         "value": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 167
+            "line": 196
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/system/System.scala",
-                        "line": 167
+                        "line": 196
                       },
                       "var": "s"
                     },
@@ -1268,11 +1268,11 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "started"
                     }
                   }
@@ -1282,17 +1282,17 @@
             "then": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 167
+                    "line": 196
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.SystemFact",
+                      "type": "temporal.features.nexuscaller.system.Fact",
                       "case": "nexusOperationStarted"
                     }
                   }
@@ -1302,7 +1302,7 @@
             "else": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 167
+                "line": 196
               },
               "list": { }
             }
@@ -1311,13 +1311,13 @@
         "body": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 168
+            "line": 197
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 168
+                "line": 197
               },
               "var": "resolution"
             },
@@ -1333,20 +1333,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 170
+                  "line": 199
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 170
+                      "line": 199
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -1357,13 +1357,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "var": "s"
                           },
@@ -1372,11 +1372,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 170
+                                "line": 199
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "succeeded"
                                 }
                               }
@@ -1386,31 +1386,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 170
+                              "line": 199
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 170
+                                  "line": 199
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationCompleted"
                                   }
                                 }
@@ -1421,7 +1421,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 170
+                          "line": 199
                         },
                         "literal": {
                           "text": ""
@@ -1444,20 +1444,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 172
+                  "line": 201
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 172
+                      "line": 201
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -1468,13 +1468,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "var": "s"
                           },
@@ -1483,11 +1483,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 172
+                                "line": 201
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "failed"
                                 }
                               }
@@ -1497,31 +1497,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 172
+                              "line": 201
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 172
+                                  "line": 201
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationFailed"
                                   }
                                 }
@@ -1532,7 +1532,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 172
+                          "line": 201
                         },
                         "literal": {
                           "text": ""
@@ -1555,20 +1555,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 174
+                  "line": 203
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 174
+                      "line": 203
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -1579,13 +1579,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "var": "s"
                           },
@@ -1594,11 +1594,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 174
+                                "line": 203
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "canceled"
                                 }
                               }
@@ -1608,31 +1608,31 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "binary": {
                           "op": "OP_CONCAT",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "var": "startedFirst"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 174
+                              "line": 203
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                  "line": 174
+                                  "line": 203
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.SystemFact",
+                                    "type": "temporal.features.nexuscaller.system.Fact",
                                     "case": "nexusOperationCanceled"
                                   }
                                 }
@@ -1643,7 +1643,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 174
+                          "line": 203
                         },
                         "literal": {
                           "text": ""
@@ -1663,31 +1663,31 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.keep",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 155
+      "line": 184
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 155
+        "line": 184
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 155
+            "line": 184
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 167
+                "line": 135
               },
               "literal": {
                 "enum": {
@@ -1698,19 +1698,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 155
+                "line": 184
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 155
+                "line": 184
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 155
+                "line": 184
               },
               "literal": {
                 "text": ""
@@ -1724,31 +1724,31 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 158
+      "line": 187
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 158
+        "line": 187
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 158
+            "line": 187
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "literal": {
                 "enum": {
@@ -1759,19 +1759,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "literal": {
                 "text": ""
@@ -1785,31 +1785,31 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound$forged",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 158
+      "line": 187
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 158
+        "line": 187
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 158
+            "line": 187
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "literal": {
                 "enum": {
@@ -1820,19 +1820,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "literal": {
                 "text": ""
@@ -1847,31 +1847,31 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound$sent",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 158
+      "line": 187
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 158
+        "line": 187
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 158
+            "line": 187
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "literal": {
                 "enum": {
@@ -1882,19 +1882,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
+                "line": 187
               },
               "literal": {
                 "text": ""
@@ -1909,12 +1909,12 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.reply",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 127
+      "line": 156
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "reply",
@@ -1925,13 +1925,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 129
+        "line": 158
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 129
+            "line": 158
           },
           "var": "reply"
         },
@@ -1947,20 +1947,20 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/system/System.scala",
-              "line": 130
+              "line": 159
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 130
+                  "line": 159
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 167
+                      "line": 135
                     },
                     "literal": {
                       "enum": {
@@ -1971,13 +1971,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 130
+                      "line": 159
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 130
+                          "line": 159
                         },
                         "var": "s"
                       },
@@ -1986,11 +1986,11 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/system/System.scala",
-                            "line": 130
+                            "line": 159
                           },
                           "literal": {
                             "enum": {
-                              "type": "temporal.features.nexuscaller.Phase",
+                              "type": "temporal.features.nexuscaller.system.Phase",
                               "case": "succeeded"
                             }
                           }
@@ -2000,17 +2000,17 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 130
+                      "line": 159
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 130
+                          "line": 159
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.nexuscaller.SystemFact",
+                            "type": "temporal.features.nexuscaller.system.Fact",
                             "case": "nexusOperationCompleted"
                           }
                         }
@@ -2019,7 +2019,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 130
+                      "line": 159
                     },
                     "literal": {
                       "text": ""
@@ -2041,20 +2041,20 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/system/System.scala",
-              "line": 131
+              "line": 160
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 131
+                  "line": 160
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 167
+                      "line": 135
                     },
                     "literal": {
                       "enum": {
@@ -2065,13 +2065,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 131
+                      "line": 160
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 131
+                          "line": 160
                         },
                         "var": "s"
                       },
@@ -2080,11 +2080,11 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/system/System.scala",
-                            "line": 131
+                            "line": 160
                           },
                           "literal": {
                             "enum": {
-                              "type": "temporal.features.nexuscaller.Phase",
+                              "type": "temporal.features.nexuscaller.system.Phase",
                               "case": "started"
                             }
                           }
@@ -2094,17 +2094,17 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 131
+                      "line": 160
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 131
+                          "line": 160
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.nexuscaller.SystemFact",
+                            "type": "temporal.features.nexuscaller.system.Fact",
                             "case": "nexusOperationStarted"
                           }
                         }
@@ -2113,7 +2113,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 131
+                      "line": 160
                     },
                     "literal": {
                       "text": ""
@@ -2135,20 +2135,20 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/system/System.scala",
-              "line": 132
+              "line": 161
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 132
+                  "line": 161
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 167
+                      "line": 135
                     },
                     "literal": {
                       "enum": {
@@ -2159,13 +2159,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 132
+                      "line": 161
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 132
+                          "line": 161
                         },
                         "var": "s"
                       },
@@ -2174,11 +2174,11 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/system/System.scala",
-                            "line": 132
+                            "line": 161
                           },
                           "literal": {
                             "enum": {
-                              "type": "temporal.features.nexuscaller.Phase",
+                              "type": "temporal.features.nexuscaller.system.Phase",
                               "case": "failed"
                             }
                           }
@@ -2188,17 +2188,17 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 132
+                      "line": 161
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 132
+                          "line": 161
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.nexuscaller.SystemFact",
+                            "type": "temporal.features.nexuscaller.system.Fact",
                             "case": "nexusOperationFailed"
                           }
                         }
@@ -2207,7 +2207,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 132
+                      "line": 161
                     },
                     "literal": {
                       "text": ""
@@ -2229,20 +2229,20 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/system/System.scala",
-              "line": 133
+              "line": 162
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 133
+                  "line": 162
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 167
+                      "line": 135
                     },
                     "literal": {
                       "enum": {
@@ -2253,13 +2253,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 133
+                      "line": 162
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 133
+                          "line": 162
                         },
                         "var": "s"
                       },
@@ -2268,11 +2268,11 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/features/nexuscaller/system/System.scala",
-                            "line": 133
+                            "line": 162
                           },
                           "literal": {
                             "enum": {
-                              "type": "temporal.features.nexuscaller.Phase",
+                              "type": "temporal.features.nexuscaller.system.Phase",
                               "case": "canceled"
                             }
                           }
@@ -2282,17 +2282,17 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 133
+                      "line": 162
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 133
+                          "line": 162
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.nexuscaller.SystemFact",
+                            "type": "temporal.features.nexuscaller.system.Fact",
                             "case": "nexusOperationCanceled"
                           }
                         }
@@ -2301,7 +2301,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 133
+                      "line": 162
                     },
                     "literal": {
                       "text": ""
@@ -2329,20 +2329,20 @@
           "body": {
             "position": {
               "file": "model/temporal/features/nexuscaller/system/System.scala",
-              "line": 135
+              "line": 164
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 135
+                  "line": 164
                 },
                 "unary": {
                   "op": "OP_NOT",
                   "operand": {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 135
+                      "line": 164
                     },
                     "var": "retryable"
                   }
@@ -2351,20 +2351,20 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 135
+                  "line": 164
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 135
+                      "line": 164
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -2375,13 +2375,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 135
+                          "line": 164
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 135
+                              "line": 164
                             },
                             "var": "s"
                           },
@@ -2390,11 +2390,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 135
+                                "line": 164
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "failed"
                                 }
                               }
@@ -2404,17 +2404,17 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 135
+                          "line": 164
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 135
+                              "line": 164
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.nexuscaller.SystemFact",
+                                "type": "temporal.features.nexuscaller.system.Fact",
                                 "case": "nexusOperationFailed"
                               }
                             }
@@ -2423,7 +2423,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 135
+                          "line": 164
                         },
                         "literal": {
                           "text": ""
@@ -2436,20 +2436,20 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/nexuscaller/system/System.scala",
-                  "line": 137
+                  "line": 166
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 137
+                      "line": 166
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 167
+                          "line": 135
                         },
                         "literal": {
                           "enum": {
@@ -2460,13 +2460,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 138
+                          "line": 167
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 138
+                              "line": 167
                             },
                             "var": "s"
                           },
@@ -2475,11 +2475,11 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 138
+                                "line": 167
                               },
                               "literal": {
                                 "enum": {
-                                  "type": "temporal.features.nexuscaller.Phase",
+                                  "type": "temporal.features.nexuscaller.system.Phase",
                                   "case": "backingOff"
                                 }
                               }
@@ -2489,20 +2489,20 @@
                             "value": {
                               "position": {
                                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                "line": 138
+                                "line": 167
                               },
                               "call": {
                                 "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.saturatingSucc",
                                 "args": [ {
                                   "position": {
                                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                    "line": 138
+                                    "line": 167
                                   },
                                   "field": {
                                     "base": {
                                       "position": {
                                         "file": "model/temporal/features/nexuscaller/system/System.scala",
-                                        "line": 138
+                                        "line": 167
                                       },
                                       "var": "s"
                                     },
@@ -2516,17 +2516,17 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 139
+                          "line": 168
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/nexuscaller/system/System.scala",
-                              "line": 139
+                              "line": 168
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.nexuscaller.SystemFact",
+                                "type": "temporal.features.nexuscaller.system.Fact",
                                 "case": "pendingAttempts"
                               }
                             }
@@ -2535,7 +2535,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
-                          "line": 137
+                          "line": 166
                         },
                         "literal": {
                           "text": ""
@@ -2553,20 +2553,20 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 128
+        "line": 157
       },
       "call": {
         "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 128
+            "line": 157
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 128
+                "line": 157
               },
               "var": "s"
             },
@@ -2579,31 +2579,31 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.retry",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 180
+      "line": 209
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 180
+        "line": 209
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 180
+            "line": 209
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 167
+                "line": 135
               },
               "literal": {
                 "enum": {
@@ -2614,13 +2614,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 180
+                "line": 209
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 180
+                    "line": 209
                   },
                   "var": "s"
                 },
@@ -2629,11 +2629,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 180
+                      "line": 209
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.nexuscaller.Phase",
+                        "type": "temporal.features.nexuscaller.system.Phase",
                         "case": "scheduled"
                       }
                     }
@@ -2643,13 +2643,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 180
+                "line": 209
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 180
+                "line": 209
               },
               "literal": {
                 "text": ""
@@ -2663,12 +2663,12 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.schedule",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 104
+      "line": 133
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "scheduleToClose",
@@ -2689,20 +2689,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 110
+        "line": 139
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 110
+            "line": 139
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 167
+                "line": 135
               },
               "literal": {
                 "enum": {
@@ -2713,25 +2713,25 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 111
+                "line": 140
               },
               "construct": {
-                "type": "temporal.features.nexuscaller.SystemState",
+                "type": "temporal.features.nexuscaller.system.State",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 112
+                    "line": 141
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "scheduled"
                     }
                   }
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 113
+                    "line": 142
                   },
                   "literal": {
                     "int": "0"
@@ -2739,19 +2739,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 114
+                    "line": 143
                   },
                   "var": "scheduleToClose"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 115
+                    "line": 144
                   },
                   "var": "scheduleToStart"
                 }, {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 116
+                    "line": 145
                   },
                   "var": "startToClose"
                 } ]
@@ -2759,17 +2759,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 118
+                "line": 147
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 118
+                    "line": 147
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.SystemFact",
+                      "type": "temporal.features.nexuscaller.system.Fact",
                       "case": "nexusOperationScheduled"
                     }
                   }
@@ -2778,7 +2778,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 110
+                "line": 139
               },
               "literal": {
                 "text": ""
@@ -2792,12 +2792,12 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.timeOut",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 183
+      "line": 212
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "t",
@@ -2808,20 +2808,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 184
+        "line": 213
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 184
+            "line": 213
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 167
+                "line": 135
               },
               "literal": {
                 "enum": {
@@ -2832,13 +2832,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 184
+                "line": 213
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 184
+                    "line": 213
                   },
                   "var": "s"
                 },
@@ -2847,11 +2847,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/system/System.scala",
-                      "line": 184
+                      "line": 213
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.nexuscaller.Phase",
+                        "type": "temporal.features.nexuscaller.system.Phase",
                         "case": "timedOut"
                       }
                     }
@@ -2861,21 +2861,21 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 184
+                "line": 213
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
-                    "line": 184
+                    "line": 213
                   },
                   "construct": {
-                    "type": "temporal.features.nexuscaller.SystemFact",
+                    "type": "temporal.features.nexuscaller.system.Fact",
                     "case": "nexusOperationTimedOut",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/nexuscaller/system/System.scala",
-                        "line": 184
+                        "line": 213
                       },
                       "var": "t"
                     } ]
@@ -2885,7 +2885,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 184
+                "line": 213
               },
               "literal": {
                 "text": ""
@@ -2899,32 +2899,32 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.created",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 74
+      "line": 103
     },
     "params": [ {
       "name": "p",
       "type": {
-        "named": "temporal.features.nexuscaller.Phase"
+        "named": "temporal.features.nexuscaller.system.Phase"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 74
+        "line": 103
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 74
+            "line": 103
           },
           "call": {
             "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.running",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 74
+                "line": 103
               },
               "var": "p"
             } ]
@@ -2933,14 +2933,14 @@
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 74
+            "line": 103
           },
           "call": {
             "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 74
+                "line": 103
               },
               "var": "p"
             } ]
@@ -2952,64 +2952,64 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.running",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 68
+      "line": 97
     },
     "params": [ {
       "name": "p",
       "type": {
-        "named": "temporal.features.nexuscaller.Phase"
+        "named": "temporal.features.nexuscaller.system.Phase"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 68
+        "line": 97
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 68
+            "line": 97
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 68
+            "line": 97
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 68
+                "line": 97
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "scheduled"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 68
+                "line": 97
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "backingOff"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 68
+                "line": 97
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "started"
                 }
               }
@@ -3022,7 +3022,7 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.saturatingSucc",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 60
+      "line": 89
     },
     "params": [ {
       "name": "a",
@@ -3033,27 +3033,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 62
+        "line": 91
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 62
+            "line": 91
           },
           "binary": {
             "op": "OP_LT",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 62
+                "line": 91
               },
               "var": "a"
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 185
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 43
               },
               "literal": {
                 "int": "2"
@@ -3064,21 +3064,21 @@
         "then": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 62
+            "line": 91
           },
           "binary": {
             "op": "OP_ADD",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 62
+                "line": 91
               },
               "var": "a"
             },
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 62
+                "line": 91
               },
               "literal": {
                 "int": "1"
@@ -3089,7 +3089,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 62
+            "line": 91
           },
           "var": "a"
         }
@@ -3098,14 +3098,14 @@
     "requires": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 61
+        "line": 90
       },
       "call": {
         "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 61
+            "line": 90
           },
           "var": "a"
         } ]
@@ -3115,75 +3115,75 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 65
+      "line": 94
     },
     "params": [ {
       "name": "p",
       "type": {
-        "named": "temporal.features.nexuscaller.Phase"
+        "named": "temporal.features.nexuscaller.system.Phase"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 65
+        "line": 94
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 65
+            "line": 94
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 65
+            "line": 94
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 65
+                "line": 94
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "succeeded"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 65
+                "line": 94
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "failed"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 65
+                "line": 94
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "canceled"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 65
+                "line": 94
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "timedOut"
                 }
               }
@@ -3196,7 +3196,7 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.validAttempts",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 57
+      "line": 86
     },
     "params": [ {
       "name": "a",
@@ -3207,21 +3207,21 @@
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 57
+        "line": 86
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 57
+            "line": 86
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 57
+                "line": 86
               },
               "literal": {
                 "int": "0"
@@ -3230,7 +3230,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 57
+                "line": 86
               },
               "var": "a"
             }
@@ -3239,21 +3239,21 @@
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 57
+            "line": 86
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 57
+                "line": 86
               },
               "var": "a"
             },
             "right": {
               "position": {
-                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 185
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 43
               },
               "literal": {
                 "int": "2"
@@ -3267,53 +3267,53 @@
     "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.waiting",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 71
+      "line": 100
     },
     "params": [ {
       "name": "p",
       "type": {
-        "named": "temporal.features.nexuscaller.Phase"
+        "named": "temporal.features.nexuscaller.system.Phase"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 71
+        "line": 100
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 71
+            "line": 100
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 71
+            "line": 100
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 71
+                "line": 100
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "scheduled"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 71
+                "line": 100
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.nexuscaller.Phase",
+                  "type": "temporal.features.nexuscaller.system.Phase",
                   "case": "backingOff"
                 }
               }
@@ -3331,7 +3331,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "resolution",
@@ -3464,7 +3464,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
@@ -3483,7 +3483,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 167
+                "line": 135
               },
               "literal": {
                 "enum": {
@@ -3525,7 +3525,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "resolution",
@@ -3613,7 +3613,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "resolution",
@@ -3701,7 +3701,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "resolution",
@@ -3787,9 +3787,9 @@
       "line": 29
     },
     "params": [ {
-      "name": "systemFact",
+      "name": "fact",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemFact"
+        "named": "temporal.features.nexuscaller.system.Fact"
       }
     } ],
     "body": {
@@ -3803,13 +3803,13 @@
             "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
             "line": 30
           },
-          "var": "systemFact"
+          "var": "fact"
         },
         "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.nexuscaller.SystemFact",
+                "type": "temporal.features.nexuscaller.system.Fact",
                 "case": "nexusOperationScheduled"
               }
             }
@@ -3827,7 +3827,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.nexuscaller.SystemFact",
+                "type": "temporal.features.nexuscaller.system.Fact",
                 "case": "nexusOperationStarted"
               }
             }
@@ -3845,7 +3845,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.nexuscaller.SystemFact",
+                "type": "temporal.features.nexuscaller.system.Fact",
                 "case": "nexusOperationCompleted"
               }
             }
@@ -3863,7 +3863,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.nexuscaller.SystemFact",
+                "type": "temporal.features.nexuscaller.system.Fact",
                 "case": "nexusOperationFailed"
               }
             }
@@ -3881,7 +3881,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.nexuscaller.SystemFact",
+                "type": "temporal.features.nexuscaller.system.Fact",
                 "case": "nexusOperationCanceled"
               }
             }
@@ -3898,7 +3898,7 @@
         }, {
           "pattern": {
             "case": {
-              "type": "temporal.features.nexuscaller.SystemFact",
+              "type": "temporal.features.nexuscaller.system.Fact",
               "case": "nexusOperationTimedOut",
               "fields": [ {
                 "wildcard": { }
@@ -3918,7 +3918,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.nexuscaller.SystemFact",
+                "type": "temporal.features.nexuscaller.system.Fact",
                 "case": "pendingAttempts"
               }
             }
@@ -3961,7 +3961,7 @@
           },
           "literal": {
             "enum": {
-              "type": "temporal.features.nexuscaller.SystemFact",
+              "type": "temporal.features.nexuscaller.system.Fact",
               "case": "nexusOperationCompleted"
             }
           }
@@ -3993,7 +3993,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
@@ -4038,7 +4038,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "backingOff"
                     }
                   }
@@ -4081,7 +4081,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "resolution",
@@ -4160,7 +4160,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
@@ -4205,7 +4205,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "scheduled"
                     }
                   }
@@ -4248,7 +4248,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
@@ -4300,7 +4300,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "reply",
@@ -4350,7 +4350,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "scheduled"
                     }
                   }
@@ -4399,7 +4399,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     }, {
       "name": "scheduleToClose",
@@ -4459,7 +4459,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "unscheduled"
                     }
                   }
@@ -4520,7 +4520,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
@@ -4645,7 +4645,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
@@ -4770,7 +4770,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
@@ -4816,7 +4816,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
+                      "type": "temporal.features.nexuscaller.system.Phase",
                       "case": "started"
                     }
                   }
@@ -4907,7 +4907,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.SystemState"
+        "named": "temporal.features.nexuscaller.system.State"
       }
     } ],
     "body": {
@@ -4956,7 +4956,7 @@
     "name": "inspect",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 134
+      "line": 102
     },
     "actor": "caller",
     "on": "operation"
@@ -4965,7 +4965,7 @@
     "name": "schedule",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 126
+      "line": 94
     },
     "actor": "caller",
     "inputs": [ {
@@ -4991,7 +4991,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 176
+      "line": 144
     },
     "actor": "system",
     "timer": true
@@ -5000,7 +5000,7 @@
     "name": "scheduleToStart",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 177
+      "line": 145
     },
     "actor": "system",
     "timer": true
@@ -5009,7 +5009,7 @@
     "name": "startToClose",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 178
+      "line": 146
     },
     "actor": "system",
     "timer": true
@@ -5018,7 +5018,7 @@
     "name": "complete",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 151
+      "line": 119
     },
     "actor": "handler",
     "inputs": [ {
@@ -5034,7 +5034,7 @@
     "name": "reply",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 138
+      "line": 106
     },
     "actor": "handler",
     "inputs": [ {
@@ -5073,7 +5073,7 @@
     "name": "fault",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 155
+      "line": 123
     },
     "actor": "network",
     "on": "operation"
@@ -5082,7 +5082,7 @@
     "name": "backoff",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 172
+      "line": 140
     },
     "actor": "system",
     "timer": true
@@ -5103,31 +5103,31 @@
       "line": 26
     },
     "entity": "operation",
-    "stateType": "temporal.features.nexuscaller.SystemState",
+    "stateType": "temporal.features.nexuscaller.system.State",
     "outcomeType": "temporal.features.nexuscaller.Outcome",
-    "factType": "temporal.features.nexuscaller.SystemFact",
+    "factType": "temporal.features.nexuscaller.system.Fact",
     "starts": [ {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 37
+        "line": 66
       },
       "construct": {
-        "type": "temporal.features.nexuscaller.SystemState",
+        "type": "temporal.features.nexuscaller.system.State",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 38
+            "line": 67
           },
           "literal": {
             "enum": {
-              "type": "temporal.features.nexuscaller.Phase",
+              "type": "temporal.features.nexuscaller.system.Phase",
               "case": "unscheduled"
             }
           }
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 39
+            "line": 68
           },
           "literal": {
             "int": "0"
@@ -5135,7 +5135,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 40
+            "line": 69
           },
           "literal": {
             "enum": {
@@ -5146,7 +5146,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 41
+            "line": 70
           },
           "literal": {
             "enum": {
@@ -5157,7 +5157,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 42
+            "line": 71
           },
           "literal": {
             "enum": {
@@ -5177,7 +5177,7 @@
         "params": [ {
           "name": "s",
           "type": {
-            "named": "temporal.features.nexuscaller.SystemState"
+            "named": "temporal.features.nexuscaller.system.State"
           }
         } ],
         "body": {
@@ -5309,25 +5309,25 @@
     "start": {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 37
+        "line": 66
       },
       "construct": {
-        "type": "temporal.features.nexuscaller.SystemState",
+        "type": "temporal.features.nexuscaller.system.State",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 38
+            "line": 67
           },
           "literal": {
             "enum": {
-              "type": "temporal.features.nexuscaller.Phase",
+              "type": "temporal.features.nexuscaller.system.Phase",
               "case": "unscheduled"
             }
           }
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 39
+            "line": 68
           },
           "literal": {
             "int": "0"
@@ -5335,7 +5335,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 40
+            "line": 69
           },
           "literal": {
             "enum": {
@@ -5346,7 +5346,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 41
+            "line": 70
           },
           "literal": {
             "enum": {
@@ -5357,7 +5357,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 42
+            "line": 71
           },
           "literal": {
             "enum": {
@@ -5491,7 +5491,7 @@
     "name": "forgedCompletion",
     "position": {
       "file": "model/temporal/features/nexuscaller/Realization.scala",
-      "line": 518
+      "line": 522
     },
     "machine": "trustingCaller",
     "producer": "temporal.features.nexuscaller.testpilot",
@@ -5828,12 +5828,12 @@
       }, {
         "position": {
           "file": "model/temporal/features/nexuscaller/Realization.scala",
-          "line": 518
+          "line": 522
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/Realization.scala",
-            "line": 518
+            "line": 522
           },
           "step": {
             "action": "temporal.features.nexuscaller.caller.inspect"
@@ -7207,7 +7207,7 @@
     "serverSteps": [ {
       "position": {
         "file": "model/temporal/features/nexuscaller/Realization.scala",
-        "line": 510
+        "line": 514
       },
       "step": {
         "action": "temporal.features.nexuscaller.deadline.scheduleToStart"
@@ -7217,7 +7217,7 @@
     }, {
       "position": {
         "file": "model/temporal/features/nexuscaller/Realization.scala",
-        "line": 511
+        "line": 515
       },
       "step": {
         "action": "temporal.features.nexuscaller.deadline.startToClose"

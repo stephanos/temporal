@@ -4,7 +4,7 @@
     "name": "temporal.features.standaloneactivity.AttemptResult",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 43
+      "line": 45
     },
     "enum": {
       "cases": [ {
@@ -25,7 +25,7 @@
     "name": "temporal.features.standaloneactivity.Control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 48
+      "line": 50
     },
     "enum": {
       "cases": [ {
@@ -42,7 +42,7 @@
     "name": "temporal.features.standaloneactivity.Outcome",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 52
+      "line": 54
     },
     "enum": {
       "cases": [ {
@@ -52,10 +52,25 @@
       } ]
     }
   }, {
-    "name": "temporal.features.standaloneactivity.ProductFact",
+    "name": "temporal.features.standaloneactivity.TimeoutType",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 62
+      "line": 58
+    },
+    "enum": {
+      "cases": [ {
+        "name": "scheduleToClose"
+      }, {
+        "name": "scheduleToStart"
+      }, {
+        "name": "startToClose"
+      } ]
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.product.Fact",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 22
     },
     "enum": {
       "cases": [ {
@@ -79,10 +94,10 @@
       } ]
     }
   }, {
-    "name": "temporal.features.standaloneactivity.ProductPhase",
+    "name": "temporal.features.standaloneactivity.product.Phase",
     "position": {
-      "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 56
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 16
     },
     "enum": {
       "cases": [ {
@@ -106,32 +121,17 @@
       } ]
     }
   }, {
-    "name": "temporal.features.standaloneactivity.ProductState",
+    "name": "temporal.features.standaloneactivity.product.State",
     "position": {
-      "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 60
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 20
     },
     "record": {
       "fields": [ {
         "name": "phase",
         "type": {
-          "named": "temporal.features.standaloneactivity.ProductPhase"
+          "named": "temporal.features.standaloneactivity.product.Phase"
         }
-      } ]
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.TimeoutType",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 72
-    },
-    "enum": {
-      "cases": [ {
-        "name": "scheduleToClose"
-      }, {
-        "name": "scheduleToStart"
-      }, {
-        "name": "startToClose"
       } ]
     }
   }, {
@@ -292,32 +292,32 @@
     "name": "activityProduct.evidence",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 19
+      "line": 30
     },
     "params": [ {
-      "name": "productFact",
+      "name": "fact",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductFact"
+        "named": "temporal.features.standaloneactivity.product.Fact"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 19
+        "line": 30
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 19
+            "line": 30
           },
-          "var": "productFact"
+          "var": "fact"
         },
         "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusScheduled"
               }
             }
@@ -325,7 +325,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusScheduled"
@@ -335,7 +335,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusStarted"
               }
             }
@@ -343,7 +343,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusStarted"
@@ -353,7 +353,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusPaused"
               }
             }
@@ -361,7 +361,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusPaused"
@@ -371,7 +371,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusCancelRequested"
               }
             }
@@ -379,7 +379,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusCancelRequested"
@@ -389,7 +389,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusCompleted"
               }
             }
@@ -397,7 +397,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusCompleted"
@@ -407,7 +407,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusFailed"
               }
             }
@@ -415,7 +415,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusFailed"
@@ -425,7 +425,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusCanceled"
               }
             }
@@ -433,7 +433,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusCanceled"
@@ -443,7 +443,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusTerminated"
               }
             }
@@ -451,7 +451,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusTerminated"
@@ -461,7 +461,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProductFact",
+                "type": "temporal.features.standaloneactivity.product.Fact",
                 "case": "statusTimedOut"
               }
             }
@@ -469,7 +469,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 19
+              "line": 30
             },
             "literal": {
               "text": "statusTimedOut"
@@ -482,12 +482,12 @@
     "name": "activityProduct.rules.control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 99
+      "line": 110
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     }, {
       "name": "control",
@@ -498,13 +498,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 99
+        "line": 110
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 99
+            "line": 110
           },
           "var": "control"
         },
@@ -520,26 +520,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 99
+              "line": 110
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 99
+                  "line": 110
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 83
+                      "line": 94
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "var": "s"
                       },
@@ -551,14 +551,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 99
+                  "line": 110
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.notFound",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 99
+                      "line": 110
                     },
                     "var": "s"
                   } ]
@@ -567,20 +567,20 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 100
+                  "line": 111
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 100
+                      "line": 111
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.pausable",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 100
+                          "line": 111
                         },
                         "var": "s"
                       } ]
@@ -589,14 +589,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 100
+                      "line": 111
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.pause",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 100
+                          "line": 111
                         },
                         "var": "s"
                       } ]
@@ -605,7 +605,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 99
+                      "line": 110
                     },
                     "list": { }
                   }
@@ -625,26 +625,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 99
+              "line": 110
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 99
+                  "line": 110
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 83
+                      "line": 94
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "var": "s"
                       },
@@ -656,14 +656,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 99
+                  "line": 110
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.notFound",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 99
+                      "line": 110
                     },
                     "var": "s"
                   } ]
@@ -672,20 +672,20 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 101
+                  "line": 112
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 101
+                      "line": 112
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.paused",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 101
+                          "line": 112
                         },
                         "var": "s"
                       } ]
@@ -694,14 +694,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 101
+                      "line": 112
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.resume",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 101
+                          "line": 112
                         },
                         "var": "s"
                       } ]
@@ -710,7 +710,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 99
+                      "line": 110
                     },
                     "list": { }
                   }
@@ -730,26 +730,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 99
+              "line": 110
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 99
+                  "line": 110
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 83
+                      "line": 94
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "var": "s"
                       },
@@ -761,14 +761,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 99
+                  "line": 110
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.notFound",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 99
+                      "line": 110
                     },
                     "var": "s"
                   } ]
@@ -777,26 +777,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 103
+                  "line": 114
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 103
+                      "line": 114
                     },
                     "binary": {
                       "op": "OP_CONTAINS",
                       "left": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 83
+                              "line": 94
                             },
                             "var": "s"
                           },
@@ -806,50 +806,50 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 103
+                          "line": 114
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 103
+                              "line": 114
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "scheduled"
                               }
                             }
                           }, {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 103
+                              "line": 114
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "started"
                               }
                             }
                           }, {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 103
+                              "line": 114
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "paused"
                               }
                             }
                           }, {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 103
+                              "line": 114
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "cancelRequested"
                               }
                             }
@@ -861,14 +861,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 103
+                      "line": 114
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.requestCancel",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 103
+                          "line": 114
                         },
                         "var": "s"
                       } ]
@@ -877,7 +877,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 99
+                      "line": 110
                     },
                     "list": { }
                   }
@@ -897,26 +897,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 99
+              "line": 110
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 99
+                  "line": 110
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 83
+                      "line": 94
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "var": "s"
                       },
@@ -928,14 +928,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 99
+                  "line": 110
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.notFound",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 99
+                      "line": 110
                     },
                     "var": "s"
                   } ]
@@ -944,26 +944,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 106
+                  "line": 117
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 106
+                      "line": 117
                     },
                     "binary": {
                       "op": "OP_CONTAINS",
                       "left": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 83
+                              "line": 94
                             },
                             "var": "s"
                           },
@@ -973,50 +973,50 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 106
+                          "line": 117
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 106
+                              "line": 117
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "scheduled"
                               }
                             }
                           }, {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 106
+                              "line": 117
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "started"
                               }
                             }
                           }, {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 106
+                              "line": 117
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "paused"
                               }
                             }
                           }, {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 106
+                              "line": 117
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "cancelRequested"
                               }
                             }
@@ -1028,14 +1028,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 106
+                      "line": 117
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.terminate",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 106
+                          "line": 117
                         },
                         "var": "s"
                       } ]
@@ -1044,7 +1044,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 99
+                      "line": 110
                     },
                     "list": { }
                   }
@@ -1059,37 +1059,37 @@
     "name": "activityProduct.rules.poll",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 84
+      "line": 95
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 84
+        "line": 95
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 84
+            "line": 95
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 83
+                "line": 94
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 83
+                    "line": 94
                   },
                   "var": "s"
                 },
@@ -1099,17 +1099,17 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 84
+                "line": 95
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 84
+                    "line": 95
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductPhase",
+                      "type": "temporal.features.standaloneactivity.product.Phase",
                       "case": "scheduled"
                     }
                   }
@@ -1121,14 +1121,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 84
+            "line": 95
           },
           "call": {
             "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.startAttempt",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 84
+                "line": 95
               },
               "var": "s"
             } ]
@@ -1137,7 +1137,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 84
+            "line": 95
           },
           "list": { }
         }
@@ -1147,12 +1147,12 @@
     "name": "activityProduct.rules.respond",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 89
+      "line": 100
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     }, {
       "name": "result",
@@ -1163,13 +1163,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 89
+        "line": 100
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 89
+            "line": 100
           },
           "var": "result"
         },
@@ -1185,20 +1185,20 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 89
+              "line": 100
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
+                  "line": 100
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.held",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 89
+                      "line": 100
                     },
                     "var": "s"
                   } ]
@@ -1207,14 +1207,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
+                  "line": 100
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.complete",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 89
+                      "line": 100
                     },
                     "var": "s"
                   } ]
@@ -1223,7 +1223,7 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
+                  "line": 100
                 },
                 "list": { }
               }
@@ -1244,20 +1244,20 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 90
+              "line": 101
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 90
+                  "line": 101
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.held",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 90
+                      "line": 101
                     },
                     "var": "s"
                   } ]
@@ -1266,14 +1266,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 90
+                  "line": 101
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.fail",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 90
+                      "line": 101
                     },
                     "var": "s"
                   } ]
@@ -1282,7 +1282,7 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
+                  "line": 100
                 },
                 "list": { }
               }
@@ -1303,26 +1303,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 92
+              "line": 103
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 92
+                  "line": 103
                 },
                 "binary": {
                   "op": "OP_CONTAINS",
                   "left": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 83
+                      "line": 94
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "var": "s"
                       },
@@ -1332,17 +1332,17 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 92
+                      "line": 103
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 92
+                          "line": 103
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.standaloneactivity.ProductPhase",
+                            "type": "temporal.features.standaloneactivity.product.Phase",
                             "case": "started"
                           }
                         }
@@ -1354,14 +1354,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 92
+                  "line": 103
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.retry",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 92
+                      "line": 103
                     },
                     "var": "s"
                   } ]
@@ -1370,26 +1370,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 93
+                  "line": 104
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 93
+                      "line": 104
                     },
                     "binary": {
                       "op": "OP_CONTAINS",
                       "left": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 83
+                              "line": 94
                             },
                             "var": "s"
                           },
@@ -1399,17 +1399,17 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 93
+                          "line": 104
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 93
+                              "line": 104
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "type": "temporal.features.standaloneactivity.product.Phase",
                                 "case": "cancelRequested"
                               }
                             }
@@ -1421,14 +1421,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 93
+                      "line": 104
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.cancel",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 93
+                          "line": 104
                         },
                         "var": "s"
                       } ]
@@ -1437,7 +1437,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 89
+                      "line": 100
                     },
                     "list": { }
                   }
@@ -1457,26 +1457,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 95
+              "line": 106
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 95
+                  "line": 106
                 },
                 "binary": {
                   "op": "OP_CONTAINS",
                   "left": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 83
+                      "line": 94
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
+                          "line": 94
                         },
                         "var": "s"
                       },
@@ -1486,17 +1486,17 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 95
+                      "line": 106
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 95
+                          "line": 106
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.standaloneactivity.ProductPhase",
+                            "type": "temporal.features.standaloneactivity.product.Phase",
                             "case": "cancelRequested"
                           }
                         }
@@ -1508,14 +1508,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 95
+                  "line": 106
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.cancel",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 95
+                      "line": 106
                     },
                     "var": "s"
                   } ]
@@ -1524,7 +1524,7 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
+                  "line": 100
                 },
                 "list": { }
               }
@@ -1537,18 +1537,18 @@
     "name": "activityProduct.rules.stop",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 110
+      "line": 121
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 110
+        "line": 121
       },
       "list": { }
     }
@@ -1556,37 +1556,37 @@
     "name": "activityProduct.rules.timeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 111
+      "line": 122
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 111
+        "line": 122
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 111
+            "line": 122
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 83
+                "line": 94
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 83
+                    "line": 94
                   },
                   "var": "s"
                 },
@@ -1596,50 +1596,50 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 111
+                "line": 122
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 111
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductPhase",
+                      "type": "temporal.features.standaloneactivity.product.Phase",
                       "case": "scheduled"
                     }
                   }
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 111
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductPhase",
+                      "type": "temporal.features.standaloneactivity.product.Phase",
                       "case": "started"
                     }
                   }
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 111
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductPhase",
+                      "type": "temporal.features.standaloneactivity.product.Phase",
                       "case": "paused"
                     }
                   }
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 111
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductPhase",
+                      "type": "temporal.features.standaloneactivity.product.Phase",
                       "case": "cancelRequested"
                     }
                   }
@@ -1651,14 +1651,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 111
+            "line": 122
           },
           "call": {
             "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.timeOut",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 111
+                "line": 122
               },
               "var": "s"
             } ]
@@ -1667,7 +1667,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 111
+            "line": 122
           },
           "list": { }
         }
@@ -2752,31 +2752,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.cancel",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 66
+      "line": 77
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 66
+        "line": 77
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 66
+            "line": 77
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -2787,13 +2787,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 66
+                "line": 77
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 66
+                    "line": 77
                   },
                   "var": "s"
                 },
@@ -2802,11 +2802,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 66
+                      "line": 77
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "canceled"
                       }
                     }
@@ -2816,17 +2816,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 66
+                "line": 77
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 66
+                    "line": 77
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusCanceled"
                     }
                   }
@@ -2835,7 +2835,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 66
+                "line": 77
               },
               "literal": {
                 "text": ""
@@ -2849,31 +2849,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.complete",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 56
+      "line": 67
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 56
+        "line": 67
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 56
+            "line": 67
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -2884,13 +2884,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 56
+                "line": 67
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 56
+                    "line": 67
                   },
                   "var": "s"
                 },
@@ -2899,11 +2899,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 56
+                      "line": 67
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "completed"
                       }
                     }
@@ -2913,17 +2913,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 56
+                "line": 67
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 56
+                    "line": 67
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusCompleted"
                     }
                   }
@@ -2932,7 +2932,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 56
+                "line": 67
               },
               "literal": {
                 "text": ""
@@ -2946,109 +2946,12 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.fail",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 58
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 58
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 58
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 58
-              },
-              "copy": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 58
-                  },
-                  "var": "s"
-                },
-                "updates": [ {
-                  "name": "phase",
-                  "value": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 58
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
-                        "case": "failed"
-                      }
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 58
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 58
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
-                      "case": "statusFailed"
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 58
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.notFound",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
       "line": 69
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
@@ -3066,8 +2969,105 @@
             "type": "umpire.Step",
             "args": [ {
               "position": {
+                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+                "line": 133
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
                 "line": 69
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                    "line": 69
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 69
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.features.standaloneactivity.product.Phase",
+                        "case": "failed"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 69
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                    "line": 69
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.product.Fact",
+                      "case": "statusFailed"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 69
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.notFound",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 80
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.product.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+        "line": 80
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 80
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 80
               },
               "literal": {
                 "enum": {
@@ -3078,19 +3078,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 69
+                "line": 80
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 69
+                "line": 80
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 69
+                "line": 80
               },
               "literal": {
                 "text": ""
@@ -3104,31 +3104,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.pause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 71
+      "line": 82
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 71
+        "line": 82
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 71
+            "line": 82
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -3139,13 +3139,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 71
+                "line": 82
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 71
+                    "line": 82
                   },
                   "var": "s"
                 },
@@ -3154,11 +3154,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 71
+                      "line": 82
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "paused"
                       }
                     }
@@ -3168,17 +3168,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 71
+                "line": 82
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 71
+                    "line": 82
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusPaused"
                     }
                   }
@@ -3187,7 +3187,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 71
+                "line": 82
               },
               "literal": {
                 "text": ""
@@ -3201,31 +3201,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.requestCancel",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 75
+      "line": 86
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 76
+        "line": 87
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 76
+            "line": 87
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -3236,13 +3236,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 76
+                "line": 87
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 76
+                    "line": 87
                   },
                   "var": "s"
                 },
@@ -3251,11 +3251,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 76
+                      "line": 87
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "cancelRequested"
                       }
                     }
@@ -3265,17 +3265,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 76
+                "line": 87
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 76
+                    "line": 87
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusCancelRequested"
                     }
                   }
@@ -3284,7 +3284,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 76
+                "line": 87
               },
               "literal": {
                 "text": ""
@@ -3298,31 +3298,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.resume",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 73
+      "line": 84
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 73
+        "line": 84
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 73
+            "line": 84
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -3333,13 +3333,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 73
+                "line": 84
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 73
+                    "line": 84
                   },
                   "var": "s"
                 },
@@ -3348,11 +3348,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 73
+                      "line": 84
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "scheduled"
                       }
                     }
@@ -3362,17 +3362,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 73
+                "line": 84
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 73
+                    "line": 84
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusScheduled"
                     }
                   }
@@ -3381,7 +3381,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 73
+                "line": 84
               },
               "literal": {
                 "text": ""
@@ -3395,31 +3395,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.retry",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 64
+      "line": 75
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 64
+        "line": 75
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 64
+            "line": 75
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -3430,13 +3430,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 64
+                "line": 75
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 64
+                    "line": 75
                   },
                   "var": "s"
                 },
@@ -3445,11 +3445,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 64
+                      "line": 75
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "scheduled"
                       }
                     }
@@ -3459,17 +3459,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 64
+                "line": 75
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 64
+                    "line": 75
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusScheduled"
                     }
                   }
@@ -3478,7 +3478,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 64
+                "line": 75
               },
               "literal": {
                 "text": ""
@@ -3492,31 +3492,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.startAttempt",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 54
+      "line": 65
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 54
+        "line": 65
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 54
+            "line": 65
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -3527,13 +3527,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 54
+                "line": 65
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 54
+                    "line": 65
                   },
                   "var": "s"
                 },
@@ -3542,11 +3542,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 54
+                      "line": 65
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "started"
                       }
                     }
@@ -3556,17 +3556,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 54
+                "line": 65
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 54
+                    "line": 65
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusStarted"
                     }
                   }
@@ -3575,7 +3575,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 54
+                "line": 65
               },
               "literal": {
                 "text": ""
@@ -3589,31 +3589,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.terminate",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 78
+      "line": 89
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 78
+        "line": 89
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 78
+            "line": 89
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -3624,13 +3624,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 78
+                "line": 89
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 78
+                    "line": 89
                   },
                   "var": "s"
                 },
@@ -3639,11 +3639,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 78
+                      "line": 89
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "terminated"
                       }
                     }
@@ -3653,17 +3653,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 78
+                "line": 89
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 78
+                    "line": 89
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusTerminated"
                     }
                   }
@@ -3672,7 +3672,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 78
+                "line": 89
               },
               "literal": {
                 "text": ""
@@ -3686,31 +3686,31 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.timeOut",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 81
+      "line": 92
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 81
+        "line": 92
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 81
+            "line": 92
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -3721,13 +3721,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 81
+                "line": 92
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 81
+                    "line": 92
                   },
                   "var": "s"
                 },
@@ -3736,11 +3736,11 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 81
+                      "line": 92
                     },
                     "literal": {
                       "enum": {
-                        "type": "temporal.features.standaloneactivity.ProductPhase",
+                        "type": "temporal.features.standaloneactivity.product.Phase",
                         "case": "timedOut"
                       }
                     }
@@ -3750,17 +3750,17 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 81
+                "line": 92
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 81
+                    "line": 92
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductFact",
+                      "type": "temporal.features.standaloneactivity.product.Fact",
                       "case": "statusTimedOut"
                     }
                   }
@@ -3769,7 +3769,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 81
+                "line": 92
               },
               "literal": {
                 "text": ""
@@ -3783,12 +3783,234 @@
     "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.held",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 40
+      "line": 51
     },
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
+        "named": "temporal.features.standaloneactivity.product.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+        "line": 51
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 51
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 51
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 51
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 51
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.product.Phase",
+                  "case": "started"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 51
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.product.Phase",
+                  "case": "cancelRequested"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.over",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 43
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.product.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+        "line": 43
+      },
+      "call": {
+        "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 43
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 43
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.pausable",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 54
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.product.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+        "line": 54
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 54
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 54
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 54
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 54
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.product.Phase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 54
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.product.Phase",
+                  "case": "started"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.paused",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 46
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.product.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+        "line": 46
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 46
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 46
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.features.standaloneactivity.product.Phase",
+              "case": "paused"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 40
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "temporal.features.standaloneactivity.product.Phase"
       }
     } ],
     "body": {
@@ -3803,16 +4025,7 @@
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
             "line": 40
           },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 40
-              },
-              "var": "s"
-            },
-            "field": "phase"
-          }
+          "var": "p"
         },
         "right": {
           "position": {
@@ -3827,8 +4040,8 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
-                  "case": "started"
+                  "type": "temporal.features.standaloneactivity.product.Phase",
+                  "case": "completed"
                 }
               }
             }, {
@@ -3838,253 +4051,40 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
-                  "case": "cancelRequested"
-                }
-              }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.over",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 32
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 32
-      },
-      "call": {
-        "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
-        "args": [ {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 32
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 32
-              },
-              "var": "s"
-            },
-            "field": "phase"
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.pausable",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 43
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 43
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 43
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 43
-              },
-              "var": "s"
-            },
-            "field": "phase"
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 43
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 43
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
-                  "case": "scheduled"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 43
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
-                  "case": "started"
-                }
-              }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.paused",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 35
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 35
-      },
-      "binary": {
-        "op": "OP_EQ",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 35
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 35
-              },
-              "var": "s"
-            },
-            "field": "phase"
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 35
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.features.standaloneactivity.ProductPhase",
-              "case": "paused"
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 29
-    },
-    "params": [ {
-      "name": "p",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProductPhase"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 29
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 29
-          },
-          "var": "p"
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 29
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 29
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
-                  "case": "completed"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 29
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
+                  "type": "temporal.features.standaloneactivity.product.Phase",
                   "case": "failed"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 29
+                "line": 40
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
+                  "type": "temporal.features.standaloneactivity.product.Phase",
                   "case": "canceled"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 29
+                "line": 40
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
+                  "type": "temporal.features.standaloneactivity.product.Phase",
                   "case": "terminated"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 29
+                "line": 40
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.ProductPhase",
+                  "type": "temporal.features.standaloneactivity.product.Phase",
                   "case": "timedOut"
                 }
               }
@@ -4121,7 +4121,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -4218,7 +4218,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -4315,7 +4315,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -4412,7 +4412,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -4509,7 +4509,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -4632,7 +4632,7 @@
               "line": 155
             },
             "construct": {
-              "type": "temporal.features.standaloneactivity.ProductState",
+              "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/Record.scala",
@@ -4640,7 +4640,7 @@
                 },
                 "literal": {
                   "enum": {
-                    "type": "temporal.features.standaloneactivity.ProductPhase",
+                    "type": "temporal.features.standaloneactivity.product.Phase",
                     "case": "scheduled"
                   }
                 }
@@ -4673,7 +4673,7 @@
               "line": 157
             },
             "construct": {
-              "type": "temporal.features.standaloneactivity.ProductState",
+              "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/Record.scala",
@@ -4681,7 +4681,7 @@
                 },
                 "literal": {
                   "enum": {
-                    "type": "temporal.features.standaloneactivity.ProductPhase",
+                    "type": "temporal.features.standaloneactivity.product.Phase",
                     "case": "paused"
                   }
                 }
@@ -4703,7 +4703,7 @@
               "line": 158
             },
             "construct": {
-              "type": "temporal.features.standaloneactivity.ProductState",
+              "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/Record.scala",
@@ -4711,7 +4711,7 @@
                 },
                 "literal": {
                   "enum": {
-                    "type": "temporal.features.standaloneactivity.ProductPhase",
+                    "type": "temporal.features.standaloneactivity.product.Phase",
                     "case": "started"
                   }
                 }
@@ -4733,7 +4733,7 @@
               "line": 159
             },
             "construct": {
-              "type": "temporal.features.standaloneactivity.ProductState",
+              "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/Record.scala",
@@ -4741,7 +4741,7 @@
                 },
                 "literal": {
                   "enum": {
-                    "type": "temporal.features.standaloneactivity.ProductPhase",
+                    "type": "temporal.features.standaloneactivity.product.Phase",
                     "case": "completed"
                   }
                 }
@@ -4763,7 +4763,7 @@
               "line": 160
             },
             "construct": {
-              "type": "temporal.features.standaloneactivity.ProductState",
+              "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/Record.scala",
@@ -4771,7 +4771,7 @@
                 },
                 "literal": {
                   "enum": {
-                    "type": "temporal.features.standaloneactivity.ProductPhase",
+                    "type": "temporal.features.standaloneactivity.product.Phase",
                     "case": "timedOut"
                   }
                 }
@@ -5902,7 +5902,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -6052,7 +6052,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -6141,7 +6141,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -6223,7 +6223,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 166
+                "line": 133
               },
               "literal": {
                 "enum": {
@@ -6275,7 +6275,7 @@
     "name": "control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 125
+      "line": 92
     },
     "actor": "client",
     "inputs": [ {
@@ -6310,7 +6310,7 @@
     "name": "timeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 153
+      "line": 120
     },
     "actor": "system",
     "timer": true
@@ -6319,7 +6319,7 @@
     "name": "poll",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 140
+      "line": 107
     },
     "actor": "worker",
     "on": "activity",
@@ -6329,7 +6329,7 @@
     "name": "respond",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 142
+      "line": 109
     },
     "actor": "worker",
     "inputs": [ {
@@ -6385,27 +6385,27 @@
     "name": "activityProduct",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 19
+      "line": 30
     },
     "entity": "activity",
-    "stateType": "temporal.features.standaloneactivity.ProductState",
+    "stateType": "temporal.features.standaloneactivity.product.State",
     "outcomeType": "temporal.features.standaloneactivity.Outcome",
-    "factType": "temporal.features.standaloneactivity.ProductFact",
+    "factType": "temporal.features.standaloneactivity.product.Fact",
     "starts": [ {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 22
+        "line": 33
       },
       "construct": {
-        "type": "temporal.features.standaloneactivity.ProductState",
+        "type": "temporal.features.standaloneactivity.product.State",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 22
+            "line": 33
           },
           "literal": {
             "enum": {
-              "type": "temporal.features.standaloneactivity.ProductPhase",
+              "type": "temporal.features.standaloneactivity.product.Phase",
               "case": "scheduled"
             }
           }
@@ -6415,26 +6415,26 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 23
+        "line": 34
       },
       "lambda": {
         "params": [ {
           "name": "s",
           "type": {
-            "named": "temporal.features.standaloneactivity.ProductState"
+            "named": "temporal.features.standaloneactivity.product.State"
           }
         } ],
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 23
+            "line": 34
           },
           "call": {
             "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.over",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 23
+                "line": 34
               },
               "var": "s"
             } ]
@@ -6447,35 +6447,35 @@
       "function": "activityProduct.rules.poll",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 84
+        "line": 95
       }
     }, {
       "action": "temporal.features.standaloneactivity.worker.respond",
       "function": "activityProduct.rules.respond",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 89
+        "line": 100
       }
     }, {
       "action": "temporal.features.standaloneactivity.client.control",
       "function": "activityProduct.rules.control",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 99
+        "line": 110
       }
     }, {
       "action": "temporal.shared.worker.worker.stop",
       "function": "activityProduct.rules.stop",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 110
+        "line": 121
       }
     }, {
       "action": "temporal.features.standaloneactivity.timers.timeout",
       "function": "activityProduct.rules.timeout",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 111
+        "line": 122
       }
     } ],
     "evidence": "activityProduct.evidence"

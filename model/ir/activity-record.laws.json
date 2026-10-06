@@ -13,7 +13,7 @@
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:123"
+    "position": "model/temporal/features/standaloneactivity/product/Product.scala:134"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -29,7 +29,7 @@
       "running": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:128"
+    "position": "model/temporal/features/standaloneactivity/product/Product.scala:139"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -41,7 +41,7 @@
       "terminal": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/product/Product.scala:123"
+    "position": "model/temporal/features/standaloneactivity/product/Product.scala:134"
   }, {
     "machine": "activityRecord",
     "name": "activityRecord.pausedIsNotDispatched",
@@ -291,7 +291,7 @@
     "parameters": [ "rejected" ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.features.standaloneactivity.ProductState"
+      "state": "temporal.features.standaloneactivity.product.State"
     }, {
       "machine": "activityRecord",
       "state": "temporal.features.standaloneactivity.system.AdmissionState"
@@ -306,7 +306,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.features.standaloneactivity.ProductState"
+      "state": "temporal.features.standaloneactivity.product.State"
     }, {
       "machine": "activityRecord",
       "state": "temporal.features.standaloneactivity.system.AdmissionState"
@@ -321,7 +321,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "activityProduct",
-      "state": "temporal.features.standaloneactivity.ProductState"
+      "state": "temporal.features.standaloneactivity.product.State"
     }, {
       "machine": "activityRecord",
       "state": "temporal.features.standaloneactivity.system.AdmissionState"

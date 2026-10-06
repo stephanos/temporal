@@ -151,14 +151,14 @@ lift: model/irgen/testdata/lifts/Rejects.scala:507: left of spareless holds a fi
 lift: model/irgen/testdata/lifts/Rejects.scala:506: withMember names spare, which no member of spareless fills: a selector names a member of the composition
 lift: model/irgen/testdata/lifts/Rejects.scala:523: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
 lift: model/irgen/testdata/lifts/Rejects.scala:530: tapLamp binds no action flip, which sync flipBoth of flipPair pairs for left: a member's new machine binds the actions its syncs pair
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:110: pause is a case of Control, and activitySystem records facts of temporal.features.standaloneactivity.SystemFact: a realization names the facts its machine records
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:86: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:98: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:39: onPath names at least one class whose path carries the command
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:36: perform names at least one class it binds
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:45: the status table lists statusPaused twice
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:69: the status table lists no statusCompleted: add `statusCompleted -> value` to it
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:33: a command is named after the val that declares it: declare it as a val and refer to it by value
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:104: pause is a case of Control, and activitySystem records facts of temporal.features.standaloneactivity.system.Fact: a realization names the facts its machine records
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:80: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:92: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:33: onPath names at least one class whose path carries the command
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:30: perform names at least one class it binds
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:39: the status table lists statusPaused twice
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:63: the status table lists no statusCompleted: add `statusCompleted -> value` to it
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:27: a command is named after the val that declares it: declare it as a val and refer to it by value
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:83: refinedControl is a negative control, and controlRefiner refines it: a deliberately wrong design is no machine's Product, so nothing refines it
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:35: faultUnmarked binds the fault blowout and is marked neither a FailureModel, the real design under the fault, nor a NegativeControl, a deliberately wrong one: mix in the one it is
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:41: faultlessFailure is a failure model and binds no fault: bind an action of the actor `fault` that some state enables
