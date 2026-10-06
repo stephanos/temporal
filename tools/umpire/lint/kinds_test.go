@@ -393,6 +393,35 @@ func TestCompositionStuckStateConstructionFailure(t *testing.T) {
 	require.ErrorContains(t, err, "pair: ends is 1 at held_held, not a Boolean")
 }
 
+func TestStuckStateWithRefinementMapHole(t *testing.T) {
+	m := read(t, declarationsIR, func(ir *umpirespb.Model) {
+		ir.Queries, ir.Scenarios, ir.Progress, ir.Properties = nil, nil, nil, nil
+		for _, d := range ir.GetMachines() {
+			if d.GetName() != "disk" {
+				continue
+			}
+			for _, f := range ir.GetFunctions() {
+				if f.GetName() == d.GetRefines().GetMap() {
+					f.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Hole{Hole: "fixture.declarations.crashUnmodeled"}}
+				}
+			}
+		}
+	})
+	for _, owner := range []string{"disk", "detailedPair"} {
+		t.Run(owner, func(t *testing.T) {
+			table, err := m.realizer.TransitionTable(owner)
+			require.NoError(t, err, "a refinement-map hole leaves transitions available")
+			require.Len(t, table.Reachable, 3)
+		})
+	}
+	r := run(t, m, stuckStates)
+	require.Equal(t, map[string]int{"disk": 3, "store": 2, "detailedPair": 3, "pair": 2}, r.population)
+	require.Empty(t, r.subjects)
+	require.True(t, slices.ContainsFunc(m.Verified.Receipts, func(r model.Receipt) bool {
+		return r.Subject == model.RefinementSubject && r.Key.Owner == "disk" && r.Kind == model.Incomplete && len(r.Holes) > 0
+	}), "the refinement-map hole remains an explicit diagnostic")
+}
+
 func TestUnproduced(t *testing.T) {
 	r := run(t, read(t, activityIR), unproduced)
 	require.Equal(t, map[string]int{"activityProduct": 11, "activitySystem": 14, "activityWorker": 1, "polling": 1}, r.population)
