@@ -16,9 +16,14 @@ val ready = input[Boolean]
 val resolution = input[Resolution]
 
 object worker extends Actor:
-  val take = action(this).input(ready).input(resolution)
-    .schema[StartOperationResponse].results("Delivery")
-  val respond = action(this).input(resolution).schema[StartOperationResponse]
+  val take = action(this)
+    .input(ready)
+    .input(resolution)
+    .schema[StartOperationResponse]
+    .results("Delivery")
+  val respond = action(this)
+    .input(resolution)
+    .schema[StartOperationResponse]
     .example(Resolution.failed(false), "NonRetryable")
     .example(Resolution.failed(true), "Retryable")
 object caller extends Actor:
@@ -39,22 +44,26 @@ object standaloneBinding:
 object WorkflowForm extends Machine[State, Outcome, Fact]:
   val init = State(false)
   def end(s: State) = s.done
-  object rules extends Bindings(
-    workflowBinding.create ~> (s => List(Step(Outcome.accepted, s))),
-    workflowBinding.respond ~> ((s, _) => List(Step(Outcome.accepted, s))),
-    workflowBinding.take ~> ((s, ready, _) =>
-      if ready then List(Step(Outcome.accepted, s.copy(done = true), List(Fact.taken))) else Nil)
-  )
+  object rules
+      extends Bindings(
+        workflowBinding.create ~> (s => List(Step(Outcome.accepted, s))),
+        workflowBinding.respond ~> ((s, _) => List(Step(Outcome.accepted, s))),
+        workflowBinding.take ~> ((s, ready, _) =>
+          if ready then List(Step(Outcome.accepted, s.copy(done = true), List(Fact.taken))) else Nil
+        )
+      )
 
 object StandaloneForm extends Machine[State, Outcome, Fact]:
   val init = State(false)
   def end(s: State) = s.done
-  object rules extends Bindings(
-    standaloneBinding.create ~> (s => List(Step(Outcome.accepted, s))),
-    standaloneBinding.respond ~> ((s, _) => List(Step(Outcome.accepted, s))),
-    standaloneBinding.take ~> ((s, ready, _) =>
-      if ready then List(Step(Outcome.accepted, s.copy(done = true), List(Fact.taken))) else Nil)
-  )
+  object rules
+      extends Bindings(
+        standaloneBinding.create ~> (s => List(Step(Outcome.accepted, s))),
+        standaloneBinding.respond ~> ((s, _) => List(Step(Outcome.accepted, s))),
+        standaloneBinding.take ~> ((s, ready, _) =>
+          if ready then List(Step(Outcome.accepted, s.copy(done = true), List(Fact.taken))) else Nil
+        )
+      )
 
 object wrongBinding:
   val alien = Entity()
@@ -63,7 +72,8 @@ object wrongBinding:
 object WrongForm extends Machine[State, Outcome, Fact]:
   val init = State(false)
   def end(s: State) = s.done
-  object rules extends Bindings(
-    workflowBinding.create ~> (s => List(Step(Outcome.accepted, s))),
-    wrongBinding.take ~> ((s, _, _) => List(Step(Outcome.accepted, s)))
-  )
+  object rules
+      extends Bindings(
+        workflowBinding.create ~> (s => List(Step(Outcome.accepted, s))),
+        wrongBinding.take ~> ((s, _, _) => List(Step(Outcome.accepted, s)))
+      )

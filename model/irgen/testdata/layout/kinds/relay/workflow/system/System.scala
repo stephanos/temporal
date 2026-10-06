@@ -24,7 +24,9 @@ object RelaySystem extends Machine[system.State, Outcome, Fact]:
       else fixture.features.relay.product.Phase.done)
 
   object effects:
+    def start(s: State) = stay(s)
     def complete(s: State) = enter(s.copy(phase = Phase.done), Fact.completed)
 
   object rules extends Rules:
-    on(user.complete)(always ~> effects.complete)
+    on(formBindings.start)(always ~> effects.start)
+    on(formBindings.complete)(always ~> effects.complete)

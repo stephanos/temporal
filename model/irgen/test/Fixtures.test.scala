@@ -1806,27 +1806,47 @@ class Fixtures extends munit.FunSuite:
     )
     assert(!result.failed, result.diagnostics)
     val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
-    val shared = json.path("actions").elements().asScala
-      .filter(_.path("id").asText() == "fixture.binding.worker.take").toList
+    val shared = json
+      .path("actions")
+      .elements()
+      .asScala
+      .filter(_.path("id").asText() == "fixture.binding.worker.take")
+      .toList
     assertEquals(shared.size, 1)
     assertEquals(shared.head.path("on").asText(), "job")
     assertEquals(shared.head.path("name").asText(), "take")
     assertEquals(shared.head.path("actor").asText(), "worker")
     assertEquals(shared.head.path("inputs").get(0).path("name").asText(), "ready")
     assertEquals(shared.head.path("inputs").get(1).path("name").asText(), "resolution")
-    assertEquals(shared.head.path("schemas").get(0).asText(), "temporal.api.nexus.v1.StartOperationResponse")
+    assertEquals(
+      shared.head.path("schemas").get(0).asText(),
+      "temporal.api.nexus.v1.StartOperationResponse"
+    )
     assertEquals(shared.head.path("results").asText(), "Delivery")
-    val respond = json.path("actions").elements().asScala
-      .find(_.path("id").asText() == "fixture.binding.worker.respond").get
+    val respond = json
+      .path("actions")
+      .elements()
+      .asScala
+      .find(_.path("id").asText() == "fixture.binding.worker.respond")
+      .get
     assertEquals(respond.path("on").asText(), "job")
     assertEquals(respond.path("examples").size(), 2)
-    val create = json.path("actions").elements().asScala
-      .find(_.path("id").asText() == "fixture.binding.caller.create").get
+    val create = json
+      .path("actions")
+      .elements()
+      .asScala
+      .find(_.path("id").asText() == "fixture.binding.caller.create")
+      .get
     assertEquals(create.path("creates").asText(), "job")
     for machine <- json.path("machines").elements().asScala do
       assertEquals(machine.path("entity").asText(), "job")
-      assert(machine.path("steps").elements().asScala.exists(
-        _.path("action").asText() == "fixture.binding.worker.take"))
+      assert(
+        machine
+          .path("steps")
+          .elements()
+          .asScala
+          .exists(_.path("action").asText() == "fixture.binding.worker.take")
+      )
     val refusedOut = lifted("wrong-binding")
     val rejected = lift(
       s"$jar=${stored("binding")},$modelJar=model/",
@@ -1847,8 +1867,10 @@ class Fixtures extends munit.FunSuite:
     )
     assertNotEquals(conflict.exit, 0)
     assert(!Files.exists(conflictOut))
-    assert(refused(conflict).exists(_.contains("conflicting entity bindings in this export")),
-      conflict.diagnostics)
+    assert(
+      refused(conflict).exists(_.contains("conflicting entity bindings in this export")),
+      conflict.diagnostics
+    )
     val cycleOut = lifted("cyclic-binding")
     val cycle = lift(
       s"$jar=${stored("binding")},$modelJar=model/",
@@ -1962,6 +1984,22 @@ class Fixtures extends munit.FunSuite:
         .readTree(Files.readString(out.resolve(s"relay-$form.json")))
       val machines = json.get("machines").elements().asScala.toSeq
       assertEquals(machines.map(_.get("name").asText()).toSet, Set("relayProduct", "relaySystem"))
+      val actions = json.get("actions").elements().asScala.toSeq
+      assertEquals(
+        actions.map(_.get("id").asText()).toSet,
+        Set("fixture.features.relay.user.start", "fixture.features.relay.user.complete")
+      )
+      assertEquals(
+        actions.find(_.get("name").asText() == "start").get.get("creates").asText(),
+        "task"
+      )
+      assertEquals(
+        actions.find(_.get("name").asText() == "complete").get.get("on").asText(),
+        "task"
+      )
+      assert(actions.forall(_.get("actor").asText() == "user"))
+      assert(actions.forall(_.get("position").get("file").asText().endsWith("relay/Relay.scala")))
+      assert(machines.forall(_.get("entity").asText() == "task"))
       assertEquals(
         machines
           .find(_.get("name").asText() == "relaySystem")

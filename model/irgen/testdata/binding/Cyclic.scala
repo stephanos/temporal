@@ -12,6 +12,7 @@ object secondCycle:
 object CyclicForm extends Machine[State, Outcome, Fact]:
   val init = State(false)
   def end(s: State) = s.done
-  object rules extends Bindings(
-    firstCycle.take ~> ((s, _, _) => List(Step(Outcome.accepted, s)))
-  )
+  object rules
+      extends Bindings(
+        firstCycle.take ~> ((s, _, _) => List(Step(Outcome.accepted, s)))
+      )

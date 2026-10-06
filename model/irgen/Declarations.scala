@@ -36,7 +36,7 @@ private[irgen] trait Declarations:
       case Apply(Select(inner, "creates"), List(e)) =>
         binding(inner).map(_.withCreates(constString(e)))
       case r: Ref if path(r) && !r.symbol.isDefDef => Some(declaredAction(r))
-      case _ => None
+      case _                                       => None
     try
       declaredActions.getOrElseUpdate(
         sym,
@@ -52,8 +52,11 @@ private[irgen] trait Declarations:
       val declared = declaredAction(ref)
       actions.get(declared.id) match
         case Some(prior) if prior.on != declared.on || prior.creates != declared.creates =>
-          fail(ref, s"${declared.id} has conflicting entity bindings in this export: " +
-            s"on ${prior.on}/${declared.on}, creates ${prior.creates}/${declared.creates}")
+          fail(
+            ref,
+            s"${declared.id} has conflicting entity bindings in this export: " +
+              s"on ${prior.on}/${declared.on}, creates ${prior.creates}/${declared.creates}"
+          )
         case _ => actions(declared.id) = declared
       declared.id
 
