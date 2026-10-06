@@ -123,8 +123,8 @@ func (m *Model) declared(name string) *umpirespb.Type {
 	return m.IR.GetTypes()[i]
 }
 
-// unperformedActions is each action a realized machine's step bindings name whose party is not the
-// system's, which no performance of a realization of it binds and no activity script starts with.
+// unperformedActions is each action a realized machine's step bindings name whose actor is not the
+// system, which no performance of a realization of it binds and no activity script starts with.
 func unperformedActions(m *Model) ([]Tally, error) {
 	t := tally(UnperformedAction)
 	for name, rs := range m.realized() {

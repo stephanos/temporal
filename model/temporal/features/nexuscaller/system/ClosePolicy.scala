@@ -233,7 +233,7 @@ object Inputs:
   val principal = input[Principal]
 
 // Who acts in the designs, grouped by side: the caller's and the handler's own actions here are
-// taken by the parties the Nexus caller declares, whose actions the designs read too
+// taken by the actors the Nexus caller declares, whose actions the designs read too
 // (`handler.complete`). The objects are not named `caller` and `handler`, which would name the
 // same class files as the types `Caller` and `Handler` on a case-insensitive file system.
 

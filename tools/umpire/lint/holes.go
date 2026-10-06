@@ -14,7 +14,7 @@ import (
 
 // Modality is what one state and class of a machine is, as .plans/MODALITIES.md reads the table: a
 // row is permission with its results fixed, a disabled pair of a system action is prohibition, and a
-// disabled pair the author did not decide, or of a party action, which can always be sent, is the
+// disabled pair the author did not decide, or of a non-system actor's action, which can always be sent, is the
 // Model being silent.
 type Modality string
 

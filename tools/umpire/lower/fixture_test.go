@@ -171,7 +171,7 @@ func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 	require.Equal(t, want, got)
 }
 
-// A path with a step a party takes and no command performs is refused: the Case would wait for a
+// A path with a step an actor takes and no command performs is refused: the Case would wait for a
 // step nothing drives.
 func TestAStepNoScriptPerformsIsRefused(t *testing.T) {
 	m := loaded(t, "nexus-caller")

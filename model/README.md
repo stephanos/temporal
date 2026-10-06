@@ -936,7 +936,7 @@ line, as `lift: <file>:<line>: …`:
 | (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
 | (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the protocol's `implements` is |
 | (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's header and sections, or a Scenario after a Query in `queries` | move it |
-| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `implements`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, two section members of the whole Model that would share a Definition ID, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
+| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `implements`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario (but a Query whose Scenario is written in it may sit in the `queries` of another machine object of its package, the one its IR file is about, as `competingTimers` over `ActivityProtocol` sits in `CurrentAdmission.queries`); beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
 
 A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an object declared but never
 read while another initializes, initializes nothing and is not refused; a context function the DSL
@@ -1059,8 +1059,10 @@ citing the server code; both are refused without one. `except(law, because = …
 the law: the admission record answers a delivery after it closed, so its designs and compositions
 declare `.except(closedIsRejectedUniformly, because = deliveryAfterClose)`.
 `overriding(law -> ownDef, because = …)` lifts the entity's own def under the law's name: the Nexus
-operation answers a repeated request id OK after it closed, so it declares
-`.overriding(closedIsRejectedUniformly -> closedRejectsOrRepeats, because = repeatedRequestsAnswer)`.
+operation answers a repeated request id OK after it closed, so its `implements` body declares
+`overriding(closedIsRejectedUniformly -> closedRejectsOrRepeats, because = repeatedRequestsAnswer)`.
+Both are protected members of `Implements`, so only the section's own body waives a law; the shared
+`capabilities(m, limits)(…)` value a design builds over its machine waives one with `.except(…)`.
 A law lists the parameters where entities differ on purpose, `Law(…, parameters = Seq("rejected"))`,
 and an entity backs each such binding with the server code that answers it so,
 `rejected = cited(Outcome.notFound, "chasm/lib/activity/activity.go")`; `cited` changes no IR. Lint
@@ -1070,11 +1072,12 @@ forwards each waiver's reason into `<file>.lint.json` and reports a binding left
 **How a new entity gets its laws.**
 
 1. Give its machine object an `implements` object, in a feature file that imports
-   `temporal.capabilities.{given, *}`, that declares
-   `capabilities(limits)(…)` with the capabilities the machine has, each field a def or an action
-   class of the Model, and each parameter its law lists under `parameters` written with `cited`.
-2. Name the declaration as a root of the folder's `irFile`, as `exports.activity` names
-   `ActivityProduct.implements.all`.
+   `temporal.capabilities.{given, *}`, written `object implements extends Implements(limits = …)(…)`
+   with the capabilities the machine has, each field a def or an action class of the Model, and each
+   parameter its law lists under `parameters` written with `cited`; a waiver is a statement of its
+   body, `except(law, because = …)` or `overriding(law -> ownDef, because = …)`.
+2. Name the section as a root of the folder's `irFile`, as `exports.activity` names
+   `ActivityProduct.implements`.
 3. Run `make umpire-gen-model`: it writes the generated claims, the Cases of the generated finds and
    the law sidecar. A law the Model breaks shows as a counterexample of the Query `<machine>.<law>`.
    Where the server does not keep the law for this entity, waive it with `except` or `overriding`

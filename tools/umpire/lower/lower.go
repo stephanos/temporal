@@ -751,7 +751,7 @@ func (p *Producer) source(q *umpirespb.Query) cp.Source {
 }
 
 // check reads a realization and a Query's path whole and emits nothing: what the realization writes
-// against its descriptors, that a command performs every step a party takes, that the search found a
+// against its descriptors, that a command performs every step an actor takes, that the search found a
 // witness, that the Property lowers to clauses, and, once the realization itself is sound, everything
 // the producer decides before it writes a Case. It reports every problem it finds, and the lowering
 // is ready to be produced when it finds none.
@@ -807,7 +807,7 @@ func (p *Producer) check(a *asked, identity Identity) (*lowering, []error) {
 	return l, problems
 }
 
-// performed rejects a path with a step a party takes that nothing performs: a Case that does not
+// performed rejects a path with a step an actor takes that nothing performs: a Case that does not
 // drive it would wait for something nothing does. A command performs a step, and so does the
 // activation of an activity script that starts with the step's class. A step of the system needs
 // neither.

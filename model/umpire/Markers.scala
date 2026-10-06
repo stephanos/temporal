@@ -17,7 +17,7 @@ trait NegativeControl:
 /**
  * The real design under a fault the environment can cause, whose promise must still hold, mixed
  * into its object: `object LostAnswer extends Machine[...], FailureModel`. The IR generator refuses
- * a failure model that binds no fault -- an action of the party `fault`, or of a `faults` section --
+ * a failure model that binds no fault -- an action of the actor `fault` --
  * and one whose every Query expects its Run to violate the promise. It refuses as well a machine
  * that binds a fault and is marked neither a failure model nor a negative control, since a fault
  * says what the machine is for.

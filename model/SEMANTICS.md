@@ -407,8 +407,9 @@ family, the machine or composition it is declared on, and its name, which keeps 
 
 ## Query totals
 
-A Query's `total` is its author's count of its static combinations, which the reader recomputes and
-holds the author to. For a pinned Scenario it is the Scenario machine's whole state catalog times the
+A Query's `total` is the count of its static combinations. The gate computes it for every Query; an
+author may still write one, which is then an optional check the lifter and the reader hold to the
+computed count. For a pinned Scenario it is the Scenario machine's whole state catalog times the
 scheduled slots within the step limit, `min(steps, scheduled classes or keys)`. For a free Scenario it
 is the state catalog times the machine's finite action-class catalog, one class for every input
 assignment of every bound action (a composition's: each member's classes no sync takes plus every
@@ -419,8 +420,8 @@ and a named choice's alternatives are results of one class, not classes of their
 and capacity figure, not a prediction of the paths the search visits or the steps a Run executes. A
 step limit of 0, or an empty pinned schedule, counts 0. `total` is metadata: no table, fingerprint,
 Definition ID, answer, lowering, Case or exploration identity reads it. It is unset only in IR lifted
-before it existed; every Query a current Model declares states one, and an exploration candidate
-whose schedule differs from its source Scenario's is counted again.
+before it existed; every Query of current IR carries one, written or computed, and an exploration
+candidate whose schedule differs from its source Scenario's is counted again.
 
 ## Progress
 
