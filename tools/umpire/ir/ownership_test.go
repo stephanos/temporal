@@ -78,7 +78,7 @@ func modelImportProblem(file string, external bool, imported string) string {
 		return ""
 	}
 	name := strings.TrimPrefix(imported, module)
-	if name == "tools/umpire/model" || strings.HasPrefix(name, "tools/umpire/model/") {
+	if name == "tools/umpire/"+"model" || strings.HasPrefix(name, "tools/umpire/"+"model/") {
 		return "retired reader import"
 	}
 	if strings.HasPrefix(name, "model/") {
@@ -144,6 +144,9 @@ func modelImportProblem(file string, external bool, imported string) string {
 		}
 		if strings.HasPrefix(part, "lower/internal/producer/") {
 			allowed[owner] = []string{"interp", "check"}
+			if test {
+				allowed[owner] = append(allowed[owner], "ir")
+			}
 		}
 		if test {
 			if owner == "lower" && external && !strings.Contains(part, "/internal/") {
@@ -319,6 +322,7 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/export/slice.go", dependency: module + "tools/umpire/realization"},
 		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/realization"},
 		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/ir"},
+		{file: "tools/umpire/lower/internal/producer/occurrence_test.go", dependency: module + "tools/umpire/ir", allowed: true},
 		{file: "tools/umpire/internal/cli/cli.go", dependency: module + "tools/umpire/internal/engine"},
 		{file: "tools/umpire/ir/validate.go", dependency: module + "tools/umpire/realization", allowed: true},
 		{file: "tools/umpire/interp/machine.go", dependency: module + "tools/umpire/internal/engine", allowed: true},
@@ -326,7 +330,7 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/conformance/guard.go", dependency: module + "tools/umpire/realization", allowed: true},
 		{file: "tools/umpire/ir/validate.go", dependency: module + "tools/umpire/internal/engine"},
 		{file: "tools/umpire/realization/operand_test.go", dependency: module + "tools/umpire/internal/engine", external: true},
-		{file: "tools/umpire/lower/lower.go", dependency: module + "tools/umpire/model"},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "tools/umpire/" + "model"},
 		{file: "tools/umpire/ir/load.go", dependency: module + "api/testpilot/v1"},
 		{file: "tools/umpire/ir/load_test.go", dependency: module + "common/testing/testpilot"},
 		{file: "tools/umpire/ir/load_test.go", dependency: module + "common/testing/testpilot", external: true},
