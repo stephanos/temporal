@@ -115,6 +115,7 @@ object Misfiled extends Machine[Lamp, Outcome, Nothing]:
   val watched = sticky[Lamp, Outcome, Nothing](after => !after.state.lit)
   def lit(s: Lamp) = s.lit
   def toProduct(s: Lamp) = s
+  val strayBlock = effect(using machineOwner, Ok(Outcome.accepted))(reject(Outcome.accepted))
 
   object effects:
     def kept(s: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(Step(Outcome.accepted, s))

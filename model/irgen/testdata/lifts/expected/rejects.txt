@@ -1,7 +1,17 @@
+lift: model/irgen/testdata/lifts/BlockRejects.scala:119: a bare expression is a statement of the effect block of finish, which holds field assignments, `record(...)` and `reject(...)` and nothing else
+lift: model/irgen/testdata/lifts/BlockRejects.scala:65: the assignment of phase is inside an `if` of the effect block of finish: an effect block's statements are straight-line, so branch with a method-form effect, `def f(s: State) = ...`
 lift: model/irgen/testdata/lifts/BlockRejects.scala:35: `is { ... }` declares a member of a machine object's section, `val held = is { ... }` in `object states`, and is written nowhere else
 lift: model/irgen/testdata/lifts/BlockRejects.scala:25: `is { ... }` declares a member of a machine object's section, `val held = is { ... }` in `object states`, and is written nowhere else
+lift: model/irgen/testdata/lifts/BlockRejects.scala:108: the local val next is a statement of the effect block of finish, which holds field assignments, `record(...)` and `reject(...)` and nothing else
+lift: model/irgen/testdata/lifts/BlockRejects.scala:141: `effect { ... }` is nested in the block of finish: a block declares a section member of its own, `val held = is { ... }`, and reads no other block
 lift: model/irgen/testdata/lifts/BlockRejects.scala:16: `is { ... }` is nested in the block of nested: a block declares a section member of its own, `val held = is { ... }`, and reads no other block
+lift: model/irgen/testdata/lifts/BlockRejects.scala:130: the call of require is a statement of the effect block of finish, which holds field assignments, `record(...)` and `reject(...)` and nothing else
+lift: model/irgen/testdata/lifts/BlockRejects.scala:98: the effect block of finish reads phase after it assigns it: the IR's copy of the state has no statement order, so read phase before its assignment
+lift: model/irgen/testdata/lifts/BlockRejects.scala:75: the effect block of refuse rejects at model/irgen/testdata/lifts/BlockRejects.scala:76, so it holds that one `reject(...)` and nothing else, not the assignment of phase
+lift: model/irgen/testdata/lifts/BlockRejects.scala:158: `effect { ... }` declares a member of a machine object's section, `val pause = effect { ... }` in `object effects`, and is written nowhere else
 lift: model/irgen/testdata/lifts/BlockRejects.scala:45: idle, declared at model/irgen/testdata/lifts/BlockRejects.scala:10, takes the state of a block and is no field accessor: an accessor reads one field, `def phase(using v: View[State]): Phase = v.get(_.phase)`
+lift: model/irgen/testdata/lifts/BlockRejects.scala:150: stage_=, declared at model/irgen/testdata/lifts/BlockRejects.scala:58, takes the state of a block and is no field accessor: a setter replaces one field, `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`
+lift: model/irgen/testdata/lifts/BlockRejects.scala:87: the effect block of finish assigns phase twice, at model/irgen/testdata/lifts/BlockRejects.scala:86 and here: assign each field once
 lift: model/irgen/testdata/lifts/CapabilityRejects.scala:67: againJob declares Pollable here and at model/irgen/testdata/lifts/CapabilityRejects.scala:65: a machine declares each capability once, with one binding
 lift: model/irgen/testdata/lifts/CapabilityRejects.scala:103: cited names its server code as a string literal or a val of one, not fixture.capabilities.Answer.gone.toString()
 lift: model/irgen/testdata/lifts/CapabilityRejects.scala:44: job declares Pollable twice: a machine declares each capability once, with one binding

@@ -115,7 +115,7 @@ private[irgen] trait Expressions:
     case r: Ref if boundFunctions.contains(r.symbol) => Some(boundFunctions(r.symbol))
     case r: Ref if isFunction(r.symbol)              => Some(r.symbol)
     case c: Apply if throughCall(c)                  => Some(through(c))
-    case c: Apply if blockCall(c).nonEmpty           => misplacedBlock(blockCall(c).get._1, c)
+    case c: Apply if blockCall(c).nonEmpty           => misplacedBlock(blockCall(c).get.form, c)
     case _                                           =>
       lambda(t).flatMap { (params, body) =>
         def forwards(args: List[Term]) = args.map(_.symbol) == params.map(_.symbol)
@@ -257,7 +257,9 @@ private[irgen] trait Expressions:
 
   // An `is { ... }` block as the function its method form lifts to, `def held(s: S) = ...`: the
   // block has no state parameter of its own, so the function takes one named `s` of the block's
-  // state type, which the block's view of the state is read as. A block nested in it is refused.
+  // state type, which the block's view of the state is read as. A block nested in it is refused. An
+  // `effect { ... }` block is the step function its method form lifts to, its statements read by
+  // `effectSteps`.
   def blockFunction(name: String, b: SectionBlock): ir.Function =
     val (views, body) = lambda(b.body)
       .filter((ps, _) => ps.forall(_.symbol.flags.is(Flags.Given)))
@@ -269,41 +271,80 @@ private[irgen] trait Expressions:
         case t: Term if blockCall(t).nonEmpty =>
           fail(
             t,
-            s"`${blockCall(t).get._1} { ... }` is nested in the block of ${b.at.name}: a block " +
+            s"`${blockCall(t).get.form} { ... }` is nested in the block of ${b.at.name}: a block " +
               "declares a section member of its own, `val held = is { ... }`, and reads no other block"
           )
         case _ => super.traverseTree(tree)(owner)
     nested.traverseTree(body)(b.at.symbol)
     views.foreach(v => renamed(v.symbol) = "s")
-    functionOf(name, Seq(ir.Param("s", Some(typeRef(b.state, b.at)))), body, b.at)
+    val state = Seq(ir.Param("s", Some(typeRef(b.state, b.at))))
+    if b.form == "effect" then
+      val steps = b.at.tpt.tpe.widen.dealias.typeArgs.last
+      ir.Function(
+        name = name,
+        position = Some(pos(b.at)),
+        params = state,
+        body = Some(giving(steps)(effectSteps(b, body)))
+      )
+    else functionOf(name, state, body, b.at)
 
   // A call of a field accessor, `phase(using v)` in a block: a read of that field of the state the
   // block's view stands for. An accessor has one shape,
   // `def phase(using v: View[State]): Phase = v.get(_.phase)`, and any other is refused, so it reads
   // the field the IR records.
   def accessorRead(fn: Symbol, args: List[Term], at: Tree): ir.Expr =
-    val field = defs.get(fn) match
-      case Some(DefDef(_, List(TermParamClause(List(v))), _, Some(rhs)))
-          if v.symbol.flags.is(Flags.Given) && isNamed(v.tpt.tpe, "umpire.View") =>
-        rhs match
-          case Apply(TypeApply(Select(r: Ident, "get"), _), List(selector))
-              if r.symbol == v.symbol =>
-            lambda(selector).collect { case (List(p), body) => fieldPath(p, body) }.flatten match
-              case Some(List(field)) => Some(field)
-              case _                 => None
-          case _ => None
-      case _ => None
     val view = args match
       case List(v) => v
       case _       => fail(at, s"${fn.name} reads the state of the block it is called in")
-    field.fold(
+    getterField(fn).fold(
       fail(
         at,
-        s"${fn.name}, declared at ${defs.get(fn).fold(fn.fullName)(where)}, takes the state of a " +
+        s"${fn.name}, declared at ${declaredAt(fn)}, takes the state of a " +
           "block and is no field accessor: an accessor reads one field, " +
           "`def phase(using v: View[State]): Phase = v.get(_.phase)`"
       )
     )(f => expr(at)(E.Field(ir.FieldAccess(Some(lift(view)), f))))
+
+  def declaredAt(fn: Symbol): String = defs.get(fn).fold(fn.fullName)(where)
+
+  // The field a getter of the fixed shape reads, `def phase(using v: View[State]): Phase =
+  // v.get(_.phase)`, or None for a def of any other shape.
+  def getterField(fn: Symbol): Option[String] = defs.get(fn) match
+    case Some(DefDef(_, List(TermParamClause(List(v))), _, Some(rhs)))
+        if v.symbol.flags.is(Flags.Given) && isNamed(v.tpt.tpe, "umpire.View") =>
+      rhs match
+        case Apply(TypeApply(Select(r: Ident, "get"), _), List(selector)) if r.symbol == v.symbol =>
+          lambda(selector).collect { case (List(p), body) => fieldPath(p, body) }.flatten match
+            case Some(List(field)) => Some(field)
+            case _                 => None
+        case _ => None
+    case _ => None
+
+  // The field a setter of the fixed shape replaces with its parameter,
+  // `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`, or None
+  // for a def of any other shape.
+  def setterField(fn: Symbol): Option[String] = defs.get(fn) match
+    case Some(DefDef(_, List(TermParamClause(List(p)), TermParamClause(List(d))), _, Some(rhs)))
+        if d.symbol.flags.is(Flags.Given) && isNamed(d.tpt.tpe, "umpire.Draft") =>
+      rhs match
+        case Apply(Select(r: Ident, "set"), List(update)) if r.symbol == d.symbol =>
+          lambda(update).collect { case (List(x), body) => (x, arguments(body)) }.flatMap {
+            case (x, Apply(Select(base: Ident, "copy"), args)) if base.symbol == x.symbol =>
+              val fields = fieldTypes(base.tpe.widen.typeSymbol).map(_._1)
+              val replaced = args.zipWithIndex.flatMap {
+                case (Select(_, g), _) if g.startsWith("copy$default$")               => None
+                case (TypeApply(Select(_, g), _), _) if g.startsWith("copy$default$") => None
+                case (NamedArg(name, value), _)                                       =>
+                  Some(name -> value)
+                case (value, i) => Some(fields(i) -> value)
+              }
+              replaced match
+                case List((field, v: Ident)) if v.symbol == p.symbol => Some(field)
+                case _                                               => None
+            case _ => None
+          }
+        case _ => None
+    case _ => None
 
   // Whether a def takes the state of a block, a `View` (an `effect`'s draft is one too): an accessor.
   def accessor(fn: Symbol): Boolean = defs.get(fn) match
@@ -394,7 +435,7 @@ private[irgen] trait Expressions:
     case _: Apply if makesSteps(t.tpe) && !making._1 => wrongLevel(t)
 
     // A block written where no section's val declares it.
-    case _ if blockCall(t).nonEmpty => misplacedBlock(blockCall(t).get._1, t)
+    case _ if blockCall(t).nonEmpty => misplacedBlock(blockCall(t).get.form, t)
 
     // `enter`, `stay`, `disabled`, `in`, `implies` and `records`, as their core forms lift.
     case _ if sugared(t) => sugar(t)

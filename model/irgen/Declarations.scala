@@ -633,7 +633,22 @@ private[irgen] trait Declarations:
         binary(ir.Binary.Op.OP_AND, heading(inner, at), condition(g), at)
     def guard(r: LiftedRule): ir.Expr =
       makingIn(false, "the guard of a rule")(heading(r.heading, r.at))
-    def effect(r: LiftedRule): ir.Expr =
+    def effect(r: LiftedRule): ir.Expr = unwrapped(r.effect) match
+      // An effect a section's `effect { ... }` val declares, called with the state.
+      case v: Ref if blockVal(v.symbol).nonEmpty =>
+        if !inEffects(v.symbol) then outsideEffects(v.symbol, r)
+        makingIn(true, "an effect")(
+          expr(r.effect)(E.Call(ir.Call(callee(v.symbol, r.effect), Seq(stateVar(r.effect)))))
+        )
+      case c: Apply if blockCall(c).nonEmpty => misplacedBlock(blockCall(c).get.form, c)
+      case _                                 => effectCall(r)
+    def outsideEffects(fn: Symbol, r: LiftedRule): Nothing =
+      fail(
+        r.at,
+        s"${fn.name} is an effect outside `effects`: a rule's effect is a def of a " +
+          "machine's `effects` section"
+      )
+    def effectCall(r: LiftedRule): ir.Expr =
       val (params, body) = lambda(r.effect).getOrElse(
         fail(r.effect, s"the effect of a rule of $machine is a function, not ${r.effect.show}")
       )
@@ -648,12 +663,7 @@ private[irgen] trait Declarations:
       unwrapped(body) match
         case Apply(fn, _) if isFunction(fn.symbol) =>
           val d = defs(fn.symbol)
-          if !inEffects(fn.symbol) then
-            fail(
-              r.at,
-              s"${fn.symbol.name} is an effect outside `effects`: a rule's effect is a def of a " +
-                "machine's `effects` section"
-            )
+          if !inEffects(fn.symbol) then outsideEffects(fn.symbol, r)
           d match
             case f: DefDef => givesNoEmpty(f)
             case _         => ()

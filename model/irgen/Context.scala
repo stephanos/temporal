@@ -50,44 +50,52 @@ final private[irgen] class Context(val index: Index):
     case Some(_: DefDef) => true
     case _               => blockVal(sym).nonEmpty
 
-  // A section member a block of the framework's syntax declares (model/umpire/Syntax.scala): the
-  // block's form (`is`), the val, the state type the block reads, and its body, the context function
-  // the call is given.
-  final case class SectionBlock(form: String, at: ValDef, state: TypeRepr, body: Term)
+  // The call of a block form of the framework's syntax (model/umpire/Syntax.scala),
+  // `is[S, O, F](using owner)(body)` or `effect[S, O, F](using owner, ok)(body)`: the form, the
+  // machine's state, outcome and fact types, the givens it is applied to and its body, the context
+  // function the call is given.
+  final case class BlockCall(form: String, types: List[TypeRepr], usings: List[Term], body: Term):
+    def state: TypeRepr = types.head
 
-  private val blockForms = Set("is")
+  // A section member a block declares: the val and the block's call.
+  final case class SectionBlock(at: ValDef, call: BlockCall):
+    def form: String = call.form
+    def state: TypeRepr = call.state
+    def body: Term = call.body
+
+  private val blockForms = Set("is", "effect")
   private val syntaxOwner = "umpire.Syntax$package$"
 
-  // The call of a block form a term is, `is[S, O, F](using owner)(body)`: its name, its state type
-  // and its body.
-  def blockCall(t: Term): Option[(String, TypeRepr, Term)] = t match
+  // The call of a block form a term is.
+  def blockCall(t: Term): Option[BlockCall] = t match
     case Typed(e, _)        => blockCall(e)
     case Inlined(_, Nil, e) => blockCall(e)
     case Block(Nil, e)      => blockCall(e)
-    case Apply(Apply(TypeApply(fn, state :: _), List(_)), List(body))
+    case Apply(Apply(TypeApply(fn, types), usings), List(body))
         if blockForms(fn.symbol.name) && fn.symbol.maybeOwner.fullName == syntaxOwner =>
-      Some((fn.symbol.name, state.tpe, body))
+      Some(BlockCall(fn.symbol.name, types.map(_.tpe), usings, body))
     case _ => None
 
-  // The one recognizer of a section member a block declares, `val held = is { ... }` in a section
-  // of a machine's object: it is the function the block stands for, named by its val as a def is by
-  // its def. A block anywhere else is refused.
+  // The one recognizer of a section member a block declares, `val held = is { ... }` or
+  // `val pause = effect { ... }` in a section of a machine's object: it is the function the block
+  // stands for, named by its val as a def is by its def. A block anywhere else is refused.
   def blockVal(sym: Symbol): Option[SectionBlock] = defs.get(sym) match
     case Some(v @ ValDef(_, _, Some(rhs))) =>
-      blockCall(rhs).map { (form, state, body) =>
+      blockCall(rhs).map { call =>
         val section = sym.maybeOwner
         if !(section.isClassDef && section.flags.is(Flags.Module) && objectForm(section.maybeOwner))
-        then misplacedBlock(form, rhs)
-        SectionBlock(form, v, state, body)
+        then misplacedBlock(call.form, rhs)
+        SectionBlock(v, call)
       }
     case _ => None
 
   // The refusal of a block written anywhere but as the right-hand side of a section's val.
   def misplacedBlock(form: String, at: Tree): Nothing =
+    val (member, section) = if form == "effect" then ("pause", "effects") else ("held", "states")
     fail(
       at,
-      s"`$form { ... }` declares a member of a machine object's section, `val held = $form { ... }` " +
-        "in `object states`, and is written nowhere else"
+      s"`$form { ... }` declares a member of a machine object's section, " +
+        s"`val $member = $form { ... }` in `object $section`, and is written nowhere else"
     )
 
   // A stable path, `a` or `a.b.c`: what an alias is a name for.

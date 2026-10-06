@@ -324,11 +324,20 @@ final private[irgen] class Order(index: Index):
           case _ => None
 
   private def kindOf(d: Definition): Option[Kind] = d match
+    case v: ValDef if v.rhs.exists(effectBlock)        => Some(Kind.Step)
     case v: ValDef if !v.symbol.flags.is(Flags.Module) => kindOf(v.tpt.tpe)
     case f: DefDef if !f.symbol.isClassConstructor     => kindOf(f.returnTpt.tpe)
     // An object that is a machine or a composition, read as its own declaration.
     case c: ClassDef if objectForm(c.symbol) => Some(Kind.Machine)
     case _                                   => None
+
+  // `effect { ... }`, the framework's block a val declares a step function by (model/umpire/Syntax.scala).
+  private def effectBlock(t: Term): Boolean = t match
+    case Typed(e, _)        => effectBlock(e)
+    case Inlined(_, Nil, e) => effectBlock(e)
+    case Block(Nil, e)      => effectBlock(e)
+    case c: Apply           => c.symbol.fullName == "umpire.Syntax$package$.effect"
+    case _                  => false
 
   // The place a kind belongs in: in an object form, a monitor's is the `monitors` section.
   private def belongs(k: Kind, inObjectForm: Boolean): String = k match

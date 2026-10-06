@@ -75,6 +75,149 @@ private[irgen] trait Syntax:
       binary(ir.Binary.Op.OP_CONTAINS, lift(fact), facts, t)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
+  // A statement of an `effect { ... }` block: a field assignment by its setter, `phase = p`, a
+  // `record(facts*)` or a `reject(outcome)`.
+  private enum EffectStatement(val at: Tree):
+    case Assign(field: String, value: Term, call: Tree) extends EffectStatement(call)
+    case Record(facts: List[Term], call: Tree) extends EffectStatement(call)
+    case Reject(outcome: Term, call: Tree) extends EffectStatement(call)
+
+    def values: List[Term] = this match
+      case Assign(_, value, _) => List(value)
+      case Record(facts, _)    => facts
+      case Reject(outcome, _)  => List(outcome)
+
+    def written: String = this match
+      case Assign(field, _, _) => s"the assignment of $field"
+      case Record(_, _)        => "record(...)"
+      case Reject(_, _)        => "reject(...)"
+
+  private def syntaxCall(fn: Term, name: String): Boolean =
+    fn.symbol.name == name && fn.symbol.maybeOwner.fullName == sugarOwner
+
+  // The statement of an effect block a term is, if it is one. A call of a def that takes the
+  // block's draft and is no getter is a setter of the fixed shape, or refused, naming it.
+  private def effectStatement(t: Term): Option[EffectStatement] = unwrapped(t) match
+    case c @ Apply(Apply(TypeApply(fn, _), List(_)), List(first, rest))
+        if syntaxCall(fn, "record") =>
+      Some(EffectStatement.Record(first :: varargs(rest), c))
+    case c @ Apply(Apply(TypeApply(fn, _), List(_)), List(outcome)) if syntaxCall(fn, "reject") =>
+      Some(EffectStatement.Reject(outcome, c))
+    case c: Apply if accessor(c.symbol) && getterField(c.symbol).isEmpty =>
+      val fn = c.symbol
+      (setterField(fn), c) match
+        case (Some(field), Apply(Apply(_, List(value)), List(_))) =>
+          Some(EffectStatement.Assign(field, value, c))
+        case _ =>
+          fail(
+            c,
+            s"${fn.name}, declared at ${declaredAt(fn)}, takes the state of a block and is no " +
+              "field accessor: a setter replaces one field, " +
+              "`def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`"
+          )
+    case _ => None
+
+  // An `effect { ... }` block's statements, lifted as the steps of its method form: the
+  // assignments as one copy of the state, its fields in the order the state declares them; the facts
+  // in the order recorded; and the ok outcome. The IR's copy of the state has no statement order, so
+  // what would make the order matter is refused: a statement in a branch or a loop, a rejecting
+  // block with another statement, a field assigned twice or read after it is assigned. So is any
+  // statement but an assignment, `record` or `reject`. Core form: `effect { phase = p; record(f) }`
+  // lifts as `enter(s.copy(phase = p), f)`, and `effect { reject(o) }` as `reject(o, s)`.
+  def effectSteps(b: SectionBlock, body: Term): ir.Expr =
+    import EffectStatement.*
+    val block = s"the effect block of ${b.at.name}"
+    def statements(t: Tree): List[Tree] = t match
+      case term: Term =>
+        unwrapped(term) match
+          case Block(stats, e)         => stats.flatMap(statements) ++ statements(e)
+          case Literal(UnitConstant()) => Nil
+          case other                   => List(other)
+      case other => List(other)
+    // The first statement written inside a tree.
+    def within(t: Tree): Option[(Term, EffectStatement)] =
+      object first extends TreeAccumulator[Option[(Term, EffectStatement)]]:
+        def foldTree(found: Option[(Term, EffectStatement)], tree: Tree)(owner: Symbol) =
+          found.orElse(tree match
+            case term: Term if effectStatement(term).nonEmpty =>
+              Some(term -> effectStatement(term).get)
+            case _ => foldOverTree(None, tree)(owner))
+      first.foldTree(None, t)(b.at.symbol)
+    def named(t: Tree): String = t match
+      case v: ValDef                                => s"the local val ${v.name}"
+      case d: Definition                            => s"the local definition ${d.name}"
+      case _: If                                    => "an `if`"
+      case _: Match                                 => "a `match`"
+      case _: While                                 => "a loop"
+      case c: Apply if isNamed(c.tpe, "scala.Unit") => s"the call of ${c.symbol.name}"
+      case _                                        => "a bare expression"
+    def inside(at: Tree, s: EffectStatement, place: String): Nothing =
+      fail(
+        at,
+        s"${s.written} is inside $place of $block: an effect block's statements are straight-line, " +
+          "so branch with a method-form effect, `def f(s: State) = ...`"
+      )
+    val lifted = statements(body).map { t =>
+      val own = t match
+        case term: Term => effectStatement(term)
+        case _          => None
+      own match
+        case Some(s) =>
+          for v <- s.values; (at, n) <- within(v) do inside(at, n, s"the value of ${s.written}")
+          s
+        case None =>
+          for (at, n) <- within(t) do inside(at, n, named(t))
+          fail(
+            t,
+            s"${named(t)} is a statement of $block, which holds field assignments, `record(...)` " +
+              "and `reject(...)` and nothing else"
+          )
+    }
+    for r <- lifted.collectFirst { case r: Reject => r }; other <- lifted.find(_ ne r) do
+      fail(
+        other.at,
+        s"$block rejects at ${where(r.at)}, so it holds that one `reject(...)` and nothing else, " +
+          s"not ${other.written}"
+      )
+    val assigns = lifted.collect { case a: Assign => a }
+    for (a, i) <- assigns.zipWithIndex; first <- assigns.take(i).find(_.field == a.field) do
+      fail(
+        a.at,
+        s"$block assigns ${a.field} twice, at ${where(first.at)} and here: assign each field once"
+      )
+    // A field read after its assignment reads the assigned value at run time, the old one in the IR.
+    for (s, i) <- lifted.zipWithIndex do
+      val assigned = lifted.take(i).collect { case a: Assign => a.field }.toSet
+      object reads extends TreeTraverser:
+        override def traverseTree(tree: Tree)(owner: Symbol): Unit = tree match
+          case Apply(fn, List(_)) if getterField(fn.symbol).exists(assigned) =>
+            val field = getterField(fn.symbol).get
+            fail(
+              tree,
+              s"$block reads $field after it assigns it: the IR's copy of the state has no " +
+                s"statement order, so read $field before its assignment"
+            )
+          case _ => super.traverseTree(tree)(owner)
+      s.values.foreach(v => reads.traverseTree(v)(b.at.symbol))
+    val at = b.body
+    def state = expr(at)(E.Var("s"))
+    lifted match
+      case List(Reject(outcome, call)) =>
+        list(Seq(step(lift(outcome), state, list(Nil, call), text("", call), call)), call)
+      case _ =>
+        val ok = b.call.usings.lift(1).getOrElse(fail(at, s"$block is given no ok outcome"))
+        val outcome = outcomeOf(ok, "effect")
+        val values = assigns.map(a => a.field -> a.value).toMap
+        val updates = fieldTypes(b.state.widen.typeSymbol).collect {
+          case (field, tpe) if values.contains(field) =>
+            ir.NamedExpr(field, Some(lift(values(field), Some(tpe))))
+        }
+        val entered =
+          if updates.isEmpty then state else expr(at)(E.Copy(ir.Copy(Some(state), updates)))
+        val fact = b.call.types.lift(2)
+        val facts = lifted.collect { case r: Record => r.facts }.flatten.map(lift(_, fact))
+        list(Seq(step(outcome, entered, list(facts, at), text("", at), at)), at)
+
   // Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:
   // none of its own; `classOf` asks it before it reads a positional call, as in
   // `case _ if namedClass(t) => named(t)`.

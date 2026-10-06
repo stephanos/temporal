@@ -355,9 +355,25 @@ class Fixtures extends munit.FunSuite:
     "BothForms"
   ).map(o => s"fixture.capabilitysectionrejects.$o$$.capabilities")
 
-  // The refusals of fn-135.2's `is { }` blocks, each a machine object (lifts/BlockRejects.scala).
+  // The refusals of fn-135.2's `is { }` blocks and fn-135.3's `effect { }` blocks, each a machine
+  // object (lifts/BlockRejects.scala).
   private val blockRejects: Seq[String] =
-    Seq("NestedIs", "HeaderIs", "DefIs", "ShapedAccessor").map("fixture.blockrejects." + _)
+    Seq(
+      "NestedIs",
+      "HeaderIs",
+      "DefIs",
+      "ShapedAccessor",
+      "BranchedEffect",
+      "RejectingEffect",
+      "TwiceAssigned",
+      "ReadAfterAssigned",
+      "LocalVal",
+      "BareExpression",
+      "OtherCall",
+      "NestedEffect",
+      "ShapedSetter",
+      "RuleEffect"
+    ).map("fixture.blockrejects." + _)
 
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
   private val hintRejects: Seq[String] =
@@ -952,17 +968,19 @@ class Fixtures extends munit.FunSuite:
           "in the `states` object of its machine's object",
         s"lift: $f:117: toProduct is a member of Misfiled's refinement: declare it in " +
           "`object refinement extends Refinement(product)`, which holds the machine's refinement",
-        s"lift: $f:126: dim is a monitor, assumption, hole or channel, declared in " +
+        s"lift: $f:118: strayBlock is a step function, and belongs in the `effects` object of its " +
+          "machine's object, not in Misfiled",
+        s"lift: $f:127: dim is a monitor, assumption, hole or channel, declared in " +
           "Misfiled.properties: it belongs in the `monitors` object of its machine's object",
-        s"lift: $f:127: borrowed is declared over Switch, a machine object: it belongs in " +
+        s"lift: $f:128: borrowed is declared over Switch, a machine object: it belongs in " +
           "Switch.properties",
-        s"lift: $f:134: a step function is bound by hand, `action ~> step`, in HandBound: $handBound",
-        s"lift: $f:138: kept is a step function, declared inside HandBound.effects.more: it " +
+        s"lift: $f:135: a step function is bound by hand, `action ~> step`, in HandBound: $handBound",
+        s"lift: $f:139: kept is a step function, declared inside HandBound.effects.more: it " +
           "belongs in the `effects` object of its machine's object",
-        s"lift: $f:152: armed is read while Guarded.rules initializes, before it is declared at " +
-          s"$f:153, so it is still null here: declare it before the declaration that reads it",
-        s"lift: $f:158: a step function is bound by hand, `action ~> step`, in Escaped: $handBound",
-        s"lift: $f:165: a step function is bound by hand, `action ~> step`, in Cored: $handBound"
+        s"lift: $f:153: armed is read while Guarded.rules initializes, before it is declared at " +
+          s"$f:154, so it is still null here: declare it before the declaration that reads it",
+        s"lift: $f:159: a step function is bound by hand, `action ~> step`, in Escaped: $handBound",
+        s"lift: $f:166: a step function is bound by hand, `action ~> step`, in Cored: $handBound"
       )
     )
 
@@ -1281,9 +1299,11 @@ class Fixtures extends munit.FunSuite:
 
   // fn-135.2: each `is { }` val of `Blocked` beside the def of `Defined` it stands for, read by a
   // rule's condition, a capability field, `end` and a claim (lifts/Blocks.scala). Every declaration
-  // of one machine, with the other's name in its place and no positions, is the other's.
+  // of one machine, with the other's name in its place and no positions, is the other's. fn-135.3:
+  // so is each `effect { }` val beside its def, bound by a rule.
   test(
-    "is blocks lift as the defs they stand for, in a condition, a capability field, end and a claim"
+    "is and effect blocks lift as the defs they stand for, in a condition, a capability field, " +
+      "end, a claim and a rule's effect"
   ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
@@ -1317,6 +1337,12 @@ class Fixtures extends munit.FunSuite:
       blocked("functions").keySet.filter(_.contains("states")),
       Set("paused", "busy", "over").map(p => s"fixture.blocks.Defined$$.states$$.$p/"),
       "each is block is a function of its own"
+    )
+    assertEquals(
+      blocked("functions").keySet.filter(_.contains("effects")),
+      Set("start", "restart", "finish", "pause", "keep", "refuse")
+        .map(e => s"fixture.blocks.Defined$$.effects$$.$e/"),
+      "each effect block is a function of its own"
     )
     assert(blocked("properties").size == 2, blocked("properties").keys)
 
