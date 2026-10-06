@@ -1,4 +1,4 @@
-package checker
+package engine
 
 import (
 	"bytes"

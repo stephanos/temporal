@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // Scope is the finite scope a check of a Model runs within. A receipt carries the bounds it ran

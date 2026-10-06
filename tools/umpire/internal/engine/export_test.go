@@ -1,4 +1,4 @@
-package checker
+package engine
 
 // KeyProgress declares a progress claim over state keys whose from and to always answer.
 func KeyProgress(name string, from, to func(state string) bool, within int, assumptions ...Assumption) *Progress {

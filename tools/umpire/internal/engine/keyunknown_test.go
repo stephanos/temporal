@@ -1,4 +1,4 @@
-package checker_test
+package engine_test
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // A detail that begins before it finishes, read as a product that only finishes.

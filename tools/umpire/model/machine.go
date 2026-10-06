@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // Members lists every value of a finite type in catalog order: an enum's cases in declaration order,

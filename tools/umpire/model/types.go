@@ -1,6 +1,6 @@
 package model
 
-import core "go.temporal.io/server/tools/umpire/model/internal/checker"
+import core "go.temporal.io/server/tools/umpire/internal/engine"
 
 type (
 	Family            = core.Family

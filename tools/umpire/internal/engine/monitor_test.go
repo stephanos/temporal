@@ -1,10 +1,10 @@
-package checker_test
+package engine_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 var four = umpire.Limits{Name: "four", Steps: 4, Actions: 4, Search: 64}

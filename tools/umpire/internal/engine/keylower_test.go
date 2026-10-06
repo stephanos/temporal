@@ -1,11 +1,11 @@
-package checker_test
+package engine_test
 
 import (
 	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // lowerable is a table over keys with two actions, two outcomes and two facts:

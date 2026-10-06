@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	core "go.temporal.io/server/tools/umpire/model/internal/checker"
+	core "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 func TestReceiptAndQueryOutcomeSpellingsRemainCompatible(t *testing.T) {

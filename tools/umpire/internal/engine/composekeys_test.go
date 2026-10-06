@@ -1,4 +1,4 @@
-package checker_test
+package engine_test
 
 import (
 	"crypto/sha256"
@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // composition is what a composed table says, without the steps its results carry.

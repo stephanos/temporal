@@ -1,4 +1,4 @@
-package checker
+package engine
 
 // Model is anything with a finite table: a declared, derived or composed machine.
 type Model interface {

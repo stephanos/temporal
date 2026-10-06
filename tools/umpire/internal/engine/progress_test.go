@@ -1,10 +1,10 @@
-package checker_test
+package engine_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // keyTable builds a key-only table from its starts and its edges, each a source, an action and a

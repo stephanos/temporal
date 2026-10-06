@@ -1,6 +1,6 @@
-// Package checker evaluates claims over finite tables: the search, refinement, composition, monitor
+// Package engine evaluates claims over finite tables: the search, refinement, composition, monitor
 // and progress checks the model reader runs over a table's keys.
-package checker
+package engine
 
 import (
 	"fmt"

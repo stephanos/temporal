@@ -1,11 +1,11 @@
-package checker_test
+package engine_test
 
 import (
 	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // A toy door: closed, open or locked, with a knob that turns by one of two hands.

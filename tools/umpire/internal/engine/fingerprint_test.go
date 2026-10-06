@@ -1,10 +1,10 @@
-package checker_test
+package engine_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // A table's Behavior Fingerprint is read off what the table says each time it is asked, and never

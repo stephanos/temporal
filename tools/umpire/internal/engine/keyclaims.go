@@ -1,4 +1,4 @@
-package checker
+package engine
 
 // Claims over a table's keys, for a table computed outside this package (NewTable, ComposeTables):
 // its Properties, Scenarios and Monitors read keys, and one search answers them.

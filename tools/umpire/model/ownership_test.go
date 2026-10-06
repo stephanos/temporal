@@ -37,12 +37,13 @@ func TestCheckerAndProducerHaveOneLiveOwner(t *testing.T) {
 			}
 			require.NotEqual(t, "go.temporal.io/server/model/go/"+"umpire", name, path)
 			require.NotEqual(t, "go.temporal.io/server/model/go/caseproducer", name, path)
-			if strings.HasSuffix(name, "/internal/checker") {
-				rel, err := filepath.Rel(filepath.Join(base, "model"), path)
+			if strings.HasSuffix(name, "/internal/engine") {
+				rel, err := filepath.Rel(base, path)
 				if err != nil {
 					return err
 				}
-				require.True(t, filepath.Dir(rel) == "." || strings.HasPrefix(rel, "internal/checker/"), "%s imports the private checker", path)
+				rel = filepath.ToSlash(rel)
+				require.True(t, filepath.Dir(rel) == "model" || strings.HasPrefix(rel, "internal/engine/"), "%s imports the private engine", path)
 			}
 			if strings.HasSuffix(name, "/internal/producer") {
 				require.True(t, strings.HasPrefix(path, filepath.Join(base, "lower")+string(filepath.Separator)), "%s imports the private producer", path)
@@ -86,8 +87,8 @@ func modelImportProblem(file string, external bool, imported string) string {
 	}
 	part := strings.TrimPrefix(file, "tools/umpire/")
 	owner := strings.Split(part, "/")[0]
-	if strings.HasPrefix(name, "tools/umpire/model/internal/checker") && owner != "model" {
-		return "checker is private to reader"
+	if strings.HasPrefix(name, "tools/umpire/internal/engine") && owner != "model" && !strings.HasPrefix(part, "internal/engine/") {
+		return "engine is private to reader"
 	}
 	if strings.HasPrefix(name, "tools/umpire/lower/internal/producer") && owner != "lower" {
 		return "producer is private to lowering"
@@ -119,8 +120,11 @@ func modelImportProblem(file string, external bool, imported string) string {
 	if owner == "model" && (strings.HasPrefix(name, "common/testing/testpilot") || strings.HasPrefix(name, "api/testpilot/")) {
 		return "reader imports Testpilot"
 	}
-	if strings.HasPrefix(part, "model/internal/checker/") && strings.HasPrefix(name, "tools/umpire/") && !strings.HasPrefix(name, "tools/umpire/model/internal/checker") {
-		return "checker imports a higher layer"
+	if strings.HasPrefix(part, "internal/engine/") && strings.HasPrefix(name, "tools/umpire/") && !strings.HasPrefix(name, "tools/umpire/internal/engine") {
+		return "engine imports a higher layer"
+	}
+	if strings.HasPrefix(name, "tools/umpire/internal/engine") {
+		return ""
 	}
 	if strings.HasPrefix(name, "tools/umpire/") {
 		dependency := strings.TrimPrefix(name, "tools/umpire/")
@@ -302,8 +306,8 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/model/load_test.go", dependency: module + "common/testing/testpilot"},
 		{file: "tools/umpire/model/load_test.go", dependency: module + "common/testing/testpilot", external: true},
 		{file: "tools/umpire/model/load.go", dependency: module + "tools/umpire/lower"},
-		{file: "tools/umpire/model/internal/checker/table.go", dependency: module + "tools/umpire/model"},
-		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/model/internal/checker"},
+		{file: "tools/umpire/internal/engine/table.go", dependency: module + "tools/umpire/model"},
+		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/internal/engine"},
 		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/model", allowed: true},
 		{file: "tools/umpire/lower/lower.go", dependency: module + "common/testing/testpilot", allowed: true},
 		{file: "tools/umpire/lower/lower.go", dependency: module + "tools/umpire/explore"},

@@ -1,4 +1,4 @@
-package checker_test
+package engine_test
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
+	umpire "go.temporal.io/server/tools/umpire/internal/engine"
 )
 
 // encoded is how Quote wrote every string before it wrote plain ones itself: one JSON encoder for
