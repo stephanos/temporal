@@ -36,8 +36,8 @@ The table and product counts describe the Quint comparisons alone.
 
 | Slice | Machines | Compositions | Pairs compared | Monitored machines | Machines with a violated monitor |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `activity` | 4 | 1 | 15,817 | 0 | 0 |
-| `activity-record` | 12 | 5 of 7 | 13,839 | 2 | 1 (`trustingActivityRecord`: both monitors) |
+| `activity-standalone` | 4 | 1 | 15,817 | 0 | 0 |
+| `activity-standalone-record` | 12 | 5 of 7 | 13,839 | 2 | 1 (`trustingActivityRecord`: both monitors) |
 | `nexus-workflow` | 4 | 0 | 3,716 | 0 | 0 |
 | `nexus-workflow-close` | 9 | 0 | 9,134 | 9 | 6 |
 

@@ -15,7 +15,7 @@ Implements the Model half of R12. Where task 1's runs show the observable differ
 **Touches:** [model/temporal/features/nexus/workflow/**, model/ir/**, model/cases/**]
 
 ### Approach
-- If modeled: step functions read `implementation.value` where attempt counting differs (e.g. `failAttempt`, the spec's API sketch); the realization's `attempt == 1` poll (`Realization.scala:179-181`) follows the Model, not a constant.
+- If modeled: step functions read `implementation.value` where attempt counting differs (e.g. `failAttempt`, the spec's API sketch); the realization's `attempt == 1` poll (`nexus/workflow/Realization.scala`) follows the Model, not a constant.
 - If a CHASM defect: the Model stays on HSM semantics; the CHASM retry Case is expected to fail, recorded with the upstream report drafted for the owner.
 - Each other divergence task 1 or task 7 listed gets the same treatment or an owner-recorded reason.
 

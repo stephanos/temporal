@@ -392,9 +392,10 @@ class GateSuite extends munit.FunSuite:
   private val irFiles = Seq(
     "nexus-workflow.json",
     "nexus-workflow-control.json",
+    "nexus-standalone.json",
     "activity-standalone.json",
-    "activity-system.json",
-    "activity-race.json",
+    "activity-standalone-record.json",
+    "activity-standalone-race.json",
     "nexus-workflow-close.json"
   )
 
