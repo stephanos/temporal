@@ -7,10 +7,30 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
+// Admitter is what admitting a realization asks of the validator of its Model: the realization's
+// declarations are keyed, its problems reported and its classes checked as the rest of the Model's
+// are, against the Model's machines and channels.
+type Admitter interface {
+	// Once reports a declaration whose key an earlier one of its kind took, and is whether it did.
+	Once(at *umpirespb.Position, words ...string) bool
+	// Report records a problem of the Model.
+	Report(at *umpirespb.Position, format string, args ...any)
+	// Errors is how many problems are recorded so far.
+	Errors() int
+	// ActionClass checks a class of an action against a machine that must bind it.
+	ActionClass(owner string, mm *umpirespb.Machine, c *umpirespb.ActionClass, at *umpirespb.Position)
+	// ClassKey keys a class as the machine's table keys it.
+	ClassKey(c *umpirespb.ActionClass) string
+	// Machine is the Model's machine of a name, if it declares one.
+	Machine(name string) (*umpirespb.Machine, bool)
+	// Channel is whether the Model declares a channel of an id.
+	Channel(id string) bool
+}
+
 // realizing is one realization being admitted: what it declares, by id, and what its commands bind,
 // read and perform.
 type realizing struct {
-	v *validator
+	d Admitter
 	r *umpirespb.Realization
 	// label is what scopes the realization's declarations, and owner what a diagnostic calls it: its
 	// name, its id where it has no name, or where it was written where it has neither.
@@ -36,33 +56,33 @@ var (
 	fieldRoles   = map[umpirespb.EvidenceField_Role]string{umpirespb.EvidenceField_ROLE_OPERATION: "the operation", umpirespb.EvidenceField_ROLE_ATTEMPT: "the attempt", umpirespb.EvidenceField_ROLE_DELIVERY: "the delivery"}
 )
 
-// realization checks that a realization names what it declares, declares each thing once, binds each
+// Admit checks that a realization names what it declares, declares each thing once, binds each
 // learned value and performs each class once, crosses no kind and no correlation, and orders its
 // commands without a cycle. It is named by its id and by its name, and one that lacks either, or
 // names no machine of the Model, is still read whole: only its classes, which are read against the
 // machine, are left unchecked.
-func (v *validator) realization(r *umpirespb.Realization) {
+func Admit(d Admitter, r *umpirespb.Realization) {
 	at := r.GetPosition()
-	a := &realizing{v: v, r: r, label: r.GetName(), owner: "realization " + r.GetName(), roles: map[string]*umpirespb.Role{},
+	a := &realizing{d: d, r: r, label: r.GetName(), owner: "realization " + r.GetName(), roles: map[string]*umpirespb.Role{},
 		learned: map[string]*umpirespb.Learned{}, observations: map[string]bool{}, evidence: map[string]*umpirespb.Evidence{},
 		controls: map[string]bool{}, bound: map[string]string{}, performed: map[string]string{}, read: map[string]bool{},
 		closed: map[string]string{}}
 	switch {
 	case r.GetName() != "":
-		v.once(at, "realizations named", r.GetName())
+		d.Once(at, "realizations named", r.GetName())
 	case r.GetId() != "":
-		v.report(at, "a realization has no name")
+		d.Report(at, "a realization has no name")
 		a.label, a.owner = r.GetId(), "realization "+r.GetId()
 	default:
-		v.report(at, "a realization has no name")
+		d.Report(at, "a realization has no name")
 		a.label, a.owner = fmt.Sprintf("at %s", Where(at)), "a realization"
 	}
 	if r.GetId() == "" {
-		v.report(at, "%s has no id", a.owner)
+		d.Report(at, "%s has no id", a.owner)
 	} else {
-		v.once(at, "realizations with id", r.GetId())
+		d.Once(at, "realizations with id", r.GetId())
 	}
-	mm, ok := v.machines[r.GetMachine()]
+	mm, ok := d.Machine(r.GetMachine())
 	if !ok {
 		a.report(at, "no machine %s", r.GetMachine())
 	}
@@ -175,12 +195,12 @@ func (a *realizing) confirms(mm *umpirespb.Machine) {
 			if mm == nil {
 				continue
 			}
-			before := len(a.v.errs)
-			a.v.actionClass(a.owner+": evidence "+e.GetId(), mm, taking.GetStep(), at)
-			if len(a.v.errs) != before {
+			before := a.d.Errors()
+			a.d.ActionClass(a.owner+": evidence "+e.GetId(), mm, taking.GetStep(), at)
+			if a.d.Errors() != before {
 				continue
 			}
-			step := fmt.Sprintf("step %d of class %s", taking.GetOccurrence(), ClassKey(a.v.in, a.v.actions, taking.GetStep()))
+			step := fmt.Sprintf("step %d of class %s", taking.GetOccurrence(), a.d.ClassKey(taking.GetStep()))
 			switch other, taken := named[step]; {
 			case taking.GetOccurrence() < 1:
 				a.report(at, "evidence %s confirms %s; the steps of a class on a path are counted from one", e.GetId(), step)
@@ -225,7 +245,7 @@ func (a *realizing) report(at *umpirespb.Position, format string, args ...any) {
 	if at.GetFile() == "" {
 		at = a.r.GetPosition()
 	}
-	a.v.report(at, a.owner+": "+format, args...)
+	a.d.Report(at, a.owner+": "+format, args...)
 }
 
 // declared reports a declaration with no id, and one whose id an earlier one of its kind took. It is
@@ -238,7 +258,7 @@ func (a *realizing) declared(at *umpirespb.Position, kind, plural, id string) bo
 	if at.GetFile() == "" {
 		at = a.r.GetPosition()
 	}
-	return !a.v.once(at, plural+" with id", id, "of realization", a.label)
+	return !a.d.Once(at, plural+" with id", id, "of realization", a.label)
 }
 
 func (a *realizing) declarations() {
@@ -294,7 +314,7 @@ func (a *realizing) controlDeclarations() {
 		}
 		switch k := c.GetKind().(type) {
 		case *umpirespb.Control_HoldDelivery:
-			if _, ok := a.v.channels[k.HoldDelivery]; !ok {
+			if !a.d.Channel(k.HoldDelivery) {
 				a.report(c.GetPosition(), "control %s: no channel %s", c.GetId(), k.HoldDelivery)
 			}
 		case *umpirespb.Control_HoldDispatched:
@@ -324,7 +344,7 @@ func (a *realizing) held(mm *umpirespb.Machine) {
 			if at.GetFile() == "" {
 				at = a.r.GetPosition()
 			}
-			a.v.actionClass(a.owner+": control "+c.GetId(), mm, step, at)
+			a.d.ActionClass(a.owner+": control "+c.GetId(), mm, step, at)
 		}
 	}
 }
@@ -340,7 +360,7 @@ func (a *realizing) evidenceKind(e *umpirespb.Evidence) {
 	case len(e.GetConfirms()) == 0:
 		// One kind confirms the step of a path that records a fact. Kinds that name the steps they
 		// confirm are told apart by those steps, and may record one fact beside it.
-		a.v.once(at, "kinds of evidence recording", e.GetRecords(), "of realization", a.label)
+		a.d.Once(at, "kinds of evidence recording", e.GetRecords(), "of realization", a.label)
 	default:
 	}
 	if e.GetSource() == "" {
@@ -441,7 +461,7 @@ func (a *realizing) evidenceFields(e *umpirespb.Evidence) {
 func (a *realizing) correlation() {
 	c := a.r.GetCorrelation()
 	if c == nil {
-		a.v.report(a.r.GetPosition(), "%s declares no correlation", a.owner)
+		a.d.Report(a.r.GetPosition(), "%s declares no correlation", a.owner)
 		return
 	}
 	at := c.GetPosition()
@@ -495,7 +515,7 @@ func (a *realizing) script(mm *umpirespb.Machine, s *umpirespb.Script) {
 		}
 		switch {
 		case !performs:
-			a.v.once(pos, "commands with id", c.GetId(), "of script", s.GetId(), "of realization", a.label)
+			a.d.Once(pos, "commands with id", c.GetId(), "of script", s.GetId(), "of realization", a.label)
 			fixed[c.GetId()] = true
 		case fixed[c.GetId()]:
 			a.report(pos, "two commands with id %s of script %s", c.GetId(), s.GetId())
@@ -540,7 +560,7 @@ func (a *realizing) items(mm *umpirespb.Machine, s *umpirespb.Script) {
 			a.report(pos, "script %s has an item that is both a command and the place steps are performed", s.GetId())
 		case item.GetCommand() != nil && mm != nil:
 			for _, c := range item.GetWhen() {
-				a.v.actionClass(a.owner+": script "+s.GetId(), mm, c, pos)
+				a.d.ActionClass(a.owner+": script "+s.GetId(), mm, c, pos)
 			}
 		case item.GetCommand() != nil:
 		case len(item.GetWhen()) > 0:
@@ -562,12 +582,12 @@ func (a *realizing) performing(mm *umpirespb.Machine, where string, class *umpir
 	if mm == nil {
 		return
 	}
-	before := len(a.v.errs)
-	a.v.actionClass(a.owner+": "+where, mm, class, at)
-	if len(a.v.errs) != before {
+	before := a.d.Errors()
+	a.d.ActionClass(a.owner+": "+where, mm, class, at)
+	if a.d.Errors() != before {
 		return
 	}
-	key := ClassKey(a.v.in, a.v.actions, class)
+	key := a.d.ClassKey(class)
 	if other, ok := a.performed[key]; ok {
 		a.report(at, "class %s is performed by %s and by %s; a class is performed once", key, other, by)
 		return

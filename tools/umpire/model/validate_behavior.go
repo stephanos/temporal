@@ -159,12 +159,12 @@ func (a *realizing) serverStep(mm *umpirespb.Machine, s *umpirespb.ServerStep) (
 	if at.GetFile() == "" {
 		at = a.r.GetPosition()
 	}
-	before := len(a.v.errs)
-	a.v.actionClass(a.owner+": a server step", mm, class, at)
-	if len(a.v.errs) != before {
+	before := a.d.Errors()
+	a.d.ActionClass(a.owner+": a server step", mm, class, at)
+	if a.d.Errors() != before {
 		return "server step " + class.GetAction(), false
 	}
-	key := ClassKey(a.v.in, a.v.actions, class)
+	key := a.d.ClassKey(class)
 	if by, ok := a.performed[key]; ok && !strings.HasPrefix(by, activationOf) {
 		a.report(at, "server step %s is performed by %s; a server step is one no command performs", key, by)
 	}

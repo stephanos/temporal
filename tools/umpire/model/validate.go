@@ -66,7 +66,7 @@ func Validate(m *umpirespb.Model) error {
 		v.progress(p)
 	}
 	for _, r := range m.GetRealizations() {
-		v.realization(r)
+		Admit(admission{v}, r)
 	}
 	v.catalogs(m)
 	if len(v.errs) == 0 {
@@ -287,6 +287,34 @@ type validator struct {
 	in *Interpreter
 	// returning holds the step functions whose results have been checked.
 	returning map[string]bool
+}
+
+// admission is the validator as realization admission reads it, an Admitter. It is a type of its
+// own so that the validator's methods keep their names.
+type admission struct{ v *validator }
+
+func (a admission) Once(at *umpirespb.Position, words ...string) bool { return a.v.once(at, words...) }
+
+func (a admission) Report(at *umpirespb.Position, format string, args ...any) {
+	a.v.report(at, format, args...)
+}
+
+func (a admission) Errors() int { return len(a.v.errs) }
+
+func (a admission) ActionClass(owner string, mm *umpirespb.Machine, c *umpirespb.ActionClass, at *umpirespb.Position) {
+	a.v.actionClass(owner, mm, c, at)
+}
+
+func (a admission) ClassKey(c *umpirespb.ActionClass) string { return ClassKey(a.v.in, a.v.actions, c) }
+
+func (a admission) Machine(name string) (*umpirespb.Machine, bool) {
+	mm, ok := a.v.machines[name]
+	return mm, ok
+}
+
+func (a admission) Channel(id string) bool {
+	_, ok := a.v.channels[id]
+	return ok
 }
 
 // once reports a declaration whose key an earlier one of its kind took, and is whether it did. The
