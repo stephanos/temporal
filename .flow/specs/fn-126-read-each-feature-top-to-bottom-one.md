@@ -585,4 +585,13 @@ Regenerate with the gate's `--update`, then `make umpire-gen-cases umpire-gen-fi
 | .8 rename batch, level-name lint, Product/System docs | R18, R19, R20, R10 (names), R11, R9 | after .7 |
 | .9 stuck-state lint | R21 | independent |
 | .10 level-owned Phase, State and Fact | R1, R11, R20; decision 31 | after .8 |
-| .11 System realization placement | R1, R20; decision 32 | after .10; final batch gate |
+| .11 System realization placement | R1, R20; decision 32 | after .10; .10/.11 batch gate |
+| .12 composition stuck-state coverage and lazy witnesses | R21 | after .11; focused validation |
+| .13 primary-level declarations and loss-budget regression | R5, R20 | after .12; full .12/.13 batch gate |
+
+
+## Periodic audit follow-ups
+
+The audit at `dffbfb76b1018c4714930fcf6d4c30a33b5e010d` found uncovered original requirements. Task .9's machine-only implementation did not amend R21. Task .12 covers composition stuck states and computes shortest witnesses only for findings. Task .13 requires both primary level machines independently of refinement discovery and restores the explicit repeated-loss-disabled assertions. These tasks preserve Model behavior. They run sequentially, with focused checks in .12 and full validation once at the .12/.13 batch boundary. The conductor resolves the audit decisions and runs completion review before closing the spec.
+
+The conductor deferred the suggested rule-parser file split because the audit identifies no missing behavior or coverage from the current declaration grouping. The verbatim axis reports and separate finding counts are retained in `.flow/tmp/fn-126/quality-audit-round1.md`.
