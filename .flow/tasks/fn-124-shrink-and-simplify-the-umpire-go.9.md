@@ -16,6 +16,9 @@ Steps:
 
 Ordering: after fn-126 closes (fn-126.7 edits `p.go` for the `party` → `actor` field) and before fn-124.8, so the package split has less to move. Not in this task: switching the Quint verify backend to TLC.
 
+**Touches:** tools/umpire/**, Makefile, model/README.md, model/SEMANTICS.md, .plans/UMPIRE_MODULES.md, MILESTONES.md
+
+Closing .9/.8 validation batch (owner's validation-reuse instruction): before removing P, execute the Quint coverage proof for the two P machines. Measure install size and time on equivalent cache/input conditions before and after; do not claim a cold-install speedup from a warm-cache run. After removal, run the focused export tests, ownership/path checks, read-only task-base Go lint, the live-reference scan and Case byte checks. Commit coherent checkpoints and obtain per-task SHIP. The shared full model gate, instrumented full Go tooling suite, Testpilot tests, full batch-base Go lint and Case/fixture/canary checks run once at .8's closing boundary, along with the required Quint-only backend gate after install. Record that full-suite obligation as deferred to .8 in .9's done evidence; never mint full-gate receipts from focused commands. Neither spec nor milestone closes until both tasks and that full boundary are verified.
 ## Acceptance
 - [ ] Before removal, the Quint side is shown to check what P checked (`terminalFinality` on its two machines), by existing agreement or a new Quint check that fails on a seeded violation.
 - [ ] The P exporter, its tests and testdata, receipts, Makefile targets and the P/.NET backend install are gone; `grep -rni '\bP export\|p\.go\|dotnet\|\.pproj' tools/umpire Makefile model .plans/UMPIRE_MODULES.md` finds no live reference.

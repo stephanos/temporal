@@ -31,3 +31,7 @@ Switching the Quint verify backend to TLC is a separate owner decision. Retiring
 ## Verification
 
 Each task: model gate, original-baseline check while it still exists, full Go tooling suite, Testpilot tests, `lint-code-fast`, and `make umpire-check-cases` (Case bytes unchanged unless a task declares a change). R3-R6 also run the live generated Cases once.
+
+## Closing validation batch
+
+The remaining .9 and .8 tasks run sequentially. The conductor follows the owner's focused-per-task/full-at-boundary instruction. Task .9 proves Quint covers P's two-machine monitor check before removal, measures the backend install on equivalent inputs, and runs focused export/ownership/lint/artifact checks before its per-task review. Task .8 re-anchors the package-move manifest and runs the shared full model, Go tooling, Testpilot/canary, lint, artifact and Quint-only backend gates once after both implementations. Task .9's done receipt names this deferred full-suite obligation, and .8's receipt cites the results that discharge it. No required acceptance coverage is removed. The spec remains open until all nine tasks, the boundary gates and completion review are verified.
