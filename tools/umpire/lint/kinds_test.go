@@ -307,6 +307,53 @@ func TestStuckState(t *testing.T) {
 	require.Equal(t, 2, r.population["disk"])
 }
 
+func TestCompositionStuckState(t *testing.T) {
+	for _, terminal := range []bool{false, true} {
+		t.Run(map[bool]string{false: "deadlock", true: "terminal"}[terminal], func(t *testing.T) {
+			m := read(t, declarationsIR, func(ir *umpirespb.Model) {
+				ir.Queries, ir.Scenarios, ir.Progress, ir.Properties = nil, nil, nil, nil
+				ir.Compositions = slices.DeleteFunc(ir.Compositions, func(c *umpirespb.Composition) bool { return c.GetName() != "pair" })
+				if !terminal {
+					ir.Compositions[0].Ends = nil
+				}
+			})
+			r := run(t, m, stuckStates)
+			require.Equal(t, 2, r.population["pair"])
+			require.NotContains(t, r.subjects, "store", "each member's held state is terminal")
+			if terminal {
+				require.Empty(t, r.subjects)
+				return
+			}
+			require.Equal(t, map[string][]string{"pair": {"held_held"}}, r.subjects)
+			tallies, err := stuckStates(m)
+			require.NoError(t, err)
+			i := slices.IndexFunc(tallies, func(x Tally) bool { return x.Owner == "pair" })
+			require.Len(t, tallies[i].Findings, 1)
+			f := tallies[i].Findings[0]
+			require.Equal(t, where(m.IR.Compositions[0].GetPosition()), f.Position)
+			require.Contains(t, f.Message, "reached by nothing_nothing -putBoth/front_accepted-> held_held")
+		})
+	}
+}
+
+func TestCompositionStuckStateWithUnknownReplacement(t *testing.T) {
+	m := read(t, declarationsIR, func(ir *umpirespb.Model) {
+		ir.Queries, ir.Scenarios, ir.Progress, ir.Properties = nil, nil, nil, nil
+		ir.Compositions = slices.DeleteFunc(ir.Compositions, func(c *umpirespb.Composition) bool { return c.GetName() != "detailedPair" })
+		ir.Compositions[0].Ends = nil
+		for _, d := range ir.GetMachines() {
+			if d.GetName() == "disk" {
+				d.Steps = slices.DeleteFunc(d.Steps, func(b *umpirespb.StepBinding) bool { return b.GetAction() == "fixture.declarations.flush" })
+			}
+		}
+	})
+	_, err := m.realizer.Composition("detailedPair")
+	require.Error(t, err, "the replacement cannot be established through its reachable hole")
+	r := run(t, m, stuckStates)
+	require.Equal(t, 2, r.population["detailedPair"], "the constructible composition is still inspected")
+	require.Empty(t, r.subjects, "the member's hole is an unknown composed pair, not a deadlock")
+}
+
 func TestUnproduced(t *testing.T) {
 	r := run(t, read(t, activityIR), unproduced)
 	require.Equal(t, map[string]int{"activityProduct": 11, "activitySystem": 14, "activityWorker": 1, "polling": 1}, r.population)
