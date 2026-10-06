@@ -2021,6 +2021,79 @@ class Fixtures extends munit.FunSuite:
       result.diagnostics
     )
 
+  concurrently("a form's package mirrors its original parent kind before rebasing"):
+    val tree = materializeTree("layout/kinds", "wrong-parent-kind")
+    Files.move(
+      tree.resolve("nexus/workflow"),
+      Files.createDirectories(tree.resolve("other")).resolve("workflow")
+    )
+    val jar = packaged("wrong-parent-kind", tree, Seq("--server=false"))
+    val out = scratch.resolve("wrong-parent-kind-out")
+    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "nexus-workflow")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    assert(
+      refused(result).exists(message =>
+        message.contains("other/workflow/") && message.contains("does not mirror")
+      ),
+      result.diagnostics
+    )
+
+  for variantName <- Seq("unrefined-sibling", "derived-sibling") do
+    concurrently(s"an inherited System requires its canonical primary with $variantName"):
+      val tree = materializeTree("layout/kinds", variantName)
+      val system = tree.resolve("relay/workflow/system/System.scala")
+      val text =
+        if variantName == "unrefined-sibling" then
+          Files
+            .readString(system)
+            .replaceAll("(?s)  object refinement .*?(?=  object effects:)", "")
+            .replace("import fixture.features.relay.product.RelayProduct\n", "")
+        else
+          "package fixture.features.relay.workflow\npackage system\nimport umpire.*\n" +
+            "import fixture.features.relay.product.RelayProduct\nobject Copy extends Derived(RelayProduct.unmonitored)\n"
+      Files.delete(system)
+      Files.writeString(system.resolveSibling("Other.scala"), text)
+      if variantName == "derived-sibling" then
+        val feature = tree.resolve("relay/workflow/Workflow.scala")
+        Files.writeString(
+          feature,
+          Files.readString(feature).replace("system.RelaySystem", "system.Copy")
+        )
+      val jar = packaged(variantName, tree, Seq("--server=false"))
+      val out = scratch.resolve(s"$variantName-out")
+      val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "relay-workflow")
+      assertNotEquals(result.exit, 0)
+      assertEquals(listed(out), Nil)
+      assert(
+        refused(result).exists(_.contains("system/System.scala is missing")),
+        result.diagnostics
+      )
+
+  concurrently("kind cores and forms refuse unknown or deeper folders containing only types"):
+    val tree = materializeTree("layout/kinds", "type-only-folders")
+    val misplaced = Seq(
+      "relay/extra/Extra.scala" -> "fixture.features.relay.extra",
+      "relay/product/extra/Extra.scala" -> "fixture.features.relay.product.extra",
+      "relay/workflow/system/extra/Extra.scala" -> "fixture.features.relay.workflow.system.extra"
+    )
+    for (file, pkg) <- misplaced do
+      val path = tree.resolve(file)
+      Files.createDirectories(path.getParent)
+      Files.writeString(path, s"package $pkg\nfinal case class Extra(value: Boolean)\n")
+    val jar = packaged("type-only-folders", tree, Seq("--server=false"))
+    val out = scratch.resolve("type-only-folders-out")
+    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "relay-workflow")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    for (file, _) <- misplaced do
+      assert(
+        refused(result).exists(message =>
+          message.contains(file) && message.contains("no level folder")
+        ),
+        result.diagnostics
+      )
+
   // R20 (a): the folders of a feature with two levels, a missing root feature file or level file,
   // a feature of one level with a subfolder, and a package that does not mirror its folder
   // (layoutRefusals/a).

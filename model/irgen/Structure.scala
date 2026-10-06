@@ -57,8 +57,10 @@ final private[irgen] class Structure(index: Index):
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1).flatMap(source)
     for (_, group) <- sources.groupBy(_.feature).toSeq.sortBy(_._1) do
       val hasForms = group.exists(s => s.sub.headOption.exists(Structure.formFolders))
-      if hasForms && group.head.feature.split('.').reverse(1) == "features" then kind(group)
-      else if hasForms || held(group) then feature(group)
+      if hasForms || held(group) then
+        checkPackages(group)
+        if hasForms && group.head.feature.split('.').reverse(1) == "features" then kind(group)
+        else feature(group)
     refused.toSeq
 
   // ### Positions, as the order lint gives them
@@ -140,6 +142,15 @@ final private[irgen] class Structure(index: Index):
   /** Whether a feature is held to the rules: it is a Temporal Model's, or has a level folder. */
   private def held(feature: Seq[Source]): Boolean =
     feature.exists(s => s.level || s.path.startsWith("model/temporal/"))
+
+  private def checkPackages(sources: Seq[Source]): Unit =
+    for s <- sources if !s.mirrors; first <- s.top.headOption do
+      refuse(
+        first,
+        s"${s.path} declares package ${(s.feature :: s.sub).mkString(".")}, which its folder, " +
+          s"${s.folder}, does not mirror: a feature's subpackages are its folders, named alike, " +
+          "since the structure lint reads a source's package and the order lint its path"
+      )
 
   private def rootOf(sources: Seq[Source]): String =
     val mirroring = sources.filter(_.mirrors)
@@ -264,14 +275,6 @@ final private[irgen] class Structure(index: Index):
     val pkg = sources.head.feature
     val name = pkg.split('.').last
     val shared = general || pkg.split('.').reverse(1) == "shared"
-    // A source's package mirrors its folder, which the order lint reads.
-    for s <- sources if !s.mirrors; first <- s.top.headOption do
-      refuse(
-        first,
-        s"${s.path} declares package ${(s.feature :: s.sub).mkString(".")}, which its folder, " +
-          s"${s.folder}, does not mirror: a feature's subpackages are its folders, named alike, " +
-          "since the structure lint reads a source's package and the order lint its path"
-      )
     // The root folder: a source's folder less the folders of its subpackage.
     val root = rootOf(sources)
     val rootFile =
@@ -292,6 +295,29 @@ final private[irgen] class Structure(index: Index):
     val kindLevels = general && hasProduct
     val inheritedLevels = inherited.nonEmpty && sources.exists(_.sub.headOption.contains("system"))
     val twoLevels = pairs.nonEmpty || hasLevelFiles || kindLevels || inheritedLevels
+    if inheritedLevels && !sources.exists(_.path == systemPath) then
+      for
+        source <- sources.find(_.sub.headOption.contains("system")); first <- source.top.headOption
+      do
+        refuse(
+          first,
+          s"$name has a System folder and a kind Product, but $systemPath is missing: " +
+            "declare its primary <Prefix>System there, independently of its refinement"
+        )
+    if general || kindForm then
+      for
+        source <- sources
+        if source.sub.nonEmpty && (!source.level || (general && source.sub != List("product")))
+        first <- source.top.headOption
+      do
+        refuse(
+          first,
+          s"${source.path} is in ${source.folder}, which is no level folder of $name: " +
+            (if general then
+               "a kind keeps its sources in its general file, Product level and named forms"
+             else
+               "a form keeps its sources in its root or level folders, with no folder below them")
+        )
     if kindForm then
       for
         (_, machine) <- forms; (refinement, product) <- refines(machine)
@@ -310,7 +336,8 @@ final private[irgen] class Structure(index: Index):
           "which holds shared types, the signature and object exports (model/irgen/testdata/" +
           "layout/lamp is the template)"
         if rootFile.isEmpty then refuse(refinement, s"$two; $root has no root feature file")
-        val required = Seq(systemPath) ++ Option.when(inherited.isEmpty)(productPath)
+        val required = Option.when(!inheritedLevels)(systemPath).toSeq ++
+          Option.when(inherited.isEmpty)(productPath)
         for level <- required if !sources.exists(_.path == level) do
           refuse(refinement, s"$two; $level is missing")
       case None if hasLevelFiles || kindLevels || inheritedLevels => ()
@@ -331,7 +358,7 @@ final private[irgen] class Structure(index: Index):
               "feature file holds shared types, the signature and object exports alone: a " +
               "feature with two levels declares its machines in product/ and system/"
           )
-        else if !s.level || (general && s.sub != List("product")) then
+        else if !s.level && !general && !kindForm then
           refuse(
             c,
             s"${plain(c.name)} is a machine object in ${s.folder}, which is no level folder of " +
