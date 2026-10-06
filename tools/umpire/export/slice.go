@@ -1,8 +1,8 @@
 // Package backends exports a finite slice of the Umpire IR to other checkers and holds each of them
 // to the Go reading of the same Model. An export is accepted only where the backend's own evaluation
 // agrees with Go's: Quint on every reachable state, transition, result and disabled pair of each
-// exported machine, on its monitors and on its Properties, and P on one monitor over bounded event
-// traces. What a backend is not given, and what it could not be run on, is listed as such and is never
+// exported machine, on its monitors and on its Properties. What a backend is not given, and what
+// it could not be run on, is listed as such and is never
 // an agreement.
 //
 // The Go side is tools/umpire/model, through its public API alone.
@@ -29,7 +29,7 @@ const (
 	// whether each is about the step, and whether it holds of it.
 	PropertyAgreement Claim = "property-agreement"
 	// MonitorAgreement is monitors compared with Go's: by Quint over every reachable step of the product
-	// of a machine and its monitors, and by P over one monitor's verdicts on bounded event traces.
+	// of a machine and its monitors.
 	MonitorAgreement Claim = "monitor-agreement"
 	// CheckerCoverage is what a backend's checker explored, and how.
 	CheckerCoverage Claim = "checker-coverage"
@@ -89,8 +89,6 @@ type Receipt struct {
 	// Properties, Reads and About count the Properties a property agreement compared, the steps each
 	// was read on, and the readings on which a Property was about its step.
 	Properties, Reads, About int
-	// Traces, Accepted and Rejected count the event traces a monitor agreement compared.
-	Traces, Accepted, Rejected int
 	// Violated names the monitors the backend found violated, and Witnesses its counterexamples, each
 	// replayed through Go.
 	Violated  []string
@@ -336,6 +334,14 @@ func (s *Slice) properties(machine string) []*umpirespb.Property {
 		if p.GetMachine() == machine {
 			out = append(out, p)
 		}
+	}
+	return out
+}
+
+func (s *Slice) literal(v *umpirespb.Value) umpiremodel.Value {
+	out, err := s.in.Eval(&umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: v}})
+	if err != nil {
+		return umpiremodel.Value{}
 	}
 	return out
 }

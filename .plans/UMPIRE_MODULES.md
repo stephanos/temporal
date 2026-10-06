@@ -41,7 +41,7 @@ the functional fixtures and the canary.
 | Lowering, `tools/umpire/lower` | Produce a Case from a Query's witness. | `NewProducer`, `Producer.Lower`, `Realizable`, `EvidenceElement`, `FieldAt`, `Identity`, `IdentityFor`, `GenerateCases`, `DecodeManifest`, `FindGeneratedCase` (a Case's manifest entry by its fingerprint), `ExpectedRun.Check`, `SyncCases`; lowering standings, inventories and manifest data. | Reader, Testpilot facade/schema and private producer. |
 | Producer, `tools/umpire/lower/internal/producer` | Assemble the executable Program and Contract. | Private lowering implementation copied from live `caseproducer` code. | Reader's table/claim types, Testpilot facade/schema; never the private checker directly. |
 | Conformance, `tools/umpire/conformance` | Assess whether Run evidence is explained by a Model. | `Prepare`, returned `Factory.Binding`/`New`, existing limits, `DefaultLimits` (the ceilings the live tests and the commands share) and located errors; `Admits` becomes private because its callers are in the package. | Reader and Testpilot facade/schema. |
-| Export, `tools/umpire/export` | Compare another backend's reading with the reader. | Current `Open`/`OpenWithin`, export/check/agreement methods and tool runners used by its opt-in tests. | Reader is its only model-domain dependency; generated IR and existing process/protobuf libraries allowed. |
+| Export, `tools/umpire/export` | Compare Quint's reading with the reader. | Current `Open`/`OpenWithin`, Quint export/check/agreement methods and tool runners used by its opt-in tests. | Reader is its only model-domain dependency; generated IR and existing process/protobuf libraries allowed. |
 | Lint, `tools/umpire/lint` | Report what an admitted Model leaves unreached, unasked or unrealized, and its specification holes. | `Read`, `Of`, `Model.Lint`, `ReadAccepted`, `Accepted.Judge`, `Forward`, `WriteFindings`, `WriteCoverage`, `WriteTables` (with each machine's laws, read from the law sidecar); finding, tally, verdict, acceptance and law-table data. What it reads of lowering its command hands it as `Lowering`. | Reader only. |
 | Exploration, `tools/umpire/explore` | Select model-declared executable candidates. | `New`, `Plan.Reduce`, `Plan.Proposal`, `ReadProposal`, `Serve`, `RenderTrace`, candidate/plan data. | Reader, lowering, Testpilot facade/schema, campaign, replay and recordedrun. |
 | Testpilot, `common/testing/testpilot` | Execute an admitted Case. | Existing `Prepare` → `PreparedCase.Run`, assessment and Driver contracts unchanged; `ConcludeVerdict`, the one Verdict aggregation recorded-Run readers check against. | Testpilot schema and existing internal runtime; nothing under `tools/umpire`, `model` or archives, including tests. |
@@ -250,7 +250,9 @@ for every package under `tools/umpire`. `TestModelNamesNoRetiredFrontEnd` is the
 outside `model/`; the gate runs it as its first step, also under `--skip-go-checks`. The export
 runner is opt-in Go tests in `tools/umpire/export/tools_test.go` (`UMPIRE_BACKENDS=require`, pinned
 tool versions there); `run.sh`, `UMPIRE_BACKEND_FLAGS` and `--install` are gone, and
-`make umpire-check-backends` is deferred by the owner because it needs P and .NET installed.
+`make umpire-install-backends` warms Quint's pinned npm package; `make umpire-check-backends`
+runs its evaluator agreement and Apalache bounded checks. `TestQuintOwnsBackendExport` enforces
+the single export backend and its installation boundary.
 `common/testing/testpilot/campaign/integration_test.go` is removed (its subject is archived), CI no
 longer builds the descriptor set, and `make lint-code` shares `lint-code-fast`'s Go-only patch.
 

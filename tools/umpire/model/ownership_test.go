@@ -52,6 +52,19 @@ func TestCheckerAndProducerHaveOneLiveOwner(t *testing.T) {
 	}))
 }
 
+func TestQuintOwnsBackendExport(t *testing.T) {
+	for _, file := range []string{"p" + ".go", "p" + "_test.go"} {
+		require.NoFileExists(t, filepath.Join(repoRoot, "tools", "umpire", "export", file))
+	}
+	for _, file := range []string{"Makefile", "tools/umpire/export/tool.go", "tools/umpire/export/tools_test.go"} {
+		text, err := os.ReadFile(filepath.Join(repoRoot, filepath.FromSlash(file)))
+		require.NoError(t, err)
+		for _, retired := range []string{"UMPIRE_" + "P", "UMPIRE_BACKEND_" + "TOOLS", "DOT" + "NET_ROOT"} {
+			require.NotRegexp(t, `\b`+regexp.QuoteMeta(retired)+`\b`, string(text), file)
+		}
+	}
+}
+
 // modelImportProblem says why file may not import imported, or "" when it may. external is whether
 // file declares an external test package, the only place the lowerer may reach the modules that
 // consume its Cases.

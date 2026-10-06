@@ -18,10 +18,6 @@ type Tool struct {
 // QuintTool is the Quint command line: the executable UMPIRE_QUINT names, or `quint` on the path.
 func QuintTool() (Tool, bool) { return tool("quint", "UMPIRE_QUINT") }
 
-// PTool is the P command line: the executable UMPIRE_P names, or `p` on the path. P runs on .NET,
-// which it finds by DOTNET_ROOT or on the path.
-func PTool() (Tool, bool) { return tool("p", "UMPIRE_P") }
-
 func tool(name, variable string) (Tool, bool) {
 	command := os.Getenv(variable)
 	if command == "" {

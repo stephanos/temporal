@@ -12,7 +12,7 @@ terms; this page says what each package is for.
 | `model` | The reader: loads and validates an IR Model, interprets it into tables, and answers its Properties, Queries, refinements and progress claims. Its table checker is private, in `model/internal/checker` |
 | `lower` | Lowering: turns a `find` Query's witness, through the realization its machine declares, into a Testpilot Case, and generates the managed Case trees. Its Program and Contract builder is private, in `lower/internal/producer` |
 | `conformance` | Model assessment: says whether a Run's evidence is explained by the Model, and what the Query's Property is on the executions that explain it |
-| [`export`](export/README.md) | Writes the IR for Quint and P and compares their answers with the reader's |
+| [`export`](export/README.md) | Writes the IR for Quint and compares its answers with the reader's |
 | `lint` | Model lint: reports what a Model declares that nothing reaches, takes, asks, evidences or realizes, and its specification holes, with a coverage count per kind and each machine's per-operation modality table. It reads lowering only through what its command hands it |
 | `explore` | Enumerates the candidates a Query's exploration declares, lowers each one, and serves them over the campaign and replay bridge protocol |
 | `internal/cli` | What the commands share at their edge: interruption, output lines, and the rule that nothing is written under the model |
@@ -50,7 +50,7 @@ make umpire-check-cases                     # model/cases equals what lowering p
 make umpire-check-lint                      # every finding of model/ir is fixed or accepted
 make umpire-check-exploration-bridge        # the bridge's campaign protocol
 make umpire-check-replay-bridge             # the bridge's replay protocol
-make umpire-check-backends                  # Quint and P against the reader; needs the tools export/README.md names
+make umpire-check-backends                  # Quint against the reader; needs the tools export/README.md names
 ```
 
 A finding is accepted in `<file>.lint.json` beside its IR file, by its kind, its machine or

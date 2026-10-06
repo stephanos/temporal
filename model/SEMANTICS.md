@@ -241,6 +241,12 @@ error of the Model, and so are two results of one row with the same name. The Qu
 the name on the step record of the ordered result list (`f_choice`), and its checker action, not the
 step function, picks one result of that list.
 
+Quint is the external comparison backend. Its evaluator independently computes each reachable
+machine and monitor product from the IR, including `terminalFinality` on `activityRecord` and
+`trustingActivityRecord`. The agreement compares every product step and replays counterexamples
+through a fresh Go interpretation. `quint verify` adds Apalache's bounded monitor check where it runs
+(`tools/umpire/export/README.md`).
+
 ## Channels
 
 A channel declares a message type `T`, a capacity `n` of at least 1, an order, FIFO or unordered,

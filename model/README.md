@@ -10,8 +10,8 @@ makes. From that one description you get:
   Temporal server. Nobody writes the test by hand.
 - **A judgment of what the server did.** The record of such a test is checked twice: against the
   test's own pass conditions, and against the description as a whole.
-- **Second opinions.** The same description is exported to two other checkers, Quint and P, and
-  their answers are compared with ours.
+- **Second opinion.** The same description is exported to Quint, and its answers are compared
+  with ours.
 
 Paths on this page are relative to the repository root.
 
@@ -101,7 +101,7 @@ flowchart TD
     tir[("Testpilot IR: Cases<br/>model/cases/*-case.json")]
     run["Run and Contract Verdict<br/>common/testing/testpilot"]
     assessment["Model assessment<br/>tools/umpire/conformance"]
-    other["Quint and P<br/>tools/umpire/export"]
+    other["Quint<br/>tools/umpire/export"]
 
     scala -->|"lifting: model/irgen"| uir
     uir -->|"reading and checking"| reader
@@ -133,7 +133,7 @@ Two IRs sit between the layers, and each has one writer side and one reader side
 | Testpilot IR | The checked-in Cases, and `manifest.json`, which accounts for every Query | `model/cases`; schema in `api/testpilot/v1` | |
 | Running | Testpilot admits a Case, runs its Program through the Temporal Driver, records the Run and evaluates the Contract into a Verdict | `common/testing/testpilot`, `common/testing/testpilot/temporal` | `make umpire-check-live-tests` (in-process server); `make umpire-run` builds `.build/umpire-run` for any deployment |
 | Assessing | The Run's evidence is compared with the whole Model | `tools/umpire/conformance` | part of the live tests above |
-| Export | The IR is written for Quint and P, and their answers are compared with Go's | `tools/umpire/export` | `make umpire-check-backends` (needs the tools its README names) |
+| Export | The IR is written for Quint, and its answers are compared with Go's | `tools/umpire/export` | `make umpire-check-backends` (needs the tools its README names) |
 
 ## Running the gate
 
@@ -383,7 +383,7 @@ The module map, [.plans/UMPIRE_MODULES.md](../.plans/UMPIRE_MODULES.md), states 
 its public interface and what it may import. Each module outside this directory has its own README:
 
 - [tools/umpire](../tools/umpire/README.md): the Go tooling that reads the Umpire IR, and its commands.
-- [tools/umpire/export](../tools/umpire/export/README.md): the Quint and P comparison.
+- [tools/umpire/export](../tools/umpire/export/README.md): the Quint comparison.
 - [common/testing/testpilot](../common/testing/testpilot/README.md): the Case runtime and the Testpilot IR.
 - [common/testing/testpilot/temporal](../common/testing/testpilot/temporal/README.md): the Temporal Driver.
 - [tests/testcore/testpilot](../tests/testcore/testpilot/README.md): the Cases the functional tests pin.

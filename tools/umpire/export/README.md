@@ -1,9 +1,8 @@
 # tools/umpire/export
 
-Two other checkers read the lifted IR, and each is held to Go's reading of the same Model. Quint is
+Quint reads the lifted IR and is held to Go's reading of the same Model. It is
 given every machine of four `model/ir/*.json` files and every composition the reader
-(`tools/umpire/model`) builds of them. P is
-given one monitor. An export counts only
+(`tools/umpire/model`) builds of them. An export counts only
 where the tool's own run agrees with the reader; a tool that parses the export proves nothing here.
 
 ```sh
@@ -27,15 +26,13 @@ copies of them.
 | `monitor-agreement` | Quint | Every step of the product of a machine and its monitors: each monitor's state after the step, whether its verdict is read there, and whether that state violates it. Quint's counterexample of each violated monitor is replayed through Go |
 | `property-agreement` | Quint | Every Property a machine or a composition declares, on every step from every reachable state: whether it is about the step and whether it holds |
 | `checker-coverage` | Quint | `covered`: what Quint's evaluator enumerated. `agreed`: Apalache's bounded verdict on one monitor, with its counterexample replayed through Go. `not-run`: a module Apalache did not take, with its error |
-| `monitor-agreement` | P | One monitor over every event trace of a machine within five steps: P's spec machine is first violated at the step Go's monitor is, or on neither |
-| `checker-coverage` | P | How many test cases P's checker ran and what each covered |
-| `module-refinement` | both | Always `unsupported`. No refinement is exported or claimed. A replacement inside a composition is the reader's verdict |
+| `module-refinement` | Quint | Always `unsupported`. No refinement is exported or claimed. A replacement inside a composition is the reader's verdict |
 | `query-agreement`, `progress-agreement` | Quint | Always `unsupported`. The Model's Queries and progress claims are not exported |
 
 The last run compared 29 machines and 6 compositions: 2,552 reachable states, 42,506 state and class
 pairs (9,748 enabled with 10,292 results, 32,758 disabled), 2,378 product steps over 946 product
-states for the 11 machines that name monitors, and 52,772 Property readings of 167 Properties. It
-printed 146 receipts: 78 agreed, 37 covered, 30 unsupported and 1 not run.
+states for the 11 machines that name monitors, and 52,772 Property readings of 167 Properties.
+The table and product counts describe the Quint comparisons alone.
 
 | Slice | Machines | Compositions | Pairs compared | Monitored machines | Machines with a violated monitor |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -150,40 +147,7 @@ Listed as `unsupported` and left out: the two compositions the reader builds no 
 A Query's Scenario and Limits stay the reader's: Quint is given the Properties the Queries ask and the
 monitors that watch them. A Property of a composition about one composed class is refused; none of
 the slices declares one. Evidence lines, Definition IDs, fingerprints and realizations are outside
-both backends.
-
-## P: one monitor
-
-`Slice.PMonitor` writes `terminalFinality` as a P spec machine. It translates the monitor's IR
-functions into P functions: `finality`, `terminal`, and the monitor's `next` and `violated`.
-A driver machine announces each event trace to it. The event carries the state before the step and
-the step's outcome and state.
-
-The traces are every path of the machine from its starts within five steps, each ended by its first
-violation, by a state with no step, or by the bound. `trustingActivityRecord` has 1,171 (996 accepted, 175
-rejected) and `activityRecord` has 483, all accepted. The specimen's four-step path, on which a
-stale delivery starts a completed activity, is one of the rejected ones.
-
-P's checker explores schedules by random sampling (P manual, `p check`). A driver that only
-announces events has one schedule, so each test case runs once with `-s 1` and that run is the
-whole behavior. The test cases are:
-
-- `tcAgreement`: every trace against a copy of the monitor that records its first violation and
-  asserts, at the trace's end, that it is the step Go gave;
-- `tcAccepted`: every accepted trace against the monitor's own assertion, which must not fail;
-- `tcRejected<n>`: the first 16 rejected traces, each against the monitor's own assertion, which
-  must fail at Go's step;
-- `tcControlWrongExpectation`: an accepted trace announced as violated, which must fail.
-
-`p check -tc` selects every test case a name is a prefix of and runs none for a name that matches
-none, without an error. `RunP` therefore requires that the checker's output names exactly the test
-case asked for.
-
-The P export covers one monitor on two machines, traces of at most five steps, and steps without
-their facts. It refuses a monitor that reads a step's facts, a type whose enum cases carry values
-(P's enums carry none, which excludes `atMostOneActiveAttempt` and every Nexus monitor), a monitor
-read at the machine's ends, and a conditional inside an expression. The machine's transitions are
-not exported to P and no P module refinement is checked.
+the backend.
 
 ## Tools
 
@@ -191,18 +155,13 @@ not exported to P and no P module refinement is checked.
 | --- | --- | --- |
 | Quint | 0.33.0 | `tools/umpire/export/quint.sh`: `npm exec --yes --package=@informalsystems/quint@0.33.0 -- quint`. The TypeScript evaluator runs the dump |
 | Apalache | 0.62.1 | `quint verify` downloads it into `~/.quint` on first use. It runs on the repository's JDK (`mise.toml`) |
-| .NET SDK | 8.0.425 | `curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0 --install-dir .build/umpire-backend-tools/dotnet` |
-| P | 3.1.0 | `dotnet tool install P --version 3.1.0 --tool-path .build/umpire-backend-tools/p` |
-
-.NET and P are installed once, by the two commands of the table, run from the repository's root;
-`make umpire-install-backends` runs both and skips a tool that is already there.
-`UMPIRE_BACKEND_TOOLS` moves the tool directory. Nothing is added to `mise.toml` and no binary is
+`make umpire-install-backends` warms the pinned Quint package in npm's cache by asking its version.
+Apalache is downloaded on the first verify run. Nothing is added to `mise.toml` and no binary is
 checked in. `quint verify` starts an Apalache server and leaves it running; the checks use port
 38822 and stop the server on that port when they end.
 
 The pins are in `tools_test.go`. Under `UMPIRE_BACKENDS=require` the tests take Quint from
-`quint.sh` and P from the tool directory, whatever else is on the path, and set `UMPIRE_QUINT` and
-`UMPIRE_P` to them for the tool runs.
+`quint.sh`, whatever else is on the path, and set `UMPIRE_QUINT` to it for the tool runs.
 
 ## Layout
 
@@ -215,6 +174,5 @@ The pins are in `tools_test.go`. Under `UMPIRE_BACKENDS=require` the tests take 
 | `agreement.go` | The comparison of a dump with Go |
 | `checked.go` | Confirmation of monitor verdicts and counterexamples through `umpiremodel.Check` |
 | `verify.go` | The Apalache run and its verdict's comparison |
-| `p.go` | The IR to P translation, the traces, and the comparison of P's reports |
 | `tool.go` | Running the tools |
 | `tools_test.go`, `quint.sh` | The opt-in, the pinned tools and the Quint launcher |
