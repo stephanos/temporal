@@ -19,18 +19,43 @@ private[irgen] trait Declarations:
     case Select(_, n)     => Some(n -> Nil)
     case _                => None
 
+  private val declaredActions = mutable.Map.empty[Symbol, ir.Action]
+  private val resolvingActions = mutable.Set.empty[Symbol]
+
+  /** A form's entity binding keeps the action's declaration, including its ordered inputs. */
+  private def declaredAction(ref: Term): ir.Action =
+    val sym = resolveSymbol(ref)
+    val d = defs.get(sym) match
+      case Some(v: ValDef) => v
+      case _ => fail(ref, s"${sym.fullName} is not an action declared in the lifted sources")
+    if !resolvingActions.add(sym) then
+      fail(ref, s"${sym.fullName} has a cyclic action binding: a binding names a declared action")
+    def binding(t: Term): Option[ir.Action] = t match
+      case Apply(Select(inner, "on"), List(e)) =>
+        binding(inner).map(_.withOn(constString(e)))
+      case Apply(Select(inner, "creates"), List(e)) =>
+        binding(inner).map(_.withCreates(constString(e)))
+      case r: Ref if path(r) && !r.symbol.isDefDef => Some(declaredAction(r))
+      case _ => None
+    try
+      declaredActions.getOrElseUpdate(
+        sym,
+        binding(d.rhs.get).getOrElse(actionOf(definitionId(sym, d), sym, d.rhs.get))
+      )
+    finally resolvingActions.remove(sym)
+
   def action(ref: Term): String = ref match
     // A channel's delivery or loss: an action its declaration implies.
     case Select(channel, op @ ("deliver" | "lose")) if isNamed(channel.tpe, "umpire.Channel") =>
       channelAction(resolveSymbol(channel), op, ref)
     case _ =>
-      val sym = resolveSymbol(ref)
-      val d = defs.get(sym) match
-        case Some(v: ValDef) => v
-        case _ => fail(ref, s"${sym.fullName} is not an action declared in the lifted sources")
-      val id = definitionId(sym, d)
-      if !actions.contains(id) then actions(id) = actionOf(id, sym, d.rhs.get)
-      id
+      val declared = declaredAction(ref)
+      actions.get(declared.id) match
+        case Some(prior) if prior.on != declared.on || prior.creates != declared.creates =>
+          fail(ref, s"${declared.id} has conflicting entity bindings in this export: " +
+            s"on ${prior.on}/${declared.on}, creates ${prior.creates}/${declared.creates}")
+        case _ => actions(declared.id) = declared
+      declared.id
 
   /** An action, from its declaration and the calls chained onto it; `sym` is its val. */
   def actionOf(id: String, sym: Symbol, chain: Term): ir.Action =
