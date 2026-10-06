@@ -34,6 +34,20 @@ var retiredModelDirectories = []string{
 	"model/temporal/features/nexuscaller/closepolicy",
 }
 
+func TestNexusFormsLayout(t *testing.T) {
+	for _, name := range []string{
+		"Nexus.scala", "workflow/Workflow.scala", "workflow/Realization.scala",
+		"workflow/system/TrustingCaller.scala", "standalone/Standalone.scala", "standalone/Realization.scala",
+	} {
+		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features/nexus", name))
+		require.NoError(t, err, name)
+	}
+	for _, name := range []string{"nexuscaller", "nexusoperation"} {
+		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features", name))
+		require.ErrorIs(t, err, os.ErrNotExist, name)
+	}
+}
+
 // retiredModelNames matches a retired folder's path from the repository's root, a retired Scala
 // package of the tools or of a flattened zoom-in, and a retired Make target. A Definition ID or IR
 // type name keeps its old package by design (each Model's DefinitionScope pin, such as

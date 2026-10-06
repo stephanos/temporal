@@ -416,7 +416,7 @@ final class Gate(tools: Tools, log: PrintStream):
     step("package the Models' TASTy"):
       tools
         .scalaCli(
-          Seq("--power", "package", "--library") ++ models ++ Seq("-f", "-o", modelJar.toString)
+          Seq("--power", "package", "--server=false", "--library") ++ models ++ Seq("-f", "-o", modelJar.toString)
         )
         .orFail()
       // Its standard error is not kept, so no printed error is read: the package above built these

@@ -713,7 +713,7 @@ $(MODEL_BUILD)/api-scalapb.jar: $(MODEL_BUILD)/ir-scalapb.jar proto/api.binpb cm
 # The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
 $(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_ROOT)/project.scala $(shell find $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal -name '*.scala')
 	@printf $(COLOR) "Package the Models' TASTy..."
-	@$(MODEL_CLI) --power package --suppress-outdated-dependency-warning --library $(MODEL_SOURCES) -f -o $@
+	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library $(MODEL_SOURCES) -f -o $@
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
