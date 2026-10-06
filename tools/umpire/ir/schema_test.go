@@ -32,7 +32,7 @@ const (
 	// The fields none of the Models lifted at the capture sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
-	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","conformanceReason":"REASON_INCOMPLETE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
+	schemaAddedSupplement = `{"properties":[{"name":"p","origin":{"name":"o","position":{"file":"f"}}}],"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","conformanceReason":"REASON_INCOMPLETE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
 		`"behavior":{"visibility":[{"id":"v","position":{"file":"f"},"method":"/s/W","read":"/s/R","eventuallyWithin":{"position":{"file":"f"},"intervalMs":"1","atMostMs":"2"}},{"cause":"CAUSE_KIND_TIMER"}],` +
 		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}],` +
 		`"attemptNumbering":{"position":{"file":"f"},"first":"1","oneRun":true},` +
@@ -147,6 +147,8 @@ var (
 		{message: "RunExpectation", field: schemaFieldOf("cleanup", 7, schemaOptional, schemaEnum, "RunExpectation.Cleanup", "cleanup")},
 		// Why an expected Run's conformance is not conformant, by the judge's id (fn-124.6).
 		{message: "RunExpectation", field: schemaFieldOf("conformance_reason", 9, schemaOptional, schemaEnum, "RunExpectation.Reason", "conformanceReason")},
+		// The capability Property a generated Property was expanded from, inert (fn-134.1).
+		{message: "Property", field: schemaFieldOf("origin", 8, schemaOptional, schemaMessage, "PropertyOrigin", "origin")},
 	}
 	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5, so the
 	// captured wire bytes no longer encode their expected Runs as the schema now reads them.
@@ -216,6 +218,11 @@ var (
 			schemaFieldOf("step", 2, schemaOptional, schemaMessage, "ActionClass", "step"),
 			schemaFieldOf("kind", 3, schemaOptional, schemaEnum, "CauseKind", "kind"),
 			schemaFieldOf("deadline_ms", 4, schemaOptional, schemaInt64, "", "deadlineMs"),
+		}}},
+		// Property.origin's message (fn-134.1).
+		{after: "Property", message: &descriptorpb.DescriptorProto{Name: proto.String("PropertyOrigin"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("name", 1, schemaOptional, schemaString, "", "name"),
+			schemaFieldOf("position", 2, schemaOptional, schemaMessage, "Position", "position"),
 		}}},
 	}
 	schemaAddedEnums = []schemaAddedEnum{

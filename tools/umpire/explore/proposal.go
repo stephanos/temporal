@@ -27,9 +27,10 @@ type proposal struct {
 }
 
 func (p *Plan) Proposal(c *Candidate) (*replay.BridgeProposal, error) {
-	// The recipe is the source Model as an identity reads it, without totals, so a corrected source
-	// total changes neither the proposal bytes nor the SHA-256 that names the promotion source.
-	model, err := protojson.Marshal(ir.WithoutTotals(p.base))
+	// The recipe is the source Model as an identity reads it, without totals or Property origins, so a
+	// corrected source total or a traced Property changes neither the proposal bytes nor the SHA-256
+	// that names the promotion source.
+	model, err := protojson.Marshal(ir.WithoutTotals(ir.WithoutOrigins(p.base)))
 	if err != nil {
 		return nil, err
 	}

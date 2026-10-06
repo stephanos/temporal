@@ -37,7 +37,8 @@ func IRPaths(dir string) ([]string, error) {
 	}), nil
 }
 
-// Load reads a Model in ProtoJSON, rejects fields the schema does not have, and validates it.
+// Load reads a Model in ProtoJSON, rejects fields the schema does not have, and validates it. Fields
+// a Model may leave unset, a Property's origin among them, are admitted unset.
 func Load(path string) (*umpirespb.Model, error) {
 	encoded, err := os.ReadFile(path)
 	if err != nil {

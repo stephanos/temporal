@@ -526,6 +526,18 @@ message Property {
   // step and the step record.
   string holds = 6;
   bool transition = 7;
+  // Set only on a Property the generator expanded from a capability Property. Nothing reads it but
+  // a reader tracing a generated Property back to its definition, so no fingerprint, answer,
+  // lowering or exploration identity changes with it. Unset on an author's own Property.
+  PropertyOrigin origin = 8;
+}
+
+// The capability Property a generated Property was expanded from. The generated Property's own
+// position is where its capability is declared; this one is where the capability Property is defined.
+message PropertyOrigin {
+  // Fully qualified, e.g. `temporal.capabilities.Closable.closedIsRejectedUniformly`.
+  string name = 1;
+  Position position = 2;
 }
 
 // A Scenario: a named schedule from one start.
