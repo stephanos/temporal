@@ -109,6 +109,8 @@ go test -tags test_dep -p 2 -timeout 30m ./tools/umpire/...
 
 [paraphrase] Naming went through "law", "convention" and "pattern". "Pattern" was rejected because it is already the IR's match pattern, the design-pattern notes and the "claim patterns". In the end the separate noun was dropped altogether. A shared Property is just a capability's Property. [user] Merging Pausable and Pollable to remove the one pair-brought Property was rejected: they are different concepts (control and dispatch). Instead, a Property's own parameters name the capabilities it needs, which removes the pair table without merging.
 
+[user] Layout, 2026-10-06: one file per capability in `model/temporal/capabilities/` (`Closable.scala`, `Terminable.scala`, `Cancelable.scala`, `Pausable.scala`, `Pollable.scala`, `Describable.scala`), each holding the case class and its companion with its Properties. It replaces the split into `Capabilities.scala` (declarations), per-law files and `Catalog.scala`. Positions-only in the IR; fn-138's `Retries.scala` follows the same shape.
+
 [inferred] Requiring one hand-written Query per capability Property was considered, as a way to make every bound explicit. One bounding statement with per-Property overrides was preferred, because it avoids writing about forty Query lines by hand and avoids rebuilding the Scenarios the generator derives for single-class Properties. R3's refusal keeps coverage from being lost silently either way.
 
 ## Requirement coverage
