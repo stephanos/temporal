@@ -38,3 +38,17 @@ Resolve Product and System machines independently, require the System refinement
 
 ## Prevention
 For paired structural artifacts, test absence, wrong placement, and independent sibling failures rather than only known forbidden names. During ownership migrations, search every remaining root type's consumers and keep it there only when both levels use it. Encode named exceptions as exact identities, not category-wide exclusions.
+
+## Update 2026-10-06
+
+## Problem
+Kind/form admission introduced three structural bypasses. Rebasing a form before comparing its original package to its source path concealed a wrong parent kind. An inherited kind Product made a System folder two-level, but a missing canonical System.scala escaped when only an unrefined or derived sibling remained. Machine-only placement checks also admitted unknown or deeper folders containing types alone.
+
+## What Didn't Work
+Resolved machine pairs cannot establish whether a required level file exists. Likewise, checking only machine objects misses type-only sources, and comparing paths after a semantic rebase loses the original ownership boundary.
+
+## Solution
+Check each original source package before rebasing forms. Require the canonical System file whenever an inherited Product and a System folder establish that level, independently of detected refinement. Validate every declared source against the closed kind/form folder catalog. Keep the existing flat/shared primary, refinement, vocabulary and taskqueue checks unchanged. Focused refusal fixtures demonstrate all three bypasses, including both unrefined and valid derived siblings.
+
+## Prevention
+Test the original ownership coordinate, missing canonical files with non-primary siblings, and type-only wrong-folder declarations. Establish diagnostic red before changing the classifier. A malformed Derived expression is not evidence for a missing-file guard; use a valid existing DSL spelling and distinguish that failed probe from the intended reproduction.
