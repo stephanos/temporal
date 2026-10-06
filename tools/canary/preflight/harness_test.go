@@ -64,7 +64,7 @@ func TestHarnessRejectsMissingCapabilityBeforeIO(t *testing.T) {
 // The same Case under the same coordinates is admitted once the environment supplies the control,
 // so the refusal is the capability's and nothing else's.
 func TestHarnessRejectsTheHoldDeliveryActuatorBeforeIO(t *testing.T) {
-	fixture, err := generatedHarnessCase(t, "activity-race-heldDispatch.staleDelivery-case.json")
+	fixture, err := generatedHarnessCase(t, "activity-standalone-race-heldDispatch.staleDelivery-case.json")
 	require.NoError(t, err)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
