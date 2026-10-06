@@ -79,7 +79,7 @@ Gate: starts after fn-126 and fn-124 close; closes before fn-128 starts. Source 
 | fn-132.8 | ✅ done | Kind/form source grouping admitted before either move; unchanged-tree proof |
 | fn-132.1 | ✅ done | `features/nexus/workflow` and `features/nexus/standalone`; all four export stems moved, exact identity proof and focused checks passed; broad Part A gates at task 2 |
 | fn-132.2 | ✅ done | `features/activity/standalone`; three form-owned export stems; exact move proof, closing Part A gates and SHIP; inherited matching worker-stop live exception retained |
-| fn-132.3 | ⬜ todo | Structure lint and docs learn the kind level |
+| fn-132.3 | 🔄 in progress | Structure lint and docs learn the kind level |
 | fn-132.4 | ⬜ todo | Spike: one action shared by two forms' entities; outcomes; `terminated` |
 | fn-132.5 | ⬜ todo | One `NexusProduct` in `features/nexus/` that both Nexus forms refine |
 | fn-132.6 | ⬜ todo | General activity declarations in `activity/Activity.scala` |

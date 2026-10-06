@@ -1822,7 +1822,7 @@ class Fixtures extends munit.FunSuite:
   // The template a new feature copies (layout/lamp): a feature with its two levels and a zoom-in,
   // which the lint refuses nothing of and the lifter lifts.
   concurrently("the layout template lifts with no refusal"):
-    val tree = materializeTree("layout", excluding = Set("kinds"))
+    val tree = materializeTree("layout", excluding = Set("kinds", "r4"))
     val stream = Files.walk(tree)
     val inventory =
       try
@@ -1914,12 +1914,6 @@ class Fixtures extends munit.FunSuite:
       "does not mirror"
     ),
     (
-      "extra-empty-header",
-      "nexus/Extra.scala",
-      Some("package fixture.features.nexus\n"),
-      "one general feature file"
-    ),
-    (
       "case-variant-header",
       "nexus/nexus.scala",
       Some("package fixture.features.nexus\n"),
@@ -1998,6 +1992,30 @@ class Fixtures extends munit.FunSuite:
         refused(result).exists(message => message.contains(file) && message.contains(diagnostic)),
         s"$name did not report $diagnostic:\n${result.diagnostics}"
       )
+
+  for (name, file, line, diagnostic) <- Seq(
+      ("form-outside-kind", "standalone/Standalone.scala", 3, "a form belongs inside a kind"),
+      ("machine-in-general-file", "nexus/Nexus.scala", 5, "Misplaced is a machine object"),
+      ("second-general-file", "nexus/Extra.scala", 1, "one general feature file")
+    )
+  do
+    concurrently(s"R4 refuses $name at its source line"):
+      val tree = materializeTree("layout/kinds", s"r4-$name")
+      val specimen = testdata.resolve(s"layout/r4/$name/$file")
+      val changed = tree.resolve(file)
+      Files.createDirectories(changed.getParent)
+      Files.copy(specimen, changed, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+      val jar = packaged(s"r4-$name", tree, Seq("--server=false"))
+      val out = scratch.resolve(s"r4-$name-out")
+      val result = liftIr(out, s"$jar=$tree/,$modelJar=model/")
+      assert(
+        refused(result).exists(message =>
+          message.startsWith(s"lift: $tree/$file:$line:") && message.contains(diagnostic)
+        ),
+        s"$name did not report $file:$line: $diagnostic:\n${result.diagnostics}"
+      )
+      assertNotEquals(result.exit, 0, name)
+      assertEquals(listed(out), Nil)
 
   concurrently("shared features refuse kind-form nesting"):
     val tree = materializeTree("layout/kinds", "shared-forms")
