@@ -1,14 +1,98 @@
 {
   "branch_name": "fn-132-group-the-nexus-and-activity-models-by",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-06T00:04:45.755969Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-126-read-each-feature-top-to-bottom-one",
     "fn-124-shrink-and-simplify-the-umpire-go"
   ],
   "id": "fn-132-group-the-nexus-and-activity-models-by",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-06T09:35:51.125784Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "d87fbe17c317cc6dc30b89b0c1a80dc735351424b14c33c38b760766e875d90f",
+      "backend": "codex",
+      "base_sha": "35be01d541dbadda658085cdd3846e27ce8279f9",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1f7a4f80547fe583f5061da93c750656",
+            "classification": "introduced",
+            "findingId": "finding-1f7a4f80547fe583f5061da93c750656",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-eda95bd48b889cabe3fcd30e17c95da3",
+            "classification": "introduced",
+            "findingId": "finding-eda95bd48b889cabe3fcd30e17c95da3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a2326e09cf468a1d34c90d6e18d36a8e",
+            "classification": "introduced",
+            "findingId": "finding-a2326e09cf468a1d34c90d6e18d36a8e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8cc36c87457faf441070017170789f71",
+            "classification": "introduced",
+            "findingId": "finding-8cc36c87457faf441070017170789f71",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f101ae137515090d3c237301fd7e8927078f5652",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 399433,
+      "output_sha256": "c63ec1b2665aec42dc3c5ae9d9f93be93dd5d1f7ce69f047b77a76cacd2cd863",
+      "reservation_id": "f86b4c4dfcd8425fb82247fcf5e8118f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-06T09:35:51.116246Z",
+      "tool_calls": 26,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-132-group-the-nexus-and-activity-models-by.md",
   "status": "open",
   "title": "Group the Nexus and activity Models by kind: workflow and standalone",
@@ -23,5 +107,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T09:31:44.795146Z"
+  "updated_at": "2026-10-06T09:40:27.407548Z"
 }

@@ -17,12 +17,14 @@ Settle the two questions that block Parts B and C, in lifter fixtures before tou
    - (b) One kind-level entity whose key each form's realization binds.
    - (c) Per-form actions, with the shared product written over the kind's actions and each form's refinement mapping its own.
    Pick the smallest binding proved by the DSL, lifter, Go reader and lowering that meets R2/R3. A types-only result cannot complete this task or satisfy those requirements. If a framework seam is necessary, record its bounded change and implement/test it under the owner's autonomous direction before task 5 starts; do not choose a weaker result merely because it passes existing tests.
-2. **Outcome.** The workflow form rejects a late completion as `notFound`, the standalone form a control of a closed operation as `alreadyCompleted`. Decide between a product `Outcome` with both members and a refinement that hides outcomes (`visibleOutcomes`).
+2. **Outcome.** The shared product catalog contains both `notFound` and `alreadyCompleted`; prove that `visibleOutcomes` affects stutter observation only after catalog admission. A negative fixture with a missing source outcome must still fail even when visibility excludes it. Preserve current rejection/repeat results.
 3. **`terminated`.** Whether `NexusProduct` gains a `terminated` phase or the standalone refinement hides it.
+4. **Facts and carriers.** Prove both forms' asynchronous starts and terminal completions have a product carrier. The current checker maps facts by member name, not meaning; use the parent's finite standalone-status → product-fact ledger rather than inventing a broad projection API. Classify scheduled/cancel-request/terminated facts and visible outcomes explicitly. Cover starts, sync/async completions, controls/repeats, termination and stutters, with a wrong/missing fact carrier negative. Keep history and Describe read contracts unchanged under those declared identities.
+5. **Product signature closure.** Identify the exact existing network/timeout declarations and input types the shared product uses; move that closure in task 5 so kind code does not import either form. Distinguish disabled extra input classes and canonical fingerprint changes from previously enabled transition behavior.
 
 Record each decision, with what it changes, in the spec's Decision Context and close its Parked unknown.
 ## Acceptance
-- [ ] A passing lifter fixture shows the chosen entity binding: one action used by two machines of different forms, both refining one product.
+- [ ] Passing lifter and checker-level fixtures prove one kind action bound for both forms, required fact carriers and both outcome catalog members, while missing/wrong carriers or catalog members fail even under visibility exclusion.
 - [ ] The entity, outcome and `terminated` decisions are in the spec's Decision Context; their Parked unknowns are removed.
 - [ ] Any required binding seam is recorded, implemented and verified before task 5 starts; its positive and wrong-entity/invalid-mapping cases preserve the exact requirement and artifact contracts. No unproved or types-only fallback is reported as success.
 
