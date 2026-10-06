@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-124-shrink-and-simplify-the-umpire-go",
   "spec_path": ".flow/tasks/fn-124-shrink-and-simplify-the-umpire-go.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Define verdict aggregation once and document the judge's generic rules",
   "updated_at": "2026-10-05T05:53:48.048414Z"
 }

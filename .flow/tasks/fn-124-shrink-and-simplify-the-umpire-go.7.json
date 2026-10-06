@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-124-shrink-and-simplify-the-umpire-go",
   "spec_path": ".flow/tasks/fn-124-shrink-and-simplify-the-umpire-go.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retire the migration harness and frozen snapshots",
   "updated_at": "2026-10-05T17:24:36.588404Z"
 }

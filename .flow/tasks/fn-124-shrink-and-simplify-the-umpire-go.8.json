@@ -13,7 +13,7 @@
   "priority": null,
   "spec": "fn-124-shrink-and-simplify-the-umpire-go",
   "spec_path": ".flow/tasks/fn-124-shrink-and-simplify-the-umpire-go.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Split tools/umpire/model into ir, interp, check and realization packages",
   "updated_at": "2026-10-06T09:11:33.769026Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-124-shrink-and-simplify-the-umpire-go",
   "spec_path": ".flow/tasks/fn-124-shrink-and-simplify-the-umpire-go.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Make Model assessment the command-line judge and derive or retire the Evaluation Profile",
   "updated_at": "2026-10-05T08:57:48.216808Z"
 }
