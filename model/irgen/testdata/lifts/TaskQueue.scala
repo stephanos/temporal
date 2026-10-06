@@ -2,7 +2,7 @@
 // and settled once, composed with the opaque queue, with the matching provider that replaces it, and
 // with the forgetful provider as the negative control. It imports nothing of the standalone activity,
 // so the queue is lifted and checked here as any other feature would rely on it. The lifter's tests
-// compare the IR with expected/taskqueue.json, and tools/umpire/model pins every Query's answer.
+// compare the IR with expected/taskqueue.json, and tools/umpire/check pins every Query's answer.
 package fixture.taskqueue
 
 import temporal.shared.taskqueue.*

@@ -739,7 +739,7 @@ private[irgen] trait Capabilities:
 
   /**
    * The action class each action field of the capabilities names, keyed `<capability>.<field>` and
-   * spelled as tools/umpire/model keys a class: the action's name, then each input's key, or a
+   * spelled as tools/umpire/interp keys a class: the action's name, then each input's key, or a
    * composition's class as its Scenarios key one. A bare action with inputs is its name alone.
    */
   private def actionsOf(

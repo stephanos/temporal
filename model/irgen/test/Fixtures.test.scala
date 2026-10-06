@@ -155,13 +155,13 @@ class Fixtures extends munit.FunSuite:
       if r.head.isUpper then s"fixture.captured.$r" else s"fixture.captured.Captured$$package$$.$r"
     ),
     // fn-118.2: API behavior hints and server steps (lifts/Hints.scala). The reader admits the
-    // first and refuses each realization of the second at its line (tools/umpire/model).
+    // first and refuses each realization of the second at its line (tools/umpire/realization).
     "hints" -> Seq("keptBehavior", "ownBehavior").map("fixture.hints.Hints$package$." + _),
     // fn-126 decision 23: the objects that group actions, named after where they are declared
     // (lifts/Sections.scala).
     "sections" -> Seq("fixture.sections.Switch", "fixture.sections.Clapper"),
     // fn-126 R15, R16: a machine object, its core twin, derivations and a composition object
-    // (lifts/Rules.scala); tools/umpire/model holds the twins' tables equal.
+    // (lifts/Rules.scala); tools/umpire/interp holds the twins' tables equal.
     "rules" -> (Seq(
       "Switch",
       "Mirror",

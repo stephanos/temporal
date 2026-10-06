@@ -104,7 +104,7 @@ func (in *Interpreter) declaredMembers(name string) ([]Value, error) {
 	}
 }
 
-// product lists every assignment of fields, the last varying fastest, once their count is within the
+// Product lists every assignment of fields, the last varying fastest, once their count is within the
 // Members ceiling.
 func (in *Interpreter) Product(fields []*umpirespb.Field) ([][]Value, error) {
 	n, err := in.SizeOfProduct(fields)
@@ -193,7 +193,7 @@ func (m *Machine) State(key string) (Value, bool) {
 	return v, ok
 }
 
-// reachableHoles is the hole rows whose state the table reaches.
+// ReachableHoles is the hole rows whose state the table reaches.
 func (m *Machine) ReachableHoles() []HoleRow {
 	var out []HoleRow
 	for _, h := range m.Holes {
@@ -219,7 +219,7 @@ func (in *Interpreter) Build(m *umpirespb.Model) (map[string]*Machine, error) {
 	return out.Machines, nil
 }
 
-// interpretation is a Model's machines interpreted one by one, so that what one machine's
+// Interpretation is a Model's machines interpreted one by one, so that what one machine's
 // declarations leave unread does not take the others with it: failed is why a machine has no table.
 type Interpretation struct {
 	Machines map[string]*Machine
@@ -334,7 +334,7 @@ func (in *Interpreter) machine(decl *umpirespb.Machine, actions map[string]*umpi
 	return mm, nil
 }
 
-// preflight counts a machine's states, its classes of every bound action together, and their pairs,
+// Preflight counts a machine's states, its classes of every bound action together, and their pairs,
 // and refuses work past a ceiling before any of it is listed.
 func (in *Interpreter) Preflight(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) error {
 	states, err := in.Size(Named(decl.GetStateType()))
@@ -351,7 +351,7 @@ func (in *Interpreter) Preflight(decl *umpirespb.Machine, actions map[string]*um
 	return in.Within("evaluations", in.ceilings.Evaluations, states.Times(classes))
 }
 
-// classCount counts a machine's classes of every bound action together, refusing them past the
+// ClassCount counts a machine's classes of every bound action together, refusing them past the
 // Members ceiling, so no caller lists them first.
 func (in *Interpreter) ClassCount(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) (Count, error) {
 	classes, err := in.BoundClasses(decl, actions)
@@ -361,7 +361,7 @@ func (in *Interpreter) ClassCount(decl *umpirespb.Machine, actions map[string]*u
 	return classes, in.Within("classes", in.ceilings.Members, classes)
 }
 
-// boundClasses counts a machine's classes of every bound action together, past any ceiling.
+// BoundClasses counts a machine's classes of every bound action together, past any ceiling.
 func (in *Interpreter) BoundClasses(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) (Count, error) {
 	var classes Count
 	for _, b := range decl.GetSteps() {
@@ -386,7 +386,7 @@ func InputFields(a *umpirespb.Action) []*umpirespb.Field {
 	return fields
 }
 
-// classes lists every class of every bound action, sorted by key, and rejects a class two steps bind.
+// Classes lists every class of every bound action, sorted by key, and rejects a class two steps bind.
 func (in *Interpreter) Classes(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) ([]Class, error) {
 	if _, err := in.ClassCount(decl, actions); err != nil {
 		return nil, err
@@ -430,7 +430,7 @@ func (c Class) spelled() string {
 	return c.Action.GetName() + Value{Kind: RecordValue, Fields: c.Inputs}.spelled()
 }
 
-// rowKeys refuses a machine two of whose state and class pairs share a row key, as a state and a
+// RowKeys refuses a machine two of whose state and class pairs share a row key, as a state and a
 // class whose keys hold a "-" can: rows, hole rows and disabled pairs are found by it.
 func RowKeys(decl *umpirespb.Machine, states []Value, classes []Class) error {
 	seen := make(map[string][2]string, len(states)*len(classes))
@@ -550,12 +550,12 @@ func (in *Interpreter) stepList(decl *umpirespb.Machine, c Class, v Value) ([]Va
 	return v.Items, nil
 }
 
-// unknowns collects the holes a declaration reaches as it is read at one value after another, each
+// Unknowns collects the holes a declaration reaches as it is read at one value after another, each
 // once. The reading goes on past a hole, so that an error of the Model at a later value is not lost
 // behind it, and every hole it reaches is reported.
 type Unknowns struct{ Holes []*Hole }
 
-// note keeps a hole, for which it is nil, and is any other error itself.
+// Note keeps a hole, for which it is nil, and is any other error itself.
 func (u *Unknowns) Note(err error) error {
 	var hole *Hole
 	if !errors.As(err, &hole) {
@@ -567,7 +567,7 @@ func (u *Unknowns) Note(err error) error {
 	return nil
 }
 
-// err is the holes reached, as why the declaration is not read, or nil when it reached none.
+// Err is the holes reached, as why the declaration is not read, or nil when it reached none.
 func (u *Unknowns) Err() error {
 	errs := HoleErrors(u.Holes)
 	if len(errs) == 1 {
@@ -652,7 +652,7 @@ func (in *Interpreter) evidence(decl *umpirespb.Machine, facts []Value, unread *
 	return out, nil
 }
 
-// actionOf is the action a class key is of: the key before its inputs.
+// ActionOf is the action a class key is of: the key before its inputs.
 func ActionOf(key string) string {
 	name, _, _ := strings.Cut(key, "-")
 	return name

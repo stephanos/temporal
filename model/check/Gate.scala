@@ -339,7 +339,7 @@ final class Gate(tools: Tools, log: PrintStream):
         "-v",
         "-run",
         s"^$vocabulary$$",
-        "./tools/umpire/model"
+        "./tools/umpire/ir"
       )
       val ran = tools.run("go", arguments).orFail()
       // A name that matches no test passes too, so the check is required to have run.

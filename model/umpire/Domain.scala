@@ -1,7 +1,7 @@
 /* The Scala declarations of the Umpire model layer. A Model is ordinary Scala 3: domains are enums
  * and case classes, actions and machines are vals, and step functions are plain defs with total
  * matches. The IR generator (model/irgen) reads the declarations into the IR, and the Go reader
- * (tools/umpire/model) builds the tables, checks the refinements and answers the Queries from it;
+ * (tools/umpire/interp and tools/umpire/check) builds the tables, checks the refinements and answers the Queries from it;
  * nothing here computes them.
  */
 package umpire

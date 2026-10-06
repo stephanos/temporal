@@ -26,6 +26,7 @@ import (
 // listed: it is ignored and a checkout may still hold it until it is cleaned, so only a path that
 // names it fails.
 var retiredModelDirectories = []string{
+	"tools/umpire/model",
 	"model/lifter", "model/gate", "model/metrics",
 	"model/temporal/standaloneactivity", "model/temporal/nexuscaller", "model/temporal/nexusoperation",
 	"model/temporal/taskqueue", "model/temporal/worker",
@@ -39,6 +40,8 @@ var retiredModelDirectories = []string{
 // `temporal.nexuscaller.closepolicy.Model$package$`), so a pinned name in a string is no match; a
 // function symbol, which names the package the function is in, is.
 var retiredModelNames = regexp.MustCompile(strings.Join([]string{
+	`tools/umpire/model\b`,
+	`"tools", "umpire", "model"`,
 	`model/(?:lifter|gate|metrics|gen)\b`,
 	`model/temporal/(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)\b`,
 	`model/temporal/features/(?:standaloneactivity/(?:record|withTaskQueue)|nexuscaller/closepolicy)\b`,
@@ -364,6 +367,9 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		content string
 		found   bool
 	}{
+		"the retired Go reader":                 {"tools/umpire/model/load.go", true},
+		"the retired Go reader joined":          {`filepath.Join("tools", "umpire", "model", "load.go")`, true},
+		"the reader packages":                   {"tools/umpire/ir, tools/umpire/interp, tools/umpire/check, tools/umpire/realization", false},
 		"the IR generator's old folder":         {"see model/lifter/Lift.scala", true},
 		"the check's old folder":                {"run model/gate", true},
 		"the metrics project":                   {"scala-cli run model/metrics --", true},

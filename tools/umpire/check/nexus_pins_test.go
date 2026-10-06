@@ -22,7 +22,7 @@ import (
 const productClaimProbes = `{
   "functions": [
     {"name": "nexusProduct.property.timesOut",
-      "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
+      "position": {"file": "tools/umpire/check/nexus_pins_test.go"},
       "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
       "body": {"binary": {"op": "OP_EQ",
         "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
@@ -30,10 +30,10 @@ const productClaimProbes = `{
   "properties": [
     {"machine": "nexusProduct", "name": "timesOut", "holds": "nexusProduct.property.timesOut",
       "whenClass": {"action": "temporal.features.nexuscaller.timers.timeout"},
-      "position": {"file": "tools/umpire/model/nexus_pins_test.go"}}],
+      "position": {"file": "tools/umpire/check/nexus_pins_test.go"}}],
   "scenarios": [
     {"machine": "nexusSystem", "name": "everywhere", "free": true,
-      "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
+      "position": {"file": "tools/umpire/check/nexus_pins_test.go"},
       "start": {"construct": {"type": "temporal.features.nexuscaller.system.State", "args": [
         {"literal": {"enum": {"type": "temporal.features.nexuscaller.system.Phase", "case": "unscheduled"}}},
         {"literal": {"int": "0"}},
@@ -42,14 +42,14 @@ const productClaimProbes = `{
         {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}}]}}}],
   "queries": [
     {"name": "terminalHoldsEverywhere", "form": "FORM_VERIFY", "through": true,
-      "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
+      "position": {"file": "tools/umpire/check/nexus_pins_test.go"},
       "property": {"machine": "nexusProduct", "name": "terminalIsFinal"},
       "scenario": {"machine": "nexusSystem", "name": "everywhere"},
       "limits": {"name": "four", "steps": 4, "actions": 4, "search": 32768}}]
 }`
 
 const timesOutOnProtocol = `{"queries": [{"name": "timesOutOnProtocol", "form": "FORM_VERIFY", "through": true,
-  "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
+  "position": {"file": "tools/umpire/check/nexus_pins_test.go"},
   "property": {"machine": "nexusProduct", "name": "timesOut"},
   "scenario": {"machine": "nexusSystem", "name": "asyncThenSucceeded"},
   "limits": {"name": "three", "steps": 3, "actions": 3, "search": 4096}}]}`

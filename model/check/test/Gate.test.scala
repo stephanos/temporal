@@ -79,7 +79,7 @@ class GateSuite extends munit.FunSuite:
   private def passingVocabulary =
     vocabulary("--- PASS: TestModelNamesNoRetiredFrontEnd (0.05s)\\nPASS")
   private val vocabularyCheck =
-    "go test -count=1 -tags test_dep -v -run ^TestModelNamesNoRetiredFrontEnd$ ./tools/umpire/model"
+    "go test -count=1 -tags test_dep -v -run ^TestModelNamesNoRetiredFrontEnd$ ./tools/umpire/ir"
   private val lintRun = "go run ./tools/umpire/cmd/umpire-lint"
 
   test("the command line is refused when it names an unknown or a contradictory flag"):
@@ -496,7 +496,7 @@ class GateSuite extends munit.FunSuite:
     assertEquals(repository.ran, Seq(vocabularyCheck))
 
   test("the gate stops when the vocabulary check did not run"):
-    val unmatched = "ok  \\tgo.temporal.io/server/tools/umpire/model\\t0.4s [no tests to run]"
+    val unmatched = "ok  \\tgo.temporal.io/server/tools/umpire/ir\\t0.4s [no tests to run]"
     val repository = currentRepository(vocabulary(unmatched))
     val answer = gate(repository.tools, "--skip-go-checks")
     assertEquals(answer.status, 1)

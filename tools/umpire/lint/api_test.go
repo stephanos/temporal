@@ -103,11 +103,11 @@ func apiWalk(md protoreflect.MessageDescriptor, path string) (protoreflect.Field
 // field of the run's own record that no count includes.
 func apiActivityIR(t *testing.T) (*umpirespb.Model, *umpirespb.Realization) {
 	t.Helper()
-	ir, err := ir.Load("../../../model/ir/activity.json")
+	m, err := ir.Load("../../../model/ir/activity.json")
 	require.NoError(t, err)
-	ir = proto.Clone(ir).(*umpirespb.Model)
-	require.Len(t, ir.GetRealizations(), 1)
-	return ir, ir.GetRealizations()[0]
+	m = proto.Clone(m).(*umpirespb.Model)
+	require.Len(t, m.GetRealizations(), 1)
+	return m, m.GetRealizations()[0]
 }
 
 func apiTallyOf(t *testing.T, ir *umpirespb.Model, lowering Lowering) Tally {

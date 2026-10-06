@@ -2,7 +2,7 @@
 
 The IR's meaning is defined here, not by the IR generator that writes it or the Go interpreter that reads
 it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema;
-`tools/umpire/model` is the Go evaluator of these rules, and its goldens hold what it derives.
+`tools/umpire/interp` and `tools/umpire/check` evaluate these rules, and their goldens hold what they derive.
 
 ## Versions
 
@@ -160,7 +160,7 @@ A machine's table is derived from its declaration:
    ones it names. A machine derived by restriction keeps its source's.
 
 Reachability, stuck states, Definition IDs and the Behavior Fingerprint are then those of the
-reader's table (`tools/umpire/model`, `Table`) over the derived keys.
+reader's table (`tools/umpire/interp`, `Table`) over the derived keys.
 
 ### Rules
 
@@ -603,7 +603,7 @@ condition over the event's payload and reads nothing else: it writes out flags, 
 enum values, and no name a Case binds, since a recorded Run holds no such binding. Its paths name
 fields and oneof members, each one flag, text, enum value, signed integer or message. Its key is the
 run's id or one text or integer of the payload. What a well-formed guard is has one reading
-(`GuardProblem`, over `TypeOf`, in `tools/umpire/model`), which admission makes with no descriptor, the lowering
+(`GuardProblem`, over `TypeOf`, in `tools/umpire/realization`), which admission makes with no descriptor, the lowering
 with the payload's, and the evaluation on a recorded Run with the payload's again, so a guard one of
 them refuses is refused by all, in the same words, by the first that can know. A guard that cannot be evaluated on an event, because it reads a field the
 payload's type does not have, compares or orders a value that is absent, or is no condition, is an
@@ -766,9 +766,10 @@ other way meets the same rules at its reader.
 The rules for the specimens' constructs are above: channels and the
 redeliveries derived from them, monitors, assumptions, holes, scoped replacement in a composition, the
 visible projection of a refinement, Claims and progress. An internal action (`internal`) is a step of
-the system that is not a timer. `tools/umpire/model` implements all of them: `Build` interprets Values through
-Machines, Channels and Holes, `Validate` applies the [Admission](#admission) rules, and `Check` binds
-monitors, assumptions, compositions, Claims and progress claims to its private checker and
+the system that is not a timer. `tools/umpire/interp.Build` interprets Values through
+Machines, Channels and Holes, `tools/umpire/ir.Validate` applies the [Admission](#admission) rules,
+calling `realization` for realization admission. `tools/umpire/check.Check` binds
+monitors, assumptions, compositions, Claims and progress claims to the private table engine and
 gives each declaration one of the [Results](#results). What `Check` does not answer it reports as
 `unsupported`: a Query over a composition a member of which names monitors, a `find` with `through`,
 and a transition Property with a `when`.

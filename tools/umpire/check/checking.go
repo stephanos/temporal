@@ -245,7 +245,7 @@ type Report struct {
 }
 
 // Check admits a Model, interprets it within the scope, and checks every refinement, composition,
-// Query and progress claim it declares with its private checker (internal/checker), whose algorithms it adds
+// Query and progress claim it declares with its private checker (internal/engine), whose algorithms it adds
 // nothing to. Every witness is replayed against a second interpretation before its receipt is given.
 func Check(m *umpirespb.Model, scope Scope) *Report {
 	return check(m, scope, m)

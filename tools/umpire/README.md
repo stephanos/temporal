@@ -9,7 +9,11 @@ terms; this page says what each package is for.
 
 | Package | Job |
 | --- | --- |
-| `model` | The reader: loads and validates an IR Model, interprets it into tables, and answers its Properties, Queries, refinements and progress claims. Its table checker is private, in `model/internal/checker` |
+| `ir` | Loads and validates IR Models, computes totals and admits exploration declarations |
+| `interp` | Interprets Values, Machines, Channels and decision traces into finite tables |
+| `check` | Binds and answers Properties, Queries, compositions, refinements and progress claims; owns `Realizer` and the bound declarations used by lowering |
+| `realization` | Admits executable realizations and types their guards, operands and payloads |
+| `internal/engine` | Evaluates finite table claims; private to `interp` and `check` |
 | `lower` | Lowering: turns a `find` Query's witness, through the realization its machine declares, into a Testpilot Case, and generates the managed Case trees. Its Program and Contract builder is private, in `lower/internal/producer` |
 | `conformance` | Model assessment: says whether a Run's evidence is explained by the Model, and what the Query's Property is on the executions that explain it |
 | [`export`](export/README.md) | Writes the IR for Quint and compares its answers with the reader's |
@@ -18,9 +22,10 @@ terms; this page says what each package is for.
 | `internal/cli` | What the commands share at their edge: interruption, output lines, and the rule that nothing is written under the model |
 
 The module map, [.plans/UMPIRE_MODULES.md](../../.plans/UMPIRE_MODULES.md), states each package's
-public interface and what it may import. `model/ownership_test.go` enforces those import rules: the
-reader imports nothing of Testpilot, `export` and `lint` depend on the reader alone, and every
-package here has a live caller.
+public interface and what it may import. `ir/ownership_test.go` enforces the reader's layers:
+`realization` imports `interp`, `ir` imports both, and `check` imports `ir` and `interp`. None imports
+Testpilot. `export` and `lint` depend only on `ir`, `interp` and `check`, and every package here has
+a live caller.
 
 The Case runtime is not here. It is Testpilot, in
 [common/testing/testpilot](../../common/testing/testpilot/README.md), and it imports nothing from

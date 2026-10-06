@@ -17,7 +17,7 @@ type Ceilings struct {
 	Evaluations int64
 }
 
-// defaultCeilings are the ceilings Build and NewInterpreter interpret a Model within.
+// DefaultCeilings are the ceilings Build and NewInterpreter interpret a Model within.
 var DefaultCeilings = Ceilings{Members: 1 << 16, Evaluations: 1 << 20}
 
 // LimitError is a ceiling some work would exceed, with the work it needs, counted before any of it is
@@ -48,7 +48,7 @@ func (e *LimitError) Error() string {
 	return fmt.Sprintf("%s needs %d %s, above the ceiling of %d", what, e.Needed, e.Resource, e.Ceiling)
 }
 
-// count is how many values a catalog, or how much work, has: exactly, or, past what an int64 holds,
+// Count is how many values a catalog, or how much work, has: exactly, or, past what an int64 holds,
 // only that it overflows.
 type Count struct {
 	n        int64
@@ -69,7 +69,7 @@ func counted(n *big.Int) Count {
 	return Count{n: n.Int64()}
 }
 
-// times multiplies two counts; a product with an exact zero is zero, however large the other.
+// Times multiplies two counts; a product with an exact zero is zero, however large the other.
 func (c Count) Times(o Count) Count {
 	switch {
 	case (c.n == 0 && !c.overflow) || (o.n == 0 && !o.overflow):
@@ -95,7 +95,7 @@ func (in *Interpreter) Within(resource string, ceiling int64, needed Count) erro
 	return nil
 }
 
-// size counts a finite type's catalog without listing it.
+// Size counts a finite type's catalog without listing it.
 // A type or channel whose catalog contains itself has none, and is refused rather than followed.
 func (in *Interpreter) Size(t *umpirespb.TypeRef) (Count, error) {
 	switch r := t.GetRef().(type) {

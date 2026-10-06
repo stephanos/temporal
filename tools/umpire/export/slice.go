@@ -5,7 +5,7 @@
 // it could not be run on, is listed as such and is never
 // an agreement.
 //
-// The Go side is tools/umpire/model, through its public API alone.
+// The Go side is tools/umpire/interp and tools/umpire/check, through its public API alone.
 package export
 
 import (

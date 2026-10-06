@@ -35,13 +35,13 @@ class ToolsSuite extends munit.FunSuite:
     assert(message.contains("[error] ./model/umpire/Machine.scala:71:3"), message)
 
   test("a nonzero exit failed, and the failure names the tool, the status and the command"):
-    val tools = stubs().tool("go", "echo 'FAIL tools/umpire/model'; exit 3").tools(work)
+    val tools = stubs().tool("go", "echo 'FAIL tools/umpire/ir'; exit 3").tools(work)
     val ran = tools.run("go", Seq("test", "./tools/umpire/..."))
     assert(ran.failed)
     val message = refused(ran.orFail())
     assert(message.startsWith(s"go exited 3 in $work: "), message)
     assert(
-      message.contains("test ./tools/umpire/...") && message.contains("FAIL tools/umpire/model"),
+      message.contains("test ./tools/umpire/...") && message.contains("FAIL tools/umpire/ir"),
       message
     )
 

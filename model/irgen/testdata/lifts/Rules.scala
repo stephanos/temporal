@@ -1,7 +1,7 @@
 // Machine objects with effects, rules and sections (fn-126 R15, R16): the machine object is the
 // machine, its rules say when each action fires and its effects what it does. `Switch` and its twin
 // `CoreSwitch`, written in the core with step functions bound by hand, lift to the same tables
-// (tools/umpire/model's TestRulesLowerToTheCoreTables). Then a bare binding that keeps the rules'
+// (tools/umpire/interp's TestRulesLowerToTheCoreTables). Then a bare binding that keeps the rules'
 // guards, rules a derivation binds in their source's place, rules a derivation adds, a composition
 // object with its derived twin, and one effect a rebind gives the rules of two classes. The
 // lifter's tests lift the roots `rules` lists and compare the IR with expected/rules.json.

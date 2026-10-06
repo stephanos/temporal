@@ -312,7 +312,7 @@ func errorf(decl, format string, args ...any) error {
 func rowKey(state, action string) string { return state + "-" + action }
 
 // TableSpec is a machine's table computed outside this package, such as by an interpreter of the
-// Umpire IR (tools/umpire/model). It carries only what a table's keys say. It serves identities,
+// Umpire IR (tools/umpire/interp). It carries only what a table's keys say. It serves identities,
 // reachability and fingerprints, and claims declared over its keys (KeyProperty, KeyScenario,
 // KeyFind): such a Property's predicate reads a result's keys, is searched, and lowers to clauses.
 // The state fields and Abstraction Claims are given with the spec.

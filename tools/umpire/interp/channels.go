@@ -119,7 +119,7 @@ func (in *Interpreter) inbox(x *umpirespb.Expr, b *umpirespb.Inbox, e *env) (Val
 	}
 }
 
-// bothRoles says that an action both delivers and loses a channel's messages, which no action does.
+// BothRoles says that an action both delivers and loses a channel's messages, which no action does.
 func BothRoles(a *umpirespb.Action) string {
 	if a.GetDelivers() == a.GetLoses() {
 		return "both delivers and loses " + a.GetDelivers()

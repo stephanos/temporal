@@ -36,14 +36,17 @@ the functional fixtures and the canary.
 | Realization kit, `model/temporal/realize` (shared Temporal kit) | Declare what every Temporal realization says alike, once. | Temporal's realization vocabulary in `Realize.scala`: `Role`, `RoleKind`, `RequiredSetting`, `WorkerActivation`, `WorkerInstruction`, `FaultKind`, `WorkflowHistory`. In `Kit.scala`: roles, environment bindings, the correlation window, the controller script, the kit's poll interval and deadlines, run-record evidence helpers, `temporalRealization`, the expected Runs `satisfied` and `inconclusive(reason)` a Query declares; sugar `field(_.name) :=` in its `Syntax.scala`. | DSL and its realization declarations, generated Temporal API and Testpilot messages; no feature import. |
 | IR generator, `model/irgen` | Translate typed trees into Umpire IR, after holding every source it reads to its declaration order (`Order.scala`: no read before a declaration, no initialization cycle, a feature file's reading order and places). | `Lifter`, `LiftError`, existing CLI root/prefix arguments, and `--ir`, which lifts every declared IR file (or the ones named) in one run, writing the law sidecar `<file>.laws.json` beside each IR file whose Models declare capabilities. | Generated ScalaPB IR and linked API metadata, ScalaPB runtime/ProtoJSON support, TASTy/Quotes and compiler libraries; Models and the Temporal kit read as TASTy, never source imports; the kit's vocabulary matched by fully qualified name. |
 | Gate, `model/check` | Verify the authored model pipeline. | One Scala program, `--update`; internal schema-generation modes `--generate-ir [--if-stale]` and `--generate-api [--if-stale]`. It names no Model declaration: one `lift --ir` run writes every IR file the Models declare. A second entry point, `umpire.check.metrics`, prints source metrics. | Processes/files, stamped ScalaPB generation, IR generator outputs, Go checks; no authoring dependency on the gate. |
-| Reader, `tools/umpire/model` | Interpret the meaning of one admitted Model. | `Load`, `Validate`, `Check`, `Build`, `NewInterpreter` (with `Why` and `Reads`, the decision trace), `NewRealizer` (with `Refinement`, the refinement Check reads), `TypeOf`, `PayloadFields`, `GuardProblem`, `Unknown`, `ExpectationID` and `EnumID` (the one spelling of an expected Run's ids); `IRPaths`, which leaves out the law sidecars, `ReadLawSidecar` and `LawViolations`; existing value, receipt, scope, table and bound-claim data needed by consumers. | Umpire IR and its private checker; no Testpilot package or schema. |
-| Checker, `tools/umpire/model/internal/checker` | Evaluate finite table claims. | Private to the reader; retained implementation declarations only. | No Testpilot or lower/conformance/export imports. |
-| Lowering, `tools/umpire/lower` | Produce a Case from a Query's witness. | `NewProducer`, `Producer.Lower`, `Realizable`, `EvidenceElement`, `FieldAt`, `Identity`, `IdentityFor`, `GenerateCases`, `DecodeManifest`, `FindGeneratedCase` (a Case's manifest entry by its fingerprint), `ExpectedRun.Check`, `SyncCases`; lowering standings, inventories and manifest data. | Reader, Testpilot facade/schema and private producer. |
-| Producer, `tools/umpire/lower/internal/producer` | Assemble the executable Program and Contract. | Private lowering implementation copied from live `caseproducer` code. | Reader's table/claim types, Testpilot facade/schema; never the private checker directly. |
-| Conformance, `tools/umpire/conformance` | Assess whether Run evidence is explained by a Model. | `Prepare`, returned `Factory.Binding`/`New`, existing limits, `DefaultLimits` (the ceilings the live tests and the commands share) and located errors; `Admits` becomes private because its callers are in the package. | Reader and Testpilot facade/schema. |
-| Export, `tools/umpire/export` | Compare Quint's reading with the reader. | Current `Open`/`OpenWithin`, Quint export/check/agreement methods and tool runners used by its opt-in tests. | Reader is its only model-domain dependency; generated IR and existing process/protobuf libraries allowed. |
-| Lint, `tools/umpire/lint` | Report what an admitted Model leaves unreached, unasked or unrealized, and its specification holes. | `Read`, `Of`, `Model.Lint`, `ReadAccepted`, `Accepted.Judge`, `Forward`, `WriteFindings`, `WriteCoverage`, `WriteTables` (with each machine's laws, read from the law sidecar); finding, tally, verdict, acceptance and law-table data. What it reads of lowering its command hands it as `Lowering`. | Reader only. |
-| Exploration, `tools/umpire/explore` | Select model-declared executable candidates. | `New`, `Plan.Reduce`, `Plan.Proposal`, `ReadProposal`, `Serve`, `RenderTrace`, candidate/plan data. | Reader, lowering, Testpilot facade/schema, campaign, replay and recordedrun. |
+| IR admission, `tools/umpire/ir` | Load and validate an IR Model, its totals and exploration declarations. | `Load`, `Validate`, `IRPaths`, `ExpectationID`, `EnumID`, `WithTotals`, `RequireTotals` and admission data. | Umpire IR, interp and realization; no Testpilot. |
+| Interpretation, `tools/umpire/interp` | Interpret Values, Machines, Channels and decision traces into tables. | `Build`, `NewInterpreter`, `NewInterpreterWithin`, `Why`, `Reads`; existing value, table, limits and interpretation data. Interpreter state stays private behind `Ceilings()`, `Model()` and `Type(name)`; counts use `CountOf` and `Int64()`. | Umpire IR and private engine; no other reader package or Testpilot. |
+| Checking, `tools/umpire/check` | Bind and answer Properties, Queries, compositions, refinements, laws and progress claims. | `Check`, `NewRealizer`, `Realizer`, `Bound`, `Declared`, `Composed`, `Unknown`, `ReadLawSidecar`, `LawViolations`; existing receipt, scope, trace and bound-claim data. | Umpire IR, ir, interp and private engine; no realization or Testpilot. |
+| Realization admission, `tools/umpire/realization` | Admit executable realizations and type guards, operands and payloads. | `Admit` through the validator's `Admitter` adapter; `TypeOf`, `PayloadFields`, `GuardProblem`, `Paths`, `ACause` and typed operand data. | Umpire IR and interp; no ir, check or Testpilot. |
+| Engine, `tools/umpire/internal/engine` | Evaluate finite table claims. | Private to interp and check; retained implementation declarations only. | No higher tooling layer or Testpilot imports. |
+| Lowering, `tools/umpire/lower` | Produce a Case from a Query's witness. | `NewProducer`, `Producer.Lower`, `Realizable`, `EvidenceElement`, `FieldAt`, `Identity`, `IdentityFor`, `GenerateCases`, `DecodeManifest`, `FindGeneratedCase` (a Case's manifest entry by its fingerprint), `ExpectedRun.Check`, `SyncCases`; lowering standings, inventories and manifest data. | ir, interp, check, realization, Testpilot facade/schema and private producer. |
+| Producer, `tools/umpire/lower/internal/producer` | Assemble the executable Program and Contract. | Private lowering implementation copied from live `caseproducer` code. | interp and check table/claim types, Testpilot facade/schema; never the engine directly. Fixture tests may also load ir. |
+| Conformance, `tools/umpire/conformance` | Assess whether Run evidence is explained by a Model. | `Prepare`, returned `Factory.Binding`/`New`, existing limits, `DefaultLimits` (the ceilings the live tests and the commands share) and located errors; `Admits` becomes private because its callers are in the package. | ir, interp, check, realization and Testpilot facade/schema. |
+| Export, `tools/umpire/export` | Compare Quint's reading with the reader. | Current `Open`/`OpenWithin`, Quint export/check/agreement methods and tool runners used by its opt-in tests. | ir, interp and check are its only model-domain dependencies; generated IR and existing process/protobuf libraries allowed. |
+| Lint, `tools/umpire/lint` | Report what an admitted Model leaves unreached, unasked or unrealized, and its specification holes. | `Read`, `Of`, `Model.Lint`, `ReadAccepted`, `Accepted.Judge`, `Forward`, `WriteFindings`, `WriteCoverage`, `WriteTables` (with each machine's laws, read from the law sidecar); finding, tally, verdict, acceptance and law-table data. What it reads of lowering its command hands it as `Lowering`. | ir, interp and check only. |
+| Exploration, `tools/umpire/explore` | Select model-declared executable candidates. | `New`, `Plan.Reduce`, `Plan.Proposal`, `ReadProposal`, `Serve`, `RenderTrace`, candidate/plan data. | ir, interp, check, lowering, Testpilot facade/schema, campaign, replay and recordedrun. |
 | Testpilot, `common/testing/testpilot` | Execute an admitted Case. | Existing `Prepare` → `PreparedCase.Run`, assessment and Driver contracts unchanged; `ConcludeVerdict`, the one Verdict aggregation recorded-Run readers check against. | Testpilot schema and existing internal runtime; nothing under `tools/umpire`, `model` or archives, including tests. |
 | Recorded Runs, `common/testing/testpilot/recordedrun` | Preserve a closed Run's exact identities and evidence. | Existing `Encode`, `Decode`, `CaseIdentity`, `Digest`, support/agreement checks and data; exclusive writer becomes `Write`; canonical `Signature`, `RunSignature`, `ReportSignature`, `Line`/`Equal` and their data/prefix. | Testpilot facade/schema and Case-file encoding. |
 | Case-file encoding, `common/testing/testpilot/casefile` | Admit the exact stored and canonical artifact byte forms. | `Compact`, `Persisted`, `Canonical`, `ErrNoncanonical`; keep `Indent` only if externally used. | JSON standard library only. |
@@ -62,11 +65,12 @@ The standalone activity's executable realizations live in
 Its root feature file imports `system.ActivityRealization` for the existing IR exports. A Product
 realization is added only for an executable Product subject; Nexus retains its root placement.
 
-The reader combines admission, interpretation and checking because those are one caller operation:
-reading a Model's meaning. Exploration combines reader, lowerer and runtime protocol data because
-its result is a model-selected executable candidate. These are deliberate exceptions to splitting
-an interface merely because its explanation can contain “and.” Campaign and replay remain separate:
-one coordinates candidate execution, the other owns reproduction and reduction decisions.
+The reader's packages follow one-way layers: realization uses interp; ir uses interp and realization;
+check uses ir and interp. Realization admission receives the validator's small `Admitter` adapter,
+so it does not import ir. `Realizer`, `Bound`, `Declared` and `Composed` stay with check's binding.
+The table engine is shared privately by interp and check, with the same algorithms and data contracts.
+Exploration combines reader, lowerer and runtime protocol data because its result is a model-selected
+executable candidate. Campaign coordinates execution; replay owns reproduction and reduction.
 
 The Model author contract now permits generated Temporal API, Testpilot and well-known ScalaPB
 message classes, generated unary gRPC method constants, and the ScalaPB runtime needed to compile
@@ -78,7 +82,7 @@ selections back into the unchanged text-bearing IR, which Go validates independe
 The framework `model/umpire` names no Temporal concept (fn-114.12). Its `umpire/realize` keeps what
 a realization of any system needs and open traits a system's kit extends; Temporal's realization
 vocabulary is in `model/temporal/realize/Realize.scala`. `TestFrameworkNamesNoTemporal`
-(`tools/umpire/model/framework_test.go`) checks every file under `model/umpire`, prose and
+(`tools/umpire/ir/framework_test.go`) checks every file under `model/umpire`, prose and
 identifiers, against a word list (temporal, workflow, activity, nexus, namespace, task queue,
 worker, history, chasm, matching, frontend and the six capability kinds). A mention stays only under
 an allowance that names its path and reason, and an allowance that keeps no mention fails, so the
@@ -103,7 +107,7 @@ Temporal's driver tooling names Temporal concepts by design:
   `WorkflowActivation`, `NexusHandlerActivation` and `ActivityActivation`, `Fault`,
   `WorkflowCommand`, `NexusReply`, `NexusCompletion`, `AttemptFailure`, and `Evidence.history`); its
   machine, claim and table messages are not.
-- The reader's realization admission (`tools/umpire/model/validate_realization.go`), lowering
+- The reader's realization admission (`tools/umpire/realization/validate_realization.go`), lowering
   (`tools/umpire/lower`) and Testpilot (`common/testing/testpilot`, with the Temporal Driver in
   `common/testing/testpilot/temporal`) are the Temporal driver.
 
@@ -113,10 +117,9 @@ history: its paths point at snapshots fn-124.7 retired.
 
 ## Public types and file boundaries
 
-The reader owns the public names for every checker type its API exposes. Copy the checker into the
-reader's `internal/checker`, then declare public aliases for the required immutable/data contracts
-and narrowly expose the existing operations needed by the producer and export. This preserves Go
-assignability and the existing algorithms without allowing sibling packages to import the checker.
+Interp and check own the public names for every engine type their APIs expose. Their aliases for
+the required immutable/data contracts preserve Go assignability and existing algorithms. Only these
+two packages import `internal/engine`; the producer and export use the public reader contracts.
 `Scope.Compose`, `Scope.Progress`, receipt witnesses/limits/refinement/monitor results, `Machine.Table`
 and the bound Property/Query surfaces must all use reader names in their declarations. `Table`,
 `Query`, `Atom`, `Result`, `Trace`, `TraceStep`, `Limits`, `ComposeCeiling`, `ProgressKind`,
@@ -234,13 +237,13 @@ into) and the entry point `Lift.scala`.
 
 Task 9 renamed the IR namespace to `umpire/v1` (Go alias `umpirespb`, JVM package
 `io.temporal.server.api.umpire.v1`); `modelir` is renamed, not kept. The migration manifest and
-audit JSON keep the old names as the captured baseline. `tools/umpire/model/schema_test.go` with
+audit JSON keep the old names as the captured baseline. `tools/umpire/ir/schema_test.go` with
 `testdata/schema/before-rename` freezes the pre-rename descriptor and wire bytes and names the old
 package on purpose, so retired-name checks exempt them; its 14 `.gz` files outlived the 1,411
 migration goldens. `make lint-api` passes; `proto/api-linter.yaml` excludes the IR proto's path from the AIP
 rules it predates.
 
-Task 12 made the dependency rules executable in `tools/umpire/model/ownership_test.go` and the
+Task 12 made the dependency rules executable in `tools/umpire/ir/ownership_test.go` and the
 Testpilot boundary tests: production and test imports are checked separately, the lowerer reaches
 `explore`, `conformance` and `recordedrun` only from `package lower_test`, and no live file imports
 an archive. The lowerer's and
@@ -266,7 +269,7 @@ with these snapshots. The behaviour tests only the goldens exercised were restat
 `model/ir` first: they pin counts, rows, witnesses and Case members, and each fails on a seeded
 change to the live IR. What a Model means is pinned by the reader's tests over `model/ir`; what a
 Case contains, by the managed Case trees `umpire-check-cases` compares byte for byte. The
-schema-rename capture `tools/umpire/model/testdata/schema/before-rename` stays.
+schema-rename capture `tools/umpire/ir/testdata/schema/before-rename` stays.
 
 Only the lowerer's external test package may import exploration, conformance, Testpilot runtime
 and recordedrun. This integration-test exception does not permit those edges in lowerer production
@@ -429,7 +432,7 @@ order, enum cases and record fields remain strict. Exploration Case IDs may vary
 the whole candidate IR. Tables, Definition IDs, refinement rows, fingerprints, Query answers,
 Query Case bytes and every other exploration Case byte retain the independent frozen baseline.
 fn-114.9's folder moves were two more append-only lists there, `source_path_moves` and
-`source_package_moves`; `tools/umpire/model/layout_test.go` still fails if an old path reappears.
+`source_package_moves`; `tools/umpire/ir/layout_test.go` still fails if an old path reappears.
 
 Recompute hashes in the manifest's dependency order. Ordinary generated Cases retain the same
 `IdentityFor` inputs and IDs while mapped provenance changes their canonical checksum. Exploration

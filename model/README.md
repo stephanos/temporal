@@ -97,7 +97,7 @@ IR. The Scala DSL supplies types and step functions for authoring; Go is the sin
 flowchart TD
     scala["Scala Models<br/>model/temporal, written with model/umpire"]
     uir[("Umpire IR<br/>model/ir/*.json")]
-    reader["Tables, Query answers, witnesses<br/>tools/umpire/model"]
+    reader["Tables, Query answers, witnesses<br/>tools/umpire/{ir,interp,check,realization}"]
     tir[("Testpilot IR: Cases<br/>model/cases/*-case.json")]
     run["Run and Contract Verdict<br/>common/testing/testpilot"]
     assessment["Model assessment<br/>tools/umpire/conformance"]
@@ -128,7 +128,7 @@ Two IRs sit between the layers, and each has one writer side and one reader side
 | Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/umpire`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
 | Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/irgen`, run by the gate `model/check` | `make umpire-gen-model` writes `model/ir`; `make umpire-check-model` requires it to be current |
 | Umpire IR | The checked-in lifted Models | `model/ir`; schema in `api/umpire/v1` | `make protoc` after a schema change |
-| Reading and checking | Go loads and validates the IR, builds each machine's table, and answers every Property, Query and refinement | `tools/umpire/model` | `go test -tags test_dep ./tools/umpire/model/...` |
+| Reading and checking | Go loads and validates the IR, builds each machine's table, and answers every Property, Query and refinement | `tools/umpire/{ir,interp,check,realization}` | `go test -tags test_dep ./tools/umpire/...` |
 | Lowering | A `find` Query's witness becomes a Case through its realization | `tools/umpire/lower` | `make umpire-gen-cases` writes `model/cases`; `make umpire-check-cases` requires it to be current |
 | Testpilot IR | The checked-in Cases, and `manifest.json`, which accounts for every Query | `model/cases`; schema in `api/testpilot/v1` | |
 | Running | Testpilot admits a Case, runs its Program through the Temporal Driver, records the Run and evaluates the Contract into a Verdict | `common/testing/testpilot`, `common/testing/testpilot/temporal` | `make umpire-check-live-tests` (in-process server); `make umpire-run` builds `.build/umpire-run` for any deployment |
@@ -372,7 +372,7 @@ declares, by extending the framework's open traits `Addressee`, `Activation`, `I
 instructions `WorkerInstruction.{AttemptFailure, AttemptCanceled, Fault, WorkflowCommand,
 NexusReply, NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, the
 dynamic-configuration `RequiredSetting`, and the API behavior hints `ApiBehavior` and `ServerStep`
-with `WaitBound`, `Visible`, `CauseKind`, `AttemptNumbering` and `InstructionLimit`. `TestFrameworkNamesNoTemporal` in `tools/umpire/model`
+with `WaitBound`, `Visible`, `CauseKind`, `AttemptNumbering` and `InstructionLimit`. `TestFrameworkNamesNoTemporal` in `tools/umpire/ir`
 fails when a file under `model/umpire` names a Temporal term, the six capability kinds among them; a
 mention stays only under an allowance that states its reason, and none has one today. The
 tooling downstream of the DSL is Temporal's driver tooling by design: the IR generator matches the kit's
@@ -604,7 +604,7 @@ evidence type, `import umpire.realize.{Fact as RealizationFact, *}`, so helpers 
 record's facts.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
-`Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/model`
+`Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/ir`
 fails on one, and on a live file that names one. A bound that two folders run their Queries under
 is declared once, in `shared/Bounds.scala`, and keeps its name, which a Query's receipt reads; a
 bound whose name another folder gives another budget stays in its own feature file.
@@ -684,7 +684,7 @@ NegativeControl`); the IR generator holds each to what it is for:
 
 These rules are weak by construction. The IR holds no expected check answer, so the IR generator
 can see only that a check able to refute a negative control exists, not that it does refute it; the
-Go tests that pin each Query's answer and each refinement's receipt (`tools/umpire/model`, such as
+Go tests that pin each Query's answer and each refinement's receipt (`tools/umpire/check`, such as
 `activity_system_test.go` and `nexus_close_baseline_test.go`) are the guarantee.
 
 The markers change no ID, name or line of the IR. The core of a machine's rules, its step functions

@@ -2,7 +2,7 @@
 
 Quint reads the lifted IR and is held to Go's reading of the same Model. It is
 given every machine of four `model/ir/*.json` files and every composition the reader
-(`tools/umpire/model`) builds of them. An export counts only
+(`tools/umpire/interp and tools/umpire/check`) builds of them. An export counts only
 where the tool's own run agrees with the reader; a tool that parses the export proves nothing here.
 
 ```sh

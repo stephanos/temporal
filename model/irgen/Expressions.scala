@@ -194,7 +194,7 @@ private[irgen] trait Expressions:
     case _ => None
 
   /**
-   * A constant value's key, as Umpire keys it (tools/umpire/model's `Value.Key`): a case by its name
+   * A constant value's key, as Umpire keys it (tools/umpire/interp's `Value.Key`): a case by its name
    * followed by its fields, all joined by "-".
    */
   def valueKey(v: ir.Value): String = v.kind match

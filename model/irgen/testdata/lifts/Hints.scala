@@ -7,7 +7,7 @@
 // visibility held in a val, and a bound for each kind of server step it declares.
 //
 // The realizations under "Refused by the reader" lift, and the Go reader refuses each at its line
-// (tools/umpire/model/hints_fixture_test.go): a non-positive interval or bound, an interval
+// (tools/umpire/ir/hints_fixture_test.go): a non-positive interval or bound, an interval
 // greater than its bound, a server step of a kind the behavior bounds not, a timer step with no
 // deadline and a deadline on a step that is no timer.
 package fixture.hints

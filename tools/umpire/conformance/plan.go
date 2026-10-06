@@ -85,7 +85,7 @@ func located(at *umpirespb.Position, format string, args ...any) error {
 	return &interp.Error{Position: position, Message: fmt.Sprintf(format, args...)}
 }
 
-// compile reads the Query's machine and claims whole, through the Query as tools/umpire/model binds it for a
+// compile reads the Query's machine and claims whole, through the Query as tools/umpire/check binds it for a
 // reader of recorded steps: the table Check reads, and the Property and monitors as Check declares them.
 // Nothing of a claim is decided here. Reading the claims is work, counted against the readings
 // ceiling before each reading is made.

@@ -100,7 +100,7 @@ func (v Value) spelled() string {
 	}
 }
 
-// equal is structural equality.
+// Equal is structural equality.
 func (v Value) Equal(o Value) bool {
 	if v.Kind != o.Kind || v.Bool != o.Bool || v.Int != o.Int || v.Text != o.Text || v.Type != o.Type ||
 		v.Case != o.Case || len(v.Fields) != len(o.Fields) || len(v.Items) != len(o.Items) {
@@ -277,7 +277,7 @@ func (in *Interpreter) call(name string, args []Value, state []bool, at *umpires
 	return in.eval(f.GetBody(), e)
 }
 
-// apply applies an anonymous function value.
+// Apply applies an anonymous function value.
 func (in *Interpreter) Apply(l Value, args []Value) (Value, error) {
 	if l.Kind != LambdaValue {
 		return Value{}, &Error{Message: "not a function"}
@@ -417,7 +417,7 @@ func (in *Interpreter) Literal(v *umpirespb.Value) Value {
 	}
 }
 
-// conforms is whether a value is of a type: of the kind the type admits, within a range's bounds, of a
+// Conforms is whether a value is of a type: of the kind the type admits, within a range's bounds, of a
 // declared type's own case with fields of theirs, and for a channel a list of its deliveries. It does
 // not ask whether a channel's contents are in its catalog: the state domain does.
 func (in *Interpreter) Conforms(v Value, t *umpirespb.TypeRef) bool {
@@ -727,7 +727,7 @@ func indexOf(xs []string, x string) int {
 	return -1
 }
 
-// known is whether n is one of an enum's declared values other than its unspecified zero.
+// Known is whether n is one of an enum's declared values other than its unspecified zero.
 func Known(names map[int32]string, n int32) bool {
 	_, ok := names[n]
 	return ok && n != 0

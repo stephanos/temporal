@@ -343,7 +343,7 @@ func accepts(param, arg *umpirespb.TypeRef) bool {
 	return proto.Equal(param, arg) || (param.GetInt() != nil && arg.GetIntRange() != nil)
 }
 
-// spell writes a type reference as a diagnostic names it.
+// Spell writes a type reference as a diagnostic names it.
 func Spell(t *umpirespb.TypeRef) string {
 	switch r := t.GetRef().(type) {
 	case *umpirespb.TypeRef_Named:

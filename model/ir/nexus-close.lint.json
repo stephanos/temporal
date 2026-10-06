@@ -19,7 +19,7 @@
         "resetOpen-requested-callerWorkflow-done-failed-none-none-none",
         "resetOpen-requested-callerWorkflow-done-succeeded-none-none-none"
       ],
-      "because": "N2, a deliberate faulty control (system/ClosePolicy.scala, Policy.ackByOriginal): after a reset the original run acknowledges the completion and the successor never learns it, so the successor owns an outcome nothing holds. This lost outcome is the state with no step that settled (the machine's ends) refuses, the deadlock its outcomeReachesOwner progress claim reports (tools/umpire/model/nexus_close_test.go, TestNexusCloseDeadlockIsTheLostOutcome); ackByOriginalWithDeadline gives it a step (N8)."
+      "because": "N2, a deliberate faulty control (system/ClosePolicy.scala, Policy.ackByOriginal): after a reset the original run acknowledges the completion and the successor never learns it, so the successor owns an outcome nothing holds. This lost outcome is the state with no step that settled (the machine's ends) refuses, the deadlock its outcomeReachesOwner progress claim reports (tools/umpire/check/nexus_close_test.go, TestNexusCloseDeadlockIsTheLostOutcome); ackByOriginalWithDeadline gives it a step (N8)."
     },
     {
       "kind": "unproduced",
@@ -239,7 +239,7 @@
         "resetOpen-requested-callerWorkflow-done-failed-none-none-none",
         "resetOpen-requested-callerWorkflow-done-succeeded-none-none-none"
       ],
-      "because": "N1, a deliberate faulty control (system/ClosePolicy.scala, Policy.rejectAfterClose): the closed run rejects the completion permanently, the handler stops reporting, and the reset rebuilds an open successor that owns an outcome nothing holds. This lost outcome is the state with no step that settled (the machine's ends) refuses, the deadlock its outcomeReachesOwner progress claim reports (tools/umpire/model/nexus_close_test.go, TestNexusCloseDeadlockIsTheLostOutcome); rejectAfterCloseWithDeadline gives it a step (N8)."
+      "because": "N1, a deliberate faulty control (system/ClosePolicy.scala, Policy.rejectAfterClose): the closed run rejects the completion permanently, the handler stops reporting, and the reset rebuilds an open successor that owns an outcome nothing holds. This lost outcome is the state with no step that settled (the machine's ends) refuses, the deadlock its outcomeReachesOwner progress claim reports (tools/umpire/check/nexus_close_test.go, TestNexusCloseDeadlockIsTheLostOutcome); rejectAfterCloseWithDeadline gives it a step (N8)."
     },
     {
       "kind": "unproduced",
@@ -546,7 +546,7 @@
         "resetOpen-requested-callerWorkflow-done-failed-none-none-none",
         "resetOpen-requested-callerWorkflow-done-succeeded-none-none-none"
       ],
-      "because": "N4's mutation, a deliberate faulty control (system/ClosePolicy.scala, Reset.truncates): the reset rebuilds the successor from before the completion and does not reapply what the original run recorded, so the successor owns an outcome nothing holds. This lost outcome is the state with no step that settled (the machine's ends) refuses, the one its ackedThenReset Query reaches (tools/umpire/model/nexus_close_test.go, TestNexusCloseResetAfterAcknowledgment)."
+      "because": "N4's mutation, a deliberate faulty control (system/ClosePolicy.scala, Reset.truncates): the reset rebuilds the successor from before the completion and does not reapply what the original run recorded, so the successor owns an outcome nothing holds. This lost outcome is the state with no step that settled (the machine's ends) refuses, the one its ackedThenReset Query reaches (tools/umpire/check/nexus_close_test.go, TestNexusCloseResetAfterAcknowledgment)."
     },
     {
       "kind": "unproduced",
