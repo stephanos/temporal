@@ -29,6 +29,82 @@ def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(Step(outcom
 // No step: the action is disabled here. Core form: `Nil`.
 val disabled: List[Nothing] = Nil
 
+// The state an `is { }` or `effect { }` block reads its fields of, by the accessors its state type
+// declares, each of one shape: `def phase(using v: View[State]): Phase = v.get(_.phase)`.
+// Core form: the state parameter of the predicate or step function, `s` in `s.phase`.
+@implicitNotFound(
+  "the fields of ${S} are read inside `is { }` or `effect { }`, which give the state they read: " +
+    "outside a block, take the state as a parameter, `def f(s: State) = s.phase`"
+)
+sealed trait View[S]:
+  private[umpire] def state: S
+
+  // The value of one field of the state: `v.get(_.phase)`. Core form: `s.phase`.
+  def get[A](field: S => A): A = field(state)
+
+// The view an `is { }` block reads: the state it is asked of. Core form: the predicate's parameter.
+final private class Fixed[S](private[umpire] val state: S) extends View[S]
+
+// What an `effect { }` block makes of one step while it runs: the state it enters, which each field
+// assignment replaces with a copy, by the setters its state type declares, each of one shape:
+// `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`; the facts
+// it records; and the outcome it rejects with, if any. Each call of the effect makes a fresh draft,
+// which never leaves the block. Core form: the arguments of the step the step function returns,
+// `Step(outcome, s.copy(phase = p), List(facts*))`.
+@implicitNotFound(
+  "this assigns a field of ${S}, records a fact or rejects, which only an `effect { }` block does: " +
+    "outside one, return the steps, `enter(s.copy(...), fact)` or `reject(outcome, s)`"
+)
+final class Draft[S, O, F] private[umpire] (start: S) extends View[S]:
+  private var current: S = start // scalafix:ok DisableSyntax.var
+  private var facts: List[F] = Nil // scalafix:ok DisableSyntax.var
+  private var rejection: Option[O] = None // scalafix:ok DisableSyntax.var
+
+  private[umpire] def state: S = current
+
+  // The state with one field replaced: `d.set(_.copy(phase = p))`. Core form: `s.copy(phase = p)`.
+  def set(update: S => S): Unit = current = update(current)
+
+  // The step the block made, from the state `s` it started in: the rejection with `s`, or the ok
+  // outcome with the state assigned and the facts in the order recorded.
+  private[umpire] def step(s: S, ok: Ok[O]): Step[S, O, F] = rejection match
+    case Some(outcome) => Step(outcome, s)
+    case None          => Step(ok.outcome, current, facts)
+
+  private[umpire] def add(recorded: Seq[F]): Unit = facts = facts ++ recorded
+
+  private[umpire] def refuse(outcome: O): Unit = rejection = Some(outcome)
+
+// `val held = is { phase == Phase.held }`: a predicate of the machine's state, its fields read by
+// name. Core form: `def held(s: State) = s.phase == Phase.held`.
+def is[S, O, F](using @unused owner: Owner[S, O, F])(body: View[S] ?=> Boolean): S => Boolean =
+  s => body(using Fixed(s))
+
+// `val pause = effect { phase = Phase.paused; record(statusPaused) }`: a step function of the
+// machine's state alone, its fields assigned by name, and its facts recorded, or its outcome
+// rejected, by statements. A block that neither records nor rejects enters the assigned state with
+// no fact. Core form: `def pause(s: State) = enter(s.copy(phase = Phase.paused), statusPaused)`, or
+// `reject(outcome, s)` for a block that rejects.
+def effect[S, O, F](using
+    @unused owner: Owner[S, O, F],
+    ok: Ok[O]
+)(
+    body: Draft[S, O, F] ?=> Unit
+): S => List[Step[S, O, F]] =
+  s =>
+    val draft = Draft[S, O, F](s)
+    body(using draft)
+    List(draft.step(s, ok))
+
+// `record(statusPaused)`, in an `effect { }` block: the step records these facts, after those an
+// earlier `record` of the block recorded. Core form: the facts of `enter(s.copy(...), facts*)`.
+def record[S, O, F](using draft: Draft[S, O, F])(first: F, rest: F*): Unit =
+  draft.add(first +: rest)
+
+// `reject(Outcome.notFound)`, in an `effect { }` block: the step answers `outcome` and keeps the
+// state, recording nothing. Core form: `reject(Outcome.notFound, s)`.
+def reject[S, O, F](using draft: Draft[S, O, F])(outcome: O): Unit = draft.refuse(outcome)
+
 // `phase.in(a, b, c)`: whether the value is one of the members listed, of which there is at least
 // one. Written dotted, never infix. Core form: `List(a, b, c).contains(phase)`.
 extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
