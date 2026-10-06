@@ -11,6 +11,7 @@
   "impl_review_rounds": {
     "fn-126-read-each-feature-top-to-bottom-one.10": 0,
     "fn-126-read-each-feature-top-to-bottom-one.11": 0,
+    "fn-126-read-each-feature-top-to-bottom-one.12": 0,
     "fn-126-read-each-feature-top-to-bottom-one.8": 0
   },
   "next_task": 1,
@@ -318,11 +319,100 @@
       "task": "fn-126-read-each-feature-top-to-bottom-one.11",
       "timestamp": "2026-10-06T06:50:14.116409Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2e0729f9633ba1597dc3f8f2340c44cdc5cae8a7e0d9df1a9c59d094d4268a08",
+      "backend": "codex",
+      "base_sha": "4e0c4c5b3783e5cfcd4e038d113d615d9b259474",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cf094ebf66d50d103cdc9f11685744c6",
+            "classification": "introduced",
+            "findingId": "finding-cf094ebf66d50d103cdc9f11685744c6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "285fbbc519e290c527384a92ca572facc9170dca",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1369,
+      "output_sha256": "6b616707fe4b8866a4412d3d3888d78a4ab6a8240e8e234336e4b8075f026740",
+      "reservation_id": "e7d50430c1b5432295edd5ba2a16c183",
+      "round_consumed": true,
+      "scope": "impl:fn-126-read-each-feature-top-to-bottom-one.12",
+      "superseded_by": null,
+      "task": "fn-126-read-each-feature-top-to-bottom-one.12",
+      "timestamp": "2026-10-06T07:16:06.849366Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "dd9c9074ef9debd19a6d2766170a4cc070609169f5bcd7492aa68169bfa7f8fc",
+      "backend": "codex",
+      "base_sha": "4e0c4c5b3783e5cfcd4e038d113d615d9b259474",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-cf094ebf66d50d103cdc9f11685744c6",
+            "classification": "introduced",
+            "findingId": "finding-cf094ebf66d50d103cdc9f11685744c6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d8224bfc1148107e2e216112bbc2f76354be56c2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 839,
+      "output_sha256": "c7d474ab1d2563496ef95d23f96db8042cbc9f2f8bcf37e2b9bfbe4d1c5049cd",
+      "reservation_id": "a2d4af5cbbf042fb87643e0e08b872d5",
+      "round_consumed": true,
+      "scope": "impl:fn-126-read-each-feature-top-to-bottom-one.12",
+      "superseded_by": null,
+      "task": "fn-126-read-each-feature-top-to-bottom-one.12",
+      "timestamp": "2026-10-06T07:19:34.805982Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-126-read-each-feature-top-to-bottom-one.10": 1,
     "impl:fn-126-read-each-feature-top-to-bottom-one.11": 1,
+    "impl:fn-126-read-each-feature-top-to-bottom-one.12": 1,
     "impl:fn-126-read-each-feature-top-to-bottom-one.8": 1
   },
   "review_pending_rounds": {},
@@ -331,6 +421,7 @@
     "completion": 1,
     "impl:fn-126-read-each-feature-top-to-bottom-one.10": 0,
     "impl:fn-126-read-each-feature-top-to-bottom-one.11": 0,
+    "impl:fn-126-read-each-feature-top-to-bottom-one.12": 0,
     "impl:fn-126-read-each-feature-top-to-bottom-one.8": 0
   },
   "spec_path": ".flow/specs/fn-126-read-each-feature-top-to-bottom-one.md",
@@ -347,5 +438,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T07:03:28.028679Z"
+  "updated_at": "2026-10-06T07:19:34.812633Z"
 }
