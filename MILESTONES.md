@@ -88,7 +88,7 @@ Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after 
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reader projection, not the harness); task 8 last, never alongside fn-126.
+Gates: task 9 after fn-126 closes; task 8 last, after task 9, never alongside fn-126.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -99,12 +99,26 @@ Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reade
 | fn-124.5 | ✅ done | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ✅ done | Model assessment as the command-line judge; Evaluation Profile derived or retired |
 | fn-124.7 | ✅ done | Migration harness and frozen snapshots retired |
+| fn-124.9 | ⬜ todo | P export retired (Quint covers its one monitor check first) |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
+### fn-132: Group the Nexus and activity Models by kind: workflow and standalone
+
+Gate: starts after fn-126 closes; closes before fn-128 starts. Tasks 1 and 2 never run at the same time.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-132.1 | ⬜ todo | `nexuscaller` → `features/nexus/workflow`, `nexusoperation` → `features/nexus/standalone`; IR files renamed |
+| fn-132.2 | ⬜ todo | `standaloneactivity` → `features/activity/standalone`; IR files renamed; fn-128/fn-129 paths |
+| fn-132.3 | ⬜ todo | Structure lint and docs learn the kind level |
+| fn-132.4 | ⬜ todo | Spike: one action shared by two forms' entities; outcomes; `terminated` |
+| fn-132.5 | ⬜ todo | One `NexusProduct` in `features/nexus/` that both Nexus forms refine |
+| fn-132.6 | ⬜ todo | General activity declarations in `activity/Activity.scala` |
+| fn-132.7 | ⬜ todo | Close |
 
 ### fn-128: Close the activity's precision gaps
 
-Gate: starts after fn-126 closes. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Tasks not yet planned.
+Gate: starts after fn-126 and fn-132 close. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Tasks not yet planned.
 
 Dispatch as a field (fixes unpause-after-backoff and schedule-to-start in backoff; adds start delay), rejections as rows (FailedPrecondition, InvalidArgument; repeated RequestCancel), a retry policy, checked stutter facts, the Cancel > Reset > Pause precedence Property, attempt counts in every Case.
 

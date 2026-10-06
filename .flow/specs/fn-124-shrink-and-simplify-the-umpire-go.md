@@ -18,13 +18,15 @@ Make Umpire's Go tooling smaller, plainer and correctly divided, without losing 
 - **R7 Migration harness retired** once fn-114, fn-120 and fn-122 are closed: `tools/umpire/internal/golden`, original-baseline and migration tests, pin and parity tests that re-check frozen values, the frozen snapshots (`model/testdata/migration` incl. the 19 MB nexus-close snapshot, `lower/testdata/migration` with its duplicate `original/`/`mapped/` trees, `internal/golden/testdata/original`) are removed; behaviour tests that only these harnesses exercised are rewritten against live IR first.
 - **R8 Package split.** `tools/umpire/model` (one flat package mixing four responsibilities, imported as `umpiremodel` at 59 sites) is split by pure moves: `ir/` (load, validate, totals), `interp/` (IR to tables), `check/` (claim binding, Check, receipts, laws; with the engine as `check/internal/engine`), `realization/` (realization/script/guard admission plus the `Realizer`/`Bound` views lowering and conformance use). No behaviour change; the ownership test encodes the new boundaries. Amended 2026-10-05 (host, for the owner): the engine lives at `tools/umpire/internal/engine` (imported by interp and check only), `Realizer`/`Bound` stay in `check` with `realization/` holding admission and guard typing, and about 30 interpreter names become exported plus one small interface; see fn-124.8.
 
+- **R9 P export retired (owner, 2026-10-05).** The P second opinion checks one monitor (`terminalFinality`) on two machines for traces of up to five steps and needs the .NET SDK. Remove the P exporter (`tools/umpire/export/p.go` and its tests and testdata), its receipts, its Makefile targets and backend install, and every doc and ownership mention. Before removing it, confirm the Quint side checks what P checked (the evaluator's agreement on those machines, or a Quint/Apalache check of `terminalFinality`); if not, add that Quint check first. The Quint export and its agreement are unchanged.
+
 ## Ordering
 
 R1 and R2 now. R3 after fn-118 lands (it edits the same waits, timeouts and realization surfaces). R4-R6 after R3. R7 after fn-114, fn-120 and fn-122 close. R8 last, after R2, R7 and fn-118/fn-120, so nothing dead is moved and no in-flight spec edits `model` mid-move.
 
 ## Not in scope
 
-The Quint/P second opinion (switching it to `quint verify --backend tlc`, retiring P) is a separate owner decision. The `export/` package stays.
+Switching the Quint verify backend to TLC is a separate owner decision. Retiring P was decided 2026-10-05 (R9). The `export/` package stays.
 
 ## Verification
 
