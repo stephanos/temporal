@@ -135,6 +135,32 @@
       "task": "fn-126-read-each-feature-top-to-bottom-one.8",
       "timestamp": "2026-10-06T04:52:56.751481Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c7322bca77b055a23b5f42ebb926ec78cb716eb7de37d2704e759fd2c8852a05",
+      "backend": "codex",
+      "counter_kind": "plan",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "057ffcc44b1640f5dc8b3f630578cc4b7117e120",
+      "head_sha_observed": false,
+      "kind": "completion",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "04349ee7b2aa484098d9ca57da865709",
+      "round_consumed": false,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-06T05:17:08.241367Z",
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -143,6 +169,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 1,
     "impl:fn-126-read-each-feature-top-to-bottom-one.8": 0
   },
   "spec_path": ".flow/specs/fn-126-read-each-feature-top-to-bottom-one.md",
@@ -159,5 +186,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T04:52:56.756443Z"
+  "updated_at": "2026-10-06T05:17:08.244332Z"
 }
