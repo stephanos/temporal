@@ -199,6 +199,7 @@ final private[irgen] class Structure(index: Index):
     val systemPath = root + "system/System.scala"
     val hasLevelFiles =
       sources.exists(_.path == productPath) && sources.exists(_.path == systemPath)
+    val twoLevels = pairs.nonEmpty || hasLevelFiles
     pairs.headOption match
       case Some((machine, refinement, product)) =>
         val two = s"${plain(machine.name)} refines ${plain(product.name)}, so $name has two " +
@@ -218,7 +219,7 @@ final private[irgen] class Structure(index: Index):
               s"Models sit in its feature file: it has no ${s.sub.mkString("/")}/ folder"
           )
 
-    if pairs.nonEmpty || hasLevelFiles then
+    if twoLevels then
       for (s, c) <- forms do
         if s.sub.isEmpty then
           refuse(
@@ -235,42 +236,66 @@ final private[irgen] class Structure(index: Index):
               "file per subject beside the level's own file, with no folder below them"
           )
 
-    // (b): the refinement pair names the Product and System levels alike.
-    val productForms = forms.collect { case (source, form) if source.path == productPath => form }
-    val systemForms = forms.collect { case (source, form) if source.path == systemPath => form }
-    val productDef =
-      productForms
-        .find(p => systemForms.exists(s => refines(s).exists(_._2 == p.symbol)))
-        .orElse(productForms.headOption.filter(_ => productForms.sizeIs == 1))
-    val systemDef = productDef.flatMap(p =>
-      systemForms
-        .find(s => refines(s).exists(_._2 == p.symbol))
-        .orElse(systemForms.find(s => plain(s.name).endsWith("System")))
-        .orElse(systemForms.headOption.filter(_ => systemForms.sizeIs == 1))
-    )
-    for productDef <- productDef; system <- systemDef do
-      val productName = plain(productDef.name)
-      val systemName = plain(system.name)
-      val featurePrefix = s"${name.head.toUpper}${name.tail}"
+    // (b): each canonical file declares its primary independently of the other file's refinement.
+    def primary(path: String, level: String): Option[ClassDef] =
+      val declarations = forms.collect { case (source, form) if source.path == path => form }
+      val named = declarations.filter(c => plain(c.name).endsWith(level))
+      named match
+        case Seq(one)              => Some(one)
+        case many if many.nonEmpty =>
+          refuse(
+            many.head,
+            s"$name's ${level.toLowerCase}/$level.scala declares multiple primary $level " +
+              s"machines: ${many.map(c => plain(c.name)).mkString(", ")}"
+          )
+          None
+        case _ =>
+          declarations match
+            case Seq(one) => Some(one)
+            case _        =>
+              for source <- sources.find(_.path == path); first <- source.top.headOption do
+                refuse(
+                  first,
+                  s"$name's ${level.toLowerCase}/$level.scala declares no primary $level " +
+                    s"machine: declare one <Prefix>$level"
+                )
+              None
+    val productDef = Option.when(twoLevels)(primary(productPath, "Product")).flatten
+    val systemDef = Option.when(twoLevels)(primary(systemPath, "System")).flatten
+    val featurePrefix = s"${name.head.toUpper}${name.tail}"
+    for product <- productDef do
+      val productName = plain(product.name)
       if !productName.endsWith("Product") then
         refuse(
-          productDef,
+          product,
           s"$productName is the Product machine in $name's product/Product.scala: name it " +
             s"${featurePrefix}Product, after the feature and its Product level"
         )
+      if refines(product).nonEmpty then
+        refuse(
+          product,
+          s"$productName is $name's Product machine and refines another machine: a Product " +
+            "refines nothing"
+        )
+    for system <- systemDef do
+      val systemName = plain(system.name)
       if !systemName.endsWith("System") then
+        val productName = productDef.map(p => plain(p.name)).filter(_.endsWith("Product"))
         val expected =
-          if productName.endsWith("Product") then productName.stripSuffix("Product") + "System"
-          else featurePrefix + "System"
+          productName.fold(featurePrefix + "System")(_.stripSuffix("Product") + "System")
         val reason =
-          if productName.endsWith("Product") then s"with the same prefix as $productName"
-          else "after the feature and its System level"
+          productName.fold("after the feature and its System level")(p =>
+            s"with the same prefix as $p"
+          )
         refuse(
           system,
           s"$systemName is the System machine in $name's system/System.scala: name it $expected, " +
             reason
         )
-      else if productName.endsWith("Product") then
+    for product <- productDef; system <- systemDef do
+      val productName = plain(product.name)
+      val systemName = plain(system.name)
+      if productName.endsWith("Product") && systemName.endsWith("System") then
         val expected = productName.stripSuffix("Product") + "System"
         if systemName != expected then
           refuse(
@@ -278,17 +303,11 @@ final private[irgen] class Structure(index: Index):
             s"$systemName is the System machine in $name's system/System.scala: name it " +
               s"$expected, with the same prefix as $productName"
           )
-      if !refines(system).exists(_._2 == productDef.symbol) then
+      if !refines(system).exists(_._2 == product.symbol) then
         refuse(
           system,
           s"$systemName is the System machine in $name's system/System.scala but does not refine " +
             s"$productName from product/Product.scala"
-        )
-      if refines(productDef).nonEmpty then
-        refuse(
-          productDef,
-          s"$productName is $name's Product machine and refines another machine: a Product " +
-            "refines nothing"
         )
 
     // (b): Phase, State and Fact belong to their level. The prefixed spellings are the retired
@@ -301,7 +320,7 @@ final private[irgen] class Structure(index: Index):
       "SystemState" -> ("System", "State", "system/System.scala"),
       "SystemFact" -> ("System", "Fact", "system/System.scala")
     )
-    if pairs.nonEmpty || hasLevelFiles then
+    if twoLevels then
       for
         root <- rootFile.toSeq
         d <- root.top
