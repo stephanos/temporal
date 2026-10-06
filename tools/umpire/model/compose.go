@@ -159,13 +159,14 @@ func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *um
 // the Realizer's scope, independently of its refinement and Property verdicts. Composition keeps
 // those checks; this reading still refuses member, structure, end-predicate and ceiling failures.
 func (r *Realizer) TransitionTable(name string) (*Table, error) {
-	for _, c := range r.b.model.GetCompositions() {
+	b := r.b.checking()
+	for _, c := range b.model.GetCompositions() {
 		if c.GetName() == name {
-			s := r.b.composeSubject(c, false)
+			s := b.composeSubject(c, false)
 			return s.table, s.err
 		}
 	}
-	s := r.b.subject(name)
+	s := b.subject(name)
 	return s.table, s.err
 }
 
