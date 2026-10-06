@@ -452,6 +452,9 @@ private[irgen] trait Expressions:
     // `enter`, `stay`, `disabled`, `in`, `implies` and `records`, as their core forms lift.
     case _ if sugared(t) => sugar(t)
 
+    // A test of a phase against a role, as `in(...)` of the role's cases lifts.
+    case TypeApply(Select(value, "isInstanceOf"), List(role)) => roleTest(value, role.tpe, t)
+
     // The arguments a varargs parameter collects: the list they make.
     case Typed(Repeated(items, elem), _) => list(items.map(i => lift(i, Some(elem.tpe))), t)
     case Typed(e, tpt)                   => lift(e, expected.orElse(Some(tpt.tpe)))
@@ -857,5 +860,10 @@ private[irgen] trait Expressions:
           fields = fields.zipWithIndex.map((f, i) => pattern(f, types.lift(i).getOrElse(scrutinee)))
         )
       )
+    // A type pattern, `case _: Closed` or `case p: Closed`: a test against a role of the phase.
+    // A type test the compiler puts around a constructor pattern, `case Some(x)`, is none.
+    case TypedOrTest(Wildcard(), tpt)             => rolePattern(scrutinee, tpt.tpe, p)
+    case TypedOrTest(Bind(name, Wildcard()), tpt) =>
+      P.Bind(ir.Bind(name, Some(ir.Pattern(rolePattern(scrutinee, tpt.tpe, p)))))
     case TypedOrTest(inner, tpt) => pattern(inner, tpt.tpe).kind
     case other                   => fail(other, s"outside the liftable patterns: ${other.show}"))

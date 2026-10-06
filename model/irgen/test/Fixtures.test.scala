@@ -154,6 +154,8 @@ class Fixtures extends munit.FunSuite:
     // fn-135.5: status facts derived from the phase an effect block assigns, and their written
     // twins (lifts/StatusFacts.scala).
     "statusFacts" -> Seq("Derived", "Written").map(o => s"fixture.statusfacts.$o"),
+    // fn-136.1: role tests beside the case sets they stand for (lifts/Roles.scala).
+    "roles" -> Seq("Roled", "Listed").map("fixture.roles." + _),
     "captured" -> Seq(
       "queries",
       "diskQueries",
@@ -385,6 +387,19 @@ class Fixtures extends munit.FunSuite:
       "fixture.statusfactrejects." + _
     )
 
+  // The refusals of fn-136.1's role tests and role conflicts, each a machine object
+  // (lifts/RoleRejects.scala).
+  private val roleRejects: Seq[String] = Seq(
+    "NoEnum",
+    "NoCase",
+    "NoRole",
+    "StandAlone",
+    "WithFields",
+    "BothLiveClosed",
+    "TwoLiveRoles",
+    "TwoClosureRoles"
+  ).map("fixture.rolerejects." + _)
+
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
   private val hintRejects: Seq[String] =
     Seq("builtWrite", "builtRead").map("fixture.hintrejects.HintRejects$package$." + _)
@@ -483,7 +498,7 @@ class Fixtures extends munit.FunSuite:
     "UnobservedRefiner",
     "IndexedQueries$.queries"
   ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ sectionRejects ++ hintRejects ++
-    markerRejects ++ blockRejects ++ statusRejects
+    markerRejects ++ blockRejects ++ statusRejects ++ roleRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -1366,6 +1381,14 @@ class Fixtures extends munit.FunSuite:
     import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val model = mapper.readTree(ir("statusFacts"))
+  // fn-136.1: each role test of `Roled` beside the cases `Listed` names by hand
+  // (lifts/Roles.scala). Every declaration of one machine, with the other's name in its place and no
+  // positions, is the other's, and an enum's roles leave its IR type as it is without them.
+  test("a role test lifts as the in(...) or the alternatives of the cases that have the role"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val model = mapper.readTree(ir("roles"))
     def strip(n: JsonNode): Unit =
       n match
         case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
@@ -1374,6 +1397,10 @@ class Fixtures extends munit.FunSuite:
     def declarations(machine: String): Map[String, String] =
       Seq("machines", "functions").flatMap { kind =>
         model
+    def declarations(machine: String): Map[String, Map[String, String]] =
+      val named = (s: String) => s.replace(machine, "Listed").replace(machine.toLowerCase, "listed")
+      Seq("machines", "functions").map { kind =>
+        kind -> model
           .path(kind)
           .elements()
           .asScala
@@ -1406,6 +1433,23 @@ class Fixtures extends munit.FunSuite:
       """{"cases":[{"name":"idle"},{"name":"running"},{"name":"paused"}]}""",
       "a phase that declares statuses lifts as the enum it is without them"
     )
+            val copy = mapper.readTree(named(d.toString))
+            strip(copy)
+            copy.path("name").asText() -> copy.toPrettyString
+          }
+          .toMap
+      }.toMap
+    val (roled, listed) = (declarations("Roled"), declarations("Listed"))
+    for kind <- roled.keys do assertEquals(roled(kind), listed(kind), kind)
+    assertEquals(
+      roled("functions").keySet.filter(_.contains("states")),
+      Set("closed", "waiting", "live", "expiring", "over", "settled", "stopping")
+        .map(p => s"fixture.roles.Listed$$.states$$.$p"),
+      "each role test is lifted"
+    )
+    def cases(name: String) =
+      model.path("types").elements().asScala.find(_.path("name").asText() == name).get.path("enum")
+    assertEquals(cases("fixture.roles.Phase"), cases("fixture.roles.Bare"))
 
   // fn-112.9: the script helpers and the Temporal kit beside the core records they stand for, and
   // the kit's `field(_.name) :=` beside `Assignment.typed` (lifts/Scripts.scala).

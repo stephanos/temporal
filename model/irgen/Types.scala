@@ -110,6 +110,7 @@ private[irgen] trait Types:
       def fields(cls: Symbol): Seq[ir.Field] = fieldTypes(cls).map(field)
       val shape =
         if sym.flags.is(Flags.Enum) then
+          checkRoles(sym, at)
           val cases = sym.children.map(c =>
             ir.Case(name = c.name, fields = if c.isClassDef then fields(c) else Nil)
           )

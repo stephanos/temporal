@@ -463,9 +463,10 @@ final class PhasesOf[P, Q] private ()
 
 // The one projection a case's phases are of: its own. Core form: `List(p1, p2).contains(s.phase)`.
 object PhasesOf:
-  // Phases of the projection's own type. Core form: `List(p1, p2).contains(s.phase)`, whose phases
-  // are of the type of `s.phase`.
-  given [P]: PhasesOf[P, P] = PhasesOf()
+  // Phases of the projection's own type, or of a narrower one: a case that takes a role,
+  // `case done extends Phase, Succeeded`, is a `Phase & Succeeded`. Core form:
+  // `List(p1, p2).contains(s.phase)`, whose phases are of the type of `s.phase`.
+  given [P, Q <: P]: PhasesOf[P, Q] = PhasesOf()
 
 // The rules of one action a derivation binds in its source's place:
 // `rebind(on(clerk.ship) { always ~> OrderRecord.effects.send })`, each case `where(g)` or
