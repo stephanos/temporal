@@ -10,15 +10,26 @@ package product
 import umpire.*
 import shared.worker.worker
 
+/** What an operation does. */
+enum Phase derives Finite:
+  case scheduled, started, succeeded, failed, canceled, timedOut
+
+final case class State(phase: Phase) derives Finite
+
+enum Fact derives Finite:
+  case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
+    nexusOperationFailed,
+    nexusOperationCanceled, nexusOperationTimedOut
+
 // ### The product machine
 //
 // What an operation does, with no account of how. Every Property written against it is carried to
 // the System machine by the refinement declared there.
 
-object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
-  import ProductPhase.*
+object NexusProduct extends Machine[State, Outcome, Fact]:
+  import Phase.*
 
-  val init = ProductState(scheduled)
+  val init = product.State(scheduled)
   def end(s: State) = states.productTerminal(s)
 
   /** The product's phase sets. */
@@ -28,7 +39,7 @@ object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
 
   /** Every fact the product machine records is confirmed by the history event of its name. */
   object effects:
-    import ProductFact.*
+    import Fact.*
 
     def succeed(s: State) = enter(s.copy(phase = succeeded), nexusOperationCompleted)
 

@@ -110,7 +110,7 @@ object Answer:
  * What a step records. The history events carry the baseline's names; the rest is what a design
  * would have to expose for a Run to read it.
  */
-enum Fact derives Finite:
+enum CloseFact derives Finite:
   case workflowClosed, workflowReset
   case cancelRequested(by: Principal)
   case cancelReceived
@@ -307,7 +307,7 @@ val recovery = assume("currentOwnerEventuallyRecoversAndReappliesRetainedOutcome
  * The faulty policy: a closed run rejects a completion permanently. A deliberately wrong design, kept
  * so that the checks that must refute it are seen to.
  */
-object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], NegativeControl:
+object RejectAfterClose extends Machine[CloseResetState, Answer, CloseFact], NegativeControl:
   val entity = nexusRequest
   val init = CloseResetState(
     caller = Caller.open,
@@ -318,9 +318,9 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
     known = Knowledge.none
   )
   def end(s: State) = states.settled(s)
-  val evidence: PartialFunction[Fact, String] = {
-    case Fact.cancelRequested(_) => "nexusOperationCancelRequested"
-    case Fact.handlerFinished(_) => "handlerFinished"
+  val evidence: PartialFunction[CloseFact, String] = {
+    case CloseFact.cancelRequested(_) => "nexusOperationCancelRequested"
+    case CloseFact.handlerFinished(_) => "handlerFinished"
   }
 
   /** What the designs read of a state: the handler's work, the channel, the owner and the promises. */
@@ -350,9 +350,9 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
 
     /** The history event that records an outcome, by the baseline's names. */
     def recorded(r: Resolution) = r match
-      case Resolution.succeeded => Fact.nexusOperationCompleted
-      case Resolution.failed    => Fact.nexusOperationFailed
-      case Resolution.canceled  => Fact.nexusOperationCanceled
+      case Resolution.succeeded => CloseFact.nexusOperationCompleted
+      case Resolution.failed    => CloseFact.nexusOperationFailed
+      case Resolution.canceled  => CloseFact.nexusOperationCanceled
 
     /**
      * A history records an outcome once: a second delivery of it records nothing.
@@ -395,8 +395,9 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
      * What the successor's history records at its start: the reset, and the outcome it reapplies.
      */
     def resetFacts(k: Knowledge) = k match
-      case Knowledge.successor(r) => List(Fact.workflowReset, Fact.outcomeReapplied, recorded(r))
-      case _                      => List(Fact.workflowReset)
+      case Knowledge.successor(r) =>
+        List(CloseFact.workflowReset, CloseFact.outcomeReapplied, recorded(r))
+      case _ => List(CloseFact.workflowReset)
 
     // Promises: the outcome stays where an owner can learn it, an acknowledgment keeps it, and a
     // path ends only where the outcome is settled.
@@ -411,14 +412,15 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
      * the operation's retention, or a report still in flight. An operation its deadline resolved
      * waits for no outcome.
      */
-    def outcomePreserved(after: Step[CloseResetState, Answer, Fact]) = after.state.handler match
-      case Handler.done(r) =>
-        ownerKnows(after.state, r) ||
-        after.state.retained == Retained.pending(r) || carries(after.state.channel, r) ||
-        after.state.known == Knowledge.expired
-      case _ => true
+    def outcomePreserved(after: Step[CloseResetState, Answer, CloseFact]) =
+      after.state.handler match
+        case Handler.done(r) =>
+          ownerKnows(after.state, r) ||
+          after.state.retained == Retained.pending(r) || carries(after.state.channel, r) ||
+          after.state.known == Knowledge.expired
+        case _ => true
 
-    def keptOrOwed(after: Step[CloseResetState, Answer, Fact], r: Resolution) =
+    def keptOrOwed(after: Step[CloseResetState, Answer, CloseFact], r: Resolution) =
       after.outcome.in(Answer.accepted, Answer.retained) implies
         (after.state.channel != Completion.none || ownerKnows(after.state, r) ||
           after.state.retained == Retained.pending(r))
@@ -427,7 +429,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
      * An acknowledgment ends the handler's report only once the owner committed or the operation
      * retained the outcome.
      */
-    def ackOnlyWhenKept(before: State, after: Step[CloseResetState, Answer, Fact]) =
+    def ackOnlyWhenKept(before: State, after: Step[CloseResetState, Answer, CloseFact]) =
       before.channel match
         case Completion.inFlight(r) => keptOrOwed(after, r)
         case Completion.retried(r)  => keptOrOwed(after, r)
@@ -469,21 +471,21 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
 
   /** What each step does. Where it fires is the rules'. */
   object effects:
-    def close(s: State) = enter(s.copy(caller = Caller.closed), Fact.workflowClosed)
+    def close(s: State) = enter(s.copy(caller = Caller.closed), CloseFact.workflowClosed)
 
     /** One cancellation, by the principal that asks for it. */
     def requestCancel(s: State, p: Principal) =
-      enter(s.copy(intent = Intent.requested(p)), Fact.cancelRequested(p))
+      enter(s.copy(intent = Intent.requested(p)), CloseFact.cancelRequested(p))
 
     /** The request in flight reaches the handler, which it obliges to nothing. */
     def deliverCancel(s: State) =
-      enter(s.copy(handler = Handler.cancelReceived), Fact.cancelReceived)
+      enter(s.copy(handler = Handler.cancelReceived), CloseFact.cancelReceived)
 
     /** The handler's irreversible effect, and its first report. */
     def finish(s: State, r: Resolution) =
       enter(
         s.copy(handler = Handler.done(r), channel = Completion.inFlight(r)),
-        Fact.handlerFinished(r)
+        CloseFact.handlerFinished(r)
       )
 
     /**
@@ -520,7 +522,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
             Step(
               Answer.retained,
               s.copy(retained = Retained.pending(r), channel = Completion.none),
-              List(Fact.outcomeRetained)
+              List(CloseFact.outcomeRetained)
             )
           ),
           states.rejectedForNow -> List(
@@ -530,7 +532,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
             Step(
               Answer.retained,
               s.copy(retained = Retained.pending(r), channel = states.again(d, r)),
-              List(Fact.outcomeRetained)
+              List(CloseFact.outcomeRetained)
             )
           ).because("the acknowledgment is lost")
         )
@@ -539,7 +541,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
           Step(
             Answer.retained,
             s.copy(retained = Retained.pending(r), channel = Completion.none),
-            List(Fact.outcomeRetained)
+            List(CloseFact.outcomeRetained)
           )
         )
 
@@ -549,7 +551,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
         Step(
           Answer.rejectedPermanent,
           s.copy(channel = Completion.none),
-          List(Fact.completionDropped)
+          List(CloseFact.completionDropped)
         )
       )
 
@@ -597,7 +599,8 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
       )
 
     /** The schedule-to-close deadline resolves an operation whose owner knows no outcome. */
-    def expire(s: State) = enter(s.copy(known = Knowledge.expired), Fact.nexusOperationTimedOut)
+    def expire(s: State) =
+      enter(s.copy(known = Knowledge.expired), CloseFact.nexusOperationTimedOut)
 
   // Monitors: the outcome stays where an owner can learn it, an acknowledgment keeps it, no run
   // records two outcomes, and a cancel request stays its principal's. Every design watches them.
@@ -614,7 +617,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
     val ownerAcknowledgment = stickyAcross(states.ackOnlyWhenKept)
 
     val singleOutcome =
-      monitor[CloseResetState, Answer, Fact, Outcomes](Outcomes.none)((seen, _, after) =>
+      monitor[CloseResetState, Answer, CloseFact, Outcomes](Outcomes.none)((seen, _, after) =>
         states.outcomesAfter(seen, after.state.known)
       )(seen => seen == Outcomes.several)
 
@@ -623,7 +626,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
      * made.
      */
     val cancelPrincipal =
-      monitor[CloseResetState, Answer, Fact, Asked](Asked.nobody)((asked, _, after) =>
+      monitor[CloseResetState, Answer, CloseFact, Asked](Asked.nobody)((asked, _, after) =>
         states.askedAfter(asked, after.state.intent)
       )(asked => asked == Asked.lost)
 
@@ -679,12 +682,15 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
     /**
      * A closed run's history is frozen: no step of a caller that stays closed changes what it holds.
      */
-    def closedHistoryIsFrozen(before: CloseResetState, after: Step[CloseResetState, Answer, Fact]) =
+    def closedHistoryIsFrozen(
+        before: CloseResetState,
+        after: Step[CloseResetState, Answer, CloseFact]
+    ) =
       before.caller == Caller.closed && after.state.caller == Caller.closed implies
         (after.state.known == before.known && after.state.intent == before.intent)
 
     /** An outcome a history records is the handler's. */
-    def knownIsTheHandlersOutcome(after: Step[CloseResetState, Answer, Fact]) =
+    def knownIsTheHandlersOutcome(after: Step[CloseResetState, Answer, CloseFact]) =
       after.state.known match
         case Knowledge.original(r)  => after.state.handler == Handler.done(r)
         case Knowledge.successor(r) => after.state.handler == Handler.done(r)
@@ -696,7 +702,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
     /**
      * A recorded outcome stays recorded: a redelivery changes nothing, and a reset carries it over.
      */
-    def knowledgeIsFinal(before: CloseResetState, after: Step[CloseResetState, Answer, Fact]) =
+    def knowledgeIsFinal(before: CloseResetState, after: Step[CloseResetState, Answer, CloseFact]) =
       before.known match
         case Knowledge.original(r)  => knows(after.state.known, r)
         case Knowledge.successor(r) => knows(after.state.known, r)
@@ -712,11 +718,14 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
      * its report is still owed. A deadline that fires with nothing owed ends a wait for an outcome
      * the design already lost.
      */
-    def noUnnecessaryWait(before: CloseResetState, after: Step[CloseResetState, Answer, Fact]) =
+    def noUnnecessaryWait(
+        before: CloseResetState,
+        after: Step[CloseResetState, Answer, CloseFact]
+    ) =
       before.known != Knowledge.expired && after.state.known == Knowledge.expired implies
         !nothingOwed(before)
 
-    def designClaims(m: Machine[CloseResetState, Answer, Fact]) =
+    def designClaims(m: Machine[CloseResetState, Answer, CloseFact]) =
       // No step, a reset included, undoes what the handler did.
       val handlerEffectIsIrreversible = m.property.once(states.isDone).keeps(_.handler)
       // The handler's detached work goes on after the close.
@@ -748,14 +757,14 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
       val completionCancels = m.property when handler.complete(Resolution.canceled) holds
         (after =>
           states.ownerKnows(after.state, Resolution.canceled) &&
-            after.records(Fact.nexusOperationCanceled)
+            after.records(CloseFact.nexusOperationCanceled)
         )
       // The baseline's two: an open caller records a completion by the baseline's event.
       val completionSucceeds = m.property when
         handler.complete(Resolution.succeeded) holds
-        (after => after.records(Fact.nexusOperationCompleted))
+        (after => after.records(CloseFact.nexusOperationCompleted))
       val completionFails = m.property when handler.complete(Resolution.failed) holds
-        (after => after.records(Fact.nexusOperationFailed))
+        (after => after.records(CloseFact.nexusOperationFailed))
       // The two answers of a closed run, and the two resets, are kept apart.
       val rejectedTransiently = m.property when
         handler.complete(Resolution.succeeded) holds
@@ -771,7 +780,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
         (after => !states.outcomePreserved(after))
       val reappliesRetained = m.property when callerSide.reset holds
         (after =>
-          after.records(Fact.outcomeReapplied) &&
+          after.records(CloseFact.outcomeReapplied) &&
             after.state.known == Knowledge.successor(Resolution.succeeded)
         )
       val routedToSuccessor = m.property when handler.complete(Resolution.failed) holds
@@ -797,12 +806,12 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
         routedToSuccessor
       )
 
-    def safetyClaims(m: Machine[CloseResetState, Answer, Fact]) = SafetyClaims(
+    def safetyClaims(m: Machine[CloseResetState, Answer, CloseFact]) = SafetyClaims(
       m.property("outcomePreserved") holds states.outcomePreserved,
       m.property("ackOnlyWhenKept") holdsAcross states.ackOnlyWhenKept
     )
 
-    def deadlineClaims(m: Machine[CloseResetState, Answer, Fact]) =
+    def deadlineClaims(m: Machine[CloseResetState, Answer, CloseFact]) =
       val expiresWithNothingOwed = m.property when deadline.scheduleToClose holds
         (after => after.state.known == Knowledge.expired && nothingOwed(after.state))
       val expiresWhileOwed = m.property when deadline.scheduleToClose holds
@@ -813,7 +822,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
       val lateCompletionIsDropped = m.property when
         handler.complete(Resolution.succeeded) holds
         (after =>
-          after.outcome == Answer.rejectedPermanent && after.records(Fact.completionDropped)
+          after.outcome == Answer.rejectedPermanent && after.records(CloseFact.completionDropped)
         )
       DeadlineClaims(
         m.property("outcomePreserved") holds states.outcomePreserved,
@@ -848,7 +857,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
 
   object queries:
     /** Every claim and path of the specimen, declared on one design. */
-    def designQueries(m: Machine[CloseResetState, Answer, Fact]) =
+    def designQueries(m: Machine[CloseResetState, Answer, CloseFact]) =
       val claims = properties.designClaims(m)
       val closedThenFinished = m.scenario
         .actions(
@@ -977,7 +986,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
     // The two pinned controls and the two promises, over another channel.
 
     /** The two promises and the two pinned controls, declared on one design. */
-    def safetyQueries(m: Machine[CloseResetState, Answer, Fact]) =
+    def safetyQueries(m: Machine[CloseResetState, Answer, CloseFact]) =
       val claims = properties.safetyClaims(m)
       val closedThenFinished = m.scenario.actions(
         callerSide.close,
@@ -1003,7 +1012,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, Fact], Negative
     // The timeout that ends that wait is found with nothing owed, and is told apart from one that
     // beats a report still in flight, which loses nothing the design promised.
 
-    def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]) =
+    def deadlineQueries(m: Machine[CloseResetState, Answer, CloseFact]) =
       val claims = properties.deadlineClaims(m)
       val closedThenFinished = m.scenario.actions(
         callerSide.close,

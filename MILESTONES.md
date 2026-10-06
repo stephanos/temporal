@@ -83,8 +83,10 @@ Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after 
 | fn-126.5 | ✅ done | Remaining Models as machine objects; builder forms retired |
 | fn-126.6 | ✅ done | `product/` and `system/` folders; zoom-ins flattened; structure lint (a)(c); IDs frozen |
 | fn-126.7 | ✅ done | Definition IDs are fully qualified Scala names; pins and families removed |
-| fn-126.8 | ⬜ todo | Rename batch (Product and System, history record, actions, designs); level-name lint; docs; close |
+| fn-126.8 | ✅ done | Rename batch (Product and System, history record, actions, designs); level-name lint; docs |
 | fn-126.9 | ✅ done | `stuck-state` lint: a reachable non-end state that enables nothing |
+| fn-126.10 | 🔄 in progress | Product and System files own their level `Phase`, `State` and `Fact` types |
+| fn-126.11 | ⬜ todo | Standalone activity realization moves into its System level; batch-boundary verification; close |
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
@@ -128,6 +130,7 @@ Gate: starts after fn-126 and fn-132 close; closes before fn-128 starts. Source:
 | fn-133.4 | ⬜ todo | Coverage report, class-pattern rule, `deadlines(…)` binding, action-level `onPath` |
 | fn-133.5 | ⬜ todo | Name collisions removed; activity realization local fixes |
 | fn-133.6 | ⬜ todo | Typed realization objects; derived operation, roles, server steps; derived realizations |
+| fn-133.8 | ⬜ todo | Per-class carrier schemas derived from typed realizations |
 | fn-133.7 | ⬜ todo | Line counts, docs; close |
 
 ### fn-128: Close the activity's precision gaps

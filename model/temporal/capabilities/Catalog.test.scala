@@ -18,13 +18,21 @@ class CatalogTest extends munit.FunSuite:
   final case class Declaring(machine: String, state: String, capabilities: Set[CapabilityKind])
 
   val declared: Seq[Declaring] = Seq(
-    Declaring("activityProduct", "ProductState", Set(Closable, Pausable, Pollable)),
+    Declaring(
+      "activityProduct",
+      "temporal.features.standaloneactivity.product.State",
+      Set(Closable, Pausable, Pollable)
+    ),
     Declaring("activityRecord", "AdmissionState", Set(Closable, Pausable, Pollable)),
     // Derived from activityRecord by rebinding its dispatch: one entity with it.
     Declaring("trustingActivityRecord", "AdmissionState", Set(Closable, Pausable, Pollable)),
     // Reads the record through its `activity` member: the record's entity again.
     Declaring("recordOverQueue", "AdmissionState", Set(Closable, Pausable, Pollable)),
-    Declaring("activitySystem", "SystemState", Set(Terminable, Cancelable, Describable)),
+    Declaring(
+      "activitySystem",
+      "temporal.features.standaloneactivity.system.State",
+      Set(Terminable, Cancelable, Describable)
+    ),
     // The standalone Nexus operation (model/temporal/features/nexusoperation).
     Declaring(
       "nexusOperation",
@@ -57,7 +65,11 @@ class CatalogTest extends munit.FunSuite:
     val failing = Catalog.pair(Pausable, Describable)(lonely)
     assertEquals(
       instantiating(Set(Closable), declared),
-      Seq("ProductState", "AdmissionState", "OperationState")
+      Seq(
+        "temporal.features.standaloneactivity.product.State",
+        "AdmissionState",
+        "OperationState"
+      )
     )
     assertEquals(
       underInstantiated(failing, declared),

@@ -11,12 +11,14 @@
  * The feature has two levels, each in a folder of its own, because different people read them
  * (model/irgen/testdata/layout/lamp is the template):
  *
- *   - this file: the types; the signature (the activity and its inputs; the client and its actions,
- *     the worker's actions on the activity, its timers and deadlines; and the bounds); and last
- *     exports, its IR files;
- *   - product/Product.scala: ActivityProduct, the product machine, what a client reads;
- *   - system/System.scala: ActivitySystem, the System machine that refines it; ActivityWorker,
- *     the worker of its task queue; and StandaloneActivity, the System with that worker;
+ *   - this file: the shared types; the signature (the activity and its inputs; the client and its
+ *     actions, the worker's actions on the activity, its timers and deadlines; and the bounds); and
+ *     last exports, its IR files;
+ *   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
+ *     what a client reads;
+ *   - system/System.scala: System Phase, State and Fact; ActivitySystem, the System machine that
+ *     refines it; ActivityWorker, the worker of its task queue; and StandaloneActivity, the System
+ *     with that worker;
  *   - system/Record.scala: the history record of the activity, and its designs;
  *   - system/WithTaskQueue.scala: the contract's designs composed with the shared task queue.
  *
@@ -52,46 +54,11 @@ enum Control derives Finite:
 enum Outcome derives Finite:
   case accepted, notFound
 
-/** The product machine's phases: what DescribeActivityExecution shows. */
-enum ProductPhase derives Finite:
-  case scheduled, started, paused, cancelRequested
-  case completed, failed, canceled, terminated, timedOut
-
-final case class ProductState(phase: ProductPhase) derives Finite
-
-enum ProductFact derives Finite:
-  case statusScheduled, statusStarted, statusPaused, statusCancelRequested
-  case statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut
-
-/** The System machine's phases. It begins before the activity exists, so unstarted is one. */
-enum Phase derives Finite:
-  case unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested
-  case completed, failed, canceled, terminated, timedOut
-
 /** Which deadline fired. */
 enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
 
-/**
- * 12 phases, 3 attempt counts (`0..ActivitySystem.attemptBound`) and 3 deadline flags: 288
- * states.
- */
-final case class SystemState(
-    phase: Phase,
-    attempts: UpTo[2],
-    scheduleToClose: Timeout,
-    scheduleToStart: Timeout,
-    startToClose: Timeout
-) derives Finite
-
-/** What the System machine records; `attemptCount` is named after its observation. */
-enum SystemFact derives Finite:
-  case statusScheduled, statusStarted, statusPaused, statusCancelRequested
-  case statusCompleted, statusFailed, statusCanceled, statusTerminated
-  case statusTimedOut(timeoutType: TimeoutType)
-  case attemptCount
-
-final case class StandaloneActivityState(activity: SystemState, worker: WorkerState)
+final case class StandaloneActivityState(activity: system.State, worker: WorkerState)
 
 // ### Signature
 

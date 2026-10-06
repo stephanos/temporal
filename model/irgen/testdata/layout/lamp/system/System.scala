@@ -9,19 +9,28 @@ package system
 import umpire.*
 import product.LampProduct
 
+enum Phase derives Finite:
+  case open, closed
+
+final case class State(phase: Phase) derives Finite
+
+enum Fact derives Finite:
+  case circuitClosed, circuitOpened
+
 /** The lamp as the circuit runs it: the switch closes and opens the circuit. */
-object LampSystem extends Machine[Circuit, Outcome, Nothing]:
-  val init = Circuit(closed = false)
+object LampSystem extends Machine[system.State, Outcome, Fact]:
+  val init = system.State(phase = Phase.open)
   def end(s: State) = true
 
   // What a caller reads of the circuit: the lamp is lit while the circuit is closed.
   object refinement extends Refinement(LampProduct):
-    def toProduct(s: State) = Lamp(lit = s.closed)
+    def toProduct(s: State) =
+      product.State(if s.phase == Phase.closed then product.Phase.lit else product.Phase.dark)
 
   object effects:
-    def close(s: State): List[CircuitStep] = enter(s.copy(closed = true))
-    def open(s: State): List[CircuitStep] = enter(s.copy(closed = false))
+    def close(s: State) = enter(s.copy(phase = Phase.closed), Fact.circuitClosed)
+    def open(s: State) = enter(s.copy(phase = Phase.open), Fact.circuitOpened)
 
   object rules extends Rules:
-    on(user.switchOn)(where(!_.closed) ~> effects.close)
-    on(user.switchOff)(where(_.closed) ~> effects.open)
+    on(user.switchOn)(where(_.phase == Phase.open) ~> effects.close)
+    on(user.switchOff)(where(_.phase == Phase.closed) ~> effects.open)

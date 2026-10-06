@@ -10,24 +10,33 @@ package product
 
 import umpire.*
 
+enum Phase derives Finite:
+  case dark, lit
+
+final case class State(phase: Phase) derives Finite
+
+enum Fact derives Finite:
+  case switchedOn, switchedOff
+
 /** The lamp as a caller sees it: switched on, it is lit; switched off, it is dark. */
-object LampProduct extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(lit = false)
+object LampProduct extends Machine[product.State, Outcome, Fact]:
+  val init = product.State(phase = Phase.dark)
   def end(s: State) = true
 
   object states:
-    def dark(s: State) = !s.lit
+    def dark(s: State) = s.phase == Phase.dark
 
   object effects:
-    def light(s: State): List[LampStep] = enter(s.copy(lit = true))
-    def darken(s: State): List[LampStep] = enter(s.copy(lit = false))
+    def light(s: State) = enter(s.copy(phase = Phase.lit), Fact.switchedOn)
+    def darken(s: State) = enter(s.copy(phase = Phase.dark), Fact.switchedOff)
 
   object rules extends Rules:
     on(user.switchOn)(where(states.dark) ~> effects.light)
-    on(user.switchOff)(where(_.lit) ~> effects.darken)
+    on(user.switchOff)(where(_.phase == Phase.lit) ~> effects.darken)
 
   object properties:
-    val switchingOnLights = property when user.switchOn holds (after => after.state.lit)
+    val switchingOnLights = property when user.switchOn holds
+      (after => after.state.phase == Phase.lit)
 
   object queries:
     val switchedOn = scenario.actions(user.switchOn)

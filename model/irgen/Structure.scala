@@ -13,7 +13,7 @@ import scala.collection.mutable
  *   - (a) in a feature whose Models include a refinement pair, a machine that refines another of
  *     the feature's: no `product/Product.scala`, no `system/System.scala` or no root feature file
  *     (the source named after the root folder), each at the refinement; a machine, `Derived` or
- *     `Composition` object in the root folder, whose feature file holds the types, the signature
+ *     `Composition` object in the root folder, whose feature file holds shared types, the signature
  *     and `object exports` alone; and one in any folder but `product/` and `system/`, deeper ones
  *     included. A level folder holds one file per subject beside the level's own, which is named
  *     after the folder. In a feature with no refinement pair, each file of any subfolder, at its
@@ -30,7 +30,9 @@ import scala.collection.mutable
  *     without one (under `shared`, a feature has at most one).
  *   - (b) is fn-126.8's, after the R18 renames: `product/Product.scala` declares `<P>Product`,
  *     which refines nothing, and `system/System.scala` one `<P>System` whose `object refinement`
- *     refines it. It goes in `feature`, beside (a), where the levels' files are found.
+ *     refines it. Each level owns its `Phase`, `State` and `Fact` types; the root feature file may
+ *     keep only types shared by both levels. It goes in `feature`, beside (a), where the levels'
+ *     files are found.
  *
  * Every feature of the Temporal Models (model/temporal/) is held to these rules, whatever its
  * folders. The lifter's fixtures, single-file features of their own rules, are held only where they
@@ -198,7 +200,7 @@ final private[irgen] class Structure(index: Index):
         val two = s"${plain(machine.name)} refines ${plain(product.name)}, so $name has two " +
           "levels, each in its folder: the Product in product/Product.scala, the System in " +
           "system/System.scala, beside the root feature file named after the feature's folder, " +
-          "which holds the types, the signature and object exports (model/irgen/testdata/" +
+          "which holds shared types, the signature and object exports (model/irgen/testdata/" +
           "layout/lamp is the template)"
         if rootFile.isEmpty then refuse(refinement, s"$two; $root has no root feature file")
         for level <- Seq(productPath, systemPath) if !sources.exists(_.path == level) do
@@ -218,7 +220,7 @@ final private[irgen] class Structure(index: Index):
           refuse(
             c,
             s"${plain(c.name)} is a machine object in $name's root folder, $root, whose " +
-              "feature file holds the types, the signature and object exports alone: a " +
+              "feature file holds shared types, the signature and object exports alone: a " +
               "feature with two levels declares its machines in product/ and system/"
           )
         else if !s.level then
@@ -245,7 +247,7 @@ final private[irgen] class Structure(index: Index):
     for productDef <- productDef; system <- systemDef do
       val productName = plain(productDef.name)
       val systemName = plain(system.name)
-      val featurePrefix = name.head.toUpper + name.tail
+      val featurePrefix = s"${name.head.toUpper}${name.tail}"
       if !productName.endsWith("Product") then
         refuse(
           productDef,
@@ -283,6 +285,42 @@ final private[irgen] class Structure(index: Index):
           productDef,
           s"$productName is $name's Product machine and refines another machine: a Product " +
             "refines nothing"
+        )
+
+    // (b): Phase, State and Fact belong to their level. The prefixed spellings are the retired
+    // root-level form; an unprefixed spelling at the root is stranded there just as surely.
+    val prefixedLevelVocabulary = Map(
+      "ProductPhase" -> ("Product", "Phase", "product/Product.scala"),
+      "ProductState" -> ("Product", "State", "product/Product.scala"),
+      "ProductFact" -> ("Product", "Fact", "product/Product.scala"),
+      "SystemPhase" -> ("System", "Phase", "system/System.scala"),
+      "SystemState" -> ("System", "State", "system/System.scala"),
+      "SystemFact" -> ("System", "Fact", "system/System.scala")
+    )
+    if pairs.nonEmpty || hasLevelFiles then
+      for
+        root <- rootFile.toSeq
+        d <- root.top
+        if d.symbol.isType && !d.symbol.flags.is(Flags.Module)
+        written = plain(d.name)
+        (level, owned, file) <- prefixedLevelVocabulary.get(written)
+      do
+        refuse(
+          d,
+          s"$written is $level level vocabulary declared in $name's root feature file: " +
+            s"declare it as $owned in $file"
+        )
+      for
+        root <- rootFile.toSeq
+        d <- root.top
+        if d.symbol.isType && !d.symbol.flags.is(Flags.Module)
+        written = plain(d.name)
+        if Set("Phase", "State", "Fact")(written)
+      do
+        refuse(
+          d,
+          s"$written is level vocabulary declared in $name's root feature file: declare it in " +
+            "product/Product.scala or system/System.scala"
         )
 
     // (c): a machine's sections are named from a closed set, whatever they extend.

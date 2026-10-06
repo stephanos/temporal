@@ -151,13 +151,13 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
 
   /** The record refines the product, which sees its statuses alone. */
   object refinement extends Refinement(ActivityProduct):
-    def toProduct(s: State): ProductState = s.phase match
-      case AdmissionPhase.scheduled => ProductState(ProductPhase.scheduled)
+    def toProduct(s: State): product.State = s.phase match
+      case AdmissionPhase.scheduled => product.State(product.Phase.scheduled)
       case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld =>
-        ProductState(ProductPhase.paused)
-      case AdmissionPhase.started   => ProductState(ProductPhase.started)
-      case AdmissionPhase.completed => ProductState(ProductPhase.completed)
-      case AdmissionPhase.timedOut  => ProductState(ProductPhase.timedOut)
+        product.State(product.Phase.paused)
+      case AdmissionPhase.started   => product.State(product.Phase.started)
+      case AdmissionPhase.completed => product.State(product.Phase.completed)
+      case AdmissionPhase.timedOut  => product.State(product.Phase.timedOut)
 
     /** A client reads statuses and nothing of the dispatch, the admission or its answer. */
     def visible(f: AdmissionFact) = f match
@@ -386,7 +386,7 @@ object HeldDispatch extends Machine[AdmissionState, Outcome, AdmissionFact]:
 
   /** It refines the product as the corrected design does. */
   object refinement extends Refinement(ActivityProduct):
-    def toProduct(s: State): ProductState = ActivityRecord.refinement.toProduct(s)
+    def toProduct(s: State): product.State = ActivityRecord.refinement.toProduct(s)
     def visible(f: AdmissionFact) = ActivityRecord.refinement.visible(f)
 
   object effects:

@@ -18,7 +18,8 @@ object Bulb extends Machine[Filament, Outcome, Nothing]:
   def end(s: State) = true
 
   object refinement extends Refinement(LampSystem):
-    def toProduct(s: State) = Circuit(closed = s.glowing)
+    def toProduct(s: State) =
+      system.State(if s.glowing then Phase.closed else Phase.open)
 
   object effects:
     def heat(s: State): List[FilamentStep] = enter(s.copy(glowing = true))

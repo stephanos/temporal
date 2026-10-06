@@ -7,14 +7,8 @@ import umpire.*
 import umpire.realize.*
 import temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.standaloneactivity.{
-  activity,
-  client,
-  scheduleToStart,
-  Control,
-  SystemFact,
-  Timeout
-}
+import temporal.features.standaloneactivity.{activity, client, scheduleToStart, Control, Timeout}
+import temporal.features.standaloneactivity.system.Fact as ActivityFact
 import temporal.features.standaloneactivity.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus
@@ -39,18 +33,18 @@ val performsNothing: Realization = realizing(perform())
 val onNoPath: Realization = realizing(onPath()(stopWorker))
 
 private val listed: StatusTable[ActivityExecutionStatus] = statusTable(
-  SystemFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
+  ActivityFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
 )
 
 private val twice: StatusTable[ActivityExecutionStatus] = statusTable(
-  SystemFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
-  SystemFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
+  ActivityFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
+  ActivityFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
 )
 
 private val described = Evidence.read(
-  id = evidenceId(SystemFact.statusCompleted),
-  records = SystemFact.statusCompleted,
-  source = sourceId(SystemFact.statusCompleted),
+  id = evidenceId(ActivityFact.statusCompleted),
+  records = ActivityFact.statusCompleted,
+  source = sourceId(ActivityFact.statusCompleted),
   from = Recorded.single(
     METHOD_DESCRIBE_ACTIVITY_EXECUTION,
     Field[
@@ -72,12 +66,12 @@ private def awaitStatus(table: StatusTable[ActivityExecutionStatus], fact: Fact)
     field(_.activityId) := run
   }
 
-private val awaitCompleted = awaitStatus(listed, SystemFact.statusCompleted)
+private val awaitCompleted = awaitStatus(listed, ActivityFact.statusCompleted)
 
 /** A status the table lists no value for. */
 val unlistedStatus: Realization = realizing(everyCase(awaitCompleted))
 
-private val awaitPaused = awaitStatus(twice, SystemFact.statusPaused)
+private val awaitPaused = awaitStatus(twice, ActivityFact.statusPaused)
 
 /** A table that lists one fact twice. */
 val statusTwice: Realization = realizing(everyCase(awaitPaused))

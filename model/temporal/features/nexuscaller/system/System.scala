@@ -17,6 +17,35 @@ import shared.worker.{worker, Phase as WorkerPhase, State as WorkerState}
 import product.NexusProduct
 import Timeout.expires
 
+/** It begins before the operation exists, so unscheduled is one phase. */
+enum Phase derives Finite:
+  case unscheduled, scheduled, backingOff, started, succeeded, failed, canceled, timedOut
+
+/** The attempt count is `0..attemptBound`. */
+final case class State(
+    phase: Phase,
+    attempts: Int,
+    scheduleToClose: Timeout,
+    scheduleToStart: Timeout,
+    startToClose: Timeout
+)
+
+enum Fact derives Finite:
+  case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
+    nexusOperationFailed,
+    nexusOperationCanceled
+  case nexusOperationTimedOut(timeoutType: TimeoutType)
+
+  /** The attempt count, read through the observation of that name: no history event records it. */
+  case pendingAttempts
+
+/** The finite bound of the System's attempt count. */
+val attemptBound = 2
+
+given Finite[State] =
+  given Finite[Int] = Finite.upTo(attemptBound)
+  Finite.derived
+
 // ### The System machine
 //
 // How the server gets there: the retry the product machine cannot see, the three timers the
@@ -30,11 +59,11 @@ import Timeout.expires
 // Not here, for reasons recorded rather than silent: the cancel field and its rows (fn-79), and the
 // concurrency-limit rejection, which names no operation and is not modeled until a Query needs it.
 
-object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
+object NexusSystem extends Machine[State, Outcome, Fact]:
   import Phase.*
 
   /** Where every path begins: before the operation exists, with every deadline at its first value. */
-  val init = SystemState(
+  val init = system.State(
     phase = Phase.unscheduled,
     attempts = 0,
     scheduleToClose = Timeout.unset,
@@ -47,9 +76,9 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
    * A timeout is confirmed by the one timed-out event, whichever deadline fired, and the attempt
    * count by its observation.
    */
-  val evidence: PartialFunction[SystemFact, String] = {
-    case SystemFact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
-    case SystemFact.pendingAttempts           => pendingAttempts.name
+  val evidence: PartialFunction[Fact, String] = {
+    case Fact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
+    case Fact.pendingAttempts           => pendingAttempts.name
   }
 
   /** The System's phase sets and its attempt count's arithmetic. */
@@ -81,20 +110,20 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
      * product machine begins there. Every other field is hidden, which is what a map that does not
      * read it says.
      */
-    def toProduct(s: State): ProductState = s.phase match
+    def toProduct(s: State): product.State = s.phase match
       case Phase.unscheduled | Phase.scheduled | Phase.backingOff =>
-        ProductState(ProductPhase.scheduled)
-      case Phase.started   => ProductState(ProductPhase.started)
-      case Phase.succeeded => ProductState(ProductPhase.succeeded)
-      case Phase.failed    => ProductState(ProductPhase.failed)
-      case Phase.canceled  => ProductState(ProductPhase.canceled)
-      case Phase.timedOut  => ProductState(ProductPhase.timedOut)
+        product.State(product.Phase.scheduled)
+      case Phase.started   => product.State(product.Phase.started)
+      case Phase.succeeded => product.State(product.Phase.succeeded)
+      case Phase.failed    => product.State(product.Phase.failed)
+      case Phase.canceled  => product.State(product.Phase.canceled)
+      case Phase.timedOut  => product.State(product.Phase.timedOut)
 
     /** The backoff timer records nothing a Run can read: a retry writes no history event. */
     val unobservable = List(timers.backoff)
 
   object effects:
-    import SystemFact.*
+    import Fact.*
 
     /**
      * The caller's schedule command. It names the operation's three deadlines, and every one of them
@@ -108,7 +137,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
         startToClose: Timeout
     ) =
       enter(
-        SystemState(
+        system.State(
           phase = scheduled,
           attempts = 0,
           scheduleToClose = scheduleToClose,
@@ -136,7 +165,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
           else
             enter(
               s.copy(phase = backingOff, attempts = states.saturatingSucc(s.attempts)),
-              SystemFact.pendingAttempts
+              Fact.pendingAttempts
             )
 
     /** A transport fault is the same failure arriving as a dropped delivery rather than as a reply. */
@@ -144,7 +173,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
       require(states.validAttempts(s.attempts))
       enter(
         s.copy(phase = backingOff, attempts = states.saturatingSucc(s.attempts)),
-        SystemFact.pendingAttempts
+        Fact.pendingAttempts
       )
 
     /**
@@ -222,12 +251,12 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
   object properties:
     /** A synchronous reply settles the operation as succeeded, and the completed event records it. */
     val syncSucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
-      s.state.phase == Phase.succeeded && s.records(SystemFact.nexusOperationCompleted)
+      s.state.phase == Phase.succeeded && s.records(Fact.nexusOperationCompleted)
     }
 
     /** An asynchronous reply starts the operation, and the started event records it. */
     val asyncStarts = property when handler.reply(Reply.async) holds { s =>
-      s.state.phase == Phase.started && s.records(SystemFact.nexusOperationStarted)
+      s.state.phase == Phase.started && s.records(Fact.nexusOperationStarted)
     }
 
     /**
@@ -237,11 +266,11 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
      */
     val completionSucceeds =
       property when handler.complete(Resolution.succeeded) holds
-        (_.records(SystemFact.nexusOperationCompleted))
+        (_.records(Fact.nexusOperationCompleted))
 
     /** A failed completion is recorded by the failed event. */
     val completionFails = property when handler.complete(Resolution.failed) holds
-      (_.records(SystemFact.nexusOperationFailed))
+      (_.records(Fact.nexusOperationFailed))
 
     /**
      * A non-retryable handler error settles the operation as failed, and the failed event records
@@ -249,7 +278,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
      */
     val handlerErrorFails =
       property when handler.reply(Reply.handlerError(false)) holds { s =>
-        s.state.phase == Phase.failed && s.records(SystemFact.nexusOperationFailed)
+        s.state.phase == Phase.failed && s.records(Fact.nexusOperationFailed)
       }
 
     /**
@@ -257,7 +286,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
      * so every field is named.
      */
     val succeededOnRetry =
-      SystemState(
+      system.State(
         phase = Phase.succeeded,
         attempts = 1,
         scheduleToClose = Timeout.unset,
@@ -271,7 +300,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
      * the reply.
      */
     val retrySucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
-      s.state == succeededOnRetry && s.records(SystemFact.nexusOperationCompleted)
+      s.state == succeededOnRetry && s.records(Fact.nexusOperationCompleted)
     }
 
     /**
@@ -280,13 +309,13 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
      */
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
       s.state.phase == Phase.timedOut &&
-      s.records(SystemFact.nexusOperationTimedOut(TimeoutType.scheduleToStart))
+      s.records(Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart))
     }
 
     /** The start-to-close deadline settles a started operation no handler completed as timed out. */
     val startToCloseFires = property when deadline.startToClose holds { s =>
       s.state.phase == Phase.timedOut &&
-      s.records(SystemFact.nexusOperationTimedOut(TimeoutType.startToClose))
+      s.records(Fact.nexusOperationTimedOut(TimeoutType.startToClose))
     }
 
   /**

@@ -1835,7 +1835,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(listed(out), Nil)
     val two = "KettleSystem refines KettleProduct, so kettle has two levels, each in its folder: " +
       "the Product in product/Product.scala, the System in system/System.scala, beside the root " +
-      "feature file named after the feature's folder, which holds the types, the signature and " +
+      "feature file named after the feature's folder, which holds shared types, the signature and " +
       "object exports (model/irgen/testdata/layout/lamp is the template)"
     val urn = two.replace(
       "KettleSystem refines KettleProduct, so kettle",
@@ -1845,7 +1845,7 @@ class Fixtures extends munit.FunSuite:
       refused(result),
       Seq(
         s"lift: ${at}kettle/Kettle.scala:28: Stray is a machine object in kettle's root folder, " +
-          s"${at}kettle/, whose feature file holds the types, the signature and object exports " +
+          s"${at}kettle/, whose feature file holds shared types, the signature and object exports " +
           "alone: a feature with two levels declares its machines in product/ and system/",
         s"lift: ${at}kettle/system/Heater.scala:12: $two; ${at}kettle/system/System.scala is " +
           "missing",
@@ -1867,8 +1867,9 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
-  // R20 (b): the level files name the feature's Product and System machines.
-  concurrently("the structure lint refuses level machines not named Product and System"):
+  // R20 (b): the level files name the feature's Product and System machines and own their
+  // Phase, State and Fact vocabulary rather than leaving prefixed level types in the root.
+  concurrently("the structure lint refuses invalid level names and root-owned level vocabulary"):
     val jar = packaged("layoutRefusals-b", materializeTree("layoutRefusals/b"))
     val out = scratch.resolve("layoutRefusals-b-out")
     val at = stored("layoutRefusals/b")
@@ -1889,6 +1890,24 @@ class Fixtures extends munit.FunSuite:
           "Product level",
         s"lift: ${at}pump/system/System.scala:7: PumpProtocol is the System machine in pump's " +
           "system/System.scala: name it PumpSystem, with the same prefix as PumpProduct",
+        s"lift: ${at}reservoir/Reservoir.scala:8: ProductPhase is Product level vocabulary " +
+          "declared in reservoir's root feature file: declare it as Phase in " +
+          "product/Product.scala",
+        s"lift: ${at}reservoir/Reservoir.scala:11: ProductState is Product level vocabulary " +
+          "declared in reservoir's root feature file: declare it as State in " +
+          "product/Product.scala",
+        s"lift: ${at}reservoir/Reservoir.scala:13: ProductFact is Product level vocabulary " +
+          "declared in reservoir's root feature file: declare it as Fact in " +
+          "product/Product.scala",
+        s"lift: ${at}reservoir/Reservoir.scala:16: Phase is level vocabulary declared in " +
+          "reservoir's root feature file: declare it in product/Product.scala or " +
+          "system/System.scala",
+        s"lift: ${at}reservoir/Reservoir.scala:19: SystemState is System level vocabulary " +
+          "declared in reservoir's root feature file: declare it as State in " +
+          "system/System.scala",
+        s"lift: ${at}reservoir/Reservoir.scala:21: SystemFact is System level vocabulary " +
+          "declared in reservoir's root feature file: declare it as Fact in " +
+          "system/System.scala",
         s"lift: ${at}urn/system/System.scala:6: UrnSystem is the System machine in urn's " +
           "system/System.scala but does not refine UrnProduct from product/Product.scala"
       )

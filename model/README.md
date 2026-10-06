@@ -36,7 +36,7 @@ machine's own:
 ```scala
 /** A synchronous reply settles the operation as succeeded, and the completed event records it. */
 val syncSucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
-  s.state.phase == Phase.succeeded && s.records(SystemFact.nexusOperationCompleted)
+  s.state.phase == Phase.succeeded && s.records(Fact.nexusOperationCompleted)
 }
 ```
 
@@ -545,30 +545,31 @@ Query's machine does not watch it.
 A feature reads top to bottom in one feature file per folder, named after the folder, beside its
 `Realization.scala` and its tests. A feature whose Models include a refinement pair has two levels,
 each in a folder of its own because different people read them: `product/`, what a caller reads,
-and `system/`, how the server gets there. Its root feature file keeps the types, the signature and
-`object exports`; each level folder holds the level's own file, named after the folder, and one file
-per subject beside it, a zoom-in on how the System keeps its promise among them. A feature of one
-level keeps its machines in its feature file. Every Model folder is laid out so (the structure lint
-of "Starting a new feature" below holds it), and the standalone activity is the example:
+and `system/`, how the server gets there. Its root feature file keeps only genuinely shared types,
+the shared signature and `object exports`; each level folder holds the level's own file, named after
+the folder, including that level's `Phase`, `State` and `Fact`, and one file per subject beside it, a
+zoom-in on how the System keeps its promise among them. A feature of one level keeps its machines in
+its feature file. Every Model folder is laid out so (the structure lint of "Starting a new feature"
+below holds it), and the standalone activity is the example:
 
 ```text
 features/
   standaloneactivity/
-    StandaloneActivity.scala   types, signature; exports
+    StandaloneActivity.scala   shared types and signature; exports
     Realization.scala          the realization
     product/
-      Product.scala            ActivityProduct
+      Product.scala            Product Phase, State and Fact; ActivityProduct
     system/
-      System.scala             ActivitySystem, ActivityWorker, StandaloneActivity
+      System.scala             System Phase, State and Fact; ActivitySystem, ActivityWorker, StandaloneActivity
       Record.scala             the record and its designs: ActivityRecord, TrustingActivityRecord, HeldDispatch, LostStartAnswer
       WithTaskQueue.scala      the designs over the task queue: RecordMember, TrustingRecordMember, RecordOverQueue, …
   nexuscaller/
-    NexusCaller.scala          types, signature; exports, the close and reset designs' among them
+    NexusCaller.scala          shared types and signature; exports, the close and reset designs' among them
     Realization.scala
     product/
-      Product.scala            NexusProduct
+      Product.scala            Product Phase, State and Fact; NexusProduct
     system/
-      System.scala             NexusSystem, HandlerWorker, NexusCaller
+      System.scala             System Phase, State and Fact; NexusSystem, HandlerWorker, NexusCaller
       TrustingCaller.scala     TrustingCaller, the forged control
       ClosePolicy.scala        RejectAfterClose and the eight designs derived from it
   nexusoperation/
@@ -587,10 +588,10 @@ shared/
     Worker.scala               Polling
 ```
 
-The files of one level folder share its package, so their top-level names are shared too: a
-subject's own types, signature and givens sit in its file, and a given another subject must not see
-lives in an object of its own or in its type's companion, as the close policy's `Answer`'s `Ok`
-does.
+The files of one level folder share its package, so their top-level names are shared too. The
+level's `Phase`, `State` and `Fact` sit in its own `Product.scala` or `System.scala`; a subject's own
+types, signature and givens sit in its file, and a given another subject must not see lives in an
+object of its own or in its type's companion, as the close policy's `Answer`'s `Ok` does.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/model`
@@ -609,12 +610,12 @@ A feature file reads in this order:
    refines it, a base machine before those derived from it, the members of a composition before it;
 5. `object exports`, its `irFile` roots.
 
-A machine object is the machine: `object ActivityProduct extends Machine[ProductState, Outcome,
-ProductFact]` (`umpire.Machine`), named after its object with the first letter lowered
+A machine object is the machine: `object ActivityProduct extends Machine[State, Outcome, Fact]`
+(`umpire.Machine`), in the `product` package that owns those types, named after its object with the first letter lowered
 (`activityProduct`). It reads in this order:
 
 1. its header: `val init`, the state it starts in (`init` as Quint and TLA+ name it, its fields by
-   name, `SystemState(phase = unstarted, attempts = UpTo(0), …)`), `def end(s)`, the states it
+   name, `system.State(phase = unstarted, attempts = UpTo(0), …)`), `def end(s)`, the states it
    may end in, and where declared `val entity`, `val evidence` and, for a machine that refines
    nothing, `val unobservable`, its timers whose step records nothing a Run can read. A machine's
    entity is the one entity its actions are `on` or create; one whose actions name several, or none,
@@ -688,7 +689,7 @@ with the actions it derives, or realization takes as its Definition ID its fully
 name: its package and every object it sits in, then its own name,
 `temporal.features.standaloneactivity.client.start` or
 `temporal.features.standaloneactivity.system.ActivityRecord.monitors.atMostOneActiveAttempt`. A
-type is named so too, `temporal.features.standaloneactivity.SystemState`. A machine's or
+type is named so too, `temporal.features.standaloneactivity.system.State`. A machine's or
 composition's family, the root every ID derived from it hangs off (`<family>.query.<name>`, its
 target, its claims), is the package that declares it, `temporal.features.standaloneactivity.system`,
 and a realization's IDs (its evidence, sources and producer) hang off its own package, which the
@@ -966,9 +967,10 @@ lifter, which reads the trees, had read it.
 
 Copy the template, `model/irgen/testdata/layout/lamp/`, to `model/temporal/features/<feature>/`, and
 name its feature file after the folder and its machines after the feature. A feature whose Models
-include a refinement pair keeps its types, signature and `object exports` in that file, its Product
-in `product/Product.scala`, and its System in `system/System.scala` with each zoom-in in a file of its
-own beside it; a feature of one level keeps its machines in its feature file and has neither folder.
+include a refinement pair keeps only shared types, its signature and `object exports` in that file;
+its Product `Phase`, `State`, `Fact` and machine live in `product/Product.scala`, and its System
+counterparts in `system/System.scala`, with each zoom-in in a file of its own beside it. A feature of
+one level keeps its machines in its feature file and has neither folder.
 The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
 object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
 `syncs`, `properties`, `implements` or `queries`; its refusal fixtures are under
@@ -1018,9 +1020,9 @@ object implements extends Implements(limits = three)(
 
 // In ActivitySystem:
 object implements extends Implements(limits = three)(
-  Terminable(terminate = client.control(Control.terminate), settled = SystemFact.statusTerminated,
+  Terminable(terminate = client.control(Control.terminate), settled = Fact.statusTerminated,
     reach = Seq(client.start(), process.stop), expect = inconclusive(explanationsDisagree)),
-  Cancelable(requestCancel = client.control(Control.requestCancel), requested = SystemFact.statusCancelRequested,
+  Cancelable(requestCancel = client.control(Control.requestCancel), requested = Fact.statusCancelRequested,
     reach = Seq(client.start(), process.stop), expect = inconclusive(explanationsDisagree)),
   Describable(status = ActivityRealization.activityStatus)
 )
@@ -1166,7 +1168,7 @@ fields. Then:
   each member's classes that no sync takes plus, for each sync, the classes of its first action times
   those of its second.
 
-`syncCompletion` above pins two actions within `limits two`. `SystemState` has a `Phase` of 8
+`syncCompletion` above pins two actions within `limits two`. `system.State` has a `system.Phase` of 8
 cases, `attempts` of 0 to 2 and three two-valued `Timeout`s, so 8 × 3 × 2 × 2 × 2 = 192 states, and
 the total is 192 × min(2, 2) = 384. A free Scenario of the same machine within three steps would
 count 192 × 23 × 3 = 13248: `schedule` has 2 × 2 × 2 = 8 classes, `reply` 4 + 2 = 6 (one of

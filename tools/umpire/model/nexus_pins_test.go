@@ -24,7 +24,7 @@ const productClaimProbes = `{
       "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
       "body": {"binary": {"op": "OP_EQ",
         "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
-        "right": {"literal": {"enum": {"type": "temporal.features.nexuscaller.ProductPhase", "case": "timedOut"}}}}}}],
+        "right": {"literal": {"enum": {"type": "temporal.features.nexuscaller.product.Phase", "case": "timedOut"}}}}}}],
   "properties": [
     {"machine": "nexusProduct", "name": "timesOut", "holds": "nexusProduct.property.timesOut",
       "whenClass": {"action": "temporal.features.nexuscaller.timers.timeout"},
@@ -32,8 +32,8 @@ const productClaimProbes = `{
   "scenarios": [
     {"machine": "nexusSystem", "name": "everywhere", "free": true,
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
-      "start": {"construct": {"type": "temporal.features.nexuscaller.SystemState", "args": [
-        {"literal": {"enum": {"type": "temporal.features.nexuscaller.Phase", "case": "unscheduled"}}},
+      "start": {"construct": {"type": "temporal.features.nexuscaller.system.State", "args": [
+        {"literal": {"enum": {"type": "temporal.features.nexuscaller.system.Phase", "case": "unscheduled"}}},
         {"literal": {"int": "0"}},
         {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}},
         {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}},

@@ -43,12 +43,12 @@ object ActivityRealization:
 
   /** The status the activity's description reports while each fact holds. */
   val activityStatus = statusTable(
-    SystemFact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
-    SystemFact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
-    SystemFact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,
-    SystemFact.statusCanceled -> ACTIVITY_EXECUTION_STATUS_CANCELED,
-    SystemFact.statusTerminated -> ACTIVITY_EXECUTION_STATUS_TERMINATED,
-    SystemFact.statusTimedOut -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
+    system.Fact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
+    system.Fact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
+    system.Fact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,
+    system.Fact.statusCanceled -> ACTIVITY_EXECUTION_STATUS_CANCELED,
+    system.Fact.statusTerminated -> ACTIVITY_EXECUTION_STATUS_TERMINATED,
+    system.Fact.statusTimedOut -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
   )
 
   /** Reads the activity's description until it reports the status the fact's evidence names. */
@@ -103,12 +103,12 @@ object ActivityRealization:
     field(_.activityId) := run
   }
 
-  private val awaitPaused = awaitStatus(SystemFact.statusPaused)
-  private val awaitCompleted = awaitStatus(SystemFact.statusCompleted)
-  private val awaitFailed = awaitStatus(SystemFact.statusFailed)
-  private val awaitCanceled = awaitStatus(SystemFact.statusCanceled)
-  private val awaitTerminated = awaitStatus(SystemFact.statusTerminated)
-  private val awaitTimedOut = awaitStatus(SystemFact.statusTimedOut)
+  private val awaitPaused = awaitStatus(system.Fact.statusPaused)
+  private val awaitCompleted = awaitStatus(system.Fact.statusCompleted)
+  private val awaitFailed = awaitStatus(system.Fact.statusFailed)
+  private val awaitCanceled = awaitStatus(system.Fact.statusCanceled)
+  private val awaitTerminated = awaitStatus(system.Fact.statusTerminated)
+  private val awaitTimedOut = awaitStatus(system.Fact.statusTimedOut)
 
   // The one order every functional Query's path makes its calls in. A pause is read back only of an
   // activity no worker has taken: a running worker may be delivered the first attempt, and answer
@@ -189,23 +189,23 @@ object ActivityRealization:
     roles = Vector(workflowService, caseWorker, taskQueue),
     scripts = Vector(standaloneController, attempts),
     evidence = Vector(
-      answered(SystemFact.statusScheduled, startActivity),
+      answered(system.Fact.statusScheduled, startActivity),
       delivered(
-        SystemFact.statusStarted,
+        system.Fact.statusStarted,
         attempts,
         1,
         startActivity,
         Taking(worker.poll, 1)
       ),
-      status(SystemFact.statusPaused),
-      answered(SystemFact.statusCancelRequested, requestCancelActivity),
-      status(SystemFact.statusCompleted),
-      status(SystemFact.statusFailed),
-      status(SystemFact.statusCanceled),
-      status(SystemFact.statusTerminated),
-      status(SystemFact.statusTimedOut),
+      status(system.Fact.statusPaused),
+      answered(system.Fact.statusCancelRequested, requestCancelActivity),
+      status(system.Fact.statusCompleted),
+      status(system.Fact.statusFailed),
+      status(system.Fact.statusCanceled),
+      status(system.Fact.statusTerminated),
+      status(system.Fact.statusTimedOut),
       delivered(
-        SystemFact.attemptCount,
+        system.Fact.attemptCount,
         attempts,
         2,
         startActivity,
@@ -214,7 +214,7 @@ object ActivityRealization:
       ),
       answeredAs(
         "statusScheduledAgain",
-        SystemFact.statusScheduled,
+        system.Fact.statusScheduled,
         unpauseActivity,
         Taking(client.control(Control.unpause), 1)
       )

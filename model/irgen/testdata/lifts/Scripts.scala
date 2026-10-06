@@ -15,7 +15,8 @@ import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.standaloneactivity.{activity, client, worker, Control, SystemFact}
+import temporal.features.standaloneactivity.{activity, client, worker, Control}
+import temporal.features.standaloneactivity.system.Fact as ActivityFact
 import temporal.features.standaloneactivity.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
@@ -30,9 +31,9 @@ import temporal.server.api.testpilot.v1.{
 // ### With the helpers and the kit
 
 private val statusPaused = Evidence.read(
-  id = evidenceId(SystemFact.statusPaused),
-  records = SystemFact.statusPaused,
-  source = sourceId(SystemFact.statusPaused),
+  id = evidenceId(ActivityFact.statusPaused),
+  records = ActivityFact.statusPaused,
+  source = sourceId(ActivityFact.statusPaused),
   from = Recorded.single(
     METHOD_DESCRIBE_ACTIVITY_EXECUTION,
     Field[DescribeActivityExecutionResponse, ActivityExecutionInfo](_.getInfo)
@@ -42,8 +43,8 @@ private val statusPaused = Evidence.read(
 )
 
 private val statuses = statusTable(
-  SystemFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
-  SystemFact.statusTimedOut -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_TIMED_OUT
+  ActivityFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
+  ActivityFact.statusTimedOut -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_TIMED_OUT
 )
 
 private val stopWorker = Fault(taskQueue, FaultKind.workerStop)
@@ -61,7 +62,7 @@ private val startActivity = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION
 private val awaitPaused = await(statusPaused, workflowService)(
   Condition.equal(
     Field[ActivityExecutionInfo, ActivityExecutionStatus](_.status),
-    Operand.enumValue(statuses(SystemFact.statusPaused))
+    Operand.enumValue(statuses(ActivityFact.statusPaused))
   )
 ) {
   field(_.namespace) := workerNamespace
@@ -100,7 +101,7 @@ val helpers: Realization = temporalRealization(
       )
     )
   ),
-  evidence = Vector(statusPaused, answered(SystemFact.statusScheduled, startActivity)),
+  evidence = Vector(statusPaused, answered(ActivityFact.statusScheduled, startActivity)),
   controls = Vector(dispatchHold)
 )
 

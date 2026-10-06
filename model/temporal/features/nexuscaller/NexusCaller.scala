@@ -9,11 +9,12 @@
  * The feature has two levels, each in a folder of its own, because different people read them
  * (model/irgen/testdata/layout/lamp is the template):
  *
- *   - this file: the types; the signature (the entities, the inputs, the actors with their
+ *   - this file: the shared types; the signature (the entities, the inputs, the actors with their
  *     actions, the derived observation, the timers and the bounds); and last exports, its IR files;
- *   - product/Product.scala: NexusProduct, the product machine, what an operation does;
- *   - system/System.scala: NexusSystem, the System machine that refines it; HandlerWorker, the
- *     handler's worker; and NexusCaller, the System with that worker;
+ *   - product/Product.scala: Product Phase, State and Fact; NexusProduct, the product machine, what
+ *     an operation does;
+ *   - system/System.scala: System Phase, State and Fact; NexusSystem, the System machine that
+ *     refines it; HandlerWorker, the handler's worker; and NexusCaller, the System with that worker;
  *   - system/TrustingCaller.scala: TrustingCaller, the forged control a caller must refuse;
  *   - system/ClosePolicy.scala: the close and reset designs.
  *
@@ -56,21 +57,6 @@ enum Resolution derives Finite:
 enum Outcome derives Finite:
   case accepted, notFound
 
-/** The product machine's phases: what an operation does. */
-enum ProductPhase derives Finite:
-  case scheduled, started, succeeded, failed, canceled, timedOut
-
-final case class ProductState(phase: ProductPhase) derives Finite
-
-enum ProductFact derives Finite:
-  case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
-    nexusOperationFailed,
-    nexusOperationCanceled, nexusOperationTimedOut
-
-/** The System machine's phases. It begins before the operation exists, so unscheduled is one. */
-enum Phase derives Finite:
-  case unscheduled, scheduled, backingOff, started, succeeded, failed, canceled, timedOut
-
 /**
  * Which timer fired. The history event records it, so a Contract that did not check it would pass a
  * run that timed out on the wrong deadline.
@@ -78,25 +64,7 @@ enum Phase derives Finite:
 enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
 
-/** The attempt count is `0..attemptBound`. */
-final case class SystemState(
-    phase: Phase,
-    attempts: Int,
-    scheduleToClose: Timeout,
-    scheduleToStart: Timeout,
-    startToClose: Timeout
-)
-
-enum SystemFact derives Finite:
-  case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
-    nexusOperationFailed,
-    nexusOperationCanceled
-  case nexusOperationTimedOut(timeoutType: TimeoutType)
-
-  /** The attempt count, read through the observation of that name: no history event records it. */
-  case pendingAttempts
-
-final case class NexusCallerState(operation: SystemState, worker: WorkerState)
+final case class NexusCallerState(operation: system.State, worker: WorkerState)
 
 // ### Signature
 //
@@ -176,18 +144,6 @@ object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
   val startToClose = timer
-
-/**
- * Bounds the attempt count. Nothing wires the Limits into a machine's state, so the bound is
- * written here, beside the state type's `Finite`, which reads it before any machine exists; the Go
- * model evaluator checks each require precondition against it.
- */
-val attemptBound = 2
-
-given Finite[SystemState] =
-  // The lifter reads this Int bound; the Go model evaluator uses it to enumerate System states.
-  given Finite[Int] = Finite.upTo(attemptBound)
-  Finite.derived
 
 // The bounds of the Queries, beside three and four (shared.Bounds). Nine actions are enabled before
 // the operation is scheduled and eleven once it is, so an exact sequence of two is found among

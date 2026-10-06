@@ -78,7 +78,7 @@ object NexusRealization:
 
   private val scheduled = Evidence.read(
     id = evidenceId("scheduled"),
-    records = SystemFact.nexusOperationScheduled,
+    records = system.Fact.nexusOperationScheduled,
     source = sourceId("scheduled"),
     from = Recorded.read(WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY, historyEvents),
     operation = Field[HistoryEvent, Long](_.eventId),
@@ -107,38 +107,38 @@ object NexusRealization:
 
   private val started = historyKind(
     "started",
-    SystemFact.nexusOperationStarted,
+    system.Fact.nexusOperationStarted,
     Field(_.attributes.nexusOperationStartedEventAttributes),
     Field(_.getNexusOperationStartedEventAttributes.scheduledEventId)
   )
   private val completed = historyKind(
     "completed",
-    SystemFact.nexusOperationCompleted,
+    system.Fact.nexusOperationCompleted,
     Field(_.attributes.nexusOperationCompletedEventAttributes),
     Field(_.getNexusOperationCompletedEventAttributes.scheduledEventId)
   )
   private val failed = historyKind(
     "failed",
-    SystemFact.nexusOperationFailed,
+    system.Fact.nexusOperationFailed,
     Field(_.attributes.nexusOperationFailedEventAttributes),
     Field(_.getNexusOperationFailedEventAttributes.scheduledEventId)
   )
   private val canceled = historyKind(
     "canceled",
-    SystemFact.nexusOperationCanceled,
+    system.Fact.nexusOperationCanceled,
     Field(_.attributes.nexusOperationCanceledEventAttributes),
     Field(_.getNexusOperationCanceledEventAttributes.scheduledEventId)
   )
   private val timedOut = historyKind(
     "timedOut",
-    SystemFact.nexusOperationTimedOut,
+    system.Fact.nexusOperationTimedOut,
     Field(_.attributes.nexusOperationTimedOutEventAttributes),
     Field(_.getNexusOperationTimedOutEventAttributes.scheduledEventId)
   )
 
   private val pending = Evidence.read(
-    id = evidenceId(SystemFact.pendingAttempts),
-    records = SystemFact.pendingAttempts,
+    id = evidenceId(system.Fact.pendingAttempts),
+    records = system.Fact.pendingAttempts,
     source = sourceId("describe"),
     from = Recorded.read(
       WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION,
@@ -494,7 +494,11 @@ object NexusRealization:
    * own, after the scheduled event.
    */
   private def realization(
-      machine: Machine[SystemState, temporal.features.nexuscaller.Outcome, SystemFact],
+      machine: Machine[
+        system.State,
+        temporal.features.nexuscaller.Outcome,
+        system.Fact
+      ],
       steps: Item*
   ) = temporalRealization(
     machine = machine,

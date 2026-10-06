@@ -18,14 +18,35 @@ import shared.worker.{worker as process, Phase as WorkerPhase, State as WorkerSt
 import product.ActivityProduct
 import Timeout.expires
 
+/** It begins before the activity exists, so unstarted is one phase. */
+enum Phase derives Finite:
+  case unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested
+  case completed, failed, canceled, terminated, timedOut
+
+/** 12 phases, 3 attempt counts and 3 deadline flags: 288 states. */
+final case class State(
+    phase: Phase,
+    attempts: UpTo[2],
+    scheduleToClose: Timeout,
+    scheduleToStart: Timeout,
+    startToClose: Timeout
+) derives Finite
+
+/** What the System machine records; `attemptCount` is named after its observation. */
+enum Fact derives Finite:
+  case statusScheduled, statusStarted, statusPaused, statusCancelRequested
+  case statusCompleted, statusFailed, statusCanceled, statusTerminated
+  case statusTimedOut(timeoutType: TimeoutType)
+  case attemptCount
+
 // ### The System machine adds the retry, the pause request, the timers and the attempt count. It
 // begins before the activity exists, so unstarted is a phase and the start sets the deadlines.
 
-object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
+object ActivitySystem extends Machine[State, Outcome, Fact]:
   import Phase.*
 
   /** Where every path begins: before the activity exists, with every deadline at its first value. */
-  val init = SystemState(
+  val init = system.State(
     phase = Phase.unstarted,
     attempts = UpTo(0),
     scheduleToClose = Timeout.unset,
@@ -35,14 +56,14 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
   def end(s: State) = states.terminal(s.phase)
 
   /** A timeout is confirmed by the one status observation, whichever deadline fired. */
-  val evidence: PartialFunction[SystemFact, String] = {
-    case SystemFact.statusTimedOut(_) => "statusTimedOut"
-    case SystemFact.attemptCount      => attemptCount.name
+  val evidence: PartialFunction[Fact, String] = {
+    case Fact.statusTimedOut(_) => "statusTimedOut"
+    case Fact.attemptCount      => attemptCount.name
   }
 
   /** The System's status sets and its attempt count's bound. */
   object states:
-    /** Bounds the attempt count, as the type of `SystemState.attempts` does. */
+    /** Bounds the attempt count, as the type of `State.attempts` does. */
     val attemptBound = 2
 
     def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
@@ -66,23 +87,23 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
      * still holds the attempt, its every answer is a product row from started, and the request
      * stutters.
      */
-    def toProduct(s: State): ProductState = s.phase match
+    def toProduct(s: State): product.State = s.phase match
       case Phase.unstarted | Phase.scheduled | Phase.backingOff =>
-        ProductState(ProductPhase.scheduled)
-      case Phase.started | Phase.pauseRequested => ProductState(ProductPhase.started)
-      case Phase.paused                         => ProductState(ProductPhase.paused)
-      case Phase.cancelRequested                => ProductState(ProductPhase.cancelRequested)
-      case Phase.completed                      => ProductState(ProductPhase.completed)
-      case Phase.failed                         => ProductState(ProductPhase.failed)
-      case Phase.canceled                       => ProductState(ProductPhase.canceled)
-      case Phase.terminated                     => ProductState(ProductPhase.terminated)
-      case Phase.timedOut                       => ProductState(ProductPhase.timedOut)
+        product.State(product.Phase.scheduled)
+      case Phase.started | Phase.pauseRequested => product.State(product.Phase.started)
+      case Phase.paused                         => product.State(product.Phase.paused)
+      case Phase.cancelRequested                => product.State(product.Phase.cancelRequested)
+      case Phase.completed                      => product.State(product.Phase.completed)
+      case Phase.failed                         => product.State(product.Phase.failed)
+      case Phase.canceled                       => product.State(product.Phase.canceled)
+      case Phase.terminated                     => product.State(product.Phase.terminated)
+      case Phase.timedOut                       => product.State(product.Phase.timedOut)
 
     /** The backoff timer records nothing a Run can read. */
     val unobservable = List(timers.backoff)
 
   object effects:
-    import SystemFact.*
+    import Fact.*
 
     /** The start creates the activity, with the deadlines its inputs set. */
     def schedule(
@@ -92,7 +113,7 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
         startToClose: Timeout
     ) =
       enter(
-        SystemState(
+        system.State(
           phase = scheduled,
           attempts = UpTo(0),
           scheduleToClose = scheduleToClose,
@@ -107,7 +128,7 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
       enter(
         s.copy(phase = started, attempts = states.saturatingSucc(s.attempts)),
         statusStarted,
-        SystemFact.attemptCount
+        Fact.attemptCount
       )
 
     def complete(s: State) = enter(s.copy(phase = completed), statusCompleted)
@@ -116,7 +137,7 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
 
     /** A retryable failure backs a started attempt off: read as scheduled again, one attempt higher. */
     def backOff(s: State) =
-      enter(s.copy(phase = backingOff), statusScheduled, SystemFact.attemptCount)
+      enter(s.copy(phase = backingOff), statusScheduled, Fact.attemptCount)
         .because("a retryable failure backs off; the client reads scheduled again")
 
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
@@ -213,17 +234,17 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
   object properties:
     val completes =
       property when worker.respond(AttemptResult.completed) holds { s =>
-        s.state.phase == Phase.completed && s.records(SystemFact.statusCompleted)
+        s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
       }
 
     val nonRetryableFails =
       property when worker.respond(AttemptResult.failed(false)) holds { s =>
-        s.state.phase == Phase.failed && s.records(SystemFact.statusFailed)
+        s.state.phase == Phase.failed && s.records(Fact.statusFailed)
       }
 
     /** Completed on the second attempt of an activity with no deadline set. */
     val completedOnRetry =
-      SystemState(
+      system.State(
         phase = Phase.completed,
         attempts = UpTo(states.attemptBound),
         scheduleToClose = Timeout.unset,
@@ -237,38 +258,38 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
      */
     val retryCompletes =
       property when worker.respond(AttemptResult.completed) holds { s =>
-        s.state == completedOnRetry && s.records(SystemFact.statusCompleted)
+        s.state == completedOnRetry && s.records(Fact.statusCompleted)
       }
 
     val cancelRequestedWhileStarted =
       property when client.control(Control.requestCancel) holds { s =>
-        s.state.phase == Phase.cancelRequested && s.records(SystemFact.statusCancelRequested)
+        s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
       }
 
     val canceledByWorker =
       property when worker.respond(AttemptResult.canceled) holds { s =>
-        s.state.phase == Phase.canceled && s.records(SystemFact.statusCanceled)
+        s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
       }
 
     val terminated = property when client.control(Control.terminate) holds { s =>
-      s.state.phase == Phase.terminated && s.records(SystemFact.statusTerminated)
+      s.state.phase == Phase.terminated && s.records(Fact.statusTerminated)
     }
 
     // Each deadline times the activity out and the status records which it was. With both
     // schedule-to-start and schedule-to-close set and no attempt started, either may fire first.
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
       s.state.phase == Phase.timedOut &&
-      s.records(SystemFact.statusTimedOut(TimeoutType.scheduleToStart))
+      s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
     }
 
     val scheduleToCloseFires = property when deadline.scheduleToClose holds { s =>
       s.state.phase == Phase.timedOut &&
-      s.records(SystemFact.statusTimedOut(TimeoutType.scheduleToClose))
+      s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
     }
 
     val startToCloseFires = property when deadline.startToClose holds { s =>
       s.state.phase == Phase.timedOut &&
-      s.records(SystemFact.statusTimedOut(TimeoutType.startToClose))
+      s.records(Fact.statusTimedOut(TimeoutType.startToClose))
     }
 
   /**
@@ -285,13 +306,13 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
       extends Implements(limits = three)(
         Terminable(
           terminate = client.control(Control.terminate),
-          settled = SystemFact.statusTerminated,
+          settled = Fact.statusTerminated,
           reach = Seq(client.start(), process.stop),
           expect = inconclusive(Reason.explanationsDisagree)
         ),
         Cancelable(
           requestCancel = client.control(Control.requestCancel),
-          requested = SystemFact.statusCancelRequested,
+          requested = Fact.statusCancelRequested,
           reach = Seq(client.start(), process.stop),
           expect = inconclusive(Reason.explanationsDisagree)
         ),

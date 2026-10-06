@@ -23,12 +23,12 @@ val sent = choice
 
 // ### The control
 
-object TrustingCaller extends Machine[SystemState, Outcome, SystemFact], NegativeControl:
+object TrustingCaller extends Machine[system.State, Outcome, system.Fact], NegativeControl:
   val init = NexusSystem.init
   def end(s: State) = NexusSystem.states.terminalPhase(s.phase)
-  val evidence: PartialFunction[SystemFact, String] = {
-    case SystemFact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
-    case SystemFact.pendingAttempts           => pendingAttempts.name
+  val evidence: PartialFunction[Fact, String] = {
+    case Fact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
+    case Fact.pendingAttempts           => pendingAttempts.name
   }
   val unobservable = List(timers.backoff)
 
@@ -81,7 +81,7 @@ object TrustingCaller extends Machine[SystemState, Outcome, SystemFact], Negativ
      * A failed completion is recorded as completed: what the control predicts and no runtime sends.
      */
     val forgedSuccess = property when handler.complete(Resolution.failed) holds
-      (_.records(SystemFact.nexusOperationCompleted))
+      (_.records(Fact.nexusOperationCompleted))
 
   object queries:
     val inspectedFailure = scenario.actions(

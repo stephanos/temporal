@@ -12,27 +12,38 @@ import temporal.capabilities.{given, *}
 import shared.Bounds.three
 import shared.worker.worker as process
 
+/** What DescribeActivityExecution shows. */
+enum Phase derives Finite:
+  case scheduled, started, paused, cancelRequested
+  case completed, failed, canceled, terminated, timedOut
+
+final case class State(phase: Phase) derives Finite
+
+enum Fact derives Finite:
+  case statusScheduled, statusStarted, statusPaused, statusCancelRequested
+  case statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut
+
 // ### The product machine: what DescribeActivityExecution shows, with no account of how. A retry
 // reads as scheduled again, a pause of a running attempt as started until the worker yields.
 
 /** Every status the product machine records is confirmed by the status observation of its name. */
-object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
-  import ProductPhase.*
+object ActivityProduct extends Machine[State, Outcome, Fact]:
+  import Phase.*
 
-  val init = ProductState(scheduled)
+  val init = product.State(scheduled)
   def end(s: State) = states.over(s)
 
   /** The product's status sets and the constant its capabilities cite. */
   object states:
     def phase(s: State) = s.phase
 
-    def terminal(p: ProductPhase) = p.in(completed, failed, canceled, terminated, timedOut)
+    def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
 
     /** A path ends where the activity is over: `end` reads this named predicate. */
     def over(s: State) = terminal(s.phase)
 
     /** A paused activity, which no worker is given. */
-    def paused(s: State) = s.phase == ProductPhase.paused
+    def paused(s: State) = s.phase == Phase.paused
 
     def running(s: State) = s.phase == started
 
@@ -49,7 +60,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
     val notFoundCode = "chasm/lib/activity/activity.go"
 
   object effects:
-    import ProductFact.*
+    import Fact.*
 
     def startAttempt(s: State) = enter(s.copy(phase = started), statusStarted)
 
@@ -68,7 +79,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
     /** A control on an activity that is over is not found. */
     def notFound(s: State) = reject(Outcome.notFound, s)
 
-    def pause(s: State) = enter(s.copy(phase = ProductPhase.paused), statusPaused)
+    def pause(s: State) = enter(s.copy(phase = Phase.paused), statusPaused)
 
     def resume(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
 
