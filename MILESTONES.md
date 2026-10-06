@@ -127,7 +127,7 @@ Gate: the DSL batch; closes before fn-131 starts. Source: owner conversation, 20
 | Task | Status | What |
 | --- | --- | --- |
 | fn-134.1 | ⬜ todo | Inert `Property.origin` in the IR schema and Go reader; identity test |
-| fn-134.2 | ⬜ todo | `capabilities` section, capability Properties, bounds in `queries`, waiver reasons from the model gate, added beside the old path (early proof) |
+| fn-134.2 | 🔄 in progress | `capabilities` section, capability Properties, bounds in `queries`, waiver reasons from the model gate, added beside the old path (early proof) |
 | fn-134.3 | ⬜ todo | Kit and every Model migrated; equivalence diff at the batch regeneration |
 | fn-134.4 | ⬜ todo | `Law`, `Catalog`, `Implements`, `cited` and the law sidecar removed from Scala |
 | fn-134.5 | ⬜ todo | Law sidecar reader, law table and law lint kinds removed from Go (after the batch regeneration) |
