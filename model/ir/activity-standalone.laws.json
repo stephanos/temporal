@@ -13,7 +13,7 @@
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:119"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:91"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -29,7 +29,7 @@
       "running": "temporal.features.activity.standalone.product.ActivityProduct$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:124"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:96"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -41,7 +41,7 @@
       "terminal": "temporal.features.activity.standalone.product.ActivityProduct$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:119"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:91"
   }, {
     "machine": "activitySystem",
     "name": "activitySystem.cancelIsRequested",
