@@ -139,8 +139,8 @@ Gate: the DSL batch. Tasks run in order. Task 4's comparison takes the batch bas
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-135.1 | 🔄 in progress | `effect`, `is`, `record` and `reject(outcome)` sugar in umpire; run-time equivalence tests |
-| fn-135.2 | ⬜ todo | Lifter resolves `val` section members and lifts `is { }`; `def` paths unchanged (proof point) |
+| fn-135.1 | ✅ done | `effect`, `is`, `record` and `reject(outcome)` sugar in umpire; run-time equivalence tests |
+| fn-135.2 | 🔄 in progress | Lifter resolves `val` section members and lifts `is { }`; `def` paths unchanged (proof point) |
 | fn-135.3 | ⬜ todo | Lifter lifts `effect { }` with its statement refusals |
 | fn-135.5 | ⬜ todo | Status facts declared on phase cases: derived in `effect { }` at run time and in lifted IR, with refusals and a fixture machine |
 | fn-135.4 | ⬜ todo | `ActivityProduct` converted, projection renamed `status`; IR equal but for positions and that name; docs |
