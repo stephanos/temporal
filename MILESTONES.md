@@ -127,7 +127,7 @@ Gate: the DSL batch; closes before fn-131 starts. Source: owner conversation, 20
 | Task | Status | What |
 | --- | --- | --- |
 | fn-134.1 | ✅ done | Inert `Property.origin` in the IR schema and Go reader; identity test |
-| fn-134.2 | 🔄 in progress | `capabilities` section, capability Properties, bounds in `queries`, waiver reasons from the model gate, added beside the old path (early proof) |
+| fn-134.2 | ✅ done | `capabilities` section, capability Properties, bounds in `queries`, waiver reasons from the model gate, added beside the old path (early proof) |
 | fn-134.3 | ⬜ todo | Kit and every Model migrated; equivalence diff at the batch regeneration |
 | fn-134.4 | ⬜ todo | `Law`, `Catalog`, `Implements`, `cited` and the law sidecar removed from Scala |
 | fn-134.5 | ⬜ todo | Law sidecar reader, law table and law lint kinds removed from Go (after the batch regeneration) |
@@ -139,7 +139,7 @@ Gate: the DSL batch. Tasks run in order. Task 4's comparison takes the batch bas
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-135.1 | ⬜ todo | `effect`, `is`, `record` and `reject(outcome)` sugar in umpire; run-time equivalence tests |
+| fn-135.1 | 🔄 in progress | `effect`, `is`, `record` and `reject(outcome)` sugar in umpire; run-time equivalence tests |
 | fn-135.2 | ⬜ todo | Lifter resolves `val` section members and lifts `is { }`; `def` paths unchanged (proof point) |
 | fn-135.3 | ⬜ todo | Lifter lifts `effect { }` with its statement refusals |
 | fn-135.5 | ⬜ todo | Status facts declared on phase cases: derived in `effect { }` at run time and in lifted IR, with refusals and a fixture machine |
