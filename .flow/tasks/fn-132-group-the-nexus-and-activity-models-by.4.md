@@ -5,7 +5,7 @@ satisfies: [R5]
 
 ## Description
 **Size:** M
-**Touches:** [model/umpire/**, model/temporal/**, model/irgen/**, tools/umpire/ir/**, tools/umpire/interp/**, tools/umpire/check/**, tools/umpire/realization/**, tools/umpire/lower/**, MILESTONES.md]
+**Touches:** [model/umpire/**, model/temporal/**, model/irgen/**, tools/umpire/ir/**, tools/umpire/interp/**, tools/umpire/check/**, tools/umpire/realization/**, tools/umpire/lower/**, MILESTONES.md, .flow/specs/fn-132-group-the-nexus-and-activity-models-by.md, .flow/specs/fn-132-group-the-nexus-and-activity-models-by.json]
 
 **Required investigation:** `model/umpire/Domain.scala`, `model/umpire/Action.scala`, `model/umpire/Refine.scala`, `model/umpire/realize/Realize.scala`, `model/irgen/test/Fixtures.test.scala`; parent Edge Cases and R2/R3/R5. The stamp prototype is historical inspiration, not an available dependency.
 Use disposable fixtures before editing production Models. Preserve admitted identity, Case/verdict behavior and entity typing; no extra configurable identity framework or library. A necessary minimal seam is within the owner's autonomous milestone direction, but must be measured, planned and tested before task 5 uses it.
@@ -23,6 +23,8 @@ Settle the two questions that block Parts B and C, in lifter fixtures before tou
 5. **Product signature closure.** Identify the exact existing network/timeout declarations and input types the shared product uses; move that closure in task 5 so kind code does not import either form. Distinguish disabled extra input classes and canonical fingerprint changes from previously enabled transition behavior.
 
 Record each decision, with what it changes, in the spec's Decision Context and close its Parked unknown.
+
+**Decision-record scope:** The parent authoring paths above are writable only to record this spike's proved entity, outcome, termination, fact-carrier and Product-signature-closure decisions and remove their genuinely resolved Parked unknowns. Preserve R1-R5, task dependencies/statuses and unrelated deferred workflow questions. This aligns the write surface with the existing decision-record acceptance; it does not widen the behavior change.
 ## Acceptance
 - [ ] Passing lifter and checker-level fixtures prove one kind action bound for both forms, required fact carriers and both outcome catalog members, while missing/wrong carriers or catalog members fail even under visibility exclusion.
 - [ ] The entity, outcome and `terminated` decisions are in the spec's Decision Context; their Parked unknowns are removed.
