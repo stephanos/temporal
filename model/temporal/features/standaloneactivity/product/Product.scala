@@ -11,7 +11,6 @@ import umpire.*
 import temporal.capabilities.{given, *}
 import shared.Bounds.three
 import shared.worker.worker as process
-import ActivityFamily.given
 
 // ### The product machine: what DescribeActivityExecution shows, with no account of how. A retry
 // reads as scheduled again, a pause of a running attempt as started until the worker yields.
@@ -20,12 +19,11 @@ import ActivityFamily.given
 object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
   import ProductPhase.*
 
-  val entity = activity
   val init = ProductState(scheduled)
   def end(s: State) = states.over(s)
 
   /** The product's status sets and the constant its capabilities cite. */
-  object states extends Section:
+  object states:
     def phase(s: State) = s.phase
 
     def terminal(p: ProductPhase) = p.in(completed, failed, canceled, terminated, timedOut)
@@ -50,7 +48,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
      */
     val notFoundCode = "chasm/lib/activity/activity.go"
 
-  object effects extends Section:
+  object effects:
     import ProductFact.*
 
     def startAttempt(s: State) = enter(s.copy(phase = started), statusStarted)
@@ -68,7 +66,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
 
     /** A control on an activity that is over is not found. */
-    def notFound(s: State): List[ProductStep] = List(Step(Outcome.notFound, s))
+    def notFound(s: State) = reject(Outcome.notFound, s)
 
     def pause(s: State) = enter(s.copy(phase = ProductPhase.paused), statusPaused)
 
@@ -83,37 +81,34 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
     def timeOut(s: State) = enter(s.copy(phase = timedOut), statusTimedOut)
 
   object rules extends Rules(_.phase):
-    in(scheduled)(worker.attemptStart ~> effects.startAttempt)
+    on(worker.attemptStart)(in(scheduled) ~> effects.startAttempt)
 
     // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
     // under a cancel request; a canceled answer settles only an activity whose cancellation was
     // requested.
-    when(s => states.held(s)) {
-      worker.attemptResult(AttemptResult.completed) ~> effects.complete
-      worker.attemptResult(AttemptResult.failed(false)) ~> effects.fail
+    on(worker.attemptResult(AttemptResult.completed))(where(states.held) ~> effects.complete)
+    on(worker.attemptResult(AttemptResult.failed(false)))(where(states.held) ~> effects.fail)
+    on(worker.attemptResult(AttemptResult.failed(true))) {
+      in(started) ~> effects.retry
+      in(cancelRequested) ~> effects.cancel
     }
-    in(started)(worker.attemptResult(AttemptResult.failed(true)) ~> effects.retry)
-    in(cancelRequested) {
-      worker.attemptResult(AttemptResult.failed(true)) ~> effects.cancel
-      worker.attemptResult(AttemptResult.canceled) ~> effects.cancel
-    }
+    on(worker.attemptResult(AttemptResult.canceled))(in(cancelRequested) ~> effects.cancel)
 
     // A control on an activity that is over is not found. A pause of a paused or cancel-requested
     // activity, or an unpause of one not paused, is FailedPrecondition; the protocol lists them.
-    when(s => states.terminal(s.phase))(caller.control ~> effects.notFound)
-    when(s => states.pausable(s))(caller.control(Control.pause) ~> effects.pause)
-    when(s => states.paused(s))(caller.control(Control.unpause) ~> effects.resume)
-    in(scheduled, started, paused, cancelRequested) {
-      caller.control(Control.requestCancel) ~> effects.requestCancel
-      caller.control(Control.terminate) ~> effects.terminate
+    on(caller.control)(in(states.terminal) ~> effects.notFound)
+    on(caller.control(Control.pause))(where(states.pausable) ~> effects.pause)
+    on(caller.control(Control.unpause))(where(states.paused) ~> effects.resume)
+    on(caller.control(Control.requestCancel)) {
+      in(scheduled, started, paused, cancelRequested) ~> effects.requestCancel
+    }
+    on(caller.control(Control.terminate)) {
+      in(scheduled, started, paused, cancelRequested) ~> effects.terminate
     }
 
     // The worker stopping is a fault the Run records and the activity does not feel.
     disabled(process.workerStop)
-
-    in(scheduled, started, paused, cancelRequested) {
-      timers.timeout ~> effects.timeOut
-    }
+    on(timers.timeout)(in(scheduled, started, paused, cancelRequested) ~> effects.timeOut)
 
   /**
    * What the product machine is, as the laws of model/temporal/capabilities read it, and so the laws
@@ -123,17 +118,17 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
    * poll), each `activityProduct.<law>`, read on the protocol through the map under the bound held
    * there.
    */
-  object implements extends Section:
-    val all = capabilities(limits = three)(
-      Closable(
-        status = states.phase,
-        terminal = states.terminal,
-        rejected = cited(Outcome.notFound, states.notFoundCode)
-      ),
-      Pausable(
-        pause = caller.control(Control.pause),
-        unpause = caller.control(Control.unpause),
-        paused = states.paused
-      ),
-      Pollable(dispatch = worker.attemptStart, running = states.running)
-    )
+  object implements
+      extends Implements(limits = three)(
+        Closable(
+          status = states.phase,
+          terminal = states.terminal,
+          rejected = cited(Outcome.notFound, states.notFoundCode)
+        ),
+        Pausable(
+          pause = caller.control(Control.pause),
+          unpause = caller.control(Control.unpause),
+          paused = states.paused
+        ),
+        Pollable(dispatch = worker.attemptStart, running = states.running)
+      )

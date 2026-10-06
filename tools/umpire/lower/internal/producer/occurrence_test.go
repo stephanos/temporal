@@ -534,7 +534,7 @@ func jobModel(name string, actions ...string) *umpirespb.Model {
 		{"close", "running", []*umpirespb.Expr{step("done", "finished"), step("dropped", "wasDropped")}},
 	} {
 		id := "job." + row.action
-		model.Actions = append(model.Actions, &umpirespb.Action{Id: id, Name: row.action, Position: at, Party: "fixture"})
+		model.Actions = append(model.Actions, &umpirespb.Action{Id: id, Name: row.action, Position: at, Actor: "fixture"})
 		model.Functions = append(model.Functions, &umpirespb.Function{Name: id + ".step", Position: at,
 			Params: []*umpirespb.Param{{Name: "state", Type: named(stateType)}}, Body: &umpirespb.Expr{Position: at,
 				Kind: &umpirespb.Expr_If{If: &umpirespb.If{Condition: binary(umpirespb.Binary_OP_EQ, variable("state"), enum(stateType, row.state)), Then: list(row.results...), Else: list()}}}})

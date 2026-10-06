@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	activityEvidence = "temporal.activity.standalone.evidence."
-	activityActions  = "temporal.activity.standalone.action.activityProtocol."
+	activityEvidence = "temporal.features.standaloneactivity.evidence."
+	activityActions  = "temporal.features.standaloneactivity.system.action.activityProtocol."
 	describeActivity = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
 )
 

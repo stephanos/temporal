@@ -51,7 +51,7 @@ func identityModel(state, outcome, fact string, actions ...identityAction) *umpi
 	mm := &umpirespb.Machine{Family: "generic", Name: "m", Position: at(30), StateType: state, OutcomeType: outcome, FactType: fact,
 		Starts: []*umpirespb.Expr{{Position: at(30), Kind: &umpirespb.Expr_Literal{Literal: first[state]}}}}
 	for i, a := range actions {
-		action := &umpirespb.Action{Id: "generic." + a.name, Name: a.name, Position: at(10 + int32(i)), Party: "generic"}
+		action := &umpirespb.Action{Id: "generic." + a.name, Name: a.name, Position: at(10 + int32(i)), Actor: "generic"}
 		step := &umpirespb.Function{Name: "generic.step." + a.name, Position: at(20 + int32(i)),
 			Params: []*umpirespb.Param{{Name: "s", Type: named(state)}},
 			Body: &umpirespb.Expr{Position: at(20 + int32(i)), Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{
@@ -151,7 +151,7 @@ func compositionModel(first, second string, syncs ...string) *umpirespb.Model {
 	for i, action := range []string{"b_c", "c"} {
 		line := int32(10 * (i + 1))
 		name := "m" + string(rune('1'+i))
-		m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic." + action, Name: action, Position: at(line), Party: "generic"})
+		m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic." + action, Name: action, Position: at(line), Actor: "generic"})
 		m.Functions = append(m.Functions, &umpirespb.Function{Name: "generic.step." + action, Position: at(line + 1),
 			Params: []*umpirespb.Param{{Name: "s", Type: named("S")}},
 			Body: &umpirespb.Expr{Position: at(line + 1), Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{
@@ -212,7 +212,7 @@ func compositionScenario(keys ...string) *umpirespb.Scenario {
 
 // alsoBinds gives compositionModel's m2 a second action, which no sync of the fixture names.
 func alsoBinds(m *umpirespb.Model, action string) *umpirespb.Model {
-	m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic." + action, Name: action, Position: at(30), Party: "generic"})
+	m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic." + action, Name: action, Position: at(30), Actor: "generic"})
 	m.Functions = append(m.Functions, &umpirespb.Function{Name: "generic.step." + action, Position: at(31),
 		Params: []*umpirespb.Param{{Name: "s", Type: named("S")}},
 		Body: &umpirespb.Expr{Position: at(31), Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{

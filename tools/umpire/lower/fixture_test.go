@@ -357,7 +357,7 @@ func TestAPropertyIsLoweredOverTheStepItIsCheckedOn(t *testing.T) {
 	for _, r := range l.Case.GetProvenance().GetCorrelatedRules() {
 		rules = append(rules, r.GetRuleId())
 	}
-	require.Equal(t, []string{"fixture.realizations.door.property.opensBecauseTheLatchGives.fact-doorOpened"}, rules)
+	require.Equal(t, []string{"fixture.realizations.property.opensBecauseTheLatchGives.fact-doorOpened"}, rules)
 
 	m = liftedRealizations(t)
 	rewritten := 0

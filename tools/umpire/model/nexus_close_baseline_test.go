@@ -69,8 +69,8 @@ func TestNexusCloseCompleteIsTheBaselinesAction(t *testing.T) {
 	}
 	require.NotNil(t, original)
 	require.NotNil(t, lifted)
-	require.Equal(t, []string{original.GetName(), original.GetParty(), original.GetOn(), original.GetResults()},
-		[]string{lifted.GetName(), lifted.GetParty(), lifted.GetOn(), lifted.GetResults()})
+	require.Equal(t, []string{original.GetName(), original.GetActor(), original.GetOn(), original.GetResults()},
+		[]string{lifted.GetName(), lifted.GetActor(), lifted.GetOn(), lifted.GetResults()})
 	var want, got []string
 	for _, p := range original.GetInputs() {
 		want = append(want, p.GetName())
@@ -336,10 +336,9 @@ type closeClaim struct {
 // assumptions it is conditional on, and an assumption makes fair only what its name says.
 func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	m := closeModel(t).model
-	// An action keeps the Definition ID of the package the Model was written in; a Function takes the
-	// compiler's name, in the package the Model moved to (fn-114.9) and the object and section that
-	// hold it (fn-126).
-	const model = "temporal.nexuscaller.closepolicy.Model$package$."
+	// An action is named after where it is declared, the object that groups it included (fn-126
+	// decision 23); a Function takes the compiler's name, with the object and section that hold it.
+	const model = "temporal.features.nexuscaller.system.callerSide."
 	const functions, properties = "temporal.features.nexuscaller.system.RejectAfterClose$.states$.", "temporal.features.nexuscaller.system.RejectAfterClose$.properties$."
 	names := map[string]string{}
 	fair := map[string][]string{}
@@ -351,7 +350,7 @@ func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 		"currentOwnerEventuallyRecoversAndReappliesRetainedOutcome"
 	require.Equal(t, map[string][]string{
 		reporting:                              nil,
-		delivery:                               {"temporal.nexuscaller.Model$package$.complete"},
+		delivery:                               {"temporal.features.nexuscaller.handler.complete"},
 		recovery:                               {model + "reset"},
 		"transientRejectionEventuallyAccepted": nil,
 		"retentionSurvivesCrash":               nil,

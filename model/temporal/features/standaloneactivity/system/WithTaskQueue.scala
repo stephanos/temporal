@@ -20,14 +20,9 @@ package system
 import umpire.*
 import temporal.capabilities.{given, *}
 import shared.Bounds.three
-import shared.taskqueue.{faults, queue, seven, twelve, Outstanding, QueueDetail, QueueView}
+import shared.taskqueue.{fault, queue, seven, twelve, Outstanding, QueueDetail, QueueView}
 import shared.taskqueue.product.DispatchQueue
 import shared.taskqueue.system.{ForgetfulQueue, LossyMatchingQueue, MatchingQueue, VolatileQueue}
-import SystemFamily.given
-
-// First written in System.scala: the state types keep the IR names they had there.
-given withTaskQueueScope: DefinitionScope =
-  DefinitionScope("temporal.standaloneactivity.System$package$")
 
 // ### Types
 
@@ -67,7 +62,7 @@ object CurrentOverQueue
   def end(s: State) = CurrentAdmission.end(s.activity)
 
   /** What the designs over a queue answer and waive. */
-  object states extends Section:
+  object states:
     /**
      * The composed outcome of the record's answer to a control of a closed activity: Closable's
      * `rejected`, which only closedIsRejectedUniformly reads, and the designs over a queue waive it.
@@ -87,7 +82,7 @@ object CurrentOverQueue
     sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
     sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
 
-  object properties extends Section:
+  object properties:
     def overQueueClaims(c: Composition[State]) =
       val declared = implements.overQueueCapabilities(c)
       val failedCommitKeepsTheMessage = c.property holds (after =>
@@ -103,7 +98,7 @@ object CurrentOverQueue
         failedCommitKeepsTheMessage
       )
 
-  object implements extends Section:
+  object implements:
     /**
      * A design over the opaque queue as the laws read it: the record's capabilities, read through
      * the `activity` member's projection. Its free Queries run within `five`.
@@ -125,7 +120,7 @@ object CurrentOverQueue
       )
     ).except(closedIsRejectedUniformly, because = states.queueStepsOn)
 
-  object queries extends Section:
+  object queries:
     /** Over the opaque queue: every claim and path of the design `c`. */
     def overQueueQueries(c: Composition[State]) =
       val claims = properties.overQueueClaims(c)
@@ -147,14 +142,14 @@ object CurrentOverQueue
       val any = c.scenario.free
       Vector(
         query(s"${c.name}.staleDelivery") verify claims.notPaused in
-          staleDeliveryAfterPause limits three total 432,
+          staleDeliveryAfterPause limits three,
         query(s"${c.name}.admittedBeforePause") verify claims.notPaused in
-          admittedBeforePause limits three total 432,
+          admittedBeforePause limits three,
         query(s"${c.name}.duplicateDelivery") verify claims.oneActive in
-          duplicateDelivery limits three total 432,
+          duplicateDelivery limits three,
         query(s"${c.name}.failedCommit") verify claims.failedCommit in
-          duplicateDelivery limits three total 432,
-        query verify claims.oneActive in any limits five total 9360
+          duplicateDelivery limits three,
+        query verify claims.oneActive in any limits five
       )
 
     val currentOverQueueQueries = overQueueQueries(CurrentOverQueue)
@@ -162,7 +157,7 @@ object CurrentOverQueue
 object StaleOverQueue
     extends Composition(CurrentOverQueue.withMember(_.activity -> StaleRecord)),
       NegativeControl:
-  object queries extends Section:
+  object queries:
     val staleOverQueueQueries = CurrentOverQueue.queries.overQueueQueries(StaleOverQueue)
 
 // ### Over the detailed queue, which replaces the opaque one only within the composition: it holds
@@ -180,7 +175,7 @@ object CurrentOverMatching
     sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
     replaces(_.queue, DispatchQueue)
 
-  object properties extends Section:
+  object properties:
     def overMatchingClaims(c: Composition[State]) =
       val declared = implements.overMatchingCapabilities(c)
       OverMatchingClaims(
@@ -190,7 +185,7 @@ object CurrentOverMatching
         )
       )
 
-  object implements extends Section:
+  object implements:
     /**
      * A design over the detailed queue as the laws read it, through the `activity` member's
      * projection. Its free Queries run within `twelve`, the detailed provider's depth.
@@ -212,9 +207,9 @@ object CurrentOverMatching
       )
     ).except(closedIsRejectedUniformly, because = CurrentOverQueue.states.queueStepsOn)
 
-  object queries extends Section:
-    /** Over the detailed queue: `anyTotal` is the static combination count of the `any` Queries. */
-    def overMatchingQueries(c: Composition[State], anyTotal: Int) =
+  object queries:
+    /** Over the detailed queue: every claim and path of the design `c`. */
+    def overMatchingQueries(c: Composition[State]) =
       val claims = properties.overMatchingClaims(c)
       val staleDeliveryAfterPause = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
@@ -236,7 +231,7 @@ object CurrentOverMatching
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.persistTask),
         c.synced(_.activity -> worker.attemptStart),
-        c.own(_.queue, faults.ackLoss),
+        c.own(_.queue, fault.ackLoss),
         c.synced(_.activity -> worker.attemptStart)
       )
       // A crash after the admission commit, before the acknowledgment: history retries the sync
@@ -246,7 +241,7 @@ object CurrentOverMatching
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.syncMatch),
         c.synced(_.activity -> worker.attemptStart),
-        c.own(_.queue, faults.crash),
+        c.own(_.queue, fault.crash),
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.syncMatch),
         c.synced(_.activity -> worker.attemptStart)
@@ -254,24 +249,24 @@ object CurrentOverMatching
       val any = c.scenario.free
       Vector(
         query(s"${c.name}.staleDelivery") verify claims.notPaused in
-          staleDeliveryAfterPause limits five total 5400,
+          staleDeliveryAfterPause limits five,
         query(s"${c.name}.admittedBeforePause") verify claims.notPaused in
-          admittedBeforePause limits five total 5400,
+          admittedBeforePause limits five,
         query(s"${c.name}.deliveredAgainAfterLostAck") verify claims.oneActive in
-          deliveredAgainAfterLostAck limits seven total 6480,
+          deliveredAgainAfterLostAck limits seven,
         query(s"${c.name}.crashAfterAdmissionCommit") verify claims.oneActive in
-          crashAfterAdmissionCommit limits eight total 8640,
-        query verify claims.oneActive in any limits twelve total anyTotal
+          crashAfterAdmissionCommit limits eight,
+        query verify claims.oneActive in any limits twelve
       )
 
-    val currentOverMatchingQueries = overMatchingQueries(CurrentOverMatching, anyTotal = 233280)
+    val currentOverMatchingQueries = overMatchingQueries(CurrentOverMatching)
 
 object StaleOverMatching
     extends Composition(CurrentOverMatching.withMember(_.activity -> StaleRecord)),
       NegativeControl:
-  object queries extends Section:
+  object queries:
     val staleOverMatchingQueries =
-      CurrentOverMatching.queries.overMatchingQueries(StaleOverMatching, anyTotal = 233280)
+      CurrentOverMatching.queries.overMatchingQueries(StaleOverMatching)
 
 // ### The corrected design over each violating provider: the replacement is what must fail.
 
@@ -287,6 +282,6 @@ object CurrentOverVolatile
 object CurrentOverLossyMatching
     extends Composition(CurrentOverMatching.withMember(_.queue -> LossyMatchingQueue)),
       FailureModel:
-  object queries extends Section:
+  object queries:
     val currentOverLossyMatchingQueries =
-      CurrentOverMatching.queries.overMatchingQueries(CurrentOverLossyMatching, anyTotal = 246240)
+      CurrentOverMatching.queries.overMatchingQueries(CurrentOverLossyMatching)

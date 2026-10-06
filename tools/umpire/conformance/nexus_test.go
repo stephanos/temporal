@@ -26,9 +26,9 @@ import (
 )
 
 const (
-	nexusFamily   = "temporal.nexus.caller"
+	nexusFamily   = "temporal.features.nexuscaller.system"
 	nexusMachine  = "nexusProtocol"
-	nexusEvidence = "temporal.nexus.caller.evidence."
+	nexusEvidence = "temporal.features.nexuscaller.evidence."
 )
 
 func nexusModel(t testing.TB) *umpirespb.Model {

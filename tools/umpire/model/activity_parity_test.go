@@ -100,9 +100,9 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(encoded, &catalog))
 	require.NotEmpty(t, catalog.Catalog)
-	// A machine object declares its own capabilities in its `laws`, `capabilities(limits = ...)(...)`,
-	// named after the object it sits in.
-	capabilityDeclarations := regexp.MustCompile(`(?m)^[ \t]*val \w+\s*=\s*capabilities\([^)]*\)\(`).FindAllStringSubmatchIndex(string(source), -1)
+	// A machine object declares its own capabilities in its `implements` section,
+	// `object implements extends Implements(limits = ...)(...)`, named after the object it sits in.
+	capabilityDeclarations := regexp.MustCompile(`(?m)^[ \t]*object implements\s+extends Implements\([^)]*\)\(`).FindAllStringSubmatchIndex(string(source), -1)
 	require.Len(t, capabilityDeclarations, 2, "the product's and the protocol's")
 	objects := regexp.MustCompile(`(?m)^object (\w+) extends Machine\b`).FindAllSubmatchIndex(source, -1)
 	for _, at := range capabilityDeclarations {

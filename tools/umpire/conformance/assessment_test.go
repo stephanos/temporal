@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	admissionFamily = "temporal.activity.standalone.admission"
+	admissionFamily = "fixture.specimens.admission"
 	stale           = "staleAdmission"
 	current         = "currentAdmission"
 	// The claims every admission Query here assesses: its Property, and the two monitors both designs

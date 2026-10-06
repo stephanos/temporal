@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	raceFamily   = "temporal.activity.standalone.system"
+	raceFamily   = "temporal.features.standaloneactivity.system"
 	raceMachine  = "heldAdmission"
 	raceQuery    = "heldAdmission.staleDelivery"
 	raceProperty = "staleDeliveryRejected"

@@ -1,7 +1,7 @@
 /* The task queue's Product: its opaque contract, what a feature may rely on of the durable queue
  * (fn-126 decision 16). The level's own file holds DispatchQueue and its storage-loss variant,
  * DispatchQueueUnderStorageLoss; system/System.scala refines it. The two package clauses read the
- * queue's package as well as this one, so its types, signature and family are in scope.
+ * queue's package as well as this one, so its types and signature are in scope.
  */
 package temporal
 package shared.taskqueue
@@ -14,20 +14,15 @@ import umpire.*
 
 /** The opaque provider. */
 object DispatchQueue extends Machine[QueueView, QueueOutcome, QueueFact]:
-  // First written in the system contract, as the file's declarations were: its assumption keeps the
-  // Definition ID it had there.
-  given DefinitionScope = DefinitionScope("temporal.standaloneactivity.System$package$")
-
-  val entity = taskQueueEntity
   val init = QueueView(Outstanding.empty)
   def end(q: State) = q.outstanding == Outstanding.empty
 
-  object states extends Section:
+  object states:
     /** A message is outstanding: committed, and not yet acknowledged. */
     def holding(s: State) =
       s.outstanding.in(Outstanding.committed, Outstanding.deliveredOnce, Outstanding.deliveredTwice)
 
-  object effects extends Section:
+  object effects:
     def enqueueView(s: State) =
       choose(
         enqueueCommits -> List(
@@ -72,7 +67,7 @@ object DispatchQueue extends Machine[QueueView, QueueOutcome, QueueFact]:
     def storageLossView(@unused s: State) =
       List(Step(QueueOutcome.lost, QueueView(Outstanding.empty), List(QueueFact.storageLost)))
 
-  object monitors extends Section:
+  object monitors:
     /** A check over the opaque queue rests on the interface alone. */
     val queueOpaque = assume("dispatchQueue.opaque")
 
@@ -81,16 +76,16 @@ object DispatchQueue extends Machine[QueueView, QueueOutcome, QueueFact]:
   object rules extends Rules(_.outstanding):
     import Outstanding.*
 
-    in(empty)(queue.enqueue ~> effects.enqueueView)
-    in(committed, deliveredOnce)(queue.deliver ~> effects.deliverView)
-    in(deliveredOnce, deliveredTwice)(queue.acknowledge ~> effects.acknowledgeView)
+    on(queue.enqueue)(in(empty) ~> effects.enqueueView)
+    on(queue.deliver)(in(committed, deliveredOnce) ~> effects.deliverView)
+    on(queue.acknowledge)(in(deliveredOnce, deliveredTwice) ~> effects.acknowledgeView)
 
 /** The interface under the storage-loss assumption: a committed message may also vanish. */
 object DispatchQueueUnderStorageLoss
     extends Derived(
       DispatchQueue
-        .extend(when(DispatchQueue.states.holding) {
-          faults.storageLoss ~> DispatchQueue.effects.storageLossView
+        .extend(on(fault.storageLoss) {
+          where(DispatchQueue.states.holding) ~> DispatchQueue.effects.storageLossView
         })
         .assuming(storageLossAssumed)
     ),

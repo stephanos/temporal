@@ -583,7 +583,7 @@ func assessedSession(t *testing.T, status testpilotspb.VerdictStatus, assessment
 				fingerprint, err := testpilot.CaseFingerprint(source)
 				require.NoError(t, err)
 				require.Equal(t, fingerprint, factory.Binding().Case)
-				require.Contains(t, factory.Binding().Query, "temporal.activity.standalone/activityProtocol/completion#")
+				require.Contains(t, factory.Binding().Query, "temporal.features.standaloneactivity.system/activityProtocol/completion#")
 				disposition := testpilotspb.RUN_DISPOSITION_COMPLETED
 				if status == testpilotspb.VERDICT_STATUS_VIOLATED {
 					disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR

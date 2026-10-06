@@ -14,12 +14,7 @@ import temporal.realize.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.NexusOperationExecutionStatus.*
 
-import OperationFamily.given
-
 object OperationRealization:
-  // Moved from temporal.nexusoperation; the pin keeps its Definition IDs.
-  given DefinitionScope = DefinitionScope("temporal.nexusoperation.OperationRealization$")
-
   /** The status DescribeNexusOperationExecution reports, read once the operation stays in it. */
   private def status(fact: Fact) = Evidence.read(
     id = evidenceId(fact),

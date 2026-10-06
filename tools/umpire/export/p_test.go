@@ -73,7 +73,7 @@ func TestPExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 	}{
 		"a monitor that reads facts whose cases carry values": {"activity-system", "staleAdmission", "atMostOneActiveAttempt", nil, "carries values"},
 		"a monitor that reads a step's facts": {"activity-system", "staleAdmission", "terminalFinality", func(m *umpirespb.Model) {
-			next := function(m, "temporal.standaloneactivity.System$package$.terminalFinality.next")
+			next := function(m, "temporal.features.standaloneactivity.system.CurrentAdmission.monitors.terminalFinality.next")
 			facts := &umpirespb.Expr{Kind: &umpirespb.Expr_Field{Field: &umpirespb.FieldAccess{
 				Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "after"}}, Field: "facts"}}}
 			next.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_If{If: &umpirespb.If{
@@ -189,7 +189,7 @@ func TestPDisagreesOnAnotherMonitor(t *testing.T) {
 	cases := map[string]func(m *umpirespb.Model){
 		"over means completed and timed out at once": overAtOnce,
 		"violated when closed": func(m *umpirespb.Model) {
-			function(m, "temporal.standaloneactivity.System$package$.terminalFinality.violated").GetBody().GetBinary().GetRight().GetLiteral().GetEnum().Case = "closed"
+			function(m, "temporal.features.standaloneactivity.system.CurrentAdmission.monitors.terminalFinality.violated").GetBody().GetBinary().GetRight().GetLiteral().GetEnum().Case = "closed"
 		},
 	}
 	for name, mutate := range cases {

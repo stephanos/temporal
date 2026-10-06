@@ -6,7 +6,7 @@
  * The feature has two levels, each in a folder of its own, because different people read them
  * (model/irgen/testdata/layout/lamp is the template):
  *
- *   - this file: the types; the signature (the entities, the inputs, the parties with their
+ *   - this file: the types; the signature (the entities, the inputs, the actors with their
  *     actions, the derived observation, the timers and the bounds); and last exports, its IR files;
  *   - product/Product.scala: NexusProduct, the product machine, what an operation does;
  *   - system/System.scala: NexusProtocol, the protocol machine that refines it; HandlerWorker, the
@@ -26,17 +26,6 @@ import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import shared.worker.State as WorkerState
 import product.NexusProduct
 import system.{ForgedCompletion, HandlerWorker, NexusCaller, NexusProtocol}
-
-// Moved from temporal.nexuscaller; the pin keeps its Definition IDs and type names.
-given DefinitionScope = DefinitionScope("temporal.nexuscaller.Model$package$")
-
-/** The family of the caller's machines; the control takes `ControlFamily`. */
-object CallerFamily:
-  given family: Family = Family("temporal.nexus.caller")
-
-/** The control's family, which `ForgedCompletion` (system/) names where it extends `Machine`. */
-object ControlFamily:
-  val family: Family = Family("temporal.nexus.control")
 
 // ### Types
 //
@@ -75,8 +64,6 @@ enum ProductFact derives Finite:
     nexusOperationFailed,
     nexusOperationCanceled, nexusOperationTimedOut
 
-type ProductStep = Step[ProductState, Outcome, ProductFact]
-
 /** The protocol machine's phases. It begins before the operation exists, so unscheduled is one. */
 enum Phase derives Finite:
   case unscheduled, scheduled, backingOff, started, succeeded, failed, canceled, timedOut
@@ -106,17 +93,15 @@ enum ProtocolFact derives Finite:
   /** The attempt count, read through the observation of that name: no history event records it. */
   case pendingAttempts
 
-type ProtocolStep = Step[ProtocolState, Outcome, ProtocolFact]
-
 final case class NexusCallerState(operation: ProtocolState, worker: WorkerState)
 
 // ### Signature
 //
-// Parties are names the feature declares by using them. The reserved party system is the server.
-// A fault is an ordinary action of a declared party, and a timer is system behavior the machine
-// owns, so neither is a separate kind. Each party is an actor object whose members are the actions
-// it takes, and the timers are grouped in sections. Actor and section objects are transparent to
-// Definition IDs, so every action keeps the ID the file's pin gives it.
+// Actors are the objects the feature declares for who acts. The reserved actor `system` is the
+// server. A fault is an ordinary action of a declared actor, and a timer is system behavior the
+// machine owns, so neither is a separate kind. Each actor is an object whose members are the actions
+// it takes, and the timers are grouped in objects of their own; each action is named after where it
+// is declared, `temporal.features.nexuscaller.caller.schedule`.
 
 // An operation is scheduled by a caller workflow, and recorded data names one by its scheduled
 // event: every history event of the operation carries that event's id.
@@ -132,7 +117,7 @@ val startToClose = input[Timeout]
 val reply = input[Reply]
 val resolution = input[Resolution]
 
-/** The caller workflow, which schedules the operation. */
+/** The caller workflow, which schedules the operation and inspects it. */
 object caller extends Actor:
   val schedule = action(this)
     .input(scheduleToClose)
@@ -140,6 +125,9 @@ object caller extends Actor:
     .input(startToClose)
     .creates(operation)
     .schema[ScheduleNexusOperationCommandAttributes]
+
+  /** The caller's inspection of its workflow, which only the forged control (system/) takes. */
+  val inspect = action(this).on(operation)
 
 /** The endpoint's handler, which replies to the start and completes the operation. */
 object handler extends Actor:
@@ -175,12 +163,12 @@ val pendingAttempts = Observation(on = operation, read = "attempts")
 given Ok[Outcome] = Ok(Outcome.accepted)
 
 /** One of the operation's deadlines firing, as the product machine sees it, and the backoff. */
-object timers extends Section:
+object timers:
   val timeout = timer
   val backoff = timer
 
 /** The protocol's three deadlines, each armed by the schedule's input of its name. */
-object deadline extends Section:
+object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
   val startToClose = timer
@@ -217,30 +205,26 @@ object exports:
     HandlerWorker,
     NexusCaller,
     shared.worker.Polling,
-    NexusProtocol.queries.functionalQueries,
-    NexusProtocol.queries.terminalHolds,
-    NexusCaller.queries.stoppedWorkerRepliesNothing,
+    NexusProtocol.queries,
+    NexusCaller.queries,
     NexusRealization.asyncNexus
   )
 
   // The forged completion a caller must refuse, and the realization that offers it.
   val nexusControl =
-    irFile("nexus-control")(
-      ForgedCompletion.queries.forgedCompletion,
-      NexusRealization.forgedCompletion
-    )
+    irFile("nexus-control")(ForgedCompletion.queries, NexusRealization.forgedCompletion)
 
   // The close and reset designs. Each design's Queries are a root, and so is each progress claim.
   val nexusClose = irFile("nexus-close")(
-    system.RejectAfterClose.queries.all,
-    system.AckByOriginal.queries.all,
-    system.RetainAndRoute.queries.all,
-    system.ForgetsCancelOnReset.queries.all,
-    system.TruncatesOnReset.queries.all,
-    system.RetainAndRouteBoundedRetry.queries.all,
-    system.RejectAfterCloseWithDeadline.queries.all,
-    system.AckByOriginalWithDeadline.queries.all,
-    system.RetainAndRouteWithDeadline.queries.all,
+    system.RejectAfterClose.queries,
+    system.AckByOriginal.queries,
+    system.RetainAndRoute.queries,
+    system.ForgetsCancelOnReset.queries,
+    system.TruncatesOnReset.queries,
+    system.RetainAndRouteBoundedRetry.queries,
+    system.RejectAfterCloseWithDeadline.queries,
+    system.AckByOriginalWithDeadline.queries,
+    system.RetainAndRouteWithDeadline.queries,
     system.RejectAfterClose.properties.rejectAfterCloseProgress,
     system.AckByOriginal.properties.ackByOriginalProgress,
     system.RetainAndRoute.properties.retainAndRouteProgress,

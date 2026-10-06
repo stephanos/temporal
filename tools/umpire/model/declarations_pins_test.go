@@ -35,19 +35,19 @@ func inbox(channel string, op umpirespb.Inbox_Op, messages ...*umpirespb.Value) 
 	held := &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{}}}}}
 	for _, message := range messages {
 		held = &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Inbox{Inbox: &umpirespb.Inbox{Op: umpirespb.Inbox_OP_SEND,
-			Channel: "fixture.channels.Channels$package$." + channel, Contents: held,
+			Channel: "fixture.channels." + channel, Contents: held,
 			Message: &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Literal{Literal: message}}}}}
 	}
 	if op == umpirespb.Inbox_OP_SEND {
 		return held
 	}
 	return &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Inbox{Inbox: &umpirespb.Inbox{Op: op,
-		Channel: "fixture.channels.Channels$package$." + channel, Contents: held}}}
+		Channel: "fixture.channels." + channel, Contents: held}}}
 }
 
 func TestAFIFOChannelHoldsEverySequenceUpToItsCapacityInSendOrder(t *testing.T) {
 	m := lifted(t, "channels")
-	wire := memberKeys(t, m, &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Channel{Channel: "fixture.channels.Channels$package$.wire"}})
+	wire := memberKeys(t, m, &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Channel{Channel: "fixture.channels.wire"}})
 	// Capacity two, two notes, each held once or redelivered once: 1 + 4 + 4².
 	require.Len(t, wire, 1+4+16)
 	require.Equal(t, []string{"[]", "[ping-0]", "[ping-1]", "[pong-0]", "[pong-1]", "[ping-0,ping-0]"}, wire[:6])
@@ -139,7 +139,7 @@ func TestNamingWhatARefinedMachineSeesRequiresARefinement(t *testing.T) {
 				r.Product = ""
 				keep(r)
 			})
-			require.ErrorContains(t, Validate(m), admDeclaredAt+"98: disk names what a refined machine sees but refines none")
+			require.ErrorContains(t, Validate(m), admDeclaredAt+"93: disk names what a refined machine sees but refines none")
 		})
 	}
 }

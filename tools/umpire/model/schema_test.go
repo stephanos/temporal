@@ -76,6 +76,14 @@ type schemaReplacedField struct {
 	replacement *descriptorpb.FieldDescriptorProto
 }
 
+// schemaRenamedField is a captured field the schema renamed after the capture, keeping its number
+// and type: the wire bytes are unchanged, and the ProtoJSON key is the new name.
+type schemaRenamedField struct {
+	message string
+	from    string
+	to      string
+}
+
 // schemaEnumOf is the descriptor protoc gives an enum, its values numbered from 0 in order.
 func schemaEnumOf(name string, values ...string) *descriptorpb.EnumDescriptorProto {
 	enum := &descriptorpb.EnumDescriptorProto{Name: proto.String(name)}
@@ -145,6 +153,10 @@ var (
 	schemaReplacedFields = []schemaReplacedField{
 		{message: "RunExpectation", replaced: "reason", replacement: schemaFieldOf("reason", 8, schemaOptional, schemaEnum, "RunExpectation.Reason", "reason")},
 		{message: "MonitorExpectation", replaced: "reason", replacement: schemaFieldOf("reason", 4, schemaOptional, schemaEnum, "RunExpectation.Reason", "reason")},
+	}
+	schemaRenamedFields = []schemaRenamedField{
+		// fn-126 decision 26: who takes an action is its actor.
+		{message: "Action", from: "party", to: "actor"},
 	}
 	schemaAddedNestedEnums = []schemaAddedNestedEnum{
 		{message: "RunExpectation", enum: schemaEnumOf("Disposition", "DISPOSITION_UNSPECIFIED", "DISPOSITION_COMPLETED", "DISPOSITION_STOPPED_BY_MONITOR",
@@ -334,6 +346,12 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 		number := m.GetField()[i].GetNumber()
 		m.ReservedRange = append(m.ReservedRange, &descriptorpb.DescriptorProto_ReservedRange{Start: proto.Int32(number), End: proto.Int32(number + 1)})
 		m.Field[i] = proto.CloneOf(replaced.replacement)
+	}
+	for _, renamed := range schemaRenamedFields {
+		m := message(renamed.message)
+		i := slices.IndexFunc(m.GetField(), func(f *descriptorpb.FieldDescriptorProto) bool { return f.GetName() == renamed.from })
+		require.NotEqual(t, -1, i, "%s.%s was not captured", renamed.message, renamed.from)
+		m.Field[i].Name, m.Field[i].JsonName = proto.String(renamed.to), proto.String(renamed.to)
 	}
 	for _, added := range schemaAddedFields {
 		message := message(added.message)

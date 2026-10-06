@@ -4,16 +4,17 @@
  * Case's own worker and the task queues it polls, each a role with the environment bindings the run
  * supplies for it. Its evidence is lifted into one correlated record, keyed by the run and by the
  * operation, and checked within one window. Its controller is one script, whose reads wait as the
- * kit's API behavior derives (Behavior.scala). What a feature says differently is a parameter: its
- * family, which names its Definition IDs, the roles it addresses, the operation its evidence is
- * keyed by, its scripts and its evidence.
+ * kit's API behavior derives (Behavior.scala). What a feature says differently is a parameter: the
+ * roles it addresses, the operation its evidence is keyed by, its scripts and its evidence. The
+ * Definition IDs it declares hang off the realization's own package, `umpire.realize.family`, which
+ * the lifter writes in.
  *
  * The standalone activity and the Nexus caller realizations build on it. Everything here is a
  * declaration the lifter reads, by value, into the realizations that use it.
  */
 package temporal.realize
 
-import umpire.{Entity, Family, Machine}
+import umpire.{Entity, Machine}
 import umpire.realize.*
 import temporal.server.api.testpilot.v1.{
   ActivityAttempt,
@@ -98,16 +99,16 @@ val firstRetryBackoffMs: Long = 1000
 // ### Evidence: Definition IDs, the correlated record and the window
 
 /** The Definition ID of one kind of evidence of the family: `<family>.evidence.<kind>`. */
-def evidenceId(kind: Fact)(using family: Family) = family.root + ".evidence." + kind
+def evidenceId(kind: Fact) = family + ".evidence." + kind
 
 /** The Definition ID of one source evidence is counted in: `<family>.source.<name>`. */
-def sourceId(name: Fact)(using family: Family) = family.root + ".source." + name
+def sourceId(name: Fact) = family + ".source." + name
 
 /**
  * The Run's own record. The Run numbers what it records, so every kind read from it counts in this
  * one source, in the order the Run recorded it.
  */
-def runRecord(using Family) = sourceId("record")
+def runRecord = sourceId("record")
 
 /** The observation every Temporal realization lifts its evidence into, one correlated record. */
 val correlatedEvidence = "correlated-evidence"
@@ -120,10 +121,10 @@ val correlated = Observed[CorrelatedEvidence](correlatedEvidence)
  * is of (Definition IDs `<family>.projection`, `<family>.scope.run` and
  * `<family>.scope.<entity>`), and the window a check of it keeps: every Temporal Case keeps the same.
  */
-def correlation(operation: Entity)(using family: Family) = Correlation(
-  projection = family.root + ".projection",
-  run = family.root + ".scope.run",
-  operation = family.root + ".scope." + operation.name,
+def correlation(operation: Entity) = Correlation(
+  projection = family + ".projection",
+  run = family + ".scope.run",
+  operation = family + ".scope." + operation.name,
   observation = correlatedEvidence,
   events = 32,
   buffered = 16,
@@ -151,9 +152,9 @@ def temporalRealization(
     requiredSettings: Vector[RequiredSetting] = Vector.empty,
     serverSteps: Vector[ServerStep] = Vector.empty,
     behavior: ApiBehavior = temporalBehavior
-)(using family: Family) = Realization(
+) = Realization(
   machine = machine,
-  producer = family.root + ".testpilot",
+  producer = family + ".testpilot",
   producerVersion = "1",
   roles = roles,
   correlation = correlation(operation),
@@ -198,27 +199,25 @@ val succeeded = Condition.equal(
  * call's completion, the kind `kind` that confirms `records`. The run starts one operation, under its
  * own id, so the run is the key.
  */
-def answeredAs(kind: Fact, records: Fact, call: Command | Instruction, confirms: Taking*)(using
-    Family
-) = Evidence.runEvent(
-  id = evidenceId(kind),
-  records = records,
-  source = runRecord,
-  from = Recorded.runEvent[InstructionOutcome](
-    EventKind.instructionCompleted,
-    controllerScript,
-    call,
-    key = Operand.runKey(),
-    guard = Some(succeeded)
-  ),
-  commitment = Commitment.reported,
-  confirms = Vector(confirms*)
-)
+def answeredAs(kind: Fact, records: Fact, call: Command | Instruction, confirms: Taking*) =
+  Evidence.runEvent(
+    id = evidenceId(kind),
+    records = records,
+    source = runRecord,
+    from = Recorded.runEvent[InstructionOutcome](
+      EventKind.instructionCompleted,
+      controllerScript,
+      call,
+      key = Operand.runKey(),
+      guard = Some(succeeded)
+    ),
+    commitment = Commitment.reported,
+    confirms = Vector(confirms*)
+  )
 
 /** `answeredAs` for the kind named after the fact it confirms. */
-def answered(fact: Fact, call: Command | Instruction, confirms: Taking*)(using
-    Family
-) = answeredAs(fact, fact, call, confirms*)
+def answered(fact: Fact, call: Command | Instruction, confirms: Taking*) =
+  answeredAs(fact, fact, call, confirms*)
 
 /**
  * What the Case's worker reports of one attempt it was delivered: the Run's record of an activation
@@ -236,7 +235,7 @@ def delivered(
     number: Long,
     call: Command | Instruction,
     confirms: Taking*
-)(using Family) = Evidence.runEvent(
+) = Evidence.runEvent(
   id = evidenceId(fact),
   records = fact,
   source = runRecord,

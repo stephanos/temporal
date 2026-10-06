@@ -1,10 +1,9 @@
 /* The Nexus caller's control: a caller design that predicts success for a failed completion, which
  * the forged-completion Query must refuse. A subject of the System level, beside
- * system/System.scala (fn-126 decisions 16 and 22). It keeps its own family, and its one Definition
- * ID, its inspection's, hangs off the control's former owner, which this file pins. It is the protocol
- * machine without its refinement, its completion forged and an inspection added, declared rather
- * than derived from NexusProtocol: a derivation lifts its source machines, and nexus-control.json
- * holds this machine alone.
+ * system/System.scala (fn-126 decisions 16 and 22). It is the protocol machine without its
+ * refinement, its completion forged and the caller's inspection added, declared rather than derived
+ * from NexusProtocol: a derivation lifts its source machines, and nexus-control.json holds this
+ * machine alone.
  */
 package temporal
 package features.nexuscaller
@@ -15,17 +14,7 @@ import umpire.realize.{Alternative, Cleanup, Conformance, Disposition, Explorati
 import umpire.realize.{PropertyOutcome, RunExpectation, Variation}
 import shared.worker.worker
 
-// Moved from temporal.nexuscaller with the control; the pin keeps the inspection's Definition ID.
-given forgedCompletionScope: DefinitionScope = DefinitionScope("temporal.nexuscaller.Control$")
-
 // ### Signature
-
-/**
- * The caller's inspection of its workflow, which only this control takes. The section keeps the
- * Definition ID this file's pin gives it, the one it had in the control's object.
- */
-object inspection extends Section:
-  val inspect = action(caller).on(operation)
 
 // A failed callback completes the forged control's operation two ways: as the success the control
 // forges, and as the failure the runtime still sends.
@@ -34,15 +23,7 @@ val sent = choice
 
 // ### The control
 
-object ForgedCompletion
-    extends Machine[ProtocolState, Outcome, ProtocolFact](using
-      ControlFamily.family,
-      summon,
-      summon,
-      summon
-    ),
-      NegativeControl:
-  val entity = operation
+object ForgedCompletion extends Machine[ProtocolState, Outcome, ProtocolFact], NegativeControl:
   val init = NexusProtocol.init
   def end(s: State) = NexusProtocol.states.terminalPhase(s.phase)
   val evidence: PartialFunction[ProtocolFact, String] = {
@@ -51,8 +32,8 @@ object ForgedCompletion
   }
   val unobservable = List(timers.backoff)
 
-  object effects extends Section:
-    def inspect(s: State): List[ProtocolStep] = stay(s)
+  object effects:
+    def inspect(s: State) = stay(s)
 
     /**
      * The protocol's completion of an operation once scheduled: not found once it is over, and
@@ -72,35 +53,37 @@ object ForgedCompletion
 
   // The protocol machine's rules, its completion forged and the inspection added.
   object rules extends Rules(_.phase):
-    in(Phase.unscheduled)(caller.schedule ~> NexusProtocol.effects.schedule)
-    in(Phase.scheduled)(handler.handlerReply ~> NexusProtocol.effects.handlerReply)
-    when(s => NexusProtocol.states.created(s.phase))(handler.complete ~> effects.forgedComplete)
-    when(_ => true)(inspection.inspect ~> effects.inspect)
-    in(Phase.scheduled)(network.transportFault ~> NexusProtocol.effects.backOff)
-    when(_ => true)(worker.workerStop ~> NexusProtocol.effects.keep)
-    in(Phase.backingOff)(timers.backoff ~> NexusProtocol.effects.retry)
-    when(s => NexusProtocol.states.running(s.phase) && s.scheduleToClose == Timeout.expires) {
-      deadline.scheduleToClose ~> (s =>
-        NexusProtocol.effects.timeOut(s, TimeoutType.scheduleToClose)
-      )
+    on(caller.schedule)(in(Phase.unscheduled) ~> NexusProtocol.effects.schedule)
+    on(handler.handlerReply)(in(Phase.scheduled) ~> NexusProtocol.effects.handlerReply)
+    on(handler.complete)(in(NexusProtocol.states.created) ~> effects.forgedComplete)
+    on(caller.inspect)(always ~> effects.inspect)
+    on(network.transportFault)(in(Phase.scheduled) ~> NexusProtocol.effects.backOff)
+    on(worker.workerStop)(always ~> NexusProtocol.effects.keep)
+    on(timers.backoff)(in(Phase.backingOff) ~> NexusProtocol.effects.retry)
+    on(deadline.scheduleToClose) {
+      in(NexusProtocol.states.running).where(
+        _.scheduleToClose == Timeout.expires
+      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.scheduleToClose))
     }
-    when(s => NexusProtocol.states.waiting(s.phase) && s.scheduleToStart == Timeout.expires) {
-      deadline.scheduleToStart ~> (s =>
-        NexusProtocol.effects.timeOut(s, TimeoutType.scheduleToStart)
-      )
+    on(deadline.scheduleToStart) {
+      in(NexusProtocol.states.waiting).where(
+        _.scheduleToStart == Timeout.expires
+      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.scheduleToStart))
     }
-    when(s => s.phase == Phase.started && s.startToClose == Timeout.expires) {
-      deadline.startToClose ~> (s => NexusProtocol.effects.timeOut(s, TimeoutType.startToClose))
+    on(deadline.startToClose) {
+      where(s =>
+        s.phase == Phase.started && s.startToClose == Timeout.expires
+      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.startToClose))
     }
 
-  object properties extends Section:
+  object properties:
     /**
      * A failed completion is recorded as completed: what the control predicts and no runtime sends.
      */
     val forgedSuccess = property when handler.complete(Resolution.failed) holds
       (_.records(ProtocolFact.nexusOperationCompleted))
 
-  object queries extends Section:
+  object queries:
     /**
      * The forged control, which every modeled execution that explains the evidence refutes, on a
      * path that inspects the operation around a failed completion.
@@ -108,11 +91,11 @@ object ForgedCompletion
     val forgedCompletion =
       (query find properties.forgedSuccess in scenario("inspectedFailure").actions(
         caller.schedule(),
-        inspection.inspect,
+        caller.inspect,
         handler.handlerReply(Reply.async),
-        inspection.inspect,
+        caller.inspect,
         handler.complete(Resolution.failed)
-      ) limits control total 960)
+      ) limits control)
         .expect(
           RunExpectation(
             Conformance.inconclusive,
@@ -131,8 +114,8 @@ object ForgedCompletion
               Variation(
                 1,
                 Vector(
-                  Alternative("twice", 20, Vector(inspection.inspect, inspection.inspect)),
-                  Alternative("once", 10, Vector(inspection.inspect)),
+                  Alternative("twice", 20, Vector(caller.inspect, caller.inspect)),
+                  Alternative("once", 10, Vector(caller.inspect)),
                   Alternative("none", 0, Vector.empty)
                 )
               )

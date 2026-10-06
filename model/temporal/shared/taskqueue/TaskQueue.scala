@@ -16,8 +16,8 @@
  * The queue has two levels, each in a folder of its own (fn-126 decision 16): its contract is its
  * Product and its provider its System.
  *
- *   - this file: the types and the signature (the entity, the interface's actions, the faults, the
- *     storage-loss assumption and the bounds);
+ *   - this file: the types and the signature (the entity, the interface's actions, the fault actor
+ *     and its actions, the storage-loss assumption and the bounds);
  *   - product/Product.scala: DispatchQueue, the opaque contract, and DispatchQueueUnderStorageLoss,
  *     its storage-loss variant;
  *   - system/System.scala: MatchingQueue, the detailed provider that refines it, and the providers
@@ -31,12 +31,6 @@ package temporal
 package shared.taskqueue
 
 import umpire.*
-
-// The queue was first written in the standalone activity's system contract. Its declarations keep the
-// family, the Definition IDs and the type names they had there, so its tables, IDs and answers are
-// those that contract was checked with.
-given Family = Family("temporal.activity.standalone.system")
-given DefinitionScope = DefinitionScope("temporal.standaloneactivity.System$package$")
 
 // ### Types
 
@@ -61,8 +55,6 @@ enum QueueFact derives Finite:
   case enqueueCommitted, enqueueFailed, delivered, acknowledged, storageLost
   case addInvoked, taskPersisted, matchReserved, crashed, ackLost
 
-type QueueViewStep = Step[QueueView, QueueOutcome, QueueFact]
-
 /**
  * Who holds the message. `history` is the dispatch task alone; `invoked` an AddActivityTask in
  * flight and `reserved` a sync match, both only in memory; `persisted` a task in matching's durable
@@ -77,8 +69,6 @@ enum Delivered derives Finite:
 /** `polled` is a poller holding the task while the consumer decides. */
 final case class QueueDetail(custody: Custody, polled: Boolean, delivered: Delivered) derives Finite
 
-type QueueDetailStep = Step[QueueDetail, QueueOutcome, QueueFact]
-
 /** The laws every provider of the detailed queue is held to, declared once by `queueLaws`. */
 final case class QueueLaws(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])
 
@@ -90,15 +80,11 @@ final case class QueueLaws(delivers: Property[QueueDetail], committedStays: Prop
  */
 val taskQueueEntity = Entity("taskQueue", key = "taskQueue")
 
-/** The party of the faults the queue's providers suffer. */
-val fault = Party()
-
 val enqueueCommits = choice
 val enqueueFails = choice
 
 /**
- * The queue's own steps. A section is transparent, so each keeps the Definition ID the file's pin
- * gives it.
+ * The queue's own steps.
  *
  * The interface: what a feature may rely on of the durable queue. An enqueue commits or fails; a
  * committed message is delivered up to twice before its acknowledgment; and no committed message
@@ -110,7 +96,7 @@ val enqueueFails = choice
  * has answered, matching completes it. Each step is its own transition, so a crash can fall between
  * any two.
  */
-object queue extends Section:
+object queue:
   val enqueue = internal on taskQueueEntity
   val deliver = internal on taskQueueEntity
   val acknowledge = internal on taskQueueEntity
@@ -120,20 +106,19 @@ object queue extends Section:
   val syncMatch = internal on taskQueueEntity
 
 /** The faults the providers suffer. Like the worker's stop and resume, they name no entity. */
-object faults extends Section:
+object fault extends Actor:
   /**
    * Committed storage may be lost. It is a fault of its own, apart from a crash, and only a machine
    * that assumes it has the step.
    */
-  val storageLoss = action(fault)
+  val storageLoss = action(this)
 
-  val crash = action(fault)
-  val ackLoss = action(fault)
+  val crash = action(this)
+  val ackLoss = action(this)
 
 /**
  * Committed storage may be lost. No machine makes the assumption of its own: a derivation that binds
- * the storage-loss step adds it. The file's pin is the one the system contract had, so it keeps its
- * Definition ID.
+ * the storage-loss step adds it.
  */
 val storageLossAssumed = assume("storageLoss")
 

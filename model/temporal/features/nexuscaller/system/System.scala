@@ -15,7 +15,6 @@ import temporal.realize.{inconclusive, satisfied}
 import shared.Bounds.{four, three}
 import shared.worker.{worker, Phase as WorkerPhase, State as WorkerState}
 import product.NexusProduct
-import CallerFamily.given
 import Timeout.expires
 
 // ### The protocol machine
@@ -34,10 +33,14 @@ import Timeout.expires
 object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
   import Phase.*
 
-  val entity = operation
-
   /** Where every path begins: before the operation exists, with every deadline at its first value. */
-  val init = ProtocolState(Phase.unscheduled, 0, Timeout.unset, Timeout.unset, Timeout.unset)
+  val init = ProtocolState(
+    phase = Phase.unscheduled,
+    attempts = 0,
+    scheduleToClose = Timeout.unset,
+    scheduleToStart = Timeout.unset,
+    startToClose = Timeout.unset
+  )
   def end(s: State) = states.terminalPhase(s.phase)
 
   /**
@@ -50,7 +53,7 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
   }
 
   /** The protocol's phase sets and its attempt count's arithmetic. */
-  object states extends Section:
+  object states:
     def validAttempts(a: Int) = 0 <= a && a <= attemptBound
 
     /** A retry past the bound stays at it, rather than wrapping as `Fin` arithmetic would. */
@@ -90,7 +93,7 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
     /** The backoff timer records nothing a Run can read: a retry writes no history event. */
     val unobservable = List(timers.backoff)
 
-  object effects extends Section:
+  object effects:
     import ProtocolFact.*
 
     /**
@@ -105,7 +108,13 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
         startToClose: Timeout
     ) =
       enter(
-        ProtocolState(scheduled, 0, scheduleToClose, scheduleToStart, startToClose),
+        ProtocolState(
+          phase = scheduled,
+          attempts = 0,
+          scheduleToClose = scheduleToClose,
+          scheduleToStart = scheduleToStart,
+          startToClose = startToClose
+        ),
         nexusOperationScheduled
       )
 
@@ -143,10 +152,10 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
      * the step keeps the state and records nothing. On a path it is confirmed by the evidence of the
      * step after it, and the Case says so in a Known Gap.
      */
-    def keep(s: State): List[ProtocolStep] = stay(s)
+    def keep(s: State) = stay(s)
 
     /** A completion that arrives after the operation is over is not found, and changes nothing. */
-    def notFound(s: State): List[ProtocolStep] = List(Step(Outcome.notFound, s))
+    def notFound(s: State) = reject(Outcome.notFound, s)
 
     /**
      * An asynchronous completion. Before a start, the server records a Started event first, which is
@@ -168,39 +177,49 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
      * The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
      * it is stuck in, and it records nothing: a retry writes no history event.
      */
-    def retry(s: State): List[ProtocolStep] = enter(s.copy(phase = scheduled))
+    def retry(s: State) = enter(s.copy(phase = scheduled))
 
     /** One of the three deadlines firing; the timed-out event records which. */
     def timeOut(s: State, t: TimeoutType) =
       enter(s.copy(phase = timedOut), nexusOperationTimedOut(t))
 
   object rules extends Rules(_.phase):
-    in(unscheduled)(caller.schedule ~> effects.schedule)
-    in(scheduled)(handler.handlerReply ~> effects.handlerReply)
+    on(caller.schedule)(in(unscheduled) ~> effects.schedule)
+    on(handler.handlerReply)(in(scheduled) ~> effects.handlerReply)
 
     // A completion resolves any running phase, and is not found once the operation is over; an
     // operation not yet scheduled has nothing to complete.
-    when(s => states.terminalPhase(s.phase))(handler.complete ~> effects.notFound)
-    when(s => states.running(s.phase))(handler.complete ~> effects.complete)
-
-    in(scheduled)(network.transportFault ~> effects.backOff)
-    when(_ => true)(worker.workerStop ~> effects.keep)
-    in(backingOff)(timers.backoff ~> effects.retry)
+    on(handler.complete) {
+      in(states.terminalPhase) ~> effects.notFound
+      in(states.running) ~> effects.complete
+    }
+    on(network.transportFault)(in(scheduled) ~> effects.backOff)
+    on(worker.workerStop)(always ~> effects.keep)
+    on(timers.backoff)(in(backingOff) ~> effects.retry)
 
     // Each deadline fires only when the schedule command set it. Schedule-to-close covers the whole
     // operation, schedule-to-start the wait for the handler to accept, and start-to-close the
     // handler's own work.
-    when(s => states.running(s.phase) && s.scheduleToClose == Timeout.expires) {
-      deadline.scheduleToClose ~> (s => effects.timeOut(s, TimeoutType.scheduleToClose))
+    on(deadline.scheduleToClose) {
+      in(states.running).where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
+        _,
+        TimeoutType.scheduleToClose
+      ))
     }
-    when(s => states.waiting(s.phase) && s.scheduleToStart == Timeout.expires) {
-      deadline.scheduleToStart ~> (s => effects.timeOut(s, TimeoutType.scheduleToStart))
+    on(deadline.scheduleToStart) {
+      in(states.waiting).where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
+        _,
+        TimeoutType.scheduleToStart
+      ))
     }
-    when(s => s.phase == started && s.startToClose == Timeout.expires) {
-      deadline.startToClose ~> (s => effects.timeOut(s, TimeoutType.startToClose))
+    on(deadline.startToClose) {
+      where(s => s.phase == started && s.startToClose == Timeout.expires) ~> (effects.timeOut(
+        _,
+        TimeoutType.startToClose
+      ))
     }
 
-  object properties extends Section:
+  object properties:
     /** A synchronous reply settles the operation as succeeded, and the completed event records it. */
     val syncSucceeds = property when handler.handlerReply(Reply.syncSuccess) holds { s =>
       s.state.phase == Phase.succeeded && s.records(ProtocolFact.nexusOperationCompleted)
@@ -238,7 +257,13 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
      * so every field is named.
      */
     val succeededOnRetry =
-      ProtocolState(Phase.succeeded, 1, Timeout.unset, Timeout.unset, Timeout.unset)
+      ProtocolState(
+        phase = Phase.succeeded,
+        attempts = 1,
+        scheduleToClose = Timeout.unset,
+        scheduleToStart = Timeout.unset,
+        startToClose = Timeout.unset
+      )
 
     /**
      * A synchronous reply to the retried attempt settles the operation as succeeded on its second
@@ -270,7 +295,7 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
    * operation. A schedule that sets no deadline is `schedule()`, each input at `unset`. A path one
    * Query takes is written in it.
    */
-  object queries extends Section:
+  object queries:
     val asyncThenSucceeded = scenario
       .actions(
         caller.schedule(),
@@ -282,13 +307,13 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
     // callback, non-retryable handler error, retryable handler error then sync success after one
     // backoff, schedule-to-start timeout with the handler's worker stopped, start-to-close timeout
     // after an asynchronous reply. Each finds its same-step claim on its path and is realized as a
-    // Case. The product claim is verified over every trace of one path, outside `functionalQueries`,
+    // Case. The product claim is verified over every trace of one path, and realized as none,
     // because a verify Query realizes nothing.
 
     val syncCompletion = (query find properties.syncSucceeds in scenario("syncReplied").actions(
       caller.schedule(),
       handler.handlerReply(Reply.syncSuccess)
-    ) limits two total 384)
+    ) limits two)
       .expect(satisfied)
       .explore(
         Exploration(
@@ -313,20 +338,20 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
         )
       )
     val asyncCompletion =
-      (query find properties.completionSucceeds in asyncThenSucceeded limits three total 576)
+      (query find properties.completionSucceeds in asyncThenSucceeded limits three)
         .expect(inconclusive(Reason.explanationsDisagree))
     val asyncFailure =
       (query find properties.completionFails in scenario("asyncThenFailed").actions(
         caller.schedule(),
         handler.handlerReply(Reply.async),
         handler.complete(Resolution.failed)
-      ) limits three total 576)
+      ) limits three)
         .expect(inconclusive(Reason.explanationsDisagree))
     val handlerError =
       (query find properties.handlerErrorFails in scenario("nonRetryableError").actions(
         caller.schedule(),
         handler.handlerReply(Reply.handlerError(false))
-      ) limits two total 384)
+      ) limits two)
         .expect(inconclusive(Reason.neverEvaluated))
 
     // The retryable error backs the operation off; the backoff timer fires and records nothing; the
@@ -336,7 +361,7 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
       handler.handlerReply(Reply.handlerError(true)),
       timers.backoff,
       handler.handlerReply(Reply.syncSuccess)
-    ) limits four total 768)
+    ) limits four)
       .expect(inconclusive(Reason.explanationsDisagree))
 
     // The schedule command sets the schedule-to-start deadline; the handler's worker stops, so
@@ -348,7 +373,7 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
         caller.schedule(scheduleToStart := expires),
         worker.workerStop,
         deadline.scheduleToStart
-      ) limits three total 576)
+      ) limits three)
         .expect(inconclusive(Reason.neverEvaluated))
 
     // The schedule command sets the start-to-close deadline; the handler accepts asynchronously and
@@ -358,26 +383,14 @@ object NexusProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
         caller.schedule(startToClose := expires),
         handler.handlerReply(Reply.async),
         deadline.startToClose
-      ) limits three total 576)
+      ) limits three)
         .expect(inconclusive(Reason.neverEvaluated))
 
     /**
      * A product claim on a protocol path, read through the refinement the protocol machine declares.
      */
     val terminalHolds =
-      query verify NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three total
-        576
-
-    /** The functional Queries in declaration order. */
-    val functionalQueries = Vector(
-      syncCompletion,
-      asyncCompletion,
-      asyncFailure,
-      handlerError,
-      retry,
-      scheduleToStartTimeout,
-      startToCloseTimeout
-    )
+      query verify NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three
 
 // ### The handler's worker
 //
@@ -407,7 +420,7 @@ object NexusCaller
     sync(_.operation -> worker.workerStop, _.worker -> worker.workerStop)
     sync(_.operation -> handler.handlerReply, _.worker -> worker.serve)
 
-  object properties extends Section:
+  object properties:
     /**
      * The cross-entity claim: every reply, of any class, leaves the handler's worker polling, so no
      * handler replies while its worker is stopped.
@@ -416,7 +429,7 @@ object NexusCaller
       .whenAction(synced(_.operation -> handler.handlerReply))
       .holds(_.state.worker.phase == WorkerPhase.polling)
 
-  object queries extends Section:
+  object queries:
     /**
      * The cross-entity claim, verified over the path on which a retryable reply backs the operation
      * off; the handler's worker then stops, so the retried attempt is never answered and the
@@ -431,4 +444,4 @@ object NexusCaller
           synced(_.operation -> handler.handlerReply(Reply.handlerError(true))),
           synced(_.operation -> worker.workerStop),
           own(_.operation, deadline.scheduleToStart)
-        ) limits four total 1536
+        ) limits four

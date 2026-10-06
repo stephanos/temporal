@@ -75,7 +75,7 @@ var pauseOfCancelRequestedByDefault = rewrite("activityProtocol.rules.control", 
 			Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "s"}}, Field: "phase"}}}
 	}
 	cancelRequested := &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Enum{
-		Enum: &umpirespb.EnumValue{Type: "temporal.standaloneactivity.Phase", Case: "cancelRequested"}}}}}
+		Enum: &umpirespb.EnumValue{Type: "temporal.features.standaloneactivity.Phase", Case: "cancelRequested"}}}}}
 	none := &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
 	byDefault := &umpirespb.Expr{Position: c.GetBody().GetPosition(), Kind: &umpirespb.Expr_Match{Match: &umpirespb.Match{
 		Scrutinee: phase(),
