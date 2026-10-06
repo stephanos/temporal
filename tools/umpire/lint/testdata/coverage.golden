@@ -1,7 +1,7 @@
 coverage model/ir/activity.json activityProduct
   properties           3 declared, 3 named by a Query
   verify Queries       3, 3 whose Property fired
-coverage model/ir/activity.json activityProtocol
+coverage model/ir/activity.json activitySystem
   properties           10 declared, 10 named by a Query
   non-system actions   5, 5 performed by a realization
   facts                10, 10 with evidence
@@ -11,7 +11,7 @@ coverage model/ir/activity.json activityProtocol
 coverage model/ir/activity.json standaloneActivity
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/ir/nexus-control.json forgedCompletion
+coverage model/ir/nexus-control.json trustingCaller
   properties           1 declared, 1 named by a Query
   non-system actions   6, 5 performed by a realization
   facts                7, 7 with evidence
@@ -20,12 +20,12 @@ coverage model/ir/nexus-control.json forgedCompletion
 coverage model/irgen/testdata/lifts/expected/admission.json activityProduct
   properties           1 declared, 1 named by a Query
   verify Queries       2, 1 whose Property fired
-coverage model/irgen/testdata/lifts/expected/admission.json currentAdmission
+coverage model/irgen/testdata/lifts/expected/admission.json activityRecord
   properties           3 declared, 3 named by a Query
   verify Queries       6, 6 whose Property fired
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 1 read through by a Query
-coverage model/irgen/testdata/lifts/expected/admission.json staleAdmission
+coverage model/irgen/testdata/lifts/expected/admission.json trustingActivityRecord
   properties           3 declared, 3 named by a Query
   verify Queries       6, 6 whose Property fired
   named choices        2, 2 taken by a reachable state
@@ -95,8 +95,6 @@ coverage model/irgen/testdata/lifts/expected/realizations.json tally
   non-system actions   1, 1 performed by a realization
   facts                1, 1 with evidence
   observations         1, 1 read
-coverage model/irgen/testdata/lifts/expected/taskqueue.json dispatchQueue
-  named choices        2, 2 taken by a reachable state
 coverage model/irgen/testdata/lifts/expected/taskqueue.json forgetfulQueue
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 0 read through by a Query
@@ -109,6 +107,8 @@ coverage model/irgen/testdata/lifts/expected/taskqueue.json jobOverMatching
 coverage model/irgen/testdata/lifts/expected/taskqueue.json jobOverQueue
   properties           2 declared, 2 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/irgen/testdata/lifts/expected/taskqueue.json matchingQueue
+coverage model/irgen/testdata/lifts/expected/taskqueue.json taskQueueProduct
+  named choices        2, 2 taken by a reachable state
+coverage model/irgen/testdata/lifts/expected/taskqueue.json taskQueueSystem
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 0 read through by a Query

@@ -117,7 +117,7 @@ func apiTallyOf(t *testing.T, ir *umpirespb.Model, lowering Lowering) Tally {
 	tallies, err := unmodeledAPIValues(m)
 	require.NoError(t, err)
 	require.Len(t, tallies, 1)
-	require.Equal(t, "activityProtocol", tallies[0].Owner)
+	require.Equal(t, "activitySystem", tallies[0].Owner)
 	return tallies[0]
 }
 

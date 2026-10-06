@@ -1,4 +1,4 @@
-/* The standalone activity's Product: what DescribeActivityExecution reports, the level a caller
+/* The standalone activity's Product: what DescribeActivityExecution reports, the level a client
  * reads (fn-126 decision 16). The level's own file holds the product machine, ActivityProduct, which
  * refines nothing; system/System.scala refines it. The two package clauses read the feature's
  * package as well as this one, so its types and signature are in scope.
@@ -58,7 +58,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
     def fail(s: State) = enter(s.copy(phase = failed), statusFailed)
 
     /**
-     * Unlike the Nexus caller, a retryable failure reads SCHEDULED again with a higher attempt count
+     * Unlike the Nexus client, a retryable failure reads SCHEDULED again with a higher attempt count
      * (TransitionRescheduled); the protocol adds the backoff.
      */
     def retry(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
@@ -81,33 +81,33 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
     def timeOut(s: State) = enter(s.copy(phase = timedOut), statusTimedOut)
 
   object rules extends Rules(_.phase):
-    on(worker.attemptStart)(in(scheduled) ~> effects.startAttempt)
+    on(worker.poll)(in(scheduled) ~> effects.startAttempt)
 
     // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
     // under a cancel request; a canceled answer settles only an activity whose cancellation was
     // requested.
-    on(worker.attemptResult(AttemptResult.completed))(where(states.held) ~> effects.complete)
-    on(worker.attemptResult(AttemptResult.failed(false)))(where(states.held) ~> effects.fail)
-    on(worker.attemptResult(AttemptResult.failed(true))) {
+    on(worker.respond(AttemptResult.completed))(where(states.held) ~> effects.complete)
+    on(worker.respond(AttemptResult.failed(false)))(where(states.held) ~> effects.fail)
+    on(worker.respond(AttemptResult.failed(true))) {
       in(started) ~> effects.retry
       in(cancelRequested) ~> effects.cancel
     }
-    on(worker.attemptResult(AttemptResult.canceled))(in(cancelRequested) ~> effects.cancel)
+    on(worker.respond(AttemptResult.canceled))(in(cancelRequested) ~> effects.cancel)
 
     // A control on an activity that is over is not found. A pause of a paused or cancel-requested
     // activity, or an unpause of one not paused, is FailedPrecondition; the protocol lists them.
-    on(caller.control)(in(states.terminal) ~> effects.notFound)
-    on(caller.control(Control.pause))(where(states.pausable) ~> effects.pause)
-    on(caller.control(Control.unpause))(where(states.paused) ~> effects.resume)
-    on(caller.control(Control.requestCancel)) {
+    on(client.control)(in(states.terminal) ~> effects.notFound)
+    on(client.control(Control.pause))(where(states.pausable) ~> effects.pause)
+    on(client.control(Control.unpause))(where(states.paused) ~> effects.resume)
+    on(client.control(Control.requestCancel)) {
       in(scheduled, started, paused, cancelRequested) ~> effects.requestCancel
     }
-    on(caller.control(Control.terminate)) {
+    on(client.control(Control.terminate)) {
       in(scheduled, started, paused, cancelRequested) ~> effects.terminate
     }
 
     // The worker stopping is a fault the Run records and the activity does not feel.
-    disabled(process.workerStop)
+    disabled(process.stop)
     on(timers.timeout)(in(scheduled, started, paused, cancelRequested) ~> effects.timeOut)
 
   /**
@@ -126,9 +126,9 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
           rejected = cited(Outcome.notFound, states.notFoundCode)
         ),
         Pausable(
-          pause = caller.control(Control.pause),
-          unpause = caller.control(Control.unpause),
+          pause = client.control(Control.pause),
+          unpause = client.control(Control.unpause),
           paused = states.paused
         ),
-        Pollable(dispatch = worker.attemptStart, running = states.running)
+        Pollable(dispatch = worker.poll, running = states.running)
       )

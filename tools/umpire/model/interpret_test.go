@@ -44,19 +44,19 @@ func hasRow(mm *Machine, key string) bool {
 const again = "the channel delivers the message again"
 
 func TestChoiceKeepsEveryResultInOrder(t *testing.T) {
-	mm := built(t, lifted(t, "admission"))["currentAdmission"]
+	mm := built(t, lifted(t, "admission"))["activityRecord"]
 	facts := []string{"statusStarted", "attemptAdmitted"}
-	require.Equal(t, Row{Key: "scheduled-queued-none-attemptStart", Source: "scheduled-queued-none", Action: "attemptStart",
+	require.Equal(t, Row{Key: "scheduled-queued-none-poll", Source: "scheduled-queued-none", Action: "poll",
 		Results: []Result{
 			{Outcome: "accepted", State: "started-empty-one", Facts: facts, Choice: "committed"},
 			{Outcome: "accepted", State: "started-redelivery-one", Facts: facts, Because: "the channel may deliver the message again", Choice: "redelivered"},
-		}}, row(t, mm, "scheduled-queued-none-attemptStart"))
+		}}, row(t, mm, "scheduled-queued-none-poll"))
 }
 
 // Transitions are the table's rows as values, in the same order, so a check can evaluate a monitor or
 // a Property over the very steps the table keys.
 func TestTransitionsAreTheRowsAsValues(t *testing.T) {
-	mm := built(t, lifted(t, "admission"))["currentAdmission"]
+	mm := built(t, lifted(t, "admission"))["activityRecord"]
 	require.Len(t, mm.Transitions, len(mm.Table.Rows))
 	for i, tr := range mm.Transitions {
 		r := mm.Table.Rows[i]
@@ -74,7 +74,7 @@ func TestTransitionsAreTheRowsAsValues(t *testing.T) {
 	redelivered, ok := mm.State("started-redelivery-one")
 	require.True(t, ok)
 	for _, tr := range mm.Transitions {
-		if tr.Row == "scheduled-queued-none-attemptStart" {
+		if tr.Row == "scheduled-queued-none-poll" {
 			require.True(t, tr.Steps[1].Fields[1].equal(redelivered))
 		}
 	}
@@ -85,12 +85,12 @@ func TestTransitionsAreTheRowsAsValues(t *testing.T) {
 func TestARejectedRefinementStaysWithItsMachine(t *testing.T) {
 	m := lifted(t, "admission")
 	machines := built(t, m)
-	_, err := refinementOf(t, m, "currentAdmission")
+	_, err := refinementOf(t, m, "activityRecord")
 	require.NoError(t, err)
-	_, err = refinementOf(t, m, "staleAdmission")
-	require.ErrorContains(t, err, "staleAdmission refines activityProduct: the row "+
-		"'paused-queued-none-attemptStart' steps from 'paused-queued-none' to 'started-empty-one', which read as 'paused' and 'started'")
-	require.NotEmpty(t, machines["staleAdmission"].Table.Rows)
+	_, err = refinementOf(t, m, "trustingActivityRecord")
+	require.ErrorContains(t, err, "trustingActivityRecord refines activityProduct: the row "+
+		"'paused-queued-none-poll' steps from 'paused-queued-none' to 'started-empty-one', which read as 'paused' and 'started'")
+	require.NotEmpty(t, machines["trustingActivityRecord"].Table.Rows)
 }
 
 func TestPresenceIsAnOrdinaryEnum(t *testing.T) {

@@ -15,12 +15,12 @@ package fixture.hints
 import umpire.realize.*
 import temporal.realize.*
 import temporal.features.standaloneactivity.{activity, deadline, worker}
-import temporal.features.standaloneactivity.system.ActivityProtocol as activityProtocol
+import temporal.features.standaloneactivity.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
 private def realizing(serverSteps: Vector[ServerStep], behavior: ApiBehavior) =
   temporalRealization(
-    machine = activityProtocol,
+    machine = activitySystem,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
     scripts = Vector(controller()),
@@ -31,13 +31,13 @@ private def realizing(serverSteps: Vector[ServerStep], behavior: ApiBehavior) =
 
 /** The kit's behavior, which `temporalRealization` attaches, and a delivery and a timer step. */
 val keptBehavior: Realization = temporalRealization(
-  machine = activityProtocol,
+  machine = activitySystem,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller()),
   evidence = Vector.empty,
   serverSteps = Vector(
-    ServerStep(worker.attemptStart, CauseKind.delivery),
+    ServerStep(worker.poll, CauseKind.delivery),
     ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs)
   )
 )
@@ -51,7 +51,7 @@ private val slowly = Visible.eventually(WaitBound(intervalMs = 100, atMostMs = 1
 /** A behavior of its own, which bounds each kind of its server steps. */
 val ownBehavior: Realization = realizing(
   Vector(
-    ServerStep(worker.attemptStart, CauseKind.delivery),
+    ServerStep(worker.poll, CauseKind.delivery),
     ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs)
   ),
   ApiBehavior(
@@ -107,7 +107,7 @@ val intervalOverBound: Realization = realizing(
 
 /** A delivery step, and a behavior that bounds only timers. */
 val unboundedStep: Realization = realizing(
-  Vector(ServerStep(worker.attemptStart, CauseKind.delivery)),
+  Vector(ServerStep(worker.poll, CauseKind.delivery)),
   ApiBehavior(
     visibility = Vector.empty,
     causes = Vector(CauseKind.timer.boundedBy(WaitBound(intervalMs = 100, atMostMs = 2000)))
@@ -121,6 +121,6 @@ val timerNoDeadline: Realization =
 /** A delivery step that names a deadline, which only a timer has. */
 val deliveryDeadline: Realization =
   realizing(
-    Vector(ServerStep(worker.attemptStart, CauseKind.delivery, deadlineMs)),
+    Vector(ServerStep(worker.poll, CauseKind.delivery, deadlineMs)),
     temporalBehavior
   )

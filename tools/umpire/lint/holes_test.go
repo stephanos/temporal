@@ -66,7 +66,7 @@ func rewrite(function string, change func(c *umpirespb.MatchCase) bool, ifs func
 
 // pauseOfCancelRequestedByDefault decides a pause of a cancel-requested activity by a default arm,
 // as `s.phase match { case _ => Nil }` lifts, before the pause's rules are tried.
-var pauseOfCancelRequestedByDefault = rewrite("activityProtocol.rules.control", func(c *umpirespb.MatchCase) bool {
+var pauseOfCancelRequestedByDefault = rewrite("activitySystem.rules.control", func(c *umpirespb.MatchCase) bool {
 	if c.GetPattern().GetLiteral().GetEnum().GetCase() != "pause" {
 		return false
 	}
@@ -98,23 +98,23 @@ var pauseOfCancelRequestedByDefault = rewrite("activityProtocol.rules.control", 
 
 func TestDisabledByDefault(t *testing.T) {
 	_, clean := holesOf(t, Options{})
-	require.Empty(t, clean[DisabledByDefault]["activityProtocol"])
+	require.Empty(t, clean[DisabledByDefault]["activitySystem"])
 
 	tables, holes := holesOf(t, Options{}, pauseOfCancelRequestedByDefault)
-	found := holes[DisabledByDefault]["activityProtocol"]
+	found := holes[DisabledByDefault]["activitySystem"]
 	require.Equal(t, []string{"control-pause in cancelRequested"}, subjectsOf(found))
 	require.Contains(t, found[0].Position, "model/temporal/features/standaloneactivity/system/System.scala:")
 	require.Contains(t, found[0].Message, "s.phase is _")
 
 	// The default arm shows as `?` in the table, with its hole.
-	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activityProtocol" })]
+	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activitySystem" })]
 	i := slices.IndexFunc(protocol.Rules, func(r Rule) bool { return r.Class == "control-pause" && r.Label == "cancelRequested" })
 	require.GreaterOrEqual(t, i, 0)
 	require.Equal(t, Silent, protocol.Rules[i].Modality)
 	require.Contains(t, protocol.Rules[i].Holes, DisabledByDefault)
 
 	// An `if` whose condition names no field of the state decides by default too.
-	_, holes = holesOf(t, Options{}, rewrite("activityProtocol.rules.attemptResult", nil, func(x *umpirespb.If) bool {
+	_, holes = holesOf(t, Options{}, rewrite("activitySystem.rules.respond", nil, func(x *umpirespb.If) bool {
 		phases := x.GetCondition().GetBinary().GetRight().GetList().GetItems()
 		if len(phases) != 1 || phases[0].GetLiteral().GetEnum().GetCase() != "cancelRequested" || x.GetElse().GetList() == nil {
 			return false
@@ -124,12 +124,12 @@ func TestDisabledByDefault(t *testing.T) {
 	}))
 	// The canceled answer's one rule now names nothing of the state, so every phase it is disabled in
 	// is decided by default.
-	require.Equal(t, []string{"attemptResult-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested, completed, failed, canceled, terminated, timedOut"}, subjectsOf(holes[DisabledByDefault]["activityProtocol"]))
+	require.Equal(t, []string{"respond-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested, completed, failed, canceled, terminated, timedOut"}, subjectsOf(holes[DisabledByDefault]["activitySystem"]))
 }
 
 func TestSilentRejection(t *testing.T) {
 	tables, holes := holesOf(t, Options{})
-	silent := subjectsOf(holes[SilentRejection]["activityProtocol"])
+	silent := subjectsOf(holes[SilentRejection]["activitySystem"])
 	// A caller's pause of a paused activity is an RPC the server answers, and the Model says nothing.
 	require.Contains(t, silent, "control-pause in unstarted, paused, pauseRequested, cancelRequested")
 	// A timer is the system's: disabled, it is prohibited, not silent.
@@ -138,7 +138,7 @@ func TestSilentRejection(t *testing.T) {
 		_, phases, _ := strings.Cut(s, " in ")
 		require.NotContains(t, strings.Split(phases, ", "), "completed", "an end state is no silence")
 	}
-	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activityProtocol" })]
+	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activitySystem" })]
 	i := slices.IndexFunc(protocol.Rules, func(r Rule) bool { return r.Class == "backoff" && r.Modality == MustNot })
 	require.GreaterOrEqual(t, i, 0)
 	require.Equal(t, "s.phase != backingOff", protocol.Rules[i].Text)
@@ -147,7 +147,7 @@ func TestSilentRejection(t *testing.T) {
 
 func TestUnconstrainedResult(t *testing.T) {
 	_, holes := holesOf(t, Options{})
-	unconstrained := subjectsOf(holes[UnconstrainedResult]["activityProtocol"])
+	unconstrained := subjectsOf(holes[UnconstrainedResult]["activitySystem"])
 	// The backoff timer's rows land somewhere no claim reads.
 	require.Contains(t, unconstrained, "backoff")
 	// A terminate is held to `terminated`; a pause from paused is read by the product's law.
@@ -159,7 +159,7 @@ func TestUnconstrainedResult(t *testing.T) {
 
 func TestWitnessOnly(t *testing.T) {
 	_, holes := holesOf(t, Options{})
-	require.Contains(t, subjectsOf(holes[WitnessOnly]["activityProtocol"]), "completes")
+	require.Contains(t, subjectsOf(holes[WitnessOnly]["activitySystem"]), "completes")
 	// A verify of a composition's Property holds the table to it.
 	require.Empty(t, holes[WitnessOnly]["standaloneActivity"])
 
@@ -170,7 +170,7 @@ func TestWitnessOnly(t *testing.T) {
 			}
 		}
 	})
-	require.NotContains(t, subjectsOf(holes[WitnessOnly]["activityProtocol"]), "completes")
+	require.NotContains(t, subjectsOf(holes[WitnessOnly]["activitySystem"]), "completes")
 }
 
 func TestMustNotPinnedIsOffByDefault(t *testing.T) {
@@ -178,9 +178,9 @@ func TestMustNotPinnedIsOffByDefault(t *testing.T) {
 	require.NotContains(t, holes, MustNotPinned)
 
 	tables, holes := holesOf(t, Options{MustNotPinned: true})
-	pinned := holes[MustNotPinned]["activityProtocol"]
+	pinned := holes[MustNotPinned]["activitySystem"]
 	// An end state's disabled pairs are no hole, in the table as in the findings.
-	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activityProtocol" })]
+	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activitySystem" })]
 	for _, c := range protocol.Cells {
 		phase, _, _ := strings.Cut(c.State, "-")
 		if slices.Contains([]string{"completed", "failed", "canceled", "terminated", "timedOut"}, phase) {
@@ -201,7 +201,7 @@ func TestTablesAreWrittenByMachineAndClass(t *testing.T) {
 	var out strings.Builder
 	require.NoError(t, WriteTables(&out, &Result{File: "activity.json", Tables: tables}))
 	text := out.String()
-	require.Contains(t, text, "rules activity.json activityProtocol by phase\n")
+	require.Contains(t, text, "rules activity.json activitySystem by phase\n")
 	require.Contains(t, text, "\n  control-pause\n")
 	require.Regexp(t, `\n    scheduled, backingOff +MAY +accepted -> paused \[statusPaused\]`, text)
 	require.Regexp(t, `\n    cancelRequested +\? +s\.phase is _ +model/temporal/features/standaloneactivity/system/System\.scala:\d+ +disabled-by-default +silent-rejection`, text)

@@ -206,33 +206,33 @@ func TestQueriesAreAnsweredByTheGenericSearch(t *testing.T) {
 func TestTheAdmissionDesignsAreToldApart(t *testing.T) {
 	r := checked(t, lifted(t, "admission"))
 	require.Equal(t, map[string]ReceiptKind{
-		"refinement currentAdmission activityProduct": Verified,
-		"refinement staleAdmission activityProduct":   RefinementRejected,
+		"refinement activityRecord activityProduct": Verified,
+		"refinement trustingActivityRecord activityProduct":   RefinementRejected,
 
-		"query currentAdmission currentAdmission.staleDelivery":                 Verified,
-		"query currentAdmission currentAdmission.admittedBeforePause":           Verified,
-		"query currentAdmission currentAdmission.duplicateDelivery":             Verified,
-		"query currentAdmission currentAdmission.any.notAdmittedWhilePaused":    Verified,
-		"query currentAdmission currentAdmission.any.atMostOneActive":           Verified,
-		"query currentAdmission currentAdmission.any.terminalStays":             Verified,
-		"query currentAdmission currentAdmission.product.pausedIsNotDispatched": Verified,
+		"query activityRecord activityRecord.staleDelivery":                 Verified,
+		"query activityRecord activityRecord.admittedBeforePause":           Verified,
+		"query activityRecord activityRecord.duplicateDelivery":             Verified,
+		"query activityRecord activityRecord.any.notAdmittedWhilePaused":    Verified,
+		"query activityRecord activityRecord.any.atMostOneActive":           Verified,
+		"query activityRecord activityRecord.any.terminalStays":             Verified,
+		"query activityRecord activityRecord.product.pausedIsNotDispatched": Verified,
 
-		"query staleAdmission staleAdmission.staleDelivery":                 Counterexample,
-		"query staleAdmission staleAdmission.admittedBeforePause":           Verified,
-		"query staleAdmission staleAdmission.duplicateDelivery":             Counterexample,
-		"query staleAdmission staleAdmission.any.notAdmittedWhilePaused":    Counterexample,
-		"query staleAdmission staleAdmission.any.atMostOneActive":           Counterexample,
-		"query staleAdmission staleAdmission.any.terminalStays":             Counterexample,
-		"query staleAdmission staleAdmission.product.pausedIsNotDispatched": RefinementRejected,
+		"query trustingActivityRecord trustingActivityRecord.staleDelivery":                 Counterexample,
+		"query trustingActivityRecord trustingActivityRecord.admittedBeforePause":           Verified,
+		"query trustingActivityRecord trustingActivityRecord.duplicateDelivery":             Counterexample,
+		"query trustingActivityRecord trustingActivityRecord.any.notAdmittedWhilePaused":    Counterexample,
+		"query trustingActivityRecord trustingActivityRecord.any.atMostOneActive":           Counterexample,
+		"query trustingActivityRecord trustingActivityRecord.any.terminalStays":             Counterexample,
+		"query trustingActivityRecord trustingActivityRecord.product.pausedIsNotDispatched": RefinementRejected,
 	}, kinds(r))
 
-	stale := receiptOf(t, r, "query staleAdmission staleAdmission.staleDelivery")
-	require.Equal(t, []string{"scheduled-empty-none-dispatch", "scheduled-queued-none-control-pause", "paused-queued-none-attemptStart"}, stale.Rows)
+	stale := receiptOf(t, r, "query trustingActivityRecord trustingActivityRecord.staleDelivery")
+	require.Equal(t, []string{"scheduled-empty-none-dispatch", "scheduled-queued-none-control-pause", "paused-queued-none-poll"}, stale.Rows)
 	require.Equal(t, "started-empty-one", stale.Witness.Steps[2].State.Value)
 
-	rejected := receiptOf(t, r, "refinement staleAdmission activityProduct")
+	rejected := receiptOf(t, r, "refinement trustingActivityRecord activityProduct")
 	require.Equal(t, umpire.RefinementUnmatched, rejected.Failure)
-	require.Equal(t, []string{"dispatch", "control-pause", "attemptStart"}, taken(rejected.Witness))
+	require.Equal(t, []string{"dispatch", "control-pause", "poll"}, taken(rejected.Witness))
 }
 
 // The counter Model (below) with a self-loop: skipping stays in place, so a state is reached both
@@ -1204,21 +1204,21 @@ func TestADeclarationHoleStaysWithWhatDependsOnIt(t *testing.T) {
 // rejected refinement stand exactly as they do without it.
 func TestAnUnrelatedDeclarationHoleErasesNoViolation(t *testing.T) {
 	stale := func(r *Report) []Receipt {
-		return slicesDelete(plain(r), func(x Receipt) bool { return x.Key.Owner != "staleAdmission" })
+		return slicesDelete(plain(r), func(x Receipt) bool { return x.Key.Owner != "trustingActivityRecord" })
 	}
 	want := stale(checked(t, lifted(t, "admission")))
 	require.Len(t, want, 8)
 
 	r := checked(t, mutated(t, "admission", func(m *umpirespb.Model) {
 		m.Holes = append(m.Holes, &umpirespb.Hole{Id: "generic.unknownEnd", Name: "unknownEnd", Position: at(1)})
-		current := admMachine(m, "currentAdmission")
+		current := admMachine(m, "activityRecord")
 		current.Ends = &umpirespb.Expr{Position: current.GetEnds().GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: "generic.unknownEnd"}}
 	}))
 	require.Equal(t, want, stale(r))
-	require.Equal(t, Counterexample, receiptOf(t, r, "query staleAdmission staleAdmission.staleDelivery").Kind)
-	require.Equal(t, RefinementRejected, receiptOf(t, r, "refinement staleAdmission activityProduct").Kind)
+	require.Equal(t, Counterexample, receiptOf(t, r, "query trustingActivityRecord trustingActivityRecord.staleDelivery").Kind)
+	require.Equal(t, RefinementRejected, receiptOf(t, r, "refinement trustingActivityRecord activityProduct").Kind)
 
-	affected := slicesDelete(r.Receipts, func(x Receipt) bool { return x.Key.Owner != "currentAdmission" })
+	affected := slicesDelete(r.Receipts, func(x Receipt) bool { return x.Key.Owner != "activityRecord" })
 	require.Len(t, affected, 9, "the machine, its refinement and its seven Queries")
 	for _, x := range affected {
 		require.Equal(t, Incomplete, x.Kind, receiptKey(x))
@@ -1266,12 +1266,12 @@ func TestARejectedRefinementIsOneResultWhereverItIsMet(t *testing.T) {
 		return base
 	}
 	r := checked(t, lifted(t, "admission"))
-	rejected := receiptOf(t, r, "refinement staleAdmission activityProduct")
-	require.Equal(t, "fixture.specimens.admission.target.staleAdmission", rejected.Target)
+	rejected := receiptOf(t, r, "refinement trustingActivityRecord activityProduct")
+	require.Equal(t, "fixture.specimens.admission.target.trustingActivityRecord", rejected.Target)
 	require.NotEmpty(t, rejected.Fingerprint)
-	require.Equal(t, len(built(t, lifted(t, "admission"))["staleAdmission"].Table.Rows), rejected.TableRows)
+	require.Equal(t, len(built(t, lifted(t, "admission"))["trustingActivityRecord"].Table.Rows), rejected.TableRows)
 	require.Zero(t, rejected.Explored, "the generic check does not say how many rows it read before the one it rejects")
-	through := receiptOf(t, r, "query staleAdmission staleAdmission.product.pausedIsNotDispatched")
+	through := receiptOf(t, r, "query trustingActivityRecord trustingActivityRecord.product.pausedIsNotDispatched")
 	require.Equal(t, Limits{Name: "three", Steps: 3, Actions: 3, Search: 4096}, through.Limits)
 	require.Equal(t, ClaimKey{Family: "fixture.specimens.admission", Owner: "activityProduct", Name: "pausedIsNotDispatched"}, through.Property)
 	require.Equal(t, as(rejected, through), through)
@@ -1452,11 +1452,11 @@ func TestTenfoldProbe(t *testing.T) {
 // Each design declares notAdmittedWhilePaused, and the two share a Definition ID: one family, one name.
 func TestSiblingClaimsStayApart(t *testing.T) {
 	r := checked(t, lifted(t, "admission"))
-	current := receiptOf(t, r, "query currentAdmission currentAdmission.any.notAdmittedWhilePaused")
-	stale := receiptOf(t, r, "query staleAdmission staleAdmission.any.notAdmittedWhilePaused")
+	current := receiptOf(t, r, "query activityRecord activityRecord.any.notAdmittedWhilePaused")
+	stale := receiptOf(t, r, "query trustingActivityRecord trustingActivityRecord.any.notAdmittedWhilePaused")
 	const family = "fixture.specimens.admission"
-	require.Equal(t, ClaimKey{Family: family, Owner: "currentAdmission", Name: "notAdmittedWhilePaused"}, current.Property)
-	require.Equal(t, ClaimKey{Family: family, Owner: "staleAdmission", Name: "notAdmittedWhilePaused"}, stale.Property)
+	require.Equal(t, ClaimKey{Family: family, Owner: "activityRecord", Name: "notAdmittedWhilePaused"}, current.Property)
+	require.Equal(t, ClaimKey{Family: family, Owner: "trustingActivityRecord", Name: "notAdmittedWhilePaused"}, stale.Property)
 	require.Equal(t, []ReceiptKind{Verified, Counterexample}, []ReceiptKind{current.Kind, stale.Kind})
 
 	b := bind(lifted(t, "admission"), DefaultScope)
@@ -1464,8 +1464,8 @@ func TestSiblingClaimsStayApart(t *testing.T) {
 		table := b.subject(machine).table
 		return umpire.KeyProperty(table, "notAdmittedWhilePaused", nil, "", nil).PropertyID(table)
 	}
-	require.Equal(t, family+".property.notAdmittedWhilePaused", id("currentAdmission"))
-	require.Equal(t, id("currentAdmission"), id("staleAdmission"))
+	require.Equal(t, family+".property.notAdmittedWhilePaused", id("activityRecord"))
+	require.Equal(t, id("activityRecord"), id("trustingActivityRecord"))
 }
 
 func everyModel(t *testing.T) map[string]*umpirespb.Model {
@@ -1568,17 +1568,17 @@ func TestEveryWitnessReplaysThroughAFreshInterpretation(t *testing.T) {
 func TestARejectedWitnessIsAnError(t *testing.T) {
 	m := lifted(t, "admission")
 	corrected := mutated(t, "admission", func(m *umpirespb.Model) {
-		admMachine(m, "staleAdmission").Steps = admMachine(m, "currentAdmission").GetSteps()
+		admMachine(m, "trustingActivityRecord").Steps = admMachine(m, "activityRecord").GetSteps()
 	})
 	r := check(m, DefaultScope, corrected)
-	stale := receiptOf(t, r, "query staleAdmission staleAdmission.staleDelivery")
+	stale := receiptOf(t, r, "query trustingActivityRecord trustingActivityRecord.staleDelivery")
 	require.Equal(t, ReplayFailed, stale.Kind)
 	require.False(t, stale.Kind.IsCheck())
 	require.ErrorContains(t, stale.Cause, "the counterexample did not replay")
-	require.ErrorContains(t, stale.Cause, "step 3 takes attemptStart")
-	require.Equal(t, ReplayFailed, receiptOf(t, r, "refinement staleAdmission activityProduct").Kind)
+	require.ErrorContains(t, stale.Cause, "step 3 takes poll")
+	require.Equal(t, ReplayFailed, receiptOf(t, r, "refinement trustingActivityRecord activityProduct").Kind)
 	// A result with no witness has nothing to replay, and stands.
-	require.Equal(t, Verified, receiptOf(t, r, "query staleAdmission staleAdmission.admittedBeforePause").Kind)
+	require.Equal(t, Verified, receiptOf(t, r, "query trustingActivityRecord trustingActivityRecord.admittedBeforePause").Kind)
 
 	// The path to a hole a check read is a witness too: here replayed against a disk that takes no put.
 	noPut := mutated(t, "declarations", func(m *umpirespb.Model) {

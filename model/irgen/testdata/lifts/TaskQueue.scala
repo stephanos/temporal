@@ -6,8 +6,8 @@
 package fixture.taskqueue
 
 import temporal.shared.taskqueue.*
-import temporal.shared.taskqueue.product.DispatchQueue
-import temporal.shared.taskqueue.system.{ForgetfulQueue, MatchingQueue}
+import temporal.shared.taskqueue.product.TaskQueueProduct
+import temporal.shared.taskqueue.system.{ForgetfulQueue, TaskQueueSystem}
 import umpire.*
 
 // ### The job
@@ -55,7 +55,7 @@ object Job extends Machine[JobState, JobOutcome, Nothing]:
 
 final case class OverQueue(job: JobState, queue: QueueView)
 
-object JobOverQueue extends Composition[OverQueue](_.job -> Job, _.queue -> DispatchQueue):
+object JobOverQueue extends Composition[OverQueue](_.job -> Job, _.queue -> TaskQueueProduct):
   def end(s: State) = s.job.phase == JobPhase.settled
   object syncs extends Syncs:
     sync(_.job -> send, _.queue -> queue.enqueue)
@@ -88,14 +88,14 @@ val queueAny = JobOverQueue.scenario("any").free
 final case class OverMatching(job: JobState, queue: QueueDetail)
 
 object JobOverMatching
-    extends Composition[OverMatching](_.job -> Job, _.queue -> MatchingQueue),
+    extends Composition[OverMatching](_.job -> Job, _.queue -> TaskQueueSystem),
       FailureModel:
   def end(s: State) = s.job.phase == JobPhase.settled
   object syncs extends Syncs:
     sync(_.job -> send, _.queue -> queue.enqueue)
     sync(_.job -> start, _.queue -> queue.deliver)
     sync(_.job -> settle, _.queue -> queue.acknowledge)
-    replaces(_.queue, DispatchQueue)
+    replaces(_.queue, TaskQueueProduct)
 
 /**
  * The negative control: the replacement is what must fail. No Query asks it; the check of the

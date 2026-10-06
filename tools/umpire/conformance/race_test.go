@@ -4,7 +4,7 @@ package conformance
 // Driver that plays the server, and the Runs it records replayed. No server is involved: what is
 // exercised is what the Case and the assessment make of each thing a server and a Driver can do at the
 // release, the one instruction that delivers the stale message and records what admission committed.
-// The expectations are read off system/Record.scala (heldAdmission, staleDeliveryRejected), Realization.scala
+// The expectations are read off system/Record.scala (heldDispatch, staleDeliveryRejected), Realization.scala
 // (heldDelivery) and specimens/activity.md (A1, A1', A10).
 
 import (
@@ -31,8 +31,8 @@ import (
 
 const (
 	raceFamily   = "temporal.features.standaloneactivity.system"
-	raceMachine  = "heldAdmission"
-	raceQuery    = "heldAdmission.staleDelivery"
+	raceMachine  = "heldDispatch"
+	raceQuery    = "heldDispatch.staleDelivery"
 	raceProperty = "staleDeliveryRejected"
 )
 

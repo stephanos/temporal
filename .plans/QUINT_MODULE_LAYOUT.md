@@ -5,9 +5,10 @@ feature reads top to bottom in one place? Grounded in Quint's documentation and 
 in section 1), `model/temporal/features/**` after fn-114.9's folder grouping, `model/irgen`,
 `model/README.md`, and the specs fn-112, fn-114, fn-120, fn-122, fn-124 and fn-125.
 
-**Owner decision (2026-10-05):** adopt option (a), a module object per machine, as layout only.
-The spec that carries it out is "Read each feature top to bottom: one module object per machine"
-in `.flow/specs/`. Line numbers below are from the day of the study and drift with later edits.
+**Owner decision (2026-10-05):** option (a), a module object per machine, landed in fn-126. The
+implemented layout uses a root feature file plus Product and System level folders when both levels
+exist; the historical paths and sketches below describe the evidence used for that decision. Line
+numbers are from the day of the study and drift with later edits.
 
 **Short answer:** adopt Quint's **one-module reading order**, not its syntax. The lifter already supports it; the cost is one IR/Case regeneration and golden-config entries. Details below.
 
@@ -42,7 +43,7 @@ A spec reads top to bottom: types/consts → vars → pure defs → actions → 
 | `IrFiles.scala` | 47 |
 | + `Realization.scala`, `temporal/realize/Kit.scala`, `umpire/realize/Realize.scala` to reach a Case | 330+ |
 
-Typical hop count: 5 files to Query, 9-11 to Case. Cross-file references are all **same-package top-level vals, so no `import` reveals them** (Properties→Model ≈42 symbols, Queries→Model ≈67, Realization→Model ≈70). Step-to-claim distance for `attemptResult(completed)`: step `Model.scala:270-284`, binding `:385`, Property `Properties.scala:12-14`, Scenario `Queries.scala:25-26`, Query `:101-102`, realization `Realization.scala:140,176,199`, Case `model/cases/activity-completion-case.json`. Referencing mechanisms: val names (machines, actions, Properties), `given Family` objects (`ActivityFamily`/`SystemFamily`, `Model.scala:21-27`), `given Catalog`, `DefinitionScope` pins, field selectors in `compose`.
+Typical hop count: 5 files to Query, 9-11 to Case. Cross-file references are all **same-package top-level vals, so no `import` reveals them** (Properties→Model ≈42 symbols, Queries→Model ≈67, Realization→Model ≈70). Step-to-claim distance for `respond(completed)`: step `Model.scala:270-284`, binding `:385`, Property `Properties.scala:12-14`, Scenario `Queries.scala:25-26`, Query `:101-102`, realization `Realization.scala:140,176,199`, Case `model/cases/activity-completion-case.json`. Referencing mechanisms: val names (machines, actions, Properties), `given Family` objects (`ActivityFamily`/`SystemFamily`, `Model.scala:21-27`), `given Catalog`, `DefinitionScope` pins, field selectors in `compose`.
 
 ## 3. Why it is scattered
 
@@ -50,7 +51,7 @@ Typical hop count: 5 files to Query, 9-11 to Case. Cross-file references are all
 |---|---|---|
 | Model vs Properties vs Queries | yes, fn-112 | Properties are "the specification a reviewer reads on its own"; monitors stay in Model because two *files* would init-cycle (`.flow/specs/fn-112:46-50`, `model/README.md:518-521`) |
 | `admission/`, `compositions/` folders | yes, fn-112 | by subject first, else "three unrelated subjects in each file" (`fn-112:278-284`); subpackages so `Model$package$` names don't collide |
-| Vocabulary objects `Product`/`Protocol` | yes, fn-112 | "objects let both machines say `attemptStart`" (`fn-112:278-280`) — already halfway to a module per machine |
+| Vocabulary objects `Product`/`Protocol` | yes, fn-112 | "objects let both machines say `poll`" (`fn-112:278-280`) — already halfway to a module per machine |
 | `Capabilities.scala` | content placement yes (fn-122.8), separate file stylistic (`.flow/tasks/fn-122…8.md:4-6`) |
 | `IrFiles.scala` | the `irFile` value yes (fn-114:99-101), its own file unexplained |
 | `Realization.scala` | never argued; predates fn-112 |
@@ -78,23 +79,23 @@ object ActivityProduct:            // one pin keeps every action/monitor ID
   given DefinitionScope = DefinitionScope("temporal.standaloneactivity.Model$package$")
   import ActivityFamily.given
   // -- actions (Quint: var/action signatures)
-  val attemptStart = action(shared.worker.party).on(activity).schema[PollActivityTaskQueueResponse]
+  val poll = action(shared.worker.party).on(activity).schema[PollActivityTaskQueueResponse]
   val control = action(caller).on(activity).input(Inputs.control)…
   val timeout = timer
   // -- vocabulary + steps (Quint: pure def / action bodies)
   def terminal(p: ProductPhase) = p.in(completed, failed, canceled, terminated, timedOut)
-  def attemptStartStep(s: ProductState) = if s.phase != scheduled then disabled else accept(ProductState(started), statusStarted)
+  def pollStep(s: ProductState) = if s.phase != scheduled then disabled else accept(ProductState(started), statusStarted)
   def controlStep(s: ProductState, c: Control) = …
   // -- the machine (Quint: init/step)
   val machine = umpire.machine[ProductState, Outcome, ProductFact] {
     forEntity(activity); starts(ProductState(scheduled)); ends(s => terminal(s.phase))
-    steps(attemptStart ~> attemptStartStep, control ~> controlStep, timeout ~> timeoutStep)
+    steps(poll ~> pollStep, control ~> controlStep, timeout ~> timeoutStep)
   }
   // -- what it promises (Quint: val inv / temporal)
   val terminalIsFinal = machine.property.once(s => terminal(s.phase)).keeps(_.phase)
   // -- capabilities, paths, queries (Quint: run … expect)
   val capabilities = umpire.capabilities(machine, limits = three)(Closable(…), Pausable(…), Pollable(…))
-  val paused = machine.scenario.actions(control(Control.pause), control(Control.unpause), attemptStart)
+  val paused = machine.scenario.actions(control(Control.pause), control(Control.unpause), poll)
   val pauseResume = (query find terminalIsFinal in paused limits three total 864).expect(satisfied)
 ```
 
@@ -104,7 +105,7 @@ Costs/risks: machine name changes from `activityProduct` to `ActivityProduct.mac
 
 ```scala
 object StandaloneActivityIndex:
-  export features.standaloneactivity.{activityProduct, activityProtocol, completes, Functional, activityFile}
+  export features.standaloneactivity.{activityProduct, activitySystem, completes, Functional, activityFile}
 ```
 Scala 3 `export` creates forwarder vals with a new owner: the lifter would see a second `val completes` (duplicate names are refused, README:495-503) unless taught to skip forwarders. Gains nothing in reading distance; the text stays in five files. Not recommended.
 
@@ -124,7 +125,7 @@ So (c) is either done or blocked on semantics; keyword renames alone would not r
 
 ## 5. Recommendation
 
-Adopt **(a) in its per-feature form plus the (d) section discipline**, i.e. `StandaloneActivity.scala` holding, in reading order, types → `object ActivityProduct` → `object ActivityProtocol` → feature-level compositions/queries → `irFile` roots, with `Realization.scala` and the `admission/`/`compositions/` subject folders unchanged. Evidence: following the product machine from state to Query drops from 4 files / ~675 lines of context to 1 file section of ~120 lines; a step and its Property sit in the same object; the fn-112 init-cycle reason vanishes, and the "Properties read on their own" reason survives as a section (and as `properties`-only grep). Explicitly do not adopt Quint syntax: fn-120 ruled it out (`fn-120:133`), the export emits one `module umpire_slice` per IR file (`tools/umpire/export/quint.go:79,138`), not per machine, and nothing in it depends on the Scala layout.
+Adopt **(a) in its per-feature form plus the (d) section discipline**, i.e. `StandaloneActivity.scala` holding, in reading order, types → `object ActivityProduct` → `object ActivitySystem` → feature-level compositions/queries → `irFile` roots, with `Realization.scala` and the `admission/`/`compositions/` subject folders unchanged. Evidence: following the product machine from state to Query drops from 4 files / ~675 lines of context to 1 file section of ~120 lines; a step and its Property sit in the same object; the fn-112 init-cycle reason vanishes, and the "Properties read on their own" reason survives as a section (and as `properties`-only grep). Explicitly do not adopt Quint syntax: fn-120 ruled it out (`fn-120:133`), the export emits one `module umpire_slice` per IR file (`tools/umpire/export/quint.go:79,138`), not per machine, and nothing in it depends on the Scala layout.
 
 Migration: 3 features + `shared/` ≈ 15 files merged into ~6, one golden-config batch, one IR/Case regeneration, README `:505-547` and `UMPIRE_MODULES.md:30` rewritten, one new lint (declaration order inside a module object). Make it a **new spec** (layout only, no semantics), sequenced: after fn-114.8/.9 are recorded done and fn-122.6 docs land (they describe the four-file rule you would replace); not concurrent with fn-124.8 (it forbids other edits to `model/`, `fn-124:23`); before fn-125 so settings land as `const`-like members of the new modules; fn-118.5 touches only `Realization.scala`, which this leaves alone.
 ## 6. As specified (fn-126, 2026-10-05)

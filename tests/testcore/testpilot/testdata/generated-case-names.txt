@@ -1,10 +1,10 @@
-activity-activityProtocol.cancelIsRequested
-activity-activityProtocol.terminateSettles
+activity-activitySystem.cancelIsRequested
+activity-activitySystem.terminateSettles
 activity-completion
 activity-nonRetryableFailure
 activity-pauseResume
-activity-race-admissionResponseLoss.committed
-activity-race-heldAdmission.staleDelivery
+activity-race-heldDispatch.staleDelivery
+activity-race-lostStartAnswer.committed
 activity-retry
 activity-scheduleToStartTimeout
 activity-terminate

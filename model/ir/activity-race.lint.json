@@ -4,19 +4,19 @@
       "kind": "never-enabled",
       "owner": "activityProduct",
       "subjects": [
-        "workerStop"
+        "stop"
       ],
-      "because": "The product machine does not feel a worker stopping (product/Product.scala, ActivityProduct.rules disables workerStop); the protocol and worker machines step it."
+      "because": "The product machine does not feel a worker stopping (product/Product.scala, ActivityProduct.rules disables stop); the protocol and worker machines step it."
     },
     {
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "attemptResult-canceled in scheduled, started, paused",
-        "attemptResult-completed in scheduled, paused",
-        "attemptResult-failed-false in scheduled, paused",
-        "attemptResult-failed-true in scheduled, paused",
-        "attemptStart in started, paused, cancelRequested"
+        "respond-canceled in scheduled, started, paused",
+        "respond-completed in scheduled, paused",
+        "respond-failed-false in scheduled, paused",
+        "respond-failed-true in scheduled, paused",
+        "poll in started, paused, cancelRequested"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
     },
@@ -33,7 +33,7 @@
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "workerStop in scheduled, started, paused, cancelRequested"
+        "stop in scheduled, started, paused, cancelRequested"
       ],
       "because": "The worker stopping is a fault the Run records; a machine that does not feel it disables it, and the worker and protocol machines step it."
     },
@@ -41,11 +41,11 @@
       "kind": "unconstrained-result",
       "owner": "activityProduct",
       "subjects": [
-        "attemptResult-canceled",
-        "attemptResult-completed",
-        "attemptResult-failed-false",
-        "attemptResult-failed-true",
-        "attemptStart",
+        "respond-canceled",
+        "respond-completed",
+        "respond-failed-false",
+        "respond-failed-true",
+        "poll",
         "control-pause",
         "control-requestCancel",
         "control-terminate",
@@ -56,7 +56,7 @@
     },
     {
       "kind": "unreachable-value",
-      "owner": "admissionResponseLoss",
+      "owner": "lostStartAnswer",
       "subjects": [
         "record.active=two",
         "record.phase=completed",
@@ -68,7 +68,7 @@
     },
     {
       "kind": "unproduced",
-      "owner": "admissionResponseLoss",
+      "owner": "lostStartAnswer",
       "subjects": [
         "outcome notFound"
       ],
@@ -76,7 +76,7 @@
     },
     {
       "kind": "unconstrained-result",
-      "owner": "admissionResponseLoss",
+      "owner": "lostStartAnswer",
       "subjects": [
         "dispatch"
       ],
@@ -84,7 +84,7 @@
     },
     {
       "kind": "witness-only",
-      "owner": "admissionResponseLoss",
+      "owner": "lostStartAnswer",
       "subjects": [
         "committedDespiteLostResponse"
       ],
@@ -92,7 +92,7 @@
     },
     {
       "kind": "unreachable-value",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
         "active=two",
         "phase=completed",
@@ -102,7 +102,7 @@
     },
     {
       "kind": "never-enabled",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
         "control-requestCancel",
         "control-terminate",
@@ -112,7 +112,7 @@
     },
     {
       "kind": "unproduced",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
         "fact admissionCommitFailed",
         "fact statusCompleted",
@@ -125,7 +125,7 @@
     },
     {
       "kind": "unevidenced-fact",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
         "admissionCommitFailed",
         "deliveryAnswered",
@@ -137,15 +137,15 @@
     },
     {
       "kind": "unread-refinement",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
-        "heldAdmission refines activityProduct"
+        "heldDispatch refines activityProduct"
       ],
       "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
     },
     {
       "kind": "unmodeled-api-value",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
         "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_CANCELED",
         "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_COMPLETED",
@@ -157,7 +157,7 @@
     },
     {
       "kind": "unmodeled-api-value",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
         "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_RUNNING"
       ],
@@ -165,7 +165,7 @@
     },
     {
       "kind": "silent-rejection",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
         "control-requestCancel in scheduled, started",
         "control-terminate in scheduled, started",
@@ -175,7 +175,7 @@
     },
     {
       "kind": "witness-only",
-      "owner": "heldAdmission",
+      "owner": "heldDispatch",
       "subjects": [
         "staleDeliveryRejected"
       ],

@@ -106,9 +106,9 @@ by the signature. Lowering: `OP_CONTAINS(a, list(first, rest...))`, which SEMANT
 
 ```scala
 // standaloneactivity/Claims.scala, completes — before
-s.state.phase == Phase.completed && s.facts.contains(ProtocolFact.statusCompleted)
+s.state.phase == Phase.completed && s.facts.contains(SystemFact.statusCompleted)
 // after
-s.state.phase == Phase.completed && s.records(ProtocolFact.statusCompleted)
+s.state.phase == Phase.completed && s.records(SystemFact.statusCompleted)
 ```
 
 The spec already gives compositions `after.records(_.activity, fact)`; a plain `Step` should say the
@@ -188,7 +188,7 @@ field path or a `read` that is not a def; one lifting fixture and one refusal fi
 
 ### Rejected candidates (real temptations, each fails the legend test)
 
-- **Scenario sequencing** `start() >> attemptStart >> attemptResult(completed)` or `andThen`: a
+- **Scenario sequencing** `start() >> poll >> respond(completed)` or `andThen`: a
   comma list already reads as a sequence, and fn-120 defers Scenario combinators (`anyOrder`,
   `repeat`) to a later spec. Adding `>>` now would pre-empt that design.
 - **Leads-to** `pending ~> settled` or `|->`: collides with the binding `~>`; TLA+ readers would

@@ -151,7 +151,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:507: left of spareless holds a fi
 lift: model/irgen/testdata/lifts/Rejects.scala:506: withMember names spare, which no member of spareless fills: a selector names a member of the composition
 lift: model/irgen/testdata/lifts/Rejects.scala:523: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
 lift: model/irgen/testdata/lifts/Rejects.scala:530: tapLamp binds no action flip, which sync flipBoth of flipPair pairs for left: a member's new machine binds the actions its syncs pair
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:110: pause is a case of Control, and activityProtocol records facts of temporal.features.standaloneactivity.ProtocolFact: a realization names the facts its machine records
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:110: pause is a case of Control, and activitySystem records facts of temporal.features.standaloneactivity.SystemFact: a realization names the facts its machine records
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:86: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:98: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.standaloneactivity.StandaloneActivity$package.scheduleToStart is no field of the request
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:39: onPath names at least one class whose path carries the command

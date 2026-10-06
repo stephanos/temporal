@@ -17,11 +17,11 @@ func TestActivityProductTable(t *testing.T) {
 	require.Equal(t, []int{9, 5}, []int{len(tb.States), len(tb.Ends)})
 	state := func(key string) string { return row(t, product, key).Results[0].State }
 	// A canceled answer settles only an activity whose cancellation was requested.
-	require.True(t, product.Disabled("started", "attemptResult-canceled"))
-	require.Equal(t, "canceled", state("cancelRequested-attemptResult-canceled"))
-	// Unlike the Nexus product, a retry is visible: the caller reads scheduled again.
-	require.Equal(t, "scheduled", state("started-attemptResult-failed-true"))
-	require.Equal(t, "canceled", state("cancelRequested-attemptResult-failed-true"))
+	require.True(t, product.Disabled("started", "respond-canceled"))
+	require.Equal(t, "canceled", state("cancelRequested-respond-canceled"))
+	// Unlike the Nexus product, a retry is visible: the client reads scheduled again.
+	require.Equal(t, "scheduled", state("started-respond-failed-true"))
+	require.Equal(t, "canceled", state("cancelRequested-respond-failed-true"))
 	// A paused activity is dispatched to no worker: no product row leaves paused for started.
 	for _, r := range tb.RowsFrom("paused") {
 		for _, res := range r.Results {
@@ -32,7 +32,7 @@ func TestActivityProductTable(t *testing.T) {
 }
 
 func TestActivityProtocolTable(t *testing.T) {
-	protocol := built(t, activityModel(t))["activityProtocol"]
+	protocol := built(t, activityModel(t))["activitySystem"]
 	tb := protocol.Table
 	const n = 3 // attempts 0..2
 	// Twelve phases, three attempt counts and three deadlines: 288 states.
@@ -50,12 +50,12 @@ func TestActivityProtocolTable(t *testing.T) {
 	}
 	// A retryable failure backs the attempt off and is read as scheduled again with the count raised.
 	require.Equal(t, []Result{{Outcome: "accepted", State: "backingOff-1-unset-unset-unset",
-		Facts: []string{"statusScheduled", "attemptCount"}, Because: "a retryable failure backs off; the caller reads scheduled again"}},
-		results("started-1-unset-unset-unset-attemptResult-failed-true"))
+		Facts: []string{"statusScheduled", "attemptCount"}, Because: "a retryable failure backs off; the client reads scheduled again"}},
+		results("started-1-unset-unset-unset-respond-failed-true"))
 	// Under a cancel request the same failure settles the activity as canceled; under a pause request
 	// it lands in paused.
-	require.Equal(t, "canceled", phase("cancelRequested-1-unset-unset-unset-attemptResult-failed-true"))
-	require.Equal(t, "paused", phase("pauseRequested-1-unset-unset-unset-attemptResult-failed-true"))
+	require.Equal(t, "canceled", phase("cancelRequested-1-unset-unset-unset-respond-failed-true"))
+	require.Equal(t, "paused", phase("pauseRequested-1-unset-unset-unset-respond-failed-true"))
 	// A pause of a held attempt is a request; of a scheduled one it takes effect at once.
 	require.Equal(t, "pauseRequested", phase("started-1-unset-unset-unset-control-pause"))
 	require.Equal(t, "paused", phase("scheduled-0-unset-unset-unset-control-pause"))
@@ -70,8 +70,8 @@ func TestActivityProtocolTable(t *testing.T) {
 }
 
 func TestActivityRefinement(t *testing.T) {
-	protocol := built(t, activityModel(t))["activityProtocol"]
-	refinement, err := refinementOf(t, activityModel(t), "activityProtocol")
+	protocol := built(t, activityModel(t))["activitySystem"]
+	refinement, err := refinementOf(t, activityModel(t), "activitySystem")
 	require.NoError(t, err)
 	results := 0
 	for _, r := range protocol.Table.Rows {
@@ -87,13 +87,13 @@ func TestActivityRefinement(t *testing.T) {
 	}
 	// The visible retry is the product's retryable-failure row; the pause request is a stutter; the
 	// unpause of a requested pause is a stutter too.
-	require.Equal(t, "attemptResult-failed-true", lookup["started-1-unset-unset-unset-attemptResult-failed-true"])
+	require.Equal(t, "respond-failed-true", lookup["started-1-unset-unset-unset-respond-failed-true"])
 	require.Contains(t, lookup, "started-1-unset-unset-unset-control-pause")
 	require.Empty(t, lookup["started-1-unset-unset-unset-control-pause"])
 	require.Contains(t, lookup, "pauseRequested-1-unset-unset-unset-control-unpause")
 	require.Empty(t, lookup["pauseRequested-1-unset-unset-unset-control-unpause"])
 	// A retryable failure under a pause request is the product's pause.
-	require.Equal(t, "control-pause", lookup["pauseRequested-1-unset-unset-unset-attemptResult-failed-true"])
+	require.Equal(t, "control-pause", lookup["pauseRequested-1-unset-unset-unset-respond-failed-true"])
 }
 
 func TestActivityQueries(t *testing.T) {
@@ -101,8 +101,8 @@ func TestActivityQueries(t *testing.T) {
 	for _, name := range []string{"completion", "nonRetryableFailure", "retry", "cancel", "terminate", "pauseResume",
 		"scheduleToStartTimeout", "startToCloseTimeout",
 		// The finds the protocol's capabilities generate, one per functional law.
-		"activityProtocol.terminateSettles", "activityProtocol.cancelIsRequested"} {
-		require.Equal(t, Found, receiptOf(t, r, "query activityProtocol "+name).Kind, name)
+		"activitySystem.terminateSettles", "activitySystem.cancelIsRequested"} {
+		require.Equal(t, Found, receiptOf(t, r, "query activitySystem "+name).Kind, name)
 	}
 	// The product's laws, which its capabilities generate as verifications over a free search of the
 	// product (they retire terminalHolds and pauseHolds, which verified them through the protocol's

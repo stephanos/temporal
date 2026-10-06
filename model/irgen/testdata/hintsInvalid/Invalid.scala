@@ -30,5 +30,5 @@ val constructed = Visibility(CauseKind.activityAnswer, describe, Visible.atOnce)
 val bounded = CauseKind.delivery.boundedBy(WaitBound(100, 1000))
 val boundNoWait = CauseKind.delivery.boundedBy(Visible.atOnce)
 
-val step = ServerStep(worker.attemptStart, CauseKind.delivery)
+val step = ServerStep(worker.poll, CauseKind.delivery)
 val stepNoClass = ServerStep(CauseKind.delivery, CauseKind.delivery)

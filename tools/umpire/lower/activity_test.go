@@ -594,8 +594,8 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 		"statusScheduled":       {"statusScheduled", accepted("start-activity"), nil, nil},
 		"statusScheduledAgain":  {"statusScheduled", accepted("unpause-activity"), nil, []taking{{"control-unpause", 1}}},
 		"statusCancelRequested": {"statusCancelRequested", accepted("request-cancel-activity"), nil, nil},
-		"statusStarted":         {"statusStarted", delivered(1), identity, []taking{{"attemptStart", 1}}},
-		"attemptCount":          {"attemptCount", delivered(2), identity, []taking{{"attemptResult-failed-true", 1}, {"attemptStart", 2}}},
+		"statusStarted":         {"statusStarted", delivered(1), identity, []taking{{"poll", 1}}},
+		"attemptCount":          {"attemptCount", delivered(2), identity, []taking{{"respond-failed-true", 1}, {"poll", 2}}},
 	}
 	require.ElementsMatch(t, slices.Collect(maps.Keys(want)), slices.Collect(maps.Keys(got)))
 	for id, kind := range want {
@@ -739,7 +739,7 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 	require.Nil(t, l)
 	var refused *cp.Error
 	require.ErrorAs(t, err, &refused)
-	require.Equal(t, &cp.Error{Definition: "temporal.features.standaloneactivity.system.action.activityProtocol.workerStop", Construct: "evidence.action-unmapped"}, refused)
+	require.Equal(t, &cp.Error{Definition: "temporal.features.standaloneactivity.system.action.activitySystem.stop", Construct: "evidence.action-unmapped"}, refused)
 	require.ErrorContains(t, err, "model/temporal/features/standaloneactivity/system/System.scala:")
 }
 
@@ -759,7 +759,7 @@ func TestAClassTakenAgainThatNoKindNamesIsAnError(t *testing.T) {
 	require.Nil(t, l)
 	var refused *cp.Error
 	require.ErrorAs(t, err, &refused)
-	require.Equal(t, &cp.Error{Definition: "temporal.features.standaloneactivity.system.action.activityProtocol.attemptStart", Construct: "evidence.taking-unrecorded"}, refused)
+	require.Equal(t, &cp.Error{Definition: "temporal.features.standaloneactivity.system.action.activitySystem.poll", Construct: "evidence.taking-unrecorded"}, refused)
 	// The Queries whose path takes the class once are not touched by it.
 	completion, err := p.Lower("completion", cp.IdentityFor("temporal.case", "standaloneActivityTests", "completion"))
 	require.NoError(t, err)

@@ -102,7 +102,7 @@ func TestNoAbsenceIsInferredWithoutAnExhaustiveDeclaration(t *testing.T) {
 }
 
 // The ordinals of one source order its evidence. A timed-out event before a started event of the
-// same history is nothing nexusProtocol explains, since no step of an operation that is over records
+// same history is nothing nexusSystem explains, since no step of an operation that is over records
 // a fact (the kernel's terminalPhase); the other way round is the start-to-close witness.
 func TestTheOrdinalsOfOneSourceOrderItsEvidence(t *testing.T) {
 	b := loweredNexus(t, nexusModel(t), "startToCloseTimeout", generous)

@@ -89,12 +89,12 @@ func TestNamedChoicesAreReportedAndInert(t *testing.T) {
 			case name == "activityProduct":
 			case row.Action == "dispatch":
 				want = []string{"enqueued"}
-			case row.Action == "attemptStart" && len(row.Results) == 2:
+			case row.Action == "poll" && len(row.Results) == 2:
 				want = []string{"consumed", "retained"}
-			case row.Action == "attemptStart" && slices.Contains(row.Results[0].Facts, "admissionRejected"):
-				require.Equal(t, "currentAdmission", name, "only admitCurrent rejects a stale message")
+			case row.Action == "poll" && slices.Contains(row.Results[0].Facts, "admissionRejected"):
+				require.Equal(t, "activityRecord", name, "only admitCurrent rejects a stale message")
 				want = []string{""}
-			case row.Action == "attemptStart":
+			case row.Action == "poll":
 				want = []string{"consumed"}
 			default:
 			}
@@ -103,10 +103,10 @@ func TestNamedChoicesAreReportedAndInert(t *testing.T) {
 		}
 	}
 	for _, kind := range []string{
-		"currentAdmission dispatch 1 enqueued", "staleAdmission dispatch 1 enqueued",
-		"currentAdmission attemptStart 2 consumed", "staleAdmission attemptStart 2 consumed",
-		"currentAdmission attemptStart 1 consumed", "staleAdmission attemptStart 1 consumed",
-		"currentAdmission attemptStart 1 ",
+		"activityRecord dispatch 1 enqueued", "trustingActivityRecord dispatch 1 enqueued",
+		"activityRecord poll 2 consumed", "trustingActivityRecord poll 2 consumed",
+		"activityRecord poll 1 consumed", "trustingActivityRecord poll 1 consumed",
+		"activityRecord poll 1 ",
 	} {
 		require.Positive(t, seen[kind], "no row of the kind %q", kind)
 	}
@@ -190,13 +190,13 @@ func TestTwoResultsOfARowCannotShareAName(t *testing.T) {
 	require.NoError(t, Validate(named), "a row's results are only known once it is evaluated")
 	built, err := Build(plain)
 	require.NoError(t, err)
-	current := built["currentAdmission"].Table
-	first := slices.IndexFunc(current.Rows, func(r Row) bool { return r.Action == "attemptStart" && len(r.Results) == 2 })
+	current := built["activityRecord"].Table
+	first := slices.IndexFunc(current.Rows, func(r Row) bool { return r.Action == "poll" && len(r.Results) == 2 })
 	require.GreaterOrEqual(t, first, 0)
 	binding := named.GetMachines()[1].GetSteps()[2]
 	require.Equal(t, admissionPackage+"admitCurrent", binding.GetFunction())
 	_, err = Build(named)
-	require.EqualError(t, err, where(binding.GetPosition())+": currentAdmission: row "+current.Rows[first].Key+" has two results named consumed")
+	require.EqualError(t, err, where(binding.GetPosition())+": activityRecord: row "+current.Rows[first].Key+" has two results named consumed")
 
 	stepAt(t, admitted.GetElse(), 0).Choice = ""
 	stepAt(t, admitted.GetElse(), 1).Choice = ""

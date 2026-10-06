@@ -22,8 +22,8 @@ func TestLiftedHintsAreRefusedAtTheirLines(t *testing.T) {
 		at + "95: realization nonPositiveBound: cause bound cause.timer waits at most 0 milliseconds; a bound is positive",
 		at + "104: realization intervalOverBound: cause bound cause.timer looks every 2000 milliseconds and waits at most 1000; " +
 			"an interval is no greater than its bound",
-		at + "110: realization unboundedStep: server step attemptStart is a delivery, and the realization bounds no delivery",
+		at + "110: realization unboundedStep: server step poll is a delivery, and the realization bounds no delivery",
 		at + "119: realization timerNoDeadline: server step scheduleToStart is a timer and names no positive deadline",
-		at + "124: realization deliveryDeadline: server step attemptStart names a deadline of 2000 milliseconds, and only a timer's step has one",
+		at + "124: realization deliveryDeadline: server step poll names a deadline of 2000 milliseconds, and only a timer's step has one",
 	}, strings.Split(err.Error(), "\n"))
 }

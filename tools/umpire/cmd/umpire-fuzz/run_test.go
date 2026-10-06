@@ -130,7 +130,7 @@ func (s *scriptedBridge) answer(frame map[string]json.RawMessage) map[string]any
 		s.set, s.profile = text(frame, "set"), text(frame, "profile")
 		reply["set"], reply["profile"] = s.set, s.profile
 		reply["frame"] = "initialized"
-		reply["machine"] = "temporal.features.nexuscaller.system.machine.nexusProtocol"
+		reply["machine"] = "temporal.features.nexuscaller.system.machine.nexusSystem"
 		reply["budget"] = "four"
 		reply["limits"] = map[string]int{"steps": 4, "actions": 4, "search": 32768}
 		reply["targets"] = s.targetKeys()

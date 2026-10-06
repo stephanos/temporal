@@ -74,10 +74,10 @@ object OperationRealization:
   private val awaitTerminated = awaitStatus(OperationFact.statusTerminated)
 
   private val operationController = controller(
-    perform(caller.start -> startOperation),
-    perform(caller.requestCancel -> requestCancelOperation),
-    perform(caller.terminate -> terminateOperation),
-    onPath(caller.terminate)(awaitTerminated)
+    perform(client.start -> startOperation),
+    perform(client.requestCancel -> requestCancelOperation),
+    perform(client.terminate -> terminateOperation),
+    onPath(client.terminate)(awaitTerminated)
   )
 
   /**

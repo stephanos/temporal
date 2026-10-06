@@ -98,7 +98,7 @@ func TestCheckedOnceIsCheck(t *testing.T) {
 	// A machine with no table is Build's error, and no report.
 	unread := mutated(t, "admission", func(m *umpirespb.Model) {
 		m.Holes = append(m.Holes, &umpirespb.Hole{Id: "generic.unknownEnd", Name: "unknownEnd", Position: at(1)})
-		current := admMachine(m, "currentAdmission")
+		current := admMachine(m, "activityRecord")
 		current.Ends = &umpirespb.Expr{Position: current.GetEnds().GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: "generic.unknownEnd"}}
 	})
 	_, want := Build(unread)
@@ -281,8 +281,8 @@ func outcomes(w *Trace) []string {
 func TestNexusCloseRejectionAfterCloseLosesTheOutcome(t *testing.T) {
 	c := closeModel(t)
 	n1 := closeQuery(t, c, "rejectAfterClose", "closedThenFinished")
-	rows := []string{closeOpened + "-callerClose",
-		"closed-none-running-none-none-none-handlerFinish-succeeded",
+	rows := []string{closeOpened + "-close",
+		"closed-none-running-none-none-none-finish-succeeded",
 		"closed-none-done-succeeded-inFlight-succeeded-none-none-complete-succeeded"}
 	require.Equal(t, rows, n1.Rows)
 	require.Equal(t, []string{"accepted", "accepted", "rejectedPermanent"}, outcomes(n1.Witness))
@@ -327,7 +327,7 @@ func TestNexusCloseRejectionAfterCloseLosesTheOutcome(t *testing.T) {
 func TestNexusCloseRetainedOutcomeIsReapplied(t *testing.T) {
 	c := closeModel(t)
 	n1 := closeQuery(t, c, "retainAndRoute", "resetAfterRetention")
-	require.Equal(t, []string{"callerClose", "handlerFinish-succeeded", "complete-succeeded", "reset"}, taken(n1.Witness))
+	require.Equal(t, []string{"close", "finish-succeeded", "complete-succeeded", "reset"}, taken(n1.Witness))
 	require.Equal(t, []string{"accepted", "accepted", "retained", "accepted"}, outcomes(n1.Witness))
 	require.Equal(t, "closed-none-done-succeeded-none-pending-succeeded-none", n1.Witness.Steps[2].State.Value)
 	require.Equal(t, []string{"outcomeRetained"}, factsOf(n1.Witness.Steps[2]))
@@ -342,7 +342,7 @@ func TestNexusCloseRetainedOutcomeIsReapplied(t *testing.T) {
 // by the successor.
 func TestNexusCloseAcknowledgmentByTheOriginalRun(t *testing.T) {
 	c := closeModel(t)
-	rows := []string{closeOpened + "-handlerFinish-failed",
+	rows := []string{closeOpened + "-finish-failed",
 		"open-none-done-failed-inFlight-failed-none-none-reset",
 		"resetOpen-none-done-failed-inFlight-failed-none-none-complete-failed"}
 	for _, name := range []string{"resetThenDelivered.ackOnlyWhenKept", "resetThenDelivered.outcomePreserved",
@@ -376,7 +376,7 @@ func TestNexusCloseAcknowledgmentByTheOriginalRun(t *testing.T) {
 // three policies. Receipt is not effect, and effect is not knowledge.
 func TestNexusCloseCancellationAcrossReset(t *testing.T) {
 	c := closeModel(t)
-	path := []string{"requestCancel-callerWorkflow", "deliverCancel", "handlerFinish-canceled", "reset", "complete-canceled"}
+	path := []string{"requestCancel-callerWorkflow", "deliverCancel", "finish-canceled", "reset", "complete-canceled"}
 	n3 := closeQuery(t, c, "ackByOriginal", "canceledAcrossReset")
 	require.Equal(t, path, taken(n3.Witness))
 	require.Equal(t, "resetOpen-requested-callerWorkflow-done-canceled-none-none-none", last(t, n3.Witness).State.Value)
@@ -392,12 +392,12 @@ func TestNexusCloseCancellationAcrossReset(t *testing.T) {
 	requested := closeQuery(t, c, "retainAndRoute", "intentWithoutReceipt")
 	require.Equal(t, "open-requested-callerWorkflow-running-none-none-none", last(t, requested.Witness).State.Value)
 	require.Equal(t, []string{"cancelRequested-callerWorkflow"}, factsOf(last(t, requested.Witness)))
-	require.True(t, table.Disabled("open-requested-callerWorkflow-running-none-none-none", "handlerFinish-canceled"))
-	require.True(t, table.Disabled(closeOpened, "handlerFinish-canceled"))
+	require.True(t, table.Disabled("open-requested-callerWorkflow-running-none-none-none", "finish-canceled"))
+	require.True(t, table.Disabled(closeOpened, "finish-canceled"))
 	require.True(t, table.Disabled(closeOpened, "deliverCancel"))
 	// A handler that received the request may still succeed.
 	received := closeQuery(t, c, "retainAndRoute", "receiptWithoutEffect")
-	require.Equal(t, []string{"requestCancel-callerWorkflow", "deliverCancel", "handlerFinish-succeeded"}, taken(received.Witness))
+	require.Equal(t, []string{"requestCancel-callerWorkflow", "deliverCancel", "finish-succeeded"}, taken(received.Witness))
 	require.Equal(t, "open-requested-callerWorkflow-cancelReceived-none-none-none", received.Witness.Steps[1].State.Value)
 	require.Equal(t, []string{"cancelReceived"}, factsOf(received.Witness.Steps[1]))
 	require.Equal(t, "open-requested-callerWorkflow-done-succeeded-inFlight-succeeded-none-none", last(t, received.Witness).State.Value)
@@ -421,7 +421,7 @@ func TestNexusCloseCancellationAcrossReset(t *testing.T) {
 func TestNexusClosePrincipalLossIsItsOwnAssessment(t *testing.T) {
 	c := closeModel(t)
 	n7 := closeQuery(t, c, "forgetsCancelOnReset", "canceledAcrossReset")
-	require.Equal(t, []string{"requestCancel-callerWorkflow", "deliverCancel", "handlerFinish-canceled", "reset"}, taken(n7.Witness))
+	require.Equal(t, []string{"requestCancel-callerWorkflow", "deliverCancel", "finish-canceled", "reset"}, taken(n7.Witness))
 	require.Equal(t, "resetOpen-none-done-canceled-inFlight-canceled-none-none", last(t, n7.Witness).State.Value)
 	require.Equal(t, []MonitorVerdict{
 		{Name: "retainedOutcome", State: "false", Verdict: umpire.MonitorHeld},
@@ -455,7 +455,7 @@ func TestNexusCloseResetAfterAcknowledgment(t *testing.T) {
 			plainResults(t, c.built[design].Table, "open-none-done-succeeded-none-none-original-succeeded-reset"), design)
 	}
 	truncated := closeQuery(t, c, "truncatesOnReset", "ackedThenReset")
-	require.Equal(t, []string{"handlerFinish-succeeded", "complete-succeeded", "reset"}, taken(truncated.Witness))
+	require.Equal(t, []string{"finish-succeeded", "complete-succeeded", "reset"}, taken(truncated.Witness))
 	require.Equal(t, closeLost, last(t, truncated.Witness).State.Value)
 	require.Empty(t, truncated.Monitor)
 	// What the operation retained is still reapplied by that reset: only the original run's record is cut.
@@ -500,7 +500,7 @@ func TestNexusCloseDuplicateCompletion(t *testing.T) {
 func TestNexusCloseFrozenHistoryAndDetachedWork(t *testing.T) {
 	c := closeModel(t)
 	detached := closeQuery(t, c, "retainAndRoute", "detachedWorkProceeds")
-	require.Equal(t, []string{"callerClose", "handlerFinish-succeeded"}, taken(detached.Witness))
+	require.Equal(t, []string{"close", "finish-succeeded"}, taken(detached.Witness))
 	require.Equal(t, []string{"workflowClosed"}, factsOf(detached.Witness.Steps[0]))
 	require.Equal(t, "closed-none-done-succeeded-inFlight-succeeded-none-none", last(t, detached.Witness).State.Value)
 	for _, name := range []string{"any.closedHistoryIsFrozen", "any.handlerEffectIsIrreversible", "any.knownIsTheHandlersOutcome"} {
@@ -547,10 +547,10 @@ func TestNexusCloseTimeoutResolvesTheLostOutcome(t *testing.T) {
 		state string
 	}{
 		"rejectAfterCloseWithDeadline": {"expiredAfterClosedLoss",
-			[]string{"callerClose", "handlerFinish-succeeded", "complete-succeeded", "reset", "scheduleToClose"},
+			[]string{"close", "finish-succeeded", "complete-succeeded", "reset", "scheduleToClose"},
 			"resetOpen-none-done-succeeded-none-none-expired"},
 		"ackByOriginalWithDeadline": {"expiredAfterResetLoss",
-			[]string{"handlerFinish-failed", "reset", "complete-failed", "scheduleToClose"},
+			[]string{"finish-failed", "reset", "complete-failed", "scheduleToClose"},
 			"resetOpen-none-done-failed-none-none-expired"},
 	} {
 		expired := closeQuery(t, c, design, lost.query)
@@ -579,7 +579,7 @@ func TestNexusCloseTimeoutResolvesTheLostOutcome(t *testing.T) {
 		owed := closeQuery(t, c, design, "expiredWhileReported")
 		require.Equal(t, "open-none-done-succeeded-inFlight-succeeded-none-expired", last(t, owed.Witness).State.Value, design)
 		late := closeQuery(t, c, design, "lateCompletionIsDropped")
-		require.Equal(t, []string{"handlerFinish-succeeded", "scheduleToClose", "complete-succeeded"}, taken(late.Witness), design)
+		require.Equal(t, []string{"finish-succeeded", "scheduleToClose", "complete-succeeded"}, taken(late.Witness), design)
 		require.Equal(t, "rejectedPermanent", last(t, late.Witness).Outcome.Value, design)
 		require.Equal(t, "open-none-done-succeeded-none-none-expired", last(t, late.Witness).State.Value, design)
 		// A closed run's history is frozen, so no deadline fires in it.

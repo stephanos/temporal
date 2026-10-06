@@ -1,5 +1,5 @@
 /* The standalone activity's System: how the server gets there (fn-126 decision 16). The level's own
- * file holds the protocol machine, ActivityProtocol, whose refinement says what the Product reads of
+ * file holds the System machine, ActivitySystem, whose refinement says what the Product reads of
  * it; ActivityWorker, the worker of its task queue; and StandaloneActivity, the protocol with that
  * worker. Beside it, one file per subject: Record.scala, history's record of the activity, and
  * WithTaskQueue.scala, that record composed with the shared task queue.
@@ -18,14 +18,14 @@ import shared.worker.{worker as process, Phase as WorkerPhase, State as WorkerSt
 import product.ActivityProduct
 import Timeout.expires
 
-// ### The protocol machine adds the retry, the pause request, the timers and the attempt count. It
+// ### The System machine adds the retry, the pause request, the timers and the attempt count. It
 // begins before the activity exists, so unstarted is a phase and the start sets the deadlines.
 
-object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
+object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
   import Phase.*
 
   /** Where every path begins: before the activity exists, with every deadline at its first value. */
-  val init = ProtocolState(
+  val init = SystemState(
     phase = Phase.unstarted,
     attempts = UpTo(0),
     scheduleToClose = Timeout.unset,
@@ -35,14 +35,14 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
   def end(s: State) = states.terminal(s.phase)
 
   /** A timeout is confirmed by the one status observation, whichever deadline fired. */
-  val evidence: PartialFunction[ProtocolFact, String] = {
-    case ProtocolFact.statusTimedOut(_) => "statusTimedOut"
-    case ProtocolFact.attemptCount      => attemptCount.name
+  val evidence: PartialFunction[SystemFact, String] = {
+    case SystemFact.statusTimedOut(_) => "statusTimedOut"
+    case SystemFact.attemptCount      => attemptCount.name
   }
 
   /** The protocol's status sets and its attempt count's bound. */
   object states:
-    /** Bounds the attempt count, as the type of `ProtocolState.attempts` does. */
+    /** Bounds the attempt count, as the type of `SystemState.attempts` does. */
     val attemptBound = 2
 
     def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
@@ -82,7 +82,7 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
     val unobservable = List(timers.backoff)
 
   object effects:
-    import ProtocolFact.*
+    import SystemFact.*
 
     /** The start creates the activity, with the deadlines its inputs set. */
     def schedule(
@@ -92,7 +92,7 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
         startToClose: Timeout
     ) =
       enter(
-        ProtocolState(
+        SystemState(
           phase = scheduled,
           attempts = UpTo(0),
           scheduleToClose = scheduleToClose,
@@ -102,12 +102,12 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
         statusScheduled
       )
 
-    /** The worker's poll takes the attempt and raises the count the caller reads back. */
+    /** The worker's poll takes the attempt and raises the count the client reads back. */
     def startAttempt(s: State) =
       enter(
         s.copy(phase = started, attempts = states.saturatingSucc(s.attempts)),
         statusStarted,
-        ProtocolFact.attemptCount
+        SystemFact.attemptCount
       )
 
     def complete(s: State) = enter(s.copy(phase = completed), statusCompleted)
@@ -116,8 +116,8 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
 
     /** A retryable failure backs a started attempt off: read as scheduled again, one attempt higher. */
     def backOff(s: State) =
-      enter(s.copy(phase = backingOff), statusScheduled, ProtocolFact.attemptCount)
-        .because("a retryable failure backs off; the caller reads scheduled again")
+      enter(s.copy(phase = backingOff), statusScheduled, SystemFact.attemptCount)
+        .because("a retryable failure backs off; the client reads scheduled again")
 
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
 
@@ -128,7 +128,7 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
 
     /**
      * A pause of a held attempt is a request the worker learns of on its next heartbeat, so it is its
-     * own phase the caller reads as paused.
+     * own phase the client reads as paused.
      */
     def requestPause(s: State) =
       enter(s.copy(phase = pauseRequested), statusPaused)
@@ -147,27 +147,27 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
     /** Keeps the state and records nothing; the next step's evidence confirms it, a Known Gap. */
     def keep(s: State) = stay(s)
 
-    /** The backoff timer. A retry writes nothing the caller can read. */
+    /** The backoff timer. A retry writes nothing the client can read. */
     def retry(s: State) = enter(s.copy(phase = scheduled))
 
     def timeOut(s: State, t: TimeoutType) =
       enter(s.copy(phase = timedOut), statusTimedOut(t))
 
   object rules extends Rules(_.phase):
-    on(caller.start)(in(Phase.unstarted) ~> effects.schedule)
-    on(worker.attemptStart)(in(scheduled) ~> effects.startAttempt)
+    on(client.start)(in(Phase.unstarted) ~> effects.schedule)
+    on(worker.poll)(in(scheduled) ~> effects.startAttempt)
 
     // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
     // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
     // (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
-    on(worker.attemptResult(AttemptResult.completed))(in(states.held) ~> effects.complete)
-    on(worker.attemptResult(AttemptResult.failed(false)))(in(states.held) ~> effects.fail)
-    on(worker.attemptResult(AttemptResult.failed(true))) {
+    on(worker.respond(AttemptResult.completed))(in(states.held) ~> effects.complete)
+    on(worker.respond(AttemptResult.failed(false)))(in(states.held) ~> effects.fail)
+    on(worker.respond(AttemptResult.failed(true))) {
       in(started) ~> effects.backOff
       in(cancelRequested) ~> effects.cancel
       in(pauseRequested) ~> effects.pause
     }
-    on(worker.attemptResult(AttemptResult.canceled))(in(cancelRequested) ~> effects.cancel)
+    on(worker.respond(AttemptResult.canceled))(in(cancelRequested) ~> effects.cancel)
 
     // A control on an activity that is over is not found; an unstarted one has no control. A pause
     // is disabled in paused and pauseRequested (already paused, or asked to be) and cancelRequested
@@ -176,18 +176,18 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
     // non-pausable state", "... non-unpausable state", chasm/lib/activity/operator_commands.go), and
     // a rejecting row would add rows to the table, so they stay disabled until the behavior freeze
     // lifts.
-    on(caller.control)(in(states.terminal) ~> effects.notFound)
-    on(caller.control(Control.pause)) {
+    on(client.control)(in(states.terminal) ~> effects.notFound)
+    on(client.control(Control.pause)) {
       in(scheduled, backingOff) ~> effects.pause
       in(started) ~> effects.requestPause
     }
-    on(caller.control(Control.unpause)) {
+    on(client.control(Control.unpause)) {
       in(paused) ~> effects.resume
       in(pauseRequested) ~> effects.withdrawPause
     }
-    on(caller.control(Control.requestCancel))(in(states.live) ~> effects.requestCancel)
-    on(caller.control(Control.terminate))(in(states.live) ~> effects.terminate)
-    on(process.workerStop)(always ~> effects.keep)
+    on(client.control(Control.requestCancel))(in(states.live) ~> effects.requestCancel)
+    on(client.control(Control.terminate))(in(states.live) ~> effects.terminate)
+    on(process.stop)(always ~> effects.keep)
     on(timers.backoff)(in(backingOff) ~> effects.retry)
     on(deadline.scheduleToClose) {
       in(states.live).where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
@@ -208,22 +208,22 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
 
   /**
    * What the protocol promises of its own: the settlement claims. The cross-entity claim of the
-   * activity and its worker is the composition's, and the system contract's are Record.scala's.
+   * activity and its worker is the composition's, and the history record's are Record.scala's.
    */
   object properties:
     val completes =
-      property when worker.attemptResult(AttemptResult.completed) holds { s =>
-        s.state.phase == Phase.completed && s.records(ProtocolFact.statusCompleted)
+      property when worker.respond(AttemptResult.completed) holds { s =>
+        s.state.phase == Phase.completed && s.records(SystemFact.statusCompleted)
       }
 
     val nonRetryableFails =
-      property when worker.attemptResult(AttemptResult.failed(false)) holds { s =>
-        s.state.phase == Phase.failed && s.records(ProtocolFact.statusFailed)
+      property when worker.respond(AttemptResult.failed(false)) holds { s =>
+        s.state.phase == Phase.failed && s.records(SystemFact.statusFailed)
       }
 
     /** Completed on the second attempt of an activity with no deadline set. */
     val completedOnRetry =
-      ProtocolState(
+      SystemState(
         phase = Phase.completed,
         attempts = UpTo(states.attemptBound),
         scheduleToClose = Timeout.unset,
@@ -236,43 +236,43 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
      * any later attempt than the second reads as this one.
      */
     val retryCompletes =
-      property when worker.attemptResult(AttemptResult.completed) holds { s =>
-        s.state == completedOnRetry && s.records(ProtocolFact.statusCompleted)
+      property when worker.respond(AttemptResult.completed) holds { s =>
+        s.state == completedOnRetry && s.records(SystemFact.statusCompleted)
       }
 
     val cancelRequestedWhileStarted =
-      property when caller.control(Control.requestCancel) holds { s =>
-        s.state.phase == Phase.cancelRequested && s.records(ProtocolFact.statusCancelRequested)
+      property when client.control(Control.requestCancel) holds { s =>
+        s.state.phase == Phase.cancelRequested && s.records(SystemFact.statusCancelRequested)
       }
 
     val canceledByWorker =
-      property when worker.attemptResult(AttemptResult.canceled) holds { s =>
-        s.state.phase == Phase.canceled && s.records(ProtocolFact.statusCanceled)
+      property when worker.respond(AttemptResult.canceled) holds { s =>
+        s.state.phase == Phase.canceled && s.records(SystemFact.statusCanceled)
       }
 
-    val terminated = property when caller.control(Control.terminate) holds { s =>
-      s.state.phase == Phase.terminated && s.records(ProtocolFact.statusTerminated)
+    val terminated = property when client.control(Control.terminate) holds { s =>
+      s.state.phase == Phase.terminated && s.records(SystemFact.statusTerminated)
     }
 
     // Each deadline times the activity out and the status records which it was. With both
     // schedule-to-start and schedule-to-close set and no attempt started, either may fire first.
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
       s.state.phase == Phase.timedOut &&
-      s.records(ProtocolFact.statusTimedOut(TimeoutType.scheduleToStart))
+      s.records(SystemFact.statusTimedOut(TimeoutType.scheduleToStart))
     }
 
     val scheduleToCloseFires = property when deadline.scheduleToClose holds { s =>
       s.state.phase == Phase.timedOut &&
-      s.records(ProtocolFact.statusTimedOut(TimeoutType.scheduleToClose))
+      s.records(SystemFact.statusTimedOut(TimeoutType.scheduleToClose))
     }
 
     val startToCloseFires = property when deadline.startToClose holds { s =>
       s.state.phase == Phase.timedOut &&
-      s.records(ProtocolFact.statusTimedOut(TimeoutType.startToClose))
+      s.records(SystemFact.statusTimedOut(TimeoutType.startToClose))
     }
 
   /**
-   * What the protocol machine is, as the functional laws read it, which a find through its
+   * What the System machine is, as the functional laws read it, which a find through its
    * realization asks: a terminate settles it, a cancel request is recorded, and
    * DescribeActivityExecution reports its status by `activityStatus`. Each law's find starts the
    * activity and stops the worker before the control, so no attempt is in flight when it lands, as
@@ -284,15 +284,15 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
   object implements
       extends Implements(limits = three)(
         Terminable(
-          terminate = caller.control(Control.terminate),
-          settled = ProtocolFact.statusTerminated,
-          reach = Seq(caller.start(), process.workerStop),
+          terminate = client.control(Control.terminate),
+          settled = SystemFact.statusTerminated,
+          reach = Seq(client.start(), process.stop),
           expect = inconclusive(Reason.explanationsDisagree)
         ),
         Cancelable(
-          requestCancel = caller.control(Control.requestCancel),
-          requested = ProtocolFact.statusCancelRequested,
-          reach = Seq(caller.start(), process.workerStop),
+          requestCancel = client.control(Control.requestCancel),
+          requested = SystemFact.statusCancelRequested,
+          reach = Seq(client.start(), process.stop),
           expect = inconclusive(Reason.explanationsDisagree)
         ),
         Describable(status = ActivityRealization.activityStatus)
@@ -306,65 +306,74 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
    */
   object queries:
     val cancelRequestedThenCanceled = scenario.actions(
-      caller.start(),
-      worker.attemptStart,
-      caller.control(Control.requestCancel),
-      worker.attemptResult(AttemptResult.canceled)
+      client.start(),
+      worker.poll,
+      client.control(Control.requestCancel),
+      worker.respond(AttemptResult.canceled)
+    )
+    val completed = scenario.actions(
+      client.start(),
+      worker.poll,
+      worker.respond(AttemptResult.completed)
+    )
+    val nonRetryable = scenario.actions(
+      client.start(),
+      worker.poll,
+      worker.respond(AttemptResult.failed(false))
+    )
+    val retriedThenCompleted = scenario.actions(
+      client.start(),
+      worker.poll,
+      worker.respond(AttemptResult.failed(true)),
+      timers.backoff,
+      worker.poll,
+      worker.respond(AttemptResult.completed)
+    )
+    val terminatedWhileScheduled = scenario.actions(
+      client.start(),
+      process.stop,
+      client.control(Control.terminate)
+    )
+    val pausedThenCompleted = scenario.actions(
+      client.start(),
+      client.control(Control.pause),
+      client.control(Control.unpause),
+      worker.poll,
+      worker.respond(AttemptResult.completed)
+    )
+    val scheduleToStartExpires = scenario.actions(
+      client.start(scheduleToStart := expires),
+      process.stop,
+      deadline.scheduleToStart
+    )
+    val startToCloseExpires = scenario.actions(
+      client.start(startToClose := expires),
+      worker.poll,
+      deadline.startToClose
     )
 
     // One Query per side effect that settles the activity, apart from the Properties they find.
     val completion =
-      (query find properties.completes in scenario("completed").actions(
-        caller.start(),
-        worker.attemptStart,
-        worker.attemptResult(AttemptResult.completed)
-      ) limits three).expect(satisfied)
+      (query find properties.completes in completed limits three).expect(satisfied)
     val nonRetryableFailure =
-      (query find properties.nonRetryableFails in scenario("nonRetryable").actions(
-        caller.start(),
-        worker.attemptStart,
-        worker.attemptResult(AttemptResult.failed(false))
-      ) limits three).expect(satisfied)
+      (query find properties.nonRetryableFails in nonRetryable limits three).expect(satisfied)
     val retry =
-      (query find properties.retryCompletes in scenario("retriedThenCompleted").actions(
-        caller.start(),
-        worker.attemptStart,
-        worker.attemptResult(AttemptResult.failed(true)),
-        timers.backoff,
-        worker.attemptStart,
-        worker.attemptResult(AttemptResult.completed)
-      ) limits six)
+      (query find properties.retryCompletes in retriedThenCompleted limits six)
         .expect(inconclusive(Reason.explanationsDisagree))
     val cancel =
       query find properties.canceledByWorker in cancelRequestedThenCanceled limits four
-    // The worker stops before the start, so no attempt is in flight when the caller terminates.
+    // The worker stops before the start, so no attempt is in flight when the client terminates.
     val terminate =
-      (query find properties.terminated in scenario("terminatedWhileScheduled").actions(
-        caller.start(),
-        process.workerStop,
-        caller.control(Control.terminate)
-      ) limits three).expect(inconclusive(Reason.explanationsDisagree))
+      (query find properties.terminated in terminatedWhileScheduled limits three)
+        .expect(inconclusive(Reason.explanationsDisagree))
     val pauseResume =
-      (query find properties.completes in scenario("pausedThenCompleted").actions(
-        caller.start(),
-        caller.control(Control.pause),
-        caller.control(Control.unpause),
-        worker.attemptStart,
-        worker.attemptResult(AttemptResult.completed)
-      ) limits six)
+      (query find properties.completes in pausedThenCompleted limits six)
         .expect(satisfied)
     val scheduleToStartTimeout =
-      (query find properties.scheduleToStartFires in scenario("scheduleToStartExpires").actions(
-        caller.start(scheduleToStart := expires),
-        process.workerStop,
-        deadline.scheduleToStart
-      ) limits three).expect(inconclusive(Reason.neverEvaluated))
+      (query find properties.scheduleToStartFires in scheduleToStartExpires limits three)
+        .expect(inconclusive(Reason.neverEvaluated))
     val startToCloseTimeout =
-      query find properties.startToCloseFires in scenario("startToCloseExpires").actions(
-        caller.start(startToClose := expires),
-        worker.attemptStart,
-        deadline.startToClose
-      ) limits three
+      query find properties.startToCloseFires in startToCloseExpires limits three
 
     // The Query that carries the other promise into the lifted Model, where Go's are compared.
 
@@ -376,26 +385,26 @@ object ActivityProtocol extends Machine[ProtocolState, Outcome, ProtocolFact]:
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 
 object ActivityWorker
-    extends Derived(shared.worker.Polling.restrict(process.workerStop, process.serve))
+    extends Derived(shared.worker.Polling.restrict(process.stop, process.serve))
 
 // ### With the worker of its task queue, the stop is the worker's own phase change and every
 // attempt start is the worker serving, so an attempt has a row only while the worker polls.
 
 object StandaloneActivity
     extends Composition[StandaloneActivityState](
-      _.activity -> ActivityProtocol,
+      _.activity -> ActivitySystem,
       _.worker -> ActivityWorker
     ):
-  def end(s: State) = ActivityProtocol.states.terminal(s.activity.phase)
+  def end(s: State) = ActivitySystem.states.terminal(s.activity.phase)
 
   object syncs extends Syncs:
-    sync(_.activity -> process.workerStop, _.worker -> process.workerStop)
-    sync(_.activity -> worker.attemptStart, _.worker -> process.serve)
+    sync(_.activity -> process.stop, _.worker -> process.stop)
+    sync(_.activity -> worker.poll, _.worker -> process.serve)
 
   object properties:
     /** The cross-entity claim: no stopped worker starts an attempt. */
     val startedByPollingWorker = property
-      .whenAction(synced(_.activity -> worker.attemptStart))
+      .whenAction(synced(_.activity -> worker.poll))
       .holds(_.state.worker.phase == WorkerPhase.polling)
 
   object queries:
@@ -406,14 +415,15 @@ object StandaloneActivity
      * a default would take the worker's from shared/worker/Worker.scala; fn-115's golden compares
      * positions.
      */
-    val stoppedWorkerStartsNothing =
-      query verify properties.startedByPollingWorker in scenario("stoppedBeforeRetry")
-        .starts(StandaloneActivityState(ActivityProtocol.init, WorkerState(WorkerPhase.polling)))
+    val stoppedBeforeRetry = scenario
+        .starts(StandaloneActivityState(ActivitySystem.init, WorkerState(WorkerPhase.polling)))
         .actions(
-          own(_.activity, caller.start(scheduleToStart := expires)),
-          synced(_.activity -> worker.attemptStart),
-          own(_.activity, worker.attemptResult(AttemptResult.failed(true))),
+          own(_.activity, client.start(scheduleToStart := expires)),
+          synced(_.activity -> worker.poll),
+          own(_.activity, worker.respond(AttemptResult.failed(true))),
           own(_.activity, timers.backoff),
-          synced(_.activity -> process.workerStop),
+          synced(_.activity -> process.stop),
           own(_.activity, deadline.scheduleToStart)
-        ) limits six
+        )
+    val stoppedWorkerStartsNothing =
+      query verify properties.startedByPollingWorker in stoppedBeforeRetry limits six

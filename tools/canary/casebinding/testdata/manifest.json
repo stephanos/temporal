@@ -5,7 +5,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "syncCompletion"
       },
       "standing": "lowered",

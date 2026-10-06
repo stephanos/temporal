@@ -177,7 +177,7 @@ final case class ApiBehavior(
 ) extends Behavior
 
 /**
- * A step class no command performs, and the kind of cause it is: an activity's `attemptStart` is a
+ * A step class no command performs, and the kind of cause it is: an activity's `poll` is a
  * delivery, a timeout class a timer. A timer carries the deadline, in milliseconds, its request set
  * from the same kit value; the wait for it is that deadline plus the timer's bound.
  */

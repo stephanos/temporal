@@ -517,8 +517,8 @@ func TestAdmissionRejectsReadingsWithoutARefinement(t *testing.T) {
 			admQuery(m, "putStoresThroughDisk").Scenario = &umpirespb.ClaimRef{Machine: "pair", Name: "any"}
 		}, admDeclaredAt + "166: query putStoresThroughDisk pairs a Property of store with a Scenario of pair"},
 		{"product property without through", "admission", func(m *umpirespb.Model) {
-			admQuery(m, "currentAdmission.product.pausedIsNotDispatched").Through = false
-		}, admAdmissionAt + "373: query currentAdmission.product.pausedIsNotDispatched pairs a Property of activityProduct with a Scenario of currentAdmission"},
+			admQuery(m, "activityRecord.product.pausedIsNotDispatched").Through = false
+		}, admAdmissionAt + "373: query activityRecord.product.pausedIsNotDispatched pairs a Property of activityProduct with a Scenario of activityRecord"},
 	})
 }
 
@@ -673,9 +673,9 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 			admScenario(m, "store", "putOnce").GetActions()[0].Inputs = []*umpirespb.Value{admIntValue(1)}
 		}, admDeclaredAt + "152: store.putOnce: " + put + " takes 0 inputs, not 1"},
 		{"scenario input of a crossed type", "admission", func(m *umpirespb.Model) {
-			admScenario(m, "currentAdmission", "staleDeliveryAfterPause").GetActions()[1].Inputs[0] = admEnum(
+			admScenario(m, "activityRecord", "staleDeliveryAfterPause").GetActions()[1].Inputs[0] = admEnum(
 				"fixture.specimens.admission.AdmissionPhase", "paused")
-		}, admAdmissionAt + "352: currentAdmission.staleDeliveryAfterPause: " + control + " takes a fixture.specimens.admission.Control for control, not paused"},
+		}, admAdmissionAt + "352: activityRecord.staleDeliveryAfterPause: " + control + " takes a fixture.specimens.admission.Control for control, not paused"},
 		{"scenario input outside its range", "channels", func(m *umpirespb.Model) {
 			admTallyScenario(m, 3)
 		}, "generic:1: tallying.counts: " + admChannelsID + "tally.deliver takes a 0..2 for message, not 3"},
@@ -724,25 +724,25 @@ func TestAdmissionAdmitsAWhenOverComposedClasses(t *testing.T) {
 		admProperty(m, "detailedPair", "frontHeld").When = &umpirespb.Property_WhenAction{WhenAction: action}
 		require.NoError(t, Validate(m), action)
 	}
-	// standaloneActivity's sync attemptStart is named as the activity's action it takes, so that
+	// standaloneActivity's sync poll is named as the activity's action it takes, so that
 	// action's one class is keyed as the sync's step is.
 	m := proto.Clone(activityModel(t)).(*umpirespb.Model)
-	var attemptStart string
+	var poll string
 	for _, a := range m.GetActions() {
-		if a.GetName() == "attemptStart" {
-			attemptStart = a.GetId()
+		if a.GetName() == "poll" {
+			poll = a.GetId()
 		}
 	}
-	require.NotEmpty(t, attemptStart)
+	require.NotEmpty(t, poll)
 	started := admProperty(m, "standaloneActivity", "startedByPollingWorker")
 	require.NotNil(t, started)
-	started.When = &umpirespb.Property_WhenClass{WhenClass: &umpirespb.ActionClass{Action: attemptStart}}
+	started.When = &umpirespb.Property_WhenClass{WhenClass: &umpirespb.ActionClass{Action: poll}}
 	require.NoError(t, Validate(m))
 	// The activity's own control has a class for each of its inputs, and the action names them all.
 	started.When = &umpirespb.Property_WhenAction{WhenAction: "activity_control"}
 	require.NoError(t, Validate(m))
 	started.When = &umpirespb.Property_WhenAction{WhenAction: "activity_control-pause"}
 	require.ErrorContains(t, Validate(m), "standaloneActivity.startedByPollingWorker: standaloneActivity has no class of the action activity_control-pause")
-	started.When = &umpirespb.Property_WhenClass{WhenClass: &umpirespb.ActionClass{Action: attemptStart, Inputs: []*umpirespb.Value{admIntValue(1)}}}
-	require.ErrorContains(t, Validate(m), "standaloneActivity.startedByPollingWorker: standaloneActivity has no class attemptStart-1")
+	started.When = &umpirespb.Property_WhenClass{WhenClass: &umpirespb.ActionClass{Action: poll, Inputs: []*umpirespb.Value{admIntValue(1)}}}
+	require.ErrorContains(t, Validate(m), "standaloneActivity.startedByPollingWorker: standaloneActivity has no class poll-1")
 }

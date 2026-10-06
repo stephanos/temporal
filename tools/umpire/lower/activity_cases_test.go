@@ -26,7 +26,7 @@ import (
 
 const (
 	activityEvidence = "temporal.features.standaloneactivity.evidence."
-	activityActions  = "temporal.features.standaloneactivity.system.action.activityProtocol."
+	activityActions  = "temporal.features.standaloneactivity.system.action.activitySystem."
 	describeActivity = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
 )
 
@@ -41,9 +41,9 @@ type activityCase struct {
 
 const (
 	plainStart   = "start-unset-unset-unset"
-	startedOnce  = "attemptStart"
-	answerDone   = "attemptResult-completed"
-	answerFailed = "attemptResult-failed-true"
+	startedOnce  = "poll"
+	answerDone   = "respond-completed"
+	answerFailed = "respond-failed-true"
 )
 
 // The first three steps of most paths: the start call's answer says the activity is scheduled, and the
@@ -55,48 +55,48 @@ func begun(rest map[string][]string) map[string][]string {
 }
 
 var activityCases = map[string]activityCase{
-	// completed: start, attemptStart, attemptResult(completed).
+	// completed: start, poll, respond(completed).
 	"completion": {[]string{"start-activity", "await-completed"}, []string{"complete-attempt"},
 		begun(map[string][]string{"statusCompleted": {answerDone}}), nil},
-	// nonRetryable: start, attemptStart, attemptResult(failed(false)).
+	// nonRetryable: start, poll, respond(failed(false)).
 	"nonRetryableFailure": {[]string{"start-activity", "await-failed"}, []string{"fail-activity"},
-		begun(map[string][]string{"statusFailed": {"attemptResult-failed-false"}}), nil},
-	// retriedThenCompleted: start, attemptStart, attemptResult(failed(true)), backoff, attemptStart,
-	// attemptResult(completed). The second attempt's delivery is one piece of evidence: it confirms the
+		begun(map[string][]string{"statusFailed": {"respond-failed-false"}}), nil},
+	// retriedThenCompleted: start, poll, respond(failed(true)), backoff, poll,
+	// respond(completed). The second attempt's delivery is one piece of evidence: it confirms the
 	// failure the server retried, the backoff, which records nothing, and the second attempt start.
 	"retry": {[]string{"start-activity", "await-completed"}, []string{"fail-attempt", "complete-attempt"},
 		begun(map[string][]string{"attemptCount": {answerFailed, "backoff", startedOnce}, "statusCompleted": {answerDone}}), []string{"backoff"}},
-	// terminatedWhileScheduled: start, workerStop, control(terminate). The stop records nothing.
+	// terminatedWhileScheduled: start, stop, control(terminate). The stop records nothing.
 	"terminate": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
-		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"workerStop", "control-terminate"}}, []string{"workerStop"}},
-	// pausedThenCompleted: start, control(pause), control(unpause), attemptStart, attemptResult(completed).
+		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "control-terminate"}}, []string{"stop"}},
+	// pausedThenCompleted: start, control(pause), control(unpause), poll, respond(completed).
 	// The release schedules the activity again, which its own answer confirms. The path pauses an
 	// activity no worker has taken, so the Case keeps its worker from polling until the release.
 	"pauseResume": {[]string{"stop-worker-until-released", "start-activity", "pause-activity", "await-paused", "unpause-activity", "resume-worker",
 		"await-completed"}, []string{"complete-attempt"},
 		begun(map[string][]string{"statusPaused": {"control-pause"}, "statusScheduledAgain": {"control-unpause"}, "statusCompleted": {answerDone}}), nil},
-	// scheduleToStartExpires: start(unset, expires, unset), workerStop, scheduleToStart.
+	// scheduleToStartExpires: start(unset, expires, unset), stop, scheduleToStart.
 	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "await-timed-out"}, []string{},
-		map[string][]string{"statusScheduled": {"start-unset-expires-unset"}, "statusTimedOut": {"workerStop", "scheduleToStart"}}, []string{"workerStop"}},
+		map[string][]string{"statusScheduled": {"start-unset-expires-unset"}, "statusTimedOut": {"stop", "scheduleToStart"}}, []string{"stop"}},
 	// The finds the protocol's capabilities generate, each over the Scenario its law's
-	// `reach` writes before the control: start, workerStop, then the control. Terminable's takes
+	// `reach` writes before the control: start, stop, then the control. Terminable's takes
 	// terminatedWhileScheduled's path and the same instructions as terminate's Case, but is a Case of
 	// its own (its Property and fingerprints differ), so `terminated` and `terminate` stay authored.
-	"activityProtocol.terminateSettles": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
-		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"workerStop", "control-terminate"}}, []string{"workerStop"}},
-	// Cancelable's: start, workerStop, control(requestCancel). The request's answer confirms it, so
+	"activitySystem.terminateSettles": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
+		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "control-terminate"}}, []string{"stop"}},
+	// Cancelable's: start, stop, control(requestCancel). The request's answer confirms it, so
 	// nothing is awaited after it.
-	"activityProtocol.cancelIsRequested": {[]string{"stop-worker", "start-activity", "request-cancel-activity"}, []string{},
-		map[string][]string{"statusScheduled": {plainStart}, "statusCancelRequested": {"workerStop", "control-requestCancel"}}, []string{"workerStop"}},
+	"activitySystem.cancelIsRequested": {[]string{"stop-worker", "start-activity", "request-cancel-activity"}, []string{},
+		map[string][]string{"statusScheduled": {plainStart}, "statusCancelRequested": {"stop", "control-requestCancel"}}, []string{"stop"}},
 }
 
 // activityLimits is, for each Query that lowers to no Case, the one thing that keeps it from one, and
 // the text of the line of Realization.scala it is named at.
 //
-//   - startToCloseTimeout (start, attemptStart, startToClose) starts an attempt and lets it run out
+//   - startToCloseTimeout (start, poll, startToClose) starts an attempt and lets it run out
 //     its deadline, so the attempt is given no answer, and an activity entrypoint's instructions are
 //     answers: nothing waits.
-//   - cancel and cancelRequest (start, attemptStart, control(requestCancel), attemptResult(canceled))
+//   - cancel and cancelRequest (start, poll, control(requestCancel), respond(canceled))
 //     request the cancellation while the attempt is held. A Run records an attempt once it is answered,
 //     so the record that confirms the attempt start reaches the Run after the cancel request's answer,
 //     which confirms the step after it: the Run would carry the path's evidence out of the path's order.

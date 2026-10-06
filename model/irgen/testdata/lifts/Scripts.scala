@@ -15,8 +15,8 @@ import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.standaloneactivity.{activity, caller, worker, Control, ProtocolFact}
-import temporal.features.standaloneactivity.system.ActivityProtocol as activityProtocol
+import temporal.features.standaloneactivity.{activity, client, worker, Control, SystemFact}
+import temporal.features.standaloneactivity.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus
@@ -30,9 +30,9 @@ import temporal.server.api.testpilot.v1.{
 // ### With the helpers and the kit
 
 private val statusPaused = Evidence.read(
-  id = evidenceId(ProtocolFact.statusPaused),
-  records = ProtocolFact.statusPaused,
-  source = sourceId(ProtocolFact.statusPaused),
+  id = evidenceId(SystemFact.statusPaused),
+  records = SystemFact.statusPaused,
+  source = sourceId(SystemFact.statusPaused),
   from = Recorded.single(
     METHOD_DESCRIBE_ACTIVITY_EXECUTION,
     Field[DescribeActivityExecutionResponse, ActivityExecutionInfo](_.getInfo)
@@ -42,8 +42,8 @@ private val statusPaused = Evidence.read(
 )
 
 private val statuses = statusTable(
-  ProtocolFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
-  ProtocolFact.statusTimedOut -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_TIMED_OUT
+  SystemFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
+  SystemFact.statusTimedOut -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_TIMED_OUT
 )
 
 private val stopWorker = Fault(taskQueue, FaultKind.workerStop)
@@ -61,7 +61,7 @@ private val startActivity = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION
 private val awaitPaused = await(statusPaused, workflowService)(
   Condition.equal(
     Field[ActivityExecutionInfo, ActivityExecutionStatus](_.status),
-    Operand.enumValue(statuses(ProtocolFact.statusPaused))
+    Operand.enumValue(statuses(SystemFact.statusPaused))
   )
 ) {
   field(_.namespace) := workerNamespace
@@ -69,29 +69,29 @@ private val awaitPaused = await(statusPaused, workflowService)(
 }
 
 private val dispatchHold =
-  Actuator("hold-dispatch", ControlKind.HoldDispatched(worker.attemptStart), taskQueue)
+  Actuator("hold-dispatch", ControlKind.HoldDispatched(worker.poll), taskQueue)
 
 private val releaseDispatch =
   command(Release(dispatchHold), regardless = true, closes = Vector(statusPaused))
 
 val helpers: Realization = temporalRealization(
-  machine = activityProtocol,
+  machine = activitySystem,
   operation = activity,
   roles = Vector(workflowService, caseWorker, taskQueue),
   scripts = Vector(
     controller(
-      perform(caller.control(Control.pause) -> pauseActivity),
-      onPath(caller.control(Control.pause))(awaitPaused),
+      perform(client.control(Control.pause) -> pauseActivity),
+      onPath(client.control(Control.pause))(awaitPaused),
       everyCase(startActivity.withFields {
         field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
       }),
       perform(
-        worker.attemptStart -> releaseDispatch,
-        caller.control(Control.terminate) -> stopWorker
+        worker.poll -> releaseDispatch,
+        client.control(Control.terminate) -> stopWorker
       ),
       // A command written out under its own id, around a call written in its scope.
       perform(
-        caller.control(Control.unpause) -> Command(
+        client.control(Control.unpause) -> Command(
           "unpause-written-out",
           rpc(workflowService, METHOD_UNPAUSE_ACTIVITY_EXECUTION) {
             field(_.namespace) := workerNamespace
@@ -100,7 +100,7 @@ val helpers: Realization = temporalRealization(
       )
     )
   ),
-  evidence = Vector(statusPaused, answered(ProtocolFact.statusScheduled, startActivity)),
+  evidence = Vector(statusPaused, answered(SystemFact.statusScheduled, startActivity)),
   controls = Vector(dispatchHold)
 )
 
@@ -119,7 +119,7 @@ private val describedCore = Evidence.read(
 )
 
 val records: Realization = Realization(
-  machine = activityProtocol,
+  machine = activitySystem,
   producer = "fixture.scripts.testpilot",
   producerVersion = "1",
   roles = Vector(
@@ -152,7 +152,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              caller.control(Control.pause),
+              client.control(Control.pause),
               Command(
                 "pause-activity",
                 Instruction.rpc(
@@ -198,7 +198,7 @@ val records: Realization = Realization(
               )
             )
           ),
-          when = Vector(caller.control(Control.pause))
+          when = Vector(client.control(Control.pause))
         ),
         Item(command =
           Some(
@@ -230,7 +230,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              worker.attemptStart,
+              worker.poll,
               Command(
                 "release-dispatch",
                 Instruction.Release("hold-dispatch"),
@@ -239,7 +239,7 @@ val records: Realization = Realization(
               )
             ),
             Performance(
-              caller.control(Control.terminate),
+              client.control(Control.terminate),
               Command("stop-worker", Fault("temporal.task-queue", FaultKind.workerStop))
             )
           )
@@ -247,7 +247,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              caller.control(Control.unpause),
+              client.control(Control.unpause),
               Command(
                 "unpause-written-out",
                 Instruction.rpc(
@@ -294,7 +294,7 @@ val records: Realization = Realization(
   controls = Vector(
     Actuator(
       "hold-dispatch",
-      ControlKind.HoldDispatched(worker.attemptStart),
+      ControlKind.HoldDispatched(worker.poll),
       role = "temporal.task-queue"
     )
   ),
@@ -305,7 +305,7 @@ val records: Realization = Realization(
 // ### One request field, both ways
 
 private def oneRequest(start: Instruction) = temporalRealization(
-  machine = activityProtocol,
+  machine = activitySystem,
   operation = activity,
   roles = Vector(workflowService),
   scripts = Vector(controller(everyCase(start))),

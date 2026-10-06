@@ -19,8 +19,8 @@ import scalapb.GeneratedMessage
 import umpire.ClassRef
 
 /**
- * A fact as a machine records it: a case of its fact enum (`ProtocolFact.statusPaused`), or for a
- * case with fields the case itself (`ProtocolFact.statusTimedOut`), which names every value of it.
+ * A fact as a machine records it: a case of its fact enum (`SystemFact.statusPaused`), or for a
+ * case with fields the case itself (`SystemFact.statusTimedOut`), which names every value of it.
  * The lifter writes the case's name, which is the evidence name the fact is confirmed by unless the
  * machine's evidence function says otherwise. A string is the name written out.
  */

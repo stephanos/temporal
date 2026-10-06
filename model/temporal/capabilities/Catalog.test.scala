@@ -19,12 +19,12 @@ class CatalogTest extends munit.FunSuite:
 
   val declared: Seq[Declaring] = Seq(
     Declaring("activityProduct", "ProductState", Set(Closable, Pausable, Pollable)),
-    Declaring("currentAdmission", "AdmissionState", Set(Closable, Pausable, Pollable)),
-    // Derived from currentAdmission by rebinding its dispatch: one entity with it.
-    Declaring("staleAdmission", "AdmissionState", Set(Closable, Pausable, Pollable)),
+    Declaring("activityRecord", "AdmissionState", Set(Closable, Pausable, Pollable)),
+    // Derived from activityRecord by rebinding its dispatch: one entity with it.
+    Declaring("trustingActivityRecord", "AdmissionState", Set(Closable, Pausable, Pollable)),
     // Reads the record through its `activity` member: the record's entity again.
-    Declaring("currentOverQueue", "AdmissionState", Set(Closable, Pausable, Pollable)),
-    Declaring("activityProtocol", "ProtocolState", Set(Terminable, Cancelable, Describable)),
+    Declaring("recordOverQueue", "AdmissionState", Set(Closable, Pausable, Pollable)),
+    Declaring("activitySystem", "SystemState", Set(Terminable, Cancelable, Describable)),
     // The standalone Nexus operation (model/temporal/features/nexusoperation).
     Declaring(
       "nexusOperation",

@@ -22,7 +22,7 @@
     "actions": {
       "Pausable.pause": "control-pause",
       "Pausable.unpause": "control-unpause",
-      "Pollable.dispatch": "attemptStart"
+      "Pollable.dispatch": "poll"
     },
     "bindings": {
       "paused": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.paused",
@@ -43,30 +43,30 @@
     "cites": { },
     "position": "model/temporal/features/standaloneactivity/product/Product.scala:123"
   }, {
-    "machine": "activityProtocol",
-    "name": "activityProtocol.cancelIsRequested",
+    "machine": "activitySystem",
+    "name": "activitySystem.cancelIsRequested",
     "law": "cancelIsRequested",
     "capabilities": [ "Cancelable" ],
     "actions": {
       "Cancelable.requestCancel": "control-requestCancel"
     },
     "bindings": {
-      "requestCancel": "temporal.features.standaloneactivity.caller.control.apply(temporal.features.standaloneactivity.Control.requestCancel)",
-      "requested": "temporal.features.standaloneactivity.ProtocolFact.statusCancelRequested"
+      "requestCancel": "temporal.features.standaloneactivity.client.control.apply(temporal.features.standaloneactivity.Control.requestCancel)",
+      "requested": "temporal.features.standaloneactivity.SystemFact.statusCancelRequested"
     },
     "cites": { },
     "position": "model/temporal/features/standaloneactivity/system/System.scala:292"
   }, {
-    "machine": "activityProtocol",
-    "name": "activityProtocol.terminateSettles",
+    "machine": "activitySystem",
+    "name": "activitySystem.terminateSettles",
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
     "actions": {
       "Terminable.terminate": "control-terminate"
     },
     "bindings": {
-      "terminate": "temporal.features.standaloneactivity.caller.control.apply(temporal.features.standaloneactivity.Control.terminate)",
-      "settled": "temporal.features.standaloneactivity.ProtocolFact.statusTerminated"
+      "terminate": "temporal.features.standaloneactivity.client.control.apply(temporal.features.standaloneactivity.Control.terminate)",
+      "settled": "temporal.features.standaloneactivity.SystemFact.statusTerminated"
     },
     "cites": { },
     "position": "model/temporal/features/standaloneactivity/system/System.scala:286"
@@ -80,8 +80,8 @@
     "doesNotPromise": "that the entity is then canceled, which only its work's answer settles; what a cancel with no work in flight does (the activity settles canceled at once); or what a second request answers (the Nexus operation answers ErrCancellationAlreadyRequested)",
     "parameters": [ ],
     "instantiating": [ {
-      "machine": "activityProtocol",
-      "state": "temporal.features.standaloneactivity.ProtocolState"
+      "machine": "activitySystem",
+      "state": "temporal.features.standaloneactivity.SystemState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:11"
   }, {
@@ -128,8 +128,8 @@
     "doesNotPromise": "what a terminate of a closed entity answers (closedIsRejectedUniformly), what a second terminate answers (the activity answers the same request id OK, the Nexus operation also refuses another id by name), or that a reason and an identity are recorded: the schedule records only that it closed",
     "parameters": [ ],
     "instantiating": [ {
-      "machine": "activityProtocol",
-      "state": "temporal.features.standaloneactivity.ProtocolState"
+      "machine": "activitySystem",
+      "state": "temporal.features.standaloneactivity.SystemState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:10"
   } ]

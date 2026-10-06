@@ -1,10 +1,10 @@
 {
-  "source": "model: temporal.features.nexuscaller.NexusRealization$.forgedCompletion, temporal.features.nexuscaller.system.ForgedCompletion$.queries",
+  "source": "model: temporal.features.nexuscaller.NexusRealization$.forgedCompletion, temporal.features.nexuscaller.system.TrustingCaller$.queries",
   "types": [ {
     "name": "temporal.features.nexuscaller.Outcome",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 53
+      "line": 56
     },
     "enum": {
       "cases": [ {
@@ -17,7 +17,7 @@
     "name": "temporal.features.nexuscaller.Phase",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 68
+      "line": 71
     },
     "enum": {
       "cases": [ {
@@ -39,10 +39,50 @@
       } ]
     }
   }, {
-    "name": "temporal.features.nexuscaller.ProtocolFact",
+    "name": "temporal.features.nexuscaller.Reply",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 87
+      "line": 44
+    },
+    "enum": {
+      "cases": [ {
+        "name": "syncSuccess"
+      }, {
+        "name": "async"
+      }, {
+        "name": "operationFailed"
+      }, {
+        "name": "operationCanceled"
+      }, {
+        "name": "handlerError",
+        "fields": [ {
+          "name": "retryable",
+          "type": {
+            "bool": { }
+          }
+        } ]
+      } ]
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.Resolution",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+      "line": 49
+    },
+    "enum": {
+      "cases": [ {
+        "name": "succeeded"
+      }, {
+        "name": "failed"
+      }, {
+        "name": "canceled"
+      } ]
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.SystemFact",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+      "line": 90
     },
     "enum": {
       "cases": [ {
@@ -68,10 +108,10 @@
       } ]
     }
   }, {
-    "name": "temporal.features.nexuscaller.ProtocolState",
+    "name": "temporal.features.nexuscaller.SystemState",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 79
+      "line": 82
     },
     "record": {
       "fields": [ {
@@ -104,50 +144,10 @@
       } ]
     }
   }, {
-    "name": "temporal.features.nexuscaller.Reply",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 41
-    },
-    "enum": {
-      "cases": [ {
-        "name": "syncSuccess"
-      }, {
-        "name": "async"
-      }, {
-        "name": "operationFailed"
-      }, {
-        "name": "operationCanceled"
-      }, {
-        "name": "handlerError",
-        "fields": [ {
-          "name": "retryable",
-          "type": {
-            "bool": { }
-          }
-        } ]
-      } ]
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.Resolution",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 46
-    },
-    "enum": {
-      "cases": [ {
-        "name": "succeeded"
-      }, {
-        "name": "failed"
-      }, {
-        "name": "canceled"
-      } ]
-    }
-  }, {
     "name": "temporal.features.nexuscaller.Timeout",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 37
+      "line": 40
     },
     "enum": {
       "cases": [ {
@@ -160,7 +160,7 @@
     "name": "temporal.features.nexuscaller.TimeoutType",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 75
+      "line": 78
     },
     "enum": {
       "cases": [ {
@@ -173,1635 +173,7 @@
     }
   } ],
   "functions": [ {
-    "name": "forgedCompletion.evidence",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 29
-    },
-    "params": [ {
-      "name": "protocolFact",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolFact"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 30
-      },
-      "match": {
-        "scrutinee": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 30
-          },
-          "var": "protocolFact"
-        },
-        "cases": [ {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.nexuscaller.ProtocolFact",
-                "case": "nexusOperationScheduled"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-              "line": 29
-            },
-            "literal": {
-              "text": "nexusOperationScheduled"
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.nexuscaller.ProtocolFact",
-                "case": "nexusOperationStarted"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-              "line": 29
-            },
-            "literal": {
-              "text": "nexusOperationStarted"
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.nexuscaller.ProtocolFact",
-                "case": "nexusOperationCompleted"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-              "line": 29
-            },
-            "literal": {
-              "text": "nexusOperationCompleted"
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.nexuscaller.ProtocolFact",
-                "case": "nexusOperationFailed"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-              "line": 29
-            },
-            "literal": {
-              "text": "nexusOperationFailed"
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.nexuscaller.ProtocolFact",
-                "case": "nexusOperationCanceled"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-              "line": 29
-            },
-            "literal": {
-              "text": "nexusOperationCanceled"
-            }
-          }
-        }, {
-          "pattern": {
-            "case": {
-              "type": "temporal.features.nexuscaller.ProtocolFact",
-              "case": "nexusOperationTimedOut",
-              "fields": [ {
-                "wildcard": { }
-              } ]
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-              "line": 30
-            },
-            "literal": {
-              "text": "nexusOperationTimedOut"
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.nexuscaller.ProtocolFact",
-                "case": "pendingAttempts"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-              "line": 31
-            },
-            "literal": {
-              "text": "pendingAttempts"
-            }
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "forgedCompletion.property.forgedSuccess",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 84
-    },
-    "params": [ {
-      "name": "step",
-      "type": {
-        "named": "umpire.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 84
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 84
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.features.nexuscaller.ProtocolFact",
-              "case": "nexusOperationCompleted"
-            }
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 84
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 84
-              },
-              "var": "step"
-            },
-            "field": "facts"
-          }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.backoff",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 62
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 62
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 62
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 55
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 55
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 62
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 62
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
-                      "case": "backingOff"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 62
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.retry",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 62
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 62
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.complete",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 58
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    }, {
-      "name": "resolution",
-      "type": {
-        "named": "temporal.features.nexuscaller.Resolution"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 58
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 58
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.created",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 55
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 55
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            } ]
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 58
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.forgedComplete",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 58
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 58
-              },
-              "var": "resolution"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 58
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.handlerReply",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 57
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    }, {
-      "name": "reply",
-      "type": {
-        "named": "temporal.features.nexuscaller.Reply"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 57
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 57
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 55
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 55
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 57
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 57
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
-                      "case": "scheduled"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 57
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.handlerReply",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 57
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 57
-              },
-              "var": "reply"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 57
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.inspect",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 59
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 59
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 59
-          },
-          "literal": {
-            "bool": true
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 59
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.inspect",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 59
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 59
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.schedule",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 56
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    }, {
-      "name": "scheduleToClose",
-      "type": {
-        "named": "temporal.features.nexuscaller.Timeout"
-      }
-    }, {
-      "name": "scheduleToStart",
-      "type": {
-        "named": "temporal.features.nexuscaller.Timeout"
-      }
-    }, {
-      "name": "startToClose",
-      "type": {
-        "named": "temporal.features.nexuscaller.Timeout"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 56
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 56
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 55
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 55
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 56
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 56
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
-                      "case": "unscheduled"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 56
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.schedule",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 56
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 56
-              },
-              "var": "scheduleToClose"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 56
-              },
-              "var": "scheduleToStart"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 56
-              },
-              "var": "startToClose"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 56
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.scheduleToClose",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 63
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 64
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 64
-          },
-          "binary": {
-            "op": "OP_AND",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 64
-              },
-              "call": {
-                "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.running",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 55
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                        "line": 55
-                      },
-                      "var": "s"
-                    },
-                    "field": "phase"
-                  }
-                } ]
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 65
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 65
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                        "line": 65
-                      },
-                      "var": "s"
-                    },
-                    "field": "scheduleToClose"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 65
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Timeout",
-                      "case": "expires"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 66
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.timeOut",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 66
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 66
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.TimeoutType",
-                  "case": "scheduleToClose"
-                }
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 63
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.scheduleToStart",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 68
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 69
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 69
-          },
-          "binary": {
-            "op": "OP_AND",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 69
-              },
-              "call": {
-                "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.waiting",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 55
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                        "line": 55
-                      },
-                      "var": "s"
-                    },
-                    "field": "phase"
-                  }
-                } ]
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 70
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 70
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                        "line": 70
-                      },
-                      "var": "s"
-                    },
-                    "field": "scheduleToStart"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 70
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Timeout",
-                      "case": "expires"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 71
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.timeOut",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 71
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 71
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.TimeoutType",
-                  "case": "scheduleToStart"
-                }
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 68
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.startToClose",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 73
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 74
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 75
-          },
-          "binary": {
-            "op": "OP_AND",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 75
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 75
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                        "line": 75
-                      },
-                      "var": "s"
-                    },
-                    "field": "phase"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 75
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
-                      "case": "started"
-                    }
-                  }
-                }
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 75
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 75
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                        "line": 75
-                      },
-                      "var": "s"
-                    },
-                    "field": "startToClose"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 75
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Timeout",
-                      "case": "expires"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 76
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.timeOut",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 76
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 76
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.TimeoutType",
-                  "case": "startToClose"
-                }
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 73
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.transportFault",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 60
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 60
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 60
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 55
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 55
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 60
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 60
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Phase",
-                      "case": "scheduled"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 60
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.backOff",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 60
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 60
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "forgedCompletion.rules.workerStop",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 61
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 61
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 61
-          },
-          "literal": {
-            "bool": true
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 61
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.keep",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 61
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 61
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.forgedComplete",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 49
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    }, {
-      "name": "resolution",
-      "type": {
-        "named": "temporal.features.nexuscaller.Resolution"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 50
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 50
-          },
-          "binary": {
-            "op": "OP_EQ",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 50
-              },
-              "var": "resolution"
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 50
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.Resolution",
-                  "case": "failed"
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 51
-          },
-          "binary": {
-            "op": "OP_CONCAT",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 51
-              },
-              "call": {
-                "function": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.settle$forged",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 51
-                  },
-                  "var": "s"
-                }, {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 51
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.nexuscaller.Resolution",
-                      "case": "succeeded"
-                    }
-                  }
-                } ]
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 51
-              },
-              "call": {
-                "function": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.settle$sent",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 51
-                  },
-                  "var": "s"
-                }, {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 51
-                  },
-                  "var": "resolution"
-                } ]
-              }
-            }
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 52
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.settle",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 52
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 52
-              },
-              "var": "resolution"
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.inspect",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 36
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 36
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 36
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 163
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 36
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 36
-              },
-              "list": { }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 36
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.settle",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 43
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    }, {
-      "name": "resolution",
-      "type": {
-        "named": "temporal.features.nexuscaller.Resolution"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 44
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 44
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.terminalPhase",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 44
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 44
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            } ]
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 44
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.notFound",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 44
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 45
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.complete",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 45
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 45
-              },
-              "var": "resolution"
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.settle$forged",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 43
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    }, {
-      "name": "resolution",
-      "type": {
-        "named": "temporal.features.nexuscaller.Resolution"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 44
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 44
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.terminalPhase",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 44
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 44
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            } ]
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 44
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.notFound$forged",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 44
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 45
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.complete$forged",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 45
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 45
-              },
-              "var": "resolution"
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.ForgedCompletion$.effects$.settle$sent",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 43
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    }, {
-      "name": "resolution",
-      "type": {
-        "named": "temporal.features.nexuscaller.Resolution"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 44
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 44
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.terminalPhase",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 44
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                    "line": 44
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            } ]
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 44
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.notFound$sent",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 44
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 45
-          },
-          "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.complete$sent",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 45
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-                "line": 45
-              },
-              "var": "resolution"
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.backOff",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.backOff",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 143
@@ -1809,7 +181,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
+        "named": "temporal.features.nexuscaller.SystemState"
       }
     } ],
     "body": {
@@ -1828,7 +200,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 163
+                "line": 167
               },
               "literal": {
                 "enum": {
@@ -1871,7 +243,7 @@
                       "line": 146
                     },
                     "call": {
-                      "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.saturatingSucc",
+                      "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.saturatingSucc",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -1905,7 +277,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.ProtocolFact",
+                      "type": "temporal.features.nexuscaller.SystemFact",
                       "case": "pendingAttempts"
                     }
                   }
@@ -1930,7 +302,7 @@
         "line": 144
       },
       "call": {
-        "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.validAttempts",
+        "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -1950,7 +322,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.complete",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 165
@@ -1958,7 +330,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
+        "named": "temporal.features.nexuscaller.SystemState"
       }
     }, {
       "name": "resolution",
@@ -2029,7 +401,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.ProtocolFact",
+                      "type": "temporal.features.nexuscaller.SystemFact",
                       "case": "nexusOperationStarted"
                     }
                   }
@@ -2083,7 +455,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -2147,7 +519,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationCompleted"
                                   }
                                 }
@@ -2193,7 +565,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -2257,7 +629,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationFailed"
                                   }
                                 }
@@ -2303,7 +675,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -2367,7 +739,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationCanceled"
                                   }
                                 }
@@ -2394,7 +766,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.complete$forged",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete$forged",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 165
@@ -2402,7 +774,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
+        "named": "temporal.features.nexuscaller.SystemState"
       }
     }, {
       "name": "resolution",
@@ -2473,7 +845,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.ProtocolFact",
+                      "type": "temporal.features.nexuscaller.SystemFact",
                       "case": "nexusOperationStarted"
                     }
                   }
@@ -2527,7 +899,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -2591,7 +963,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationCompleted"
                                   }
                                 }
@@ -2638,7 +1010,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -2702,7 +1074,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationFailed"
                                   }
                                 }
@@ -2749,7 +1121,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -2813,7 +1185,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationCanceled"
                                   }
                                 }
@@ -2841,7 +1213,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.complete$sent",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete$sent",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 165
@@ -2849,7 +1221,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
+        "named": "temporal.features.nexuscaller.SystemState"
       }
     }, {
       "name": "resolution",
@@ -2920,7 +1292,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.ProtocolFact",
+                      "type": "temporal.features.nexuscaller.SystemFact",
                       "case": "nexusOperationStarted"
                     }
                   }
@@ -2974,7 +1346,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -3038,7 +1410,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationCompleted"
                                   }
                                 }
@@ -3085,7 +1457,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -3149,7 +1521,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationFailed"
                                   }
                                 }
@@ -3196,7 +1568,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -3260,7 +1632,7 @@
                                 },
                                 "literal": {
                                   "enum": {
-                                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                                    "type": "temporal.features.nexuscaller.SystemFact",
                                     "case": "nexusOperationCanceled"
                                   }
                                 }
@@ -3288,7 +1660,253 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.handlerReply",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.keep",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/System.scala",
+      "line": 155
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/System.scala",
+        "line": 155
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/System.scala",
+            "line": 155
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 155
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 155
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 155
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/System.scala",
+      "line": 158
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/System.scala",
+        "line": 158
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/System.scala",
+            "line": 158
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.Outcome",
+                  "case": "notFound"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound$forged",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/System.scala",
+      "line": 158
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/System.scala",
+        "line": 158
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/System.scala",
+            "line": 158
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.Outcome",
+                  "case": "notFound"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "literal": {
+                "text": ""
+              }
+            } ],
+            "choice": "forged"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound$sent",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/System.scala",
+      "line": 158
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/System.scala",
+        "line": 158
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/System.scala",
+            "line": 158
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.Outcome",
+                  "case": "notFound"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/System.scala",
+                "line": 158
+              },
+              "literal": {
+                "text": ""
+              }
+            } ],
+            "choice": "sent"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.reply",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 127
@@ -3296,7 +1914,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
+        "named": "temporal.features.nexuscaller.SystemState"
       }
     }, {
       "name": "reply",
@@ -3342,7 +1960,7 @@
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 163
+                      "line": 167
                     },
                     "literal": {
                       "enum": {
@@ -3392,7 +2010,7 @@
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.nexuscaller.ProtocolFact",
+                            "type": "temporal.features.nexuscaller.SystemFact",
                             "case": "nexusOperationCompleted"
                           }
                         }
@@ -3436,7 +2054,7 @@
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 163
+                      "line": 167
                     },
                     "literal": {
                       "enum": {
@@ -3486,7 +2104,7 @@
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.nexuscaller.ProtocolFact",
+                            "type": "temporal.features.nexuscaller.SystemFact",
                             "case": "nexusOperationStarted"
                           }
                         }
@@ -3530,7 +2148,7 @@
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 163
+                      "line": 167
                     },
                     "literal": {
                       "enum": {
@@ -3580,7 +2198,7 @@
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.nexuscaller.ProtocolFact",
+                            "type": "temporal.features.nexuscaller.SystemFact",
                             "case": "nexusOperationFailed"
                           }
                         }
@@ -3624,7 +2242,7 @@
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                      "line": 163
+                      "line": 167
                     },
                     "literal": {
                       "enum": {
@@ -3674,7 +2292,7 @@
                         },
                         "literal": {
                           "enum": {
-                            "type": "temporal.features.nexuscaller.ProtocolFact",
+                            "type": "temporal.features.nexuscaller.SystemFact",
                             "case": "nexusOperationCanceled"
                           }
                         }
@@ -3746,7 +2364,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -3796,7 +2414,7 @@
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.nexuscaller.ProtocolFact",
+                                "type": "temporal.features.nexuscaller.SystemFact",
                                 "case": "nexusOperationFailed"
                               }
                             }
@@ -3831,7 +2449,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                          "line": 163
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -3874,7 +2492,7 @@
                                 "line": 138
                               },
                               "call": {
-                                "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.saturatingSucc",
+                                "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.saturatingSucc",
                                 "args": [ {
                                   "position": {
                                     "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -3908,7 +2526,7 @@
                             },
                             "literal": {
                               "enum": {
-                                "type": "temporal.features.nexuscaller.ProtocolFact",
+                                "type": "temporal.features.nexuscaller.SystemFact",
                                 "case": "pendingAttempts"
                               }
                             }
@@ -3938,7 +2556,7 @@
         "line": 128
       },
       "call": {
-        "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.validAttempts",
+        "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -3958,253 +2576,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.keep",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 155
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 155
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 155
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 163
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 155
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 155
-              },
-              "list": { }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 155
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.notFound",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 158
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 158
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 158
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.Outcome",
-                  "case": "notFound"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "list": { }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.notFound$forged",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 158
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 158
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 158
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.Outcome",
-                  "case": "notFound"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "list": { }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "literal": {
-                "text": ""
-              }
-            } ],
-            "choice": "forged"
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.notFound$sent",
-    "position": {
-      "file": "model/temporal/features/nexuscaller/system/System.scala",
-      "line": 158
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/nexuscaller/system/System.scala",
-        "line": 158
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/nexuscaller/system/System.scala",
-            "line": 158
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.nexuscaller.Outcome",
-                  "case": "notFound"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "list": { }
-            }, {
-              "position": {
-                "file": "model/temporal/features/nexuscaller/system/System.scala",
-                "line": 158
-              },
-              "literal": {
-                "text": ""
-              }
-            } ],
-            "choice": "sent"
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.retry",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.retry",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 180
@@ -4212,7 +2584,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
+        "named": "temporal.features.nexuscaller.SystemState"
       }
     } ],
     "body": {
@@ -4231,7 +2603,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 163
+                "line": 167
               },
               "literal": {
                 "enum": {
@@ -4288,7 +2660,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.schedule",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.schedule",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 104
@@ -4296,7 +2668,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
+        "named": "temporal.features.nexuscaller.SystemState"
       }
     }, {
       "name": "scheduleToClose",
@@ -4330,7 +2702,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 163
+                "line": 167
               },
               "literal": {
                 "enum": {
@@ -4344,7 +2716,7 @@
                 "line": 111
               },
               "construct": {
-                "type": "temporal.features.nexuscaller.ProtocolState",
+                "type": "temporal.features.nexuscaller.SystemState",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -4397,7 +2769,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.nexuscaller.ProtocolFact",
+                      "type": "temporal.features.nexuscaller.SystemFact",
                       "case": "nexusOperationScheduled"
                     }
                   }
@@ -4417,7 +2789,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.effects$.timeOut",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.effects$.timeOut",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 183
@@ -4425,7 +2797,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.nexuscaller.ProtocolState"
+        "named": "temporal.features.nexuscaller.SystemState"
       }
     }, {
       "name": "t",
@@ -4449,7 +2821,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 163
+                "line": 167
               },
               "literal": {
                 "enum": {
@@ -4498,7 +2870,7 @@
                     "line": 184
                   },
                   "construct": {
-                    "type": "temporal.features.nexuscaller.ProtocolFact",
+                    "type": "temporal.features.nexuscaller.SystemFact",
                     "case": "nexusOperationTimedOut",
                     "args": [ {
                       "position": {
@@ -4524,7 +2896,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.states$.created",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.created",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 74
@@ -4548,7 +2920,7 @@
             "line": 74
           },
           "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.running",
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.running",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -4564,7 +2936,7 @@
             "line": 74
           },
           "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.terminalPhase",
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -4577,7 +2949,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.states$.running",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.running",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 68
@@ -4647,7 +3019,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.states$.saturatingSucc",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.saturatingSucc",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 60
@@ -4681,7 +3053,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 181
+                "line": 185
               },
               "literal": {
                 "int": "2"
@@ -4729,7 +3101,7 @@
         "line": 61
       },
       "call": {
-        "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.validAttempts",
+        "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.validAttempts",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -4740,7 +3112,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.states$.terminalPhase",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 65
@@ -4821,7 +3193,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.states$.validAttempts",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.validAttempts",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 57
@@ -4881,7 +3253,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-                "line": 181
+                "line": 185
               },
               "literal": {
                 "int": "2"
@@ -4892,7 +3264,7 @@
       }
     }
   }, {
-    "name": "temporal.features.nexuscaller.system.NexusProtocol$.states$.waiting",
+    "name": "temporal.features.nexuscaller.system.NexusSystem$.states$.waiting",
     "position": {
       "file": "model/temporal/features/nexuscaller/system/System.scala",
       "line": 71
@@ -4950,13 +3322,1641 @@
         }
       }
     }
+  }, {
+    "name": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.forgedComplete",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 49
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    }, {
+      "name": "resolution",
+      "type": {
+        "named": "temporal.features.nexuscaller.Resolution"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 50
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 50
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 50
+              },
+              "var": "resolution"
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 50
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.Resolution",
+                  "case": "failed"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 51
+          },
+          "binary": {
+            "op": "OP_CONCAT",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 51
+              },
+              "call": {
+                "function": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.settle$forged",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 51
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 51
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Resolution",
+                      "case": "succeeded"
+                    }
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 51
+              },
+              "call": {
+                "function": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.settle$sent",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 51
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 51
+                  },
+                  "var": "resolution"
+                } ]
+              }
+            }
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 52
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.settle",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 52
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 52
+              },
+              "var": "resolution"
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.inspect",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 36
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 36
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 36
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 36
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 36
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 36
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.settle",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 43
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    }, {
+      "name": "resolution",
+      "type": {
+        "named": "temporal.features.nexuscaller.Resolution"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 44
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 44
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 44
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 44
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 44
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 44
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 45
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 45
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 45
+              },
+              "var": "resolution"
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.settle$forged",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 43
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    }, {
+      "name": "resolution",
+      "type": {
+        "named": "temporal.features.nexuscaller.Resolution"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 44
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 44
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 44
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 44
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 44
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound$forged",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 44
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 45
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete$forged",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 45
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 45
+              },
+              "var": "resolution"
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.settle$sent",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 43
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    }, {
+      "name": "resolution",
+      "type": {
+        "named": "temporal.features.nexuscaller.Resolution"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 44
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 44
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 44
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 44
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 44
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.notFound$sent",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 44
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 45
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.complete$sent",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 45
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 45
+              },
+              "var": "resolution"
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.evidence",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 29
+    },
+    "params": [ {
+      "name": "systemFact",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 30
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 30
+          },
+          "var": "systemFact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.nexuscaller.SystemFact",
+                "case": "nexusOperationScheduled"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+              "line": 29
+            },
+            "literal": {
+              "text": "nexusOperationScheduled"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.nexuscaller.SystemFact",
+                "case": "nexusOperationStarted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+              "line": 29
+            },
+            "literal": {
+              "text": "nexusOperationStarted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.nexuscaller.SystemFact",
+                "case": "nexusOperationCompleted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+              "line": 29
+            },
+            "literal": {
+              "text": "nexusOperationCompleted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.nexuscaller.SystemFact",
+                "case": "nexusOperationFailed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+              "line": 29
+            },
+            "literal": {
+              "text": "nexusOperationFailed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.nexuscaller.SystemFact",
+                "case": "nexusOperationCanceled"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+              "line": 29
+            },
+            "literal": {
+              "text": "nexusOperationCanceled"
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "temporal.features.nexuscaller.SystemFact",
+              "case": "nexusOperationTimedOut",
+              "fields": [ {
+                "wildcard": { }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+              "line": 30
+            },
+            "literal": {
+              "text": "nexusOperationTimedOut"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.nexuscaller.SystemFact",
+                "case": "pendingAttempts"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+              "line": 31
+            },
+            "literal": {
+              "text": "pendingAttempts"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "trustingCaller.property.forgedSuccess",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 84
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 84
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 84
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.features.nexuscaller.SystemFact",
+              "case": "nexusOperationCompleted"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 84
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 84
+              },
+              "var": "step"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.backoff",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 62
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 62
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 62
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 55
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 55
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 62
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 62
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Phase",
+                      "case": "backingOff"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 62
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.retry",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 62
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 62
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.complete",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    }, {
+      "name": "resolution",
+      "type": {
+        "named": "temporal.features.nexuscaller.Resolution"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 58
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 58
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.created",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 55
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 55
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 58
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.forgedComplete",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 58
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 58
+              },
+              "var": "resolution"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 58
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.fault",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 60
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 60
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 60
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 55
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 55
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 60
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 60
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Phase",
+                      "case": "scheduled"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 60
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.backOff",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 60
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 60
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.inspect",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 59
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 59
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 59
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.TrustingCaller$.effects$.inspect",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 59
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 59
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.reply",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 57
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    }, {
+      "name": "reply",
+      "type": {
+        "named": "temporal.features.nexuscaller.Reply"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 57
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 57
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 55
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 55
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 57
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 57
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Phase",
+                      "case": "scheduled"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 57
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.reply",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 57
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 57
+              },
+              "var": "reply"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 57
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.schedule",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 56
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    }, {
+      "name": "scheduleToClose",
+      "type": {
+        "named": "temporal.features.nexuscaller.Timeout"
+      }
+    }, {
+      "name": "scheduleToStart",
+      "type": {
+        "named": "temporal.features.nexuscaller.Timeout"
+      }
+    }, {
+      "name": "startToClose",
+      "type": {
+        "named": "temporal.features.nexuscaller.Timeout"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 56
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 56
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 55
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 55
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 56
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 56
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Phase",
+                      "case": "unscheduled"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 56
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.schedule",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 56
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 56
+              },
+              "var": "scheduleToClose"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 56
+              },
+              "var": "scheduleToStart"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 56
+              },
+              "var": "startToClose"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 56
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.scheduleToClose",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 63
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 64
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 64
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 64
+              },
+              "call": {
+                "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.running",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 55
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                        "line": 55
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 65
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 65
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                        "line": 65
+                      },
+                      "var": "s"
+                    },
+                    "field": "scheduleToClose"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 65
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Timeout",
+                      "case": "expires"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 66
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.timeOut",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 66
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 66
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.TimeoutType",
+                  "case": "scheduleToClose"
+                }
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 63
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.scheduleToStart",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 68
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 69
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 69
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 69
+              },
+              "call": {
+                "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.waiting",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 55
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                        "line": 55
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 70
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 70
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                        "line": 70
+                      },
+                      "var": "s"
+                    },
+                    "field": "scheduleToStart"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 70
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Timeout",
+                      "case": "expires"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 71
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.timeOut",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 71
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 71
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.TimeoutType",
+                  "case": "scheduleToStart"
+                }
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 68
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.startToClose",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 73
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 74
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 75
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 75
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 75
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                        "line": 75
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 75
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Phase",
+                      "case": "started"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 75
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 75
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                        "line": 75
+                      },
+                      "var": "s"
+                    },
+                    "field": "startToClose"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                    "line": 75
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.nexuscaller.Timeout",
+                      "case": "expires"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 76
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.timeOut",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 76
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 76
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.nexuscaller.TimeoutType",
+                  "case": "startToClose"
+                }
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 73
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "trustingCaller.rules.stop",
+    "position": {
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.nexuscaller.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 61
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 61
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 61
+          },
+          "call": {
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+                "line": 61
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 61
+          },
+          "list": { }
+        }
+      }
+    }
   } ],
   "actions": [ {
     "id": "temporal.features.nexuscaller.caller.inspect",
     "name": "inspect",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 130
+      "line": 134
     },
     "actor": "caller",
     "on": "operation"
@@ -4965,7 +4965,7 @@
     "name": "schedule",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 122
+      "line": 126
     },
     "actor": "caller",
     "inputs": [ {
@@ -4991,7 +4991,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 172
+      "line": 176
     },
     "actor": "system",
     "timer": true
@@ -5000,7 +5000,7 @@
     "name": "scheduleToStart",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 173
+      "line": 177
     },
     "actor": "system",
     "timer": true
@@ -5009,7 +5009,7 @@
     "name": "startToClose",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 174
+      "line": 178
     },
     "actor": "system",
     "timer": true
@@ -5018,7 +5018,7 @@
     "name": "complete",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 147
+      "line": 151
     },
     "actor": "handler",
     "inputs": [ {
@@ -5030,11 +5030,11 @@
     "on": "operation",
     "results": "Delivery"
   }, {
-    "id": "temporal.features.nexuscaller.handler.handlerReply",
-    "name": "handlerReply",
+    "id": "temporal.features.nexuscaller.handler.reply",
+    "name": "reply",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 134
+      "line": 138
     },
     "actor": "handler",
     "inputs": [ {
@@ -5069,11 +5069,11 @@
       "example": "Internal"
     } ]
   }, {
-    "id": "temporal.features.nexuscaller.network.transportFault",
-    "name": "transportFault",
+    "id": "temporal.features.nexuscaller.network.fault",
+    "name": "fault",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 151
+      "line": 155
     },
     "actor": "network",
     "on": "operation"
@@ -5082,37 +5082,37 @@
     "name": "backoff",
     "position": {
       "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-      "line": 168
+      "line": 172
     },
     "actor": "system",
     "timer": true
   }, {
-    "id": "temporal.shared.worker.worker.workerStop",
-    "name": "workerStop",
+    "id": "temporal.shared.worker.worker.stop",
+    "name": "stop",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 52
+      "line": 55
     },
     "actor": "worker"
   } ],
   "machines": [ {
     "family": "temporal.features.nexuscaller.system",
-    "name": "forgedCompletion",
+    "name": "trustingCaller",
     "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
       "line": 26
     },
     "entity": "operation",
-    "stateType": "temporal.features.nexuscaller.ProtocolState",
+    "stateType": "temporal.features.nexuscaller.SystemState",
     "outcomeType": "temporal.features.nexuscaller.Outcome",
-    "factType": "temporal.features.nexuscaller.ProtocolFact",
+    "factType": "temporal.features.nexuscaller.SystemFact",
     "starts": [ {
       "position": {
         "file": "model/temporal/features/nexuscaller/system/System.scala",
         "line": 37
       },
       "construct": {
-        "type": "temporal.features.nexuscaller.ProtocolState",
+        "type": "temporal.features.nexuscaller.SystemState",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -5170,32 +5170,32 @@
     } ],
     "ends": {
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 28
       },
       "lambda": {
         "params": [ {
           "name": "s",
           "type": {
-            "named": "temporal.features.nexuscaller.ProtocolState"
+            "named": "temporal.features.nexuscaller.SystemState"
           }
         } ],
         "body": {
           "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
             "line": 28
           },
           "call": {
-            "function": "temporal.features.nexuscaller.system.NexusProtocol$.states$.terminalPhase",
+            "function": "temporal.features.nexuscaller.system.NexusSystem$.states$.terminalPhase",
             "args": [ {
               "position": {
-                "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+                "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
                 "line": 28
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+                    "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
                     "line": 28
                   },
                   "var": "s"
@@ -5209,83 +5209,83 @@
     },
     "steps": [ {
       "action": "temporal.features.nexuscaller.caller.schedule",
-      "function": "forgedCompletion.rules.schedule",
+      "function": "trustingCaller.rules.schedule",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 56
       }
     }, {
-      "action": "temporal.features.nexuscaller.handler.handlerReply",
-      "function": "forgedCompletion.rules.handlerReply",
+      "action": "temporal.features.nexuscaller.handler.reply",
+      "function": "trustingCaller.rules.reply",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 57
       }
     }, {
       "action": "temporal.features.nexuscaller.handler.complete",
-      "function": "forgedCompletion.rules.complete",
+      "function": "trustingCaller.rules.complete",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 58
       }
     }, {
       "action": "temporal.features.nexuscaller.caller.inspect",
-      "function": "forgedCompletion.rules.inspect",
+      "function": "trustingCaller.rules.inspect",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 59
       }
     }, {
-      "action": "temporal.features.nexuscaller.network.transportFault",
-      "function": "forgedCompletion.rules.transportFault",
+      "action": "temporal.features.nexuscaller.network.fault",
+      "function": "trustingCaller.rules.fault",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 60
       }
     }, {
-      "action": "temporal.shared.worker.worker.workerStop",
-      "function": "forgedCompletion.rules.workerStop",
+      "action": "temporal.shared.worker.worker.stop",
+      "function": "trustingCaller.rules.stop",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 61
       }
     }, {
       "action": "temporal.features.nexuscaller.timers.backoff",
-      "function": "forgedCompletion.rules.backoff",
+      "function": "trustingCaller.rules.backoff",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 62
       }
     }, {
       "action": "temporal.features.nexuscaller.deadline.scheduleToClose",
-      "function": "forgedCompletion.rules.scheduleToClose",
+      "function": "trustingCaller.rules.scheduleToClose",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 63
       }
     }, {
       "action": "temporal.features.nexuscaller.deadline.scheduleToStart",
-      "function": "forgedCompletion.rules.scheduleToStart",
+      "function": "trustingCaller.rules.scheduleToStart",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 68
       }
     }, {
       "action": "temporal.features.nexuscaller.deadline.startToClose",
-      "function": "forgedCompletion.rules.startToClose",
+      "function": "trustingCaller.rules.startToClose",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
         "line": 73
       }
     } ],
-    "evidence": "forgedCompletion.evidence",
+    "evidence": "trustingCaller.evidence",
     "unobservable": [ "temporal.features.nexuscaller.timers.backoff" ]
   } ],
   "properties": [ {
-    "machine": "forgedCompletion",
+    "machine": "trustingCaller",
     "name": "forgedSuccess",
     "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
       "line": 83
     },
     "whenClass": {
@@ -5297,14 +5297,14 @@
         }
       } ]
     },
-    "holds": "forgedCompletion.property.forgedSuccess"
+    "holds": "trustingCaller.property.forgedSuccess"
   } ],
   "scenarios": [ {
-    "machine": "forgedCompletion",
+    "machine": "trustingCaller",
     "name": "inspectedFailure",
     "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 92
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 87
     },
     "start": {
       "position": {
@@ -5312,7 +5312,7 @@
         "line": 37
       },
       "construct": {
-        "type": "temporal.features.nexuscaller.ProtocolState",
+        "type": "temporal.features.nexuscaller.SystemState",
         "args": [ {
           "position": {
             "file": "model/temporal/features/nexuscaller/system/System.scala",
@@ -5389,7 +5389,7 @@
     }, {
       "action": "temporal.features.nexuscaller.caller.inspect"
     }, {
-      "action": "temporal.features.nexuscaller.handler.handlerReply",
+      "action": "temporal.features.nexuscaller.handler.reply",
       "inputs": [ {
         "enum": {
           "type": "temporal.features.nexuscaller.Reply",
@@ -5411,16 +5411,16 @@
   "queries": [ {
     "name": "forgedCompletion",
     "position": {
-      "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-      "line": 92
+      "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+      "line": 100
     },
     "form": "FORM_FIND",
     "property": {
-      "machine": "forgedCompletion",
+      "machine": "trustingCaller",
       "name": "forgedSuccess"
     },
     "scenario": {
-      "machine": "forgedCompletion",
+      "machine": "trustingCaller",
       "name": "inspectedFailure"
     },
     "limits": {
@@ -5441,8 +5441,8 @@
     "exploration": {
       "name": "nexusControl",
       "position": {
-        "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-        "line": 111
+        "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+        "line": 113
       },
       "variations": [ {
         "index": 1,
@@ -5455,8 +5455,8 @@
             "action": "temporal.features.nexuscaller.caller.inspect"
           } ],
           "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 117
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 119
           }
         }, {
           "name": "once",
@@ -5465,19 +5465,19 @@
             "action": "temporal.features.nexuscaller.caller.inspect"
           } ],
           "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 118
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 120
           }
         }, {
           "name": "none",
           "position": {
-            "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-            "line": 119
+            "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+            "line": 121
           }
         } ],
         "position": {
-          "file": "model/temporal/features/nexuscaller/system/ForgedCompletion.scala",
-          "line": 114
+          "file": "model/temporal/features/nexuscaller/system/TrustingCaller.scala",
+          "line": 116
         }
       } ],
       "runs": 1,
@@ -5493,7 +5493,7 @@
       "file": "model/temporal/features/nexuscaller/Realization.scala",
       "line": 518
     },
-    "machine": "forgedCompletion",
+    "machine": "trustingCaller",
     "producer": "temporal.features.nexuscaller.testpilot",
     "producerVersion": "1",
     "roles": [ {
@@ -5684,7 +5684,7 @@
             "line": 297
           },
           "step": {
-            "action": "temporal.shared.worker.worker.workerStop"
+            "action": "temporal.shared.worker.worker.stop"
           },
           "command": {
             "id": "stop-handler-worker",
@@ -5938,7 +5938,7 @@
           }
         },
         "when": [ {
-          "action": "temporal.features.nexuscaller.handler.handlerReply",
+          "action": "temporal.features.nexuscaller.handler.reply",
           "inputs": [ {
             "enum": {
               "type": "temporal.features.nexuscaller.Reply",
@@ -6707,7 +6707,7 @@
             "line": 483
           },
           "step": {
-            "action": "temporal.features.nexuscaller.handler.handlerReply",
+            "action": "temporal.features.nexuscaller.handler.reply",
             "inputs": [ {
               "enum": {
                 "type": "temporal.features.nexuscaller.Reply",
@@ -6750,7 +6750,7 @@
             "line": 484
           },
           "step": {
-            "action": "temporal.features.nexuscaller.handler.handlerReply",
+            "action": "temporal.features.nexuscaller.handler.reply",
             "inputs": [ {
               "enum": {
                 "type": "temporal.features.nexuscaller.Reply",
@@ -6822,7 +6822,7 @@
             "line": 485
           },
           "step": {
-            "action": "temporal.features.nexuscaller.handler.handlerReply",
+            "action": "temporal.features.nexuscaller.handler.reply",
             "inputs": [ {
               "enum": {
                 "type": "temporal.features.nexuscaller.Reply",
@@ -6892,7 +6892,7 @@
             "line": 486
           },
           "step": {
-            "action": "temporal.features.nexuscaller.handler.handlerReply",
+            "action": "temporal.features.nexuscaller.handler.reply",
             "inputs": [ {
               "enum": {
                 "type": "temporal.features.nexuscaller.Reply",
@@ -6953,7 +6953,7 @@
             "line": 487
           },
           "step": {
-            "action": "temporal.features.nexuscaller.handler.handlerReply",
+            "action": "temporal.features.nexuscaller.handler.reply",
             "inputs": [ {
               "enum": {
                 "type": "temporal.features.nexuscaller.Reply",

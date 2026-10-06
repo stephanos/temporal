@@ -5,33 +5,11 @@
       "model": "activity-race.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "admissionResponseLoss",
-        "Name": "admissionResponseLoss.committed"
+        "Owner": "heldDispatch",
+        "Name": "heldDispatch.staleDelivery"
       },
       "standing": "lowered",
-      "file": "activity-race-admissionResponseLoss.committed-case.json",
-      "expected": {
-        "contract": "satisfied",
-        "disposition": "completed",
-        "cleanup": "succeeded",
-        "conformance": "conformant",
-        "properties": [
-          {
-            "id": "committedDespiteLostResponse",
-            "status": "satisfied"
-          }
-        ]
-      }
-    },
-    {
-      "model": "activity-race.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "heldAdmission",
-        "Name": "heldAdmission.staleDelivery"
-      },
-      "standing": "lowered",
-      "file": "activity-race-heldAdmission.staleDelivery-case.json",
+      "file": "activity-race-heldDispatch.staleDelivery-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -55,7 +33,29 @@
       }
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-race.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "lostStartAnswer",
+        "Name": "lostStartAnswer.committed"
+      },
+      "standing": "lowered",
+      "file": "activity-race-lostStartAnswer.committed-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "committedDespiteLostResponse",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.product",
         "Owner": "activityProduct",
@@ -64,7 +64,7 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.product",
         "Owner": "activityProduct",
@@ -73,7 +73,7 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.product",
         "Owner": "activityProduct",
@@ -82,313 +82,124 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.duplicateDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.duplicateDelivery.monitored"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.pausedIsNotDispatched"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.product.pausedIsNotDispatched"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.scheduleToCloseFirst"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.scheduleToStartFirst"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.startedAfterCompletion.monitored"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activityRecord",
+        "Name": "activityRecord.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "activitySystem",
         "Name": "competingTimers.scheduleToCloseFirst"
       },
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "competingTimers.scheduleToStartFirst"
       },
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.admittedBeforePause"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.any.atMostOneActive"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.duplicateDelivery"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.duplicateDelivery.monitored"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.pausedIsNotDispatched"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.product.pausedIsNotDispatched"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.scheduleToCloseFirst"
-      },
-      "standing": "no-realization"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.scheduleToStartFirst"
-      },
-      "standing": "no-realization"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.staleDelivery"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.startedAfterCompletion.monitored"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentAdmission",
-        "Name": "currentAdmission.terminalStatesAreFinal"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverLossyMatching",
-        "Name": "currentOverLossyMatching.admittedBeforePause"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverLossyMatching",
-        "Name": "currentOverLossyMatching.any.atMostOneActive"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverLossyMatching",
-        "Name": "currentOverLossyMatching.crashAfterAdmissionCommit"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverLossyMatching",
-        "Name": "currentOverLossyMatching.deliveredAgainAfterLostAck"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverLossyMatching",
-        "Name": "currentOverLossyMatching.pausedIsNotDispatched"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverLossyMatching",
-        "Name": "currentOverLossyMatching.staleDelivery"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverLossyMatching",
-        "Name": "currentOverLossyMatching.terminalStatesAreFinal"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverMatching",
-        "Name": "currentOverMatching.admittedBeforePause"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverMatching",
-        "Name": "currentOverMatching.any.atMostOneActive"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverMatching",
-        "Name": "currentOverMatching.crashAfterAdmissionCommit"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverMatching",
-        "Name": "currentOverMatching.deliveredAgainAfterLostAck"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverMatching",
-        "Name": "currentOverMatching.pausedIsNotDispatched"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverMatching",
-        "Name": "currentOverMatching.staleDelivery"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverMatching",
-        "Name": "currentOverMatching.terminalStatesAreFinal"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverQueue",
-        "Name": "currentOverQueue.admittedBeforePause"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverQueue",
-        "Name": "currentOverQueue.any.atMostOneActive"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverQueue",
-        "Name": "currentOverQueue.duplicateDelivery"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverQueue",
-        "Name": "currentOverQueue.failedCommit"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverQueue",
-        "Name": "currentOverQueue.pausedIsNotDispatched"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverQueue",
-        "Name": "currentOverQueue.staleDelivery"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
-      "query": {
-        "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "currentOverQueue",
-        "Name": "currentOverQueue.terminalStatesAreFinal"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "forgetfulQueue",
@@ -397,7 +208,7 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "forgetfulQueue",
@@ -406,7 +217,7 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "forgetfulQueue",
@@ -415,7 +226,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "forgetfulQueue",
@@ -424,7 +235,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "forgetfulQueue",
@@ -433,7 +244,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "forgetfulQueue",
@@ -442,7 +253,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "lossyMatchingQueue",
@@ -451,7 +262,7 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "lossyMatchingQueue",
@@ -460,7 +271,7 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "lossyMatchingQueue",
@@ -469,7 +280,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "lossyMatchingQueue",
@@ -478,7 +289,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "lossyMatchingQueue",
@@ -487,7 +298,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "lossyMatchingQueue",
@@ -496,7 +307,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "lossyMatchingQueue",
@@ -505,286 +316,475 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
-        "Owner": "matchingQueue",
-        "Name": "matchingQueue.any.committedStays"
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverLossyMatching",
+        "Name": "recordOverLossyMatching.admittedBeforePause"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
-        "Family": "temporal.shared.taskqueue.system",
-        "Owner": "matchingQueue",
-        "Name": "matchingQueue.crashAfterAcknowledgment"
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverLossyMatching",
+        "Name": "recordOverLossyMatching.any.atMostOneActive"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverLossyMatching",
+        "Name": "recordOverLossyMatching.crashAfterAdmissionCommit"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverLossyMatching",
+        "Name": "recordOverLossyMatching.deliveredAgainAfterLostAck"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverLossyMatching",
+        "Name": "recordOverLossyMatching.pausedIsNotDispatched"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverLossyMatching",
+        "Name": "recordOverLossyMatching.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverLossyMatching",
+        "Name": "recordOverLossyMatching.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverMatching",
+        "Name": "recordOverMatching.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverMatching",
+        "Name": "recordOverMatching.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverMatching",
+        "Name": "recordOverMatching.crashAfterAdmissionCommit"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverMatching",
+        "Name": "recordOverMatching.deliveredAgainAfterLostAck"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverMatching",
+        "Name": "recordOverMatching.pausedIsNotDispatched"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverMatching",
+        "Name": "recordOverMatching.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverMatching",
+        "Name": "recordOverMatching.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverQueue",
+        "Name": "recordOverQueue.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverQueue",
+        "Name": "recordOverQueue.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverQueue",
+        "Name": "recordOverQueue.duplicateDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverQueue",
+        "Name": "recordOverQueue.failedCommit"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverQueue",
+        "Name": "recordOverQueue.pausedIsNotDispatched"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverQueue",
+        "Name": "recordOverQueue.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.features.standaloneactivity.system",
+        "Owner": "recordOverQueue",
+        "Name": "recordOverQueue.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
-        "Owner": "matchingQueue",
-        "Name": "matchingQueue.crashAfterDelivery"
+        "Owner": "taskQueueSystem",
+        "Name": "taskQueueSystem.any.committedStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.shared.taskqueue.system",
+        "Owner": "taskQueueSystem",
+        "Name": "taskQueueSystem.crashAfterAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-record.json",
+      "query": {
+        "Family": "temporal.shared.taskqueue.system",
+        "Owner": "taskQueueSystem",
+        "Name": "taskQueueSystem.crashAfterDelivery"
       },
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
-        "Owner": "matchingQueue",
-        "Name": "matchingQueue.crashAfterInvocation"
+        "Owner": "taskQueueSystem",
+        "Name": "taskQueueSystem.crashAfterInvocation"
       },
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
-        "Owner": "matchingQueue",
-        "Name": "matchingQueue.crashAfterPersistence"
+        "Owner": "taskQueueSystem",
+        "Name": "taskQueueSystem.crashAfterPersistence"
       },
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
-        "Owner": "matchingQueue",
-        "Name": "matchingQueue.crashAfterSyncMatch"
+        "Owner": "taskQueueSystem",
+        "Name": "taskQueueSystem.crashAfterSyncMatch"
       },
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.admittedBeforePause"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.admittedBeforePause"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.any.atMostOneActive"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.any.atMostOneActive"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.duplicateDelivery"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.duplicateDelivery"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.duplicateDelivery.monitored"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.duplicateDelivery.monitored"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.pausedIsNotDispatched"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.pausedIsNotDispatched"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.product.pausedIsNotDispatched"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.product.pausedIsNotDispatched"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.scheduleToCloseFirst"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.scheduleToCloseFirst"
       },
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.scheduleToStartFirst"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.scheduleToStartFirst"
       },
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.staleDelivery"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.staleDelivery"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.startedAfterCompletion.monitored"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.startedAfterCompletion.monitored"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleAdmission",
-        "Name": "staleAdmission.terminalStatesAreFinal"
+        "Owner": "trustingActivityRecord",
+        "Name": "trustingActivityRecord.terminalStatesAreFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverMatching",
-        "Name": "staleOverMatching.admittedBeforePause"
+        "Owner": "trustingRecordOverMatching",
+        "Name": "trustingRecordOverMatching.admittedBeforePause"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverMatching",
-        "Name": "staleOverMatching.any.atMostOneActive"
+        "Owner": "trustingRecordOverMatching",
+        "Name": "trustingRecordOverMatching.any.atMostOneActive"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverMatching",
-        "Name": "staleOverMatching.crashAfterAdmissionCommit"
+        "Owner": "trustingRecordOverMatching",
+        "Name": "trustingRecordOverMatching.crashAfterAdmissionCommit"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverMatching",
-        "Name": "staleOverMatching.deliveredAgainAfterLostAck"
+        "Owner": "trustingRecordOverMatching",
+        "Name": "trustingRecordOverMatching.deliveredAgainAfterLostAck"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverMatching",
-        "Name": "staleOverMatching.pausedIsNotDispatched"
+        "Owner": "trustingRecordOverMatching",
+        "Name": "trustingRecordOverMatching.pausedIsNotDispatched"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverMatching",
-        "Name": "staleOverMatching.staleDelivery"
+        "Owner": "trustingRecordOverMatching",
+        "Name": "trustingRecordOverMatching.staleDelivery"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverMatching",
-        "Name": "staleOverMatching.terminalStatesAreFinal"
+        "Owner": "trustingRecordOverMatching",
+        "Name": "trustingRecordOverMatching.terminalStatesAreFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverQueue",
-        "Name": "staleOverQueue.admittedBeforePause"
+        "Owner": "trustingRecordOverQueue",
+        "Name": "trustingRecordOverQueue.admittedBeforePause"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverQueue",
-        "Name": "staleOverQueue.any.atMostOneActive"
+        "Owner": "trustingRecordOverQueue",
+        "Name": "trustingRecordOverQueue.any.atMostOneActive"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverQueue",
-        "Name": "staleOverQueue.duplicateDelivery"
+        "Owner": "trustingRecordOverQueue",
+        "Name": "trustingRecordOverQueue.duplicateDelivery"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverQueue",
-        "Name": "staleOverQueue.failedCommit"
+        "Owner": "trustingRecordOverQueue",
+        "Name": "trustingRecordOverQueue.failedCommit"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverQueue",
-        "Name": "staleOverQueue.pausedIsNotDispatched"
+        "Owner": "trustingRecordOverQueue",
+        "Name": "trustingRecordOverQueue.pausedIsNotDispatched"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverQueue",
-        "Name": "staleOverQueue.staleDelivery"
+        "Owner": "trustingRecordOverQueue",
+        "Name": "trustingRecordOverQueue.staleDelivery"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "staleOverQueue",
-        "Name": "staleOverQueue.terminalStatesAreFinal"
+        "Owner": "trustingRecordOverQueue",
+        "Name": "trustingRecordOverQueue.terminalStatesAreFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "volatileQueue",
@@ -793,7 +793,7 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "volatileQueue",
@@ -802,7 +802,7 @@
       "standing": "nothing-to-realize"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "volatileQueue",
@@ -811,7 +811,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "volatileQueue",
@@ -820,7 +820,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "volatileQueue",
@@ -829,7 +829,7 @@
       "standing": "no-realization"
     },
     {
-      "model": "activity-system.json",
+      "model": "activity-record.json",
       "query": {
         "Family": "temporal.shared.taskqueue.system",
         "Owner": "volatileQueue",
@@ -868,11 +868,11 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
-        "Name": "activityProtocol.cancelIsRequested"
+        "Owner": "activitySystem",
+        "Name": "activitySystem.cancelIsRequested"
       },
       "standing": "lowered",
-      "file": "activity-activityProtocol.cancelIsRequested-case.json",
+      "file": "activity-activitySystem.cancelIsRequested-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -880,7 +880,7 @@
         "conformance": "conformant",
         "properties": [
           {
-            "id": "activityProtocol.cancelIsRequested",
+            "id": "activitySystem.cancelIsRequested",
             "status": "inconclusive",
             "reason": "explanations_disagree"
           }
@@ -891,11 +891,11 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
-        "Name": "activityProtocol.terminateSettles"
+        "Owner": "activitySystem",
+        "Name": "activitySystem.terminateSettles"
       },
       "standing": "lowered",
-      "file": "activity-activityProtocol.terminateSettles-case.json",
+      "file": "activity-activitySystem.terminateSettles-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -903,7 +903,7 @@
         "conformance": "conformant",
         "properties": [
           {
-            "id": "activityProtocol.terminateSettles",
+            "id": "activitySystem.terminateSettles",
             "status": "inconclusive",
             "reason": "explanations_disagree"
           }
@@ -914,7 +914,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "cancel"
       },
       "standing": "unsupported",
@@ -932,7 +932,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "cancelRequest"
       },
       "standing": "unsupported",
@@ -950,7 +950,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "completion"
       },
       "standing": "lowered",
@@ -972,7 +972,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "nonRetryableFailure"
       },
       "standing": "lowered",
@@ -994,7 +994,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "pauseResume"
       },
       "standing": "lowered",
@@ -1016,7 +1016,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "retry"
       },
       "standing": "lowered",
@@ -1039,7 +1039,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "scheduleToStartTimeout"
       },
       "standing": "lowered",
@@ -1062,7 +1062,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "startToCloseTimeout"
       },
       "standing": "unsupported",
@@ -1089,7 +1089,7 @@
       "model": "activity.json",
       "query": {
         "Family": "temporal.features.standaloneactivity.system",
-        "Owner": "activityProtocol",
+        "Owner": "activitySystem",
         "Name": "terminate"
       },
       "standing": "lowered",
@@ -1112,7 +1112,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "asyncCompletion"
       },
       "standing": "lowered",
@@ -1135,7 +1135,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "asyncFailure"
       },
       "standing": "lowered",
@@ -1158,7 +1158,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "handlerError"
       },
       "standing": "lowered",
@@ -1181,7 +1181,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "retry"
       },
       "standing": "lowered",
@@ -1204,7 +1204,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "scheduleToStartTimeout"
       },
       "standing": "lowered",
@@ -1227,7 +1227,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "startToCloseTimeout"
       },
       "standing": "lowered",
@@ -1259,7 +1259,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "syncCompletion"
       },
       "standing": "lowered",
@@ -1281,7 +1281,7 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusProtocol",
+        "Owner": "nexusSystem",
         "Name": "terminalHolds"
       },
       "standing": "nothing-to-realize"
@@ -2694,7 +2694,7 @@
       "model": "nexus-control.json",
       "query": {
         "Family": "temporal.features.nexuscaller.system",
-        "Owner": "forgedCompletion",
+        "Owner": "trustingCaller",
         "Name": "forgedCompletion"
       },
       "standing": "lowered",

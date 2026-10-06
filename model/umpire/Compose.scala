@@ -9,7 +9,7 @@ import scala.deriving.Mirror
  * the member. A `sync` pairs member actions into one step; a member action no `sync` names steps
  * its member alone.
  *
- * A member is named by a selector of its field, `_.order -> currentRecord`; `->` pairs the
+ * A member is named by a selector of its field, `_.order -> recordMember`; `->` pairs the
  * member with its value and never means a transition. The lifter reads the selectors from the
  * source, so what a composition holds here is what its author wrote.
  *
@@ -112,7 +112,7 @@ final class Composer[S <: Product] private[umpire] (val composition: Composition
  * A composition's syncs, `object syncs extends Syncs`: each statement pairs two members' actions
  * into one step, `sync(_.order -> clerk.dispatch, _.queue -> queue.enqueue)`, named after the
  * first member's action or by the name it is given, `sync("admit", ...)`; `replaces(_.queue,
- * DispatchQueue)` says a member stands in for an opaque machine. The IR generator reads them from the
+ * OpaqueProduct)` says a member stands in for an opaque machine. The IR generator reads them from the
  * source, in order.
  */
 abstract class Syncs[S <: Product](using @unused composer: Composer[S]):

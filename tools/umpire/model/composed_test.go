@@ -13,7 +13,7 @@ import (
 )
 
 func TestAComposedReadingIsTheCompositionCheckReads(t *testing.T) {
-	for _, name := range []string{"activity", "activity-system"} {
+	for _, name := range []string{"activity", "activity-record"} {
 		t.Run(name, func(t *testing.T) {
 			m, err := Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
 			require.NoError(t, err)
@@ -66,13 +66,13 @@ func isComposition(m *umpirespb.Model, name string) bool {
 // as strings. Its Properties are the Model's, read as Check reads them: the stale design over the
 // queue violates atMostOneActive on the last step of Check's own counterexample, and on no earlier one.
 func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
-	m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-system.json"))
+	m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-record.json"))
 	require.NoError(t, err)
 	r, err := NewRealizer(m, DefaultScope)
 	require.NoError(t, err)
-	c, err := r.Composition("staleOverQueue")
+	c, err := r.Composition("trustingRecordOverQueue")
 	require.NoError(t, err)
-	require.Equal(t, "staleOverQueue", c.Decl.GetName())
+	require.Equal(t, "trustingRecordOverQueue", c.Decl.GetName())
 	for _, row := range c.Table.Rows {
 		source, err := c.State(row.Source)
 		require.NoError(t, err)
@@ -92,16 +92,16 @@ func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
 	for i, p := range c.Properties {
 		names[i] = p.Name
 	}
-	require.Equal(t, []string{"atMostOneActive", "failedCommitKeepsTheMessage", "staleOverQueue.pausedIsNotDispatched", "staleOverQueue.terminalStatesAreFinal"}, names)
+	require.Equal(t, []string{"atMostOneActive", "failedCommitKeepsTheMessage", "trustingRecordOverQueue.pausedIsNotDispatched", "trustingRecordOverQueue.terminalStatesAreFinal"}, names)
 
 	var counterexample *Receipt
 	for _, x := range Check(m, DefaultScope).Receipts {
-		if x.Subject == QuerySubject && x.Key.Owner == "staleOverQueue" && x.Property.Name == "atMostOneActive" && x.Kind == Counterexample && x.Monitor == "" {
+		if x.Subject == QuerySubject && x.Key.Owner == "trustingRecordOverQueue" && x.Property.Name == "atMostOneActive" && x.Kind == Counterexample && x.Monitor == "" {
 			counterexample = &x
 			break
 		}
 	}
-	require.NotNil(t, counterexample, "Check finds atMostOneActive violated on staleOverQueue")
+	require.NotNil(t, counterexample, "Check finds atMostOneActive violated on trustingRecordOverQueue")
 	property := c.Properties[0]
 	state := counterexample.Witness.Initial.Value
 	for i, step := range counterexample.Witness.Steps {
@@ -138,7 +138,7 @@ func TestAComposedReadingKeepsTheCeilingAndTheNames(t *testing.T) {
 
 	r, err = NewRealizer(m, DefaultScope)
 	require.NoError(t, err)
-	_, err = r.Composition("activityProtocol")
+	_, err = r.Composition("activitySystem")
 	require.Error(t, err)
 	require.NotErrorAs(t, err, &limit)
 	_, err = r.Composition("nothing")

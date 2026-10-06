@@ -81,14 +81,14 @@ var derivedWaits = map[string]map[string]map[string]wait{
 		"scheduleToStartTimeout": {"controller/await-timed-out": {interval: 250,
 			hints: []string{"deadline.scheduleToStart=2000", "cause.timer=3000"}}},
 		"terminate":                          {"controller/await-terminated": readOnce},
-		"activityProtocol.terminateSettles":  {"controller/await-terminated": readOnce},
-		"activityProtocol.cancelIsRequested": {},
+		"activitySystem.terminateSettles":  {"controller/await-terminated": readOnce},
+		"activitySystem.cancelIsRequested": {},
 		"retry": {"controller/await-completed": {interval: 250, hints: []string{"cause.delivery=3000", "cause.activityAnswer=2000",
 			"deadline.backoff=1000", "cause.timer=3000", "cause.delivery=3000", "cause.activityAnswer=2000"}}},
 	},
 	"activity-race": {
-		"heldAdmission.staleDelivery":     {"controller/await-paused": readOnce},
-		"admissionResponseLoss.committed": {},
+		"heldDispatch.staleDelivery":     {"controller/await-paused": readOnce},
+		"lostStartAnswer.committed": {},
 	},
 	"nexus-caller": {
 		"syncCompletion": scheduled, "asyncCompletion": scheduled, "asyncFailure": scheduled, "handlerError": scheduled,
@@ -337,7 +337,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		{"nexus-caller", "cause.handlerReply", "retry",
 			[]string{"command controller/pending-attempts waits for command handler/respond-error-retryable",
 				"which is a handler reply, and the realization declares no bound of a handler reply"}},
-		{"activity", "cause.delivery", "completion", []string{"server step attemptStart is a delivery, and the realization bounds no delivery"}},
+		{"activity", "cause.delivery", "completion", []string{"server step poll is a delivery, and the realization bounds no delivery"}},
 		{"activity", "cause.timer", "scheduleToStartTimeout", []string{"server step scheduleToStart is a timer, and the realization bounds no timer"}},
 	} {
 		t.Run(tc.hint, func(t *testing.T) {
@@ -352,7 +352,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		})
 	}
 	for _, tc := range []struct{ step, query, refused string }{
-		{"attemptStart", "completion", "command controller/await-completed waits for step attemptStart, which no command performs"},
+		{"poll", "completion", "command controller/await-completed waits for step poll, which no command performs"},
 		{"scheduleToStart", "scheduleToStartTimeout", "command controller/await-timed-out waits for step scheduleToStart, which no command performs"},
 		{"backoff", "retry", "command controller/await-completed waits for step backoff, which no command performs"},
 	} {
@@ -407,7 +407,7 @@ func TestTheInventoryAccountsForTheHintsAWaitReads(t *testing.T) {
 	require.Equal(t, []string{string(InCase), paused}, got["visibility.pauseActivityExecution.describeActivityExecution"])
 	require.Equal(t, []string{string(InCase), completed}, got["visibility.unpauseActivityExecution.describeActivityExecution"])
 	require.Equal(t, []string{string(InCase), completed}, got["cause.delivery"])
-	require.Equal(t, []string{string(InCase), completed}, got["attemptStart"])
+	require.Equal(t, []string{string(InCase), completed}, got["poll"])
 	require.Equal(t, []string{string(Unread)}, got["cause.timer"])
 	require.Equal(t, []string{string(Unread)}, got["scheduleToStart"])
 	// The behavior that shapes no wait is carried by the Program as declared, whatever the waits.

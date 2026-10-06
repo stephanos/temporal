@@ -154,6 +154,126 @@ var liveLayoutRoots = []string{
 	"Makefile", ".github/workflows", "AGENTS.md", ".plans/UMPIRE_MODULES.md", ".plans/UMPIRE4_VISION.md",
 }
 
+// retiredModelVocabulary is the task-8 rename batch. It is word-bounded so the variants that keep
+// their names, such as LossyMatchingQueue, are not caught by the MatchingQueue entry. The fault
+// kind admissionResponseLoss and the forgedCompletion Query keep their names and are deliberately
+// absent.
+var retiredModelVocabulary = regexp.MustCompile(`\b(?:` + strings.Join([]string{
+	"ActivityProtocol", "activityProtocol", "NexusProtocol", "nexusProtocol",
+	"ProtocolState", "ProtocolFact", "ProtocolStep",
+	"CurrentAdmission", "currentAdmission", "StaleAdmission", "staleAdmission",
+	"HeldAdmission", "heldAdmission", "AdmissionResponseLoss",
+	"CurrentRecord", "currentRecord", "StaleRecord", "staleRecord",
+	"CurrentOverQueue", "currentOverQueue", "StaleOverQueue", "staleOverQueue",
+	"CurrentOverMatching", "currentOverMatching", "StaleOverMatching", "staleOverMatching",
+	"CurrentOverForgetful", "currentOverForgetful", "CurrentOverVolatile", "currentOverVolatile",
+	"CurrentOverLossyMatching", "currentOverLossyMatching",
+	"DispatchQueue", "dispatchQueue", "DispatchQueueUnderStorageLoss", "dispatchQueueUnderStorageLoss",
+	"MatchingQueue", "matchingQueue",
+	"attemptStart", "attemptResult", "answerDelivery", "handlerReply", "transportFault",
+	"callerClose", "handlerFinish", "workerStop", "workerResume", "ForgedCompletion",
+}, "|") + `)\b`)
+
+var retiredVocabularyRoots = []string{
+	"tools/umpire", "tools/canary", "tests/testcore/testpilot", "common/testing/testpilot",
+	"model/README.md", "model/SEMANTICS.md", "AGENTS.md", ".plans/UMPIRE_MODULES.md",
+	".plans/UMPIRE4_VISION.md", ".plans/DSL_OPERATORS.md", ".plans/DSL_SIMPLIFICATION.md",
+	".plans/QUINT_MODULE_LAYOUT.md",
+}
+
+// These are historical Cases retained to prove compatibility with another model or with a prior
+// pinned canary. They are archives, not live artifacts generated from model/temporal.
+var retiredVocabularyArchives = map[string]bool{
+	"tools/canary/assessment/testdata/nexusCallerCanary-syncCompletion-case.json": true,
+	"tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json":       true,
+	"tests/testcore/testpilot/testdata/workerOutageTests-survived-case.json":       true,
+}
+
+var retiredLevelProse = regexp.MustCompile(`(?i)\b(?:protocol machine|system contract)\b`)
+
+func withoutKeptRuntimeVocabulary(line string) string {
+	for _, kept := range []string{
+		"FaultKind.workerStop", "FaultKind.workerResume", "FaultKind.admissionResponseLoss",
+		"case workerStop, workerResume, admissionResponseLoss", "CauseKind.handlerReply",
+		"case handlerReply", "cause.handlerReply", "visibility.handlerReply",
+	} {
+		line = strings.ReplaceAll(line, kept, "")
+	}
+	return line
+}
+
+func TestRetiredModelVocabularyStaysRetired(t *testing.T) {
+	self := filepath.ToSlash(filepath.Join("tools", "umpire", "model", "layout_test.go"))
+	var mentions []string
+	collect := func(rel, content string) {
+		if rel == self || retiredVocabularyArchives[rel] || strings.HasSuffix(rel, ".semanticdb") {
+			return
+		}
+		for i, line := range strings.Split(content, "\n") {
+			line = withoutKeptRuntimeVocabulary(line)
+			if retiredModelVocabulary.MatchString(line) ||
+				(strings.HasPrefix(rel, "model/temporal/") && strings.Contains(line, `scenario("`)) ||
+				((rel == "model/README.md" || rel == "model/SEMANTICS.md" || strings.HasPrefix(rel, ".plans/")) &&
+					retiredLevelProse.MatchString(line)) {
+				mentions = append(mentions, fmt.Sprintf("%s:%d", rel, i+1))
+			}
+		}
+	}
+	for _, root := range []string{"model/temporal"} {
+		require.NoError(t, filepath.WalkDir(filepath.Join(repoRoot, root), func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if d.IsDir() {
+				return nil
+			}
+			rel, err := filepath.Rel(repoRoot, path)
+			if err != nil {
+				return err
+			}
+			content, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			collect(filepath.ToSlash(rel), string(content))
+			return nil
+		}))
+	}
+	for _, root := range retiredVocabularyRoots {
+		require.NoError(t, filepath.WalkDir(filepath.Join(repoRoot, root), func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if d.IsDir() {
+				return nil
+			}
+			rel, err := filepath.Rel(repoRoot, path)
+			if err != nil {
+				return err
+			}
+			content, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			collect(filepath.ToSlash(rel), string(content))
+			return nil
+		}))
+	}
+	if len(mentions) != 0 {
+		t.Fatalf("use the Product/System and task-8 vocabulary in live Model surfaces: %v", mentions)
+	}
+}
+
+func TestRetiredModelVocabularyMentionsAreFound(t *testing.T) {
+	for _, old := range []string{"ActivityProtocol", "activityProtocol", "ProtocolState", "CurrentAdmission", "attemptStart", "ForgedCompletion"} {
+		require.True(t, retiredModelVocabulary.MatchString(old), old)
+		require.False(t, retiredModelVocabulary.MatchString("x"+old), old)
+	}
+	require.False(t, retiredModelVocabulary.MatchString("LossyMatchingQueue"))
+	require.False(t, retiredModelVocabulary.MatchString("admissionResponseLoss"))
+	require.False(t, retiredModelVocabulary.MatchString("forgedCompletion"))
+}
+
 func retiredModelMentions(path, content string) []string {
 	var found []string
 	scala, inModel := strings.HasSuffix(path, ".scala"), strings.HasPrefix(path, modelRoot+"/")
@@ -286,12 +406,12 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"a flattened record folder":             {"model/temporal/features/standaloneactivity/record/Record.scala", true},
 		"a flattened composition folder":        {"its withTaskQueue/ composes the record", true},
 		"a flattened close policy folder":       {"model/temporal/features/nexuscaller/closepolicy", true},
-		"a zoom-in folder named bare":           {"read off record/ (heldAdmission)", true},
+		"a zoom-in folder named bare":           {"read off record/ (heldDispatch)", true},
 		"a zoom-in folder joined from parts":    {`filepath.Join("model", "temporal", "features", "nexuscaller", "closepolicy", "*.scala")`, true},
 		"a flattened package clause":            {"package closepolicy", true},
 		"an import of a flattened package":      {"import record.*", true},
 		"a qualified flattened package":         {"features.nexuscaller.closepolicy.exports", true},
-		"a function of a flattened package":     {"temporal.features.standaloneactivity.withTaskQueue.CurrentOverQueue$.queries$.all", true},
+		"a function of a flattened package":     {"temporal.features.standaloneactivity.withTaskQueue.RecordOverQueue$.queries$.all", true},
 		"the level folders' files":              {"model/temporal/features/standaloneactivity/system/Record.scala, product/Product.scala", false},
 		"a level package":                       {"package system\nimport temporal.features.nexuscaller.system.ClosePolicyFamily", false},
 		"a pinned former owner":                 {`DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")`, false},

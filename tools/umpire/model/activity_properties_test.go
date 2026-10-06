@@ -223,13 +223,13 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 	m := activityModel(t)
 	all := irPropertyRows(t, m)
 	machines := built(t, m)
-	protocol, product := machines["activityProtocol"].Table, machines["activityProduct"].Table
+	protocol, product := machines["activitySystem"].Table, machines["activityProduct"].Table
 	composed := composedTable(t, m, "standaloneActivity")
 	// Ten Properties of the protocol and three of the product, read on the protocol through the
 	// refinement too, and the composition's one.
 	require.Len(t, all, 13*len(protocol.Rows)+3*len(product.Rows)+len(composed.Rows))
 
-	tables := map[string]*Table{"activityProtocol": protocol, "activityProduct": product, "standaloneActivity": composed}
+	tables := map[string]*Table{"activitySystem": protocol, "activityProduct": product, "standaloneActivity": composed}
 	rows := map[string]map[string]Row{}
 	for name, table := range tables {
 		rows[name] = map[string]Row{}
@@ -263,22 +263,22 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 	}
 	require.Equal(t, map[string]propertyTally{
 		"activityProduct.closedIsRejectedUniformly on activityProduct":  {0, 43, 0},
-		"activityProduct.closedIsRejectedUniformly on activityProtocol": {0, 1668, 120},
+		"activityProduct.closedIsRejectedUniformly on activitySystem": {0, 1668, 120},
 		"activityProduct.pausedIsNotDispatched on activityProduct":      {0, 43, 0},
-		"activityProduct.pausedIsNotDispatched on activityProtocol":     {0, 1788, 0},
+		"activityProduct.pausedIsNotDispatched on activitySystem":     {0, 1788, 0},
 		"activityProduct.terminalStatesAreFinal on activityProduct":     {0, 43, 0},
-		"activityProduct.terminalStatesAreFinal on activityProtocol":    {0, 1788, 0},
-		"activityProtocol.cancelIsRequested on activityProtocol":        {1524, 144, 120},
-		"activityProtocol.terminateSettles on activityProtocol":         {1524, 144, 120},
-		"cancelRequestedWhileStarted on activityProtocol":               {1524, 144, 120},
-		"canceledByWorker on activityProtocol":                          {1764, 24, 0},
-		"completes on activityProtocol":                                 {1716, 72, 0},
-		"nonRetryableFails on activityProtocol":                         {1716, 72, 0},
-		"retryCompletes on activityProtocol":                            {1716, 3, 69},
-		"scheduleToStartFires on activityProtocol":                      {1764, 24, 0},
-		"startToCloseFires on activityProtocol":                         {1752, 36, 0},
+		"activityProduct.terminalStatesAreFinal on activitySystem":    {0, 1788, 0},
+		"activitySystem.cancelIsRequested on activitySystem":        {1524, 144, 120},
+		"activitySystem.terminateSettles on activitySystem":         {1524, 144, 120},
+		"cancelRequestedWhileStarted on activitySystem":               {1524, 144, 120},
+		"canceledByWorker on activitySystem":                          {1764, 24, 0},
+		"completes on activitySystem":                                 {1716, 72, 0},
+		"nonRetryableFails on activitySystem":                         {1716, 72, 0},
+		"retryCompletes on activitySystem":                            {1716, 3, 69},
+		"scheduleToStartFires on activitySystem":                      {1764, 24, 0},
+		"startToCloseFires on activitySystem":                         {1752, 36, 0},
 		"startedByPollingWorker on standaloneActivity":                  {2494, 24, 0},
-		"terminated on activityProtocol":                                {1524, 144, 120},
+		"terminated on activitySystem":                                {1524, 144, 120},
 	}, tally)
 	// A phase holds 24 states, three attempt counts by eight deadline settings. In each of the five
 	// closed phases the product's uniform rejection fails on every worker stop and the Properties about
@@ -286,14 +286,14 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 	// completion of each phase that holds an attempt.
 	failures := map[string]int{}
 	for _, phase := range []string{"canceled", "completed", "failed", "terminated", "timedOut"} {
-		failures["activityProduct.closedIsRejectedUniformly on activityProtocol: "+phase+" workerStop"] = 24
-		failures["activityProtocol.cancelIsRequested on activityProtocol: "+phase+" control-requestCancel"] = 24
-		failures["cancelRequestedWhileStarted on activityProtocol: "+phase+" control-requestCancel"] = 24
-		failures["activityProtocol.terminateSettles on activityProtocol: "+phase+" control-terminate"] = 24
-		failures["terminated on activityProtocol: "+phase+" control-terminate"] = 24
+		failures["activityProduct.closedIsRejectedUniformly on activitySystem: "+phase+" stop"] = 24
+		failures["activitySystem.cancelIsRequested on activitySystem: "+phase+" control-requestCancel"] = 24
+		failures["cancelRequestedWhileStarted on activitySystem: "+phase+" control-requestCancel"] = 24
+		failures["activitySystem.terminateSettles on activitySystem: "+phase+" control-terminate"] = 24
+		failures["terminated on activitySystem: "+phase+" control-terminate"] = 24
 	}
 	for _, phase := range []string{"started", "cancelRequested", "pauseRequested"} {
-		failures["retryCompletes on activityProtocol: "+phase+" attemptResult-completed"] = 23
+		failures["retryCompletes on activitySystem: "+phase+" respond-completed"] = 23
 	}
 	require.Equal(t, failures, failing)
 
@@ -308,23 +308,23 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		digests[claim] = hex.EncodeToString(sum[:8])
 	}
 	require.Equal(t, map[string]string{
-		"activityProduct.closedIsRejectedUniformly on activityProduct":  "d2d252860115d036",
-		"activityProduct.closedIsRejectedUniformly on activityProtocol": "f7b1f6aca763376e",
-		"activityProduct.pausedIsNotDispatched on activityProduct":      "d2d252860115d036",
-		"activityProduct.pausedIsNotDispatched on activityProtocol":     "cd88dc5d6c54123f",
-		"activityProduct.terminalStatesAreFinal on activityProduct":     "d2d252860115d036",
-		"activityProduct.terminalStatesAreFinal on activityProtocol":    "cd88dc5d6c54123f",
-		"activityProtocol.cancelIsRequested on activityProtocol":        "925931cbf7edf634",
-		"activityProtocol.terminateSettles on activityProtocol":         "d8d1580aec86b399",
-		"cancelRequestedWhileStarted on activityProtocol":               "925931cbf7edf634",
-		"canceledByWorker on activityProtocol":                          "5df80f7977d7cc82",
-		"completes on activityProtocol":                                 "3b2ecece8bd9bc43",
-		"nonRetryableFails on activityProtocol":                         "66fd2a7d636b2033",
-		"retryCompletes on activityProtocol":                            "68929ac91aa5be6d",
-		"scheduleToStartFires on activityProtocol":                      "456ef5114b04bfed",
-		"startToCloseFires on activityProtocol":                         "e9896ed37195c487",
-		"startedByPollingWorker on standaloneActivity":                  "7cb4b0f2e228aed8",
-		"terminated on activityProtocol":                                "d8d1580aec86b399",
+		"activityProduct.closedIsRejectedUniformly on activityProduct": "dcccb38657cbb272",
+		"activityProduct.closedIsRejectedUniformly on activitySystem":  "aca3674367133567",
+		"activityProduct.pausedIsNotDispatched on activityProduct":     "dcccb38657cbb272",
+		"activityProduct.pausedIsNotDispatched on activitySystem":      "b2b01fb82419845f",
+		"activityProduct.terminalStatesAreFinal on activityProduct":    "dcccb38657cbb272",
+		"activityProduct.terminalStatesAreFinal on activitySystem":     "b2b01fb82419845f",
+		"activitySystem.cancelIsRequested on activitySystem":           "d7be46713ca32d2d",
+		"activitySystem.terminateSettles on activitySystem":            "9c62747efd31fa10",
+		"cancelRequestedWhileStarted on activitySystem":                "d7be46713ca32d2d",
+		"canceledByWorker on activitySystem":                           "ac4fc0e790c9c725",
+		"completes on activitySystem":                                  "9b2400cb53e0908a",
+		"nonRetryableFails on activitySystem":                          "ef6c558943b85ee3",
+		"retryCompletes on activitySystem":                             "d212627794c856ab",
+		"scheduleToStartFires on activitySystem":                       "b122a9d419983e01",
+		"startToCloseFires on activitySystem":                          "50698e45d993235d",
+		"startedByPollingWorker on standaloneActivity":                 "c1eeda2f52651784",
+		"terminated on activitySystem":                                 "9c62747efd31fa10",
 	}, digests)
 }
 
@@ -378,41 +378,41 @@ func TestActivityQueriesAnswerAlongTheirPaths(t *testing.T) {
 	accepted := func(class, state string, facts ...string) string { return witnessStep(class, "accepted", state, facts) }
 	var (
 		scheduled       = accepted("start-unset-unset-unset", "scheduled-0-unset-unset-unset", "statusScheduled")
-		stopped         = accepted("workerStop", "scheduled-0-unset-unset-unset")
-		started         = accepted("attemptStart", "started-1-unset-unset-unset", "statusStarted", "attemptCount")
+		stopped         = accepted("stop", "scheduled-0-unset-unset-unset")
+		started         = accepted("poll", "started-1-unset-unset-unset", "statusStarted", "attemptCount")
 		cancelRequested = accepted("control-requestCancel", "cancelRequested-1-unset-unset-unset", "statusCancelRequested")
-		canceled        = accepted("attemptResult-canceled", "canceled-1-unset-unset-unset", "statusCanceled")
+		canceled        = accepted("respond-canceled", "canceled-1-unset-unset-unset", "statusCanceled")
 		terminated      = accepted("control-terminate", "terminated-0-unset-unset-unset", "statusTerminated")
 	)
 	require.Equal(t, map[string]pathAnswer{
 		"activityProduct.closedIsRejectedUniformly": verified(10, 10),
 		"activityProduct.pausedIsNotDispatched":     verified(10, 10),
 		"activityProduct.terminalStatesAreFinal":    verified(10, 10),
-		"activityProtocol.cancelIsRequested": found(4, scheduled, stopped,
+		"activitySystem.cancelIsRequested": found(4, scheduled, stopped,
 			accepted("control-requestCancel", "cancelRequested-0-unset-unset-unset", "statusCancelRequested")),
-		"activityProtocol.terminateSettles": found(4, scheduled, stopped, terminated),
+		"activitySystem.terminateSettles": found(4, scheduled, stopped, terminated),
 		"cancel":                            found(5, scheduled, started, cancelRequested, canceled),
 		"cancelRequest":                     found(5, scheduled, started, cancelRequested, canceled),
 		"completion": found(4, scheduled, started,
-			accepted("attemptResult-completed", "completed-1-unset-unset-unset", "statusCompleted")),
+			accepted("respond-completed", "completed-1-unset-unset-unset", "statusCompleted")),
 		"nonRetryableFailure": found(4, scheduled, started,
-			accepted("attemptResult-failed-false", "failed-1-unset-unset-unset", "statusFailed")),
+			accepted("respond-failed-false", "failed-1-unset-unset-unset", "statusFailed")),
 		"pauseResume": found(6, scheduled,
 			accepted("control-pause", "paused-0-unset-unset-unset", "statusPaused"),
 			accepted("control-unpause", "scheduled-0-unset-unset-unset", "statusScheduled"), started,
-			accepted("attemptResult-completed", "completed-1-unset-unset-unset", "statusCompleted")),
+			accepted("respond-completed", "completed-1-unset-unset-unset", "statusCompleted")),
 		"retry": found(7, scheduled, started,
-			accepted("attemptResult-failed-true", "backingOff-1-unset-unset-unset", "statusScheduled", "attemptCount"),
+			accepted("respond-failed-true", "backingOff-1-unset-unset-unset", "statusScheduled", "attemptCount"),
 			accepted("backoff", "scheduled-1-unset-unset-unset"),
-			accepted("attemptStart", "started-2-unset-unset-unset", "statusStarted", "attemptCount"),
-			accepted("attemptResult-completed", "completed-2-unset-unset-unset", "statusCompleted")),
+			accepted("poll", "started-2-unset-unset-unset", "statusStarted", "attemptCount"),
+			accepted("respond-completed", "completed-2-unset-unset-unset", "statusCompleted")),
 		"scheduleToStartTimeout": found(4,
 			accepted("start-unset-expires-unset", "scheduled-0-unset-expires-unset", "statusScheduled"),
-			accepted("workerStop", "scheduled-0-unset-expires-unset"),
+			accepted("stop", "scheduled-0-unset-expires-unset"),
 			accepted("scheduleToStart", "timedOut-0-unset-expires-unset", "statusTimedOut-scheduleToStart")),
 		"startToCloseTimeout": found(4,
 			accepted("start-unset-unset-expires", "scheduled-0-unset-unset-expires", "statusScheduled"),
-			accepted("attemptStart", "started-1-unset-unset-expires", "statusStarted", "attemptCount"),
+			accepted("poll", "started-1-unset-unset-expires", "statusStarted", "attemptCount"),
 			accepted("startToClose", "timedOut-1-unset-unset-expires", "statusTimedOut-startToClose")),
 		"terminate":                  found(4, scheduled, stopped, terminated),
 		"stoppedWorkerStartsNothing": verified(7, 6),
@@ -510,17 +510,17 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 		// The cancel request of the Scenario's path is taken at attempt 1.
 		"cancelRequestedWhileStarted also wants the first attempt": {
 			mutate: func(t *testing.T, m *umpirespb.Model) {
-				f := activityFunction(t, m, "activityProtocol.property.cancelRequestedWhileStarted")
+				f := activityFunction(t, m, "activitySystem.property.cancelRequestedWhileStarted")
 				narrowed(f, binary(umpirespb.Binary_OP_EQ, stateField(f, 0, "attempts"), expr(admIntValue(1))))
 			},
-			rows: []string{"cancelRequestedWhileStarted on activityProtocol at scheduled-0-unset-unset-unset-control-requestCancel"},
+			rows: []string{"cancelRequestedWhileStarted on activitySystem at scheduled-0-unset-unset-unset-control-requestCancel"},
 		},
 		// The one attempt result on the path to a canceled activity is the canceled answer.
 		"canceledByWorker is about every attempt result": {
 			mutate: func(_ *testing.T, m *umpirespb.Model) {
-				admProperty(m, "activityProtocol", "canceledByWorker").When = &umpirespb.Property_WhenAction{WhenAction: "attemptResult"}
+				admProperty(m, "activitySystem", "canceledByWorker").When = &umpirespb.Property_WhenAction{WhenAction: "respond"}
 			},
-			rows: []string{"canceledByWorker on activityProtocol at started-1-unset-unset-unset-attemptResult-completed"},
+			rows: []string{"canceledByWorker on activitySystem at started-1-unset-unset-unset-respond-completed"},
 		},
 		// No path that reads this Property terminates the activity. The free search of the product
 		// that verifies it does: it terminates a scheduled activity.
@@ -532,7 +532,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 			},
 			rows: []string{
 				"activityProduct.pausedIsNotDispatched on activityProduct at scheduled-control-terminate",
-				"activityProduct.pausedIsNotDispatched on activityProtocol at scheduled-0-unset-unset-unset-control-terminate",
+				"activityProduct.pausedIsNotDispatched on activitySystem at scheduled-0-unset-unset-unset-control-terminate",
 			},
 			generated: []string{"activityProduct.pausedIsNotDispatched"},
 		},
@@ -542,7 +542,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 				f := activityFunction(t, m, "standaloneActivity.property.startedByPollingWorker")
 				narrowed(f, binary(umpirespb.Binary_OP_EQ, field(stateField(f, 0, "activity"), "attempts"), expr(admIntValue(1))))
 			},
-			rows: []string{"startedByPollingWorker on standaloneActivity at scheduled-1-unset-unset-unset_polling-attemptStart"},
+			rows: []string{"startedByPollingWorker on standaloneActivity at scheduled-1-unset-unset-unset_polling-poll"},
 		},
 		// The backoff on the cross-entity path is taken while the worker polls, so a claim about the
 		// activity's own backoff holds there too, and is read on a step of the path.
@@ -551,7 +551,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 				admProperty(m, "standaloneActivity", "startedByPollingWorker").When = &umpirespb.Property_WhenAction{WhenAction: "activity_backoff"}
 			},
 			rows: []string{
-				"startedByPollingWorker on standaloneActivity at scheduled-0-unset-unset-unset_polling-attemptStart",
+				"startedByPollingWorker on standaloneActivity at scheduled-0-unset-unset-unset_polling-poll",
 				"startedByPollingWorker on standaloneActivity at backingOff-1-unset-unset-unset_stopped-activity_backoff",
 			},
 		},
@@ -572,20 +572,20 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 	}
 }
 
-// The sync attemptStart is named as the activity's action it takes, so that action's one class is
+// The sync poll is named as the activity's action it takes, so that action's one class is
 // keyed as the composed step is. The cross-entity Property declared about that class answers every
 // row and every path as the one declared about the action does.
 func TestActivityCrossEntityClaimByClassAnswersAlike(t *testing.T) {
 	m := proto.Clone(activityModel(t)).(*umpirespb.Model)
-	var attemptStart string
+	var poll string
 	for _, a := range m.GetActions() {
-		if a.GetName() == "attemptStart" {
-			attemptStart = a.GetId()
+		if a.GetName() == "poll" {
+			poll = a.GetId()
 		}
 	}
-	require.NotEmpty(t, attemptStart)
+	require.NotEmpty(t, poll)
 	admProperty(m, "standaloneActivity", "startedByPollingWorker").When = &umpirespb.Property_WhenClass{
-		WhenClass: &umpirespb.ActionClass{Action: attemptStart}}
+		WhenClass: &umpirespb.ActionClass{Action: poll}}
 	require.NoError(t, Validate(m))
 	require.Empty(t, pathDisagreements(t, m))
 	require.Empty(t, generatedDisagreements(t, m))

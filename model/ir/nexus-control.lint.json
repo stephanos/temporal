@@ -2,25 +2,25 @@
   "accepted": [
     {
       "kind": "unperformed-action",
-      "owner": "forgedCompletion",
+      "owner": "trustingCaller",
       "subjects": [
-        "transportFault"
+        "fault"
       ],
       "because": "No script of the realization performs this fault, so the find Queries whose paths take it are not lowered; realizing faults belongs to the later spec that declares typed faults as environment actions (fn-120 Boundaries)."
     },
     {
       "kind": "silent-rejection",
-      "owner": "forgedCompletion",
+      "owner": "trustingCaller",
       "subjects": [
         "complete-canceled in unscheduled",
         "complete-failed in unscheduled",
         "complete-succeeded in unscheduled",
-        "handlerReply-async in unscheduled, backingOff, started",
-        "handlerReply-handlerError-false in unscheduled, backingOff, started",
-        "handlerReply-handlerError-true in unscheduled, backingOff, started",
-        "handlerReply-operationCanceled in unscheduled, backingOff, started",
-        "handlerReply-operationFailed in unscheduled, backingOff, started",
-        "handlerReply-syncSuccess in unscheduled, backingOff, started",
+        "reply-async in unscheduled, backingOff, started",
+        "reply-handlerError-false in unscheduled, backingOff, started",
+        "reply-handlerError-true in unscheduled, backingOff, started",
+        "reply-operationCanceled in unscheduled, backingOff, started",
+        "reply-operationFailed in unscheduled, backingOff, started",
+        "reply-syncSuccess in unscheduled, backingOff, started",
         "schedule-expires-expires-expires in scheduled, backingOff, started",
         "schedule-expires-expires-unset in scheduled, backingOff, started",
         "schedule-expires-unset-expires in scheduled, backingOff, started",
@@ -34,25 +34,25 @@
     },
     {
       "kind": "silent-rejection",
-      "owner": "forgedCompletion",
+      "owner": "trustingCaller",
       "subjects": [
-        "transportFault in unscheduled, backingOff, started"
+        "fault in unscheduled, backingOff, started"
       ],
       "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
     },
     {
       "kind": "unconstrained-result",
-      "owner": "forgedCompletion",
+      "owner": "trustingCaller",
       "subjects": [
         "backoff",
         "complete-canceled",
         "complete-succeeded",
-        "handlerReply-async",
-        "handlerReply-handlerError-false",
-        "handlerReply-handlerError-true",
-        "handlerReply-operationCanceled",
-        "handlerReply-operationFailed",
-        "handlerReply-syncSuccess",
+        "reply-async",
+        "reply-handlerError-false",
+        "reply-handlerError-true",
+        "reply-operationCanceled",
+        "reply-operationFailed",
+        "reply-syncSuccess",
         "inspect",
         "schedule-expires-expires-expires",
         "schedule-expires-expires-unset",
@@ -65,14 +65,14 @@
         "scheduleToClose",
         "scheduleToStart",
         "startToClose",
-        "transportFault",
-        "workerStop"
+        "fault",
+        "stop"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "witness-only",
-      "owner": "forgedCompletion",
+      "owner": "trustingCaller",
       "subjects": [
         "forgedSuccess"
       ],

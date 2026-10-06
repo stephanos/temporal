@@ -16,7 +16,7 @@
       "owner": "nexusOperation",
       "subjects": [
         "complete",
-        "handlerReply"
+        "reply"
       ],
       "because": "No script of the realization performs the handler's reply or completion: its Cases reach the operation through the caller's requests alone, and the handler is the system's side."
     },
@@ -46,10 +46,10 @@
         "complete-canceled in unstarted, scheduled",
         "complete-failed in unstarted, scheduled",
         "complete-succeeded in unstarted, scheduled",
-        "handlerReply-async in unstarted, started",
-        "handlerReply-syncCanceled in unstarted, started",
-        "handlerReply-syncFailure in unstarted, started",
-        "handlerReply-syncSuccess in unstarted, started",
+        "reply-async in unstarted, started",
+        "reply-syncCanceled in unstarted, started",
+        "reply-syncFailure in unstarted, started",
+        "reply-syncSuccess in unstarted, started",
         "requestCancel in unstarted",
         "start in scheduled, started",
         "terminate in unstarted"
@@ -63,10 +63,10 @@
         "complete-canceled",
         "complete-failed",
         "complete-succeeded",
-        "handlerReply-async",
-        "handlerReply-syncCanceled",
-        "handlerReply-syncFailure",
-        "handlerReply-syncSuccess",
+        "reply-async",
+        "reply-syncCanceled",
+        "reply-syncFailure",
+        "reply-syncSuccess",
         "start"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."

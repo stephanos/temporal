@@ -1,12 +1,15 @@
-/* The standalone Nexus operation Model: one operation a caller starts directly through
+/* The standalone Nexus operation Model: one operation a client starts directly through
  * StartNexusOperationExecution, with no workflow around it, grounded in
- * chasm/lib/nexusoperation/{operation.go,operation_statemachine.go}. The caller starts, cancels
+ * chasm/lib/nexusoperation/{operation.go,operation_statemachine.go}. The client starts, cancels
  * and terminates it; the endpoint's handler answers it, synchronously or by starting it and
  * completing it later. Its status is read back through DescribeNexusOperationExecution. No retry
  * and no deadline is modeled: an attempt that fails retryably reads as scheduled, as BACKING_OFF
  * does in Describe (RUNNING), and no Case sets a deadline it lives to see.
  *
- * Read top to bottom: the types; the signature (the caller, the handler, the operation and their
+ * Update this Model independently of the implementation. When conformance fails, ask a human
+ * rather than fitting the Model to the code.
+ *
+ * Read top to bottom: the types; the signature (the client, the handler, the operation and their
  * actions); then NexusOperation, the operation's one machine, with its own reading of closed
  * rejection and the capabilities it implements; and last exports, its IR file. Realization.scala
  * realizes it.
@@ -56,18 +59,19 @@ enum OperationFact derives Finite:
 
 // ### Signature
 
-/** Named by the id the caller chose: every request and read carries it. */
+/** Named by the id the client chose: every request and read carries it. */
 val operation: Entity = Entity(key = "operationId")
 
 // The handler's reply to the start and its completion's resolution.
-val reply = input[Reply]
+object Inputs:
+  val reply = input[Reply]
 val resolution = input[Resolution]
 
 // Who acts: each action is declared in the object of who takes it, and named after where it is
-// declared, `temporal.features.nexusoperation.caller.start`.
+// declared, `temporal.features.nexusoperation.client.start`.
 
-/** The caller starts the operation, and requests its cancel or terminates it. */
-object caller extends Actor:
+/** The client starts the operation, and requests its cancel or terminates it. */
+object client extends Client:
   val start = action(this).creates(operation).schema[StartNexusOperationExecutionRequest]
   val requestCancel =
     action(this).on(operation).schema[RequestCancelNexusOperationExecutionRequest]
@@ -75,7 +79,7 @@ object caller extends Actor:
 
 /** The endpoint's handler replies to the start, and completes an operation it started async. */
 object handler extends Actor:
-  val handlerReply = action(this).on(operation).input(reply)
+  val reply = action(this).on(operation).input(Inputs.reply)
   val complete = action(this).on(operation).input(resolution)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
@@ -113,7 +117,7 @@ object NexusOperation extends Machine[OperationState, Outcome, OperationFact]:
      * TransitionStarted, or a synchronous completion straight from scheduled; a canceled answer
      * settles it canceled (operation.go invocationResultCancel, onCanceled).
      */
-    def handlerReply(s: State, r: Reply) =
+    def reply(s: State, r: Reply) =
       r match
         case Reply.syncSuccess  => enter(s.copy(phase = succeeded), statusSucceeded)
         case Reply.syncFailure  => enter(s.copy(phase = failed), statusFailed)
@@ -143,13 +147,13 @@ object NexusOperation extends Machine[OperationState, Outcome, OperationFact]:
     def repeated(s: State) = stay(s)
 
   object rules extends Rules(_.phase):
-    on(caller.start)(in(unstarted) ~> effects.start)
-    on(handler.handlerReply)(in(scheduled) ~> effects.handlerReply)
+    on(client.start)(in(unstarted) ~> effects.start)
+    on(handler.reply)(in(scheduled) ~> effects.reply)
     on(handler.complete)(in(started) ~> effects.complete)
 
     // A repeated cancel request is the same request; one of a closed operation is alreadyCompleted,
     // unless it repeats one the operation took (operation.go RequestCancel).
-    on(caller.requestCancel) {
+    on(client.requestCancel) {
       in(states.created).where(_.cancelRequested) ~> effects.repeated
       in(states.terminal).where(!_.cancelRequested) ~> effects.closed
       in(states.live).where(!_.cancelRequested) ~> effects.requestCancel
@@ -157,7 +161,7 @@ object NexusOperation extends Machine[OperationState, Outcome, OperationFact]:
 
     // A repeated terminate of a terminated operation is the same request, answered OK; any other
     // control of a closed one is alreadyCompleted (operation.go Terminate).
-    on(caller.terminate) {
+    on(client.terminate) {
       in(terminated) ~> effects.repeated
       in(succeeded, failed, canceled) ~> effects.closed
       in(scheduled, started) ~> effects.terminate
@@ -185,7 +189,7 @@ object NexusOperation extends Machine[OperationState, Outcome, OperationFact]:
       )
 
   /**
-   * What the operation is, as the laws of model/temporal/capabilities read it: it closes, a caller
+   * What the operation is, as the laws of model/temporal/capabilities read it: it closes, a client
    * terminates it and requests its cancel, and DescribeNexusOperationExecution reports its status.
    * It receives the laws without listing them, each named `nexusOperation.<law>`. It reads the
    * realization, which reads this machine, so it waits in a section, which initializes on its first
@@ -205,15 +209,15 @@ object NexusOperation extends Machine[OperationState, Outcome, OperationFact]:
           rejected = cited(Outcome.alreadyCompleted, "chasm/lib/nexusoperation/operation.go")
         ),
         Terminable(
-          terminate = caller.terminate,
+          terminate = client.terminate,
           settled = OperationFact.statusTerminated,
-          reach = Seq(caller.start),
+          reach = Seq(client.start),
           expect = inconclusive(Reason.explanationsDisagree)
         ),
         Cancelable(
-          requestCancel = caller.requestCancel,
+          requestCancel = client.requestCancel,
           requested = OperationFact.statusCancelRequested,
-          reach = Seq(caller.start),
+          reach = Seq(client.start),
           expect = inconclusive(Reason.explanationsDisagree)
         ),
         Describable(status = OperationRealization.operationStatus)

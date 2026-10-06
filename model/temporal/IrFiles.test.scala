@@ -49,3 +49,10 @@ class IrFilesTest extends munit.FunSuite:
           "its roots never reaches, so no rule overlap of theirs is checked"
       )
   }
+
+  test("standalone public API callers share the Temporal Client actor") {
+    assert(features.standaloneactivity.client.isInstanceOf[Client])
+    assert(features.nexusoperation.client.isInstanceOf[Client])
+    assertEquals(features.standaloneactivity.client.name, "client")
+    assertEquals(features.nexusoperation.client.name, "client")
+  }

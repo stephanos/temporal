@@ -7,10 +7,10 @@ package fixture.hintrejects
 import umpire.realize.*
 import temporal.realize.*
 import temporal.features.standaloneactivity.activity
-import temporal.features.standaloneactivity.system.ActivityProtocol as activityProtocol
+import temporal.features.standaloneactivity.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 private def realizing(hint: Visibility) = temporalRealization(
-  machine = activityProtocol,
+  machine = activitySystem,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller()),

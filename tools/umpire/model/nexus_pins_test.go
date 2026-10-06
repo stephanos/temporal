@@ -30,9 +30,9 @@ const productClaimProbes = `{
       "whenClass": {"action": "temporal.features.nexuscaller.timers.timeout"},
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"}}],
   "scenarios": [
-    {"machine": "nexusProtocol", "name": "everywhere", "free": true,
+    {"machine": "nexusSystem", "name": "everywhere", "free": true,
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
-      "start": {"construct": {"type": "temporal.features.nexuscaller.ProtocolState", "args": [
+      "start": {"construct": {"type": "temporal.features.nexuscaller.SystemState", "args": [
         {"literal": {"enum": {"type": "temporal.features.nexuscaller.Phase", "case": "unscheduled"}}},
         {"literal": {"int": "0"}},
         {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}},
@@ -42,14 +42,14 @@ const productClaimProbes = `{
     {"name": "terminalHoldsEverywhere", "form": "FORM_VERIFY", "through": true,
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
       "property": {"machine": "nexusProduct", "name": "terminalIsFinal"},
-      "scenario": {"machine": "nexusProtocol", "name": "everywhere"},
+      "scenario": {"machine": "nexusSystem", "name": "everywhere"},
       "limits": {"name": "four", "steps": 4, "actions": 4, "search": 32768}}]
 }`
 
 const timesOutOnProtocol = `{"queries": [{"name": "timesOutOnProtocol", "form": "FORM_VERIFY", "through": true,
   "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
   "property": {"machine": "nexusProduct", "name": "timesOut"},
-  "scenario": {"machine": "nexusProtocol", "name": "asyncThenSucceeded"},
+  "scenario": {"machine": "nexusSystem", "name": "asyncThenSucceeded"},
   "limits": {"name": "three", "steps": 3, "actions": 3, "search": 4096}}]}`
 
 // withDeclarations is the Model with these ProtoJSON declarations appended.
@@ -72,14 +72,14 @@ func TestNexusProductTable(t *testing.T) {
 	// Six replies, three resolutions, the two faults it cannot see, and the one timer.
 	require.Len(t, tb.Actions, 12)
 	// A retryable handler error is invisible here: it is the protocol machine that backs off.
-	require.True(t, product.Disabled("scheduled", "handlerReply-handlerError-true"))
+	require.True(t, product.Disabled("scheduled", "reply-handlerError-true"))
 	require.Equal(t, []string{"scheduled", "canceled", "failed", "succeeded", "started", "timedOut"}, tb.Reachable)
 	require.Empty(t, stuck(tb))
 }
 
 func TestNexusProtocolTable(t *testing.T) {
 	nexus := machines(t)
-	protocol := nexus["nexusProtocol"]
+	protocol := nexus["nexusSystem"]
 	tb := protocol.Table
 	const n = 3 // attempts 0..2
 	// Eight phases, three attempt counts and three deadlines, and the four ending phases.
@@ -95,8 +95,8 @@ func TestNexusProtocolTable(t *testing.T) {
 	// A retryable handler error backs the operation off and raises the attempt count; the count
 	// saturates rather than wrapping.
 	require.Equal(t, []Result{{Outcome: "accepted", State: "backingOff-1-unset-unset-unset", Facts: []string{"pendingAttempts"}}},
-		results("scheduled-0-unset-unset-unset-handlerReply-handlerError-true"))
-	require.Equal(t, "backingOff-2-unset-unset-unset", results("scheduled-2-unset-unset-unset-handlerReply-handlerError-true")[0].State)
+		results("scheduled-0-unset-unset-unset-reply-handlerError-true"))
+	require.Equal(t, "backingOff-2-unset-unset-unset", results("scheduled-2-unset-unset-unset-reply-handlerError-true")[0].State)
 	// A completion before the start records the Started event first, one after it does not.
 	require.Equal(t, []string{"nexusOperationStarted", "nexusOperationCompleted"},
 		results("backingOff-1-unset-unset-unset-complete-succeeded")[0].Facts)
@@ -112,8 +112,8 @@ func TestNexusProtocolTable(t *testing.T) {
 	require.Equal(t, []string{"nexusOperationTimedOut-scheduleToStart"}, results("scheduled-0-unset-expires-unset-scheduleToStart")[0].Facts)
 	// The worker stopping keeps the state and records nothing; the product machine does not see it.
 	require.Equal(t, []Result{{Outcome: "accepted", State: "scheduled-0-unset-expires-unset", Facts: []string{}}},
-		results("scheduled-0-unset-expires-unset-workerStop"))
-	require.True(t, nexus["nexusProduct"].Disabled("scheduled", "workerStop"))
+		results("scheduled-0-unset-expires-unset-stop"))
+	require.True(t, nexus["nexusProduct"].Disabled("scheduled", "stop"))
 
 	require.Empty(t, stuck(tb))
 	// Not every state is reachable. The Behavior Fingerprint reads the table, so these numbers are part
@@ -125,8 +125,8 @@ func TestNexusProtocolTable(t *testing.T) {
 func TestNexusRefinement(t *testing.T) {
 	m, err := Load(irPath)
 	require.NoError(t, err)
-	protocol := built(t, m)["nexusProtocol"]
-	refinement, err := refinementOf(t, m, "nexusProtocol")
+	protocol := built(t, m)["nexusSystem"]
+	refinement, err := refinementOf(t, m, "nexusSystem")
 	require.NoError(t, err)
 	require.Len(t, refinement, len(protocol.Table.Rows))
 	lookup := map[string]*string{}
@@ -143,8 +143,8 @@ func TestNexusRefinement(t *testing.T) {
 	}
 	// A reply the product machine sees is that reply's step. A retry it cannot see is a stutter, and so
 	// are the schedule command and the backoff timer.
-	require.Equal(t, "handlerReply-async", product("scheduled-0-unset-unset-unset-handlerReply-async"))
-	require.Empty(t, product("scheduled-0-unset-unset-unset-handlerReply-handlerError-true"))
+	require.Equal(t, "reply-async", product("scheduled-0-unset-unset-unset-reply-async"))
+	require.Empty(t, product("scheduled-0-unset-unset-unset-reply-handlerError-true"))
 	require.Empty(t, product("unscheduled-0-unset-unset-unset-schedule-unset-unset-expires"))
 	require.Empty(t, product("backingOff-1-unset-unset-unset-backoff"))
 	// A deadline firing is the product's one timer, whichever deadline it was.
@@ -163,7 +163,7 @@ func TestNexusRefinement(t *testing.T) {
 	// Stutter invariance: every stutter leaves a phase that reads as scheduled, or is a worker stop.
 	for _, key := range stutters {
 		phase, _, _ := strings.Cut(key, "-")
-		require.True(t, phase == "unscheduled" || phase == "scheduled" || phase == "backingOff" || strings.HasSuffix(key, "-workerStop"), key)
+		require.True(t, phase == "unscheduled" || phase == "scheduled" || phase == "backingOff" || strings.HasSuffix(key, "-stop"), key)
 	}
 	// The product state a protocol state reads as is a field named after the product machine.
 	require.Equal(t, []string{"phase", "attempts", "scheduleToClose", "scheduleToStart", "startToClose", "nexusProduct"},
@@ -175,23 +175,23 @@ func TestNexusQueries(t *testing.T) {
 	// Each functional Query finds its claim on its path, and a Scenario names its classed actions with
 	// their inputs, a timer like any action, where it fires.
 	paths := map[string][]string{
-		"syncCompletion":         {"schedule-unset-unset-unset", "handlerReply-syncSuccess"},
-		"asyncCompletion":        {"schedule-unset-unset-unset", "handlerReply-async", "complete-succeeded"},
-		"asyncFailure":           {"schedule-unset-unset-unset", "handlerReply-async", "complete-failed"},
-		"handlerError":           {"schedule-unset-unset-unset", "handlerReply-handlerError-false"},
-		"retry":                  {"schedule-unset-unset-unset", "handlerReply-handlerError-true", "backoff", "handlerReply-syncSuccess"},
-		"scheduleToStartTimeout": {"schedule-unset-expires-unset", "workerStop", "scheduleToStart"},
-		"startToCloseTimeout":    {"schedule-unset-unset-expires", "handlerReply-async", "startToClose"},
+		"syncCompletion":         {"schedule-unset-unset-unset", "reply-syncSuccess"},
+		"asyncCompletion":        {"schedule-unset-unset-unset", "reply-async", "complete-succeeded"},
+		"asyncFailure":           {"schedule-unset-unset-unset", "reply-async", "complete-failed"},
+		"handlerError":           {"schedule-unset-unset-unset", "reply-handlerError-false"},
+		"retry":                  {"schedule-unset-unset-unset", "reply-handlerError-true", "backoff", "reply-syncSuccess"},
+		"scheduleToStartTimeout": {"schedule-unset-expires-unset", "stop", "scheduleToStart"},
+		"startToCloseTimeout":    {"schedule-unset-unset-expires", "reply-async", "startToClose"},
 	}
 	for name, path := range paths {
-		found := receiptOf(t, r, "query nexusProtocol "+name)
+		found := receiptOf(t, r, "query nexusSystem "+name)
 		require.Equal(t, Found, found.Kind, name)
 		require.Equal(t, path, taken(found.Witness), name)
 		require.Equal(t, "unscheduled-0-unset-unset-unset", found.Witness.Initial.Value, name)
 	}
 	// The product claim is verified over every trace of the asynchronous path, and keeps its own
 	// identity: it is the product Property and no other.
-	terminal := receiptOf(t, r, "query nexusProtocol terminalHolds")
+	terminal := receiptOf(t, r, "query nexusSystem terminalHolds")
 	require.Equal(t, Verified, terminal.Kind)
 	require.True(t, terminal.Exercised)
 	require.Equal(t, ClaimKey{Family: "temporal.features.nexuscaller.product", Owner: "nexusProduct", Name: "terminalIsFinal"}, terminal.Property)
@@ -201,23 +201,23 @@ func TestNexusQueries(t *testing.T) {
 // statistic.
 func TestNexusProductPropertyOverEveryTraceWithinFour(t *testing.T) {
 	r := checked(t, withDeclarations(t, load(t), productClaimProbes))
-	everywhere := receiptOf(t, r, "query nexusProtocol terminalHoldsEverywhere")
+	everywhere := receiptOf(t, r, "query nexusSystem terminalHoldsEverywhere")
 	require.Equal(t, []any{Verified, 111}, []any{everywhere.Kind, everywhere.Explored})
 }
 
 // A product Property about an action the protocol machine does not have cannot be read there.
 func TestNexusProductPropertyOnAMissingAction(t *testing.T) {
 	r := checked(t, withDeclarations(t, load(t), productClaimProbes, timesOutOnProtocol))
-	refused := receiptOf(t, r, "query nexusProtocol timesOutOnProtocol")
+	refused := receiptOf(t, r, "query nexusSystem timesOutOnProtocol")
 	require.Equal(t, DeclarationError, refused.Kind)
 	require.EqualError(t, refused.Cause, "query timesOutOnProtocol: the Property names the action 'timeout' of "+
-		"'nexusProduct', and 'nexusProtocol' has no action of that name; a Property on the refined machine is read on "+
+		"'nexusProduct', and 'nexusSystem' has no action of that name; a Property on the refined machine is read on "+
 		"the refining one through the values of the same name, and a state through its map")
 }
 
 func TestNexusCallerComposition(t *testing.T) {
 	m := load(t)
-	require.Equal(t, []string{"serve", "workerStop"}, built(t, m)["handlerWorker"].Table.Actions)
+	require.Equal(t, []string{"serve", "stop"}, built(t, m)["handlerWorker"].Table.Actions)
 	realizer, err := NewRealizer(m, DefaultScope)
 	require.NoError(t, err)
 	composed, err := realizer.Composition("nexusCaller")
@@ -234,16 +234,11 @@ func TestNexusCallerComposition(t *testing.T) {
 	require.Equal(t, 158, stopped)
 	require.Len(t, tb.Rows, 1468)
 	require.Equal(t, []string{
-		"handlerReply-async",
-		"handlerReply-handlerError-false",
-		"handlerReply-handlerError-true",
-		"handlerReply-operationCanceled",
-		"handlerReply-operationFailed",
-		"handlerReply-syncSuccess",
 		"operation_backoff",
 		"operation_complete-canceled",
 		"operation_complete-failed",
 		"operation_complete-succeeded",
+		"operation_fault",
 		"operation_schedule-expires-expires-expires",
 		"operation_schedule-expires-expires-unset",
 		"operation_schedule-expires-unset-expires",
@@ -255,13 +250,18 @@ func TestNexusCallerComposition(t *testing.T) {
 		"operation_scheduleToClose",
 		"operation_scheduleToStart",
 		"operation_startToClose",
-		"operation_transportFault",
-		"workerStop",
+		"reply-async",
+		"reply-handlerError-false",
+		"reply-handlerError-true",
+		"reply-operationCanceled",
+		"reply-operationFailed",
+		"reply-syncSuccess",
+		"stop",
 	}, tb.Actions)
 	// A reply has a row only where the worker polls.
 	replies := 0
 	for _, row := range tb.Rows {
-		if strings.Contains(row.Key, "-handlerReply") {
+		if strings.Contains(row.Key, "-reply") {
 			replies++
 			require.NotContains(t, row.Key, "_stopped-")
 		}

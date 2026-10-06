@@ -22,7 +22,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 
 	// A pause of a paused activity fires no rule: the control's rules are matched on the input first,
 	// then each rule of the class is tried on the state, and the last one tried disabled the pair.
-	w := whyIn(t, m, "activityProtocol", "paused-1-unset-unset-unset", "control-pause")
+	w := whyIn(t, m, "activitySystem", "paused-1-unset-unset-unset", "control-pause")
 	require.Empty(t, w.Steps)
 	require.Nil(t, w.Hole)
 	last, ok := w.Last()
@@ -38,7 +38,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	require.False(t, input.State)
 
 	// An unstarted activity has nothing to control: no rule's phase holds.
-	w = whyIn(t, m, "activityProtocol", "unstarted-0-unset-unset-unset", "control-pause")
+	w = whyIn(t, m, "activitySystem", "unstarted-0-unset-unset-unset", "control-pause")
 	last, ok = w.Last()
 	require.True(t, ok)
 	require.False(t, last.Match())
@@ -46,10 +46,10 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	require.True(t, last.State)
 
 	// A terminal phase's notFound row decides through the named predicate its rule's guard calls.
-	w = whyIn(t, m, "activityProtocol", "completed-1-unset-unset-unset", "control-pause")
+	w = whyIn(t, m, "activitySystem", "completed-1-unset-unset-unset", "control-pause")
 	require.Len(t, w.Steps, 1)
 	guard := w.Decisions[1]
-	require.Equal(t, []string{"temporal.features.standaloneactivity.system.ActivityProtocol$.states$.terminal"}, guard.Calls)
+	require.Equal(t, []string{"temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal"}, guard.Calls)
 	require.True(t, guard.Then)
 	require.True(t, guard.State)
 	require.False(t, guard.Nested)
@@ -58,7 +58,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 func TestWhyTellsAnInputDecisionFromAStateDecision(t *testing.T) {
 	m := activityModel(t)
 	// A non-retryable failure decides on the input, then on the phase its rule names (`held`).
-	w := whyIn(t, m, "activityProtocol", "started-1-unset-unset-unset", "attemptResult-failed-false")
+	w := whyIn(t, m, "activitySystem", "started-1-unset-unset-unset", "respond-failed-false")
 	require.Len(t, w.Steps, 1)
 	var sawInput, sawState bool
 	for _, d := range w.Decisions {
@@ -75,7 +75,7 @@ func TestWhyMarksAWildcardArm(t *testing.T) {
 	// lifts.
 	var rewritten bool
 	for _, f := range m.GetFunctions() {
-		if f.GetName() != "activityProtocol.rules.control" {
+		if f.GetName() != "activitySystem.rules.control" {
 			continue
 		}
 		for _, c := range f.GetBody().GetMatch().GetCases() {
@@ -87,7 +87,7 @@ func TestWhyMarksAWildcardArm(t *testing.T) {
 		}
 	}
 	require.True(t, rewritten)
-	w := whyIn(t, m, "activityProtocol", "cancelRequested-1-unset-unset-unset", "control-pause")
+	w := whyIn(t, m, "activitySystem", "cancelRequested-1-unset-unset-unset", "control-pause")
 	last, ok := w.Last()
 	require.True(t, ok)
 	require.True(t, last.Wildcard)
@@ -99,9 +99,9 @@ func TestWhyRefusesAnUnknownStateOrClass(t *testing.T) {
 	machines, err := Build(m)
 	require.NoError(t, err)
 	in := NewInterpreter(m)
-	_, err = in.Why(machines["activityProtocol"], "nowhere", "control-pause")
+	_, err = in.Why(machines["activitySystem"], "nowhere", "control-pause")
 	require.ErrorContains(t, err, "no state nowhere")
-	_, err = in.Why(machines["activityProtocol"], "paused-1-unset-unset-unset", "control-nothing")
+	_, err = in.Why(machines["activitySystem"], "paused-1-unset-unset-unset", "control-nothing")
 	require.ErrorContains(t, err, "no class control-nothing")
 }
 
@@ -137,7 +137,7 @@ func TestReadsSaysWhetherAClaimReadsItsStep(t *testing.T) {
 func TestRealizerGivesTheRefinementCheckReads(t *testing.T) {
 	r, err := NewRealizer(activityModel(t), DefaultScope)
 	require.NoError(t, err)
-	rows, err := r.Refinement("activityProtocol")
+	rows, err := r.Refinement("activitySystem")
 	require.NoError(t, err)
 	carried := map[string]string{}
 	for _, row := range rows {
@@ -145,7 +145,7 @@ func TestRealizerGivesTheRefinementCheckReads(t *testing.T) {
 			carried[row.Key] = *row.Product
 		}
 	}
-	require.Equal(t, "attemptStart", carried["scheduled-0-unset-unset-unset-attemptStart"])
+	require.Equal(t, "poll", carried["scheduled-0-unset-unset-unset-poll"])
 	_, err = r.Refinement("activityProduct")
 	require.ErrorContains(t, err, "refines no machine")
 }

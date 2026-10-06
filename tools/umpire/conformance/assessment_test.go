@@ -15,8 +15,8 @@ import (
 
 const (
 	admissionFamily = "fixture.specimens.admission"
-	stale           = "staleAdmission"
-	current         = "currentAdmission"
+	stale           = "trustingActivityRecord"
+	current         = "activityRecord"
 	// The claims every admission Query here assesses: its Property, and the two monitors both designs
 	// name.
 	notWhilePaused = "notAdmittedWhilePaused"

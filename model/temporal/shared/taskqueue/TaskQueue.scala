@@ -5,8 +5,11 @@
  * chasm/lib/activity/tasks.go (the dispatch task) and service/matching (AddActivityTask, sync match,
  * the persisted task queue and its completion).
  *
+ * Update this Model independently of the implementation. When conformance fails, ask a human
+ * rather than fitting the Model to the code.
+ *
  * A feature composes a provider with its own machine and synchronizes its actions with enqueue,
- * deliver and acknowledge; the standalone activity's system contract does. The queue names nothing
+ * deliver and acknowledge; the standalone activity's history record does. The queue names nothing
  * of a feature.
  *
  * The abstraction is bounded: one message at a time, delivered at most twice before its
@@ -18,9 +21,9 @@
  *
  *   - this file: the types and the signature (the entity, the interface's actions, the fault actor
  *     and its actions, the storage-loss assumption and the bounds);
- *   - product/Product.scala: DispatchQueue, the opaque contract, and DispatchQueueUnderStorageLoss,
+ *   - product/Product.scala: TaskQueueProduct, the opaque contract, and TaskQueueProductUnderStorageLoss,
  *     its storage-loss variant;
- *   - system/System.scala: MatchingQueue, the detailed provider that refines it, and the providers
+ *   - system/System.scala: TaskQueueSystem, the detailed provider that refines it, and the providers
  *     derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
  *
  * A machine object reads its header (entity, init, end), then its sections in order: states,

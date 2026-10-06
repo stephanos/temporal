@@ -3,18 +3,21 @@
  * what DescribeActivityExecution reports, the protocol how the server gets there. No history
  * event is written, so every evidence line names an observation: a status read through
  * DescribeActivityExecution or a result read through PollActivityExecution. Reset is deferred, like
- * cancellation in the Nexus caller Model, and the heartbeat timeout is not modeled.
+ * cancellation in the Nexus client Model, and the heartbeat timeout is not modeled.
+ *
+ * Update this Model independently of the implementation. When conformance fails, ask a human
+ * rather than fitting the Model to the code.
  *
  * The feature has two levels, each in a folder of its own, because different people read them
  * (model/irgen/testdata/layout/lamp is the template):
  *
- *   - this file: the types; the signature (the activity and its inputs; the caller and its actions,
+ *   - this file: the types; the signature (the activity and its inputs; the client and its actions,
  *     the worker's actions on the activity, its timers and deadlines; and the bounds); and last
  *     exports, its IR files;
- *   - product/Product.scala: ActivityProduct, the product machine, what a caller reads;
- *   - system/System.scala: ActivityProtocol, the protocol machine that refines it; ActivityWorker,
- *     the worker of its task queue; and StandaloneActivity, the protocol with that worker;
- *   - system/Record.scala: the system contract, history's record of the activity, and its designs;
+ *   - product/Product.scala: ActivityProduct, the product machine, what a client reads;
+ *   - system/System.scala: ActivitySystem, the System machine that refines it; ActivityWorker,
+ *     the worker of its task queue; and StandaloneActivity, the System with that worker;
+ *   - system/Record.scala: the history record of the activity, and its designs;
  *   - system/WithTaskQueue.scala: the contract's designs composed with the shared task queue.
  *
  * A machine object reads its header (entity, init, end, evidence), then its sections in order:
@@ -28,7 +31,7 @@ import umpire.*
 import shared.worker.{worker as process, State as WorkerState}
 import io.temporal.api.workflowservice.v1.*
 import product.ActivityProduct
-import system.{ActivityProtocol, StandaloneActivity}
+import system.{ActivitySystem, StandaloneActivity}
 
 // ### Types
 
@@ -60,7 +63,7 @@ enum ProductFact derives Finite:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut
 
-/** The protocol machine's phases. It begins before the activity exists, so unstarted is one. */
+/** The System machine's phases. It begins before the activity exists, so unstarted is one. */
 enum Phase derives Finite:
   case unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested
   case completed, failed, canceled, terminated, timedOut
@@ -70,10 +73,10 @@ enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
 
 /**
- * 12 phases, 3 attempt counts (`0..ActivityProtocol.attemptBound`) and 3 deadline flags: 288
+ * 12 phases, 3 attempt counts (`0..ActivitySystem.attemptBound`) and 3 deadline flags: 288
  * states.
  */
-final case class ProtocolState(
+final case class SystemState(
     phase: Phase,
     attempts: UpTo[2],
     scheduleToClose: Timeout,
@@ -81,18 +84,18 @@ final case class ProtocolState(
     startToClose: Timeout
 ) derives Finite
 
-/** What the protocol machine records; `attemptCount` is named after its observation. */
-enum ProtocolFact derives Finite:
+/** What the System machine records; `attemptCount` is named after its observation. */
+enum SystemFact derives Finite:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated
   case statusTimedOut(timeoutType: TimeoutType)
   case attemptCount
 
-final case class StandaloneActivityState(activity: ProtocolState, worker: WorkerState)
+final case class StandaloneActivityState(activity: SystemState, worker: WorkerState)
 
 // ### Signature
 
-/** Named by the id the caller chose: every read carries it, so no run id or event id is needed. */
+/** Named by the id the client chose: every read carries it, so no run id or event id is needed. */
 val activity = Entity(key = "activityId")
 
 // The start's inputs, which the deadline timers no longer collide with, and the worker's answer.
@@ -101,15 +104,15 @@ val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
 val result = input[AttemptResult]
 
-/** The control's input, apart because inside `caller` its name is the control action. */
+/** The control's input, apart because inside `client` its name is the control action. */
 object Inputs:
   val control = input[Control]
 
 // Who acts, and on what: each action is declared in the object of who takes it, and named after
-// where it is declared, `temporal.features.standaloneactivity.caller.start`.
+// where it is declared, `temporal.features.standaloneactivity.client.start`.
 
-/** The caller starts and controls the activity. */
-object caller extends Actor:
+/** The client starts and controls the activity. */
+object client extends Client:
   val start = action(this)
     .input(scheduleToClose)
     .input(scheduleToStart)
@@ -130,13 +133,13 @@ object caller extends Actor:
 
 /**
  * The shared worker's actions on this activity: its poll receives the task for the current attempt,
- * and its answer settles it. The worker's stop is the worker's own action, `process.workerStop`:
+ * and its answer settles it. The worker's stop is the worker's own action, `process.stop`:
  * nothing it records names the activity, so the activity's machines keep their state.
  */
 object worker:
-  val attemptStart = action(process).on(activity).schema[PollActivityTaskQueueResponse]
+  val poll = action(process).on(activity).schema[PollActivityTaskQueueResponse]
 
-  val attemptResult = action(process)
+  val respond = action(process)
     .on(activity)
     .input(result)
     .schema[RespondActivityTaskCompletedRequest]
@@ -156,13 +159,13 @@ object deadline:
   val scheduleToStart = timer
   val startToClose = timer
 
-// A retry shows the caller only the attempt count DescribeActivityExecution reports. The statuses
+// A retry shows the client only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.
 val attemptCount = Observation(on = activity, read = "attempt")
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-// The bounds of the levels' Queries and the system contract's, beside three and four (shared.Bounds).
+// The bounds of the levels' Queries and the history record's, beside three and four (shared.Bounds).
 val five = Limits(steps = 5, actions = 5, search = 65536)
 val six = Limits(steps = 6, actions = 6, search = 262144)
 val eight = Limits(steps = 8, actions = 8, search = 262144)
@@ -176,35 +179,35 @@ object exports:
     StandaloneActivity,
     ActivityProduct,
     ActivityProduct.implements,
-    ActivityProtocol.implements,
-    ActivityProtocol.queries,
+    ActivitySystem.implements,
+    ActivitySystem.queries,
     StandaloneActivity.queries,
     ActivityRealization.standalone
   )
 
-  // Its system contract, the admission designs, and the shared task queue's providers it composes.
+  // Its history record, the admission designs, and the shared task queue's providers it composes.
   // A composition no Query runs over is a root of its own.
-  val activitySystem = irFile("activity-system")(
-    system.CurrentAdmission.queries,
-    system.StaleAdmission.queries,
-    shared.taskqueue.system.MatchingQueue.queries,
+  val activityRecord = irFile("activity-record")(
+    system.ActivityRecord.queries,
+    system.TrustingActivityRecord.queries,
+    shared.taskqueue.system.TaskQueueSystem.queries,
     shared.taskqueue.system.ForgetfulQueue.queries,
     shared.taskqueue.system.VolatileQueue.queries,
     shared.taskqueue.system.LossyMatchingQueue.queries,
-    system.CurrentOverQueue.queries,
-    system.StaleOverQueue.queries,
-    system.CurrentOverMatching.queries,
-    system.StaleOverMatching.queries,
-    system.CurrentOverLossyMatching.queries,
-    system.CurrentOverForgetful,
-    system.CurrentOverVolatile
+    system.RecordOverQueue.queries,
+    system.TrustingRecordOverQueue.queries,
+    system.RecordOverMatching.queries,
+    system.TrustingRecordOverMatching.queries,
+    system.RecordOverLossyMatching.queries,
+    system.RecordOverForgetful,
+    system.RecordOverVolatile
   )
 
   // The held race a server is run through, and the realization that runs it. It is a Model of its
-  // own, so the system contract's Queries are the ones its checkers were given.
+  // own, so the history record's Queries are the ones its checkers were given.
   val activityRace = irFile("activity-race")(
-    system.HeldAdmission.queries,
+    system.HeldDispatch.queries,
     ActivityRealization.heldDelivery,
-    system.AdmissionResponseLoss.queries,
+    system.LostStartAnswer.queries,
     ActivityRealization.lostAdmissionResponse
   )

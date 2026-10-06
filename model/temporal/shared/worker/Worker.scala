@@ -4,6 +4,9 @@
  * operation whose progress needs a worker names serve beside its own action, and a stopped worker
  * has no row for it.
  *
+ * Update this Model independently of the implementation. When conformance fails, ask a human
+ * rather than fitting the Model to the code.
+ *
  * The package declares no set, Case or Query: nothing here is realized on its own, and the
  * Properties about a worker are the cross-entity ones a composition states.
  *
@@ -49,8 +52,8 @@ given Ok[Outcome] = Ok(Outcome.accepted)
  * that this actor takes imports it under another name (`import shared.worker.{worker as process}`).
  */
 object worker extends Actor:
-  val workerStop = action(this)
-  val workerResume = action(this)
+  val stop = action(this)
+  val resume = action(this)
   val serve = action(this) on entity
 
 // ### The machine
@@ -70,6 +73,6 @@ object Polling extends Machine[State, Outcome, Fact]:
 
   // A polling worker stops and serves; a stopped one resumes, and has nothing to stop or serve.
   object rules extends Rules(_.phase):
-    on(worker.workerStop)(in(Phase.polling) ~> effects.stop)
-    on(worker.workerResume)(in(Phase.stopped) ~> effects.resume)
+    on(worker.stop)(in(Phase.polling) ~> effects.stop)
+    on(worker.resume)(in(Phase.stopped) ~> effects.resume)
     on(worker.serve)(in(Phase.polling) ~> effects.serve)

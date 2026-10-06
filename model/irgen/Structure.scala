@@ -224,7 +224,38 @@ final private[irgen] class Structure(index: Index):
               s"Models sit in its feature file: it has no ${s.sub.mkString("/")}/ folder"
           )
 
-    // (b), fn-126.8: here, once the renames give the levels' machines their names.
+    // (b): the refinement pair names the Product and System levels alike.
+    val sourceOf = forms.map((source, form) => form.symbol -> source).toMap
+    val levelPairs = pairs.filter((system, _, product) =>
+      sourceOf(system.symbol).path == root + "system/System.scala" &&
+        sourceOf(product).path == root + "product/Product.scala"
+    )
+    for (system, _, product) <- levelPairs do
+      val productDef = forms.iterator.map(_._2).find(_.symbol == product).get
+      val productName = plain(productDef.name)
+      val systemName = plain(system.name)
+      if systemName.endsWith("System") then
+        val expected = systemName.stripSuffix("System") + "Product"
+        if productName != expected then
+          refuse(
+            productDef,
+            s"$productName is the Product machine in $name's product/Product.scala: name it " +
+              s"$expected, after the feature and its Product level"
+          )
+      if productName.endsWith("Product") then
+        val expected = productName.stripSuffix("Product") + "System"
+        if systemName != expected then
+          refuse(
+            system,
+            s"$systemName is the System machine in $name's system/System.scala: name it " +
+              s"$expected, with the same prefix as $productName"
+          )
+      if refines(productDef).nonEmpty then
+        refuse(
+          productDef,
+          s"$productName is $name's Product machine and refines another machine: a Product " +
+            "refines nothing"
+        )
 
     // (c): a machine's sections are named from a closed set, whatever they extend.
     for (_, c) <- forms; o <- nested(c) if !Structure.sections.contains(plain(o.name)) do

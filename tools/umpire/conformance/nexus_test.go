@@ -27,7 +27,7 @@ import (
 
 const (
 	nexusFamily   = "temporal.features.nexuscaller.system"
-	nexusMachine  = "nexusProtocol"
+	nexusMachine  = "nexusSystem"
 	nexusEvidence = "temporal.features.nexuscaller.evidence."
 )
 
@@ -152,12 +152,12 @@ type nexusWitness struct {
 // machine's effects, rules and properties), which the comment beside it cites.
 var nexusWitnesses = []nexusWitness{
 	// A completed event is also what a completion of an operation the handler never answered
-	// synchronously records (NexusProtocol.effects.complete). Such a completion records a started event too, which only a
+	// synchronously records (NexusSystem.effects.complete). Such a completion records a started event too, which only a
 	// closed history shows to be absent: without the closing read, on that execution no synchronous
 	// reply is taken.
 	{"syncCompletion", "syncSucceeds", []string{"scheduled", "completed"}, whyNeverRead},
 	// A completion that arrives after the operation is over is not found and records nothing
-	// (NexusProtocol.rules, effects.notFound), so no evidence excludes one, and the claim, which is about every
+	// (NexusSystem.rules, effects.notFound), so no evidence excludes one, and the claim, which is about every
 	// succeeded completion, fails on it.
 	{"asyncCompletion", "completionSucceeds", []string{"scheduled", "started", "completed"}, whyDisagreement},
 	{"asyncFailure", "completionFails", []string{"scheduled", "started", "failed"}, whyDisagreement},
@@ -175,7 +175,7 @@ var nexusWitnesses = []nexusWitness{
 
 // Each of the seven lowered Cases is replayed on a constructed Run that records exactly its
 // witness's evidence. The Contract reads that evidence as the witness, step by step, and is
-// satisfied. The assessment keeps every execution of nexusProtocol that explains it.
+// satisfied. The assessment keeps every execution of nexusSystem that explains it.
 func TestAWitnessRunConformsWhileItsPropertyStaysOpen(t *testing.T) {
 	m := nexusModel(t)
 	for _, test := range nexusWitnesses {

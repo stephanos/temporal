@@ -1,7 +1,7 @@
 package model
 
 // The standalone activity's system contract, lifted from model/temporal/features/standaloneactivity/{record,withTaskQueue}
-// and the shared task queue it composes, model/temporal/shared/taskqueue, into ir/activity-system.json and
+// and the shared task queue it composes, model/temporal/shared/taskqueue, into ir/activity-record.json and
 // checked here through Check alone: the provider checks below are the queue's own. What each test expects is the
 // trace oracle of model/specimens/activity.md it names, in the keys of the lifted Model: the
 // specimen's supported sketch folds the delivery into the record's state, and this Model keeps the
@@ -21,7 +21,7 @@ import (
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
-const activitySystemIR = "../../../model/ir/activity-system.json"
+const activitySystemIR = "../../../model/ir/activity-record.json"
 
 type checkedModel struct {
 	model  *umpirespb.Model
@@ -29,7 +29,7 @@ type checkedModel struct {
 	built  map[string]*Machine
 }
 
-var activitySystem = sync.OnceValues(func() (*checkedModel, error) {
+var activityRecord = sync.OnceValues(func() (*checkedModel, error) {
 	m, err := Load(activitySystemIR)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ var activitySystem = sync.OnceValues(func() (*checkedModel, error) {
 
 func systemModel(t *testing.T) *checkedModel {
 	t.Helper()
-	c, err := activitySystem()
+	c, err := activityRecord()
 	require.NoError(t, err)
 	return c
 }
@@ -108,8 +108,8 @@ func plainResults(t *testing.T, table *Table, key string) []Result {
 
 const (
 	commitFails = "the durable update fails: nothing is admitted and the message stays deliverable"
-	current     = "query currentAdmission currentAdmission."
-	stale       = "query staleAdmission staleAdmission."
+	current     = "query activityRecord activityRecord."
+	stale       = "query trustingActivityRecord trustingActivityRecord."
 )
 
 // Every declaration of the system contract has one result, and none is left unanswered. The kinds are
@@ -126,23 +126,23 @@ func TestActivitySystemResults(t *testing.T) {
 	report := systemModel(t).report
 	require.Empty(t, report.Unsupported())
 	want := map[string]ReceiptKind{
-		"refinement activityProtocol activityProduct": Verified,
-		"refinement currentAdmission activityProduct": Verified,
-		"refinement staleAdmission activityProduct":   RefinementRejected,
+		"refinement activitySystem activityProduct": Verified,
+		"refinement activityRecord activityProduct": Verified,
+		"refinement trustingActivityRecord activityProduct":   RefinementRejected,
 
-		"refinement matchingQueue dispatchQueue":                      Verified,
-		"refinement lossyMatchingQueue dispatchQueueUnderStorageLoss": Verified,
-		"refinement forgetfulQueue dispatchQueue":                     RefinementRejected,
-		"refinement volatileQueue dispatchQueue":                      RefinementRejected,
+		"refinement taskQueueSystem taskQueueProduct":                      Verified,
+		"refinement lossyMatchingQueue taskQueueProductUnderStorageLoss": Verified,
+		"refinement forgetfulQueue taskQueueProduct":                     RefinementRejected,
+		"refinement volatileQueue taskQueueProduct":                      RefinementRejected,
 
-		"composition currentOverMatching":      Verified,
-		"composition staleOverMatching":        Verified,
-		"composition currentOverLossyMatching": Verified,
-		"composition currentOverForgetful":     RefinementRejected,
-		"composition currentOverVolatile":      RefinementRejected,
+		"composition recordOverMatching":      Verified,
+		"composition trustingRecordOverMatching":        Verified,
+		"composition recordOverLossyMatching": Verified,
+		"composition recordOverForgetful":     RefinementRejected,
+		"composition recordOverVolatile":      RefinementRejected,
 
-		"query activityProtocol competingTimers.scheduleToStartFirst": Found,
-		"query activityProtocol competingTimers.scheduleToCloseFirst": Found,
+		"query activitySystem competingTimers.scheduleToStartFirst": Found,
+		"query activitySystem competingTimers.scheduleToCloseFirst": Found,
 
 		// The product's laws, which the system contract's Model carries with the product.
 		"query activityProduct activityProduct.terminalStatesAreFinal":    Verified,
@@ -177,7 +177,7 @@ func TestActivitySystemResults(t *testing.T) {
 	}
 	// A crash cut is found where the message survives the crash and is delivered after it.
 	for provider, cuts := range map[string][6]ReceiptKind{
-		"matchingQueue":      {Found, Found, Found, Found, Verified, Verified},
+		"taskQueueSystem":      {Found, Found, Found, Found, Verified, Verified},
 		"lossyMatchingQueue": {Found, Found, Found, Found, Verified, Counterexample},
 		"forgetfulQueue":     {NotFound, NotFound, Found, Found, Verified, Counterexample},
 		"volatileQueue":      {Found, Found, NotFound, NotFound, Verified, Counterexample},
@@ -188,8 +188,8 @@ func TestActivitySystemResults(t *testing.T) {
 		}
 	}
 	for composition, kinds := range map[string][7]ReceiptKind{
-		"currentOverQueue": {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
-		"staleOverQueue":   {Counterexample, Verified, Counterexample, Verified, Counterexample, Counterexample, Counterexample},
+		"recordOverQueue": {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
+		"trustingRecordOverQueue":   {Counterexample, Verified, Counterexample, Verified, Counterexample, Counterexample, Counterexample},
 	} {
 		for i, name := range []string{"staleDelivery", "admittedBeforePause", "duplicateDelivery", "failedCommit",
 			"pausedIsNotDispatched", "any.atMostOneActive", "terminalStatesAreFinal"} {
@@ -197,9 +197,9 @@ func TestActivitySystemResults(t *testing.T) {
 		}
 	}
 	for composition, kinds := range map[string][7]ReceiptKind{
-		"currentOverMatching":      {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
-		"currentOverLossyMatching": {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
-		"staleOverMatching":        {Counterexample, Verified, Counterexample, Counterexample, Counterexample, Counterexample, Counterexample},
+		"recordOverMatching":      {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
+		"recordOverLossyMatching": {Verified, Verified, Verified, Verified, Verified, Verified, Verified},
+		"trustingRecordOverMatching":        {Counterexample, Verified, Counterexample, Counterexample, Counterexample, Counterexample, Counterexample},
 	} {
 		for i, name := range []string{"staleDelivery", "admittedBeforePause", "deliveredAgainAfterLostAck",
 			"crashAfterAdmissionCommit", "pausedIsNotDispatched", "any.atMostOneActive", "terminalStatesAreFinal"} {
@@ -219,34 +219,32 @@ func TestActivitySystemResults(t *testing.T) {
 func TestActivityStaleDeliveryAfterPause(t *testing.T) {
 	c := systemModel(t)
 	found := receiptOf(t, c.report, stale+"staleDelivery")
-	require.Equal(t, []string{"dispatch", "control-pause", "attemptStart"}, taken(found.Witness))
+	require.Equal(t, []string{"dispatch", "control-pause", "poll"}, taken(found.Witness))
 	require.Equal(t, []string{"scheduled-none-settled-dispatch", "scheduled-none-settled-control-pause",
-		"paused-none-settled-attemptStart"}, found.Rows)
+		"paused-none-settled-poll"}, found.Rows)
 	require.Equal(t, "started-one-owed", last(t, found.Witness).State.Value)
 	require.Equal(t, []string{"statusStarted", "attemptAdmitted"}, factsOf(last(t, found.Witness)))
 	require.Empty(t, found.Monitor, "the Property fails, not a monitor")
 
-	// A free search of the design alone is also read by its monitors, and a verify's counterexample is
-	// the first violation it meets: here the second admission the monitor counts, which needs no pause.
-	// The free search that isolates the Property is the one over a queue, whose members name no monitor.
-	// Each is the free search the design's or composition's capabilities generate for the law.
+	// The free searches of the design and of the queue composition both isolate the Property. The
+	// monitor's own generated Query below pins its two-poll counterexample independently.
 	free := receiptOf(t, c.report, stale+"pausedIsNotDispatched")
-	require.Equal(t, "atMostOneActiveAttempt", free.Monitor)
-	require.Equal(t, []string{"attemptStart", "attemptStart"}, taken(free.Witness))
-	overQueue := receiptOf(t, c.report, "query staleOverQueue staleOverQueue.pausedIsNotDispatched")
+	require.Empty(t, free.Monitor)
+	require.Equal(t, []string{"control-pause", "poll"}, taken(free.Witness))
+	overQueue := receiptOf(t, c.report, "query trustingRecordOverQueue trustingRecordOverQueue.pausedIsNotDispatched")
 	require.Empty(t, overQueue.Monitor)
 	require.Equal(t, []string{"dispatch", "activity_control-pause", "admit"}, taken(overQueue.Witness))
 
 	// The corrected design's step is a stutter that records nothing the product sees.
 	require.Equal(t, []Result{{Outcome: "accepted", State: "paused-none-owed", Facts: []string{"admissionRejected"}}},
-		plainResults(t, c.built["currentAdmission"].Table, "paused-none-settled-attemptStart"))
+		plainResults(t, c.built["activityRecord"].Table, "paused-none-settled-poll"))
 	kept := receiptOf(t, c.report, current+"staleDelivery")
 	require.True(t, kept.Exercised)
 	require.Nil(t, kept.Witness)
 
-	rejected := receiptOf(t, c.report, "refinement staleAdmission activityProduct")
+	rejected := receiptOf(t, c.report, "refinement trustingActivityRecord activityProduct")
 	require.Equal(t, umpire.RefinementUnmatched, rejected.Failure)
-	require.Equal(t, "paused-none-settled-attemptStart", lastRow(t, rejected.Witness))
+	require.Equal(t, "paused-none-settled-poll", lastRow(t, rejected.Witness))
 	through := receiptOf(t, c.report, stale+"product.pausedIsNotDispatched")
 	require.Equal(t, RefinementRejected, through.Kind)
 	require.Equal(t, rejected.Failure, through.Failure)
@@ -258,14 +256,14 @@ func TestActivityStaleDeliveryAfterPause(t *testing.T) {
 func TestActivityAdmittedBeforePause(t *testing.T) {
 	c := systemModel(t)
 	for _, key := range []string{current + "admittedBeforePause", stale + "admittedBeforePause",
-		"query currentOverQueue currentOverQueue.admittedBeforePause", "query staleOverQueue staleOverQueue.admittedBeforePause",
-		"query currentOverMatching currentOverMatching.admittedBeforePause",
-		"query staleOverMatching staleOverMatching.admittedBeforePause"} {
+		"query recordOverQueue recordOverQueue.admittedBeforePause", "query trustingRecordOverQueue trustingRecordOverQueue.admittedBeforePause",
+		"query recordOverMatching recordOverMatching.admittedBeforePause",
+		"query trustingRecordOverMatching trustingRecordOverMatching.admittedBeforePause"} {
 		r := receiptOf(t, c.report, key)
 		require.Equal(t, Verified, r.Kind, key)
 		require.True(t, r.Exercised, key)
 	}
-	for _, design := range []string{"currentAdmission", "staleAdmission"} {
+	for _, design := range []string{"activityRecord", "trustingActivityRecord"} {
 		require.Equal(t, []Result{{Outcome: "accepted", State: "pausedWhileHeld-one-owed", Facts: []string{"statusPaused"}}},
 			plainResults(t, c.built[design].Table, "started-one-owed-control-pause"), design)
 	}
@@ -277,13 +275,13 @@ func TestActivityAdmittedBeforePause(t *testing.T) {
 func TestActivityDuplicateDelivery(t *testing.T) {
 	c := systemModel(t)
 	doubled := receiptOf(t, c.report, stale+"duplicateDelivery")
-	require.Equal(t, []string{"dispatch", "attemptStart", "attemptStart"}, taken(doubled.Witness))
+	require.Equal(t, []string{"dispatch", "poll", "poll"}, taken(doubled.Witness))
 	require.Equal(t, "started-two-owed", last(t, doubled.Witness).State.Value)
-	require.Equal(t, []string{"attemptStart", "attemptStart"}, taken(receiptOf(t, c.report, stale+"any.atMostOneActive").Witness))
+	require.Equal(t, []string{"poll", "poll"}, taken(receiptOf(t, c.report, stale+"any.atMostOneActive").Witness))
 
 	monitored := receiptOf(t, c.report, stale+"duplicateDelivery.monitored")
 	require.Equal(t, "atMostOneActiveAttempt", monitored.Monitor)
-	require.Equal(t, []string{"dispatch", "attemptStart", "attemptStart"}, taken(monitored.Witness))
+	require.Equal(t, []string{"dispatch", "poll", "poll"}, taken(monitored.Witness))
 	require.Equal(t, []MonitorVerdict{{Name: "atMostOneActiveAttempt", State: "two", Verdict: umpire.MonitorViolated},
 		{Name: "terminalFinality", State: "open", Verdict: umpire.MonitorHeld}}, monitored.Monitors)
 	// Both monitors read the corrected design too, and hold on everything its free search reaches.
@@ -295,32 +293,32 @@ func TestActivityDuplicateDelivery(t *testing.T) {
 	require.Equal(t, []Result{
 		{Outcome: "accepted", State: "started-two-owed", Facts: []string{"statusStarted", "attemptAdmitted"}, Choice: "admissionCommits"},
 		{Outcome: "accepted", State: "started-one-owed", Facts: []string{"admissionCommitFailed"}, Because: commitFails, Choice: "admissionCommitFails"},
-	}, plainResults(t, c.built["staleAdmission"].Table, "started-one-owed-attemptStart"))
+	}, plainResults(t, c.built["trustingActivityRecord"].Table, "started-one-owed-poll"))
 	require.Equal(t, []Result{{Outcome: "accepted", State: "started-one-owed", Facts: []string{"admissionRejected"}}},
-		plainResults(t, c.built["currentAdmission"].Table, "started-one-owed-attemptStart"))
+		plainResults(t, c.built["activityRecord"].Table, "started-one-owed-poll"))
 
 	// Over the queues the second delivery is the interface's own: a message not yet acknowledged.
-	over := receiptOf(t, c.report, "query staleOverQueue staleOverQueue.duplicateDelivery")
+	over := receiptOf(t, c.report, "query trustingRecordOverQueue trustingRecordOverQueue.duplicateDelivery")
 	require.Equal(t, []string{"dispatch", "admit", "admit"}, taken(over.Witness))
 	require.Equal(t, "started-two-owed_deliveredTwice", last(t, over.Witness).State.Value)
-	require.Equal(t, over.Witness, receiptOf(t, c.report, "query staleOverQueue staleOverQueue.any.atMostOneActive").Witness)
+	require.Equal(t, over.Witness, receiptOf(t, c.report, "query trustingRecordOverQueue trustingRecordOverQueue.any.atMostOneActive").Witness)
 
 	// Over the detailed queue it takes a lost acknowledgment, or a crash before the acknowledgment.
-	lost := receiptOf(t, c.report, "query staleOverMatching staleOverMatching.deliveredAgainAfterLostAck")
+	lost := receiptOf(t, c.report, "query trustingRecordOverMatching trustingRecordOverMatching.deliveredAgainAfterLostAck")
 	require.Equal(t, []string{"dispatch", "queue_addActivityTask", "queue_persistTask", "admit", "queue_ackLoss", "admit"},
 		taken(lost.Witness))
 	require.Equal(t, "started-two-owed_persisted-true-twice", last(t, lost.Witness).State.Value)
-	crashed := receiptOf(t, c.report, "query staleOverMatching staleOverMatching.crashAfterAdmissionCommit")
+	crashed := receiptOf(t, c.report, "query trustingRecordOverMatching trustingRecordOverMatching.crashAfterAdmissionCommit")
 	require.Equal(t, []string{"dispatch", "queue_addActivityTask", "queue_syncMatch", "admit", "queue_crash",
 		"queue_addActivityTask", "queue_syncMatch", "admit"}, taken(crashed.Witness))
 
 	// The corrected design meets the redelivery with the attempt it committed, and admits no second.
-	matching := composedTable(t, c.model, "currentOverMatching")
+	matching := composedTable(t, c.model, "recordOverMatching")
 	require.Equal(t, []Result{{Outcome: "activity_accepted", State: "started-one-owed_persisted-true-twice",
 		Facts: []string{"activity_admissionRejected", "queue_delivered"}}},
 		plainResults(t, matching, "started-one-owed_persisted-false-once-admit"))
 	for _, key := range []string{"deliveredAgainAfterLostAck", "crashAfterAdmissionCommit"} {
-		require.True(t, receiptOf(t, c.report, "query currentOverMatching currentOverMatching."+key).Exercised, key)
+		require.True(t, receiptOf(t, c.report, "query recordOverMatching recordOverMatching."+key).Exercised, key)
 	}
 }
 
@@ -330,15 +328,15 @@ func TestActivityTerminalFinality(t *testing.T) {
 	c := systemModel(t)
 	reopened := receiptOf(t, c.report, stale+"startedAfterCompletion.monitored")
 	require.Equal(t, "terminalFinality", reopened.Monitor)
-	require.Equal(t, []string{"dispatch", "attemptStart", "attemptResult-completed", "attemptStart"}, taken(reopened.Witness))
+	require.Equal(t, []string{"dispatch", "poll", "respond-completed", "poll"}, taken(reopened.Witness))
 	require.Equal(t, "started-one-owed", last(t, reopened.Witness).State.Value)
 	require.Equal(t, []MonitorVerdict{{Name: "atMostOneActiveAttempt", State: "one", Verdict: umpire.MonitorHeld},
 		{Name: "terminalFinality", State: "reopened", Verdict: umpire.MonitorViolated}}, reopened.Monitors)
 
 	// The free searches over a queue, which no monitor reads, end on the step that leaves the end. Each
 	// is the one the composition's capabilities generate for terminalStatesAreFinal.
-	for _, key := range []string{"query staleOverQueue staleOverQueue.terminalStatesAreFinal",
-		"query staleOverMatching staleOverMatching.terminalStatesAreFinal"} {
+	for _, key := range []string{"query trustingRecordOverQueue trustingRecordOverQueue.terminalStatesAreFinal",
+		"query trustingRecordOverMatching trustingRecordOverMatching.terminalStatesAreFinal"} {
 		w := receiptOf(t, c.report, key).Witness
 		require.NotNil(t, w, key)
 		before, after := w.Steps[len(w.Steps)-2].State.Value, last(t, w).State.Value
@@ -352,9 +350,9 @@ func TestActivityTerminalFinality(t *testing.T) {
 func TestActivityCompetingTimers(t *testing.T) {
 	c := systemModel(t)
 	for query, table := range map[string][2]string{
-		"query activityProtocol competingTimers.": {"activityProtocol", "scheduled-0-expires-expires-unset"},
-		current: {"currentAdmission", "scheduled-none-settled"},
-		stale:   {"staleAdmission", "scheduled-none-settled"},
+		"query activitySystem competingTimers.": {"activitySystem", "scheduled-0-expires-expires-unset"},
+		current: {"activityRecord", "scheduled-none-settled"},
+		stale:   {"trustingActivityRecord", "scheduled-none-settled"},
 	} {
 		mm := c.built[table[0]]
 		over := map[string]string{}
@@ -386,14 +384,14 @@ func TestActivityFailedCommit(t *testing.T) {
 			Facts: []string{"activity_statusStarted", "activity_attemptAdmitted", "queue_delivered"}},
 		{Outcome: "activity_accepted", State: "scheduled-none-settled_deliveredOnce",
 			Facts: []string{"activity_admissionCommitFailed", "queue_delivered"}},
-	}, plainResults(t, composedTable(t, c.model, "currentOverQueue"), "scheduled-none-settled_committed-admit"))
-	require.Equal(t, commitFails, c.built["currentRecord"].Table.Rows[rowIndex(t, c.built["currentRecord"].Table,
-		"scheduled-none-settled-attemptStart")].Results[1].Because)
-	for _, composition := range []string{"currentOverQueue", "staleOverQueue"} {
+	}, plainResults(t, composedTable(t, c.model, "recordOverQueue"), "scheduled-none-settled_committed-admit"))
+	require.Equal(t, commitFails, c.built["recordMember"].Table.Rows[rowIndex(t, c.built["recordMember"].Table,
+		"scheduled-none-settled-poll")].Results[1].Because)
+	for _, composition := range []string{"recordOverQueue", "trustingRecordOverQueue"} {
 		require.Equal(t, Verified, receiptOf(t, c.report, "query "+composition+" "+composition+".failedCommit").Kind)
 	}
 	// A commit that failed owes no answer, so the message cannot be acknowledged: it is delivered again.
-	table := composedTable(t, c.model, "currentOverQueue")
+	table := composedTable(t, c.model, "recordOverQueue")
 	actions := []string{}
 	for _, row := range table.RowsFrom("scheduled-none-settled_deliveredOnce") {
 		actions = append(actions, row.Action)
@@ -407,7 +405,7 @@ func TestActivityFailedCommit(t *testing.T) {
 // tasks, each lose the message at their cut and nowhere else.
 func TestActivityCrashCuts(t *testing.T) {
 	c := systemModel(t)
-	for _, row := range c.built["matchingQueue"].Table.Rows {
+	for _, row := range c.built["taskQueueSystem"].Table.Rows {
 		if row.Action != "crash" {
 			continue
 		}
@@ -424,14 +422,14 @@ func TestActivityCrashCuts(t *testing.T) {
 		"crashAfterDelivery": "persisted-true-twice",
 	}
 	for cut, state := range held {
-		found := receiptOf(t, c.report, "query matchingQueue matchingQueue."+cut)
+		found := receiptOf(t, c.report, "query taskQueueSystem taskQueueSystem."+cut)
 		require.Contains(t, taken(found.Witness), "crash", cut)
 		require.Equal(t, state, last(t, found.Witness).State.Value, cut)
 	}
-	require.True(t, c.built["matchingQueue"].Disabled("persisted-false-twice", "deliver"))
+	require.True(t, c.built["taskQueueSystem"].Disabled("persisted-false-twice", "deliver"))
 	// After the acknowledgment nothing is outstanding, and a crash changes nothing.
 	require.Equal(t, []Result{{Outcome: "internal", State: "nowhere-false-never", Facts: []string{"crashed"}}},
-		plainResults(t, c.built["matchingQueue"].Table, "nowhere-false-never-crash"))
+		plainResults(t, c.built["taskQueueSystem"].Table, "nowhere-false-never-crash"))
 
 	for provider, witness := range map[string][]string{
 		"forgetfulQueue": {"enqueue", "addActivityTask", "crash"},
@@ -449,22 +447,22 @@ func TestActivityCrashCuts(t *testing.T) {
 // over the opaque queue names the assumption it rests on, and one over the detailed queue does not.
 func TestActivityQueueSubstitution(t *testing.T) {
 	c := systemModel(t)
-	const opaque = "dispatchQueue.opaque"
-	for _, composition := range []string{"currentOverMatching", "staleOverMatching"} {
+	const opaque = "taskQueueProduct.opaque"
+	for _, composition := range []string{"recordOverMatching", "trustingRecordOverMatching"} {
 		replaced := receiptOf(t, c.report, "composition "+composition)
 		require.Equal(t, Verified, replaced.Kind)
 		require.NotContains(t, replaced.Assumptions, opaque)
 		require.NotEmpty(t, replaced.Target)
 		require.NotEmpty(t, replaced.Fingerprint)
 	}
-	held := receiptOf(t, c.report, "refinement matchingQueue dispatchQueue")
-	require.Equal(t, len(c.built["matchingQueue"].Table.Rows), held.Explored)
+	held := receiptOf(t, c.report, "refinement taskQueueSystem taskQueueProduct")
+	require.Equal(t, len(c.built["taskQueueSystem"].Table.Rows), held.Explored)
 	require.Empty(t, held.Holes)
 
 	for _, name := range []string{"staleDelivery", "admittedBeforePause", "pausedIsNotDispatched", "any.atMostOneActive",
 		"terminalStatesAreFinal"} {
-		overQueue := receiptOf(t, c.report, "query currentOverQueue currentOverQueue."+name)
-		overMatching := receiptOf(t, c.report, "query currentOverMatching currentOverMatching."+name)
+		overQueue := receiptOf(t, c.report, "query recordOverQueue recordOverQueue."+name)
+		overMatching := receiptOf(t, c.report, "query recordOverMatching recordOverMatching."+name)
 		require.Equal(t, Verified, overQueue.Kind, name)
 		require.Equal(t, overQueue.Kind, overMatching.Kind, name)
 		require.Equal(t, []string{opaque}, overQueue.Assumptions, name)
@@ -474,15 +472,15 @@ func TestActivityQueueSubstitution(t *testing.T) {
 	}
 
 	// The stale design's counterexample survives the substitution, step for step.
-	overQueue := receiptOf(t, c.report, "query staleOverQueue staleOverQueue.staleDelivery")
+	overQueue := receiptOf(t, c.report, "query trustingRecordOverQueue trustingRecordOverQueue.staleDelivery")
 	require.Equal(t, []string{"dispatch", "activity_control-pause", "admit"}, taken(overQueue.Witness))
 	require.Equal(t, "started-one-owed_deliveredOnce", last(t, overQueue.Witness).State.Value)
-	require.Equal(t, overQueue.Witness, receiptOf(t, c.report, "query staleOverQueue staleOverQueue.pausedIsNotDispatched").Witness)
-	overMatching := receiptOf(t, c.report, "query staleOverMatching staleOverMatching.staleDelivery")
+	require.Equal(t, overQueue.Witness, receiptOf(t, c.report, "query trustingRecordOverQueue trustingRecordOverQueue.pausedIsNotDispatched").Witness)
+	overMatching := receiptOf(t, c.report, "query trustingRecordOverMatching trustingRecordOverMatching.staleDelivery")
 	require.Equal(t, []string{"dispatch", "queue_addActivityTask", "queue_persistTask", "activity_control-pause", "admit"},
 		taken(overMatching.Witness))
 	require.Equal(t, "started-one-owed_persisted-true-once", last(t, overMatching.Witness).State.Value)
-	free := receiptOf(t, c.report, "query staleOverMatching staleOverMatching.pausedIsNotDispatched")
+	free := receiptOf(t, c.report, "query trustingRecordOverMatching trustingRecordOverMatching.pausedIsNotDispatched")
 	require.Len(t, free.Witness.Steps, 5)
 	require.Equal(t, "admit", last(t, free.Witness).Action.Value)
 	require.True(t, strings.HasPrefix(free.Witness.Steps[3].State.Value, "paused-none-settled_"))
@@ -497,11 +495,11 @@ func TestActivityViolatingProviders(t *testing.T) {
 		witness     []string
 		row         string
 	}{
-		"forgetfulQueue": {"currentOverForgetful", []string{"enqueue", "addActivityTask", "crash"}, "invoked-false-never-crash"},
-		"volatileQueue":  {"currentOverVolatile", []string{"enqueue", "addActivityTask", "persistTask", "crash"}, "persisted-false-never-crash"},
+		"forgetfulQueue": {"recordOverForgetful", []string{"enqueue", "addActivityTask", "crash"}, "invoked-false-never-crash"},
+		"volatileQueue":  {"recordOverVolatile", []string{"enqueue", "addActivityTask", "persistTask", "crash"}, "persisted-false-never-crash"},
 	} {
 		t.Run(provider, func(t *testing.T) {
-			rejected := receiptOf(t, c.report, "refinement "+provider+" dispatchQueue")
+			rejected := receiptOf(t, c.report, "refinement "+provider+" taskQueueProduct")
 			require.Equal(t, umpire.RefinementUnmatched, rejected.Failure)
 			require.Equal(t, want.witness, taken(rejected.Witness))
 			require.Equal(t, want.row, lastRow(t, rejected.Witness))
@@ -530,7 +528,7 @@ func TestActivityStorageLossIsAssumed(t *testing.T) {
 	const assumed = "storageLoss"
 	lossy := c.built["lossyMatchingQueue"].Table
 	require.Contains(t, lossy.Actions, "storageLoss")
-	for _, name := range []string{"matchingQueue", "forgetfulQueue", "volatileQueue", "dispatchQueue"} {
+	for _, name := range []string{"taskQueueSystem", "forgetfulQueue", "volatileQueue", "taskQueueProduct"} {
 		require.NotContains(t, c.built[name].Table.Actions, "storageLoss", name)
 	}
 	ids := map[string]bool{}
@@ -549,7 +547,7 @@ func TestActivityStorageLossIsAssumed(t *testing.T) {
 	require.Equal(t, []string{"enqueue", "storageLoss"}, taken(lost.Witness))
 
 	for _, r := range c.report.Receipts {
-		over := r.Key.Owner == "lossyMatchingQueue" || r.Key.Owner == "currentOverLossyMatching"
+		over := r.Key.Owner == "lossyMatchingQueue" || r.Key.Owner == "recordOverLossyMatching"
 		if over {
 			require.Contains(t, r.Assumptions, assumed, receiptKey(r))
 		} else {
@@ -559,15 +557,15 @@ func TestActivityStorageLossIsAssumed(t *testing.T) {
 	// The interface and the provider that replaces it name the fault's assumption alike. The provider
 	// declares it itself, so the composition keeps it; what only the interface assumes, its opaqueness,
 	// is none of the composition's.
-	replaced := receiptOf(t, c.report, "composition currentOverLossyMatching")
+	replaced := receiptOf(t, c.report, "composition recordOverLossyMatching")
 	require.Equal(t, []string{assumed}, replaced.Assumptions)
 	declared := map[string][]string{}
-	for _, name := range []string{"dispatchQueueUnderStorageLoss", "lossyMatchingQueue"} {
+	for _, name := range []string{"taskQueueProductUnderStorageLoss", "lossyMatchingQueue"} {
 		for _, a := range c.built[name].Assumptions {
 			declared[name] = append(declared[name], a.GetName())
 		}
 	}
-	require.Equal(t, map[string][]string{"dispatchQueueUnderStorageLoss": {"dispatchQueue.opaque", assumed},
+	require.Equal(t, map[string][]string{"taskQueueProductUnderStorageLoss": {"taskQueueProduct.opaque", assumed},
 		"lossyMatchingQueue": {assumed}}, declared)
 	var named int
 	for _, a := range c.model.GetAssumptions() {
@@ -582,12 +580,12 @@ func TestActivityStorageLossIsAssumed(t *testing.T) {
 // no failed or canceled answer. No machine of the contract has a hole.
 func TestActivitySystemExclusionsAreDisabled(t *testing.T) {
 	c := systemModel(t)
-	for _, design := range []string{"currentAdmission", "staleAdmission", "currentRecord", "staleRecord"} {
+	for _, design := range []string{"activityRecord", "trustingActivityRecord", "recordMember", "trustingRecordMember"} {
 		mm := c.built[design]
 		require.Empty(t, mm.Holes, design)
 		for _, state := range mm.Table.States {
 			for _, class := range []string{"control-unpause", "control-requestCancel", "control-terminate",
-				"attemptResult-failed-false", "attemptResult-failed-true", "attemptResult-canceled"} {
+				"respond-failed-false", "respond-failed-true", "respond-canceled"} {
 				require.True(t, mm.Disabled(state, class), "%s: %s-%s", design, state, class)
 			}
 		}
@@ -619,10 +617,10 @@ func TestActivityFreeSearchesReachEveryState(t *testing.T) {
 		}
 	}
 	tables := map[string]*Table{}
-	for _, name := range []string{"currentAdmission", "matchingQueue"} {
+	for _, name := range []string{"activityRecord", "taskQueueSystem"} {
 		tables[name] = c.built[name].Table
 	}
-	for _, name := range []string{"currentOverQueue", "currentOverMatching", "currentOverLossyMatching"} {
+	for _, name := range []string{"recordOverQueue", "recordOverMatching", "recordOverLossyMatching"} {
 		tables[name] = composedTable(t, c.model, name)
 	}
 	free := 0

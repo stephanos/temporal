@@ -4,7 +4,7 @@
       "kind": "unconstrained-result",
       "owner": "handlerWorker",
       "subjects": [
-        "workerStop"
+        "stop"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
@@ -12,7 +12,7 @@
       "kind": "never-enabled",
       "owner": "nexusProduct",
       "subjects": [
-        "handlerReply-handlerError-true"
+        "reply-handlerError-true"
       ],
       "because": "A retryable handler error leaves the operation where it is: the product machine does not know about backing off, which is the whole of what the protocol machine adds (product/Product.scala, NexusProduct.rules fires no retryable handlerError)."
     },
@@ -20,7 +20,7 @@
       "kind": "never-enabled",
       "owner": "nexusProduct",
       "subjects": [
-        "transportFault"
+        "fault"
       ],
       "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
     },
@@ -28,9 +28,9 @@
       "kind": "never-enabled",
       "owner": "nexusProduct",
       "subjects": [
-        "workerStop"
+        "stop"
       ],
-      "because": "The product machine does not feel a worker stopping (product/Product.scala, NexusProduct.rules disables workerStop); the protocol and worker machines step it."
+      "because": "The product machine does not feel a worker stopping (product/Product.scala, NexusProduct.rules disables stop); the protocol and worker machines step it."
     },
     {
       "kind": "unproduced",
@@ -44,12 +44,12 @@
       "kind": "silent-rejection",
       "owner": "nexusProduct",
       "subjects": [
-        "handlerReply-async in started",
-        "handlerReply-handlerError-false in started",
-        "handlerReply-handlerError-true in scheduled, started",
-        "handlerReply-operationCanceled in started",
-        "handlerReply-operationFailed in started",
-        "handlerReply-syncSuccess in started"
+        "reply-async in started",
+        "reply-handlerError-false in started",
+        "reply-handlerError-true in scheduled, started",
+        "reply-operationCanceled in started",
+        "reply-operationFailed in started",
+        "reply-syncSuccess in started"
       ],
       "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
@@ -57,7 +57,7 @@
       "kind": "silent-rejection",
       "owner": "nexusProduct",
       "subjects": [
-        "transportFault in scheduled, started"
+        "fault in scheduled, started"
       ],
       "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
     },
@@ -65,7 +65,7 @@
       "kind": "silent-rejection",
       "owner": "nexusProduct",
       "subjects": [
-        "workerStop in scheduled, started"
+        "stop in scheduled, started"
       ],
       "because": "The worker stopping is a fault the Run records; a machine that does not feel it disables it, and the worker and protocol machines step it."
     },
@@ -73,36 +73,36 @@
       "kind": "unconstrained-result",
       "owner": "nexusProduct",
       "subjects": [
-        "handlerReply-async",
-        "handlerReply-handlerError-false",
-        "handlerReply-operationCanceled",
-        "handlerReply-operationFailed",
-        "handlerReply-syncSuccess",
+        "reply-async",
+        "reply-handlerError-false",
+        "reply-operationCanceled",
+        "reply-operationFailed",
+        "reply-syncSuccess",
         "timeout"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "unperformed-action",
-      "owner": "nexusProtocol",
+      "owner": "nexusSystem",
       "subjects": [
-        "transportFault"
+        "fault"
       ],
       "because": "No script of the realization performs this fault, so the find Queries whose paths take it are not lowered; realizing faults belongs to the later spec that declares typed faults as environment actions (fn-120 Boundaries)."
     },
     {
       "kind": "silent-rejection",
-      "owner": "nexusProtocol",
+      "owner": "nexusSystem",
       "subjects": [
         "complete-canceled in unscheduled",
         "complete-failed in unscheduled",
         "complete-succeeded in unscheduled",
-        "handlerReply-async in unscheduled, backingOff, started",
-        "handlerReply-handlerError-false in unscheduled, backingOff, started",
-        "handlerReply-handlerError-true in unscheduled, backingOff, started",
-        "handlerReply-operationCanceled in unscheduled, backingOff, started",
-        "handlerReply-operationFailed in unscheduled, backingOff, started",
-        "handlerReply-syncSuccess in unscheduled, backingOff, started",
+        "reply-async in unscheduled, backingOff, started",
+        "reply-handlerError-false in unscheduled, backingOff, started",
+        "reply-handlerError-true in unscheduled, backingOff, started",
+        "reply-operationCanceled in unscheduled, backingOff, started",
+        "reply-operationFailed in unscheduled, backingOff, started",
+        "reply-syncSuccess in unscheduled, backingOff, started",
         "schedule-expires-expires-expires in scheduled, backingOff, started",
         "schedule-expires-expires-unset in scheduled, backingOff, started",
         "schedule-expires-unset-expires in scheduled, backingOff, started",
@@ -116,15 +116,15 @@
     },
     {
       "kind": "silent-rejection",
-      "owner": "nexusProtocol",
+      "owner": "nexusSystem",
       "subjects": [
-        "transportFault in unscheduled, backingOff, started"
+        "fault in unscheduled, backingOff, started"
       ],
       "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
     },
     {
       "kind": "unconstrained-result",
-      "owner": "nexusProtocol",
+      "owner": "nexusSystem",
       "subjects": [
         "backoff",
         "schedule-expires-expires-expires",
@@ -136,14 +136,14 @@
         "schedule-unset-unset-expires",
         "schedule-unset-unset-unset",
         "scheduleToClose",
-        "transportFault",
-        "workerStop"
+        "fault",
+        "stop"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "witness-only",
-      "owner": "nexusProtocol",
+      "owner": "nexusSystem",
       "subjects": [
         "completionFails",
         "completionSucceeds",
@@ -160,8 +160,8 @@
       "owner": "polling",
       "subjects": [
         "serve",
-        "workerResume",
-        "workerStop"
+        "resume",
+        "stop"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     }

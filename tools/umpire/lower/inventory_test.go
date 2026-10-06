@@ -206,12 +206,12 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 		dispositions[e.Kind+" "+e.ID], as[e.Kind+" "+e.ID] = e.Disposition, e.As
 	}
 	for id, want := range map[string]Disposition{
-		"command controller/stop-handler-worker [workerStop]":                   InCase,
+		"command controller/stop-handler-worker [stop]":                   InCase,
 		"command controller/pending-attempts":                                   OffPath,
 		"command controller/await-completion-authority":                         OffPath,
 		"command controller/complete-nexus-operation [complete-succeeded]":      OffPath,
-		"command handler/respond-sync [handlerReply-syncSuccess]":               OffPath,
-		"command handler/respond-async [handlerReply-async]":                    OffPath,
+		"command handler/respond-sync [reply-syncSuccess]":               OffPath,
+		"command handler/respond-async [reply-async]":                    OffPath,
 		"command workflow/start-nexus-operation [schedule-unset-expires-unset]": InCase,
 		"command workflow/start-nexus-operation [schedule-unset-unset-unset]":   OffPath,
 		"command workflow/await-nexus-operation":                                InCase,
@@ -282,7 +282,7 @@ func TestAnInventoryThatDoesNotCloseIsAnError(t *testing.T) {
 			c.GetProvenance().ModelValueFingerprints = []*testpilotspb.ModelValueFingerprint{{LocalName: "stray"}}
 		}, "carries provenance.model_value_fingerprints, which no declaration"},
 		{"a step of the path with no instruction", func(c *testpilotspb.Case) { c.GetProgram().GetEntrypoints()[2].Instructions = nil },
-			"the path performs handlerReply-syncSuccess, and the Case carries no handler/respond-sync for it"},
+			"the path performs reply-syncSuccess, and the Case carries no handler/respond-sync for it"},
 		{"a learned value in no slot", func(c *testpilotspb.Case) { c.GetProgram().Slots = nil },
 			"learned completion-authority of realization asyncNexus is in no part of the Case"},
 		{"another producer", func(c *testpilotspb.Case) { c.GetProvenance().ProducerId = "someone.else" },
@@ -290,9 +290,9 @@ func TestAnInventoryThatDoesNotCloseIsAnError(t *testing.T) {
 		{"another producer version", func(c *testpilotspb.Case) { c.GetProvenance().ProducerVersion = "2" },
 			`realization producer_version of realization asyncNexus is "1", and the Case's provenance.producer_version carries "2"`},
 		{"another target", func(c *testpilotspb.Case) { c.GetProvenance().GetDefinitions()[0].DefinitionId = "elsewhere" },
-			`realization machine of realization asyncNexus is "temporal.features.nexuscaller.system.target.nexusProtocol", and the Case's provenance.definitions carries "elsewhere"`},
+			`realization machine of realization asyncNexus is "temporal.features.nexuscaller.system.target.nexusSystem", and the Case's provenance.definitions carries "elsewhere"`},
 		{"no target", func(c *testpilotspb.Case) { c.GetProvenance().Definitions = c.GetProvenance().GetDefinitions()[1:] },
-			`realization machine of realization asyncNexus is "temporal.features.nexuscaller.system.target.nexusProtocol", and the Case's provenance.definitions carries ""`},
+			`realization machine of realization asyncNexus is "temporal.features.nexuscaller.system.target.nexusSystem", and the Case's provenance.definitions carries ""`},
 		{"no cleanup", func(c *testpilotspb.Case) { c.GetProgram().Cleanup = nil },
 			`realization cleanup of realization asyncNexus is "cleanup", and the Case's program.cleanup carries ""`},
 		{"another projection", func(c *testpilotspb.Case) { c.GetContract().GetCorrelated().ProjectionId = "elsewhere" },

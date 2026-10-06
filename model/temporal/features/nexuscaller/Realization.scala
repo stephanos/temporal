@@ -61,7 +61,7 @@ import com.google.protobuf.duration.Duration
 import shared.worker.worker
 
 import Timeout.expires
-import system.{ForgedCompletion, NexusProtocol}
+import system.{TrustingCaller, NexusSystem}
 
 object NexusRealization:
   // ### Evidence
@@ -78,7 +78,7 @@ object NexusRealization:
 
   private val scheduled = Evidence.read(
     id = evidenceId("scheduled"),
-    records = ProtocolFact.nexusOperationScheduled,
+    records = SystemFact.nexusOperationScheduled,
     source = sourceId("scheduled"),
     from = Recorded.read(WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY, historyEvents),
     operation = Field[HistoryEvent, Long](_.eventId),
@@ -107,38 +107,38 @@ object NexusRealization:
 
   private val started = historyKind(
     "started",
-    ProtocolFact.nexusOperationStarted,
+    SystemFact.nexusOperationStarted,
     Field(_.attributes.nexusOperationStartedEventAttributes),
     Field(_.getNexusOperationStartedEventAttributes.scheduledEventId)
   )
   private val completed = historyKind(
     "completed",
-    ProtocolFact.nexusOperationCompleted,
+    SystemFact.nexusOperationCompleted,
     Field(_.attributes.nexusOperationCompletedEventAttributes),
     Field(_.getNexusOperationCompletedEventAttributes.scheduledEventId)
   )
   private val failed = historyKind(
     "failed",
-    ProtocolFact.nexusOperationFailed,
+    SystemFact.nexusOperationFailed,
     Field(_.attributes.nexusOperationFailedEventAttributes),
     Field(_.getNexusOperationFailedEventAttributes.scheduledEventId)
   )
   private val canceled = historyKind(
     "canceled",
-    ProtocolFact.nexusOperationCanceled,
+    SystemFact.nexusOperationCanceled,
     Field(_.attributes.nexusOperationCanceledEventAttributes),
     Field(_.getNexusOperationCanceledEventAttributes.scheduledEventId)
   )
   private val timedOut = historyKind(
     "timedOut",
-    ProtocolFact.nexusOperationTimedOut,
+    SystemFact.nexusOperationTimedOut,
     Field(_.attributes.nexusOperationTimedOutEventAttributes),
     Field(_.getNexusOperationTimedOutEventAttributes.scheduledEventId)
   )
 
   private val pending = Evidence.read(
-    id = evidenceId(ProtocolFact.pendingAttempts),
-    records = ProtocolFact.pendingAttempts,
+    id = evidenceId(SystemFact.pendingAttempts),
+    records = SystemFact.pendingAttempts,
     source = sourceId("describe"),
     from = Recorded.read(
       WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION,
@@ -294,11 +294,11 @@ object NexusRealization:
 
   private def callerController(steps: Item*) = controller(
     (Vector(
-      perform(worker.workerStop -> stopHandlerWorker),
+      perform(worker.stop -> stopHandlerWorker),
       everyCase(startWorkflow),
       everyCase(awaitScheduled)
     ) ++ steps ++ Vector(
-      onPath(handler.handlerReply(Reply.handlerError(true)))(pendingAttempts),
+      onPath(handler.reply(Reply.handlerError(true)))(pendingAttempts),
       onPath(handler.complete(Resolution.succeeded), handler.complete(Resolution.failed))(
         awaitCompletionAuthority
       ),
@@ -480,11 +480,11 @@ object NexusRealization:
       WorkerActivation.NexusHandler(service, operation, caseWorker, handlerTaskQueue)
     )(
       perform(
-        handler.handlerReply(Reply.async) -> respondAsync,
-        handler.handlerReply(Reply.syncSuccess) -> respondSync,
-        handler.handlerReply(Reply.operationFailed) -> respondFailed,
-        handler.handlerReply(Reply.handlerError(true)) -> respondErrorRetryable,
-        handler.handlerReply(Reply.handlerError(false)) -> respondError
+        handler.reply(Reply.async) -> respondAsync,
+        handler.reply(Reply.syncSuccess) -> respondSync,
+        handler.reply(Reply.operationFailed) -> respondFailed,
+        handler.reply(Reply.handlerError(true)) -> respondErrorRetryable,
+        handler.reply(Reply.handlerError(false)) -> respondError
       )
     )
 
@@ -494,7 +494,7 @@ object NexusRealization:
    * own, after the scheduled event.
    */
   private def realization(
-      machine: Machine[ProtocolState, temporal.features.nexuscaller.Outcome, ProtocolFact],
+      machine: Machine[SystemState, temporal.features.nexuscaller.Outcome, SystemFact],
       steps: Item*
   ) = temporalRealization(
     machine = machine,
@@ -512,7 +512,7 @@ object NexusRealization:
     )
   )
 
-  val asyncNexus = realization(NexusProtocol)
+  val asyncNexus = realization(NexusSystem)
 
   val forgedCompletion =
-    realization(ForgedCompletion, perform(caller.inspect -> inspectWorkflow))
+    realization(TrustingCaller, perform(caller.inspect -> inspectWorkflow))

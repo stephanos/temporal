@@ -1,7 +1,10 @@
 /* The Nexus caller-side Model: one workflow-scheduled Nexus operation, as the caller sees it. The
- * product machine says what an operation does, the protocol machine says how the server gets there
+ * Product machine says what an operation does, the System machine says how the server gets there
  * and refines it, and the functional Queries are one per side effect that settles the operation.
  * No cancellation (fn-79) and no concurrency-limit setup parameter.
+ *
+ * Update this Model independently of the implementation. When conformance fails, ask a human
+ * rather than fitting the Model to the code.
  *
  * The feature has two levels, each in a folder of its own, because different people read them
  * (model/irgen/testdata/layout/lamp is the template):
@@ -9,9 +12,9 @@
  *   - this file: the types; the signature (the entities, the inputs, the actors with their
  *     actions, the derived observation, the timers and the bounds); and last exports, its IR files;
  *   - product/Product.scala: NexusProduct, the product machine, what an operation does;
- *   - system/System.scala: NexusProtocol, the protocol machine that refines it; HandlerWorker, the
- *     handler's worker; and NexusCaller, the protocol with that worker;
- *   - system/ForgedCompletion.scala: ForgedCompletion, the forged control a caller must refuse;
+ *   - system/System.scala: NexusSystem, the System machine that refines it; HandlerWorker, the
+ *     handler's worker; and NexusCaller, the System with that worker;
+ *   - system/TrustingCaller.scala: TrustingCaller, the forged control a caller must refuse;
  *   - system/ClosePolicy.scala: the close and reset designs.
  *
  * A machine object reads its header (entity, init, end, evidence), then its sections in order:
@@ -25,7 +28,7 @@ import io.temporal.api.command.v1.ScheduleNexusOperationCommandAttributes
 import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import shared.worker.State as WorkerState
 import product.NexusProduct
-import system.{ForgedCompletion, HandlerWorker, NexusCaller, NexusProtocol}
+import system.{TrustingCaller, HandlerWorker, NexusCaller, NexusSystem}
 
 // ### Types
 //
@@ -47,7 +50,7 @@ enum Resolution derives Finite:
   case succeeded, failed, canceled
 
 /**
- * A step's outcome. The product and protocol machines share the two members, and an outcome reads
+ * A step's outcome. The Product and System machines share the two members, and an outcome reads
  * as the refined machine's outcome of the same name.
  */
 enum Outcome derives Finite:
@@ -64,7 +67,7 @@ enum ProductFact derives Finite:
     nexusOperationFailed,
     nexusOperationCanceled, nexusOperationTimedOut
 
-/** The protocol machine's phases. It begins before the operation exists, so unscheduled is one. */
+/** The System machine's phases. It begins before the operation exists, so unscheduled is one. */
 enum Phase derives Finite:
   case unscheduled, scheduled, backingOff, started, succeeded, failed, canceled, timedOut
 
@@ -76,7 +79,7 @@ enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
 
 /** The attempt count is `0..attemptBound`. */
-final case class ProtocolState(
+final case class SystemState(
     phase: Phase,
     attempts: Int,
     scheduleToClose: Timeout,
@@ -84,7 +87,7 @@ final case class ProtocolState(
     startToClose: Timeout
 )
 
-enum ProtocolFact derives Finite:
+enum SystemFact derives Finite:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
     nexusOperationCanceled
@@ -93,7 +96,7 @@ enum ProtocolFact derives Finite:
   /** The attempt count, read through the observation of that name: no history event records it. */
   case pendingAttempts
 
-final case class NexusCallerState(operation: ProtocolState, worker: WorkerState)
+final case class NexusCallerState(operation: SystemState, worker: WorkerState)
 
 // ### Signature
 //
@@ -114,7 +117,8 @@ val operation = Entity(key = "scheduledEvent", refer = Map("caller" -> workflow)
 val scheduleToClose = input[Timeout]
 val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
-val reply = input[Reply]
+object Inputs:
+  val reply = input[Reply]
 val resolution = input[Resolution]
 
 /** The caller workflow, which schedules the operation and inspects it. */
@@ -131,9 +135,9 @@ object caller extends Actor:
 
 /** The endpoint's handler, which replies to the start and completes the operation. */
 object handler extends Actor:
-  val handlerReply = action(this)
+  val reply = action(this)
     .on(operation)
-    .input(reply)
+    .input(Inputs.reply)
     .schema[StartOperationResponse]
     .schema[HandlerError]
     .example(Reply.handlerError(false), "BadRequest")
@@ -148,9 +152,9 @@ object handler extends Actor:
 
 /** The network between the caller and the handler, which can fail a transport. */
 object network extends Actor:
-  val transportFault = action(this) on operation
+  val fault = action(this) on operation
 
-// The handler's worker stopping is the worker's own action, `worker.workerStop`: an action that
+// The handler's worker stopping is the worker's own action, `worker.stop`: an action that
 // names no entity is behavior no entity records. The Run records the fault, but nothing recorded
 // names the operation, so the machines keep their state and record nothing at it.
 
@@ -180,7 +184,7 @@ object deadline:
  */
 val attemptBound = 2
 
-given Finite[ProtocolState] =
+given Finite[SystemState] =
   // The lifter reads this Int bound; the Go model evaluator uses it to enumerate protocol states.
   given Finite[Int] = Finite.upTo(attemptBound)
   Finite.derived
@@ -201,18 +205,18 @@ object exports:
   // composition with the handler's worker and its claim, are roots too.
   val nexusCaller = irFile("nexus-caller")(
     NexusProduct,
-    NexusProtocol,
+    NexusSystem,
     HandlerWorker,
     NexusCaller,
     shared.worker.Polling,
-    NexusProtocol.queries,
+    NexusSystem.queries,
     NexusCaller.queries,
     NexusRealization.asyncNexus
   )
 
   // The forged completion a caller must refuse, and the realization that offers it.
   val nexusControl =
-    irFile("nexus-control")(ForgedCompletion.queries, NexusRealization.forgedCompletion)
+    irFile("nexus-control")(TrustingCaller.queries, NexusRealization.forgedCompletion)
 
   // The close and reset designs. Each design's Queries are a root, and so is each progress claim.
   val nexusClose = irFile("nexus-close")(

@@ -32,7 +32,7 @@ type closeAccepted struct {
 // baseline names, on every design: the policies differ only once the caller closed or was reset.
 func TestNexusCloseOpenCallerAcceptsACompletionAsTheGoModel(t *testing.T) {
 	c := closeModel(t)
-	product, protocol := baselineNexusTable(t, "nexusProduct"), baselineNexusTable(t, "nexusProtocol")
+	product, protocol := baselineNexusTable(t, "nexusProduct"), baselineNexusTable(t, "nexusSystem")
 	for resolution, from := range map[string]string{
 		"succeeded": "open-none-done-succeeded-inFlight-succeeded-none-none",
 		"failed":    "open-none-done-failed-inFlight-failed-none-none",
@@ -180,7 +180,7 @@ var closeDeclared = map[string]*regexp.Regexp{
 	"assumption": regexp.MustCompile(`assume\(\s*"([^"]+)"\s*\)`),
 	"progress":   regexp.MustCompile(`\.leadsTo\(\s*"([^"]+)"\s*\)`),
 	"property":   regexp.MustCompile(`\.property\(\s*"([^"]+)"\s*\)|val (\w+) = m\.property[\s.]`),
-	"scenario":   regexp.MustCompile(`\.scenario\(\s*"([^"]+)"\s*\)|val (\w+) = m\.scenario\b`),
+	"scenario":   regexp.MustCompile(`\.scenario\(\s*"([^"]+)"\s*\)|val (\w+) =\s*(?:m\.)?scenario\b`),
 	"query":      regexp.MustCompile(`query\(\s*s"\$\{m\.name\}\.([^"]+)"\s*\)`),
 }
 

@@ -684,13 +684,13 @@ final private[irgen] class Order(index: Index):
       else if m.symbol.flags.is(Flags.Module) && objectForm(m.symbol.moduleClass) &&
         m.symbol.moduleClass != machineObject
       then found += ((m.symbol.moduleClass, m.symbol.moduleClass, where))
-    // A Query whose Scenario is written in it may sit with another machine object of its package,
-    // the one the IR file it is exported to is about (fn-126 decision 24), since the ID derived from
-    // it hangs off that package either way.
+    // A Scenario or a Query whose Scenario is written in it may sit with another machine object of
+    // its package, the one the IR file it is exported to is about (fn-126 decisions 24 and 28),
+    // since the ID derived from it hangs off that package either way.
     def samePackage(m: Term) =
       def pkg(s: Symbol) =
         Iterator.iterate(s)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
-      kindOf(d).contains(Kind.Query) && pkg(m.symbol) == pkg(machineObject)
+      kindOf(d).exists(Set(Kind.Query, Kind.Scenario)) && pkg(m.symbol) == pkg(machineObject)
     object names extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit =
         t match

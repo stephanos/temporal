@@ -24,19 +24,19 @@ func pExported(t *testing.T, s *Slice, machine string) *PExport {
 // Go's monitor says of the bounded traces what the specimen says of the designs: the stale design
 // starts an activity that is over, and the corrected one never does.
 func TestPTracesCarryGoVerdicts(t *testing.T) {
-	s := openNamed(t, "activity-system")
-	stale, current := pExported(t, s, "staleAdmission"), pExported(t, s, "currentAdmission")
+	s := openNamed(t, "activity-record")
+	stale, current := pExported(t, s, "trustingActivityRecord"), pExported(t, s, "activityRecord")
 	require.Positive(t, stale.Rejected)
 	require.Positive(t, stale.Accepted)
 	require.Equal(t, stale.Traces, stale.Accepted+stale.Rejected)
 	require.Zero(t, current.Rejected)
 	require.Positive(t, current.Accepted)
-	t.Logf("staleAdmission: %d traces, %d accepted, %d rejected; currentAdmission: %d traces", stale.Traces, stale.Accepted, stale.Rejected, current.Traces)
+	t.Logf("trustingActivityRecord: %d traces, %d accepted, %d rejected; activityRecord: %d traces", stale.Traces, stale.Accepted, stale.Rejected, current.Traces)
 	// The specimen's path is one of the rejected traces, at its fourth step.
-	mm := s.machines["staleAdmission"]
+	mm := s.machines["trustingActivityRecord"]
 	traces, err := s.traces(mm, slices.IndexFunc(mm.Monitors, func(mo *umpirespb.Monitor) bool { return mo.GetName() == "terminalFinality" }), pDepth)
 	require.NoError(t, err)
-	a4 := []string{"dispatch", "attemptStart", "attemptResult-completed", "attemptStart"}
+	a4 := []string{"dispatch", "poll", "respond-completed", "poll"}
 	i := slices.IndexFunc(traces, func(tr ptrace) bool {
 		return tr.violated == 4 && slices.EqualFunc(tr.steps, a4, func(st pstep, class string) bool { return st.class == class })
 	})
@@ -53,12 +53,12 @@ func TestPTracesCarryGoVerdicts(t *testing.T) {
 		}
 		witness.Steps = append(witness.Steps, step)
 	}
-	require.NoError(t, s.Replay("staleAdmission", "terminalFinality", witness))
+	require.NoError(t, s.Replay("trustingActivityRecord", "terminalFinality", witness))
 	// The same steps from where the attempt started, which is no start: the monitor is violated at their
 	// end too, and the path is still no witness.
 	suffix := &umpiremodel.Trace{Initial: witness.Steps[1].State, Steps: witness.Steps[2:]}
-	require.ErrorContains(t, s.Replay("staleAdmission", "terminalFinality", suffix), "which is no start")
-	asked := []Receipt{{Claim: MonitorAgreement, Subject: "staleAdmission", Kind: Agreed, Witnesses: []Witness{{Monitor: "terminalFinality", Trace: witness}}}}
+	require.ErrorContains(t, s.Replay("trustingActivityRecord", "terminalFinality", suffix), "which is no start")
+	asked := []Receipt{{Claim: MonitorAgreement, Subject: "trustingActivityRecord", Kind: Agreed, Witnesses: []Witness{{Monitor: "terminalFinality", Trace: witness}}}}
 	require.NoError(t, s.confirm(asked, false))
 	require.Equal(t, Agreed, asked[0].Kind, asked[0].Explanation)
 }
@@ -71,9 +71,9 @@ func TestPExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 		edit                    func(m *umpirespb.Model)
 		says                    string
 	}{
-		"a monitor that reads facts whose cases carry values": {"activity-system", "staleAdmission", "atMostOneActiveAttempt", nil, "carries values"},
-		"a monitor that reads a step's facts": {"activity-system", "staleAdmission", "terminalFinality", func(m *umpirespb.Model) {
-			next := function(m, "temporal.features.standaloneactivity.system.CurrentAdmission.monitors.terminalFinality.next")
+		"a monitor that reads facts whose cases carry values": {"activity-record", "trustingActivityRecord", "atMostOneActiveAttempt", nil, "carries values"},
+		"a monitor that reads a step's facts": {"activity-record", "trustingActivityRecord", "terminalFinality", func(m *umpirespb.Model) {
+			next := function(m, "temporal.features.standaloneactivity.system.ActivityRecord.monitors.terminalFinality.next")
 			facts := &umpirespb.Expr{Kind: &umpirespb.Expr_Field{Field: &umpirespb.FieldAccess{
 				Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "after"}}, Field: "facts"}}}
 			next.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_If{If: &umpirespb.If{
@@ -81,7 +81,7 @@ func TestPExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 				Then:      next.GetBody(), Else: next.GetBody()}}}
 		}, "a step's facts"},
 		"a state whose cases carry values": {"nexus-close", "retainAndRoute", "retainedOutcome", nil, "carries values"},
-		"a monitor read at the ends": {"activity-system", "staleAdmission", "terminalFinality", func(m *umpirespb.Model) {
+		"a monitor read at the ends": {"activity-record", "trustingActivityRecord", "terminalFinality", func(m *umpirespb.Model) {
 			for _, mo := range m.GetMonitors() {
 				if mo.GetName() == "terminalFinality" {
 					mo.Evaluate = &umpirespb.Monitor_AtEnds{AtEnds: &umpirespb.Empty{}}
@@ -123,14 +123,14 @@ func asGoSays(x *PExport) map[string]PResult {
 // The comparison of P's reports with Go's verdicts, with no tool installed: it agrees on what Go
 // says, and every other report is a difference.
 func TestPAgreementReadsTheCheckersReports(t *testing.T) {
-	x := pExported(t, openNamed(t, "activity-system"), "staleAdmission")
+	x := pExported(t, openNamed(t, "activity-record"), "trustingActivityRecord")
 	rejected := x.Tests[0]
 	require.Positive(t, rejected.Violated)
 	receipts := x.Agreement(asGoSays(x))
 	require.Equal(t, map[string]Kind{
-		"monitor-agreement staleAdmission.terminalFinality": Agreed,
-		"checker-coverage staleAdmission.terminalFinality":  Covered,
-		"module-refinement staleAdmission.terminalFinality": Unsupported,
+		"monitor-agreement trustingActivityRecord.terminalFinality": Agreed,
+		"checker-coverage trustingActivityRecord.terminalFinality":  Covered,
+		"module-refinement trustingActivityRecord.terminalFinality": Unsupported,
 	}, kinds(receipts))
 	cases := map[string]struct {
 		test   string
@@ -148,7 +148,7 @@ func TestPAgreementReadsTheCheckersReports(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			reports := asGoSays(x)
 			reports[c.test] = c.report
-			r := only(t, x.Agreement(reports), MonitorAgreement, "staleAdmission.terminalFinality")
+			r := only(t, x.Agreement(reports), MonitorAgreement, "trustingActivityRecord.terminalFinality")
 			require.Equal(t, Disagreed, r.Kind)
 			require.Len(t, r.Differences, 1)
 			require.Contains(t, r.Differences[0], c.says)
@@ -167,8 +167,8 @@ func pReceipts(t *testing.T, x *PExport) []Receipt {
 // monitor on each: the stale design's rejections, at their steps, and the corrected design's none.
 func TestPMonitorAgreesWithGo(t *testing.T) {
 	needs(t, PTool)
-	s := openNamed(t, "activity-system")
-	for _, machine := range []string{"staleAdmission", "currentAdmission"} {
+	s := openNamed(t, "activity-record")
+	for _, machine := range []string{"trustingActivityRecord", "activityRecord"} {
 		t.Run(machine, func(t *testing.T) {
 			subject := machine + ".terminalFinality"
 			receipts := pReceipts(t, pExported(t, s, machine))
@@ -185,11 +185,11 @@ func TestPMonitorAgreesWithGo(t *testing.T) {
 // the traces and verdicts of the Model Go reads.
 func TestPDisagreesOnAnotherMonitor(t *testing.T) {
 	needs(t, PTool)
-	reference := openNamed(t, "activity-system")
+	reference := openNamed(t, "activity-record")
 	cases := map[string]func(m *umpirespb.Model){
 		"over means completed and timed out at once": overAtOnce,
 		"violated when closed": func(m *umpirespb.Model) {
-			function(m, "temporal.features.standaloneactivity.system.CurrentAdmission.monitors.terminalFinality.violated").GetBody().GetBinary().GetRight().GetLiteral().GetEnum().Case = "closed"
+			function(m, "temporal.features.standaloneactivity.system.ActivityRecord.monitors.terminalFinality.violated").GetBody().GetBinary().GetRight().GetLiteral().GetEnum().Case = "closed"
 		},
 	}
 	for name, mutate := range cases {
@@ -197,7 +197,7 @@ func TestPDisagreesOnAnotherMonitor(t *testing.T) {
 			mutant := proto.Clone(reference.Model).(*umpirespb.Model)
 			mutate(mutant)
 			written := &Slice{Model: mutant, machines: reference.machines, in: reference.in, bound: reference.bound, types: reference.types, actions: reference.actions}
-			r := only(t, pReceipts(t, pExported(t, written, "staleAdmission")), MonitorAgreement, "staleAdmission.terminalFinality")
+			r := only(t, pReceipts(t, pExported(t, written, "trustingActivityRecord")), MonitorAgreement, "trustingActivityRecord.terminalFinality")
 			require.Equal(t, Disagreed, r.Kind)
 			t.Log(r.Differences[0])
 		})

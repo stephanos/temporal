@@ -83,7 +83,7 @@ func TestKindsThatNameTheirStepsMayRecordOneFact(t *testing.T) {
 func TestTheLiftedRealizationIsAdmitted(t *testing.T) {
 	m := load(t)
 	require.Len(t, m.GetRealizations(), 1)
-	require.Equal(t, "nexusProtocol", m.GetRealizations()[0].GetMachine())
+	require.Equal(t, "nexusSystem", m.GetRealizations()[0].GetMachine())
 }
 
 // unclosed takes every exhaustive declaration and closing read out of a realization, so that a case
@@ -183,8 +183,8 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, "realization asyncNexus: control held holds what a step of no class dispatches"},
 		{"a control that holds the dispatch of a class the machine does not bind", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Controls = append(r.Controls, &umpirespb.Control{Id: "held", Role: "temporal.task-queue",
-				Kind: &umpirespb.Control_HoldDispatched{HoldDispatched: &umpirespb.HoldDispatched{Step: &umpirespb.ActionClass{Action: "temporal.shared.worker.worker.workerResume"}}}})
-		}, "realization asyncNexus: control held: nexusProtocol binds no action temporal.shared.worker.worker.workerResume"},
+				Kind: &umpirespb.Control_HoldDispatched{HoldDispatched: &umpirespb.HoldDispatched{Step: &umpirespb.ActionClass{Action: "temporal.shared.worker.worker.resume"}}}})
+		}, "realization asyncNexus: control held: nexusSystem binds no action temporal.shared.worker.worker.resume"},
 		{"a control that holds the deliveries of no task queue", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			step := admScript(t, r, "handler").GetItems()[0].GetPerforms()[0].GetStep()
 			r.Controls = append(r.Controls, &umpirespb.Control{Id: "held", Role: "temporal.workflow-service",
@@ -241,20 +241,20 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, "two kinds of evidence recording nexusOperationStarted of realization asyncNexus"},
 		{"evidence that confirms a step counted from below one", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r)}}
-		}, "evidence temporal.features.nexuscaller.evidence.started confirms step 0 of class handlerReply-async; the steps of a class on a path are counted from one"},
+		}, "evidence temporal.features.nexuscaller.evidence.started confirms step 0 of class reply-async; the steps of a class on a path are counted from one"},
 		{"evidence that confirms one step twice", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 2}, {Step: admClass(t, r), Occurrence: 2}}
-		}, "evidence temporal.features.nexuscaller.evidence.started confirms step 2 of class handlerReply-async twice"},
+		}, "evidence temporal.features.nexuscaller.evidence.started confirms step 2 of class reply-async twice"},
 		{"two kinds of evidence that confirm one step", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}
 			r.Evidence[2].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}
-		}, "evidence temporal.features.nexuscaller.evidence.started and temporal.features.nexuscaller.evidence.completed both confirm step 1 of class handlerReply-async; one kind confirms a step"},
+		}, "evidence temporal.features.nexuscaller.evidence.started and temporal.features.nexuscaller.evidence.completed both confirm step 1 of class reply-async; one kind confirms a step"},
 		{"evidence that confirms a step of no class", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Occurrence: 1}}
 		}, "evidence temporal.features.nexuscaller.evidence.started confirms a step of no class"},
 		{"evidence that confirms a class written with too few inputs", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: &umpirespb.ActionClass{Action: admClass(t, r).GetAction()}, Occurrence: 1}}
-		}, "realization asyncNexus: evidence temporal.features.nexuscaller.evidence.started: temporal.features.nexuscaller.handler.handlerReply takes 1 inputs, not 0"},
+		}, "realization asyncNexus: evidence temporal.features.nexuscaller.evidence.started: temporal.features.nexuscaller.handler.reply takes 1 inputs, not 0"},
 		{"two kinds of evidence for one recorded kind, one of which names its steps", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[2].Records, r.Evidence[3].Records = r.Evidence[1].GetRecords(), r.Evidence[1].GetRecords()
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}
@@ -272,7 +272,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		{"a class performed twice", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			performs := admScript(t, r, "handler").GetItems()[0].GetPerforms()
 			performs[1].Step = performs[0].GetStep()
-		}, "class handlerReply-async is performed by respond-async of script handler and by respond-sync of script handler; a class is performed once"},
+		}, "class reply-async is performed by respond-async of script handler and by respond-sync of script handler; a class is performed once"},
 
 		// References that name nothing, or the wrong kind of thing.
 		{"a call on an undeclared role", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
@@ -455,7 +455,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 			s := admScript(t, r, "handler")
 			s.Activation = &umpirespb.Script_Activity{Activity: &umpirespb.ActivityActivation{ActivityType: &umpirespb.Name{Prefix: "activity"},
 				Worker: "temporal.worker", TaskQueue: "temporal.handler-task-queue", Starts: []*umpirespb.ActionClass{s.GetItems()[0].GetPerforms()[0].GetStep()}}}
-		}, "class handlerReply-async is performed by the activation of script handler and by respond-async of script handler; a class is performed once"},
+		}, "class reply-async is performed by the activation of script handler and by respond-async of script handler; a class is performed once"},
 		{"a delivery of a class the machine does not bind", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			s := admScript(t, r, "handler")
 			s.Activation = &umpirespb.Script_Activity{Activity: &umpirespb.ActivityActivation{ActivityType: &umpirespb.Name{Prefix: "activity"},
@@ -720,15 +720,15 @@ func TestTheRealizersTableIsTheCheckTableWithFieldsAndClaims(t *testing.T) {
 	realizer, err = NewRealizer(load(t), DefaultScope)
 	require.NoError(t, err)
 	nexus := realizer.b
-	table, err := nexus.claimed(nexus.machines["nexusProtocol"])
+	table, err := nexus.claimed(nexus.machines["nexusSystem"])
 	require.NoError(t, err)
-	const field = "temporal.features.nexuscaller.system.state-field.nexusProtocol."
+	const field = "temporal.features.nexuscaller.system.state-field.nexusSystem."
 	require.Equal(t, []Atom{{ID: field + "phase", Value: "succeeded"}, {ID: field + "attempts", Value: "1"},
 		{ID: field + "scheduleToClose", Value: "unset"}, {ID: field + "scheduleToStart", Value: "unset"},
 		{ID: field + "startToClose", Value: "unset"}, {ID: field + "nexusProduct", Value: "succeeded"}},
 		table.FieldValues("succeeded-1-unset-unset-unset"))
-	require.Contains(t, table.Claims(), Claim{Member: "temporal.features.nexuscaller.system.action.nexusProtocol.handlerReply-handlerError-false",
-		Action: "temporal.features.nexuscaller.system.action.handlerReply", Field: "reply", ClassName: "handlerError (retryable := false)", Example: "BadRequest"})
+	require.Contains(t, table.Claims(), Claim{Member: "temporal.features.nexuscaller.system.action.nexusSystem.reply-handlerError-false",
+		Action: "temporal.features.nexuscaller.system.action.reply", Field: "reply", ClassName: "handlerError (retryable := false)", Example: "BadRequest"})
 }
 
 // A Realizer reads the Behavior Fingerprint of each table it binds once, and it is the table's own.
@@ -787,7 +787,7 @@ func TestARealizerGivesOnlyTheQueriesOfAnAdmittedModel(t *testing.T) {
 	require.Equal(t, len(m.GetQueries()), answered)
 
 	// A declared Query copied under another name is no Query of the Model: no key names it.
-	key := ClaimKey{Family: "temporal.features.nexuscaller.system", Owner: "nexusProtocol", Name: "syncCompletion"}
+	key := ClaimKey{Family: "temporal.features.nexuscaller.system", Owner: "nexusSystem", Name: "syncCompletion"}
 	_, err = realizer.Find(key)
 	require.NoError(t, err)
 	for _, c := range []struct {
@@ -798,10 +798,10 @@ func TestARealizerGivesOnlyTheQueriesOfAnAdmittedModel(t *testing.T) {
 	}{
 		{"another name", ClaimKey{Family: key.Family, Owner: key.Owner, Name: "syncCompletionAgain"}, "no Query syncCompletionAgain", m.GetSource()},
 		{"another machine", ClaimKey{Family: key.Family, Owner: "nexusProduct", Name: key.Name},
-			"query syncCompletion runs on nexusProtocol of temporal.features.nexuscaller.system, not on nexusProduct of temporal.features.nexuscaller.system",
+			"query syncCompletion runs on nexusSystem of temporal.features.nexuscaller.system, not on nexusProduct of temporal.features.nexuscaller.system",
 			"model/temporal/features/nexuscaller/system/System.scala:"},
 		{"another family", ClaimKey{Family: "temporal.shared.worker", Owner: key.Owner, Name: key.Name},
-			"query syncCompletion runs on nexusProtocol of temporal.features.nexuscaller.system, not on nexusProtocol of temporal.shared.worker",
+			"query syncCompletion runs on nexusSystem of temporal.features.nexuscaller.system, not on nexusSystem of temporal.shared.worker",
 			"model/temporal/features/nexuscaller/system/System.scala:"},
 		{"no name", ClaimKey{Family: key.Family, Owner: key.Owner}, "no Query ", m.GetSource()},
 	} {

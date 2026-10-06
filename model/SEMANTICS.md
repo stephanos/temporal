@@ -854,7 +854,7 @@ is future work.
 Two narrowings came from the specimens' evidence:
 
 - **Machines 6.** A stutter records no fact the product sees only where the refinement names what the
-  product sees. `activityProtocol` names nothing, so its 240 stutters that record a product fact
+  product sees. `activitySystem` names nothing, so its 240 stutters that record a product fact
   (finding F3) are read as before.
 - **Expressions, `match`.** A value no case matches is an undeclared hole, apart from the admission
   errors a reader rejects and from declared holes (finding F4).

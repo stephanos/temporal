@@ -39,8 +39,8 @@ object Inputs:
   val result = input[AttemptResult]
   val control = input[Control]
 
-val attemptStart = action(worker).on(activity)
-val attemptResult = action(worker).on(activity).input(Inputs.result)
+val poll = action(worker).on(activity)
+val respond = action(worker).on(activity).input(Inputs.result)
 val control = action(caller).on(activity).input(Inputs.control)
 
 enum ProductPhase derives Finite:
@@ -55,10 +55,10 @@ object Product:
   import ProductPhase.*
   import ProductFact.*
 
-  def attemptStart(s: ProductState) =
+  def poll(s: ProductState) =
     if s.phase == scheduled then enter(ProductState(started), statusStarted) else disabled
 
-  def attemptResult(s: ProductState, r: AttemptResult) =
+  def respond(s: ProductState, r: AttemptResult) =
     if s.phase == started && r == AttemptResult.completed then
       enter(ProductState(completed), statusCompleted)
     else disabled
@@ -77,8 +77,8 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
 
   object rules
       extends Bindings(
-        attemptStart ~> Product.attemptStart,
-        attemptResult ~> Product.attemptResult,
+        poll ~> Product.poll,
+        respond ~> Product.respond,
         control ~> Product.control
       )
 
@@ -289,7 +289,7 @@ val terminalFinality: Monitor[AdmissionState, Outcome, AdmissionFact, Finality] 
 
 // ### The two designs
 
-object CurrentAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
+object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
   val entity = activity
   def init = scheduledEmpty
   def end(s: State) = admissionEnds(s)
@@ -306,11 +306,11 @@ object CurrentAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
       extends Bindings(
         dispatch ~> dispatchStep,
         control ~> pauseStep,
-        attemptStart ~> admitCurrent,
-        attemptResult ~> resultStep
+        poll ~> admitCurrent,
+        respond ~> resultStep
       )
 
-object StaleAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
+object TrustingActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
   val entity = activity
   def init = scheduledEmpty
   def end(s: State) = admissionEnds(s)
@@ -327,8 +327,8 @@ object StaleAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
       extends Bindings(
         dispatch ~> dispatchStep,
         control ~> pauseStep,
-        attemptStart ~> admitStale,
-        attemptResult ~> resultStep
+        poll ~> admitStale,
+        respond ~> resultStep
       )
 
 // ### Promises, written once and declared on each design
@@ -352,15 +352,15 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
   val stale = m
     .scenario("staleDeliveryAfterPause")
     .starts(scheduledEmpty)
-    .actions(dispatch, control(Control.pause), attemptStart)
+    .actions(dispatch, control(Control.pause), poll)
   val prePause = m
     .scenario("admittedBeforePause")
     .starts(scheduledEmpty)
-    .actions(dispatch, attemptStart, control(Control.pause))
+    .actions(dispatch, poll, control(Control.pause))
   val duplicate = m
     .scenario("duplicateDelivery")
     .starts(scheduledEmpty)
-    .actions(dispatch, attemptStart, attemptStart)
+    .actions(dispatch, poll, poll)
   val any = m.scenario.starts(scheduledEmpty).free
   Vector(
     query(s"${m.name}.staleDelivery") verify notPaused in stale limits three total 135,
@@ -375,5 +375,5 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
       .in(stale) limits three total 135
   )
 
-val currentQueries: Vector[Query] = admissionQueries(CurrentAdmission)
-val staleQueries: Vector[Query] = admissionQueries(StaleAdmission)
+val currentQueries: Vector[Query] = admissionQueries(ActivityRecord)
+val staleQueries: Vector[Query] = admissionQueries(TrustingActivityRecord)

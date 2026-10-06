@@ -13,7 +13,7 @@ import shared.worker.worker
 // ### The product machine
 //
 // What an operation does, with no account of how. Every Property written against it is carried to
-// the protocol machine by the refinement declared there.
+// the System machine by the refinement declared there.
 
 object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
   import ProductPhase.*
@@ -52,11 +52,11 @@ object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
     // started yet. A retryable handler error leaves the operation where it is, so no rule fires it:
     // the product machine does not know about backing off, which is the whole of what the protocol
     // machine adds.
-    on(handler.handlerReply(Reply.syncSuccess))(in(scheduled) ~> effects.succeed)
-    on(handler.handlerReply(Reply.async))(in(scheduled) ~> effects.start)
-    on(handler.handlerReply(Reply.operationFailed))(in(scheduled) ~> effects.fail)
-    on(handler.handlerReply(Reply.operationCanceled))(in(scheduled) ~> effects.cancel)
-    on(handler.handlerReply(Reply.handlerError(false)))(in(scheduled) ~> effects.fail)
+    on(handler.reply(Reply.syncSuccess))(in(scheduled) ~> effects.succeed)
+    on(handler.reply(Reply.async))(in(scheduled) ~> effects.start)
+    on(handler.reply(Reply.operationFailed))(in(scheduled) ~> effects.fail)
+    on(handler.reply(Reply.operationCanceled))(in(scheduled) ~> effects.cancel)
+    on(handler.reply(Reply.handlerError(false)))(in(scheduled) ~> effects.fail)
 
     // An asynchronous completion settles a running operation, and is not found once it is over.
     on(handler.complete)(where(states.productTerminal) ~> effects.notFound)
@@ -68,7 +68,7 @@ object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
     // fault the Run records. The product machine sees neither: whether a delivery was retried is the
     // protocol's account of how, not what, and a step that kept the state and recorded nothing would
     // be indistinguishable from a stutter, which the refinement would read as this step.
-    disabled(network.transportFault, worker.workerStop)
+    disabled(network.fault, worker.stop)
 
     // The deadline fires while the operation runs.
     on(timers.timeout)(in(scheduled, started) ~> effects.timeOut)
@@ -81,6 +81,6 @@ object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
   object properties:
     /**
      * Once an operation is over, no step changes its phase. Declared on the product machine and read
-     * on the protocol machine through the map.
+     * on the System machine through the map.
      */
     val terminalIsFinal = property.once(states.productTerminal).keeps(_.phase)

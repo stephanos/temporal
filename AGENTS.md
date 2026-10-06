@@ -5,6 +5,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Model:** The behavior model is written in Scala under `model/` and checked by its gate, `make umpire-check-model`. Before any task involving it, read [model/README.md](model/README.md) and [model/SEMANTICS.md](model/SEMANTICS.md). After changing a Model, run `make umpire-gen-model` and review the diff of `model/ir` and `model/cases`.
+- Update the Model independently of the implementation. When conformance fails, ask a human rather than fitting the Model to the code.
 - **Umpire:** Before any task involving Umpire code (`model/`, `tools/umpire/`, `common/testing/testpilot/`, `tools/canary/`), read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md), the high-level architecture and its rules in [UMPIRE4 Vision](.plans/UMPIRE4_VISION.md#high-level-architecture), and the [module map](.plans/UMPIRE_MODULES.md), which states each module's job, public interface and permitted imports.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.

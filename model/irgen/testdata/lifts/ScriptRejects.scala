@@ -9,18 +9,18 @@ import temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
 import temporal.features.standaloneactivity.{
   activity,
-  caller,
+  client,
   scheduleToStart,
   Control,
-  ProtocolFact,
+  SystemFact,
   Timeout
 }
-import temporal.features.standaloneactivity.system.ActivityProtocol as activityProtocol
+import temporal.features.standaloneactivity.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus
 
 private def realizing(items: Item*) = temporalRealization(
-  machine = activityProtocol,
+  machine = activitySystem,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller(items*)),
@@ -39,18 +39,18 @@ val performsNothing: Realization = realizing(perform())
 val onNoPath: Realization = realizing(onPath()(stopWorker))
 
 private val listed: StatusTable[ActivityExecutionStatus] = statusTable(
-  ProtocolFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
+  SystemFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
 )
 
 private val twice: StatusTable[ActivityExecutionStatus] = statusTable(
-  ProtocolFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
-  ProtocolFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
+  SystemFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
+  SystemFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
 )
 
 private val described = Evidence.read(
-  id = evidenceId(ProtocolFact.statusCompleted),
-  records = ProtocolFact.statusCompleted,
-  source = sourceId(ProtocolFact.statusCompleted),
+  id = evidenceId(SystemFact.statusCompleted),
+  records = SystemFact.statusCompleted,
+  source = sourceId(SystemFact.statusCompleted),
   from = Recorded.single(
     METHOD_DESCRIBE_ACTIVITY_EXECUTION,
     Field[
@@ -72,12 +72,12 @@ private def awaitStatus(table: StatusTable[ActivityExecutionStatus], fact: Fact)
     field(_.activityId) := run
   }
 
-private val awaitCompleted = awaitStatus(listed, ProtocolFact.statusCompleted)
+private val awaitCompleted = awaitStatus(listed, SystemFact.statusCompleted)
 
 /** A status the table lists no value for. */
 val unlistedStatus: Realization = realizing(everyCase(awaitCompleted))
 
-private val awaitPaused = awaitStatus(twice, ProtocolFact.statusPaused)
+private val awaitPaused = awaitStatus(twice, SystemFact.statusPaused)
 
 /** A table that lists one fact twice. */
 val statusTwice: Realization = realizing(everyCase(awaitPaused))
@@ -87,7 +87,7 @@ private val inputInScope = rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION)
 }
 
 /** A line of a request scope that assigns no field of the request. */
-val notAField: Realization = realizing(perform(caller.control(Control.pause) -> inputInScope))
+val notAField: Realization = realizing(perform(client.control(Control.pause) -> inputInScope))
 
 private val inputInPoll = await(described, workflowService)(
   Condition.equal(
@@ -103,7 +103,7 @@ val notAPolledField: Realization = realizing(everyCase(inputInPoll))
 
 /** Evidence of a case of another enum than the facts the machine records. */
 val foreignFact: Realization = temporalRealization(
-  machine = activityProtocol,
+  machine = activitySystem,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller(everyCase(stopWorker))),

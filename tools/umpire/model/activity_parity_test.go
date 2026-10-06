@@ -19,9 +19,9 @@ import (
 func TestActivityDisabledBehaviorIsTheBaselines(t *testing.T) {
 	product := built(t, activityModel(t))["activityProduct"]
 	for _, pair := range [][2]string{
-		{"started", "attemptResult-canceled"},
-		{"paused", "attemptStart"},
-		{"scheduled", "workerStop"},
+		{"started", "respond-canceled"},
+		{"paused", "poll"},
+		{"scheduled", "stop"},
 		{"completed", "timeout"},
 	} {
 		require.True(t, product.Disabled(pair[0], pair[1]), pair)
@@ -36,7 +36,7 @@ func TestActivityDisabledBehaviorIsTheBaselines(t *testing.T) {
 func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 	m := activityModel(t)
 	machines := built(t, m)
-	for _, name := range []string{"activityProtocol", "activityProduct"} {
+	for _, name := range []string{"activitySystem", "activityProduct"} {
 		var catalog [][2]string
 		for _, c := range admType(m, machines[name].Decl.GetFactType()).GetEnum().GetCases() {
 			catalog = append(catalog, [2]string{c.GetName(), c.GetName()})

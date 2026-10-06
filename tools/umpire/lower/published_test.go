@@ -29,11 +29,11 @@ func TestARecordOfAnAttemptReachesARunWithTheAttemptsAnswer(t *testing.T) {
 		answers map[string][]int
 		want    *misplaced
 	}{
-		// start, attemptStart, failure, backoff, attemptStart, completion.
+		// start, poll, failure, backoff, poll, completion.
 		"a retry, each attempt's record before the next evidence": {
 			[]published{plain("scheduled", 0), record("first", 1, "activity", 1), record("second", 4, "activity", 2), plain("completed", 5)},
 			map[string][]int{"activity": {2, 5}}, nil},
-		// start, attemptStart, cancel request, canceled answer: the request's answer is recorded as the
+		// start, poll, cancel request, canceled answer: the request's answer is recorded as the
 		// call is made, before the attempt is answered.
 		"a cancel request while the attempt is held": {
 			[]published{plain("scheduled", 0), record("first", 1, "activity", 1), plain("requested", 2), plain("canceled", 3)},

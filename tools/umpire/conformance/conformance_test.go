@@ -355,9 +355,9 @@ func TestPrepareRefusesWhatItCannotAssess(t *testing.T) {
 		}, "no Query missing"},
 		"a Query under another machine": {func() (*Factory, error) {
 			return Prepare(m, umpiremodel.ClaimKey{Family: admissionFamily, Owner: current, Name: query.Name}, source, generous)
-		}, "not on currentAdmission"},
+		}, "not on activityRecord"},
 		"a Query read through a refinement": {func() (*Factory, error) {
-			return Prepare(m, umpiremodel.ClaimKey{Family: admissionFamily, Owner: stale, Name: "staleAdmission.product.pausedIsNotDispatched"}, source, generous)
+			return Prepare(m, umpiremodel.ClaimKey{Family: admissionFamily, Owner: stale, Name: "trustingActivityRecord.product.pausedIsNotDispatched"}, source, generous)
 		}, "is not read on the steps of one machine"},
 		"a Query of a composition": {func() (*Factory, error) {
 			return Prepare(declared(t), umpiremodel.ClaimKey{Family: declarationsFamily, Owner: "pair", Name: "keptTogether"}, source, generous)
@@ -389,7 +389,7 @@ func TestPrepareRefusesWhatItCannotAssess(t *testing.T) {
 				c.Contract.Correlated.ProjectionRules[0].Fields = []*testpilotspb.CorrelatedFieldPolicy{{FieldId: "attempt",
 					Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_UINT64}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}}
 			}), generous)
-		}, "evidence of kind test.staleAdmission.evidence.statusStarted retains field attempt, which realization staleAdmissionEvidence does not declare for it"},
+		}, "evidence of kind test.trustingActivityRecord.evidence.statusStarted retains field attempt, which realization trustingActivityRecordEvidence does not declare for it"},
 		"a field with no disposition": {func() (*Factory, error) {
 			return Prepare(m, query, with(func(c *testpilotspb.Case) {
 				c.Contract.Correlated.ProjectionRules[0].Fields = []*testpilotspb.CorrelatedFieldPolicy{{FieldId: "note"}}

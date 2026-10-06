@@ -473,7 +473,7 @@
       }
     }
   }, {
-    "name": "currentAdmission.evidence",
+    "name": "activityRecord.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 296
@@ -497,6 +497,34 @@
             "line": 296
           },
           "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.specimens.admission.ActivityRecord$.refinement$.toProduct",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 299
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.admission.AdmissionState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 299
+      },
+      "call": {
+        "function": "fixture.specimens.admission.Admission$package$.productOfAdmission",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 299
+          },
+          "var": "s"
         } ]
       }
     }
@@ -3076,356 +3104,6 @@
       }
     }
   }, {
-    "name": "fixture.specimens.admission.CurrentAdmission$.refinement$.toProduct",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 299
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "fixture.specimens.admission.AdmissionState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 299
-      },
-      "call": {
-        "function": "fixture.specimens.admission.Admission$package$.productOfAdmission",
-        "args": [ {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 299
-          },
-          "var": "s"
-        } ]
-      }
-    }
-  }, {
-    "name": "fixture.specimens.admission.Product$.attemptResult",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 61
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "fixture.specimens.admission.ProductState"
-      }
-    }, {
-      "name": "r",
-      "type": {
-        "named": "fixture.specimens.admission.AttemptResult"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 62
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 62
-          },
-          "binary": {
-            "op": "OP_AND",
-            "left": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 62
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 62
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 62
-                      },
-                      "var": "s"
-                    },
-                    "field": "phase"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 62
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.specimens.admission.ProductPhase",
-                      "case": "started"
-                    }
-                  }
-                }
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 62
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 62
-                  },
-                  "var": "r"
-                },
-                "right": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 62
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.specimens.admission.AttemptResult",
-                      "case": "completed"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 63
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 63
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 25
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.specimens.admission.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 63
-                  },
-                  "construct": {
-                    "type": "fixture.specimens.admission.ProductState",
-                    "args": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 63
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.specimens.admission.ProductPhase",
-                          "case": "completed"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 63
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 63
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.specimens.admission.ProductFact",
-                          "case": "statusCompleted"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 63
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 64
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "fixture.specimens.admission.Product$.attemptStart",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 58
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "fixture.specimens.admission.ProductState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 59
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 59
-          },
-          "binary": {
-            "op": "OP_EQ",
-            "left": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 59
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 59
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 59
-              },
-              "literal": {
-                "enum": {
-                  "type": "fixture.specimens.admission.ProductPhase",
-                  "case": "scheduled"
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 59
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 59
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 25
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.specimens.admission.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 59
-                  },
-                  "construct": {
-                    "type": "fixture.specimens.admission.ProductState",
-                    "args": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 59
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.specimens.admission.ProductPhase",
-                          "case": "started"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 59
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 59
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.specimens.admission.ProductFact",
-                          "case": "statusStarted"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 59
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 59
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
     "name": "fixture.specimens.admission.Product$.control",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -3702,7 +3380,329 @@
       }
     }
   }, {
-    "name": "fixture.specimens.admission.StaleAdmission$.refinement$.toProduct",
+    "name": "fixture.specimens.admission.Product$.poll",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.admission.ProductState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 59
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 59
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 59
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 59
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 59
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.admission.ProductPhase",
+                  "case": "scheduled"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 59
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 59
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 25
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.admission.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 59
+                  },
+                  "construct": {
+                    "type": "fixture.specimens.admission.ProductState",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Admission.scala",
+                        "line": 59
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.specimens.admission.ProductPhase",
+                          "case": "started"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 59
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Admission.scala",
+                        "line": 59
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.specimens.admission.ProductFact",
+                          "case": "statusStarted"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 59
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 59
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.admission.Product$.respond",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.admission.ProductState"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "fixture.specimens.admission.AttemptResult"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 62
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 62
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 62
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 62
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Admission.scala",
+                        "line": 62
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 62
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.admission.ProductPhase",
+                      "case": "started"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 62
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 62
+                  },
+                  "var": "r"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 62
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.admission.AttemptResult",
+                      "case": "completed"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 63
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 63
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 25
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.admission.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 63
+                  },
+                  "construct": {
+                    "type": "fixture.specimens.admission.ProductState",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Admission.scala",
+                        "line": 63
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.specimens.admission.ProductPhase",
+                          "case": "completed"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 63
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Admission.scala",
+                        "line": 63
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.specimens.admission.ProductFact",
+                          "case": "statusCompleted"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 63
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 64
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.admission.TrustingActivityRecord$.refinement$.toProduct",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 320
@@ -3859,7 +3859,7 @@
       }
     }
   }, {
-    "name": "staleAdmission.evidence",
+    "name": "trustingActivityRecord.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 317
@@ -3888,30 +3888,6 @@
     }
   } ],
   "actions": [ {
-    "id": "fixture.specimens.admission.attemptResult",
-    "name": "attemptResult",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 43
-    },
-    "actor": "worker",
-    "inputs": [ {
-      "name": "result",
-      "type": {
-        "named": "fixture.specimens.admission.AttemptResult"
-      }
-    } ],
-    "on": "activity"
-  }, {
-    "id": "fixture.specimens.admission.attemptStart",
-    "name": "attemptStart",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 42
-    },
-    "actor": "worker",
-    "on": "activity"
-  }, {
     "id": "fixture.specimens.admission.control",
     "name": "control",
     "position": {
@@ -3935,6 +3911,30 @@
     },
     "actor": "system",
     "timer": true
+  }, {
+    "id": "fixture.specimens.admission.poll",
+    "name": "poll",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 42
+    },
+    "actor": "worker",
+    "on": "activity"
+  }, {
+    "id": "fixture.specimens.admission.respond",
+    "name": "respond",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 43
+    },
+    "actor": "worker",
+    "inputs": [ {
+      "name": "result",
+      "type": {
+        "named": "fixture.specimens.admission.AttemptResult"
+      }
+    } ],
+    "on": "activity"
   } ],
   "machines": [ {
     "family": "fixture.specimens.admission",
@@ -4066,15 +4066,15 @@
       }
     },
     "steps": [ {
-      "action": "fixture.specimens.admission.attemptStart",
-      "function": "fixture.specimens.admission.Product$.attemptStart",
+      "action": "fixture.specimens.admission.poll",
+      "function": "fixture.specimens.admission.Product$.poll",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
         "line": 80
       }
     }, {
-      "action": "fixture.specimens.admission.attemptResult",
-      "function": "fixture.specimens.admission.Product$.attemptResult",
+      "action": "fixture.specimens.admission.respond",
+      "function": "fixture.specimens.admission.Product$.respond",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
         "line": 81
@@ -4090,7 +4090,7 @@
     "evidence": "activityProduct.evidence"
   }, {
     "family": "fixture.specimens.admission",
-    "name": "currentAdmission",
+    "name": "activityRecord",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 292
@@ -4187,29 +4187,29 @@
         "line": 308
       }
     }, {
-      "action": "fixture.specimens.admission.attemptStart",
+      "action": "fixture.specimens.admission.poll",
       "function": "fixture.specimens.admission.Admission$package$.admitCurrent",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
         "line": 309
       }
     }, {
-      "action": "fixture.specimens.admission.attemptResult",
+      "action": "fixture.specimens.admission.respond",
       "function": "fixture.specimens.admission.Admission$package$.resultStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
         "line": 310
       }
     } ],
-    "evidence": "currentAdmission.evidence",
+    "evidence": "activityRecord.evidence",
     "refines": {
       "product": "activityProduct",
-      "map": "fixture.specimens.admission.CurrentAdmission$.refinement$.toProduct"
+      "map": "fixture.specimens.admission.ActivityRecord$.refinement$.toProduct"
     },
     "monitors": [ "fixture.specimens.admission.atMostOneActiveAttempt", "fixture.specimens.admission.terminalFinality" ]
   }, {
     "family": "fixture.specimens.admission",
-    "name": "staleAdmission",
+    "name": "trustingActivityRecord",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 313
@@ -4306,24 +4306,24 @@
         "line": 329
       }
     }, {
-      "action": "fixture.specimens.admission.attemptStart",
+      "action": "fixture.specimens.admission.poll",
       "function": "fixture.specimens.admission.Admission$package$.admitStale",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
         "line": 330
       }
     }, {
-      "action": "fixture.specimens.admission.attemptResult",
+      "action": "fixture.specimens.admission.respond",
       "function": "fixture.specimens.admission.Admission$package$.resultStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
         "line": 331
       }
     } ],
-    "evidence": "staleAdmission.evidence",
+    "evidence": "trustingActivityRecord.evidence",
     "refines": {
       "product": "activityProduct",
-      "map": "fixture.specimens.admission.StaleAdmission$.refinement$.toProduct"
+      "map": "fixture.specimens.admission.TrustingActivityRecord$.refinement$.toProduct"
     },
     "monitors": [ "fixture.specimens.admission.atMostOneActiveAttempt", "fixture.specimens.admission.terminalFinality" ]
   } ],
@@ -4388,7 +4388,7 @@
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true
   }, {
-    "machine": "currentAdmission",
+    "machine": "activityRecord",
     "name": "atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4396,7 +4396,7 @@
     },
     "holds": "fixture.specimens.admission.Admission$package$.atMostOneActive"
   }, {
-    "machine": "currentAdmission",
+    "machine": "activityRecord",
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4405,7 +4405,7 @@
     "holds": "fixture.specimens.admission.Admission$package$.notAdmittedWhilePaused",
     "transition": true
   }, {
-    "machine": "currentAdmission",
+    "machine": "activityRecord",
     "name": "terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4414,7 +4414,7 @@
     "holds": "fixture.specimens.admission.Admission$package$.terminalStays",
     "transition": true
   }, {
-    "machine": "staleAdmission",
+    "machine": "trustingActivityRecord",
     "name": "atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4422,7 +4422,7 @@
     },
     "holds": "fixture.specimens.admission.Admission$package$.atMostOneActive"
   }, {
-    "machine": "staleAdmission",
+    "machine": "trustingActivityRecord",
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4431,7 +4431,7 @@
     "holds": "fixture.specimens.admission.Admission$package$.notAdmittedWhilePaused",
     "transition": true
   }, {
-    "machine": "staleAdmission",
+    "machine": "trustingActivityRecord",
     "name": "terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4441,7 +4441,7 @@
     "transition": true
   } ],
   "scenarios": [ {
-    "machine": "currentAdmission",
+    "machine": "activityRecord",
     "name": "admittedBeforePause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4493,7 +4493,7 @@
     "actions": [ {
       "action": "fixture.specimens.admission.dispatch"
     }, {
-      "action": "fixture.specimens.admission.attemptStart"
+      "action": "fixture.specimens.admission.poll"
     }, {
       "action": "fixture.specimens.admission.control",
       "inputs": [ {
@@ -4504,7 +4504,7 @@
       } ]
     } ]
   }, {
-    "machine": "currentAdmission",
+    "machine": "activityRecord",
     "name": "any",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4555,7 +4555,7 @@
     },
     "free": true
   }, {
-    "machine": "currentAdmission",
+    "machine": "activityRecord",
     "name": "duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4607,12 +4607,12 @@
     "actions": [ {
       "action": "fixture.specimens.admission.dispatch"
     }, {
-      "action": "fixture.specimens.admission.attemptStart"
+      "action": "fixture.specimens.admission.poll"
     }, {
-      "action": "fixture.specimens.admission.attemptStart"
+      "action": "fixture.specimens.admission.poll"
     } ]
   }, {
-    "machine": "currentAdmission",
+    "machine": "activityRecord",
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4672,10 +4672,10 @@
         }
       } ]
     }, {
-      "action": "fixture.specimens.admission.attemptStart"
+      "action": "fixture.specimens.admission.poll"
     } ]
   }, {
-    "machine": "staleAdmission",
+    "machine": "trustingActivityRecord",
     "name": "admittedBeforePause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4727,7 +4727,7 @@
     "actions": [ {
       "action": "fixture.specimens.admission.dispatch"
     }, {
-      "action": "fixture.specimens.admission.attemptStart"
+      "action": "fixture.specimens.admission.poll"
     }, {
       "action": "fixture.specimens.admission.control",
       "inputs": [ {
@@ -4738,7 +4738,7 @@
       } ]
     } ]
   }, {
-    "machine": "staleAdmission",
+    "machine": "trustingActivityRecord",
     "name": "any",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4789,7 +4789,7 @@
     },
     "free": true
   }, {
-    "machine": "staleAdmission",
+    "machine": "trustingActivityRecord",
     "name": "duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4841,12 +4841,12 @@
     "actions": [ {
       "action": "fixture.specimens.admission.dispatch"
     }, {
-      "action": "fixture.specimens.admission.attemptStart"
+      "action": "fixture.specimens.admission.poll"
     }, {
-      "action": "fixture.specimens.admission.attemptStart"
+      "action": "fixture.specimens.admission.poll"
     } ]
   }, {
-    "machine": "staleAdmission",
+    "machine": "trustingActivityRecord",
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
@@ -4906,22 +4906,22 @@
         }
       } ]
     }, {
-      "action": "fixture.specimens.admission.attemptStart"
+      "action": "fixture.specimens.admission.poll"
     } ]
   } ],
   "queries": [ {
-    "name": "currentAdmission.admittedBeforePause",
+    "name": "activityRecord.admittedBeforePause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 367
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "notAdmittedWhilePaused"
     },
     "scenario": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "admittedBeforePause"
     },
     "limits": {
@@ -4932,18 +4932,18 @@
     },
     "total": "135"
   }, {
-    "name": "currentAdmission.any.atMostOneActive",
+    "name": "activityRecord.any.atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 370
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "atMostOneActive"
     },
     "scenario": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "any"
     },
     "limits": {
@@ -4954,18 +4954,18 @@
     },
     "total": "2250"
   }, {
-    "name": "currentAdmission.any.notAdmittedWhilePaused",
+    "name": "activityRecord.any.notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 369
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "notAdmittedWhilePaused"
     },
     "scenario": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "any"
     },
     "limits": {
@@ -4976,18 +4976,18 @@
     },
     "total": "2250"
   }, {
-    "name": "currentAdmission.any.terminalStays",
+    "name": "activityRecord.any.terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 371
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "terminalStays"
     },
     "scenario": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "any"
     },
     "limits": {
@@ -4998,18 +4998,18 @@
     },
     "total": "2250"
   }, {
-    "name": "currentAdmission.duplicateDelivery",
+    "name": "activityRecord.duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 368
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "atMostOneActive"
     },
     "scenario": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "duplicateDelivery"
     },
     "limits": {
@@ -5020,7 +5020,7 @@
     },
     "total": "135"
   }, {
-    "name": "currentAdmission.product.pausedIsNotDispatched",
+    "name": "activityRecord.product.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 373
@@ -5031,7 +5031,7 @@
       "name": "pausedIsNotDispatched"
     },
     "scenario": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "staleDeliveryAfterPause"
     },
     "through": true,
@@ -5043,18 +5043,18 @@
     },
     "total": "135"
   }, {
-    "name": "currentAdmission.staleDelivery",
+    "name": "activityRecord.staleDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 366
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "notAdmittedWhilePaused"
     },
     "scenario": {
-      "machine": "currentAdmission",
+      "machine": "activityRecord",
       "name": "staleDeliveryAfterPause"
     },
     "limits": {
@@ -5065,18 +5065,18 @@
     },
     "total": "135"
   }, {
-    "name": "staleAdmission.admittedBeforePause",
+    "name": "trustingActivityRecord.admittedBeforePause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 367
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "notAdmittedWhilePaused"
     },
     "scenario": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "admittedBeforePause"
     },
     "limits": {
@@ -5087,18 +5087,18 @@
     },
     "total": "135"
   }, {
-    "name": "staleAdmission.any.atMostOneActive",
+    "name": "trustingActivityRecord.any.atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 370
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "atMostOneActive"
     },
     "scenario": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "any"
     },
     "limits": {
@@ -5109,18 +5109,18 @@
     },
     "total": "2250"
   }, {
-    "name": "staleAdmission.any.notAdmittedWhilePaused",
+    "name": "trustingActivityRecord.any.notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 369
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "notAdmittedWhilePaused"
     },
     "scenario": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "any"
     },
     "limits": {
@@ -5131,18 +5131,18 @@
     },
     "total": "2250"
   }, {
-    "name": "staleAdmission.any.terminalStays",
+    "name": "trustingActivityRecord.any.terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 371
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "terminalStays"
     },
     "scenario": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "any"
     },
     "limits": {
@@ -5153,18 +5153,18 @@
     },
     "total": "2250"
   }, {
-    "name": "staleAdmission.duplicateDelivery",
+    "name": "trustingActivityRecord.duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 368
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "atMostOneActive"
     },
     "scenario": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "duplicateDelivery"
     },
     "limits": {
@@ -5175,7 +5175,7 @@
     },
     "total": "135"
   }, {
-    "name": "staleAdmission.product.pausedIsNotDispatched",
+    "name": "trustingActivityRecord.product.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 373
@@ -5186,7 +5186,7 @@
       "name": "pausedIsNotDispatched"
     },
     "scenario": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "staleDeliveryAfterPause"
     },
     "through": true,
@@ -5198,18 +5198,18 @@
     },
     "total": "135"
   }, {
-    "name": "staleAdmission.staleDelivery",
+    "name": "trustingActivityRecord.staleDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 366
     },
     "form": "FORM_VERIFY",
     "property": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "notAdmittedWhilePaused"
     },
     "scenario": {
-      "machine": "staleAdmission",
+      "machine": "trustingActivityRecord",
       "name": "staleDeliveryAfterPause"
     },
     "limits": {

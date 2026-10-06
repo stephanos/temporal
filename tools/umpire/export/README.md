@@ -40,7 +40,7 @@ printed 146 receipts: 78 agreed, 37 covered, 30 unsupported and 1 not run.
 | Slice | Machines | Compositions | Pairs compared | Monitored machines | Machines with a violated monitor |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `activity` | 4 | 1 | 15,817 | 0 | 0 |
-| `activity-system` | 12 | 5 of 7 | 13,839 | 2 | 1 (`staleAdmission`: both monitors) |
+| `activity-record` | 12 | 5 of 7 | 13,839 | 2 | 1 (`trustingActivityRecord`: both monitors) |
 | `nexus-caller` | 4 | 0 | 3,716 | 0 | 0 |
 | `nexus-close` | 9 | 0 | 9,134 | 9 | 6 |
 
@@ -82,11 +82,11 @@ with the reader's interpreter. `umpiremodel.Check` then confirms it through ordi
 every path from each start, and one over the classes of each counterexample.
 
 `quint verify` adds a model checker's verdict where it runs. Each of the four activity checks
-(`currentAdmission` and `staleAdmission`, by two monitors) gets a module with state variables, and
+(`activityRecord` and `trustingActivityRecord`, by two monitors) gets a module with state variables, and
 Apalache 0.62.1 checks the monitor's invariant on every run up to the product's depth plus one. That
 is bounded model checking: it finds a violation within the bound and says nothing of longer runs
 (Quint manual, `quint verify`). It found a two-step counterexample for each monitor of
-`staleAdmission`, which is Go's shortest, and none for `currentAdmission` within four steps.
+`trustingActivityRecord`, which is Go's shortest, and none for `activityRecord` within four steps.
 
 Apalache does not take the Nexus close module. Its inliner stops with `Recursive substitution took
 more than 100000 iterations`. The receipt for it is `not-run`, and the nine Nexus machines' monitors
@@ -108,8 +108,8 @@ A claim of a composition reads a step's outcome and facts as the strings `<field
 builds no string, so the module spells each member's outcomes and facts out, one string per value
 of the type, with the key Go's `Value.Key` gives it.
 
-Two of the eight compositions are not exported: `currentOverForgetful` and `currentOverVolatile`.
-Each puts a queue provider in place of `dispatchQueue` that does not refine it, so the reader rejects the
+Two of the eight compositions are not exported: `recordOverForgetful` and `recordOverVolatile`.
+Each puts a queue provider in place of `taskQueueProduct` that does not refine it, so the reader rejects the
 replacement and builds no composed table. Their receipts are `unsupported` with the reader's rejection
 as the reason, and they declare no Property. For the three compositions whose replacement holds, the
 module holds the composed table and a `module-refinement` receipt says the replacement is the reader's
@@ -160,8 +160,8 @@ A driver machine announces each event trace to it. The event carries the state b
 the step's outcome and state.
 
 The traces are every path of the machine from its starts within five steps, each ended by its first
-violation, by a state with no step, or by the bound. `staleAdmission` has 1,171 (996 accepted, 175
-rejected) and `currentAdmission` has 483, all accepted. The specimen's four-step path, on which a
+violation, by a state with no step, or by the bound. `trustingActivityRecord` has 1,171 (996 accepted, 175
+rejected) and `activityRecord` has 483, all accepted. The specimen's four-step path, on which a
 stale delivery starts a completed activity, is one of the rejected ones.
 
 P's checker explores schedules by random sampling (P manual, `p check`). A driver that only

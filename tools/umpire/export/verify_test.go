@@ -65,16 +65,16 @@ func counterexampleOf(t *testing.T, s *Slice, c *QuintCheck, trace *umpiremodel.
 // What the model checker reports is held to Go with no tool installed: its verdict against Go's
 // product, and its counterexample against a fresh interpretation and the reader's checker.
 func TestVerifiedVerdictsAreHeldToGo(t *testing.T) {
-	s := openNamed(t, "activity-system")
-	stale, current := checkOf(t, s, "staleAdmission"), checkOf(t, s, "currentAdmission")
+	s := openNamed(t, "activity-record")
+	stale, current := checkOf(t, s, "trustingActivityRecord"), checkOf(t, s, "activityRecord")
 	require.Equal(t, []string{"atMostOneActiveAttempt", "terminalFinality"}, stale.Monitors)
 	const finality = 1
 	// Go's own counterexample of the stale design, as the model checker would report it.
-	p, err := s.product(s.machines["staleAdmission"])
+	p, err := s.product(s.machines["trustingActivityRecord"])
 	require.NoError(t, err)
-	view, err := s.view(s.machines["staleAdmission"])
+	view, err := s.view(s.machines["trustingActivityRecord"])
 	require.NoError(t, err)
-	path := counterexample(s.machines["staleAdmission"].Table, view, finality)
+	path := counterexample(s.machines["trustingActivityRecord"].Table, view, finality)
 	require.Len(t, path.Steps, p.violatedAt["terminalFinality"])
 
 	agreed := s.QuintVerified(stale, finality, QuintVerdict{Violated: true, Trace: counterexampleOf(t, s, stale, path)})
@@ -107,9 +107,9 @@ func TestQuintVerifyAgreesWithGo(t *testing.T) {
 	found := needs(t, VerifyTool)
 	t.Cleanup(StopVerifier)
 	cases := map[string]map[string][]string{
-		"activity-system": {
-			"currentAdmission": {"atMostOneActiveAttempt", "terminalFinality"},
-			"staleAdmission":   {"atMostOneActiveAttempt", "terminalFinality"},
+		"activity-record": {
+			"activityRecord": {"atMostOneActiveAttempt", "terminalFinality"},
+			"trustingActivityRecord":   {"atMostOneActiveAttempt", "terminalFinality"},
 		},
 	}
 	for model, machines := range cases {

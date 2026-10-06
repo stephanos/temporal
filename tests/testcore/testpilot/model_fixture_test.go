@@ -18,11 +18,11 @@ import (
 
 func TestModelCasesLowerForExistingConsumers(t *testing.T) {
 	for _, item := range []struct{ model, family, owner, set, query string }{
-		{"activity", "temporal.features.standaloneactivity.system", "activityProtocol", "standaloneActivityTests", "completion"},
-		{"activity", "temporal.features.standaloneactivity.system", "activityProtocol", "standaloneActivityTests", "retry"},
-		{"activity", "temporal.features.standaloneactivity.system", "activityProtocol", "standaloneActivityTests", "pauseResume"},
-		{"nexus-caller", "temporal.features.nexuscaller.system", "nexusProtocol", "nexusCallerTests", "syncCompletion"},
-		{"nexus-caller", "temporal.features.nexuscaller.system", "nexusProtocol", "nexusCallerTests", "asyncCompletion"},
+		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "completion"},
+		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "retry"},
+		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "pauseResume"},
+		{"nexus-caller", "temporal.features.nexuscaller.system", "nexusSystem", "nexusCallerTests", "syncCompletion"},
+		{"nexus-caller", "temporal.features.nexuscaller.system", "nexusSystem", "nexusCallerTests", "asyncCompletion"},
 	} {
 		t.Run(item.query, func(t *testing.T) {
 			path := filepath.Join("..", "..", "..", "model", "ir", item.model+".json")
@@ -107,7 +107,7 @@ func TestGeneratedNexusOperationCasesRequireTheStandaloneFlag(t *testing.T) {
 // out of a recorded Run without knowing the Case.
 func TestTheHeldRaceIsLoadedWithItsClaimAndItsDurableKinds(t *testing.T) {
 	fixture, err := LoadModelCase(filepath.Join("..", "..", "..", "model", "ir", "activity-race.json"),
-		umpiremodel.ClaimKey{Family: "temporal.features.standaloneactivity.system", Owner: "heldAdmission", Name: "heldAdmission.staleDelivery"}, "standaloneActivityRace")
+		umpiremodel.ClaimKey{Family: "temporal.features.standaloneactivity.system", Owner: "heldDispatch", Name: "heldDispatch.staleDelivery"}, "standaloneActivityRace")
 	require.NoError(t, err)
 	require.Equal(t, "staleDeliveryRejected", fixture.Property)
 	require.Equal(t, []string{"evidence.admissionRejected", "evidence.attemptAdmitted"}, fixture.Durable)

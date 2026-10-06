@@ -76,9 +76,9 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	for _, f := range m.GetFunctions() {
 		for _, x := range []*umpirespb.Expr{f.GetBody(), f.GetRequires()} {
 			walk(x, func(x *umpirespb.Expr) {
-				if c := x.GetCall(); c != nil && (strings.HasSuffix(c.GetFunction(), "NexusProtocol$.states$.saturatingSucc") ||
-					strings.HasSuffix(c.GetFunction(), "NexusProtocol$.states$.validAttempts")) {
-					c.Function = "temporal.features.nexuscaller.system.NexusProtocol$.states$.move"
+				if c := x.GetCall(); c != nil && (strings.HasSuffix(c.GetFunction(), "NexusSystem$.states$.saturatingSucc") ||
+					strings.HasSuffix(c.GetFunction(), "NexusSystem$.states$.validAttempts")) {
+					c.Function = "temporal.features.nexuscaller.system.NexusSystem$.states$.move"
 				}
 			})
 		}
@@ -88,7 +88,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	lines := strings.Split(err.Error(), "\n")
 	require.GreaterOrEqual(t, len(lines), 5, "every renamed call is reported, not only the first")
 	for _, l := range lines {
-		require.Regexp(t, `^model/temporal/features/nexuscaller/system/System\.scala:\d+: no function temporal\.features\.nexuscaller\.system\.NexusProtocol\$\.states\$\.move$`, l)
+		require.Regexp(t, `^model/temporal/features/nexuscaller/system/System\.scala:\d+: no function temporal\.features\.nexuscaller\.system\.NexusSystem\$\.states\$\.move$`, l)
 	}
 }
 
@@ -96,13 +96,13 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
 	for _, mm := range m.GetMachines() {
 		for _, b := range mm.GetSteps() {
-			if b.GetFunction() == "nexusProtocol.rules.handlerReply" {
-				b.Function = "nexusProtocol.rules.backoff"
+			if b.GetFunction() == "nexusSystem.rules.reply" {
+				b.Function = "nexusSystem.rules.backoff"
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/system/System.scala:188: nexusProtocol.rules.backoff "+
-		"steps handlerReply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
+	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/system/System.scala:188: nexusSystem.rules.backoff "+
+		"steps reply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 
 func TestValidateReportsUnrelatedSameStateMachinesAtQueryPosition(t *testing.T) {
@@ -128,14 +128,14 @@ func TestValidateReportsUnrelatedSameStateMachinesAtQueryPosition(t *testing.T) 
 // interpreter finds the row that leaves the domain.
 func TestBuildRejectsAStepOutsideTheDomain(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
-	succ := function(m, "NexusProtocol$.states$.saturatingSucc")
+	succ := function(m, "NexusSystem$.states$.saturatingSucc")
 	at := succ.GetBody().GetPosition()
 	succ.Body = &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{Op: umpirespb.Binary_OP_ADD,
 		Left:  &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Var{Var: "a"}},
 		Right: &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: 1}}}}}}}
 	require.NoError(t, Validate(m))
 	_, err := Build(m)
-	require.ErrorContains(t, err, "nexusProtocol: row scheduled-2-unset-unset-unset-handlerReply-handlerError-true lands in "+
+	require.ErrorContains(t, err, "nexusSystem: row scheduled-2-unset-unset-unset-fault lands in "+
 		"backingOff-3-unset-unset-unset, which is outside the state domain")
 }
 
@@ -201,7 +201,7 @@ func TestValidateRejectsInvalidRunExpectations(t *testing.T) {
 }
 
 // A monitor's outcome is held to the reason rule as the Property's is, on a Query whose machine
-// watches the monitors it names (heldAdmission.staleDelivery).
+// watches the monitors it names (heldDispatch.staleDelivery).
 func TestValidateRejectsAMonitorExpectationWithAnInvalidReason(t *testing.T) {
 	for name, change := range map[string]func(*umpirespb.MonitorExpectation){
 		"inconclusive without reason": func(m *umpirespb.MonitorExpectation) { m.Reason = 0 },
@@ -212,7 +212,7 @@ func TestValidateRejectsAMonitorExpectationWithAnInvalidReason(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			m, err := Load("../../../model/ir/activity-race.json")
 			require.NoError(t, err)
-			at := slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "heldAdmission.staleDelivery" })
+			at := slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "heldDispatch.staleDelivery" })
 			require.GreaterOrEqual(t, at, 0)
 			q := m.GetQueries()[at]
 			require.NoError(t, Validate(m))

@@ -4,7 +4,7 @@
     "name": "temporal.features.standaloneactivity.AttemptResult",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 40
+      "line": 43
     },
     "enum": {
       "cases": [ {
@@ -25,7 +25,7 @@
     "name": "temporal.features.standaloneactivity.Control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 45
+      "line": 48
     },
     "enum": {
       "cases": [ {
@@ -42,7 +42,7 @@
     "name": "temporal.features.standaloneactivity.Outcome",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 49
+      "line": 52
     },
     "enum": {
       "cases": [ {
@@ -55,7 +55,7 @@
     "name": "temporal.features.standaloneactivity.Phase",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 64
+      "line": 67
     },
     "enum": {
       "cases": [ {
@@ -88,7 +88,7 @@
     "name": "temporal.features.standaloneactivity.ProductFact",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 59
+      "line": 62
     },
     "enum": {
       "cases": [ {
@@ -115,7 +115,7 @@
     "name": "temporal.features.standaloneactivity.ProductPhase",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 53
+      "line": 56
     },
     "enum": {
       "cases": [ {
@@ -142,7 +142,7 @@
     "name": "temporal.features.standaloneactivity.ProductState",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 57
+      "line": 60
     },
     "record": {
       "fields": [ {
@@ -153,10 +153,10 @@
       } ]
     }
   }, {
-    "name": "temporal.features.standaloneactivity.ProtocolFact",
+    "name": "temporal.features.standaloneactivity.SystemFact",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 85
+      "line": 88
     },
     "enum": {
       "cases": [ {
@@ -188,10 +188,10 @@
       } ]
     }
   }, {
-    "name": "temporal.features.standaloneactivity.ProtocolState",
+    "name": "temporal.features.standaloneactivity.SystemState",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 76
+      "line": 79
     },
     "record": {
       "fields": [ {
@@ -227,7 +227,7 @@
     "name": "temporal.features.standaloneactivity.Timeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 36
+      "line": 39
     },
     "enum": {
       "cases": [ {
@@ -240,7 +240,7 @@
     "name": "temporal.features.standaloneactivity.TimeoutType",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 69
+      "line": 72
     },
     "enum": {
       "cases": [ {
@@ -440,484 +440,6 @@
             }
           }
         } ]
-      }
-    }
-  }, {
-    "name": "activityProduct.rules.attemptResult",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 89
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
-      }
-    }, {
-      "name": "result",
-      "type": {
-        "named": "temporal.features.standaloneactivity.AttemptResult"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 89
-      },
-      "match": {
-        "scrutinee": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 89
-          },
-          "var": "result"
-        },
-        "cases": [ {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.standaloneactivity.AttemptResult",
-                "case": "completed"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 89
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.held",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 89
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.complete",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 89
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "else": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
-                },
-                "list": { }
-              }
-            }
-          }
-        }, {
-          "pattern": {
-            "case": {
-              "type": "temporal.features.standaloneactivity.AttemptResult",
-              "case": "failed",
-              "fields": [ {
-                "literal": {
-                  "bool": false
-                }
-              } ]
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 90
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 90
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.held",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 90
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 90
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.fail",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 90
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "else": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
-                },
-                "list": { }
-              }
-            }
-          }
-        }, {
-          "pattern": {
-            "case": {
-              "type": "temporal.features.standaloneactivity.AttemptResult",
-              "case": "failed",
-              "fields": [ {
-                "literal": {
-                  "bool": true
-                }
-              } ]
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 92
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 92
-                },
-                "binary": {
-                  "op": "OP_CONTAINS",
-                  "left": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 83
-                    },
-                    "field": {
-                      "base": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
-                        },
-                        "var": "s"
-                      },
-                      "field": "phase"
-                    }
-                  },
-                  "right": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 92
-                    },
-                    "list": {
-                      "items": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 92
-                        },
-                        "literal": {
-                          "enum": {
-                            "type": "temporal.features.standaloneactivity.ProductPhase",
-                            "case": "started"
-                          }
-                        }
-                      } ]
-                    }
-                  }
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 92
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.retry",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 92
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "else": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 93
-                },
-                "if": {
-                  "condition": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 93
-                    },
-                    "binary": {
-                      "op": "OP_CONTAINS",
-                      "left": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
-                        },
-                        "field": {
-                          "base": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 83
-                            },
-                            "var": "s"
-                          },
-                          "field": "phase"
-                        }
-                      },
-                      "right": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 93
-                        },
-                        "list": {
-                          "items": [ {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                              "line": 93
-                            },
-                            "literal": {
-                              "enum": {
-                                "type": "temporal.features.standaloneactivity.ProductPhase",
-                                "case": "cancelRequested"
-                              }
-                            }
-                          } ]
-                        }
-                      }
-                    }
-                  },
-                  "then": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 93
-                    },
-                    "call": {
-                      "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.cancel",
-                      "args": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 93
-                        },
-                        "var": "s"
-                      } ]
-                    }
-                  },
-                  "else": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 89
-                    },
-                    "list": { }
-                  }
-                }
-              }
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.standaloneactivity.AttemptResult",
-                "case": "canceled"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-              "line": 95
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 95
-                },
-                "binary": {
-                  "op": "OP_CONTAINS",
-                  "left": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 83
-                    },
-                    "field": {
-                      "base": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 83
-                        },
-                        "var": "s"
-                      },
-                      "field": "phase"
-                    }
-                  },
-                  "right": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 95
-                    },
-                    "list": {
-                      "items": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                          "line": 95
-                        },
-                        "literal": {
-                          "enum": {
-                            "type": "temporal.features.standaloneactivity.ProductPhase",
-                            "case": "cancelRequested"
-                          }
-                        }
-                      } ]
-                    }
-                  }
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 95
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.cancel",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                      "line": 95
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "else": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                  "line": 89
-                },
-                "list": { }
-              }
-            }
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "activityProduct.rules.attemptStart",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 84
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 84
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 84
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 83
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 83
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 84
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                    "line": 84
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.ProductPhase",
-                      "case": "scheduled"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 84
-          },
-          "call": {
-            "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.startAttempt",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-                "line": 84
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-            "line": 84
-          },
-          "list": { }
-        }
       }
     }
   }, {
@@ -1498,6 +1020,503 @@
       }
     }
   }, {
+    "name": "activityProduct.rules.poll",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 84
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.ProductState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+        "line": 84
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 84
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 83
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                    "line": 83
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 84
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                    "line": 84
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.ProductPhase",
+                      "case": "scheduled"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 84
+          },
+          "call": {
+            "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.startAttempt",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                "line": 84
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 84
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "activityProduct.rules.respond",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 89
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.ProductState"
+      }
+    }, {
+      "name": "result",
+      "type": {
+        "named": "temporal.features.standaloneactivity.AttemptResult"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+        "line": 89
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+            "line": 89
+          },
+          "var": "result"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.standaloneactivity.AttemptResult",
+                "case": "completed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+              "line": 89
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 89
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.held",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 89
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 89
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.complete",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 89
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 89
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "temporal.features.standaloneactivity.AttemptResult",
+              "case": "failed",
+              "fields": [ {
+                "literal": {
+                  "bool": false
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+              "line": 90
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 90
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.states$.held",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 90
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 90
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.fail",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 90
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 89
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "temporal.features.standaloneactivity.AttemptResult",
+              "case": "failed",
+              "fields": [ {
+                "literal": {
+                  "bool": true
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+              "line": 92
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 92
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 83
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                          "line": 83
+                        },
+                        "var": "s"
+                      },
+                      "field": "phase"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 92
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                          "line": 92
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.features.standaloneactivity.ProductPhase",
+                            "case": "started"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 92
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.retry",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 92
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 93
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 93
+                    },
+                    "binary": {
+                      "op": "OP_CONTAINS",
+                      "left": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                          "line": 83
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                              "line": 83
+                            },
+                            "var": "s"
+                          },
+                          "field": "phase"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                          "line": 93
+                        },
+                        "list": {
+                          "items": [ {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                              "line": 93
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.features.standaloneactivity.ProductPhase",
+                                "case": "cancelRequested"
+                              }
+                            }
+                          } ]
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 93
+                    },
+                    "call": {
+                      "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.cancel",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                          "line": 93
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 89
+                    },
+                    "list": { }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.standaloneactivity.AttemptResult",
+                "case": "canceled"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+              "line": 95
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 95
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 83
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                          "line": 83
+                        },
+                        "var": "s"
+                      },
+                      "field": "phase"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 95
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                          "line": 95
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.features.standaloneactivity.ProductPhase",
+                            "case": "cancelRequested"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 95
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.product.ActivityProduct$.effects$.cancel",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                      "line": 95
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+                  "line": 89
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "activityProduct.rules.stop",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+      "line": 110
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.ProductState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
+        "line": 110
+      },
+      "list": { }
+    }
+  }, {
     "name": "activityProduct.rules.timeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
@@ -1619,34 +1638,15 @@
       }
     }
   }, {
-    "name": "activityProduct.rules.workerStop",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-      "line": 110
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProductState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/product/Product.scala",
-        "line": 110
-      },
-      "list": { }
-    }
-  }, {
-    "name": "activityProtocol.evidence",
+    "name": "activitySystem.evidence",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 38
     },
     "params": [ {
-      "name": "protocolFact",
+      "name": "systemFact",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolFact"
+        "named": "temporal.features.standaloneactivity.SystemFact"
       }
     } ],
     "body": {
@@ -1660,13 +1660,13 @@
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
             "line": 39
           },
-          "var": "protocolFact"
+          "var": "systemFact"
         },
         "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "statusScheduled"
               }
             }
@@ -1684,7 +1684,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "statusStarted"
               }
             }
@@ -1702,7 +1702,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "statusPaused"
               }
             }
@@ -1720,7 +1720,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "statusCancelRequested"
               }
             }
@@ -1738,7 +1738,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "statusCompleted"
               }
             }
@@ -1756,7 +1756,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "statusFailed"
               }
             }
@@ -1774,7 +1774,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "statusCanceled"
               }
             }
@@ -1792,7 +1792,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "statusTerminated"
               }
             }
@@ -1809,7 +1809,7 @@
         }, {
           "pattern": {
             "case": {
-              "type": "temporal.features.standaloneactivity.ProtocolFact",
+              "type": "temporal.features.standaloneactivity.SystemFact",
               "case": "statusTimedOut",
               "fields": [ {
                 "wildcard": { }
@@ -1829,7 +1829,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.features.standaloneactivity.ProtocolFact",
+                "type": "temporal.features.standaloneactivity.SystemFact",
                 "case": "attemptCount"
               }
             }
@@ -1847,7 +1847,861 @@
       }
     }
   }, {
-    "name": "activityProtocol.rules.attemptResult",
+    "name": "activitySystem.rules.backoff",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 191
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 191
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 191
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 156
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 156
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 191
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 191
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.Phase",
+                      "case": "backingOff"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 191
+          },
+          "call": {
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.retry",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 191
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 191
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "activitySystem.rules.control",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 179
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.SystemState"
+      }
+    }, {
+      "name": "control",
+      "type": {
+        "named": "temporal.features.standaloneactivity.Control"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 179
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 179
+          },
+          "var": "control"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.standaloneactivity.Control",
+                "case": "pause"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+              "line": 179
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 156
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 156
+                        },
+                        "var": "s"
+                      },
+                      "field": "phase"
+                    }
+                  } ]
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 179
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 181
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 181
+                    },
+                    "binary": {
+                      "op": "OP_CONTAINS",
+                      "left": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 156
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 156
+                            },
+                            "var": "s"
+                          },
+                          "field": "phase"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 181
+                        },
+                        "list": {
+                          "items": [ {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 181
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.features.standaloneactivity.Phase",
+                                "case": "scheduled"
+                              }
+                            }
+                          }, {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 181
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.features.standaloneactivity.Phase",
+                                "case": "backingOff"
+                              }
+                            }
+                          } ]
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 181
+                    },
+                    "call": {
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.pause",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 181
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 182
+                    },
+                    "if": {
+                      "condition": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 182
+                        },
+                        "binary": {
+                          "op": "OP_CONTAINS",
+                          "left": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 156
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                                  "line": 156
+                                },
+                                "var": "s"
+                              },
+                              "field": "phase"
+                            }
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 182
+                            },
+                            "list": {
+                              "items": [ {
+                                "position": {
+                                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                                  "line": 182
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "temporal.features.standaloneactivity.Phase",
+                                    "case": "started"
+                                  }
+                                }
+                              } ]
+                            }
+                          }
+                        }
+                      },
+                      "then": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 182
+                        },
+                        "call": {
+                          "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestPause",
+                          "args": [ {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 182
+                            },
+                            "var": "s"
+                          } ]
+                        }
+                      },
+                      "else": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 179
+                        },
+                        "list": { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.standaloneactivity.Control",
+                "case": "unpause"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+              "line": 179
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 156
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 156
+                        },
+                        "var": "s"
+                      },
+                      "field": "phase"
+                    }
+                  } ]
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 179
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 185
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 185
+                    },
+                    "binary": {
+                      "op": "OP_CONTAINS",
+                      "left": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 156
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 156
+                            },
+                            "var": "s"
+                          },
+                          "field": "phase"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 185
+                        },
+                        "list": {
+                          "items": [ {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 185
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.features.standaloneactivity.Phase",
+                                "case": "paused"
+                              }
+                            }
+                          } ]
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 185
+                    },
+                    "call": {
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.resume",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 185
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 186
+                    },
+                    "if": {
+                      "condition": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 186
+                        },
+                        "binary": {
+                          "op": "OP_CONTAINS",
+                          "left": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 156
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                                  "line": 156
+                                },
+                                "var": "s"
+                              },
+                              "field": "phase"
+                            }
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 186
+                            },
+                            "list": {
+                              "items": [ {
+                                "position": {
+                                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                                  "line": 186
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "temporal.features.standaloneactivity.Phase",
+                                    "case": "pauseRequested"
+                                  }
+                                }
+                              } ]
+                            }
+                          }
+                        }
+                      },
+                      "then": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 186
+                        },
+                        "call": {
+                          "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.withdrawPause",
+                          "args": [ {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 186
+                            },
+                            "var": "s"
+                          } ]
+                        }
+                      },
+                      "else": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 179
+                        },
+                        "list": { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.standaloneactivity.Control",
+                "case": "requestCancel"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+              "line": 179
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 156
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 156
+                        },
+                        "var": "s"
+                      },
+                      "field": "phase"
+                    }
+                  } ]
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 179
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 188
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 188
+                    },
+                    "call": {
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 156
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 156
+                            },
+                            "var": "s"
+                          },
+                          "field": "phase"
+                        }
+                      } ]
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 188
+                    },
+                    "call": {
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestCancel",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 188
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 179
+                    },
+                    "list": { }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.features.standaloneactivity.Control",
+                "case": "terminate"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+              "line": 179
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 156
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 156
+                        },
+                        "var": "s"
+                      },
+                      "field": "phase"
+                    }
+                  } ]
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 179
+                },
+                "call": {
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 179
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                  "line": 189
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 189
+                    },
+                    "call": {
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 156
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 156
+                            },
+                            "var": "s"
+                          },
+                          "field": "phase"
+                        }
+                      } ]
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 189
+                    },
+                    "call": {
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.terminate",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 189
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 179
+                    },
+                    "list": { }
+                  }
+                }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "activitySystem.rules.poll",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 158
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.SystemState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 158
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 158
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 156
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 156
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 158
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 158
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.Phase",
+                      "case": "scheduled"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 158
+          },
+          "call": {
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.startAttempt",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 158
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 158
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "activitySystem.rules.respond",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 163
@@ -1855,7 +2709,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     }, {
       "name": "result",
@@ -1897,7 +2751,7 @@
                   "line": 163
                 },
                 "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.held",
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -1922,7 +2776,7 @@
                   "line": 163
                 },
                 "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.complete",
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.complete",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -1965,7 +2819,7 @@
                   "line": 164
                 },
                 "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.held",
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -1990,7 +2844,7 @@
                   "line": 164
                 },
                 "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.fail",
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.fail",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -2078,7 +2932,7 @@
                   "line": 166
                 },
                 "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.backOff",
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.backOff",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -2145,7 +2999,7 @@
                       "line": 167
                     },
                     "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.cancel",
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.cancel",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -2212,7 +3066,7 @@
                           "line": 168
                         },
                         "call": {
-                          "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.pause",
+                          "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.pause",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -2301,7 +3155,7 @@
                   "line": 170
                 },
                 "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.cancel",
+                  "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.cancel",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -2324,861 +3178,7 @@
       }
     }
   }, {
-    "name": "activityProtocol.rules.attemptStart",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 158
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 158
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 158
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 156
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 156
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 158
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 158
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.Phase",
-                      "case": "scheduled"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 158
-          },
-          "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.startAttempt",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 158
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 158
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "activityProtocol.rules.backoff",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 191
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 191
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 191
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 156
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 156
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 191
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 191
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.Phase",
-                      "case": "backingOff"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 191
-          },
-          "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.retry",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 191
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 191
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "activityProtocol.rules.control",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 179
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
-      }
-    }, {
-      "name": "control",
-      "type": {
-        "named": "temporal.features.standaloneactivity.Control"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 179
-      },
-      "match": {
-        "scrutinee": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 179
-          },
-          "var": "control"
-        },
-        "cases": [ {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.standaloneactivity.Control",
-                "case": "pause"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 179
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 179
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.terminal",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 156
-                    },
-                    "field": {
-                      "base": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 156
-                        },
-                        "var": "s"
-                      },
-                      "field": "phase"
-                    }
-                  } ]
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 179
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.notFound",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 179
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "else": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 181
-                },
-                "if": {
-                  "condition": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 181
-                    },
-                    "binary": {
-                      "op": "OP_CONTAINS",
-                      "left": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 156
-                        },
-                        "field": {
-                          "base": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 156
-                            },
-                            "var": "s"
-                          },
-                          "field": "phase"
-                        }
-                      },
-                      "right": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 181
-                        },
-                        "list": {
-                          "items": [ {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 181
-                            },
-                            "literal": {
-                              "enum": {
-                                "type": "temporal.features.standaloneactivity.Phase",
-                                "case": "scheduled"
-                              }
-                            }
-                          }, {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 181
-                            },
-                            "literal": {
-                              "enum": {
-                                "type": "temporal.features.standaloneactivity.Phase",
-                                "case": "backingOff"
-                              }
-                            }
-                          } ]
-                        }
-                      }
-                    }
-                  },
-                  "then": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 181
-                    },
-                    "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.pause",
-                      "args": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 181
-                        },
-                        "var": "s"
-                      } ]
-                    }
-                  },
-                  "else": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 182
-                    },
-                    "if": {
-                      "condition": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 182
-                        },
-                        "binary": {
-                          "op": "OP_CONTAINS",
-                          "left": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 156
-                            },
-                            "field": {
-                              "base": {
-                                "position": {
-                                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 156
-                                },
-                                "var": "s"
-                              },
-                              "field": "phase"
-                            }
-                          },
-                          "right": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 182
-                            },
-                            "list": {
-                              "items": [ {
-                                "position": {
-                                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 182
-                                },
-                                "literal": {
-                                  "enum": {
-                                    "type": "temporal.features.standaloneactivity.Phase",
-                                    "case": "started"
-                                  }
-                                }
-                              } ]
-                            }
-                          }
-                        }
-                      },
-                      "then": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 182
-                        },
-                        "call": {
-                          "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.requestPause",
-                          "args": [ {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 182
-                            },
-                            "var": "s"
-                          } ]
-                        }
-                      },
-                      "else": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 179
-                        },
-                        "list": { }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.standaloneactivity.Control",
-                "case": "unpause"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 179
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 179
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.terminal",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 156
-                    },
-                    "field": {
-                      "base": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 156
-                        },
-                        "var": "s"
-                      },
-                      "field": "phase"
-                    }
-                  } ]
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 179
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.notFound",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 179
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "else": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 185
-                },
-                "if": {
-                  "condition": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 185
-                    },
-                    "binary": {
-                      "op": "OP_CONTAINS",
-                      "left": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 156
-                        },
-                        "field": {
-                          "base": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 156
-                            },
-                            "var": "s"
-                          },
-                          "field": "phase"
-                        }
-                      },
-                      "right": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 185
-                        },
-                        "list": {
-                          "items": [ {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 185
-                            },
-                            "literal": {
-                              "enum": {
-                                "type": "temporal.features.standaloneactivity.Phase",
-                                "case": "paused"
-                              }
-                            }
-                          } ]
-                        }
-                      }
-                    }
-                  },
-                  "then": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 185
-                    },
-                    "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.resume",
-                      "args": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 185
-                        },
-                        "var": "s"
-                      } ]
-                    }
-                  },
-                  "else": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 186
-                    },
-                    "if": {
-                      "condition": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 186
-                        },
-                        "binary": {
-                          "op": "OP_CONTAINS",
-                          "left": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 156
-                            },
-                            "field": {
-                              "base": {
-                                "position": {
-                                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 156
-                                },
-                                "var": "s"
-                              },
-                              "field": "phase"
-                            }
-                          },
-                          "right": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 186
-                            },
-                            "list": {
-                              "items": [ {
-                                "position": {
-                                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 186
-                                },
-                                "literal": {
-                                  "enum": {
-                                    "type": "temporal.features.standaloneactivity.Phase",
-                                    "case": "pauseRequested"
-                                  }
-                                }
-                              } ]
-                            }
-                          }
-                        }
-                      },
-                      "then": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 186
-                        },
-                        "call": {
-                          "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.withdrawPause",
-                          "args": [ {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 186
-                            },
-                            "var": "s"
-                          } ]
-                        }
-                      },
-                      "else": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 179
-                        },
-                        "list": { }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.standaloneactivity.Control",
-                "case": "requestCancel"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 179
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 179
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.terminal",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 156
-                    },
-                    "field": {
-                      "base": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 156
-                        },
-                        "var": "s"
-                      },
-                      "field": "phase"
-                    }
-                  } ]
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 179
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.notFound",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 179
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "else": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 188
-                },
-                "if": {
-                  "condition": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 188
-                    },
-                    "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.live",
-                      "args": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 156
-                        },
-                        "field": {
-                          "base": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 156
-                            },
-                            "var": "s"
-                          },
-                          "field": "phase"
-                        }
-                      } ]
-                    }
-                  },
-                  "then": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 188
-                    },
-                    "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.requestCancel",
-                      "args": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 188
-                        },
-                        "var": "s"
-                      } ]
-                    }
-                  },
-                  "else": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 179
-                    },
-                    "list": { }
-                  }
-                }
-              }
-            }
-          }
-        }, {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.features.standaloneactivity.Control",
-                "case": "terminate"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 179
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 179
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.terminal",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 156
-                    },
-                    "field": {
-                      "base": {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 156
-                        },
-                        "var": "s"
-                      },
-                      "field": "phase"
-                    }
-                  } ]
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 179
-                },
-                "call": {
-                  "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.notFound",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 179
-                    },
-                    "var": "s"
-                  } ]
-                }
-              },
-              "else": {
-                "position": {
-                  "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 189
-                },
-                "if": {
-                  "condition": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 189
-                    },
-                    "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.live",
-                      "args": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 156
-                        },
-                        "field": {
-                          "base": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 156
-                            },
-                            "var": "s"
-                          },
-                          "field": "phase"
-                        }
-                      } ]
-                    }
-                  },
-                  "then": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 189
-                    },
-                    "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.terminate",
-                      "args": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 189
-                        },
-                        "var": "s"
-                      } ]
-                    }
-                  },
-                  "else": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 179
-                    },
-                    "list": { }
-                  }
-                }
-              }
-            }
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "activityProtocol.rules.scheduleToClose",
+    "name": "activitySystem.rules.scheduleToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 192
@@ -3186,7 +3186,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -3208,7 +3208,7 @@
                 "line": 193
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.live",
+                "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -3272,7 +3272,7 @@
             "line": 193
           },
           "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.timeOut",
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.timeOut",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -3303,7 +3303,7 @@
       }
     }
   }, {
-    "name": "activityProtocol.rules.scheduleToStart",
+    "name": "activitySystem.rules.scheduleToStart",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 198
@@ -3311,7 +3311,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -3333,7 +3333,7 @@
                 "line": 199
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.waiting",
+                "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.waiting",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -3397,7 +3397,7 @@
             "line": 199
           },
           "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.timeOut",
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.timeOut",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -3428,7 +3428,7 @@
       }
     }
   }, {
-    "name": "activityProtocol.rules.start",
+    "name": "activitySystem.rules.start",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 157
@@ -3436,7 +3436,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     }, {
       "name": "scheduleToClose",
@@ -3511,7 +3511,7 @@
             "line": 157
           },
           "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.schedule",
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.schedule",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -3549,7 +3549,7 @@
       }
     }
   }, {
-    "name": "activityProtocol.rules.startToClose",
+    "name": "activitySystem.rules.startToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 204
@@ -3557,7 +3557,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -3579,7 +3579,7 @@
                 "line": 205
               },
               "call": {
-                "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.held",
+                "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -3643,7 +3643,7 @@
             "line": 206
           },
           "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.timeOut",
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.timeOut",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -3674,7 +3674,7 @@
       }
     }
   }, {
-    "name": "activityProtocol.rules.workerStop",
+    "name": "activitySystem.rules.stop",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 190
@@ -3682,7 +3682,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -3706,7 +3706,7 @@
             "line": 190
           },
           "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.keep",
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.keep",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -3753,7 +3753,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -3850,7 +3850,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -3947,7 +3947,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -4105,7 +4105,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -4202,7 +4202,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -4299,7 +4299,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -4396,7 +4396,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -4493,7 +4493,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -4590,7 +4590,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -4687,7 +4687,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5071,7 +5071,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.backOff",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.backOff",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 118
@@ -5079,7 +5079,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5098,7 +5098,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5148,7 +5148,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusScheduled"
                     }
                   }
@@ -5159,7 +5159,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "attemptCount"
                     }
                   }
@@ -5171,7 +5171,7 @@
                 "line": 119
               },
               "literal": {
-                "text": "a retryable failure backs off; the caller reads scheduled again"
+                "text": "a retryable failure backs off; the client reads scheduled again"
               }
             } ]
           }
@@ -5179,7 +5179,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.cancel",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.cancel",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 122
@@ -5187,7 +5187,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5206,7 +5206,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5256,7 +5256,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusCanceled"
                     }
                   }
@@ -5276,7 +5276,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.complete",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.complete",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 113
@@ -5284,7 +5284,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5303,7 +5303,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5353,7 +5353,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusCompleted"
                     }
                   }
@@ -5373,7 +5373,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.fail",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.fail",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 115
@@ -5381,7 +5381,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5400,7 +5400,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5450,7 +5450,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusFailed"
                     }
                   }
@@ -5470,7 +5470,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.keep",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.keep",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 148
@@ -5478,7 +5478,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5497,7 +5497,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5531,7 +5531,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.notFound",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 125
@@ -5539,7 +5539,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5592,7 +5592,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.pause",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.pause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 127
@@ -5600,7 +5600,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5619,7 +5619,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5669,7 +5669,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusPaused"
                     }
                   }
@@ -5689,7 +5689,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.requestCancel",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestCancel",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 142
@@ -5697,7 +5697,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5716,7 +5716,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5766,7 +5766,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusCancelRequested"
                     }
                   }
@@ -5786,7 +5786,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.requestPause",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestPause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 133
@@ -5794,7 +5794,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5813,7 +5813,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5863,7 +5863,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusPaused"
                     }
                   }
@@ -5883,7 +5883,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.resume",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.resume",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 137
@@ -5891,7 +5891,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -5910,7 +5910,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -5960,7 +5960,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusScheduled"
                     }
                   }
@@ -5980,7 +5980,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.retry",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.retry",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 151
@@ -5988,7 +5988,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -6007,7 +6007,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -6064,7 +6064,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.schedule",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.schedule",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 88
@@ -6072,7 +6072,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     }, {
       "name": "scheduleToClose",
@@ -6106,7 +6106,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -6120,7 +6120,7 @@
                 "line": 95
               },
               "construct": {
-                "type": "temporal.features.standaloneactivity.ProtocolState",
+                "type": "temporal.features.standaloneactivity.SystemState",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -6173,7 +6173,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusScheduled"
                     }
                   }
@@ -6193,7 +6193,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.startAttempt",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.startAttempt",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 106
@@ -6201,7 +6201,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -6220,7 +6220,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -6263,7 +6263,7 @@
                       "line": 108
                     },
                     "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.saturatingSucc",
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.saturatingSucc",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -6297,7 +6297,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusStarted"
                     }
                   }
@@ -6308,7 +6308,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "attemptCount"
                     }
                   }
@@ -6328,7 +6328,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.terminate",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.terminate",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 145
@@ -6336,7 +6336,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -6355,7 +6355,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -6405,7 +6405,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusTerminated"
                     }
                   }
@@ -6425,7 +6425,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.timeOut",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.timeOut",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 153
@@ -6433,7 +6433,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     }, {
       "name": "t",
@@ -6457,7 +6457,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -6506,7 +6506,7 @@
                     "line": 154
                   },
                   "construct": {
-                    "type": "temporal.features.standaloneactivity.ProtocolFact",
+                    "type": "temporal.features.standaloneactivity.SystemFact",
                     "case": "statusTimedOut",
                     "args": [ {
                       "position": {
@@ -6532,7 +6532,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.effects$.withdrawPause",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.withdrawPause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 140
@@ -6540,7 +6540,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -6559,7 +6559,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 163
+                "line": 166
               },
               "literal": {
                 "enum": {
@@ -6609,7 +6609,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.ProtocolFact",
+                      "type": "temporal.features.standaloneactivity.SystemFact",
                       "case": "statusStarted"
                     }
                   }
@@ -6629,7 +6629,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.refinement$.toProduct",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.refinement$.toProduct",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 69
@@ -6637,7 +6637,7 @@
     "params": [ {
       "name": "s",
       "type": {
-        "named": "temporal.features.standaloneactivity.ProtocolState"
+        "named": "temporal.features.standaloneactivity.SystemState"
       }
     } ],
     "body": {
@@ -6965,7 +6965,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.held",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 55
@@ -7035,7 +7035,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.live",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 51
@@ -7138,7 +7138,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.saturatingSucc",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.saturatingSucc",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 60
@@ -7237,7 +7237,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.terminal",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 48
@@ -7329,7 +7329,7 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.waiting",
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.waiting",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 58
@@ -7389,13 +7389,13 @@
     }
   } ],
   "actions": [ {
-    "id": "temporal.features.standaloneactivity.caller.control",
+    "id": "temporal.features.standaloneactivity.client.control",
     "name": "control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 122
+      "line": 125
     },
-    "actor": "caller",
+    "actor": "client",
     "inputs": [ {
       "name": "control",
       "type": {
@@ -7406,13 +7406,13 @@
     "schemas": [ "temporal.api.workflowservice.v1.PauseActivityExecutionRequest", "temporal.api.workflowservice.v1.UnpauseActivityExecutionRequest", "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest", "temporal.api.workflowservice.v1.TerminateActivityExecutionRequest" ],
     "results": "Delivery"
   }, {
-    "id": "temporal.features.standaloneactivity.caller.start",
+    "id": "temporal.features.standaloneactivity.client.start",
     "name": "start",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 113
+      "line": 116
     },
-    "actor": "caller",
+    "actor": "client",
     "inputs": [ {
       "name": "scheduleToClose",
       "type": {
@@ -7436,7 +7436,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 155
+      "line": 158
     },
     "actor": "system",
     "timer": true
@@ -7445,7 +7445,7 @@
     "name": "scheduleToStart",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 156
+      "line": 159
     },
     "actor": "system",
     "timer": true
@@ -7454,7 +7454,7 @@
     "name": "startToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 157
+      "line": 160
     },
     "actor": "system",
     "timer": true
@@ -7463,7 +7463,7 @@
     "name": "backoff",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 151
+      "line": 154
     },
     "actor": "system",
     "timer": true
@@ -7472,16 +7472,26 @@
     "name": "timeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 150
+      "line": 153
     },
     "actor": "system",
     "timer": true
   }, {
-    "id": "temporal.features.standaloneactivity.worker.attemptResult",
-    "name": "attemptResult",
+    "id": "temporal.features.standaloneactivity.worker.poll",
+    "name": "poll",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 139
+      "line": 140
+    },
+    "actor": "worker",
+    "on": "activity",
+    "schemas": [ "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse" ]
+  }, {
+    "id": "temporal.features.standaloneactivity.worker.respond",
+    "name": "respond",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+      "line": 142
     },
     "actor": "worker",
     "inputs": [ {
@@ -7516,21 +7526,11 @@
       "example": "ApplicationFailureRetryable"
     } ]
   }, {
-    "id": "temporal.features.standaloneactivity.worker.attemptStart",
-    "name": "attemptStart",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 137
-    },
-    "actor": "worker",
-    "on": "activity",
-    "schemas": [ "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse" ]
-  }, {
-    "id": "temporal.shared.worker.worker.workerStop",
-    "name": "workerStop",
+    "id": "temporal.shared.worker.worker.stop",
+    "name": "stop",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 52
+      "line": 55
     },
     "actor": "worker"
   } ],
@@ -7597,29 +7597,29 @@
       }
     },
     "steps": [ {
-      "action": "temporal.features.standaloneactivity.worker.attemptStart",
-      "function": "activityProduct.rules.attemptStart",
+      "action": "temporal.features.standaloneactivity.worker.poll",
+      "function": "activityProduct.rules.poll",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
         "line": 84
       }
     }, {
-      "action": "temporal.features.standaloneactivity.worker.attemptResult",
-      "function": "activityProduct.rules.attemptResult",
+      "action": "temporal.features.standaloneactivity.worker.respond",
+      "function": "activityProduct.rules.respond",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
         "line": 89
       }
     }, {
-      "action": "temporal.features.standaloneactivity.caller.control",
+      "action": "temporal.features.standaloneactivity.client.control",
       "function": "activityProduct.rules.control",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
         "line": 99
       }
     }, {
-      "action": "temporal.shared.worker.worker.workerStop",
-      "function": "activityProduct.rules.workerStop",
+      "action": "temporal.shared.worker.worker.stop",
+      "function": "activityProduct.rules.stop",
       "position": {
         "file": "model/temporal/features/standaloneactivity/product/Product.scala",
         "line": 110
@@ -7635,22 +7635,22 @@
     "evidence": "activityProduct.evidence"
   }, {
     "family": "temporal.features.standaloneactivity.system",
-    "name": "activityProtocol",
+    "name": "activitySystem",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 24
     },
     "entity": "activity",
-    "stateType": "temporal.features.standaloneactivity.ProtocolState",
+    "stateType": "temporal.features.standaloneactivity.SystemState",
     "outcomeType": "temporal.features.standaloneactivity.Outcome",
-    "factType": "temporal.features.standaloneactivity.ProtocolFact",
+    "factType": "temporal.features.standaloneactivity.SystemFact",
     "starts": [ {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 28
       },
       "construct": {
-        "type": "temporal.features.standaloneactivity.ProtocolState",
+        "type": "temporal.features.standaloneactivity.SystemState",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -7715,7 +7715,7 @@
         "params": [ {
           "name": "s",
           "type": {
-            "named": "temporal.features.standaloneactivity.ProtocolState"
+            "named": "temporal.features.standaloneactivity.SystemState"
           }
         } ],
         "body": {
@@ -7724,7 +7724,7 @@
             "line": 35
           },
           "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivityProtocol$.states$.terminal",
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
@@ -7746,74 +7746,74 @@
       }
     },
     "steps": [ {
-      "action": "temporal.features.standaloneactivity.caller.start",
-      "function": "activityProtocol.rules.start",
+      "action": "temporal.features.standaloneactivity.client.start",
+      "function": "activitySystem.rules.start",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 157
       }
     }, {
-      "action": "temporal.features.standaloneactivity.worker.attemptStart",
-      "function": "activityProtocol.rules.attemptStart",
+      "action": "temporal.features.standaloneactivity.worker.poll",
+      "function": "activitySystem.rules.poll",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 158
       }
     }, {
-      "action": "temporal.features.standaloneactivity.worker.attemptResult",
-      "function": "activityProtocol.rules.attemptResult",
+      "action": "temporal.features.standaloneactivity.worker.respond",
+      "function": "activitySystem.rules.respond",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 163
       }
     }, {
-      "action": "temporal.features.standaloneactivity.caller.control",
-      "function": "activityProtocol.rules.control",
+      "action": "temporal.features.standaloneactivity.client.control",
+      "function": "activitySystem.rules.control",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 179
       }
     }, {
-      "action": "temporal.shared.worker.worker.workerStop",
-      "function": "activityProtocol.rules.workerStop",
+      "action": "temporal.shared.worker.worker.stop",
+      "function": "activitySystem.rules.stop",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 190
       }
     }, {
       "action": "temporal.features.standaloneactivity.timers.backoff",
-      "function": "activityProtocol.rules.backoff",
+      "function": "activitySystem.rules.backoff",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 191
       }
     }, {
       "action": "temporal.features.standaloneactivity.deadline.scheduleToClose",
-      "function": "activityProtocol.rules.scheduleToClose",
+      "function": "activitySystem.rules.scheduleToClose",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 192
       }
     }, {
       "action": "temporal.features.standaloneactivity.deadline.scheduleToStart",
-      "function": "activityProtocol.rules.scheduleToStart",
+      "function": "activitySystem.rules.scheduleToStart",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 198
       }
     }, {
       "action": "temporal.features.standaloneactivity.deadline.startToClose",
-      "function": "activityProtocol.rules.startToClose",
+      "function": "activitySystem.rules.startToClose",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
         "line": 204
       }
     } ],
-    "evidence": "activityProtocol.evidence",
+    "evidence": "activitySystem.evidence",
     "unobservable": [ "temporal.features.standaloneactivity.timers.backoff" ],
     "refines": {
       "product": "activityProduct",
-      "map": "temporal.features.standaloneactivity.system.ActivityProtocol$.refinement$.toProduct"
+      "map": "temporal.features.standaloneactivity.system.ActivitySystem$.refinement$.toProduct"
     }
   } ],
   "realizations": [ {
@@ -7823,7 +7823,7 @@
       "file": "model/irgen/testdata/lifts/Hints.scala",
       "line": 33
     },
-    "machine": "activityProtocol",
+    "machine": "activitySystem",
     "producer": "fixture.hints.testpilot",
     "producerVersion": "1",
     "roles": [ {
@@ -8074,7 +8074,7 @@
         "line": 40
       },
       "step": {
-        "action": "temporal.features.standaloneactivity.worker.attemptStart"
+        "action": "temporal.features.standaloneactivity.worker.poll"
       },
       "kind": "CAUSE_KIND_DELIVERY"
     }, {
@@ -8095,7 +8095,7 @@
       "file": "model/irgen/testdata/lifts/Hints.scala",
       "line": 52
     },
-    "machine": "activityProtocol",
+    "machine": "activitySystem",
     "producer": "fixture.hints.testpilot",
     "producerVersion": "1",
     "roles": [ {
@@ -8236,7 +8236,7 @@
         "line": 54
       },
       "step": {
-        "action": "temporal.features.standaloneactivity.worker.attemptStart"
+        "action": "temporal.features.standaloneactivity.worker.poll"
       },
       "kind": "CAUSE_KIND_DELIVERY"
     }, {

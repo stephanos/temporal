@@ -25,8 +25,8 @@ func TestTaskQueueResults(t *testing.T) {
 	c := taskQueueModel(t)
 	require.Empty(t, c.report.Unsupported())
 	require.Equal(t, map[string]ReceiptKind{
-		"refinement matchingQueue dispatchQueue":  Verified,
-		"refinement forgetfulQueue dispatchQueue": RefinementRejected,
+		"refinement taskQueueSystem taskQueueProduct":  Verified,
+		"refinement forgetfulQueue taskQueueProduct": RefinementRejected,
 		"composition jobOverMatching":             Verified,
 		"composition jobOverForgetful":            RefinementRejected,
 
@@ -59,7 +59,7 @@ func TestTaskQueueWitnesses(t *testing.T) {
 // of its own.
 func TestTaskQueueForgetfulProvider(t *testing.T) {
 	c := taskQueueModel(t)
-	rejected := receiptOf(t, c.report, "refinement forgetfulQueue dispatchQueue")
+	rejected := receiptOf(t, c.report, "refinement forgetfulQueue taskQueueProduct")
 	require.Equal(t, umpire.RefinementUnmatched, rejected.Failure)
 	require.Equal(t, []string{"enqueue", "addActivityTask", "crash"}, taken(rejected.Witness))
 	require.Equal(t, "nowhere-false-never", last(t, rejected.Witness).State.Value)

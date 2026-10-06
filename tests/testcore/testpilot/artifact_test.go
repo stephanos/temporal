@@ -312,7 +312,7 @@ func TestLeanNexusCallerCasePreparesWithCheckedProvenance(t *testing.T) {
 
 	provenance := source.GetProvenance()
 	require.Equal(t, []string{
-		"temporal.features.nexuscaller.system.target.nexusProtocol",
+		"temporal.features.nexuscaller.system.target.nexusSystem",
 		"temporal.features.nexuscaller.system.behavior.asyncThenSucceeded",
 		"temporal.features.nexuscaller.system.query.asyncCompletion",
 		"temporal.features.nexuscaller.system.property.completionSucceeds",

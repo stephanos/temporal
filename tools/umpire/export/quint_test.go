@@ -19,7 +19,7 @@ import (
 )
 
 // slices of the lifted IR the backends are gated on, by file.
-var irFiles = []string{"activity", "activity-system", "nexus-caller", "nexus-close"}
+var irFiles = []string{"activity", "activity-record", "nexus-caller", "nexus-close"}
 
 func loadModel(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
@@ -102,10 +102,10 @@ func TestAgreementReadsAFaithfulDump(t *testing.T) {
 }
 
 func TestAgreementRejectsATamperedDump(t *testing.T) {
-	s := openNamed(t, "activity-system")
+	s := openNamed(t, "activity-record")
 	x := exported(t, s)
 	parts := dumpPartsOf(t, s, x)
-	const machine = "staleAdmission"
+	const machine = "trustingActivityRecord"
 	cases := map[string]struct {
 		tamper func(d map[string]any)
 		claim  Claim
@@ -195,7 +195,7 @@ func TestAgreementRejectsATamperedDump(t *testing.T) {
 			require.Equal(t, Disagreed, r.Kind, r.Explanation)
 			require.Contains(t, strings.Join(r.Differences, "\n"), c.says)
 			// Another machine's agreement is its own.
-			require.Equal(t, Agreed, only(t, receipts, TransitionAgreement, "currentAdmission").Kind)
+			require.Equal(t, Agreed, only(t, receipts, TransitionAgreement, "activityRecord").Kind)
 		})
 	}
 }
@@ -250,8 +250,8 @@ func TestQuintExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 		}, "hole unknownPolicy"},
 		// A match with a case removed leaves a value no case matches: an undeclared hole, which Go reads
 		// as hole rows.
-		"a value no case matches": {"activity-system", func(m *umpirespb.Model) {
-			match := function(m, "currentAdmission.rules.control").GetBody().GetMatch()
+		"a value no case matches": {"activity-record", func(m *umpirespb.Model) {
+			match := function(m, "activityRecord.rules.control").GetBody().GetMatch()
 			match.Cases = match.GetCases()[:1]
 		}, "an undeclared hole at the row"},
 		"a hole in a machine's ends": {"", func(m *umpirespb.Model) {
@@ -296,7 +296,7 @@ func function(m *umpirespb.Model, name string) *umpirespb.Function {
 // phase, to both memberships at once: an activity is over only when it is completed and timed out, which no
 // state is, so terminal finality is never closed and never reopened.
 func overAtOnce(m *umpirespb.Model) {
-	body := function(m, "temporal.features.standaloneactivity.system.CurrentAdmission$.states$.terminal").GetBody()
+	body := function(m, "temporal.features.standaloneactivity.system.ActivityRecord$.states$.terminal").GetBody()
 	in := body.GetBinary()
 	is := func(item *umpirespb.Expr) *umpirespb.Expr {
 		return &umpirespb.Expr{Position: item.GetPosition(), Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{
@@ -324,21 +324,21 @@ func stepFunction(m *umpirespb.Model, machine string) *umpirespb.Function {
 // What is in the slice and not exported is listed, and is no agreement: compositions, refinements and
 // progress claims.
 func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
-	s := openNamed(t, "activity-system")
+	s := openNamed(t, "activity-record")
 	x := exported(t, s)
 	got := kinds(x.Unsupported)
-	require.Equal(t, Unsupported, got["module-refinement matchingQueue"])
+	require.Equal(t, Unsupported, got["module-refinement taskQueueSystem"])
 	require.Equal(t, Unsupported, got["query-agreement 87 Queries"])
 	// Five of the seven compositions are exported. The two over a provider that does not refine the
 	// queue it replaces have no composed table in Go either: the reader rejects the replacement.
-	require.Equal(t, []string{"currentOverLossyMatching", "currentOverMatching", "currentOverQueue", "staleOverMatching", "staleOverQueue"}, x.Compositions)
-	for _, rejected := range []string{"currentOverForgetful", "currentOverVolatile"} {
+	require.Equal(t, []string{"recordOverLossyMatching", "recordOverMatching", "recordOverQueue", "trustingRecordOverMatching", "trustingRecordOverQueue"}, x.Compositions)
+	for _, rejected := range []string{"recordOverForgetful", "recordOverVolatile"} {
 		r := only(t, x.Unsupported, TransitionAgreement, rejected)
 		require.Equal(t, Unsupported, r.Kind)
 		require.Contains(t, r.Explanation, "goir rejects the replacement")
 	}
 	// A replacement that holds is Go's verdict, and no refinement is exported for it.
-	for _, replacing := range []string{"currentOverLossyMatching", "currentOverMatching", "staleOverMatching"} {
+	for _, replacing := range []string{"recordOverLossyMatching", "recordOverMatching", "trustingRecordOverMatching"} {
 		require.Contains(t, only(t, x.Unsupported, ModuleRefinement, replacing).Explanation, "goir's verdict")
 	}
 	// Seven machine refinements, three replacements, two rejected compositions and the Queries; the
@@ -356,9 +356,9 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 // product of the machine and its monitors; Quint's must equal them (TestQuintAgreement).
 func TestGoMonitorVerdictsAreTheSpecimens(t *testing.T) {
 	want := map[string]map[string][]string{
-		"activity-system": {
-			"currentAdmission": nil,
-			"staleAdmission":   {"atMostOneActiveAttempt", "terminalFinality"},
+		"activity-record": {
+			"activityRecord": nil,
+			"trustingActivityRecord":   {"atMostOneActiveAttempt", "terminalFinality"},
 		},
 		"nexus-close": {
 			"retainAndRoute":             nil,
@@ -391,24 +391,24 @@ func TestGoMonitorVerdictsAreTheSpecimens(t *testing.T) {
 // A counterexample read off the backend's product is replayed through a fresh interpretation, and one
 // that is no path of the Model, or on which the monitor holds, is an error, never a result.
 func TestExternalWitnessesReplayOrAreErrors(t *testing.T) {
-	s := openNamed(t, "activity-system")
+	s := openNamed(t, "activity-record")
 	x := exported(t, s)
 	parts := dumpPartsOf(t, s, x)
 	receipts, err := s.QuintAgreement(x, parts.encode(t, nil))
 	require.NoError(t, err)
-	r := only(t, receipts, MonitorAgreement, "staleAdmission")
+	r := only(t, receipts, MonitorAgreement, "trustingActivityRecord")
 	require.Len(t, r.Witnesses, 2)
 	for _, w := range r.Witnesses {
-		require.NoError(t, s.Replay("staleAdmission", w.Monitor, w.Trace))
+		require.NoError(t, s.Replay("trustingActivityRecord", w.Monitor, w.Trace))
 	}
 	// The same paths against the corrected design: the first is no path of it, or the monitor holds.
 	for _, w := range r.Witnesses {
-		require.Error(t, s.Replay("currentAdmission", w.Monitor, w.Trace))
+		require.Error(t, s.Replay("activityRecord", w.Monitor, w.Trace))
 	}
 	// A dump whose product takes a step the Model does not: the witness through it is rejected, and the
 	// receipt is the error.
 	tampered := parts.encode(t, func(m string, d map[string]any) {
-		if m != "currentAdmission" {
+		if m != "activityRecord" {
 			return
 		}
 		for _, p := range d["product"].(map[string]any)["edges"].(map[string]any)["#set"].([]any) {
@@ -421,7 +421,7 @@ func TestExternalWitnessesReplayOrAreErrors(t *testing.T) {
 	})
 	receipts, err = s.QuintAgreement(x, tampered)
 	require.NoError(t, err)
-	r = only(t, receipts, MonitorAgreement, "currentAdmission")
+	r = only(t, receipts, MonitorAgreement, "activityRecord")
 	require.Equal(t, WitnessRejected, r.Kind)
 	require.Contains(t, r.Explanation, "did not replay")
 }
@@ -523,25 +523,25 @@ func TestQuintDisagreesOnAnotherModel(t *testing.T) {
 		claim   Claim
 		subject string
 	}{
-		"a step's condition inverted": {"activity-system", func(m *umpirespb.Model) {
-			branch := function(m, "currentAdmission.rules.dispatch").GetBody().GetIf()
+		"a step's condition inverted": {"activity-record", func(m *umpirespb.Model) {
+			branch := function(m, "activityRecord.rules.dispatch").GetBody().GetIf()
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
-		}, TransitionAgreement, "currentAdmission"},
-		"a Property negated": {"activity-system", func(m *umpirespb.Model) {
-			holds := function(m, "staleAdmission.property.atMostOneActive")
+		}, TransitionAgreement, "activityRecord"},
+		"a Property negated": {"activity-record", func(m *umpirespb.Model) {
+			holds := function(m, "trustingActivityRecord.property.atMostOneActive")
 			holds.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: holds.GetBody()}}}
-		}, PropertyAgreement, "staleAdmission"},
-		"a step's condition inverted, in a composition": {"activity-system", func(m *umpirespb.Model) {
-			branch := function(m, "currentAdmission.rules.dispatch").GetBody().GetIf()
+		}, PropertyAgreement, "trustingActivityRecord"},
+		"a step's condition inverted, in a composition": {"activity-record", func(m *umpirespb.Model) {
+			branch := function(m, "activityRecord.rules.dispatch").GetBody().GetIf()
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
-		}, TransitionAgreement, "currentOverMatching"},
-		"a composition's Property negated": {"activity-system", func(m *umpirespb.Model) {
-			holds := function(m, "staleOverQueue.property.failedCommitKeepsTheMessage")
+		}, TransitionAgreement, "recordOverMatching"},
+		"a composition's Property negated": {"activity-record", func(m *umpirespb.Model) {
+			holds := function(m, "trustingRecordOverQueue.property.failedCommitKeepsTheMessage")
 			holds.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: holds.GetBody()}}}
-		}, PropertyAgreement, "staleOverQueue"},
-		"a monitor's notion of over narrowed": {"activity-system", func(m *umpirespb.Model) {
+		}, PropertyAgreement, "trustingRecordOverQueue"},
+		"a monitor's notion of over narrowed": {"activity-record", func(m *umpirespb.Model) {
 			overAtOnce(m)
-		}, MonitorAgreement, "staleAdmission"},
+		}, MonitorAgreement, "trustingActivityRecord"},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -573,7 +573,7 @@ func TestQuintStopsWhereTheModelHasNoValue(t *testing.T) {
 	found := needs(t, QuintTool)
 	reference := openNamed(t, "nexus-caller")
 	mutant := proto.Clone(reference.Model).(*umpirespb.Model)
-	function(mutant, "temporal.features.nexuscaller.system.NexusProtocol$.states$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
+	function(mutant, "temporal.features.nexuscaller.system.NexusSystem$.states$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
 	_, err := RunQuint(t.Context(), found, exportedAsWritten(t, reference, mutant), workDir(t))
 	require.ErrorContains(t, err, "Runtime error")
 }
@@ -582,10 +582,10 @@ func TestQuintStopsWhereTheModelHasNoValue(t *testing.T) {
 // path of the machine and the reader's checker finds a violation over its classes, and the replay still
 // rejects it, because the named monitor holds on it.
 func TestAWitnessOfAnotherMonitorIsRejected(t *testing.T) {
-	s := openNamed(t, "activity-system")
+	s := openNamed(t, "activity-record")
 	x := exported(t, s)
 	tampered := encodeDump(t, s, x, func(m string, d map[string]any) {
-		if m != "staleAdmission" {
+		if m != "trustingActivityRecord" {
 			return
 		}
 		for _, p := range d["product"].(map[string]any)["edges"].(map[string]any)["#set"].([]any) {
@@ -599,7 +599,7 @@ func TestAWitnessOfAnotherMonitorIsRejected(t *testing.T) {
 	})
 	receipts, err := s.QuintAgreement(x, tampered)
 	require.NoError(t, err)
-	r := only(t, receipts, MonitorAgreement, "staleAdmission")
+	r := only(t, receipts, MonitorAgreement, "trustingActivityRecord")
 	require.Equal(t, WitnessRejected, r.Kind)
 	require.Contains(t, r.Explanation, "the monitor terminalFinality is not violated on the last step")
 }
@@ -707,7 +707,7 @@ func TestQuintReadsPropertiesAboutAnAction(t *testing.T) {
 	x := exported(t, s)
 	receipts, err := s.QuintAgreement(x, quintDump(t, x))
 	require.NoError(t, err)
-	r := only(t, receipts, PropertyAgreement, "activityProtocol")
+	r := only(t, receipts, PropertyAgreement, "activitySystem")
 	require.Equal(t, Agreed, r.Kind, "%v", r.Differences)
 	require.Positive(t, r.About)
 	require.Less(t, r.About, r.Reads)
@@ -718,7 +718,7 @@ func TestQuintReadsPropertiesAboutAnAction(t *testing.T) {
 func TestCompositionsAreExported(t *testing.T) {
 	exportedOf := map[string][]string{
 		"activity":        {"standaloneActivity"},
-		"activity-system": {"currentOverLossyMatching", "currentOverMatching", "currentOverQueue", "staleOverMatching", "staleOverQueue"},
+		"activity-record": {"recordOverLossyMatching", "recordOverMatching", "recordOverQueue", "trustingRecordOverMatching", "trustingRecordOverQueue"},
 		"nexus-caller":    {"nexusCaller"},
 		"nexus-close":     nil,
 	}
@@ -752,10 +752,10 @@ func TestACompositionPastTheCeilingIsAResourceLimit(t *testing.T) {
 // A composition's part of a dump is compared as a machine's is: a result, a disabled pair and a
 // Property's reading that differ are differences of the composition's own receipts.
 func TestAgreementRejectsATamperedComposition(t *testing.T) {
-	s := openNamed(t, "activity-system")
+	s := openNamed(t, "activity-record")
 	x := exported(t, s)
 	parts := dumpPartsOf(t, s, x)
-	const composition = "staleOverQueue"
+	const composition = "trustingRecordOverQueue"
 	cases := map[string]struct {
 		tamper func(d map[string]any)
 		claim  Claim
@@ -811,7 +811,7 @@ func TestAgreementRejectsATamperedComposition(t *testing.T) {
 			r := only(t, receipts, c.claim, composition)
 			require.Equal(t, Disagreed, r.Kind, r.Explanation)
 			require.Contains(t, strings.Join(r.Differences, "\n"), c.says)
-			require.Equal(t, Agreed, only(t, receipts, TransitionAgreement, "currentOverQueue").Kind)
+			require.Equal(t, Agreed, only(t, receipts, TransitionAgreement, "recordOverQueue").Kind)
 		})
 	}
 }
@@ -820,7 +820,7 @@ func TestAgreementRejectsATamperedComposition(t *testing.T) {
 // the order its result list holds them.
 func admittedSteps(m *umpirespb.Model) []*umpirespb.Construct {
 	var out []*umpirespb.Construct
-	for _, item := range function(m, "temporal.features.standaloneactivity.system.CurrentAdmission$.effects$.admit").GetBody().GetList().GetItems() {
+	for _, item := range function(m, "temporal.features.standaloneactivity.system.ActivityRecord$.effects$.admit").GetBody().GetList().GetItems() {
 		out = append(out, item.GetConstruct())
 	}
 	return out
@@ -830,7 +830,7 @@ func admittedSteps(m *umpirespb.Model) []*umpirespb.Construct {
 // each alternative of a Scala `choose`.
 func namedChoices(t *testing.T, names ...string) *Slice {
 	t.Helper()
-	m := proto.Clone(loadModel(t, "activity-system")).(*umpirespb.Model)
+	m := proto.Clone(loadModel(t, "activity-record")).(*umpirespb.Model)
 	steps := admittedSteps(m)
 	require.Len(t, steps, len(names))
 	for i, c := range steps {
@@ -876,7 +876,7 @@ func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
 			}
 		}
 	}
-	require.Contains(t, named, "staleAdmission")
+	require.Contains(t, named, "trustingActivityRecord")
 
 	receipts, err := s.QuintAgreement(x, encodeDump(t, s, x, nil))
 	require.NoError(t, err)
@@ -885,7 +885,7 @@ func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
 			require.Equal(t, Agreed, r.Kind, "%s %s: %s %v", r.Claim, r.Subject, r.Explanation, r.Differences)
 		}
 	}
-	// Each tampering rewrites the names of every step of staleAdmission's part of the dump.
+	// Each tampering rewrites the names of every step of trustingActivityRecord's part of the dump.
 	for name, tamper := range map[string]func(st map[string]any){
 		"a wrong name": func(st map[string]any) {
 			if st["f_choice"] == "accepts" {
@@ -914,7 +914,7 @@ func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			dump := encodeDump(t, s, x, func(m string, d map[string]any) {
-				if m != "staleAdmission" {
+				if m != "trustingActivityRecord" {
 					return
 				}
 				for _, row := range d["rows"].(map[string]any)["#set"].([]any) {
@@ -927,14 +927,14 @@ func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
 			})
 			receipts, err := s.QuintAgreement(x, dump)
 			require.NoError(t, err)
-			r := only(t, receipts, TransitionAgreement, "staleAdmission")
+			r := only(t, receipts, TransitionAgreement, "trustingActivityRecord")
 			require.Equal(t, Disagreed, r.Kind, r.Explanation)
 			require.Contains(t, strings.Join(r.Differences, "\n"), "the results differ")
-			require.Equal(t, Agreed, only(t, receipts, TransitionAgreement, "currentAdmission").Kind)
+			require.Equal(t, Agreed, only(t, receipts, TransitionAgreement, "activityRecord").Kind)
 		})
 	}
 
-	c, err := x.Check("staleAdmission")
+	c, err := x.Check("trustingActivityRecord")
 	require.NoError(t, err)
 	require.Regexp(t, `val rs = m\d+_step\(st, c\)\n    nondet n = oneOf\(rs\.indices\(\)\)\n    val r = rs\[n\]`, c.Text)
 	require.Regexp(t, `var hist: List\[\{cls: K\d+, step: \{f_outcome: [^}]*, f_because: str, f_choice: str\}\}\]`, c.Text)
@@ -960,10 +960,10 @@ func TestQuintAgreesWithGoOnNamedChoices(t *testing.T) {
 func TestQuintRefusesANameItCannotWrite(t *testing.T) {
 	for _, name := range []string{`say "hi"`, `back\slash`, "two\nlines", "tab\there", "caf\u00e9"} {
 		t.Run(name, func(t *testing.T) {
-			m := proto.Clone(loadModel(t, "activity-system")).(*umpirespb.Model)
+			m := proto.Clone(loadModel(t, "activity-record")).(*umpirespb.Model)
 			steps := admittedSteps(m)
 			steps[0].Choice, steps[1].Choice = "accepts", name
-			at := function(m, "temporal.features.standaloneactivity.system.CurrentAdmission$.effects$.admit").GetBody().GetList().GetItems()[1].GetPosition()
+			at := function(m, "temporal.features.standaloneactivity.system.ActivityRecord$.effects$.admit").GetBody().GetList().GetItems()[1].GetPosition()
 			s, err := Open(m)
 			require.NoError(t, err)
 			_, err = s.Quint()

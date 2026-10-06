@@ -1470,9 +1470,9 @@ class Fixtures extends munit.FunSuite:
     // Queries in its `queries`, or the design itself where no Query runs over it.
     val designs = "temporal.features.standaloneactivity.system."
     def designObject(d: String) = designs + d.head.toUpper + d.tail
-    val overQueue = Seq("currentOverQueue", "staleOverQueue")
-    val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")
-    val unqueried = Seq("currentOverForgetful", "currentOverVolatile")
+    val overQueue = Seq("recordOverQueue", "trustingRecordOverQueue")
+    val overMatching = Seq("recordOverMatching", "trustingRecordOverMatching", "recordOverLossyMatching")
+    val unqueried = Seq("recordOverForgetful", "recordOverVolatile")
     val roots =
       (overQueue ++ overMatching).map(d => s"${designObject(d)}$$.queries$$.${d}Queries") ++
         unqueried.map(designObject) ++ Seq("switchQueries", "flickedBothOnce")
@@ -1483,13 +1483,13 @@ class Fixtures extends munit.FunSuite:
       n.elements().asScala.map(_.path(field).asText()).toList
     // Each derived design replaces the interface its own queue refines, not its base's.
     val replaced = Map(
-      "currentOverQueue" -> "",
-      "staleOverQueue" -> "",
-      "currentOverMatching" -> "dispatchQueue",
-      "staleOverMatching" -> "dispatchQueue",
-      "currentOverForgetful" -> "dispatchQueue",
-      "currentOverVolatile" -> "dispatchQueue",
-      "currentOverLossyMatching" -> "dispatchQueueUnderStorageLoss"
+      "recordOverQueue" -> "",
+      "trustingRecordOverQueue" -> "",
+      "recordOverMatching" -> "taskQueueProduct",
+      "trustingRecordOverMatching" -> "taskQueueProduct",
+      "recordOverForgetful" -> "taskQueueProduct",
+      "recordOverVolatile" -> "taskQueueProduct",
+      "recordOverLossyMatching" -> "taskQueueProductUnderStorageLoss"
     )
     for (d, target) <- replaced do
       val c = all("compositions").find(named(d)).getOrElse(fail(s"no composition $d"))
@@ -1561,13 +1561,13 @@ class Fixtures extends munit.FunSuite:
     def names(n: JsonNode, field: String) = n.elements().asScala.map(_.path(field).asText()).toList
     // The queue's declarations are named where they are declared, temporal/shared/taskqueue.
     val queue = "temporal.shared.taskqueue."
-    assertEquals(named("machines", "dispatchQueue").path("entity").asText(), "taskQueue")
-    assertEquals(named("machines", "dispatchQueue").path("family").asText(), queue + "product")
+    assertEquals(named("machines", "taskQueueProduct").path("entity").asText(), "taskQueue")
+    assertEquals(named("machines", "taskQueueProduct").path("family").asText(), queue + "product")
     assertEquals(named("actions", "enqueue").path("id").asText(), queue + "queue.enqueue")
     for (c, queue, target) <- Seq(
-        ("jobOverQueue", "dispatchQueue", ""),
-        ("jobOverMatching", "matchingQueue", "dispatchQueue"),
-        ("jobOverForgetful", "forgetfulQueue", "dispatchQueue")
+        ("jobOverQueue", "taskQueueProduct", ""),
+        ("jobOverMatching", "taskQueueSystem", "taskQueueProduct"),
+        ("jobOverForgetful", "forgetfulQueue", "taskQueueProduct")
       )
     do
       val members = named("compositions", c).path("members")
@@ -1863,6 +1863,25 @@ class Fixtures extends munit.FunSuite:
           "own, so it has one level, whose Models sit in its feature file: it has no valve/ folder",
         s"lift: ${at}urn/system/System.scala:11: $urn; ${at}urn/ has no root feature file",
         s"lift: ${at}urn/system/System.scala:11: $urn; ${at}urn/product/Product.scala is missing"
+      )
+    )
+
+  // R20 (b): the level files name the feature's Product and System machines.
+  concurrently("the structure lint refuses level machines not named Product and System"):
+    val jar = packaged("layoutRefusals-b", materializeTree("layoutRefusals/b"))
+    val out = scratch.resolve("layoutRefusals-b-out")
+    val at = stored("layoutRefusals/b")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: ${at}kettle/product/Product.scala:6: KettleContract is the Product machine in " +
+          "kettle's product/Product.scala: name it KettleProduct, after the feature and its " +
+          "Product level",
+        s"lift: ${at}pump/system/System.scala:7: PumpProtocol is the System machine in pump's " +
+          "system/System.scala: name it PumpSystem, with the same prefix as PumpProduct"
       )
     )
 

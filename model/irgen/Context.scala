@@ -59,7 +59,7 @@ final private[irgen] class Context(val index: Index):
     case Select(q, _) => path(q)
     case _            => false
 
-  /** The symbol a reference finally names, through aliases such as `val workerStop = worker.workerStop`. */
+  /** The symbol a reference finally names, through aliases such as `val stop = worker.stop`. */
   def resolveSymbol(ref: Term): Symbol = resolveThrough(ref, Nil)
 
   private def resolveThrough(ref: Term, aliases: List[Symbol]): Symbol = ref match

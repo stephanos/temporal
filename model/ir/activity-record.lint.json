@@ -4,15 +4,15 @@
       "kind": "never-enabled",
       "owner": "activityProduct",
       "subjects": [
-        "workerStop"
+        "stop"
       ],
-      "because": "The product machine does not feel a worker stopping (product/Product.scala, ActivityProduct.rules disables workerStop); the protocol and worker machines step it."
+      "because": "The product machine does not feel a worker stopping (product/Product.scala, ActivityProduct.rules disables stop); the protocol and worker machines step it."
     },
     {
       "kind": "unfired-verify",
       "owner": "activityProduct",
       "subjects": [
-        "staleAdmission.product.pausedIsNotDispatched"
+        "trustingActivityRecord.product.pausedIsNotDispatched"
       ],
       "because": "The stale admission design is the deliberately faulty control: its refinement of the product is rejected on purpose, so the Query reads nothing."
     },
@@ -20,11 +20,11 @@
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "attemptResult-canceled in scheduled, started, paused",
-        "attemptResult-completed in scheduled, paused",
-        "attemptResult-failed-false in scheduled, paused",
-        "attemptResult-failed-true in scheduled, paused",
-        "attemptStart in started, paused, cancelRequested"
+        "respond-canceled in scheduled, started, paused",
+        "respond-completed in scheduled, paused",
+        "respond-failed-false in scheduled, paused",
+        "respond-failed-true in scheduled, paused",
+        "poll in started, paused, cancelRequested"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
     },
@@ -41,7 +41,7 @@
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "workerStop in scheduled, started, paused, cancelRequested"
+        "stop in scheduled, started, paused, cancelRequested"
       ],
       "because": "The worker stopping is a fault the Run records; a machine that does not feel it disables it, and the worker and protocol machines step it."
     },
@@ -49,17 +49,17 @@
       "kind": "unconstrained-result",
       "owner": "activityProduct",
       "subjects": [
-        "attemptResult-canceled",
-        "attemptResult-completed",
-        "attemptResult-failed-false",
-        "attemptResult-failed-true",
-        "attemptStart"
+        "respond-canceled",
+        "respond-completed",
+        "respond-failed-false",
+        "respond-failed-true",
+        "poll"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "unrealized-find",
-      "owner": "activityProtocol",
+      "owner": "activitySystem",
       "subjects": [
         "competingTimers.scheduleToCloseFirst",
         "competingTimers.scheduleToStartFirst"
@@ -68,27 +68,27 @@
     },
     {
       "kind": "unread-refinement",
-      "owner": "activityProtocol",
+      "owner": "activitySystem",
       "subjects": [
-        "activityProtocol refines activityProduct"
+        "activitySystem refines activityProduct"
       ],
       "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
     },
     {
       "kind": "silent-rejection",
-      "owner": "activityProtocol",
+      "owner": "activitySystem",
       "subjects": [
-        "attemptResult-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested",
-        "attemptResult-completed in unstarted, scheduled, backingOff, paused",
-        "attemptResult-failed-false in unstarted, scheduled, backingOff, paused",
-        "attemptResult-failed-true in unstarted, scheduled, backingOff, paused",
-        "attemptStart in unstarted, backingOff, started, paused, pauseRequested, cancelRequested"
+        "respond-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested",
+        "respond-completed in unstarted, scheduled, backingOff, paused",
+        "respond-failed-false in unstarted, scheduled, backingOff, paused",
+        "respond-failed-true in unstarted, scheduled, backingOff, paused",
+        "poll in unstarted, backingOff, started, paused, pauseRequested, cancelRequested"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
     },
     {
       "kind": "silent-rejection",
-      "owner": "activityProtocol",
+      "owner": "activitySystem",
       "subjects": [
         "control-pause in unstarted, paused, pauseRequested, cancelRequested",
         "control-requestCancel in unstarted",
@@ -107,13 +107,13 @@
     },
     {
       "kind": "unconstrained-result",
-      "owner": "activityProtocol",
+      "owner": "activitySystem",
       "subjects": [
-        "attemptResult-canceled",
-        "attemptResult-completed",
-        "attemptResult-failed-false",
-        "attemptResult-failed-true",
-        "attemptStart",
+        "respond-canceled",
+        "respond-completed",
+        "respond-failed-false",
+        "respond-failed-true",
+        "poll",
         "backoff",
         "start-expires-expires-expires",
         "start-expires-expires-unset",
@@ -124,13 +124,13 @@
         "start-unset-unset-expires",
         "start-unset-unset-unset",
         "startToClose",
-        "workerStop"
+        "stop"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "witness-only",
-      "owner": "activityProtocol",
+      "owner": "activitySystem",
       "subjects": [
         "scheduleToCloseFires",
         "scheduleToStartFires"
@@ -139,7 +139,7 @@
     },
     {
       "kind": "unreachable-value",
-      "owner": "currentAdmission",
+      "owner": "activityRecord",
       "subjects": [
         "active=two"
       ],
@@ -147,49 +147,49 @@
     },
     {
       "kind": "never-enabled",
-      "owner": "currentAdmission",
+      "owner": "activityRecord",
       "subjects": [
-        "attemptResult-canceled",
-        "attemptResult-failed-false",
-        "attemptResult-failed-true",
+        "respond-canceled",
+        "respond-failed-false",
+        "respond-failed-true",
         "control-requestCancel",
         "control-terminate",
         "control-unpause"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unproduced",
-      "owner": "currentAdmission",
+      "owner": "activityRecord",
       "subjects": [
         "fact statusTimedOut-startToClose",
         "outcome notFound"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unrealized-find",
-      "owner": "currentAdmission",
+      "owner": "activityRecord",
       "subjects": [
-        "currentAdmission.scheduleToCloseFirst",
-        "currentAdmission.scheduleToStartFirst"
+        "activityRecord.scheduleToCloseFirst",
+        "activityRecord.scheduleToStartFirst"
       ],
       "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
     },
     {
       "kind": "silent-rejection",
-      "owner": "currentAdmission",
+      "owner": "activityRecord",
       "subjects": [
-        "attemptResult-canceled in scheduled, started",
-        "attemptResult-completed in scheduled",
-        "attemptResult-failed-false in scheduled, started",
-        "attemptResult-failed-true in scheduled, started"
+        "respond-canceled in scheduled, started",
+        "respond-completed in scheduled",
+        "respond-failed-false in scheduled, started",
+        "respond-failed-true in scheduled, started"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
     },
     {
       "kind": "silent-rejection",
-      "owner": "currentAdmission",
+      "owner": "activityRecord",
       "subjects": [
         "control-requestCancel in scheduled, started",
         "control-terminate in scheduled, started",
@@ -199,7 +199,7 @@
     },
     {
       "kind": "witness-only",
-      "owner": "currentAdmission",
+      "owner": "activityRecord",
       "subjects": [
         "scheduleToCloseTimesOut",
         "scheduleToStartTimesOut"
@@ -208,7 +208,7 @@
     },
     {
       "kind": "unreachable-value",
-      "owner": "currentRecord",
+      "owner": "recordMember",
       "subjects": [
         "active=two"
       ],
@@ -216,40 +216,40 @@
     },
     {
       "kind": "never-enabled",
-      "owner": "currentRecord",
+      "owner": "recordMember",
       "subjects": [
-        "attemptResult-canceled",
-        "attemptResult-failed-false",
-        "attemptResult-failed-true",
+        "respond-canceled",
+        "respond-failed-false",
+        "respond-failed-true",
         "control-requestCancel",
         "control-terminate",
         "control-unpause"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unproduced",
-      "owner": "currentRecord",
+      "owner": "recordMember",
       "subjects": [
         "fact statusTimedOut-startToClose",
         "outcome notFound"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "silent-rejection",
-      "owner": "currentRecord",
+      "owner": "recordMember",
       "subjects": [
-        "attemptResult-canceled in scheduled, started",
-        "attemptResult-completed in scheduled",
-        "attemptResult-failed-false in scheduled, started",
-        "attemptResult-failed-true in scheduled, started"
+        "respond-canceled in scheduled, started",
+        "respond-completed in scheduled",
+        "respond-failed-false in scheduled, started",
+        "respond-failed-true in scheduled, started"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
     },
     {
       "kind": "silent-rejection",
-      "owner": "currentRecord",
+      "owner": "recordMember",
       "subjects": [
         "control-requestCancel in scheduled, started",
         "control-terminate in scheduled, started",
@@ -259,7 +259,7 @@
     },
     {
       "kind": "unproduced",
-      "owner": "dispatchQueue",
+      "owner": "taskQueueProduct",
       "subjects": [
         "fact ackLost",
         "fact addInvoked",
@@ -274,7 +274,7 @@
     },
     {
       "kind": "unproduced",
-      "owner": "dispatchQueueUnderStorageLoss",
+      "owner": "taskQueueProductUnderStorageLoss",
       "subjects": [
         "fact ackLost",
         "fact addInvoked",
@@ -287,7 +287,7 @@
     },
     {
       "kind": "unconstrained-result",
-      "owner": "dispatchQueueUnderStorageLoss",
+      "owner": "taskQueueProductUnderStorageLoss",
       "subjects": [
         "acknowledge",
         "deliver",
@@ -320,7 +320,7 @@
       "kind": "unread-refinement",
       "owner": "forgetfulQueue",
       "subjects": [
-        "forgetfulQueue refines dispatchQueue"
+        "forgetfulQueue refines taskQueueProduct"
       ],
       "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
     },
@@ -364,7 +364,7 @@
       "kind": "unread-refinement",
       "owner": "lossyMatchingQueue",
       "subjects": [
-        "lossyMatchingQueue refines dispatchQueueUnderStorageLoss"
+        "lossyMatchingQueue refines taskQueueProductUnderStorageLoss"
       ],
       "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
     },
@@ -387,7 +387,7 @@
     },
     {
       "kind": "unproduced",
-      "owner": "matchingQueue",
+      "owner": "taskQueueSystem",
       "subjects": [
         "fact storageLost",
         "outcome lost"
@@ -396,26 +396,26 @@
     },
     {
       "kind": "unrealized-find",
-      "owner": "matchingQueue",
+      "owner": "taskQueueSystem",
       "subjects": [
-        "matchingQueue.crashAfterDelivery",
-        "matchingQueue.crashAfterInvocation",
-        "matchingQueue.crashAfterPersistence",
-        "matchingQueue.crashAfterSyncMatch"
+        "taskQueueSystem.crashAfterDelivery",
+        "taskQueueSystem.crashAfterInvocation",
+        "taskQueueSystem.crashAfterPersistence",
+        "taskQueueSystem.crashAfterSyncMatch"
       ],
       "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
     },
     {
       "kind": "unread-refinement",
-      "owner": "matchingQueue",
+      "owner": "taskQueueSystem",
       "subjects": [
-        "matchingQueue refines dispatchQueue"
+        "taskQueueSystem refines taskQueueProduct"
       ],
       "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
     },
     {
       "kind": "silent-rejection",
-      "owner": "matchingQueue",
+      "owner": "taskQueueSystem",
       "subjects": [
         "ackLoss in history, invoked, reserved, persisted"
       ],
@@ -423,7 +423,7 @@
     },
     {
       "kind": "witness-only",
-      "owner": "matchingQueue",
+      "owner": "taskQueueSystem",
       "subjects": [
         "delivers"
       ],
@@ -431,50 +431,50 @@
     },
     {
       "kind": "never-enabled",
-      "owner": "staleAdmission",
+      "owner": "trustingActivityRecord",
       "subjects": [
-        "attemptResult-canceled",
-        "attemptResult-failed-false",
-        "attemptResult-failed-true",
+        "respond-canceled",
+        "respond-failed-false",
+        "respond-failed-true",
         "control-requestCancel",
         "control-terminate",
         "control-unpause"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unproduced",
-      "owner": "staleAdmission",
+      "owner": "trustingActivityRecord",
       "subjects": [
         "fact admissionRejected",
         "fact statusTimedOut-startToClose",
         "outcome notFound"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unrealized-find",
-      "owner": "staleAdmission",
+      "owner": "trustingActivityRecord",
       "subjects": [
-        "staleAdmission.scheduleToCloseFirst",
-        "staleAdmission.scheduleToStartFirst"
+        "trustingActivityRecord.scheduleToCloseFirst",
+        "trustingActivityRecord.scheduleToStartFirst"
       ],
       "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
     },
     {
       "kind": "silent-rejection",
-      "owner": "staleAdmission",
+      "owner": "trustingActivityRecord",
       "subjects": [
-        "attemptResult-canceled in scheduled, started",
-        "attemptResult-completed in scheduled",
-        "attemptResult-failed-false in scheduled, started",
-        "attemptResult-failed-true in scheduled, started"
+        "respond-canceled in scheduled, started",
+        "respond-completed in scheduled",
+        "respond-failed-false in scheduled, started",
+        "respond-failed-true in scheduled, started"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
     },
     {
       "kind": "silent-rejection",
-      "owner": "staleAdmission",
+      "owner": "trustingActivityRecord",
       "subjects": [
         "control-requestCancel in scheduled, started",
         "control-terminate in scheduled, started",
@@ -484,7 +484,7 @@
     },
     {
       "kind": "witness-only",
-      "owner": "staleAdmission",
+      "owner": "trustingActivityRecord",
       "subjects": [
         "scheduleToCloseTimesOut",
         "scheduleToStartTimesOut"
@@ -493,41 +493,41 @@
     },
     {
       "kind": "never-enabled",
-      "owner": "staleRecord",
+      "owner": "trustingRecordMember",
       "subjects": [
-        "attemptResult-canceled",
-        "attemptResult-failed-false",
-        "attemptResult-failed-true",
+        "respond-canceled",
+        "respond-failed-false",
+        "respond-failed-true",
         "control-requestCancel",
         "control-terminate",
         "control-unpause"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "unproduced",
-      "owner": "staleRecord",
+      "owner": "trustingRecordMember",
       "subjects": [
         "fact admissionRejected",
         "fact statusTimedOut-startToClose",
         "outcome notFound"
       ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, CurrentAdmission.effects), so they enable nothing and record nothing."
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
     {
       "kind": "silent-rejection",
-      "owner": "staleRecord",
+      "owner": "trustingRecordMember",
       "subjects": [
-        "attemptResult-canceled in scheduled, started",
-        "attemptResult-completed in scheduled",
-        "attemptResult-failed-false in scheduled, started",
-        "attemptResult-failed-true in scheduled, started"
+        "respond-canceled in scheduled, started",
+        "respond-completed in scheduled",
+        "respond-failed-false in scheduled, started",
+        "respond-failed-true in scheduled, started"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
     },
     {
       "kind": "silent-rejection",
-      "owner": "staleRecord",
+      "owner": "trustingRecordMember",
       "subjects": [
         "control-requestCancel in scheduled, started",
         "control-terminate in scheduled, started",
@@ -559,7 +559,7 @@
       "kind": "unread-refinement",
       "owner": "volatileQueue",
       "subjects": [
-        "volatileQueue refines dispatchQueue"
+        "volatileQueue refines taskQueueProduct"
       ],
       "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
     },
@@ -589,57 +589,57 @@
     },
     {
       "kind": "waived-law",
-      "owner": "currentAdmission",
+      "owner": "activityRecord",
       "subjects": [
-        "currentAdmission.closedIsRejectedUniformly"
+        "activityRecord.closedIsRejectedUniformly"
       ],
       "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
     },
     {
       "kind": "waived-law",
-      "owner": "currentOverLossyMatching",
+      "owner": "recordOverLossyMatching",
       "subjects": [
-        "currentOverLossyMatching.closedIsRejectedUniformly"
+        "recordOverLossyMatching.closedIsRejectedUniformly"
       ],
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     },
     {
       "kind": "waived-law",
-      "owner": "currentOverMatching",
+      "owner": "recordOverMatching",
       "subjects": [
-        "currentOverMatching.closedIsRejectedUniformly"
+        "recordOverMatching.closedIsRejectedUniformly"
       ],
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     },
     {
       "kind": "waived-law",
-      "owner": "currentOverQueue",
+      "owner": "recordOverQueue",
       "subjects": [
-        "currentOverQueue.closedIsRejectedUniformly"
+        "recordOverQueue.closedIsRejectedUniformly"
       ],
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     },
     {
       "kind": "waived-law",
-      "owner": "staleAdmission",
+      "owner": "trustingActivityRecord",
       "subjects": [
-        "staleAdmission.closedIsRejectedUniformly"
+        "trustingActivityRecord.closedIsRejectedUniformly"
       ],
       "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
     },
     {
       "kind": "waived-law",
-      "owner": "staleOverMatching",
+      "owner": "trustingRecordOverMatching",
       "subjects": [
-        "staleOverMatching.closedIsRejectedUniformly"
+        "trustingRecordOverMatching.closedIsRejectedUniformly"
       ],
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     },
     {
       "kind": "waived-law",
-      "owner": "staleOverQueue",
+      "owner": "trustingRecordOverQueue",
       "subjects": [
-        "staleOverQueue.closedIsRejectedUniformly"
+        "trustingRecordOverQueue.closedIsRejectedUniformly"
       ],
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     }

@@ -397,7 +397,7 @@ func TestEveryQueryHasAStanding(t *testing.T) {
 	}{
 		// The capabilities' generated verifies replace each design's and composition's two `any` ones,
 		// and add the product's three laws; the designs waive closed rejection.
-		{"activity-system", 64, 23},
+		{"activity-record", 64, 23},
 		{"nexus-close", 84, 72},
 	}
 	for _, c := range cases {

@@ -27,8 +27,8 @@ import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 
 import Timeout.expires
 import shared.worker.worker as process
-import system.{history, ActivityProtocol, AdmissionFact, AdmissionResponseFact}
-import system.{AdmissionResponseLoss, HeldAdmission}
+import system.{history, ActivitySystem, AdmissionFact, AdmissionResponseFact}
+import system.{LostStartAnswer, HeldDispatch}
 
 object ActivityRealization:
   /** A status DescribeActivityExecution reports, each kind in its own source: a poll reads one. */
@@ -43,12 +43,12 @@ object ActivityRealization:
 
   /** The status the activity's description reports while each fact holds. */
   val activityStatus = statusTable(
-    ProtocolFact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
-    ProtocolFact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
-    ProtocolFact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,
-    ProtocolFact.statusCanceled -> ACTIVITY_EXECUTION_STATUS_CANCELED,
-    ProtocolFact.statusTerminated -> ACTIVITY_EXECUTION_STATUS_TERMINATED,
-    ProtocolFact.statusTimedOut -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
+    SystemFact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
+    SystemFact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
+    SystemFact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,
+    SystemFact.statusCanceled -> ACTIVITY_EXECUTION_STATUS_CANCELED,
+    SystemFact.statusTerminated -> ACTIVITY_EXECUTION_STATUS_TERMINATED,
+    SystemFact.statusTimedOut -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
   )
 
   /** Reads the activity's description until it reports the status the fact's evidence names. */
@@ -103,12 +103,12 @@ object ActivityRealization:
     field(_.activityId) := run
   }
 
-  private val awaitPaused = awaitStatus(ProtocolFact.statusPaused)
-  private val awaitCompleted = awaitStatus(ProtocolFact.statusCompleted)
-  private val awaitFailed = awaitStatus(ProtocolFact.statusFailed)
-  private val awaitCanceled = awaitStatus(ProtocolFact.statusCanceled)
-  private val awaitTerminated = awaitStatus(ProtocolFact.statusTerminated)
-  private val awaitTimedOut = awaitStatus(ProtocolFact.statusTimedOut)
+  private val awaitPaused = awaitStatus(SystemFact.statusPaused)
+  private val awaitCompleted = awaitStatus(SystemFact.statusCompleted)
+  private val awaitFailed = awaitStatus(SystemFact.statusFailed)
+  private val awaitCanceled = awaitStatus(SystemFact.statusCanceled)
+  private val awaitTerminated = awaitStatus(SystemFact.statusTerminated)
+  private val awaitTimedOut = awaitStatus(SystemFact.statusTimedOut)
 
   // The one order every functional Query's path makes its calls in. A pause is read back only of an
   // activity no worker has taken: a running worker may be delivered the first attempt, and answer
@@ -116,27 +116,27 @@ object ActivityRealization:
   // nothing, so that release's answer would evidence a scheduling that did not happen. So a path
   // that pauses keeps the worker from polling from before the start until the release.
   private val standaloneController = controller(
-    perform(process.workerStop -> stopWorker),
-    onPath(caller.control(Control.pause))(stopWorkerUntilReleased),
+    perform(process.stop -> stopWorker),
+    onPath(client.control(Control.pause))(stopWorkerUntilReleased),
     perform(
-      caller.start() -> startUnreached,
-      caller.start(scheduleToStart := expires) -> startUnreached.withFields {
+      client.start() -> startUnreached,
+      client.start(scheduleToStart := expires) -> startUnreached.withFields {
         field(_.getScheduleToStartTimeout.seconds) := requestDeadline
       },
-      caller.start(startToClose := expires) -> startActivity.withFields {
+      client.start(startToClose := expires) -> startActivity.withFields {
         field(_.getStartToCloseTimeout.seconds) := requestDeadline
       }
     ),
-    perform(caller.control(Control.pause) -> pauseActivity),
-    onPath(caller.control(Control.pause))(awaitPaused),
-    perform(caller.control(Control.unpause) -> unpauseActivity),
-    onPath(caller.control(Control.unpause))(resumeWorker),
-    perform(caller.control(Control.requestCancel) -> requestCancelActivity),
-    perform(caller.control(Control.terminate) -> terminateActivity),
-    onPath(worker.attemptResult(AttemptResult.completed))(awaitCompleted),
-    onPath(worker.attemptResult(AttemptResult.failed(false)))(awaitFailed),
-    onPath(worker.attemptResult(AttemptResult.canceled))(awaitCanceled),
-    onPath(caller.control(Control.terminate))(awaitTerminated),
+    perform(client.control(Control.pause) -> pauseActivity),
+    onPath(client.control(Control.pause))(awaitPaused),
+    perform(client.control(Control.unpause) -> unpauseActivity),
+    onPath(client.control(Control.unpause))(resumeWorker),
+    perform(client.control(Control.requestCancel) -> requestCancelActivity),
+    perform(client.control(Control.terminate) -> terminateActivity),
+    onPath(worker.respond(AttemptResult.completed))(awaitCompleted),
+    onPath(worker.respond(AttemptResult.failed(false)))(awaitFailed),
+    onPath(worker.respond(AttemptResult.canceled))(awaitCanceled),
+    onPath(client.control(Control.terminate))(awaitTerminated),
     onPath(deadline.scheduleToClose, deadline.scheduleToStart, deadline.startToClose)(awaitTimedOut)
   )
 
@@ -167,13 +167,13 @@ object ActivityRealization:
   private val attempts = script(
     "activity",
     WorkerActivation
-      .Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.attemptStart))
+      .Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
   )(
     perform(
-      worker.attemptResult(AttemptResult.completed) -> completeAttempt,
-      worker.attemptResult(AttemptResult.failed(true)) -> failAttempt,
-      worker.attemptResult(AttemptResult.failed(false)) -> failActivity,
-      worker.attemptResult(AttemptResult.canceled) -> cancelAttempt
+      worker.respond(AttemptResult.completed) -> completeAttempt,
+      worker.respond(AttemptResult.failed(true)) -> failAttempt,
+      worker.respond(AttemptResult.failed(false)) -> failActivity,
+      worker.respond(AttemptResult.canceled) -> cancelAttempt
     )
   )
 
@@ -184,39 +184,39 @@ object ActivityRealization:
 
   /** One standalone activity a controller starts and the Case's own worker runs. */
   val standalone = temporalRealization(
-    machine = ActivityProtocol,
+    machine = ActivitySystem,
     operation = activity,
     roles = Vector(workflowService, caseWorker, taskQueue),
     scripts = Vector(standaloneController, attempts),
     evidence = Vector(
-      answered(ProtocolFact.statusScheduled, startActivity),
+      answered(SystemFact.statusScheduled, startActivity),
       delivered(
-        ProtocolFact.statusStarted,
+        SystemFact.statusStarted,
         attempts,
         1,
         startActivity,
-        Taking(worker.attemptStart, 1)
+        Taking(worker.poll, 1)
       ),
-      status(ProtocolFact.statusPaused),
-      answered(ProtocolFact.statusCancelRequested, requestCancelActivity),
-      status(ProtocolFact.statusCompleted),
-      status(ProtocolFact.statusFailed),
-      status(ProtocolFact.statusCanceled),
-      status(ProtocolFact.statusTerminated),
-      status(ProtocolFact.statusTimedOut),
+      status(SystemFact.statusPaused),
+      answered(SystemFact.statusCancelRequested, requestCancelActivity),
+      status(SystemFact.statusCompleted),
+      status(SystemFact.statusFailed),
+      status(SystemFact.statusCanceled),
+      status(SystemFact.statusTerminated),
+      status(SystemFact.statusTimedOut),
       delivered(
-        ProtocolFact.attemptCount,
+        SystemFact.attemptCount,
         attempts,
         2,
         startActivity,
-        Taking(worker.attemptResult(AttemptResult.failed(true)), 1),
-        Taking(worker.attemptStart, 2)
+        Taking(worker.respond(AttemptResult.failed(true)), 1),
+        Taking(worker.poll, 2)
       ),
       answeredAs(
         "statusScheduledAgain",
-        ProtocolFact.statusScheduled,
+        SystemFact.statusScheduled,
         unpauseActivity,
-        Taking(caller.control(Control.unpause), 1)
+        Taking(client.control(Control.unpause), 1)
       )
     ),
     // An attempt starts when the server delivers it, a retry waits out its backoff, and a timeout
@@ -225,7 +225,7 @@ object ActivityRealization:
     // statemachine.go:393-420). No start sets a schedule-to-close deadline, so no path waits for that
     // class.
     serverSteps = Vector(
-      ServerStep(worker.attemptStart, CauseKind.delivery),
+      ServerStep(worker.poll, CauseKind.delivery),
       ServerStep(timers.backoff, CauseKind.timer, firstRetryBackoffMs),
       ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs),
       ServerStep(deadline.startToClose, CauseKind.timer, deadlineMs)
@@ -259,7 +259,7 @@ object ActivityRealization:
 
   /**
    * What admission committed for the released delivery, from the release's record where it meets
-   * `guard`: never what a caller was told; keyed by the record's activity, stamped with its delivery.
+   * `guard`: never what a client was told; keyed by the record's activity, stamped with its delivery.
    */
   private def committed(
       fact: Fact,
@@ -291,16 +291,16 @@ object ActivityRealization:
 
   /** The stale dispatch of one paused activity, held, then delivered to admission. */
   val heldDelivery = temporalRealization(
-    machine = HeldAdmission,
+    machine = HeldDispatch,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
     scripts = Vector(
       controller(
         everyCase(startUnreached),
         perform(history.dispatch -> holdDispatch),
-        perform(caller.control(Control.pause) -> pauseActivity),
-        onPath(caller.control(Control.pause))(awaitPaused),
-        perform(worker.attemptStart -> releaseDispatch)
+        perform(client.control(Control.pause) -> pauseActivity),
+        onPath(client.control(Control.pause))(awaitPaused),
+        perform(worker.poll -> releaseDispatch)
       )
     ),
     evidence = Vector(
@@ -314,7 +314,7 @@ object ActivityRealization:
 
   /** One lost admission answer, with its durable decision observed before the response is replaced. */
   val lostAdmissionResponse = temporalRealization(
-    machine = AdmissionResponseLoss,
+    machine = LostStartAnswer,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
     scripts = Vector(

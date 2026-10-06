@@ -1,8 +1,8 @@
 /* The Nexus caller's control: a caller design that predicts success for a failed completion, which
  * the forged-completion Query must refuse. A subject of the System level, beside
- * system/System.scala (fn-126 decisions 16 and 22). It is the protocol machine without its
+ * system/System.scala (fn-126 decisions 16 and 22). It is the System machine without its
  * refinement, its completion forged and the caller's inspection added, declared rather than derived
- * from NexusProtocol: a derivation lifts its source machines, and nexus-control.json holds this
+ * from NexusSystem: a derivation lifts its source machines, and nexus-control.json holds this
  * machine alone.
  */
 package temporal
@@ -23,12 +23,12 @@ val sent = choice
 
 // ### The control
 
-object ForgedCompletion extends Machine[ProtocolState, Outcome, ProtocolFact], NegativeControl:
-  val init = NexusProtocol.init
-  def end(s: State) = NexusProtocol.states.terminalPhase(s.phase)
-  val evidence: PartialFunction[ProtocolFact, String] = {
-    case ProtocolFact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
-    case ProtocolFact.pendingAttempts           => pendingAttempts.name
+object TrustingCaller extends Machine[SystemState, Outcome, SystemFact], NegativeControl:
+  val init = NexusSystem.init
+  def end(s: State) = NexusSystem.states.terminalPhase(s.phase)
+  val evidence: PartialFunction[SystemFact, String] = {
+    case SystemFact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
+    case SystemFact.pendingAttempts           => pendingAttempts.name
   }
   val unobservable = List(timers.backoff)
 
@@ -41,8 +41,8 @@ object ForgedCompletion extends Machine[ProtocolState, Outcome, ProtocolFact], N
      * both alternatives of a failed callback in every such phase, the not-found ones included.
      */
     def settle(s: State, resolution: Resolution) =
-      if NexusProtocol.states.terminalPhase(s.phase) then NexusProtocol.effects.notFound(s)
-      else NexusProtocol.effects.complete(s, resolution)
+      if NexusSystem.states.terminalPhase(s.phase) then NexusSystem.effects.notFound(s)
+      else NexusSystem.effects.complete(s, resolution)
 
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.
@@ -51,29 +51,29 @@ object ForgedCompletion extends Machine[ProtocolState, Outcome, ProtocolFact], N
         choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution))
       else settle(s, resolution)
 
-  // The protocol machine's rules, its completion forged and the inspection added.
+  // The System machine's rules, its completion forged and the inspection added.
   object rules extends Rules(_.phase):
-    on(caller.schedule)(in(Phase.unscheduled) ~> NexusProtocol.effects.schedule)
-    on(handler.handlerReply)(in(Phase.scheduled) ~> NexusProtocol.effects.handlerReply)
-    on(handler.complete)(in(NexusProtocol.states.created) ~> effects.forgedComplete)
+    on(caller.schedule)(in(Phase.unscheduled) ~> NexusSystem.effects.schedule)
+    on(handler.reply)(in(Phase.scheduled) ~> NexusSystem.effects.reply)
+    on(handler.complete)(in(NexusSystem.states.created) ~> effects.forgedComplete)
     on(caller.inspect)(always ~> effects.inspect)
-    on(network.transportFault)(in(Phase.scheduled) ~> NexusProtocol.effects.backOff)
-    on(worker.workerStop)(always ~> NexusProtocol.effects.keep)
-    on(timers.backoff)(in(Phase.backingOff) ~> NexusProtocol.effects.retry)
+    on(network.fault)(in(Phase.scheduled) ~> NexusSystem.effects.backOff)
+    on(worker.stop)(always ~> NexusSystem.effects.keep)
+    on(timers.backoff)(in(Phase.backingOff) ~> NexusSystem.effects.retry)
     on(deadline.scheduleToClose) {
-      in(NexusProtocol.states.running).where(
+      in(NexusSystem.states.running).where(
         _.scheduleToClose == Timeout.expires
-      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.scheduleToClose))
+      ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToClose))
     }
     on(deadline.scheduleToStart) {
-      in(NexusProtocol.states.waiting).where(
+      in(NexusSystem.states.waiting).where(
         _.scheduleToStart == Timeout.expires
-      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.scheduleToStart))
+      ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToStart))
     }
     on(deadline.startToClose) {
       where(s =>
         s.phase == Phase.started && s.startToClose == Timeout.expires
-      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.startToClose))
+      ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.startToClose))
     }
 
   object properties:
@@ -81,21 +81,23 @@ object ForgedCompletion extends Machine[ProtocolState, Outcome, ProtocolFact], N
      * A failed completion is recorded as completed: what the control predicts and no runtime sends.
      */
     val forgedSuccess = property when handler.complete(Resolution.failed) holds
-      (_.records(ProtocolFact.nexusOperationCompleted))
+      (_.records(SystemFact.nexusOperationCompleted))
 
   object queries:
+    val inspectedFailure = scenario.actions(
+      caller.schedule(),
+      caller.inspect,
+      handler.reply(Reply.async),
+      caller.inspect,
+      handler.complete(Resolution.failed)
+    )
+
     /**
      * The forged control, which every modeled execution that explains the evidence refutes, on a
      * path that inspects the operation around a failed completion.
      */
     val forgedCompletion =
-      (query find properties.forgedSuccess in scenario("inspectedFailure").actions(
-        caller.schedule(),
-        caller.inspect,
-        handler.handlerReply(Reply.async),
-        caller.inspect,
-        handler.complete(Resolution.failed)
-      ) limits control)
+      (query find properties.forgedSuccess in inspectedFailure limits control)
         .expect(
           RunExpectation(
             Conformance.inconclusive,

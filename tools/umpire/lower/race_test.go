@@ -11,7 +11,7 @@ import (
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 )
 
-// The held race lowers to a Case (Realization.scala, heldDelivery; system/Record.scala, heldAdmission): the
+// The held race lowers to a Case (Realization.scala, heldDelivery; system/Record.scala, heldDispatch): the
 // controller starts the activity, holds what its dispatch sent to the task queue, pauses it, reads
 // the pause back and releases the stale message, and no worker runs. The hold and the release are the
 // Driver's delivery controls of the control's task-queue role. The Case carries the dispatch, the
@@ -23,7 +23,7 @@ import (
 func TestTheHeldRaceLowers(t *testing.T) {
 	p, err := NewProducer(loaded(t, "activity-race"))
 	require.NoError(t, err)
-	l, err := p.Lower("heldAdmission.staleDelivery", cp.IdentityFor("temporal.case", "standaloneActivityRace", "heldAdmission.staleDelivery"))
+	l, err := p.Lower("heldDispatch.staleDelivery", cp.IdentityFor("temporal.case", "standaloneActivityRace", "heldDispatch.staleDelivery"))
 	require.NoError(t, err)
 	require.Equal(t, Lowered, l.Standing, "%v", l.Unsupported)
 	require.Empty(t, l.OffPath)

@@ -125,7 +125,7 @@ func identityRows() []row {
 			script: []any{dispatched, admitted(1, "x", "activity-2")},
 			want: expectation{conformance: concluded{status: inconclusive}, claims: []concluded{
 				{id: notWhilePaused, status: inconclusive}, {id: oneAttempt, status: inconclusive}, {id: finality, status: inconclusive},
-			}, failed: "a0", failure: `evidence of kind "test.currentAdmission.evidence.attemptAdmitted" for operation "activity-1", whose field activity names operation "activity-2"`},
+			}, failed: "a0", failure: `evidence of kind "test.activityRecord.evidence.attemptAdmitted" for operation "activity-1", whose field activity names operation "activity-2"`},
 		},
 	}
 }
@@ -442,14 +442,14 @@ func TestPrepareBindsTheFieldsAndTheClosingReadsOfACase(t *testing.T) {
 	}{
 		"a retained field the realization does not declare": {identified(t),
 			carrierWith(stale, localKinds, 1, map[string][]*testpilotspb.CorrelatedFieldPolicy{"statusStarted": {retained("shard", testpilotspb.SCALAR_KIND_UINT64)}}, false),
-			"evidence of kind test.staleAdmission.evidence.statusStarted retains field shard, which realization staleAdmissionEvidence does not declare for it"},
+			"evidence of kind test.trustingActivityRecord.evidence.statusStarted retains field shard, which realization trustingActivityRecordEvidence does not declare for it"},
 		"a retained field the realization redacts": {redacting, carrierWith(stale, localKinds, 1, both, false),
-			"evidence of kind test.staleAdmission.evidence.statusStarted retains field worker, which realization staleAdmissionEvidence redacts"},
+			"evidence of kind test.trustingActivityRecord.evidence.statusStarted retains field worker, which realization trustingActivityRecordEvidence redacts"},
 		"an exhaustive kind and no closing read": {closedAdmission(t), carrier(stale, localKinds, 1),
-			"case test.conformance.staleAdmission.statusStarted-statusPaused-statusCompleted-dispatchEnqueued-attemptAdmitted-admissionRejected.1 carries the exhaustive evidence " +
-				"test.staleAdmission.evidence.attemptAdmitted and no instruction controller/close, the read realization staleAdmissionEvidence closes it by"},
+			"case test.conformance.trustingActivityRecord.statusStarted-statusPaused-statusCompleted-dispatchEnqueued-attemptAdmitted-admissionRejected.1 carries the exhaustive evidence " +
+				"test.trustingActivityRecord.evidence.attemptAdmitted and no instruction controller/close, the read realization trustingActivityRecordEvidence closes it by"},
 		"an exhaustive kind closed in another entrypoint": {closedAdmission(t), elsewhere,
-			"and no instruction controller/close, the read realization staleAdmissionEvidence closes it by"},
+			"and no instruction controller/close, the read realization trustingActivityRecordEvidence closes it by"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			factory, err := Prepare(test.model, query, test.source, generous)

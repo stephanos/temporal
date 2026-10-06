@@ -293,14 +293,17 @@ final class Firing[S, O, F, I <: Tuple] private[umpire] (
  * A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
  * Core form: `if condition(s) then e(s) else ...`.
  */
-def where[S, O, F](using Firing[S, O, F, ?])(condition: S => Boolean): Case[S, O, F] =
+def where[S, O, F](using firing: Firing[S, O, F, ?])(condition: S => Boolean): Case[S, O, F] =
+  val _ = firing
   Case("where", condition)
 
 /**
  * A case that holds in every state: `always ~> effects.keep`. Core form:
  * `if true then e(s) else ...`.
  */
-def always[S, O, F](using Firing[S, O, F, ?]): Case[S, O, F] = Case("always", _ => true)
+def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
+  val _ = firing
+  Case("always", _ => true)
 
 /**
  * When each action of a machine fires, written as the machine object's `object rules extends

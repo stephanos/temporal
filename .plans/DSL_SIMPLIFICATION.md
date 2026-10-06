@@ -17,7 +17,7 @@ All approved. Where each one went:
 | 2 | `when(g) { steps }` guard sugar | **superseded**: guards became fn-126's rules, a `rules` block that says only when an action fires (`when(g) { action ~> effects.x }`, `in(phases) { … }`), with unguarded effects. `when` is a rule heading only, never a guard inside a step | fn-126 R16 |
 | 3 | actions in per-actor objects; `admission/` → `record/`, `compositions/` → `withTaskQueue/` | adopted, IDs kept by transparent section objects. The package renames landed in fn-126.1; the actor and section objects (`umpire.Actor`, `umpire.Section`) in fn-126.3, with the val names kept. The close policy's sections are `callerSide` and `handlerSide`, not `caller` and `handler`, which would compile to class files whose names differ from its types `Caller` and `Handler` only in case | fn-126 R12, R14 |
 | 4 | inline single-use Scenarios (name string kept); one shared `Limits` source | adopted. The shared source landed in fn-126.2: `model/temporal/shared/Bounds.scala` declares `three` (three folders) and `four` (two). The study's `five` and `twelve` are not shared: the close policy's search further than the activity's and the task queue's of the same names, so each stays in its folder | fn-126 R13 |
-| 5 | one batch of val renames, new Definition IDs, one golden re-capture | adopted as fn-126's last task, together with the level rename Product/Protocol → Product/System and the "system contract" → "history record" rename | fn-126 R18, R19 |
+| 5 | one batch of val renames and new Definition IDs | adopted and **done** in fn-126's last task, together with Product/System level names and the history-record terminology; projection replaced the retired golden harness | fn-126 R18, R19 |
 | 6 | `through(selector, read)` for composition law parameters | adopted, **done** (fn-127.2): one parameter list, since the curried form infers no composed state; the forwarding objects are gone | fn-127 |
 | 7 | request helper, `perform(… , then = await)` | later, not planned | — |
 | 8 | deadline step helper, `UpTo.succ`, enum status methods | later, if still felt after fn-126 | — |
@@ -62,22 +62,22 @@ Status per feature (sources fetched 2026-10-05; project pins `//> using scala 3.
 | `require(g)` as the guard | supported today (`M/irgen/Expressions.scala:237-244`) | **no**: it lifts as a *precondition*; a call outside it is an error, not a disabled step (`M/SEMANTICS.md:55`) | — | — | do not reuse for guards |
 | `inline` / `transparent inline` helpers | stable; bodies kept, call sites become `INLINED(expansion, call)` ([inline](https://docs.scala-lang.org/scala3/reference/metaprogramming/inline.html), TastyFormat 28.9) | only `Inlined(_, Nil, e)` is unwrapped (`M/irgen/Expressions.scala:104,119,286`) | each inline helper's expansion leaks into every call site | DSL_OPERATORS rule 5 forbids | no (keep `compose` as the single exception, `M/umpire/Compose.scala:106`) |
 | macro annotations `@action` (SIP-63) | **experimental** in 3.9 (`@experimental MacroAnnotation`, [PR #80](https://github.com/scala/improvement-proposals/pull/80) under review) | n/a | — | — | no |
-| plain annotation `@binds(attemptStart) def …` (ANNOTATION kept in TASTy) | stable | lifter could collect bindings; the *runtime* `Machine` cannot (no reflection) → lifter and Scala disagree; breaks munit pins | medium | violates "declared, not defaulted" | no |
-| `object ActivityProduct extends Machine[S,O,F]` with `val attemptStart = on(action) { s => … }` members | stable | new declaration shape: ClassDef template instead of the lambda `Block` at `M/irgen/Declarations.scala:149-152`; name from object symbol (changes `activityProduct` → `ActivityProduct` in IR, Query names, Case IDs unless a name literal is kept) | **high** | core | defer; the module-layout spec gives the cohesion with the existing `machine {}` block |
-| bindings derived by name (`steps` finds `def attemptStart` for `val attemptStart`) | — | lifter could; runtime could not | — | "declared, not defaulted" | no |
+| plain annotation `@binds(poll) def …` (ANNOTATION kept in TASTy) | stable | lifter could collect bindings; the *runtime* `Machine` cannot (no reflection) → lifter and Scala disagree; breaks munit pins | medium | violates "declared, not defaulted" | no |
+| `object ActivityProduct extends Machine[S,O,F]` with `val poll = on(action) { s => … }` members | stable | new declaration shape: ClassDef template instead of the lambda `Block` at `M/irgen/Declarations.scala:149-152`; name from object symbol (changes `activityProduct` → `ActivityProduct` in IR, Query names, Case IDs unless a name literal is kept) | **high** | core | defer; the module-layout spec gives the cohesion with the existing `machine {}` block |
+| bindings derived by name (`steps` finds `def poll` for `val poll`) | — | lifter could; runtime could not | — | "declared, not defaulted" | no |
 | named tuples for bundles (SIP-58, stable 3.7) | stable | names erase; selection is `NamedTuple.apply` by index → lifter must map name→index from the type | medium | — | no; case-class bundle stays |
 | enum methods `s.phase.terminal` | stable (enums desugar to vals/classes in TASTy) | lifter lifts top-level/object defs with explicit params; a member def on the enum class is new | medium | core | nice-to-have, after layout |
 | named-field patterns `case failed(retryable = r)` (folded into SIP-58) | stable | positional UNAPPLY in TASTy, free | none | — | free readability, optional |
 | `into` (SIP-71, stable 3.9), `tracked` (experimental), relaxed lambdas (experimental), `export` | — | `export` makes forwarder vals the lifter refuses as duplicates (QUINT doc §4b) | — | — | no author-facing use |
 | indentation syntax `machine[…]:` instead of `{ }` | stable | identical trees | none | style | optional |
 
-**Honest answer:** Scala cannot give a keyword, but `object Module: … def attemptStart(s) = when(s.phase == scheduled)(enter(ProductState(started), statusStarted))` plus the machine's `steps(attemptStart ~> attemptStart)` line is the Quint shape minus priming. The `~>` line is the one duplication Quint avoids; removing it costs either the high-cost `extends Machine` form or an undeclared by-name binding. Recommend keeping `~>` for now.
+**Honest answer:** Scala cannot give a keyword, but `object Module: … def poll(s) = when(s.phase == scheduled)(enter(ProductState(started), statusStarted))` plus the machine's `steps(poll ~> poll)` line is the Quint shape minus priming. The `~>` line is the one duplication Quint avoids; removing it costs either the high-cost `extends Machine` form or an undeclared by-name binding. Recommend keeping `~>` for now.
 
 #### Before/after (real features)
 
 (a) Guarded step with positive guards and the renamed verb (`SA/Model.scala:270-284`, 15 → 13 lines, reads top-down):
 ```scala
-def attemptResult(s: ProtocolState, result: AttemptResult) = when(held(s.phase)):
+def respond(s: SystemState, result: AttemptResult) = when(held(s.phase)):
   result match
     case AttemptResult.completed         => enter(s.copy(phase = completed), statusCompleted)
     case AttemptResult.failed(retryable) =>
@@ -93,8 +93,8 @@ Same IR (`if g then … else Nil`), zero Case change.
 
 (b) Scenario inlined into its one Query (`SA/Queries.scala:102-103` + `:178-179`, 6 lines across two objects → 2):
 ```scala
-val completion = (query find completes in activityProtocol.scenario("completed")
-  .actions(start(), attemptStart, attemptResult(AttemptResult.completed)) limits three total 864).expect(satisfied)
+val completion = (query find completes in activitySystem.scenario("completed")
+  .actions(start(), poll, respond(AttemptResult.completed)) limits three total 864).expect(satisfied)
 ```
 Already legal today; IR identical if the Scenario keeps its name string. Applies to 8 of SA's 11 paths (~25 lines), to `nexusoperation`, and inside `designQueries`.
 
@@ -122,7 +122,7 @@ Blocked today: each `rpc` fixes `Req` from the method constant, and `field(_.act
 | S9 | control-as-one-action vs four actions | SA folds pause/unpause/requestCancel/terminate into `control(Control.x)` (`SA/Model.scala:75-84`); `nexusoperation` declares `requestCancel`, `terminate` separately | pick one convention per kit | 0 | convention | SA change = new actions, IDs, Cases | flag; defer |
 | S10 | bundle field names ×3 | 7 bundles | none viable (named tuples erase) | 0 | — | — | — |
 | S11 | `perform(x -> cmd)` + `onPath(x)(await)` pairs | 13 pairs | `perform(control(terminate) -> terminateActivity, then = awaitTerminated)` → two Items | ~10/realization | kit core (`umpire/realize/Scripts.scala`) | lifter: realizations lift "as written" (`M/irgen/Lift.scala:16-18`); a helper returning two Items needs a fold → medium | medium |
-| S12 | parallel Protocol machines (SA vs NC: start/attempt/backoff/3 timers/`productOf`, ~140 lines each) | 2 | a shared "attempted operation" template | large on paper | — | — | **high**: the phases differ (paused/pauseRequested vs unscheduled); fn-122 deliberately shares *laws*, not machines (vision #PROTOCOLS). Do not |
+| S12 | parallel System machines (SA vs NC: start/attempt/backoff/3 timers/`productOf`, ~140 lines each) | 2 | a shared "attempted operation" template | large on paper | — | — | **high**: the phases differ (paused/pauseRequested vs unscheduled); fn-122 deliberately shares *laws*, not machines (vision #PROTOCOLS). Do not |
 | S13 | `total n` author-computed | 88 | owner decision fn-112.11 R19 ("no automatic helper"); reader already prints both numbers and factors | 0 | — | — | respect; mention only that the module layout halves the distance between a Scenario and its total |
 
 What steps already imply (facts/outcomes lists, evidence defaults, start defaults) was settled by fn-112/fn-114 and is not restated twice today; evidence lists only exceptions (`SA/Model.scala:378-381`).
@@ -145,33 +145,33 @@ What steps already imply (facts/outcomes lists, evidence defaults, start default
 
 #### 4b. Action naming: actor and direction
 
-Survey (43 actions: 24 party, 10 timers, 9 internal; all `val x = action(party)`): the actor is in the declaration (`action(shared.worker.party)`, `SA/Model.scala:64`) and invisible at every call site (`Paths.completed = …actions(start(), attemptStart, attemptResult(completed))`). Encoding it in names (`workerTakesAttempt`) makes Scenarios long. Proposal: **show the party by structure, at the call site** — declare actions in per-actor objects, so Scenarios read as scripts: `actions(caller.start(), worker.poll, worker.respond(completed))`. This fits the module layout (actions are shared by product/protocol/admission machines, so they live at feature level, and feature-level objects are where the layout spec puts the pins).
+Survey (43 actions: 24 party, 10 timers, 9 internal; all `val x = action(party)`): the actor is in the declaration (`action(shared.worker.party)`, `SA/Model.scala:64`) and invisible at every call site (`Paths.completed = …actions(start(), poll, respond(completed))`). Encoding it in names (`workerTakesAttempt`) makes Scenarios long. Proposal: **show the party by structure, at the call site** — declare actions in per-actor objects, so Scenarios read as scripts: `actions(caller.start(), worker.poll, worker.respond(completed))`. This fits the module layout (actions are shared by product/protocol/admission machines, so they live at feature level, and feature-level objects are where the layout spec puts the pins).
 
 | Feature | today | proposed (object.val) | note |
 |---|---|---|---|
 | SA | `start`, `control(c)` | `caller.start`, `caller.control(c)` | keep names |
-| SA | `attemptStart`, `attemptResult(r)` | `worker.poll`, `worker.respond(r)` | `poll` = PollActivityTaskQueue, `respond` = RespondActivityTask* |
+| SA | `poll`, `respond(r)` | `worker.poll`, `worker.respond(r)` | `poll` = PollActivityTaskQueue, `respond` = RespondActivityTask* |
 | SA timers | `backoff`, `scheduleToStart`… | `expires.scheduleToStart`, `timers.backoff` | frees the `Inputs.` prefix: `start(scheduleToStart := expires)` |
-| admission | `dispatch`, `answerDelivery` | `history.dispatch`, `history.answerMatching` | internal steps named by the server component |
-| NC | `schedule`, `handlerReply(r)`, `complete(r)`, `transportFault`, `Control.inspect` | `callerWorkflow.schedule`, `handler.reply(r)`, `handler.complete(r)`, `network.fault`, `caller.inspect` | |
-| closepolicy | `callerClose`, `reset`, `requestCancel(p)`, `handlerFinish(r)`, `deliverCancel` | `caller.close`, `caller.reset`, `caller.requestCancel(p)`, `handler.finish(r)`, `server.deliverCancel` | |
-| nexusoperation | `start/requestCancel/terminate`, `handlerReply/complete` | `caller.x`, `handler.x` | |
+| admission | `dispatch`, `answerMatching` | `history.dispatch`, `history.answerMatching` | internal steps named by the server component |
+| NC | `schedule`, `reply(r)`, `complete(r)`, `fault`, `Control.inspect` | `callerWorkflow.schedule`, `handler.reply(r)`, `handler.complete(r)`, `network.fault`, `caller.inspect` | |
+| closepolicy | `close`, `reset`, `requestCancel(p)`, `finish(r)`, `deliverCancel` | `caller.close`, `caller.reset`, `caller.requestCancel(p)`, `handler.finish(r)`, `server.deliverCancel` | |
+| nexusoperation | `start/requestCancel/terminate`, `reply/complete` | `caller.x`, `handler.x` | |
 | taskqueue | `enqueue/deliver/acknowledge`, `crash/ackLoss/storageLoss` | `queue.x`, `faults.x` | |
-| worker | `workerStop/workerResume/serve` | `worker.stop/resume/serve` | the file keeps the prefix *because* of IDs (`M/temporal/shared/worker/Model.scala:56-59`) |
+| worker | `stop/resume/serve` | `worker.stop/resume/serve` | the file keeps the prefix *because* of IDs (`M/temporal/shared/worker/Model.scala:56-59`) |
 
-**Cost of a rename, precisely.** A Definition ID is owner + val name (`M/irgen/Context.scala:241-245`). *Moving* a val into `object worker` with `given DefinitionScope = DefinitionScope("temporal.worker.Worker$package$")` keeps the ID only if the val name stays; the file-level pin must then go (a pin inside a pinning owner is refused, `Context.scala:297-330`; whether two objects may pin the same former owner needs a fixture — I believe yes, since the rule is per-owner and per-ID). *Renaming* the val changes the action ID, class IDs (`attemptResult-completed`), IR step bindings, Case Program/Contract bytes (`M/cases/activity-completion-case.json` embeds `temporal.activity.standalone.action.activityProtocol.attemptStart`), `Taking(attemptStart, 1)` in realizations, manifest, and the Quint/P exports. The fn-115 golden (`tools/umpire/internal/golden/config.json`) knows `source_path_renames`, `function_name_substitutions`, `type_name_substitutions`, `source_label_substitutions`, `positions_by_file`, `functions_by_reference`, `inert_fields` — **no action/ID substitution**, so a rename means a re-captured `original.json`, then `umpire-gen-model`, `umpire-gen-fixtures` (pinned Cases under `tests/testcore/testpilot/testdata/generated`), `canary-gen-case`, and `.lint.json` acceptances keyed by name. Machine renames are the most expensive: they ripple into law claims `<machine>.<law>`, default Query names `<m>.<scenario>.<property>` and Case file names (`activity-activityProtocol.cancelIsRequested-case.json`).
+**Cost of a rename, precisely.** A Definition ID is owner + val name (`M/irgen/Context.scala:241-245`). *Moving* a val into `object worker` with `given DefinitionScope = DefinitionScope("temporal.worker.Worker$package$")` keeps the ID only if the val name stays; the file-level pin must then go (a pin inside a pinning owner is refused, `Context.scala:297-330`; whether two objects may pin the same former owner needs a fixture — I believe yes, since the rule is per-owner and per-ID). *Renaming* the val changes the action ID, class IDs (`respond-completed`), IR step bindings, Case Program/Contract bytes (`M/cases/activity-completion-case.json` embeds `temporal.activity.standalone.action.activitySystem.poll`), `Taking(poll, 1)` in realizations, manifest, and the Quint/P exports. The fn-115 golden (`tools/umpire/internal/golden/config.json`) knows `source_path_renames`, `function_name_substitutions`, `type_name_substitutions`, `source_label_substitutions`, `positions_by_file`, `functions_by_reference`, `inert_fields` — **no action/ID substitution**, so a rename means a re-captured `original.json`, then `umpire-gen-model`, `umpire-gen-fixtures` (pinned Cases under `tests/testcore/testpilot/testdata/generated`), `canary-gen-case`, and `.lint.json` acceptances keyed by name. Machine renames are the most expensive: they ripple into law claims `<machine>.<law>`, default Query names `<m>.<scenario>.<property>` and Case file names (`activity-activitySystem.cancelIsRequested-case.json`).
 
 #### 4c. `admission/` and `compositions/`
 
 | today | what it models | proposed | fits the module layout as |
 |---|---|---|---|
 | `admission/` | history's record of one activity and whether a delivery becomes a started attempt | `record/` (package), machine `historyRecord` | `object HistoryRecord` section after the protocol |
-| `currentAdmission` / `staleAdmission` | design that re-reads eligibility / design that trusts the message | `recheckingRecord` / `trustingRecord` | derived machines inside the object |
-| `heldAdmission` | the race run against a server with the dispatch held | `heldDispatchRecord` | same |
+| `activityRecord` / `trustingActivityRecord` | design that re-reads eligibility / design that trusts the message | `recheckingRecord` / `trustingRecord` | derived machines inside the object |
+| `heldDispatch` | the race run against a server with the dispatch held | `heldDispatchRecord` | same |
 | `admissionResponseLoss` | one lost start answer | `lostStartAnswer` | same |
-| `compositions/` | the record composed with the task queue | `withTaskQueue/`; `currentOverQueue` → `recheckingOverQueue`, `OverQueue`/`OverMatching` state types unchanged | `object OverTaskQueue` |
+| `compositions/` | the record composed with the task queue | `withTaskQueue/`; `recordOverQueue` → `recheckingOverQueue`, `OverQueue`/`OverMatching` state types unchanged | `object OverTaskQueue` |
 
-Package renames alone are cheap (types keep `temporal.standaloneactivity.<Type>` through the `System$package$` pin, README:543-547; function names and positions change → `function_name_substitutions`, `source_path_renames`, one regeneration). Machine val renames carry the full cost above (`activity-race-heldAdmission.staleDelivery-case.json`, lint keys).
+Package renames alone are cheap (types keep `temporal.standaloneactivity.<Type>` through the `System$package$` pin, README:543-547; function names and positions change → `function_name_substitutions`, `source_path_renames`, one regeneration). Machine val renames carry the full cost above (`activity-race-heldDispatch.staleDelivery-case.json`, lint keys).
 
 ### 5. Constraints respected
 
