@@ -354,7 +354,7 @@ by id.
 | Path | What it holds |
 | --- | --- |
 | `model/umpire` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `umpire/realize` |
-| `model/temporal` | The Models: `features`, grouped by entity (`nexus/workflow`, `nexus/standalone`, `activity/standalone`); `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, the laws stated once for every entity; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
+| `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, the laws stated once for every entity; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -544,8 +544,16 @@ channels or realizations, Limits of one name with different bounds, and two acti
 binds. A monitor a Query's expected Run names by value is refused where no `val` declares it or the
 Query's machine does not watch it.
 
-A feature reads top to bottom in one feature file per folder, named after the folder, with its
-realization and tests. A feature whose Models include a refinement pair has two levels,
+Related forms of one kind live together under `features/<kind>/`. Nexus has `nexus/workflow/` and
+`nexus/standalone/`; activity currently has `activity/standalone/`. The kind has one general file
+named after it, `Nexus.scala` or `Activity.scala`, for types and signature shared by its forms. It
+holds no machine and needs no `object exports`. Both current general files contain only their
+package header, ready for shared declarations. A kind may also own `product/Product.scala`, with
+no kind-level System. Each form keeps its own feature file and exports, realization and tests;
+`workflow/` and `standalone/` belong inside a kind, never directly under `features/`.
+
+A feature or form reads top to bottom in one feature file per folder, named after the folder. A
+feature whose Models include a refinement pair has two levels,
 each in a folder of its own because different people read them: `product/`, what a caller reads,
 and `system/`, how the server gets there. Its root feature file keeps only genuinely shared types,
 the shared signature and `object exports`; each level folder holds the level's own file, named after
@@ -593,6 +601,11 @@ shared/
   worker/
     Worker.scala               Polling
 ```
+
+A form's System may refine its own Product or the Product of its enclosing kind. It may not refine
+another kind's or another form's Product. Nexus currently keeps its Product in the workflow form;
+its standalone form is still single-level. The kind-level Product shape is proved by the `relay`
+fixture in `model/irgen/testdata/layout/kinds/`.
 
 The files of one level folder share its package, so their top-level names are shared too. The
 level's `Phase`, `State` and `Fact` sit in its own `Product.scala` or `System.scala`; a subject's own
@@ -985,6 +998,11 @@ include a refinement pair keeps only shared types, its signature and `object exp
 its Product `Phase`, `State`, `Fact` and machine live in `product/Product.scala`, and its System
 counterparts in `system/System.scala`, with each zoom-in in a file of its own beside it. A feature of
 one level keeps its machines in its feature file and has neither folder.
+For a kind with related forms, create its general file and put each form's feature folder beneath
+it, following `model/irgen/testdata/layout/kinds/`. An optional kind Product can serve both forms;
+each form's System then refines that Product and keeps its own `system/System.scala`. The three
+kind-layout refusal specimens are in `model/irgen/testdata/layout/r4/`, each pinned at its source
+line by the fixture tests.
 The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
 object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
 `syncs`, `properties`, `implements` or `queries`; its refusal fixtures are under

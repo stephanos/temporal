@@ -37,7 +37,8 @@ import scala.jdk.CollectionConverters.*
  *     files are found.
  *
  * A kind under `features` adds only `workflow/` and `standalone/`, each validated as a feature.
- * Its one general file, named after the kind, holds no machine; its optional Product needs no
+ * A form directly under `features` is refused. Its kind's one general file, named after the kind,
+ * holds no machine; its optional Product needs no
  * kind System or exports. A form may refine that Product, never one outside its kind. Empty
  * package-only general headers are checked at the configured source root because they emit no
  * TASTy. Kind admission does not change the flat `shared` layout.
@@ -57,7 +58,15 @@ final private[irgen] class Structure(index: Index):
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1).flatMap(source)
     for (_, group) <- sources.groupBy(_.feature).toSeq.sortBy(_._1) do
       val hasForms = group.exists(s => s.sub.headOption.exists(Structure.formFolders))
-      if hasForms || held(group) then
+      val pkg = group.head.feature.split('.')
+      if pkg.reverse(1) == "features" && Structure.formFolders(pkg.last) then
+        for source <- group; first <- source.top.headOption do
+          refuse(
+            first,
+            s"${pkg.last} is directly under features: a form belongs inside a kind, " +
+              s"features/<kind>/${pkg.last}/"
+          )
+      else if hasForms || held(group) then
         checkPackages(group)
         if hasForms && group.head.feature.split('.').reverse(1) == "features" then kind(group)
         else feature(group)

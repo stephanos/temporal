@@ -39,6 +39,7 @@ var retiredModelDirectories = []string{
 func TestNexusFormsLayout(t *testing.T) {
 	for _, name := range []string{
 		"Nexus.scala", "workflow/Workflow.scala", "workflow/Realization.scala",
+		"workflow/product/Product.scala", "workflow/system/System.scala",
 		"workflow/system/TrustingCaller.scala", "standalone/Standalone.scala", "standalone/Realization.scala",
 	} {
 		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features/nexus", name))
@@ -47,6 +48,31 @@ func TestNexusFormsLayout(t *testing.T) {
 	for _, name := range []string{"nexuscaller/NexusCaller.scala", "nexusoperation/NexusOperation.scala"} {
 		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features", name))
 		require.ErrorIs(t, err, os.ErrNotExist, name)
+	}
+}
+
+func TestKindGeneralFilesAndForms(t *testing.T) {
+	features := filepath.Join(repoRoot, "model", "temporal", "features")
+	for kind, general := range map[string]string{"nexus": "Nexus.scala", "activity": "Activity.scala"} {
+		t.Run(kind, func(t *testing.T) {
+			entries, err := os.ReadDir(filepath.Join(features, kind))
+			require.NoError(t, err)
+			var files []string
+			for _, entry := range entries {
+				if entry.IsDir() {
+					if entry.Name() == ".scala-build" || entry.Name() == ".bsp" {
+						continue
+					}
+					require.Contains(t, []string{"product", "workflow", "standalone"}, entry.Name())
+				} else if strings.HasSuffix(entry.Name(), ".scala") {
+					files = append(files, entry.Name())
+				}
+			}
+			require.Equal(t, []string{general}, files, "a kind holds one general file")
+		})
+	}
+	for _, form := range []string{"workflow", "standalone"} {
+		require.NoDirExists(t, filepath.Join(features, form), "a form belongs inside its kind")
 	}
 }
 
