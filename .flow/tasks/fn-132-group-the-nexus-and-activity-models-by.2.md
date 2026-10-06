@@ -27,9 +27,67 @@ Independent of task 1; the two may run in either order but not at the same time 
 - [ ] Focused move proofs pass, then the shared required full model/Go/runtime/artifact/lint batch passes once after both Part A moves. The done evidence explicitly discharges the prerequisite/first move's deferred gates, retains JSON/exit/separate wall-time logs and states any not-required backend/live-run scope honestly. No golden recapture or weakened lint is accepted.
 
 ## Done summary
-TBD
+Standalone Activity now lives under `features/activity/standalone`, with its local Product/System types, actual client/activity identities, current machines, Queries and all three System realizations preserved. The form owns `activity-standalone`, `activity-standalone-record` and `activity-standalone-race`; the new kind header stays package-only for task6.
 
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - ran [2026-10-06T13:24:34Z..2026-10-06T13:33:10.891111Z] (model: gpt-6.1-sol at high) - SHIP. Fresh read-only same-Codex-family draws and same-primary repair/re-review.
+stage: memory - skipped(mechanical filename fix).
+baseline: green. The pre-edit focused layout/retired-reference command passed. Applicable prerequisite/task1 proof and compiler-warning evidence were reused by unchanged inputs; no formal BASELINE_HANDOFF was supplied.
+
+### Exact proof and retained history
+
+`.flow/tmp/fn132-2/verification-ledger.json` indexes every captured attempt, helper hash, source revision and result. `identity-ledger-v2.json` contains 172 complete string mappings and seven source paths. The strict comparator preserves every unmatched field, JSON type and nested list order. Its positive control, ten seeded field mutations and six unchanged intrinsic/server controls passed.
+
+The independent mapped expectation equals all 17 complete current IR/lint/law documents. Current-reader lowering equals the complete bytes of 21 Model Case files, nine functional files and two canary files, including manifests and identities. Actual comparison output and its execution provenance are `strict-comparisons.stdout` and `strict-comparisons-provenance.md`. All seven moved source files equal task-base bytes plus four declared package/export substitutions; the three immutable lifter expectations equal the independent finite package/source/compiler-owner map. No golden was recaptured.
+
+The complete expected/current projection has 101,787,938 bytes and SHA-256 `c9cba88ab0a739d39e77ec410418fd4cd95148a91a14985b2636a3f96f019441`. It retains reader/check/lint results, full Query receipts, verdicts, fingerprints, Causes, law positions and diagnostic text. Fresh Activity partitions plus task1's four unchanged Nexus partitions equal the full mapped expectation. `projection-reuse-ledger.json`, helper sources and `.rev` files bound this reuse by full IR/sidecar and executable-reader inputs. The old lossy comparator is unused.
+
+The final v4 audit checked 4,627 live files and all ten exact retired Activity Case basenames, retaining exact SHA identities for 12 historical/current recorded artifacts. Its red run caught the canary reference described below; its green run found none. Earlier v3 passed a narrower path/package/export search that missed bare Case basenames. Current Nexus canary/control Runs from task1 remain unchanged and were reused because their Cases/catalog inputs did not change. The audit classifies closed and explicitly historical Flow contexts separately from bounded current maintenance and unrelated held Nexus roadmap prose. It makes no whole-Flow-clear claim.
+
+The exact 20-line CI shard-name proof maps ten Activity names and preserves ten Nexus names. Three wire capture filename expectations were restored to their historical labels after the broad Go check exposed task1's accidental label rewrite; all 13 immutable captures and wire-byte assertions remain unchanged.
+
+### Closing Part A checks
+
+These observations discharge prerequisite8, Nexus move1 and Activity move2's deferred source/package/artifact/lint batch. All log stems below are under `.flow/tmp/fn132-2`; each suite has stdout, separate stderr, numeric exit and separate wall seconds. Go stdout is JSON. Package times overlap and are never summed.
+
+| Observation | Result | Wall seconds | Log stem |
+|---|---|---:|---|
+| `make MODEL_GATE_ARGS=--skip-go-checks umpire-gen-model` | 0 | 225 | regen-model-v3 |
+| `make MODEL_GATE_ARGS=--skip-go-checks umpire-check-model` | 0 | 228 | full-model |
+| `go test -json -count=1 -tags test_dep -p 2 -timeout 30m ./tools/umpire/...` | 0; 20 packages, 2,880 pass events, eight optional-backend skips | 98 | full-umpire-go-v2 |
+| Full relevant runtime packages | 30 unaffected packages passed; one stale-name fixture failed | 16 | full-runtime-packages |
+| Complete affected `./tests/testcore/testpilot` replacement | 0; 92 pass events, nine intentional skips | 3 | runtime-testpilot-green |
+| `make umpire-check-cases umpire-check-fixtures canary-check-case` | 0 | 49 | publication |
+| `make umpire-ir-bridge` | 0 | 3 | bridge-build |
+| `make lint-model` | 0; full format, four scalafix projects and sugar check | 25 | full-scala-lint-v2 |
+| Batch-base read-only `make lint-code-fast` | 0; zero reported issues | 11 | full-go-lint |
+| Complete four affected `canary_harness` packages | 0; 104 pass events, no skips/failures | 2 | full-canary-harness |
+| Canonical read-only tagged lint and vet on those packages | 0; zero reported issues | 30 | canary-harness-lint |
+
+Runtime coverage combines the original 30 unaffected package passes with the complete affected-package replacement. The initial whole runtime command still exited1; no full-runtime green receipt is minted. Full green receipts exist only for the actual full Model, full Umpire Go-v2 and publication commands. The formatter-only Gate fixture wrap and diagnostic captures did not invalidate executable Model/tooling inputs.
+
+The first two regeneration failures, full Go wire-label failure, runtime CI-name fixture failure and Scala-format failure remain retained. Each has its exact bounded correction and superseding affected result. The inherited JDK27 scalafix `NoSuchFieldException: path` uses `.flow/tmp/fn124-8/current/scalafix-probe-proof.md`; canonical lint produced no new compiler error. The positive fixture export prefixes and strict compiler admission from tasks8/1 remain intact. Order/Structure changes are comments only.
+
+The first review merged contracts/integration's one P2 finding at `tools/canary/preflight/harness_test.go:67`. `canary_harness` hid this test from the ordinary `test_dep` package run. The focused tagged red failed specifically on the removed Case filename. The one-line mapped lookup preserves every capability/refusal/admission assertion; the complete four tagged packages and tag-aware canonical lint/vet passed. Commit4c52cc5854 carries that fix plus CLI-mutated review metadata. The same primary session marked finding1 fixed and returned SHIP. No unaffected full gate was rerun or minted from these affected checks.
+
+### Default-cluster live limitation
+
+The supplemental `go test -json -count=1 -tags 'test_dep integration' -p 2 -timeout 30m ./tests -run '^TestTestpilot'` probe exited1 in438 wall seconds, with25 top-level passes,82 total pass events and zero skips. Two generated Activity leaves and two worker-outage leaves failed with INCONCLUSIVE/no-evidence results. The generated parent also reports failure. No whole-live green receipt or production/deployment claim follows from this probe.
+
+The conductor approved the existing MILESTONES owner-section matching ShutdownWorker exception after reading the retained evidence. A bounded current/baseline pair captured complete Runs only in fresh ignored diagnostic directories. Current failed first stops timed out at10004/10008ms; the immutable6c791 baseline's worker-outage first stop timed out at10003ms. These Runs closed Completed, cleaned up Succeeded and recorded no fault, observations or subsequent start action. Other runs on the same current tree succeeded, demonstrating schedule dependence. Relevant runtime/harness/dependency inputs are byte-identical. Baseline generated cancel/terminate passed; this evidence does not claim every generated leaf failed on the baseline.
+
+`diagnostic-scope.md`, `diagnostic-{current,baseline}.*`, full `diagnostic-{current,base}-runs` and the retained clean `diagnostic-base` worktree provide exact selectors, environment, Case identity, step/fault outcomes and full Run fields. The exception permits honest observation of the inherited limitation; no Model, expectation, configuration, assertion or server fix shipped. Deferred fn125 and upstream matching work remain outside this source move.
+
+### Scope and lifecycle
+
+All current compiler/fixture/CLI/Case/doc consumers follow the finite map. Authorized downstream fn128/fn129/fn133/fn119/fn125 prose was changed only through flowctl; deferred statuses and dependencies stay unchanged. Fn123 gained an explicit historical-context sentence while retaining its snapshot. Root's Flow-only scope amendment9de0bdd is included in the original task range; original taskbase6c791 and whole-goal specbase951c5516 remain preserved. Rename-only603d6cd and corrective checkpoints are retained without history rewriting.
+
+The parent fn132 remains open. The worker updates only task2's MILESTONES completion row after canonical done. No shared Product/task4/task6 semantics, Structure behavior, intrinsic operation/API name changes or backend installation occurred.
+
+The review receipt is `/tmp/impl-review-receipt-8f37faba39e2-fn-132-group-the-nexus-and-activity-models-by.2.json`. It records SHIP at reviewed code HEAD4c52cc5854dfab6c3f4fbe57ed8ad51c1d79ec1e, primary session `01a11163-2fb4-74d3-b939-3cc7fda9fa8d`. Fan-out sidecars are `.flow/review-fanout/0a934bbf61b3444e9e99d447e4f16389/`; repair output is `review-resume.stdout`. The coordinator received the verdict from the backend. No writer actual-model annotation is inferred from the requested selector.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9de0bdd2b81f304f32b444fc886d9a807e39d066, 603d6cd2bd123724e88b31d85ba21fa1659fe7f7, eb5cffc556f9c5439c6f64aac5137d45ff50d4b0, 2dd92d0a6bde6a0565986c885b585ec06e8d6cc6, ce5013ccca2319244b130ea083510d981e63018a, 6bd5f0fb9c02d35e46c3e40f9408bdc9ce92320a, 4c52cc5854dfab6c3f4fbe57ed8ad51c1d79ec1e
+- Tests: make MODEL_GATE_ARGS=--skip-go-checks umpire-gen-model , make MODEL_GATE_ARGS=--skip-go-checks umpire-gen-model , make MODEL_GATE_ARGS=--skip-go-checks umpire-gen-model , go test -json -count=1 -tags test_dep -p 2 -timeout 30m ./tools/umpire/... , go test -json -count=1 -tags test_dep -p 2 -timeout 30m ./tools/umpire/ir -run \^TestSchemaRenameKeepsTheWireBytes\$ , go test -json -count=1 -tags test_dep -p 2 -timeout 30m ./tools/umpire/... , make MODEL_GATE_ARGS=--skip-go-checks umpire-check-model , go test -json -count=1 -tags test_dep -p 2 -timeout 30m ./common/testing/testpilot/... ./tools/canary/... ./tests/testcore/testpilot , go test -json -count=1 -tags test_dep -p 2 -timeout 30m ./tests/testcore/testpilot , make umpire-check-cases umpire-check-fixtures canary-check-case , make umpire-ir-bridge , make lint-model , make lint-model , env GOLANGCI_LINT_BASE_REV=21b9964965c8f6e383ee0a751a5fc3cb32d172db GOLANGCI_LINT_FIX=false make lint-code-fast , go test -json -count=1 -tags test_dep\ integration -p 2 -timeout 30m ./tests -run \^TestTestpilot , env UMPIRE_REPEAT_RUN_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn132-2/diagnostic-current-runs go test -json -count=1 -tags test_dep\ integration -p 2 -timeout 10m ./tests -run \^TestTestpilot\(GeneratedCases\|WorkerOutageCase\|WorkerOutageCaseLeavesAnotherQueueAlone\)\$/\^activity-standalone-\(activitySystem\\.cancelIsRequested\|terminate\)\$ , env UMPIRE_REPEAT_RUN_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn132-2/diagnostic-base-runs bash -c cd\ /Users/stephan/Workspace/skunkworks/umpire/temporal\ \&\&\ export\ SANDBOX_START_DIR=\"\$PWD\"\ FLOW_AUTONOMOUS=1\ \;\ cd\ /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn132-2/diagnostic-base\ \&\&\ export\ SANDBOX_START_DIR=\"\$PWD\"\ \;\ go\ test\ -json\ -count=1\ -tags\ \"test_dep\ integration\"\ -p\ 2\ -timeout\ 10m\ ./tests\ -run\ \"\^TestTestpilot\(GeneratedCases\|WorkerOutageCase\|WorkerOutageCaseLeavesAnotherQueueAlone\)\$/\^activity-\(activitySystem\\\\.cancelIsRequested\|terminate\)\$\" , go test -json -count=1 -tags test_dep\ canary_harness -p 2 -timeout 10m ./tools/canary/preflight -run \^TestHarnessRejectsTheHoldDeliveryActuatorBeforeIO\$ , go test -json -count=1 -tags test_dep\ canary_harness -p 2 -timeout 10m ./tools/canary/preflight ./tools/canary/casebinding ./tools/canary/cmd/umpire-canary ./tools/canary/testharness , env GOLANGCI_LINT_BASE_REV=21b9964965c8f6e383ee0a751a5fc3cb32d172db GOLANGCI_LINT_FIX=false make TEST_TAG=canary_harness LINT_CODE_TARGETS=./tools/canary/preflight\ ./tools/canary/casebinding\ ./tools/canary/cmd/umpire-canary\ ./tools/canary/testharness lint-code , python3 .flow/tmp/fn132-2/strict.py coverage, python3 .flow/tmp/fn132-2/strict.py compare .flow/tmp/fn132-2/mapped-before-v2/ir model/ir, python3 .flow/tmp/fn132-2/strict.py sources, python3 .flow/tmp/fn132-2/strict.py fixtures, python3 .flow/tmp/fn132-2/prove-case-names.py, python3 .flow/tmp/fn132-2/old_name_audit.py
 - PRs:
