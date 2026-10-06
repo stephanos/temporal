@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T05:23:29.485720Z",
+  "depends_on": [
+    "fn-126-read-each-feature-top-to-bottom-one.10"
+  ],
+  "id": "fn-126-read-each-feature-top-to-bottom-one.11",
+  "priority": null,
+  "spec": "fn-126-read-each-feature-top-to-bottom-one",
+  "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.11.md",
+  "status": "todo",
+  "title": "Move standalone activity realizations into the System folder",
+  "updated_at": "2026-10-06T05:23:29.485720Z"
+}
