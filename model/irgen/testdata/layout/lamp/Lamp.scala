@@ -11,6 +11,8 @@
  *   - system/Bulb.scala: Bulb, a zoom-in on how the System keeps its promise. A level folder holds
  *     one file per subject beside the level's own; a zoom-in goes in the folder of its audience,
  *     whatever it refines, and no folder sits below a level's.
+ *   - system/Realization.scala: the System's realization, exported from this file. Add a Product
+ *     realization only when the Product has an executable realization.
  *
  * A feature with one machine, or none that refines another, keeps it in this file and has neither
  * folder. Read top to bottom: the shared types, the signature (the user and its actions), and last
@@ -22,7 +24,7 @@ package fixture.features.lamp
 
 import umpire.*
 import product.LampProduct
-import system.{Bulb, LampSystem}
+import system.{Bulb, LampRealization, LampSystem}
 
 // ### Types
 // Every type the levels genuinely share sits here. Phase, State and Fact belong to the level files;
@@ -50,4 +52,4 @@ val one = Limits(steps = 1, actions = 1, search = 8)
 // after its file and names its roots, in every level.
 
 object exports:
-  val lamp = irFile("lamp")(LampProduct, LampSystem, Bulb)
+  val lamp = irFile("lamp")(LampProduct, LampSystem, Bulb, LampRealization.system)

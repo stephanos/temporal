@@ -3,7 +3,7 @@ package lower
 // An activity's script, the evidence a realization declares beyond a kind and a source, and what the
 // standalone activity Model's own realization declares. The fixtures are in
 // model/irgen/testdata/lifts/Realizations.scala; the activity realization is
-// model/temporal/features/standaloneactivity/Realization.scala, and its Cases are in
+// model/temporal/features/standaloneactivity/system/Realization.scala, and its Cases are in
 // activity_cases_test.go.
 
 import (
@@ -26,7 +26,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-const activityRealizationAt = "model/temporal/features/standaloneactivity/Realization.scala"
+const activityRealizationAt = "model/temporal/features/standaloneactivity/system/Realization.scala"
 
 // kitAt is where the shared Temporal kit (model/temporal/realize) writes the declarations of the
 // realizations it builds: their roles and correlation, the evidence of the Run's own record, and the
@@ -565,10 +565,10 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	}
 	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
 	require.NoError(t, err)
-	const evidence = "temporal.features.standaloneactivity.evidence."
+	const evidence = "temporal.features.standaloneactivity.system.evidence."
 	// The Run numbers its own record, so the kinds read from it count in one source, in the order the
 	// Run records them; each status is read by a poll of its own, and counts in a source of its own.
-	const recordSource = "temporal.features.standaloneactivity.source.record"
+	const recordSource = "temporal.features.standaloneactivity.system.source.record"
 	polledSources := map[string]bool{}
 	got := map[string]recordedKind{}
 	for _, e := range r.GetEvidence() {
@@ -749,7 +749,7 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 func TestAClassTakenAgainThatNoKindNamesIsAnError(t *testing.T) {
 	m := loaded(t, "activity")
 	for _, e := range m.GetRealizations()[0].GetEvidence() {
-		if e.GetId() == "temporal.features.standaloneactivity.evidence.attemptCount" {
+		if e.GetId() == "temporal.features.standaloneactivity.system.evidence.attemptCount" {
 			e.Confirms = e.GetConfirms()[:1]
 		}
 	}

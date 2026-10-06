@@ -1822,6 +1822,16 @@ class Fixtures extends munit.FunSuite:
     val lifted = Files.readString(out.resolve("lamp.json"))
     for machine <- Seq("lampProduct", "lampSystem", "bulb") do
       assert(lifted.contains(s"\"$machine\""), s"lamp.json lifts no machine $machine")
+    val parsed = new com.fasterxml.jackson.databind.ObjectMapper().readTree(lifted)
+    val realization = Option(parsed.get("realizations"))
+      .toSeq.flatMap(_.elements().asScala.toSeq)
+    assertEquals(realization.size, 1)
+    assertEquals(realization.head.get("id").asText(), "fixture.features.lamp.system.LampRealization.system")
+    assertEquals(realization.head.get("machine").asText(), "lampSystem")
+    assertEquals(
+      realization.head.get("position").get("file").asText(),
+      "model/irgen/testdata/layout/lamp/system/Realization.scala"
+    )
 
   // R20 (a): the folders of a feature with two levels, a missing root feature file or level file,
   // a feature of one level with a subfolder, and a package that does not mirror its folder

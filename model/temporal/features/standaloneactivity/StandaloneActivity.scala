@@ -21,10 +21,12 @@
  *     StandaloneActivity, the System with that worker;
  *   - system/Record.scala: the history record of the activity, and its designs;
  *   - system/WithTaskQueue.scala: the contract's designs composed with the shared task queue.
+ *   - system/Realization.scala: the executable System realizations of StandaloneActivity,
+ *     HeldDispatch and LostStartAnswer.
  *
  * A machine object reads its header (entity, init, end, evidence), then its sections in order:
  * states, refinement, effects, monitors, rules, properties, implements and queries. A composition
- * reads end, then states, syncs, properties, implements and queries. Realization.scala realizes it.
+ * reads end, then states, syncs, properties, implements and queries.
  */
 package temporal
 package features.standaloneactivity
@@ -33,7 +35,7 @@ import umpire.*
 import shared.worker.worker as process
 import io.temporal.api.workflowservice.v1.*
 import product.ActivityProduct
-import system.{ActivitySystem, StandaloneActivity}
+import system.{ActivityRealization, ActivitySystem, StandaloneActivity}
 
 // ### Types
 

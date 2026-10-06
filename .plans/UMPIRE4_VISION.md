@@ -39,6 +39,8 @@ shared capabilities, laws and realization vocabulary, and one folder per feature
 to bottom in one file: its types, its actors and their actions, then one object per machine, whose
 rules say when each action fires, whose effects say what it does, and whose sections hold its
 promises, capabilities and Queries (model/README.md, Writing a Model).
+The standalone activity keeps its executable realizations beside the subjects they execute in
+`system/Realization.scala`; a Product realization is added only for an executable Product subject.
 
 - Knows behavior: Yes, it is the only component that does.
 - Knows Temporal: Yes, except the DSL framework.

@@ -4,7 +4,7 @@
     "name": "temporal.features.standaloneactivity.AttemptResult",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 45
+      "line": 47
     },
     "enum": {
       "cases": [ {
@@ -25,7 +25,7 @@
     "name": "temporal.features.standaloneactivity.Control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 50
+      "line": 52
     },
     "enum": {
       "cases": [ {
@@ -42,7 +42,7 @@
     "name": "temporal.features.standaloneactivity.Outcome",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 54
+      "line": 56
     },
     "enum": {
       "cases": [ {
@@ -55,7 +55,7 @@
     "name": "temporal.features.standaloneactivity.Timeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 41
+      "line": 43
     },
     "enum": {
       "cases": [ {
@@ -3753,7 +3753,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -3850,7 +3850,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -3947,7 +3947,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -4105,7 +4105,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -4202,7 +4202,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -4299,7 +4299,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -4396,7 +4396,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -4493,7 +4493,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -4590,7 +4590,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -4687,7 +4687,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5098,7 +5098,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5206,7 +5206,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5303,7 +5303,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5400,7 +5400,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5497,7 +5497,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5619,7 +5619,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5716,7 +5716,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5813,7 +5813,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -5910,7 +5910,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -6007,7 +6007,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -6106,7 +6106,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -6220,7 +6220,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -6355,7 +6355,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -6457,7 +6457,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -6559,7 +6559,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 127
+                "line": 129
               },
               "literal": {
                 "enum": {
@@ -7393,7 +7393,7 @@
     "name": "control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 86
+      "line": 88
     },
     "actor": "client",
     "inputs": [ {
@@ -7410,7 +7410,7 @@
     "name": "start",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 77
+      "line": 79
     },
     "actor": "client",
     "inputs": [ {
@@ -7436,7 +7436,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 119
+      "line": 121
     },
     "actor": "system",
     "timer": true
@@ -7445,7 +7445,7 @@
     "name": "scheduleToStart",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 120
+      "line": 122
     },
     "actor": "system",
     "timer": true
@@ -7454,7 +7454,7 @@
     "name": "startToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 121
+      "line": 123
     },
     "actor": "system",
     "timer": true
@@ -7463,7 +7463,7 @@
     "name": "backoff",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 115
+      "line": 117
     },
     "actor": "system",
     "timer": true
@@ -7472,7 +7472,7 @@
     "name": "timeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 114
+      "line": 116
     },
     "actor": "system",
     "timer": true
@@ -7481,7 +7481,7 @@
     "name": "poll",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 101
+      "line": 103
     },
     "actor": "worker",
     "on": "activity",
@@ -7491,7 +7491,7 @@
     "name": "respond",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 103
+      "line": 105
     },
     "actor": "worker",
     "inputs": [ {

@@ -105,7 +105,7 @@ func TestARecordIsLateByTheAttemptItIsDeclaredOf(t *testing.T) {
 	second.Confirms = second.GetConfirms()[:1]
 	r := m.GetRealizations()[0]
 	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "startedAgain", Position: second.GetPosition(), Records: "statusStarted",
-		Source: "temporal.features.standaloneactivity.source.again", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
+		Source: "temporal.features.standaloneactivity.system.source.again", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{{Step: evidenceOf(t, m, "statusStarted").GetConfirms()[0].GetStep(), Occurrence: 2}},
 		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
 			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}})
@@ -133,7 +133,7 @@ func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
 	second.GetRunEvent().GetAttempt().Number = 1
 	r := m.GetRealizations()[0]
 	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "failed", Position: second.GetPosition(), Records: second.GetRecords(),
-		Source: "temporal.features.standaloneactivity.source.failed", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
+		Source: "temporal.features.standaloneactivity.system.source.failed", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
 		Confirms: []*umpirespb.Taking{failure},
 		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
 			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}})

@@ -49,6 +49,8 @@ var retiredModelNames = regexp.MustCompile(strings.Join([]string{
 	`"model", "(?:lifter|gate|metrics|gen)"`,
 	`"model", "temporal", "(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)"`,
 	`"standaloneactivity", "(?:record|withTaskQueue)"|"nexuscaller", "closepolicy"`,
+	`\bstandaloneactivity/Realization\.scala\b`,
+	`"standaloneactivity", "Realization\.scala"`,
 }, "|"))
 
 // retiredZoomInFolders matches a flattened zoom-in folder named from its feature's folder, as prose
@@ -405,6 +407,11 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"a pinned former owner":                 {`DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")`, false},
 		"a longer path ending in a folder name": {"common/testing/testpilot/record/run.go, x.record/y", false},
 		"a feature file":                        {"model/temporal/features/nexuscaller/NexusCaller.scala:424", false},
+		"the activity's former realization":     {"model/temporal/features/standaloneactivity/Realization.scala:33", true},
+		"the activity's relative realization":   {"standaloneactivity/Realization.scala", true},
+		"the former realization joined":         {`filepath.Join("standaloneactivity", "Realization.scala")`, true},
+		"the System realization":                {"standaloneactivity/system/Realization.scala", false},
+		"the Nexus caller realization":          {"nexuscaller/Realization.scala", false},
 		"the kit's capabilities":                {"model/temporal/capabilities/Capabilities.scala", false},
 		"the framework's capabilities":          {"model/umpire/Capabilities.scala", false},
 		"a fixture named like a retired file":   {"model/irgen/testdata/lifts/Capabilities.scala, irFileRefusals/IrFiles.scala", false},
@@ -436,6 +443,13 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 	require.NotEmpty(t, retiredModelMentions(".plans/UMPIRE_MODULES.md", "the record/replay harness"))
 	require.NotEmpty(t, retiredModelMentions("tools/umpire/lower/race_test.go", "read off `record/`"))
 	require.NotEmpty(t, retiredModelMentions("tools/umpire/lower/race_test.go", "features/standaloneactivity/withTaskQueue/"))
+}
+
+func TestStandaloneActivityRealizationFollowsSystem(t *testing.T) {
+	root := filepath.Join(repoRoot, "model", "temporal", "features", "standaloneactivity")
+	require.NoFileExists(t, filepath.Join(root, "Realization.scala"))
+	require.FileExists(t, filepath.Join(root, "system", "Realization.scala"))
+	require.NoFileExists(t, filepath.Join(root, "product", "Realization.scala"))
 }
 
 // Each retired per-kind name is found in a Model folder, at any depth, and nowhere else.

@@ -542,8 +542,8 @@ channels or realizations, Limits of one name with different bounds, and two acti
 binds. A monitor a Query's expected Run names by value is refused where no `val` declares it or the
 Query's machine does not watch it.
 
-A feature reads top to bottom in one feature file per folder, named after the folder, beside its
-`Realization.scala` and its tests. A feature whose Models include a refinement pair has two levels,
+A feature reads top to bottom in one feature file per folder, named after the folder, with its
+realization and tests. A feature whose Models include a refinement pair has two levels,
 each in a folder of its own because different people read them: `product/`, what a caller reads,
 and `system/`, how the server gets there. Its root feature file keeps only genuinely shared types,
 the shared signature and `object exports`; each level folder holds the level's own file, named after
@@ -556,13 +556,13 @@ below holds it), and the standalone activity is the example:
 features/
   standaloneactivity/
     StandaloneActivity.scala   shared types and signature; exports
-    Realization.scala          the realization
     product/
       Product.scala            Product Phase, State and Fact; ActivityProduct
     system/
       System.scala             System Phase, State and Fact; ActivitySystem, ActivityWorker, StandaloneActivity
       Record.scala             the record and its designs: ActivityRecord, TrustingActivityRecord, HeldDispatch, LostStartAnswer
       WithTaskQueue.scala      the designs over the task queue: RecordMember, TrustingRecordMember, RecordOverQueue, …
+      Realization.scala        the System realizations: standalone, heldDelivery, lostAdmissionResponse
   nexuscaller/
     NexusCaller.scala          shared types and signature; exports, the close and reset designs' among them
     Realization.scala
@@ -592,6 +592,14 @@ The files of one level folder share its package, so their top-level names are sh
 level's `Phase`, `State` and `Fact` sit in its own `Product.scala` or `System.scala`; a subject's own
 types, signature and givens sit in its file, and a given another subject must not see lives in an
 object of its own or in its type's companion, as the close policy's `Answer`'s `Ok` does.
+
+The standalone activity's executable realizations live in `system/Realization.scala`, beside the
+System subjects they execute; the root's exports import `system.ActivityRealization`. Keep the
+existing wrapper object until typed realization objects land. Add a Product realization only when
+the Product has an executable realization. Nexus realizations retain their current root placement.
+Inside a level package, qualify its facts as `system.Fact` and alias the generic realization
+evidence type, `import umpire.realize.{Fact as RealizationFact, *}`, so helpers can also accept the
+record's facts.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/model`

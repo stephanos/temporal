@@ -825,7 +825,7 @@ func TestARealizerGivesOnlyTheQueriesOfAnAdmittedModel(t *testing.T) {
 // names decides when the evidence reaches a Run, and a declaration that names no attempt of an
 // activity is refused where it is written.
 func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
-	const started = "temporal.features.standaloneactivity.evidence.statusStarted"
+	const started = "temporal.features.standaloneactivity.system.evidence.statusStarted"
 	source := func(t *testing.T, m *umpirespb.Model) *umpirespb.RunEventSource {
 		for _, e := range m.GetRealizations()[0].GetEvidence() {
 			if e.GetId() == started {
@@ -875,7 +875,7 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 				return
 			}
 			require.ErrorContains(t, err, test.want)
-			requireLocated(t, err, "model/temporal/features/standaloneactivity/Realization.scala:")
+			requireLocated(t, err, "model/temporal/features/standaloneactivity/system/Realization.scala:")
 		})
 	}
 }
@@ -896,7 +896,7 @@ func TestTheRunsOwnRecordIsClosedByTheCommandItRecords(t *testing.T) {
 		t.Fatal("heldDelivery realization missing")
 		return nil, nil
 	}
-	const admitted = "temporal.features.standaloneactivity.evidence.attemptAdmitted"
+	const admitted = "temporal.features.standaloneactivity.system.evidence.attemptAdmitted"
 	m, r := race(t)
 	release := admCommand(t, admScript(t, r, "controller"), "release-dispatch")
 	require.Equal(t, []string{admitted}, release.GetCloses())

@@ -1,4 +1,5 @@
-/* The standalone activity realization: a controller starts one activity through
+/* The standalone activity's System realizations: StandaloneActivity, HeldDispatch and LostStartAnswer.
+ * A controller starts one activity through
  * StartActivityExecution, controls it, and reads its status back; the Case's own worker runs its
  * attempts, each ending as the path's answer for it says.
  *
@@ -13,9 +14,10 @@
  */
 package temporal
 package features.standaloneactivity
+package system
 
 import umpire.*
-import umpire.realize.*
+import umpire.realize.{Fact as RealizationFact, *}
 import umpire.realize.Instruction.{Finish, Hold, Release}
 import temporal.realize.{deadline as requestDeadline, *}
 import temporal.realize.WorkerInstruction.{AttemptCanceled, AttemptFailure, Fault}
@@ -27,12 +29,10 @@ import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 
 import Timeout.expires
 import shared.worker.worker as process
-import system.{history, ActivitySystem, AdmissionFact, AdmissionResponseFact}
-import system.{HeldDispatch, LostStartAnswer}
 
 object ActivityRealization:
   /** A status DescribeActivityExecution reports, each kind in its own source: a poll reads one. */
-  private def status(fact: Fact) = Evidence.read(
+  private def status(fact: RealizationFact) = Evidence.read(
     id = evidenceId(fact),
     records = fact,
     source = sourceId(fact),
@@ -52,7 +52,7 @@ object ActivityRealization:
   )
 
   /** Reads the activity's description until it reports the status the fact's evidence names. */
-  private def awaitStatus(fact: Fact) =
+  private def awaitStatus(fact: RealizationFact) =
     await(status(fact), workflowService)(
       Condition.equal(Field(_.status), Operand.enumValue(activityStatus(fact)))
     ) {
@@ -262,7 +262,7 @@ object ActivityRealization:
    * `guard`: never what a client was told; keyed by the record's activity, stamped with its delivery.
    */
   private def committed(
-      fact: Fact,
+      fact: RealizationFact,
       release: Command | Instruction,
       exhaustive: Boolean = false,
       fields: Vector[TypedEvidenceField[InstructionOutcome, ?]] = Vector.empty

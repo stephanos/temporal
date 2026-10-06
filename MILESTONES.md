@@ -86,7 +86,7 @@ Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after 
 | fn-126.8 | ✅ done | Rename batch (Product and System, history record, actions, designs); level-name lint; docs |
 | fn-126.9 | ✅ done | `stuck-state` lint: a reachable non-end state that enables nothing |
 | fn-126.10 | ✅ done | Product and System files own their level `Phase`, `State` and `Fact` types |
-| fn-126.11 | ⬜ todo | Standalone activity realization moves into its System level; batch-boundary verification; close |
+| fn-126.11 | 🚧 in progress | Standalone activity realization moves into its System level; batch-boundary verification; close |
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 

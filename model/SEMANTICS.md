@@ -440,6 +440,10 @@ states. A kind of violation ruled out while the check read a hole row is incompl
 
 ## Realizations
 
+The standalone activity's three realizations live in `features/standaloneactivity/system/Realization.scala`,
+in the level of their subjects. Moving them changes their fully qualified IDs and the package-derived
+evidence, source and producer identities; it changes no transition, Query answer or evidence meaning.
+
 A realization says how the find Queries of one machine run against a system. It declares:
 
 - **roles**, the participants commands and activations address, with the environment bindings a run
