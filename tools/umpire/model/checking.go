@@ -27,7 +27,7 @@ type Scope struct {
 
 // DefaultScope is the scope Check runs within when a caller names none of its own.
 var DefaultScope = Scope{
-	Ceilings: defaultCeilings,
+	Ceilings: DefaultCeilings,
 	Compose:  ComposeCeiling{States: 1 << 16, Evaluations: 1 << 20, Results: 1 << 20},
 	Progress: Limits{Name: "default", Steps: 1 << 10, Search: 1 << 20},
 }
@@ -309,7 +309,7 @@ func problems(err error) []error {
 }
 
 func receipt(subject Subject, key ClaimKey, at *umpirespb.Position) Receipt {
-	return Receipt{Subject: subject, Key: key, Position: where(at), Loop: -1}
+	return Receipt{Subject: subject, Key: key, Position: Where(at), Loop: -1}
 }
 
 // checker gives one Model's receipts: first is the interpretation its checks read, and again a
@@ -508,7 +508,7 @@ func (c *checker) hole(edge HoleEdge, cause error) HoleReach {
 // reachableHoles is a machine's hole rows that its starts reach: what leaves its refinement unknown.
 func (c *checker) reachableHoles(mm *Machine) []HoleReach {
 	var out []HoleReach
-	for _, h := range mm.reachableHoles() {
+	for _, h := range mm.ReachableHoles() {
 		reach := c.hole(RowHole, h.Hole)
 		reach.Row = h.Row
 		out = append(out, reach)

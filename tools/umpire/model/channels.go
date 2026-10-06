@@ -14,7 +14,7 @@ const redelivered = "the channel delivers the message again"
 func (in *Interpreter) channel(id string, at *umpirespb.Position) (*umpirespb.Channel, error) {
 	c, ok := in.channels[id]
 	if !ok {
-		return nil, errorAt(at, "no channel %s", id)
+		return nil, ErrorAt(at, "no channel %s", id)
 	}
 	return c, nil
 }
@@ -85,7 +85,7 @@ func (in *Interpreter) put(c *umpirespb.Channel, held []Value, d Value, first bo
 	if err != nil {
 		return nil, err
 	}
-	index := func(v Value) int { return slices.IndexFunc(entries, v.equal) }
+	index := func(v Value) int { return slices.IndexFunc(entries, v.Equal) }
 	at := slices.IndexFunc(out, func(h Value) bool { return index(h) > index(d) })
 	if at < 0 {
 		at = len(out)
@@ -115,12 +115,12 @@ func (in *Interpreter) inbox(x *umpirespb.Expr, b *umpirespb.Inbox, e *env) (Val
 		items, err := in.put(c, held.Items, delivery(m, 0), false)
 		return Value{Kind: ListValue, Items: items}, err
 	default:
-		return Value{}, errorAt(x.GetPosition(), "unknown inbox operator %v", b.GetOp())
+		return Value{}, ErrorAt(x.GetPosition(), "unknown inbox operator %v", b.GetOp())
 	}
 }
 
 // bothRoles says that an action both delivers and loses a channel's messages, which no action does.
-func bothRoles(a *umpirespb.Action) string {
+func BothRoles(a *umpirespb.Action) string {
 	if a.GetDelivers() == a.GetLoses() {
 		return "both delivers and loses " + a.GetDelivers()
 	}
@@ -134,7 +134,7 @@ func (in *Interpreter) holding(decl *umpirespb.Machine, channel string, at *umpi
 			return i, nil
 		}
 	}
-	return 0, errorAt(at, "%s: the state %s holds no channel %s", decl.GetName(), decl.GetStateType(), channel)
+	return 0, ErrorAt(at, "%s: the state %s holds no channel %s", decl.GetName(), decl.GetStateType(), channel)
 }
 
 // transfer is the value of a channel's delivery or loss of message m at state s: the bound function's
@@ -143,7 +143,7 @@ func (in *Interpreter) holding(decl *umpirespb.Machine, channel string, at *umpi
 func (in *Interpreter) transfer(decl *umpirespb.Machine, s Value, c Class) ([]Value, error) {
 	a := c.Action
 	if a.GetDelivers() != "" && a.GetLoses() != "" {
-		return nil, errorAt(c.at, "%s %s", a.GetName(), bothRoles(a))
+		return nil, ErrorAt(c.at, "%s %s", a.GetName(), BothRoles(a))
 	}
 	id, delivers := a.GetDelivers(), true
 	if id == "" {
@@ -158,11 +158,11 @@ func (in *Interpreter) transfer(decl *umpirespb.Machine, s Value, c Class) ([]Va
 		return nil, err
 	}
 	if len(c.Inputs) != 1 {
-		return nil, errorAt(c.at, "%s moves one message of %s, and has %d inputs", a.GetName(), id, len(c.Inputs))
+		return nil, ErrorAt(c.at, "%s moves one message of %s, and has %d inputs", a.GetName(), id, len(c.Inputs))
 	}
 	m := c.Inputs[0]
 	held := s.Fields[f].Items
-	taken := slices.IndexFunc(held, func(d Value) bool { return d.Fields[0].equal(m) })
+	taken := slices.IndexFunc(held, func(d Value) bool { return d.Fields[0].Equal(m) })
 	if delivers && ch.GetOrder() != umpirespb.Channel_ORDER_UNORDERED && taken > 0 {
 		taken = -1
 	}
@@ -184,7 +184,7 @@ func (in *Interpreter) transfer(decl *umpirespb.Machine, s Value, c Class) ([]Va
 		for _, step := range result.Items {
 			next := step.Fields[1]
 			if len(next.Fields) <= f || next.Fields[f].Kind != ListValue {
-				return nil, errorAt(c.at, "%s returns a step to %s, which does not hold %s", c.step, next.Key(), id)
+				return nil, ErrorAt(c.at, "%s returns a step to %s, which does not hold %s", c.step, next.Key(), id)
 			}
 			next.Fields = slices.Clone(next.Fields)
 			items, err := in.put(ch, next.Fields[f].Items, delivery(m, r+1), true)

@@ -27,7 +27,7 @@ const totalsDeclaredAt = admLifts + "Declarations.scala:"
 // a composition's the keys.
 func askTotals(m *umpirespb.Model, machine, state string, start *umpirespb.Value, steps int32, classes []*umpirespb.ActionClass, keys ...string) *umpirespb.Model {
 	m.Functions = append(m.Functions, &umpirespb.Function{Name: "generic.always", Position: at(45),
-		Params: []*umpirespb.Param{{Name: "after", Type: named(state)}},
+		Params: []*umpirespb.Param{{Name: "after", Type: Named(state)}},
 		Body:   &umpirespb.Expr{Position: at(45), Kind: &umpirespb.Expr_Literal{Literal: boolValue(true)}}})
 	m.Properties = append(m.Properties, &umpirespb.Property{Machine: machine, Name: "always", Position: at(50), Holds: "generic.always"})
 	from := func(line int32) *umpirespb.Expr {
@@ -105,7 +105,7 @@ func TestAFreeTotalCountsEveryInputAssignmentOfEveryAction(t *testing.T) {
 	require.Len(t, table.Actions, 7)
 
 	total := totalOf(t, m, "free")
-	require.Equal(t, Total{Free: true, States: count{n: 2}, Classes: count{n: 7}, Steps: 3, Count: count{n: 42}}, total)
+	require.Equal(t, Total{Free: true, States: CountOf(2), Classes: CountOf(7), Steps: 3, Count: CountOf(42)}, total)
 	require.Equal(t, "2 states × 7 classes × 3 steps = 42", total.String())
 	requireAdmitsOnlyTheCount(t, m, "free", 42)
 }
@@ -138,14 +138,14 @@ func TestAPinnedTotalCountsStatesTimesScheduledSlots(t *testing.T) {
 			require.NoError(t, Validate(m))
 			pinned := totalOf(t, m, "pinned")
 			require.False(t, pinned.Free)
-			require.Equal(t, count{n: 2}, pinned.States)
-			require.Equal(t, count{}, pinned.Classes, "a pinned Query counts no classes")
+			require.Equal(t, CountOf(2), pinned.States)
+			require.Equal(t, Count{}, pinned.Classes, "a pinned Query counts no classes")
 			require.Equal(t, int64(c.steps), pinned.Steps)
-			require.Equal(t, count{n: c.pinned}, pinned.Count)
+			require.Equal(t, CountOf(c.pinned), pinned.Count)
 			if c.pinnedSpelling != "" {
 				require.Equal(t, c.pinnedSpelling, pinned.String())
 			}
-			require.Equal(t, count{n: c.free}, totalOf(t, m, "free").Count)
+			require.Equal(t, CountOf(c.free), totalOf(t, m, "free").Count)
 			requireAdmitsOnlyTheCount(t, m, "pinned", c.pinned)
 			requireAdmitsOnlyTheCount(t, m, "free", c.free)
 		})
@@ -170,18 +170,20 @@ func TestACompositionTotalCountsItsStateCatalogAndComposedClasses(t *testing.T) 
 		total    Total
 		spelling string
 	}{
-		"keptTogether": {Total{Free: true, States: count{n: 4}, Classes: count{n: 1}, Steps: 2, Count: count{n: 8}},
+		"keptTogether": {Total{Free: true, States: CountOf(4), Classes: CountOf(1), Steps: 2, Count: CountOf(8)},
 			"4 states × 1 classes × 2 steps = 8"},
-		"detailedPair.any": {Total{Free: true, States: count{n: 6}, Classes: count{n: 3}, Steps: 2, Count: count{n: 36}},
+		"detailedPair.any": {Total{Free: true, States: CountOf(6), Classes: CountOf(3), Steps: 2, Count: CountOf(36)},
 			"6 states × 3 classes × 2 steps = 36"},
 		// Pinned by its one class key.
-		"bothPut": {Total{States: count{n: 6}, Steps: 2, Schedule: 1, Count: count{n: 6}},
+		"bothPut": {Total{States: CountOf(6), Steps: 2, Schedule: 1, Count: CountOf(6)},
 			"6 states × 1 scheduled slots (the least of 2 steps and 1 scheduled actions) = 6"},
 	} {
 		total := totalOf(t, m, query)
 		require.Equal(t, c.total, total, query)
 		require.Equal(t, c.spelling, total.String(), query)
-		requireAdmitsOnlyTheCount(t, m, query, c.total.Count.n)
+		n, fits := c.total.N()
+		require.True(t, fits)
+		requireAdmitsOnlyTheCount(t, m, query, n)
 	}
 }
 
@@ -218,9 +220,9 @@ func TestATotalReadThroughARefinementCountsTheScenarioMachine(t *testing.T) {
 	require.True(t, through.GetThrough())
 	require.Equal(t, "store", through.GetProperty().GetMachine())
 	total := totalOf(t, m, "putStoresThroughDisk")
-	require.Equal(t, Total{States: count{n: 3}, Steps: 2, Schedule: 2, Count: count{n: 6}}, total)
+	require.Equal(t, Total{States: CountOf(3), Steps: 2, Schedule: 2, Count: CountOf(6)}, total)
 	require.Equal(t, totalOf(t, m, "putAccepted"), total)
-	require.Equal(t, count{n: 2}, totalOf(t, m, "putStores").States, "store, the refined product, has 2 states")
+	require.Equal(t, CountOf(2), totalOf(t, m, "putStores").States, "store, the refined product, has 2 states")
 
 	m = proto.CloneOf(m)
 	admQuery(m, "putStoresThroughDisk").Total = wrapperspb.Int64(4)

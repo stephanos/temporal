@@ -617,7 +617,7 @@ func TestAdmissionRejectsAnActionThatBothDeliversAndLoses(t *testing.T) {
 func TestAdmissionRejectsACatalogThatContainsItself(t *testing.T) {
 	runAdmissionCases(t, []admissionCase{
 		{"a record of itself", "channels", func(m *umpirespb.Model) {
-			admType(m, "fixture.channels.RelayState").GetRecord().GetFields()[0].Type = named("fixture.channels.RelayState")
+			admType(m, "fixture.channels.RelayState").GetRecord().GetFields()[0].Type = Named("fixture.channels.RelayState")
 		}, admChannelsAt + "23: type fixture.channels.RelayState has no finite catalog: it contains itself"},
 		{"a message holding its channel", "channels", func(m *umpirespb.Model) {
 			e := admType(m, "fixture.channels.Note").GetEnum()

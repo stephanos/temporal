@@ -90,7 +90,7 @@ func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
 			require.NoError(t, err)
 			target, err := c.State(res.State)
 			require.NoError(t, err)
-			require.True(t, step.Fields[1].equal(target), row.Key)
+			require.True(t, step.Fields[1].Equal(target), row.Key)
 			require.Equal(t, Value{Kind: TextValue, Text: res.Outcome}, step.Fields[0])
 			require.Len(t, step.Fields[2].Items, len(res.Facts))
 		}

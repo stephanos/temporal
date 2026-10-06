@@ -55,7 +55,7 @@ func (v *validator) realization(r *umpirespb.Realization) {
 		a.label, a.owner = r.GetId(), "realization "+r.GetId()
 	default:
 		v.report(at, "a realization has no name")
-		a.label, a.owner = fmt.Sprintf("at %s", where(at)), "a realization"
+		a.label, a.owner = fmt.Sprintf("at %s", Where(at)), "a realization"
 	}
 	if r.GetId() == "" {
 		v.report(at, "%s has no id", a.owner)
@@ -180,7 +180,7 @@ func (a *realizing) confirms(mm *umpirespb.Machine) {
 			if len(a.v.errs) != before {
 				continue
 			}
-			step := fmt.Sprintf("step %d of class %s", taking.GetOccurrence(), classKey(a.v.in, a.v.actions, taking.GetStep()))
+			step := fmt.Sprintf("step %d of class %s", taking.GetOccurrence(), ClassKey(a.v.in, a.v.actions, taking.GetStep()))
 			switch other, taken := named[step]; {
 			case taking.GetOccurrence() < 1:
 				a.report(at, "evidence %s confirms %s; the steps of a class on a path are counted from one", e.GetId(), step)
@@ -246,7 +246,7 @@ func (a *realizing) declarations() {
 		if a.declared(role.GetPosition(), "a role", "roles", role.GetId()) {
 			a.roles[role.GetId()] = role
 		}
-		if !known(umpirespb.Role_Kind_name, int32(role.GetKind())) {
+		if !Known(umpirespb.Role_Kind_name, int32(role.GetKind())) {
 			a.report(role.GetPosition(), "role %s is of no known kind", role.GetId())
 		}
 	}
@@ -254,7 +254,7 @@ func (a *realizing) declarations() {
 		if a.declared(l.GetPosition(), "a learned value", "learned values", l.GetId()) {
 			a.learned[l.GetId()] = l
 		}
-		if !known(umpirespb.Learned_Kind_name, int32(l.GetKind())) {
+		if !Known(umpirespb.Learned_Kind_name, int32(l.GetKind())) {
 			a.report(l.GetPosition(), "learned value %s is of no known kind", l.GetId())
 		}
 	}
@@ -371,7 +371,7 @@ func (a *realizing) evidenceKind(e *umpirespb.Evidence) {
 	default:
 		a.report(at, "evidence %s is recorded nowhere", id)
 	}
-	if !known(umpirespb.Evidence_Commitment_name, int32(e.GetCommitment())) {
+	if !Known(umpirespb.Evidence_Commitment_name, int32(e.GetCommitment())) {
 		a.report(at, "evidence %s is of no known commitment", id)
 	}
 	a.evidenceFields(e)
@@ -382,7 +382,7 @@ func (a *realizing) evidenceKind(e *umpirespb.Evidence) {
 // names is checked once the scripts are read.
 func (a *realizing) runEvent(e *umpirespb.Evidence, source *umpirespb.RunEventSource) {
 	at, id := e.GetPosition(), e.GetId()
-	if !known(umpirespb.RunEventSource_Kind_name, int32(source.GetKind())) {
+	if !Known(umpirespb.RunEventSource_Kind_name, int32(source.GetKind())) {
 		a.report(at, "evidence %s is a Run Event of no known kind", id)
 	}
 	key := source.GetKey()
@@ -567,7 +567,7 @@ func (a *realizing) performing(mm *umpirespb.Machine, where string, class *umpir
 	if len(a.v.errs) != before {
 		return
 	}
-	key := classKey(a.v.in, a.v.actions, class)
+	key := ClassKey(a.v.in, a.v.actions, class)
 	if other, ok := a.performed[key]; ok {
 		a.report(at, "class %s is performed by %s and by %s; a class is performed once", key, other, by)
 		return
@@ -580,7 +580,7 @@ func (a *realizing) role(at *umpirespb.Position, where, id string, kind umpiresp
 	switch role, ok := a.roles[id]; {
 	case !ok:
 		a.report(at, "%s: no role %s", where, id)
-	case role.GetKind() != kind && known(umpirespb.Role_Kind_name, int32(role.GetKind())):
+	case role.GetKind() != kind && Known(umpirespb.Role_Kind_name, int32(role.GetKind())):
 		a.report(at, "%s: role %s is %s, not %s", where, id, roleKinds[role.GetKind()], roleKinds[kind])
 	default:
 	}
@@ -634,7 +634,7 @@ func (a *realizing) reads(c commandOf, id string, kind umpirespb.Learned_Kind) b
 	case !ok:
 		a.report(c.at, "command %s: no learned value %s", c.name, id)
 		return false
-	case kind != umpirespb.Learned_KIND_UNSPECIFIED && l.GetKind() != kind && known(umpirespb.Learned_Kind_name, int32(l.GetKind())):
+	case kind != umpirespb.Learned_KIND_UNSPECIFIED && l.GetKind() != kind && Known(umpirespb.Learned_Kind_name, int32(l.GetKind())):
 		a.report(c.at, "command %s: learned value %s is %s, not %s", c.name, id, learnedKinds[l.GetKind()], learnedKinds[kind])
 	default:
 	}
@@ -671,7 +671,7 @@ func (a *realizing) command(s *umpirespb.Script, c commandOf, all map[string]*um
 		a.typed(c, in.Finish.GetResult(), false)
 	case *umpirespb.Command_Fault:
 		a.role(c.at, "command "+c.name, in.Fault.GetRole(), umpirespb.Role_KIND_TASK_QUEUE)
-		if !known(umpirespb.Fault_Kind_name, int32(in.Fault.GetKind())) {
+		if !Known(umpirespb.Fault_Kind_name, int32(in.Fault.GetKind())) {
 			a.report(c.at, "command %s is a fault of no known kind", c.name)
 		}
 	case *umpirespb.Command_WorkflowCommand:
@@ -782,7 +782,7 @@ func (a *realizing) rpc(c commandOf, rpc *umpirespb.Rpc) {
 	a.assignments(c, rpc.GetAssign(), false)
 	held := a.r.GetCorrelation().GetObservation()
 	for _, read := range rpc.GetReads() {
-		if !known(umpirespb.ResponseRead_Cardinality_name, int32(read.GetCardinality())) {
+		if !Known(umpirespb.ResponseRead_Cardinality_name, int32(read.GetCardinality())) {
 			a.report(c.at, "command %s reads %s at no known cardinality", c.name, read.GetPath())
 		}
 		for _, target := range read.GetTargets() {

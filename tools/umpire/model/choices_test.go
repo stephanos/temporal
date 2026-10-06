@@ -177,7 +177,7 @@ func TestAChoiceNamesOnlyAStep(t *testing.T) {
 	c := start.GetConstruct()
 	require.Equal(t, "fixture.specimens.admission.AdmissionState", c.GetType())
 	c.Choice = "initial"
-	require.EqualError(t, Validate(named), where(start.GetPosition())+
+	require.EqualError(t, Validate(named), Where(start.GetPosition())+
 		": fixture.specimens.admission.AdmissionState names the choice initial, which only a step record can")
 }
 
@@ -196,7 +196,7 @@ func TestTwoResultsOfARowCannotShareAName(t *testing.T) {
 	binding := named.GetMachines()[1].GetSteps()[2]
 	require.Equal(t, admissionPackage+"admitCurrent", binding.GetFunction())
 	_, err = Build(named)
-	require.EqualError(t, err, where(binding.GetPosition())+": activityRecord: row "+current.Rows[first].Key+" has two results named consumed")
+	require.EqualError(t, err, Where(binding.GetPosition())+": activityRecord: row "+current.Rows[first].Key+" has two results named consumed")
 
 	stepAt(t, admitted.GetElse(), 0).Choice = ""
 	stepAt(t, admitted.GetElse(), 1).Choice = ""
@@ -253,15 +253,14 @@ func TestAlternativesAreNoClassesOfTheirOwn(t *testing.T) {
 	for _, a := range two.GetActions() {
 		actions[a.GetId()] = a
 	}
-	counts := func(m *umpirespb.Model, decl *umpirespb.Machine) (states, classes count, needed int64) {
-		in := NewInterpreter(m)
-		states, err := in.size(named(decl.GetStateType()))
+	counts := func(m *umpirespb.Model, decl *umpirespb.Machine) (states, classes Count, needed int64) {
+		in := NewInterpreterWithin(m, Ceilings{Members: DefaultCeilings.Members})
+		states, err := in.Size(Named(decl.GetStateType()))
 		require.NoError(t, err)
-		classes, err = in.classCount(decl, actions)
+		classes, err = in.ClassCount(decl, actions)
 		require.NoError(t, err)
-		in.ceilings.Evaluations = 0
 		var limit *LimitError
-		require.ErrorAs(t, in.preflight(decl, actions), &limit)
+		require.ErrorAs(t, in.Preflight(decl, actions), &limit)
 		return states, classes, limit.Needed
 	}
 	withTwo, err := Build(two)

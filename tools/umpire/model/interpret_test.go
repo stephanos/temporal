@@ -75,7 +75,7 @@ func TestTransitionsAreTheRowsAsValues(t *testing.T) {
 	require.True(t, ok)
 	for _, tr := range mm.Transitions {
 		if tr.Row == "scheduled-queued-none-poll" {
-			require.True(t, tr.Steps[1].Fields[1].equal(redelivered))
+			require.True(t, tr.Steps[1].Fields[1].Equal(redelivered))
 		}
 	}
 }
@@ -222,7 +222,7 @@ func TestADeclaredHoleIsNeitherARowNorDisabled(t *testing.T) {
 	h := disk.Holes[0]
 	require.Equal(t, []string{"staged-crash", "staged", "crash", "fixture.declarations.crashUnmodeled"},
 		[]string{h.Row, h.Source, h.Class, h.Hole.ID})
-	require.Equal(t, disk.Holes, disk.reachableHoles())
+	require.Equal(t, disk.Holes, disk.ReachableHoles())
 	require.False(t, disk.Disabled("staged", "crash"), "a hole row is not disabled")
 	require.True(t, disk.Disabled("empty", "crash"))
 	require.True(t, disk.Disabled("durable", "crash"))
@@ -249,7 +249,7 @@ func TestAnUnmatchedValueIsAnUndeclaredHole(t *testing.T) {
 	require.True(t, hasRow(disk, "staged-flush"))
 	// durable is reachable, so its hole is; the state no path reaches has none.
 	var reachable []string
-	for _, h := range disk.reachableHoles() {
+	for _, h := range disk.ReachableHoles() {
 		reachable = append(reachable, h.Row)
 	}
 	require.Equal(t, []string{"empty-flush", "staged-crash", "durable-flush"}, reachable)
@@ -265,7 +265,7 @@ func TestReachableHolesAreOnlyThoseAPathReaches(t *testing.T) {
 	}
 	disk := built(t, m)["disk"]
 	require.Len(t, disk.Holes, 1)
-	require.Empty(t, disk.reachableHoles())
+	require.Empty(t, disk.ReachableHoles())
 }
 
 func slicesDelete[T any](xs []T, drop func(T) bool) []T {
@@ -297,7 +297,7 @@ func TestVisibleProjectionOfARefinement(t *testing.T) {
 			f.Body = &umpirespb.Expr{Position: f.GetBody().GetPosition(),
 				Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: true}}}}
 			disk := built(t, m)["disk"]
-			require.NotEmpty(t, disk.reachableHoles(), "the reachable crash hole does not erase the rejection")
+			require.NotEmpty(t, disk.ReachableHoles(), "the reachable crash hole does not erase the rejection")
 			_, err := refinementOf(t, m, "disk")
 			require.ErrorContains(t, err, "disk refines store: the row 'staged-flush'")
 		})
@@ -365,7 +365,7 @@ func TestACatalogIsCountedBeforeItIsListed(t *testing.T) {
 			c.Capacity = 40
 		}
 	}
-	_, err := BuildWithin(m, defaultCeilings)
+	_, err := BuildWithin(m, DefaultCeilings)
 	var limit *LimitError
 	require.ErrorAs(t, err, &limit)
 	require.Equal(t, "members", limit.Resource)
@@ -389,21 +389,21 @@ func TestADeliveryMovesOneMessage(t *testing.T) {
 func TestChannelSizeCountsWithoutListing(t *testing.T) {
 	for _, c := range []struct {
 		name      string
-		entries   count
+		entries   Count
 		capacity  int64
 		unordered bool
-		want      count
+		want      Count
 	}{
-		{"no entries", count{n: 0}, 3, false, count{n: 1}},
-		{"one entry", count{n: 1}, 5, true, count{n: 6}},
-		{"wire: 1 + 4 + 4²", count{n: 4}, 2, false, count{n: 21}},
-		{"radio at capacity 2: [], [u], [d], [u,u], [u,d], [d,d]", count{n: 2}, 2, true, count{n: 6}},
-		{"multisets of 200 from 2: C(202, 200)", count{n: 2}, 200, true, count{n: 20301}},
-		{"2⁶⁴ lists and more", count{n: 2}, 64, false, overflowed},
-		{"C(200, 100) multisets", count{n: 100}, 100, true, overflowed},
-		{"entries already at the int64 bound", count{n: math.MaxInt64}, 1, true, overflowed},
+		{"no entries", Count{n: 0}, 3, false, Count{n: 1}},
+		{"one entry", Count{n: 1}, 5, true, Count{n: 6}},
+		{"wire: 1 + 4 + 4²", Count{n: 4}, 2, false, Count{n: 21}},
+		{"radio at capacity 2: [], [u], [d], [u,u], [u,d], [d,d]", Count{n: 2}, 2, true, Count{n: 6}},
+		{"multisets of 200 from 2: C(202, 200)", Count{n: 2}, 200, true, Count{n: 20301}},
+		{"2⁶⁴ lists and more", Count{n: 2}, 64, false, overflowed},
+		{"C(200, 100) multisets", Count{n: 100}, 100, true, overflowed},
+		{"entries already at the int64 bound", Count{n: math.MaxInt64}, 1, true, overflowed},
 		{"entries past int64", overflowed, 1, false, overflowed},
-		{"only the empty list of entries past int64", overflowed, 0, false, count{n: 1}},
+		{"only the empty list of entries past int64", overflowed, 0, false, Count{n: 1}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			require.Equal(t, c.want, channelSize(c.entries, c.capacity, c.unordered))
@@ -497,7 +497,7 @@ func TestACatalogThatContainsItselfIsRefused(t *testing.T) {
 	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
 	for _, ty := range m.GetTypes() {
 		if ty.GetName() == "fixture.channels.RelayState" {
-			ty.GetRecord().GetFields()[0].Type = named("fixture.channels.RelayState")
+			ty.GetRecord().GetFields()[0].Type = Named("fixture.channels.RelayState")
 		}
 	}
 	_, err := Build(m)
@@ -525,13 +525,13 @@ func TestARangeEndingAtMaxInt64(t *testing.T) {
 }
 
 func TestCountsCarryOverflow(t *testing.T) {
-	require.Equal(t, count{}, count{}.times(overflowed), "nothing times anything is nothing")
-	require.Equal(t, overflowed, count{n: 2}.times(overflowed))
-	require.Equal(t, overflowed, count{n: 1 << 32}.times(count{n: 1 << 31}), "2^63 is past an int64")
-	require.Equal(t, count{n: 1 << 62}, count{n: 1 << 31}.times(count{n: 1 << 31}))
-	require.Equal(t, overflowed, count{n: math.MaxInt64}.plus(count{n: 1}))
-	require.Equal(t, overflowed, count{n: 1}.plus(overflowed))
-	require.Equal(t, overflowed, overflowed.plus(count{}), "an overflow plus nothing still overflows")
+	require.Equal(t, Count{}, Count{}.Times(overflowed), "nothing times anything is nothing")
+	require.Equal(t, overflowed, Count{n: 2}.Times(overflowed))
+	require.Equal(t, overflowed, Count{n: 1 << 32}.Times(Count{n: 1 << 31}), "2^63 is past an int64")
+	require.Equal(t, Count{n: 1 << 62}, Count{n: 1 << 31}.Times(Count{n: 1 << 31}))
+	require.Equal(t, overflowed, Count{n: math.MaxInt64}.Plus(Count{n: 1}))
+	require.Equal(t, overflowed, Count{n: 1}.Plus(overflowed))
+	require.Equal(t, overflowed, overflowed.Plus(Count{}), "an overflow plus nothing still overflows")
 }
 
 // Members refuses a catalog past its ceiling by itself, as a caller outside Build reads it.

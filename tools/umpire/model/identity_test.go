@@ -43,7 +43,7 @@ func identityModel(state, outcome, fact string, actions ...identityAction) *umpi
 		enumType("X", 1, "a-b", "a"),
 		enumType("Y", 2, "c", "b-c"),
 		{Name: "T", Position: at(3), Shape: &umpirespb.Type_Record{Record: &umpirespb.Record{Fields: []*umpirespb.Field{
-			{Name: "x", Type: named("X")}, {Name: "y", Type: named("Y")}}}}},
+			{Name: "x", Type: Named("X")}, {Name: "y", Type: Named("Y")}}}}},
 		enumType("S", 4, "a", "a-b"),
 		enumType("O", 5, "ok"),
 		enumType("C", 6, "c"),
@@ -53,13 +53,13 @@ func identityModel(state, outcome, fact string, actions ...identityAction) *umpi
 	for i, a := range actions {
 		action := &umpirespb.Action{Id: "generic." + a.name, Name: a.name, Position: at(10 + int32(i)), Actor: "generic"}
 		step := &umpirespb.Function{Name: "generic.step." + a.name, Position: at(20 + int32(i)),
-			Params: []*umpirespb.Param{{Name: "s", Type: named(state)}},
+			Params: []*umpirespb.Param{{Name: "s", Type: Named(state)}},
 			Body: &umpirespb.Expr{Position: at(20 + int32(i)), Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{
 				Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{}}}}}}
 		for j, typ := range a.inputs {
 			name := string(rune('p' + j))
-			action.Inputs = append(action.Inputs, &umpirespb.Param{Name: name, Type: named(typ)})
-			step.Params = append(step.Params, &umpirespb.Param{Name: name, Type: named(typ)})
+			action.Inputs = append(action.Inputs, &umpirespb.Param{Name: name, Type: Named(typ)})
+			step.Params = append(step.Params, &umpirespb.Param{Name: name, Type: Named(typ)})
 		}
 		m.Actions = append(m.Actions, action)
 		m.Functions = append(m.Functions, step)
@@ -116,7 +116,7 @@ func TestRowsSharingAKeyAreRefused(t *testing.T) {
 // Messages p, q and "p-0,q": the one delivery of "p-0,q" and the two of p and q both key [p-0,q-0].
 func TestChannelContentsSharingAKeyAreRefused(t *testing.T) {
 	m := &umpirespb.Model{Source: "generic", Types: []*umpirespb.Type{enumType("N", 7, "p", "q", "p-0,q")},
-		Channels: []*umpirespb.Channel{{Id: "k", Name: "k", Position: at(8), Message: named("N"), Capacity: 2,
+		Channels: []*umpirespb.Channel{{Id: "k", Name: "k", Position: at(8), Message: Named("N"), Capacity: 2,
 			Order: umpirespb.Channel_ORDER_FIFO}}}
 	_, err := NewInterpreter(m).Members(&umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Channel{Channel: "k"}})
 	require.ErrorContains(t, err, `generic:8: the catalog of channel k holds [(p-0,q, 0)] and [(p, 0), (q, 0)], which share the key "[p-0,q-0]"`)
@@ -146,14 +146,14 @@ func compositionModel(first, second string, syncs ...string) *umpirespb.Model {
 		enumType("S", 1, "a", "a-b"),
 		enumType("O", 2, "ok"),
 		{Name: "P", Position: at(3), Shape: &umpirespb.Type_Record{Record: &umpirespb.Record{Fields: []*umpirespb.Field{
-			{Name: first, Type: named("S")}, {Name: second, Type: named("S")}}}}},
+			{Name: first, Type: Named("S")}, {Name: second, Type: Named("S")}}}}},
 	}}
 	for i, action := range []string{"b_c", "c"} {
 		line := int32(10 * (i + 1))
 		name := "m" + string(rune('1'+i))
 		m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic." + action, Name: action, Position: at(line), Actor: "generic"})
 		m.Functions = append(m.Functions, &umpirespb.Function{Name: "generic.step." + action, Position: at(line + 1),
-			Params: []*umpirespb.Param{{Name: "s", Type: named("S")}},
+			Params: []*umpirespb.Param{{Name: "s", Type: Named("S")}},
 			Body: &umpirespb.Expr{Position: at(line + 1), Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{
 				Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{}}}}}})
 		m.Machines = append(m.Machines, &umpirespb.Machine{Family: "generic", Name: name, Position: at(line + 2), StateType: "S", OutcomeType: "O",
@@ -214,7 +214,7 @@ func compositionScenario(keys ...string) *umpirespb.Scenario {
 func alsoBinds(m *umpirespb.Model, action string) *umpirespb.Model {
 	m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic." + action, Name: action, Position: at(30), Actor: "generic"})
 	m.Functions = append(m.Functions, &umpirespb.Function{Name: "generic.step." + action, Position: at(31),
-		Params: []*umpirespb.Param{{Name: "s", Type: named("S")}},
+		Params: []*umpirespb.Param{{Name: "s", Type: Named("S")}},
 		Body: &umpirespb.Expr{Position: at(31), Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{
 			Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{}}}}}})
 	m.Machines[1].Steps = append(m.Machines[1].Steps,

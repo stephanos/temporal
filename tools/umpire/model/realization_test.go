@@ -778,7 +778,7 @@ func TestARealizerGivesOnlyTheQueriesOfAnAdmittedModel(t *testing.T) {
 		declared, err := realizer.Declared(receipt.Key)
 		require.NoError(t, err)
 		require.Equal(t, receipt.Key.Name, declared.Query.GetName())
-		require.Equal(t, receipt.Position, where(declared.Query.GetPosition()))
+		require.Equal(t, receipt.Position, Where(declared.Query.GetPosition()))
 		bound, err := realizer.Find(receipt.Key)
 		require.NoError(t, err)
 		require.Equal(t, receipt.Key.Name, bound.Name)

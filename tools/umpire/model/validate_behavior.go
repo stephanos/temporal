@@ -85,7 +85,7 @@ func visibilityWrite(h *umpirespb.Visibility) string {
 	case *umpirespb.Visibility_Method:
 		return w.Method
 	case *umpirespb.Visibility_Cause:
-		if known(umpirespb.CauseKind_name, int32(w.Cause)) {
+		if Known(umpirespb.CauseKind_name, int32(w.Cause)) {
 			return ACause(w.Cause)
 		}
 	default:
@@ -100,7 +100,7 @@ func (a *realizing) causeBounds() map[umpirespb.CauseKind]string {
 	for _, c := range a.r.GetBehavior().GetCauses() {
 		at, id := c.GetPosition(), c.GetId()
 		a.declared(at, "a hint", "hints", id)
-		if !known(umpirespb.CauseKind_name, int32(c.GetKind())) {
+		if !Known(umpirespb.CauseKind_name, int32(c.GetKind())) {
 			a.report(at, "cause bound %s is of no known kind", id)
 		} else if other, ok := bounded[c.GetKind()]; ok {
 			a.report(at, "cause bounds %s and %s both bound %s; one hint bounds a kind", other, id, ACause(c.GetKind()))
@@ -129,7 +129,7 @@ func (a *realizing) serverStepKind(mm *umpirespb.Machine, s *umpirespb.ServerSte
 	}
 	kind := s.GetKind()
 	switch _, bounds := bounded[kind]; {
-	case !known(umpirespb.CauseKind_name, int32(kind)):
+	case !Known(umpirespb.CauseKind_name, int32(kind)):
 		a.report(at, "%s is of no known kind", step)
 	case !bounds:
 		a.report(at, "%s is %s, and the realization bounds no %s", step, ACause(kind), causeKinds[kind])
@@ -164,7 +164,7 @@ func (a *realizing) serverStep(mm *umpirespb.Machine, s *umpirespb.ServerStep) (
 	if len(a.v.errs) != before {
 		return "server step " + class.GetAction(), false
 	}
-	key := classKey(a.v.in, a.v.actions, class)
+	key := ClassKey(a.v.in, a.v.actions, class)
 	if by, ok := a.performed[key]; ok && !strings.HasPrefix(by, activationOf) {
 		a.report(at, "server step %s is performed by %s; a server step is one no command performs", key, by)
 	}

@@ -62,9 +62,8 @@ func queryTotal(m *umpirespb.Model, q *umpirespb.Query) (Total, error) {
 
 // BuildWithin is Build within explicit ceilings.
 func BuildWithin(m *umpirespb.Model, c Ceilings) (map[string]*Machine, error) {
-	in := NewInterpreter(m)
-	in.ceilings = c
-	return in.build(m)
+	in := NewInterpreterWithin(m, c)
+	return in.Build(m)
 }
 
 // Disabled is whether a state and class of the machine are a disabled pair: an empty list of steps,

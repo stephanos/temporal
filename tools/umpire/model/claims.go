@@ -40,10 +40,9 @@ type scheduled struct {
 
 // bind interprets a Model's machines within the scope's ceilings, each on its own.
 func bind(m *umpirespb.Model, scope Scope) *binding {
-	in := NewInterpreter(m)
-	in.ceilings = scope.Ceilings
-	built := in.interpret(m)
-	b := &binding{model: m, scope: scope, in: in, machines: built.machines, failed: built.failed,
+	in := NewInterpreterWithin(m, scope.Ceilings)
+	built := in.Interpret(m)
+	b := &binding{model: m, scope: scope, in: in, machines: built.Machines, failed: built.Failed,
 		actions: map[string]*umpirespb.Action{}, catalogs: map[string]map[string]Value{}, subjects: map[string]*subject{},
 		refined: map[string]*refined{}, properties: map[claim]*PropertyDecl{}, scenarios: map[scheduled]*ScenarioDecl{}}
 	for _, a := range m.GetActions() {
@@ -121,7 +120,7 @@ func (b *binding) machineSubject(mm *Machine) *subject {
 	s.state = func(key string) (Value, error) {
 		v, ok := mm.State(key)
 		if !ok {
-			return Value{}, errorAt(s.at, "%s has no state %s", s.name, key)
+			return Value{}, ErrorAt(s.at, "%s has no state %s", s.name, key)
 		}
 		return v, nil
 	}
@@ -213,7 +212,7 @@ func (b *binding) fieldValues(mm *Machine) (map[string][]Atom, error) {
 	for _, key := range t.States {
 		state, _ := mm.State(key)
 		if len(state.Fields) != len(record.GetFields()) {
-			return nil, errorAt(decl.GetPosition(), "%s: state %s has %d fields, and %s declares %d", decl.GetName(), key,
+			return nil, ErrorAt(decl.GetPosition(), "%s: state %s has %d fields, and %s declares %d", decl.GetName(), key,
 				len(state.Fields), decl.GetStateType(), len(record.GetFields()))
 		}
 		var atoms []Atom
@@ -248,9 +247,9 @@ func (b *binding) abstractionClaims(mm *Machine) ([]Claim, error) {
 			// Admission rejects an example anywhere but on a one-input action; a Model that was not admitted
 			// is refused here rather than read past its inputs.
 			if len(action.GetInputs()) != 1 || ex.GetValue() == nil {
-				return nil, errorAt(action.GetPosition(), "%s gives an example that is of no class of a one-input action", action.GetId())
+				return nil, ErrorAt(action.GetPosition(), "%s gives an example that is of no class of a one-input action", action.GetId())
 			}
-			v := b.in.literal(ex.GetValue())
+			v := b.in.Literal(ex.GetValue())
 			out = append(out, Claim{Member: t.Family.ID("action", t.OwnerName(), action.GetName()+"-"+v.Key()),
 				Action: string(t.Family) + ".action." + action.GetName(), Field: action.GetInputs()[0].GetName(),
 				ClassName: b.spelled(v), Example: ex.GetExample()})
@@ -325,7 +324,7 @@ func (r *Realizer) Declared(key ClaimKey) (*Declared, error) {
 		}
 		owner := q.GetScenario().GetMachine()
 		if family := r.b.subject(owner).family; family != key.Family || owner != key.Owner {
-			return nil, errorAt(q.GetPosition(), "query %s runs on %s of %s, not on %s of %s", key.Name, owner, family, key.Owner, key.Family)
+			return nil, ErrorAt(q.GetPosition(), "query %s runs on %s of %s, not on %s of %s", key.Name, owner, family, key.Owner, key.Family)
 		}
 		return &Declared{Query: q, Property: r.b.declaredProperty(q.GetProperty()), Scenario: r.b.declaredScenario(q.GetScenario())}, nil
 	}
@@ -418,7 +417,7 @@ func (r *Realizer) Bound(key ClaimKey) (*Bound, error) {
 	q := declared.Query
 	on := r.b.subject(q.GetScenario().GetMachine())
 	if on.machine == nil || q.GetThrough() || declared.Property == nil || declared.Property.GetMachine() != on.name {
-		return nil, errorAt(q.GetPosition(), "query %s is not read on the steps of one machine: it runs on %s and reads a Property of %s",
+		return nil, ErrorAt(q.GetPosition(), "query %s is not read on the steps of one machine: it runs on %s and reads a Property of %s",
 			key.Name, on.name, q.GetProperty().GetMachine())
 	}
 	bound, err := r.b.query(q)
@@ -461,7 +460,7 @@ func (b *binding) assumption(a *umpirespb.Assumption) Assumption {
 
 // catalog is a finite type's members by key.
 func (b *binding) catalog(t *umpirespb.TypeRef) (map[string]Value, error) {
-	name := spell(t)
+	name := Spell(t)
 	if members, ok := b.catalogs[name]; ok {
 		return members, nil
 	}
@@ -486,23 +485,23 @@ func (b *binding) keyedStep(s *subject, res Result) (Value, error) {
 	if err != nil {
 		return Value{}, err
 	}
-	outcomes, err := b.catalog(named(decl.GetOutcomeType()))
+	outcomes, err := b.catalog(Named(decl.GetOutcomeType()))
 	if err != nil {
 		return Value{}, err
 	}
 	outcome, ok := outcomes[res.Outcome]
 	if !ok {
-		return Value{}, errorAt(s.at, "%s has no outcome %s", s.name, res.Outcome)
+		return Value{}, ErrorAt(s.at, "%s has no outcome %s", s.name, res.Outcome)
 	}
 	facts := Value{Kind: ListValue}
 	for _, key := range res.Facts {
-		catalog, err := b.catalog(named(decl.GetFactType()))
+		catalog, err := b.catalog(Named(decl.GetFactType()))
 		if err != nil {
 			return Value{}, err
 		}
 		fact, ok := catalog[key]
 		if !ok {
-			return Value{}, errorAt(s.at, "%s has no fact %s", s.name, key)
+			return Value{}, ErrorAt(s.at, "%s has no fact %s", s.name, key)
 		}
 		facts.Items = append(facts.Items, fact)
 	}
@@ -518,7 +517,7 @@ func (b *binding) decide(function string, args []Value, at *umpirespb.Position, 
 		return false, err
 	}
 	if v.Kind != BoolValue {
-		return false, errorAt(at, "%s: %s is %s %s %s, not a Boolean", owner, function, v.Key(), relation, read)
+		return false, ErrorAt(at, "%s: %s is %s %s %s, not a Boolean", owner, function, v.Key(), relation, read)
 	}
 	return v.Bool, nil
 }
@@ -557,14 +556,14 @@ func (b *binding) watch(s *subject, mo *umpirespb.Monitor) (*watched, error) {
 		return nil, err
 	}
 	if mo.GetInitial() == nil {
-		return nil, errorAt(at, "%s: it names no initial state", name)
+		return nil, ErrorAt(at, "%s: it names no initial state", name)
 	}
 	initial, err := b.in.Eval(mo.GetInitial())
 	if err != nil {
 		return nil, err
 	}
-	if known, ok := states[initial.Key()]; !ok || !known.equal(initial) {
-		return nil, errorAt(at, "%s: its initial state %s is outside its states", name, initial.Key())
+	if known, ok := states[initial.Key()]; !ok || !known.Equal(initial) {
+		return nil, ErrorAt(at, "%s: its initial state %s is outside its states", name, initial.Key())
 	}
 	w := &watched{name: mo.GetName(), initial: initial.Key()}
 	w.next = func(state, before string, res Result) (string, error) {
@@ -580,8 +579,8 @@ func (b *binding) watch(s *subject, mo *umpirespb.Monitor) (*watched, error) {
 		if err != nil {
 			return "", err
 		}
-		if known, ok := states[v.Key()]; !ok || !known.equal(v) {
-			return "", errorAt(at, "%s: %s is %s after the step into %s, which is outside its states", name, mo.GetNext(), v.Key(), res.State)
+		if known, ok := states[v.Key()]; !ok || !known.Equal(v) {
+			return "", ErrorAt(at, "%s: %s is %s after the step into %s, which is outside its states", name, mo.GetNext(), v.Key(), res.State)
 		}
 		return v.Key(), nil
 	}
@@ -601,7 +600,7 @@ func (b *binding) watch(s *subject, mo *umpirespb.Monitor) (*watched, error) {
 			return b.decide(e.After, []Value{step}, at, name, "for the step into", res.State)
 		}
 	default:
-		return nil, errorAt(at, "%s has no evaluation point", name)
+		return nil, ErrorAt(at, "%s has no evaluation point", name)
 	}
 	return w, nil
 }
@@ -695,25 +694,25 @@ func (b *binding) when(p *umpirespb.Property) (func(action string) bool, string)
 		// A class key is its action's name and then its inputs, joined by "-". Reading the name off the
 		// key, as umpire's WhenAction does, also finds the action's classes on a machine that refines
 		// the Property's, which the Property is read on through the refinement.
-		return func(action string) bool { return actionOf(action) == w.WhenAction }, w.WhenAction
+		return func(action string) bool { return ActionOf(action) == w.WhenAction }, w.WhenAction
 	default:
 		return nil, ""
 	}
 }
 
 // actionOf is the action a class key is of: the key before its inputs.
-func actionOf(key string) string {
+func ActionOf(key string) string {
 	name, _, _ := strings.Cut(key, "-")
 	return name
 }
 
 // classKey is the key of one class of an action: its name, and the key of each input.
-func (b *binding) classKey(c *umpirespb.ActionClass) string { return classKey(b.in, b.actions, c) }
+func (b *binding) classKey(c *umpirespb.ActionClass) string { return ClassKey(b.in, b.actions, c) }
 
-func classKey(in *Interpreter, actions map[string]*umpirespb.Action, c *umpirespb.ActionClass) string {
+func ClassKey(in *Interpreter, actions map[string]*umpirespb.Action, c *umpirespb.ActionClass) string {
 	parts := []string{actions[c.GetAction()].GetName()}
 	for _, x := range c.GetInputs() {
-		parts = append(parts, in.literal(x).Key())
+		parts = append(parts, in.Literal(x).Key())
 	}
 	return strings.Join(parts, "-")
 }
@@ -726,7 +725,7 @@ func (b *binding) scenario(sc *umpirespb.Scenario, on *subject, table *Table) (*
 	}
 	owner := sc.GetMachine() + "." + sc.GetName()
 	if sc.GetStart() == nil {
-		return nil, errorAt(sc.GetPosition(), "%s names no start", owner)
+		return nil, ErrorAt(sc.GetPosition(), "%s names no start", owner)
 	}
 	state, err := b.in.Eval(sc.GetStart())
 	if err != nil {
@@ -811,7 +810,7 @@ type unseen struct {
 
 func (e *unseen) Error() string { return errors.Join(e.Unwrap()...).Error() }
 
-func (e *unseen) Unwrap() []error { return holeErrors(e.holes) }
+func (e *unseen) Unwrap() []error { return HoleErrors(e.holes) }
 
 // refines runs the generic refinement check of one machine's table by another's. It returns the
 // refinement, the holes that left a visible fact or outcome unknown, and why the refinement is not
@@ -834,7 +833,7 @@ func (b *binding) refines(s, product *subject, spec umpire.RefinementSpec, unrea
 	case err != nil && len(holes) > 0 && Unknown(err):
 		// The check stopped at another hole, as one in the map: the holes read before it are reported
 		// with it.
-		return nil, holes, errors.Join(append(holeErrors(holes), err)...)
+		return nil, holes, errors.Join(append(HoleErrors(holes), err)...)
 	case err != nil:
 		return nil, holes, err
 	case len(holes) > 0:
@@ -850,19 +849,19 @@ func (b *binding) refines(s, product *subject, spec umpire.RefinementSpec, unrea
 // the first error that is none, which is an error of the Model whatever was read before it.
 func (b *binding) reading(s, product *subject) (umpire.RefinementSpec, func() ([]*Hole, error)) {
 	r, at := s.machine.Decl.GetRefines(), s.at
-	var unread unknowns
+	var unread Unknowns
 	var malformed error
 	sees := func(function, typ string) func(string) bool {
 		if function == "" {
 			return nil
 		}
 		return func(key string) bool {
-			members, err := b.catalog(named(typ))
+			members, err := b.catalog(Named(typ))
 			seen := false
 			if err == nil {
 				seen, err = b.decide(function, []Value{members[key]}, at, s.name, "for", key)
 			}
-			if err = unread.note(err); malformed == nil {
+			if err = unread.Note(err); malformed == nil {
 				malformed = err
 			}
 			return seen
@@ -880,13 +879,13 @@ func (b *binding) reading(s, product *subject) (umpire.RefinementSpec, func() ([
 			if err != nil {
 				return "", err
 			}
-			if known, err := product.state(v.Key()); err != nil || !known.equal(v) {
-				return "", errorAt(at, "%s: %s reads %s as %s, which is no state of %s", s.name, r.GetMap(), key, v.Key(), product.name)
+			if known, err := product.state(v.Key()); err != nil || !known.Equal(v) {
+				return "", ErrorAt(at, "%s: %s reads %s as %s, which is no state of %s", s.name, r.GetMap(), key, v.Key(), product.name)
 			}
 			return v.Key(), nil
 		},
 	}
-	return spec, func() ([]*Hole, error) { return unread.holes, malformed }
+	return spec, func() ([]*Hole, error) { return unread.Holes, malformed }
 }
 
 // boundQuery is a Query of the IR as the generic search answers it.
@@ -915,7 +914,7 @@ func (b *binding) query(q *umpirespb.Query) (*boundQuery, error) {
 	out := &boundQuery{table: on.table}
 	if q.GetThrough() {
 		if on.machine == nil || on.machine.Decl.GetRefines() == nil {
-			return nil, errorAt(q.GetPosition(), "query %s reads through a refinement, and %s declares none", q.GetName(), on.name)
+			return nil, ErrorAt(q.GetPosition(), "query %s reads through a refinement, and %s declares none", q.GetName(), on.name)
 		}
 		out.through = b.refinement(on)
 		if out.through.ref == nil {

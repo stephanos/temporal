@@ -17,16 +17,16 @@ import (
 type Total struct {
 	Free bool
 	// States is the Scenario machine's or composition's whole state catalog.
-	States count
+	States Count
 	// Classes is a free Scenario's action classes.
-	Classes count
+	Classes Count
 	// Steps is the Query's step limit, and Schedule a pinned Scenario's scheduled actions.
 	Steps, Schedule int64
-	Count           count
+	Count           Count
 }
 
 // N is the count, and whether it fits an int64.
-func (t Total) N() (int64, bool) { return t.Count.n, !t.Count.overflow }
+func (t Total) N() (int64, bool) { return t.Count.Int64() }
 
 func (t Total) String() string {
 	if t.Free {
@@ -36,7 +36,7 @@ func (t Total) String() string {
 		t.States, min(t.Steps, t.Schedule), t.Steps, t.Schedule, t.Count)
 }
 
-func (c count) String() string {
+func (c Count) String() string {
 	if c.overflow {
 		return fmt.Sprintf("more than %d", c.n)
 	}
@@ -55,10 +55,10 @@ func RequireTotals(m *umpirespb.Model) error {
 		}
 		t, err := v.total(m, q)
 		if err != nil {
-			errs = append(errs, errorAt(q.GetPosition(), "query %s declares no total, and its count is unknown: %v", q.GetName(), err))
+			errs = append(errs, ErrorAt(q.GetPosition(), "query %s declares no total, and its count is unknown: %v", q.GetName(), err))
 			continue
 		}
-		errs = append(errs, errorAt(q.GetPosition(), "query %s declares no total: its static combination count is %s", q.GetName(), t))
+		errs = append(errs, ErrorAt(q.GetPosition(), "query %s declares no total: its static combination count is %s", q.GetName(), t))
 	}
 	return errors.Join(errs...)
 }
@@ -79,7 +79,7 @@ func WithTotals(m *umpirespb.Model) (*umpirespb.Model, error) {
 		}
 		n, ok := t.N()
 		if !ok {
-			return nil, errorAt(q.GetPosition(), "query %s: its static combination count is %s, more than an int64 holds", q.GetName(), t)
+			return nil, ErrorAt(q.GetPosition(), "query %s: its static combination count is %s, more than an int64 holds", q.GetName(), t)
 		}
 		q.Total = wrapperspb.Int64(n)
 	}
@@ -105,14 +105,15 @@ func (v *validator) totals(m *umpirespb.Model) {
 		}
 		at, declared := q.GetPosition(), q.GetTotal().GetValue()
 		t, err := v.total(m, q)
+		n, fits := t.N()
 		switch {
 		case err != nil:
 			v.report(at, "query %s declares a total of %d, and its count is unknown: %v", q.GetName(), declared, err)
 		case declared < 0:
 			v.report(at, "query %s declares a total of %d, below 0: its static combination count is %s", q.GetName(), declared, t)
-		case t.Count.overflow:
+		case !fits:
 			v.report(at, "query %s declares a total of %d, and its static combination count is %s, more than an int64 holds", q.GetName(), declared, t)
-		case declared != t.Count.n:
+		case declared != n:
 			v.report(at, "query %s declares a total of %d, and its static combination count is %s", q.GetName(), declared, t)
 		default:
 		}
@@ -132,29 +133,29 @@ func (v *validator) total(m *umpirespb.Model, q *umpirespb.Query) (Total, error)
 	}
 	t := Total{Free: s.GetFree(), Steps: max(int64(q.GetLimits().GetSteps()), 0)}
 	var state string
-	var classes func() (count, error)
+	var classes func() (Count, error)
 	switch c, mm := v.compositions[s.GetMachine()], v.machines[s.GetMachine()]; {
 	case c != nil:
-		state, classes = c.GetStateType(), func() (count, error) { return v.composedClassCount(c) }
+		state, classes = c.GetStateType(), func() (Count, error) { return v.composedClassCount(c) }
 		t.Schedule = int64(len(s.GetActions()) + len(s.GetKeys()))
 	case mm != nil:
-		state, classes = mm.GetStateType(), func() (count, error) { return v.in.boundClasses(mm, v.actions) }
+		state, classes = mm.GetStateType(), func() (Count, error) { return v.in.BoundClasses(mm, v.actions) }
 		t.Schedule = int64(len(s.GetActions()))
 	default:
 		return Total{}, fmt.Errorf("no machine or composition %s", s.GetMachine())
 	}
-	states, err := v.in.size(named(state))
+	states, err := v.in.Size(Named(state))
 	if err != nil {
 		return Total{}, err
 	}
 	t.States = states
 	if !t.Free {
-		t.Count = states.times(count{n: min(t.Steps, t.Schedule)})
+		t.Count = states.Times(CountOf(min(t.Steps, t.Schedule)))
 		return t, nil
 	}
 	if t.Classes, err = classes(); err != nil {
 		return Total{}, err
 	}
-	t.Count = states.times(t.Classes).times(count{n: t.Steps})
+	t.Count = states.Times(t.Classes).Times(CountOf(t.Steps))
 	return t, nil
 }

@@ -62,12 +62,12 @@ func (b *binding) composeSubject(c *umpirespb.Composition, checkReplacements boo
 			FirstMember: sync.GetFirst().GetMember(), FirstAction: sync.GetFirst().GetAction(),
 			SecondMember: sync.GetSecond().GetMember(), SecondAction: sync.GetSecond().GetAction()})
 	}
-	var unread unknowns
+	var unread Unknowns
 	if spec.Ends, s.err = b.composedEnds(c, state, &unread); s.err != nil {
 		return s
 	}
 	if s.table, s.err = umpire.ComposeTables(spec); s.err == nil {
-		s.err = unread.err()
+		s.err = unread.Err()
 	}
 	if s.err != nil {
 		s.table = nil
@@ -76,14 +76,14 @@ func (b *binding) composeSubject(c *umpirespb.Composition, checkReplacements boo
 	s.state = func(key string) (Value, error) {
 		parts, ok := s.table.Parts(key)
 		if !ok {
-			return Value{}, errorAt(s.at, "%s has no state %s", s.name, key)
+			return Value{}, ErrorAt(s.at, "%s has no state %s", s.name, key)
 		}
 		return state.value(parts)
 	}
 	s.step = func(res Result) (Value, error) {
 		step, ok := res.Step.(umpire.ComposedStep)
 		if !ok {
-			return Value{}, errorAt(s.at, "%s: the step into %s is no step of a composition", s.name, res.State)
+			return Value{}, ErrorAt(s.at, "%s: the step into %s is no step of a composition", s.name, res.State)
 		}
 		reached, err := state.value(step.Parts)
 		if err != nil {
@@ -97,8 +97,8 @@ func (b *binding) composeSubject(c *umpirespb.Composition, checkReplacements boo
 			Fields: []Value{{Kind: TextValue, Text: res.Outcome}, reached, facts, {Kind: TextValue, Text: res.Because}}, Choice: res.Choice}, nil
 	}
 	s.key = func(v Value) (string, error) {
-		if !b.in.conforms(v, named(c.GetStateType())) {
-			return "", errorAt(s.at, "%s is no state of %s", v.Key(), s.name)
+		if !b.in.Conforms(v, Named(c.GetStateType())) {
+			return "", ErrorAt(s.at, "%s is no state of %s", v.Key(), s.name)
 		}
 		return state.key(v), nil
 	}
@@ -109,7 +109,7 @@ func (b *binding) composeSubject(c *umpirespb.Composition, checkReplacements boo
 // also notes why a Query over the composition is not supported, which does not wait on whether the
 // composition builds.
 func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *umpire.ComposeSpec, checkReplacements bool) (*composedState, error) {
-	fields := b.in.types[c.GetStateType()].GetRecord().GetFields()
+	fields := b.in.Type(c.GetStateType()).GetRecord().GetFields()
 	state := &composedState{stateType: c.GetStateType(), filledBy: slices.Repeat([]int{-1}, len(fields))}
 	var unbuilt []error
 	for i, mb := range c.GetMembers() {
@@ -124,9 +124,9 @@ func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *um
 		case member.err != nil:
 			err = member.err
 		case member.machine == nil:
-			err = errorAt(s.at, "composition %s: its member %s is %s, which is no machine", s.name, mb.GetField(), mb.GetMachine())
+			err = ErrorAt(s.at, "composition %s: its member %s is %s, which is no machine", s.name, mb.GetField(), mb.GetMachine())
 		case k < 0:
-			err = errorAt(s.at, "composition %s: its member %s is no field of %s", s.name, mb.GetField(), c.GetStateType())
+			err = ErrorAt(s.at, "composition %s: its member %s is no field of %s", s.name, mb.GetField(), c.GetStateType())
 		default:
 			state.filledBy[k] = i
 			if checkReplacements {
@@ -150,7 +150,7 @@ func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *um
 		return nil, &unbuiltMembers{errs: unbuilt}
 	}
 	if k := slices.Index(state.filledBy, -1); k >= 0 {
-		return nil, errorAt(s.at, "composition %s: no member fills the field %s of %s", s.name, fields[k].GetName(), c.GetStateType())
+		return nil, ErrorAt(s.at, "composition %s: no member fills the field %s of %s", s.name, fields[k].GetName(), c.GetStateType())
 	}
 	return state, nil
 }
@@ -204,7 +204,7 @@ func (b *binding) replacement(spec *umpire.ComposeSpec, mb *umpirespb.Member, me
 // A composed state it reaches a hole at is noted as unread and read as no end, so that the
 // composition's every state is read: with a hole noted, the table that comes of it is not the
 // composition's.
-func (b *binding) composedEnds(c *umpirespb.Composition, state *composedState, unread *unknowns) (
+func (b *binding) composedEnds(c *umpirespb.Composition, state *composedState, unread *Unknowns) (
 	func(key string, parts []string) (bool, error), error) {
 	if c.GetEnds() == nil {
 		return nil, nil
@@ -218,12 +218,12 @@ func (b *binding) composedEnds(c *umpirespb.Composition, state *composedState, u
 		if err != nil {
 			return false, err
 		}
-		v, err := b.in.apply(end, []Value{composed})
+		v, err := b.in.Apply(end, []Value{composed})
 		if err != nil {
-			return false, unread.note(err)
+			return false, unread.Note(err)
 		}
 		if v.Kind != BoolValue {
-			return false, errorAt(c.GetEnds().GetPosition(), "%s: ends is %s at %s, not a Boolean", c.GetName(), v.Key(), key)
+			return false, ErrorAt(c.GetEnds().GetPosition(), "%s: ends is %s at %s, not a Boolean", c.GetName(), v.Key(), key)
 		}
 		return v.Bool, nil
 	}, nil

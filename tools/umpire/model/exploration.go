@@ -17,7 +17,7 @@ func (v *validator) exploration(q *umpirespb.Query) {
 	}
 	v.once(at, "explorations named", e.GetName())
 	var scenario *umpirespb.Scenario
-	for _, s := range v.in.model.GetScenarios() {
+	for _, s := range v.in.Model().GetScenarios() {
 		if s.GetMachine() == q.GetScenario().GetMachine() && s.GetName() == q.GetScenario().GetName() {
 			scenario = s
 		}

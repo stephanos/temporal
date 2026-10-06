@@ -59,11 +59,11 @@ func (w *Why) Last() (Decision, bool) {
 func (in *Interpreter) Why(m *Machine, state, class string) (*Why, error) {
 	s, ok := m.State(state)
 	if !ok {
-		return nil, errorAt(m.Decl.GetPosition(), "%s has no state %s", m.Decl.GetName(), state)
+		return nil, ErrorAt(m.Decl.GetPosition(), "%s has no state %s", m.Decl.GetName(), state)
 	}
 	i := slices.IndexFunc(m.Classes, func(c Class) bool { return c.Key == class })
 	if i < 0 {
-		return nil, errorAt(m.Decl.GetPosition(), "%s has no class %s", m.Decl.GetName(), class)
+		return nil, ErrorAt(m.Decl.GetPosition(), "%s has no class %s", m.Decl.GetName(), class)
 	}
 	c := m.Classes[i]
 	if c.Action.GetDelivers() != "" || c.Action.GetLoses() != "" {
@@ -131,7 +131,7 @@ func (in *Interpreter) decided(p pending, x *umpirespb.Expr, then bool, taken in
 		return
 	}
 	in.trace.depth--
-	in.trace.decisions = append(in.trace.decisions, Decision{Position: where(x.GetPosition()), Expr: x, Then: then,
+	in.trace.decisions = append(in.trace.decisions, Decision{Position: Where(x.GetPosition()), Expr: x, Then: then,
 		Case: taken, Wildcard: wildcard, State: in.trace.reads > p.reads, Calls: slices.Clone(in.trace.calls[p.calls:]),
 		Nested: in.trace.depth > 0})
 }

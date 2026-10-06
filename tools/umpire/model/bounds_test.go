@@ -19,9 +19,8 @@ func upTo(high int64) *umpirespb.TypeRef {
 
 // Two inputs of 0..59 each: every catalog is within a ceiling of 100, and their 3600 assignments are not.
 func TestAProductIsCountedBeforeItIsListed(t *testing.T) {
-	in := NewInterpreter(lifted(t, "presence"))
-	in.ceilings = Ceilings{Members: 100, Evaluations: 1 << 20}
-	_, err := in.product([]*umpirespb.Field{{Name: "x", Type: upTo(59)}, {Name: "y", Type: upTo(59)}})
+	in := NewInterpreterWithin(lifted(t, "presence"), Ceilings{Members: 100, Evaluations: 1 << 20})
+	_, err := in.Product([]*umpirespb.Field{{Name: "x", Type: upTo(59)}, {Name: "y", Type: upTo(59)}})
 	var limit *LimitError
 	require.ErrorAs(t, err, &limit)
 	require.Equal(t, LimitError{Resource: "members", Ceiling: 100, Needed: 3600}, *limit)
@@ -38,9 +37,8 @@ func TestClassesAreCountedTogetherBeforeTheyAreListed(t *testing.T) {
 		}
 		actions[a.GetId()] = a
 	}
-	in := NewInterpreter(m)
-	in.ceilings = Ceilings{Members: 90, Evaluations: 1 << 20}
-	_, err := in.classes(m.GetMachines()[0], actions)
+	in := NewInterpreterWithin(m, Ceilings{Members: 90, Evaluations: 1 << 20})
+	_, err := in.Classes(m.GetMachines()[0], actions)
 	var limit *LimitError
 	require.ErrorAs(t, err, &limit)
 	require.Equal(t, LimitError{Resource: "classes", Ceiling: 90, Needed: 123}, *limit)
@@ -52,7 +50,7 @@ func TestAdmissionLeavesRowsPastTheCeilingToBuild(t *testing.T) {
 	m := identityModel("S", "O", "", identityAction{name: "b", inputs: []string{"C"}}, identityAction{name: "c"})
 	tight := Ceilings{Members: 1 << 16, Evaluations: 3}
 	v := newValidator(m)
-	v.in.ceilings = tight
+	v.in = NewInterpreterWithin(m, tight)
 	v.identities(m)
 	require.NoError(t, errors.Join(v.errs...))
 	_, err := BuildWithin(m, tight)
@@ -75,7 +73,7 @@ func TestComposedKeysAreCountedBeforeTheyAreListed(t *testing.T) {
 	}
 	m.Scenarios = []*umpirespb.Scenario{{Machine: "p", Name: "each", Position: at(50), Keys: []string{"both-0-0"}}}
 	v := newValidator(m)
-	v.in.ceilings = Ceilings{Members: 50, Evaluations: 1 << 20}
+	v.in = NewInterpreterWithin(m, Ceilings{Members: 50, Evaluations: 1 << 20})
 	v.schedules(m, v.composedClasses(m))
 	var limit *LimitError
 	require.ErrorAs(t, errors.Join(v.errs...), &limit)
@@ -95,7 +93,7 @@ func TestComposedKeysAreCountedBeforeAPropertyReadsThem(t *testing.T) {
 	m.Properties = []*umpirespb.Property{{Machine: "p", Name: "each", Position: at(50),
 		When: &umpirespb.Property_WhenAction{WhenAction: "both"}}}
 	v := newValidator(m)
-	v.in.ceilings = Ceilings{Members: 50, Evaluations: 1 << 20}
+	v.in = NewInterpreterWithin(m, Ceilings{Members: 50, Evaluations: 1 << 20})
 	v.selectors(m, v.composedClasses(m))
 	require.EqualError(t, errors.Join(v.errs...), "generic:50: p.each: its classes: p needs 100 classes, above the ceiling of 50")
 	var limit *LimitError

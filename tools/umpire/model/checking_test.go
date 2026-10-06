@@ -692,7 +692,7 @@ func withTape(members [2]string, alter func(m *umpirespb.Model, tape *umpirespb.
 		alter(m, tape)
 		m.Machines = append(m.Machines, tape)
 
-		admType(m, "fixture.declarations.DetailedPairState").GetRecord().GetFields()[0].Type = named("fixture.declarations.DiskState")
+		admType(m, "fixture.declarations.DetailedPairState").GetRecord().GetFields()[0].Type = Named("fixture.declarations.DiskState")
 		detailed := admComposition(m, "detailedPair")
 		detailed.Ends = nil
 		detailed.Members = []*umpirespb.Member{{Field: "front", Machine: members[0], Replaces: "store"},
@@ -727,8 +727,8 @@ func TestAMembersHoleErasesNoRejectionOfAnotherMember(t *testing.T) {
 // member's hole: a tape whose visible function is malformed is the composition's error, and a tape
 // whose map is a second hole has its hole listed beside the disk's.
 func TestAMembersHoleMasksNoOtherMembersErrorOrHole(t *testing.T) {
-	fact := []*umpirespb.Param{{Name: "f", Type: named("fixture.declarations.Fact")}}
-	state := []*umpirespb.Param{{Name: "d", Type: named("fixture.declarations.DiskState")}}
+	fact := []*umpirespb.Param{{Name: "f", Type: Named("fixture.declarations.Fact")}}
+	state := []*umpirespb.Param{{Name: "d", Type: Named("fixture.declarations.DiskState")}}
 	crash := HoleReach{Edge: RowHole, ID: crashHole, Name: "crashUnmodeled", Row: "staged-crash"}
 	second := HoleReach{Edge: DeclarationHole, ID: secondHole, Name: "second"}
 	for name, members := range memberOrders {
@@ -770,7 +770,7 @@ func TestAnyMembersReplayFailureIsTheCompositions(t *testing.T) {
 			put(m, tape)
 		}
 	}
-	state := []*umpirespb.Param{{Name: "d", Type: named("fixture.declarations.DiskState")}}
+	state := []*umpirespb.Param{{Name: "d", Type: Named("fixture.declarations.DiskState")}}
 	for name, members := range memberOrders {
 		t.Run(name, func(t *testing.T) {
 			m := mutated(t, "declarations", withTape(members, holed(func(*umpirespb.Model, *umpirespb.Machine) {})))
@@ -1655,8 +1655,8 @@ func (c counter) model() *umpirespb.Model {
 			Args: []*umpirespb.Expr{expr(caseOf("O", outcome)), state, expr(&umpirespb.ListOf{}), text("")}})}})
 	}
 	n := field(expr("s"), "n")
-	state := []*umpirespb.Param{{Name: "s", Type: named("Counter")}}
-	after := []*umpirespb.Param{{Name: "after", Type: named(stepType)}}
+	state := []*umpirespb.Param{{Name: "s", Type: Named("Counter")}}
+	after := []*umpirespb.Param{{Name: "after", Type: Named(stepType)}}
 	fn := func(name string, params []*umpirespb.Param, body *umpirespb.Expr) *umpirespb.Function {
 		return &umpirespb.Function{Name: name, Position: at(20), Params: params, Body: body}
 	}
@@ -1669,7 +1669,7 @@ func (c counter) model() *umpirespb.Model {
 				{Name: "n", Type: upTo(c.k)}}}}},
 			enumType("O", 2, "ok", "skipped"),
 			{Name: "Two", Position: at(3), Shape: &umpirespb.Type_Record{Record: &umpirespb.Record{Fields: []*umpirespb.Field{
-				{Name: "left", Type: named("Counter")}, {Name: "right", Type: named("Counter")}}}}},
+				{Name: "left", Type: Named("Counter")}, {Name: "right", Type: Named("Counter")}}}}},
 		},
 		Actions: []*umpirespb.Action{{Id: "generic.tick", Name: "tick", Position: at(10), Actor: "generic"}},
 		Functions: []*umpirespb.Function{
@@ -1724,8 +1724,8 @@ func (c counter) model() *umpirespb.Model {
 			violated = expr("seen")
 		}
 		m.Functions = append(m.Functions,
-			fn("generic.sawSkip.next", []*umpirespb.Param{{Name: "seen", Type: flag}, {Name: "before", Type: named("Counter")},
-				{Name: "after", Type: named(stepType)}}, binary(umpirespb.Binary_OP_OR, expr("seen"), skipped)),
+			fn("generic.sawSkip.next", []*umpirespb.Param{{Name: "seen", Type: flag}, {Name: "before", Type: Named("Counter")},
+				{Name: "after", Type: Named(stepType)}}, binary(umpirespb.Binary_OP_OR, expr("seen"), skipped)),
 			fn("generic.sawSkip.violated", []*umpirespb.Param{{Name: "seen", Type: flag}}, violated))
 		m.Monitors = []*umpirespb.Monitor{{Id: "generic.sawSkip", Name: "sawSkip", Position: at(90), State: flag, Initial: expr(boolValue(false)),
 			Next: "generic.sawSkip.next", Violated: "generic.sawSkip.violated", Evaluate: &umpirespb.Monitor_EveryStep{EveryStep: &umpirespb.Empty{}}}}

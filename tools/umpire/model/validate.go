@@ -214,7 +214,7 @@ func (v *validator) action(a *umpirespb.Action) {
 		case !ok:
 			v.report(a.GetPosition(), "no channel %s", use.channel)
 		case len(a.GetInputs()) != 1 || !proto.Equal(a.GetInputs()[0].GetType(), c.GetMessage()):
-			v.report(a.GetPosition(), "%s %s %s, so it takes one input of %s", a.GetId(), use.verb, c.GetId(), spell(c.GetMessage()))
+			v.report(a.GetPosition(), "%s %s %s, so it takes one input of %s", a.GetId(), use.verb, c.GetId(), Spell(c.GetMessage()))
 		default:
 		}
 	}
@@ -222,7 +222,7 @@ func (v *validator) action(a *umpirespb.Action) {
 		v.report(a.GetPosition(), "%s loses channel %s, which is not lossy", a.GetId(), c.GetId())
 	}
 	if a.GetDelivers() != "" && a.GetLoses() != "" {
-		v.report(a.GetPosition(), "%s %s; an action does one", a.GetId(), bothRoles(a))
+		v.report(a.GetPosition(), "%s %s; an action does one", a.GetId(), BothRoles(a))
 	}
 }
 
@@ -241,8 +241,8 @@ func (v *validator) examples(a *umpirespb.Action) {
 			if len(v.errs) != before {
 				continue
 			}
-			if x := v.in.literal(ex.GetValue()); !v.in.conforms(x, a.GetInputs()[0].GetType()) {
-				v.report(a.GetPosition(), "%s gives an example of %s, which is no %s", a.GetId(), x.Key(), spell(a.GetInputs()[0].GetType()))
+			if x := v.in.Literal(ex.GetValue()); !v.in.Conforms(x, a.GetInputs()[0].GetType()) {
+				v.report(a.GetPosition(), "%s gives an example of %s, which is no %s", a.GetId(), x.Key(), Spell(a.GetInputs()[0].GetType()))
 			}
 		}
 	}
@@ -312,7 +312,7 @@ func accepts(param, arg *umpirespb.TypeRef) bool {
 }
 
 // spell writes a type reference as a diagnostic names it.
-func spell(t *umpirespb.TypeRef) string {
+func Spell(t *umpirespb.TypeRef) string {
 	switch r := t.GetRef().(type) {
 	case *umpirespb.TypeRef_Named:
 		return r.Named
@@ -321,7 +321,7 @@ func spell(t *umpirespb.TypeRef) string {
 	case *umpirespb.TypeRef_IntRange:
 		return fmt.Sprintf("%d..%d", r.IntRange.GetLow(), r.IntRange.GetHigh())
 	case *umpirespb.TypeRef_List:
-		return "List[" + spell(r.List) + "]"
+		return "List[" + Spell(r.List) + "]"
 	case *umpirespb.TypeRef_Int:
 		return "Int"
 	case *umpirespb.TypeRef_Channel:
@@ -332,13 +332,13 @@ func spell(t *umpirespb.TypeRef) string {
 }
 
 // known is whether n is one of an enum's declared values other than its unspecified zero.
-func known(names map[int32]string, n int32) bool {
+func Known(names map[int32]string, n int32) bool {
 	_, ok := names[n]
 	return ok && n != 0
 }
 
 func (v *validator) report(at *umpirespb.Position, format string, args ...any) {
-	v.errs = append(v.errs, errorAt(at, format, args...))
+	v.errs = append(v.errs, ErrorAt(at, format, args...))
 }
 
 func (v *validator) typeDecl(t *umpirespb.Type) {
@@ -432,7 +432,7 @@ func (v *validator) typeRef(t *umpirespb.TypeRef, at *umpirespb.Position) {
 
 func (v *validator) fields(typeName, caseName string) (int, bool) {
 	if typeName == StepType {
-		return len(stepFields), true
+		return len(StepFields), true
 	}
 	t, ok := v.types[typeName]
 	if !ok {
@@ -518,7 +518,7 @@ func (v *validator) expr(x *umpirespb.Expr, scope map[string]bool) {
 
 // operator reports an operator that is none of its enum's declared values.
 func (v *validator) operator(at *umpirespb.Position, kind string, names map[int32]string, op int32) {
-	if !known(names, op) {
+	if !Known(names, op) {
 		v.report(at, "no %s %d", kind, op)
 	}
 }
@@ -647,7 +647,7 @@ func (v *validator) machine(m *umpirespb.Machine) {
 	at := m.GetPosition()
 	for _, t := range []string{m.GetStateType(), m.GetOutcomeType(), m.GetFactType()} {
 		if t != "" {
-			v.typeRef(named(t), at)
+			v.typeRef(Named(t), at)
 		}
 	}
 	for _, s := range m.GetStarts() {
@@ -716,14 +716,14 @@ func (v *validator) step(m *umpirespb.Machine, b *umpirespb.StepBinding) {
 		v.report(b.GetPosition(), "%s steps %s, which has %d inputs, so it takes the state and %d arguments, not %d",
 			f.GetName(), a.GetName(), len(a.GetInputs()), len(a.GetInputs()), len(f.GetParams())-1)
 	default:
-		args := []*umpirespb.TypeRef{named(m.GetStateType())}
+		args := []*umpirespb.TypeRef{Named(m.GetStateType())}
 		for _, in := range a.GetInputs() {
 			args = append(args, in.GetType())
 		}
 		for i, p := range f.GetParams() {
 			if !accepts(p.GetType(), args[i]) {
 				v.report(b.GetPosition(), "%s steps %s, so its parameter %s takes %s, not %s",
-					f.GetName(), a.GetName(), p.GetName(), spell(args[i]), spell(p.GetType()))
+					f.GetName(), a.GetName(), p.GetName(), Spell(args[i]), Spell(p.GetType()))
 			}
 		}
 		if !v.returning[f.GetName()] {
@@ -833,9 +833,9 @@ func (v *validator) watched(m *umpirespb.Machine) {
 			v.report(m.GetPosition(), "no monitor %s", id)
 			continue
 		}
-		if next := v.functions[mo.GetNext()]; len(next.GetParams()) == 3 && !accepts(next.GetParams()[1].GetType(), named(m.GetStateType())) {
+		if next := v.functions[mo.GetNext()]; len(next.GetParams()) == 3 && !accepts(next.GetParams()[1].GetType(), Named(m.GetStateType())) {
 			v.report(m.GetPosition(), "%s names monitor %s, whose next takes %s, not the state %s",
-				m.GetName(), mo.GetName(), spell(next.GetParams()[1].GetType()), m.GetStateType())
+				m.GetName(), mo.GetName(), Spell(next.GetParams()[1].GetType()), m.GetStateType())
 		}
 	}
 }
@@ -858,7 +858,7 @@ func (v *validator) arity(at *umpirespb.Position, owner, name string, n int) *um
 
 func (v *validator) channel(c *umpirespb.Channel) {
 	at := c.GetPosition()
-	if !known(umpirespb.Channel_Order_name, int32(c.GetOrder())) {
+	if !Known(umpirespb.Channel_Order_name, int32(c.GetOrder())) {
 		v.report(at, "channel %s has no known order", c.GetId())
 	}
 	v.catalog(at, "channel "+c.GetId(), "message", c.GetMessage())
@@ -875,7 +875,7 @@ func (v *validator) channel(c *umpirespb.Channel) {
 func (v *validator) catalog(at *umpirespb.Position, owner, role string, t *umpirespb.TypeRef) {
 	switch t.GetRef().(type) {
 	case *umpirespb.TypeRef_Int, *umpirespb.TypeRef_List, *umpirespb.TypeRef_Channel:
-		v.report(at, "%s needs a %s of a finite type, not %s", owner, role, spell(t))
+		v.report(at, "%s needs a %s of a finite type, not %s", owner, role, Spell(t))
 	default:
 		v.typeRef(t, at)
 	}
@@ -895,7 +895,7 @@ func (v *validator) monitor(mo *umpirespb.Monitor) {
 		arity      int
 	}{{"next", mo.GetNext(), 3}, {"violated", mo.GetViolated(), 1}} {
 		if f := v.arity(at, mo.GetName(), fn.name, fn.arity); f != nil && !accepts(f.GetParams()[0].GetType(), mo.GetState()) {
-			v.report(at, "monitor %s's %s takes %s, not its state %s", mo.GetName(), fn.role, spell(f.GetParams()[0].GetType()), spell(mo.GetState()))
+			v.report(at, "monitor %s's %s takes %s, not its state %s", mo.GetName(), fn.role, Spell(f.GetParams()[0].GetType()), Spell(mo.GetState()))
 		}
 	}
 	v.catalog(at, "monitor "+mo.GetName(), "state", mo.GetState())
@@ -906,7 +906,7 @@ func (v *validator) monitor(mo *umpirespb.Monitor) {
 
 func (v *validator) composition(c *umpirespb.Composition) {
 	at := c.GetPosition()
-	v.typeRef(named(c.GetStateType()), at)
+	v.typeRef(Named(c.GetStateType()), at)
 	fields := map[string]*umpirespb.TypeRef{}
 	for _, f := range v.types[c.GetStateType()].GetRecord().GetFields() {
 		fields[f.GetName()] = f.GetType()
@@ -920,8 +920,8 @@ func (v *validator) composition(c *umpirespb.Composition) {
 			v.report(at, "no machine %s", mb.GetMachine())
 		case !isField:
 			v.report(at, "member %s of %s is no field of %s", mb.GetField(), c.GetName(), c.GetStateType())
-		case !proto.Equal(field, named(mm.GetStateType())):
-			v.report(at, "member %s of %s holds %s, not the state %s of %s", mb.GetField(), c.GetName(), spell(field),
+		case !proto.Equal(field, Named(mm.GetStateType())):
+			v.report(at, "member %s of %s holds %s, not the state %s of %s", mb.GetField(), c.GetName(), Spell(field),
 				mm.GetStateType(), mm.GetName())
 		default:
 		}
@@ -1038,8 +1038,8 @@ func (v *validator) actionClass(owner string, mm *umpirespb.Machine, c *umpiresp
 		v.report(at, "%s: %s takes %d inputs, not %d", owner, a.GetId(), len(a.GetInputs()), len(c.GetInputs()))
 	default:
 		for i, p := range a.GetInputs() {
-			if x := v.in.literal(c.GetInputs()[i]); !v.in.conforms(x, p.GetType()) {
-				v.report(at, "%s: %s takes a %s for %s, not %s", owner, a.GetId(), spell(p.GetType()), p.GetName(), x.Key())
+			if x := v.in.Literal(c.GetInputs()[i]); !v.in.Conforms(x, p.GetType()) {
+				v.report(at, "%s: %s takes a %s for %s, not %s", owner, a.GetId(), Spell(p.GetType()), p.GetName(), x.Key())
 			}
 		}
 	}
@@ -1122,7 +1122,7 @@ func (v *validator) progress(p *umpirespb.Progress) {
 }
 
 func (v *validator) query(q *umpirespb.Query) {
-	if !known(umpirespb.Query_Form_name, int32(q.GetForm())) {
+	if !Known(umpirespb.Query_Form_name, int32(q.GetForm())) {
 		v.report(q.GetPosition(), "query %s has no known form", q.GetName())
 	}
 	v.expectedRun(q)
@@ -1161,26 +1161,26 @@ func (v *validator) expectedRun(q *umpirespb.Query) {
 	if expected.GetContract() != umpirespb.RunExpectation_OUTCOME_SATISFIED && expected.GetContract() != umpirespb.RunExpectation_OUTCOME_VIOLATED {
 		v.report(at, "query %s expected Run has no supported Contract verdict", q.GetName())
 	}
-	if !known(umpirespb.RunExpectation_Disposition_name, int32(expected.GetDisposition())) {
+	if !Known(umpirespb.RunExpectation_Disposition_name, int32(expected.GetDisposition())) {
 		v.report(at, "query %s expected Run declares no known disposition", q.GetName())
 	}
-	if !known(umpirespb.RunExpectation_Cleanup_name, int32(expected.GetCleanup())) {
+	if !Known(umpirespb.RunExpectation_Cleanup_name, int32(expected.GetCleanup())) {
 		v.report(at, "query %s expected Run declares no known cleanup", q.GetName())
 	}
-	if !known(umpirespb.RunExpectation_Conformance_name, int32(expected.GetConformance())) {
+	if !Known(umpirespb.RunExpectation_Conformance_name, int32(expected.GetConformance())) {
 		v.report(at, "query %s expected Run has no known conformance", q.GetName())
 	}
 	// Conformance short of conformant names the judge's reason; conformant names none.
 	why, conformance := expected.GetConformanceReason(), expected.GetConformance()
 	named := why != umpirespb.RunExpectation_REASON_UNSPECIFIED
 	short := conformance == umpirespb.RunExpectation_CONFORMANCE_NONCONFORMANT || conformance == umpirespb.RunExpectation_CONFORMANCE_INCONCLUSIVE
-	if (named && !known(umpirespb.RunExpectation_Reason_name, int32(why))) || named != short {
+	if (named && !Known(umpirespb.RunExpectation_Reason_name, int32(why))) || named != short {
 		v.report(at, "query %s expected Run has an invalid conformance reason", q.GetName())
 	}
 	// An outcome short of satisfied names the judge's reason; a satisfied one names none.
 	outcome := func(status umpirespb.RunExpectation_Outcome, reason umpirespb.RunExpectation_Reason) {
 		named := reason != umpirespb.RunExpectation_REASON_UNSPECIFIED
-		if !known(umpirespb.RunExpectation_Outcome_name, int32(status)) || (named && !known(umpirespb.RunExpectation_Reason_name, int32(reason))) ||
+		if !Known(umpirespb.RunExpectation_Outcome_name, int32(status)) || (named && !Known(umpirespb.RunExpectation_Reason_name, int32(reason))) ||
 			(status == umpirespb.RunExpectation_OUTCOME_SATISFIED) == named {
 			v.report(at, "query %s expected Run has an invalid outcome or reason", q.GetName())
 		}

@@ -24,7 +24,7 @@ func (v *validator) schedules(m *umpirespb.Model, composed map[string]classKeys)
 			switch {
 			case err != nil:
 				v.report(at, "%s: its start: %v", owner, err)
-			case !v.in.conforms(start, named(state)):
+			case !v.in.Conforms(start, Named(state)):
 				v.report(at, "%s starts at %s, which is no %s", owner, start.Key(), state)
 			default:
 			}
@@ -50,7 +50,7 @@ func (v *validator) schedules(m *umpirespb.Model, composed map[string]classKeys)
 func (v *validator) readable(at *umpirespb.Position, owner string, keys classKeys) (map[string]string, bool) {
 	var limit *LimitError
 	if errors.As(keys.err, &limit) {
-		v.errs = append(v.errs, fmt.Errorf("%s: %s: its classes: %w", where(at), owner, keys.err))
+		v.errs = append(v.errs, fmt.Errorf("%s: %s: its classes: %w", Where(at), owner, keys.err))
 	}
 	return keys.owners, keys.err == nil
 }
@@ -72,7 +72,7 @@ func (v *validator) selectors(m *umpirespb.Model, composed map[string]classKeys)
 		}
 		switch w := p.GetWhen().(type) {
 		case *umpirespb.Property_WhenClass:
-			if key := classKey(v.in, v.actions, w.WhenClass); !hasKey(keys, key) {
+			if key := ClassKey(v.in, v.actions, w.WhenClass); !hasKey(keys, key) {
 				v.report(at, "%s: %s has no class %s", owner, c.GetName(), key)
 			}
 		case *umpirespb.Property_WhenAction:
@@ -92,7 +92,7 @@ func hasKey(keys map[string]string, key string) bool {
 // hasAction is whether some class of these keys is of the action of this name.
 func hasAction(keys map[string]string, action string) bool {
 	for key := range keys {
-		if actionOf(key) == action {
+		if ActionOf(key) == action {
 			return true
 		}
 	}
@@ -111,7 +111,7 @@ func (v *validator) identities(m *umpirespb.Model) {
 	}
 	for _, mm := range m.GetMachines() {
 		// The same counts Build refuses a machine by bound what is listed here.
-		if err := v.in.preflight(mm, v.actions); err != nil {
+		if err := v.in.Preflight(mm, v.actions); err != nil {
 			report(err)
 			continue
 		}
@@ -120,16 +120,16 @@ func (v *validator) identities(m *umpirespb.Model) {
 			if t == "" {
 				continue
 			}
-			values, err := v.in.Members(named(t))
+			values, err := v.in.Members(Named(t))
 			report(err)
 			if i == 0 {
 				states = values
 			}
 		}
-		classes, err := v.in.classes(mm, v.actions)
+		classes, err := v.in.Classes(mm, v.actions)
 		report(err)
 		if states != nil && err == nil {
-			report(rowKeys(mm, states, classes))
+			report(RowKeys(mm, states, classes))
 		}
 	}
 }
@@ -203,12 +203,12 @@ func (v *validator) composedCount(c *umpirespb.Composition) error {
 	if err != nil {
 		return err
 	}
-	return v.in.within("classes", v.in.ceilings.Members, n)
+	return v.in.Within("classes", v.in.Ceilings().Members, n)
 }
 
 // composedClassCount counts a composition's classes, as composedCount does, past any ceiling.
-func (v *validator) composedClassCount(c *umpirespb.Composition) (count, error) {
-	var n count
+func (v *validator) composedClassCount(c *umpirespb.Composition) (Count, error) {
+	var n Count
 	synced := syncedActions(c)
 	members := map[string]*umpirespb.Machine{}
 	for _, mb := range c.GetMembers() {
@@ -216,40 +216,40 @@ func (v *validator) composedClassCount(c *umpirespb.Composition) (count, error) 
 		for _, b := range members[mb.GetField()].GetSteps() {
 			a, ok := v.actions[b.GetAction()]
 			if !ok {
-				return count{}, errorAt(b.GetPosition(), "no action %s", b.GetAction())
+				return Count{}, ErrorAt(b.GetPosition(), "no action %s", b.GetAction())
 			}
 			if synced[[2]string{mb.GetField(), a.GetName()}] {
 				continue
 			}
-			k, err := v.in.sizeOfProduct(inputFields(a))
+			k, err := v.in.SizeOfProduct(InputFields(a))
 			if err != nil {
-				return count{}, err
+				return Count{}, err
 			}
-			n = n.plus(k)
+			n = n.Plus(k)
 		}
 	}
 	for _, s := range c.GetSyncs() {
 		first, err := v.actionCount(members[s.GetFirst().GetMember()], s.GetFirst().GetAction())
 		if err != nil {
-			return count{}, err
+			return Count{}, err
 		}
 		second, err := v.actionCount(members[s.GetSecond().GetMember()], s.GetSecond().GetAction())
 		if err != nil {
-			return count{}, err
+			return Count{}, err
 		}
-		n = n.plus(first.times(second))
+		n = n.Plus(first.Times(second))
 	}
 	return n, nil
 }
 
 // actionCount counts the classes of the action of this name a member binds.
-func (v *validator) actionCount(mm *umpirespb.Machine, action string) (count, error) {
+func (v *validator) actionCount(mm *umpirespb.Machine, action string) (Count, error) {
 	for _, b := range mm.GetSteps() {
 		if a := v.actions[b.GetAction()]; a.GetName() == action {
-			return v.in.sizeOfProduct(inputFields(a))
+			return v.in.SizeOfProduct(InputFields(a))
 		}
 	}
-	return count{}, nil
+	return Count{}, nil
 }
 
 // owned is a composition's class keys as they are made, each with the class it names.
@@ -261,7 +261,7 @@ type owned struct {
 func (o *owned) own(key, owner string) error {
 	if earlier, ok := o.owners[key]; ok && earlier != owner {
 		c := o.composition
-		return errorAt(c.GetPosition(), "composition %s: %s and %s share the key %q", c.GetName(), earlier, owner, key)
+		return ErrorAt(c.GetPosition(), "composition %s: %s and %s share the key %q", c.GetName(), earlier, owner, key)
 	}
 	o.owners[key] = owner
 	return nil
@@ -322,7 +322,7 @@ func (v *validator) syncInputs(mm *umpirespb.Machine, action string) ([][]string
 
 // inputKeys is, for every class of an action, the keys of its inputs.
 func (v *validator) inputKeys(a *umpirespb.Action) ([][]string, error) {
-	assignments, err := v.in.product(inputFields(a))
+	assignments, err := v.in.Product(InputFields(a))
 	if err != nil {
 		return nil, err
 	}

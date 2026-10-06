@@ -100,18 +100,18 @@ func (v Value) spelled() string {
 }
 
 // equal is structural equality.
-func (v Value) equal(o Value) bool {
+func (v Value) Equal(o Value) bool {
 	if v.Kind != o.Kind || v.Bool != o.Bool || v.Int != o.Int || v.Text != o.Text || v.Type != o.Type ||
 		v.Case != o.Case || len(v.Fields) != len(o.Fields) || len(v.Items) != len(o.Items) {
 		return false
 	}
 	for i := range v.Fields {
-		if !v.Fields[i].equal(o.Fields[i]) {
+		if !v.Fields[i].Equal(o.Fields[i]) {
 			return false
 		}
 	}
 	for i := range v.Items {
-		if !v.Items[i].equal(o.Items[i]) {
+		if !v.Items[i].Equal(o.Items[i]) {
 			return false
 		}
 	}
@@ -122,7 +122,7 @@ func (v Value) equal(o Value) bool {
 // return lists of.
 const StepType = "umpire.Step"
 
-var stepFields = []string{"outcome", "state", "facts", "because"}
+var StepFields = []string{"outcome", "state", "facts", "because"}
 
 // deliveryType is the framework's delivery record, `{message, redeliveries}`: one message a channel
 // holds, and how many more times than once it has been delivered.
@@ -160,11 +160,11 @@ func (h *Hole) Error() string {
 	return h.Position + ": " + h.Message
 }
 
-func errorAt(p *umpirespb.Position, format string, args ...any) error {
-	return &Error{Position: where(p), Message: fmt.Sprintf(format, args...)}
+func ErrorAt(p *umpirespb.Position, format string, args ...any) error {
+	return &Error{Position: Where(p), Message: fmt.Sprintf(format, args...)}
 }
 
-func where(p *umpirespb.Position) string {
+func Where(p *umpirespb.Position) string {
 	if p.GetFile() == "" {
 		return ""
 	}
@@ -213,8 +213,13 @@ type Interpreter struct {
 // NewInterpreter indexes a Model's declarations.
 // It interprets them within defaultCeilings.
 func NewInterpreter(m *umpirespb.Model) *Interpreter {
+	return NewInterpreterWithin(m, DefaultCeilings)
+}
+
+// NewInterpreterWithin indexes a Model's declarations within the given ceilings.
+func NewInterpreterWithin(m *umpirespb.Model, c Ceilings) *Interpreter {
 	in := &Interpreter{model: m, types: map[string]*umpirespb.Type{}, functions: map[string]*umpirespb.Function{},
-		channels: map[string]*umpirespb.Channel{}, holes: map[string]*umpirespb.Hole{}, ceilings: defaultCeilings,
+		channels: map[string]*umpirespb.Channel{}, holes: map[string]*umpirespb.Hole{}, ceilings: c,
 		sizing: map[string]bool{}}
 	for _, t := range m.GetTypes() {
 		in.types[t.GetName()] = t
@@ -231,6 +236,12 @@ func NewInterpreter(m *umpirespb.Model) *Interpreter {
 	return in
 }
 
+func (in *Interpreter) Ceilings() Ceilings { return in.ceilings }
+
+func (in *Interpreter) Model() *umpirespb.Model { return in.model }
+
+func (in *Interpreter) Type(name string) *umpirespb.Type { return in.types[name] }
+
 // Call applies a function to arguments, checking its precondition first: a call outside it is a
 // Model error, not a value.
 func (in *Interpreter) Call(name string, args []Value, at *umpirespb.Position) (Value, error) {
@@ -244,10 +255,10 @@ func (in *Interpreter) call(name string, args []Value, state []bool, at *umpires
 	}
 	f, ok := in.functions[name]
 	if !ok {
-		return Value{}, errorAt(at, "no function %s", name)
+		return Value{}, ErrorAt(at, "no function %s", name)
 	}
 	if len(args) != len(f.GetParams()) {
-		return Value{}, errorAt(at, "%s takes %d arguments, got %d", name, len(f.GetParams()), len(args))
+		return Value{}, ErrorAt(at, "%s takes %d arguments, got %d", name, len(f.GetParams()), len(args))
 	}
 	var e *env
 	for i, p := range f.GetParams() {
@@ -259,14 +270,14 @@ func (in *Interpreter) call(name string, args []Value, state []bool, at *umpires
 			return Value{}, err
 		}
 		if !ok.Bool {
-			return Value{}, errorAt(f.GetPosition(), "%s is called outside its precondition", name)
+			return Value{}, ErrorAt(f.GetPosition(), "%s is called outside its precondition", name)
 		}
 	}
 	return in.eval(f.GetBody(), e)
 }
 
 // apply applies an anonymous function value.
-func (in *Interpreter) apply(l Value, args []Value) (Value, error) {
+func (in *Interpreter) Apply(l Value, args []Value) (Value, error) {
 	if l.Kind != LambdaValue {
 		return Value{}, &Error{Message: "not a function"}
 	}
@@ -283,7 +294,7 @@ func (in *Interpreter) Eval(x *umpirespb.Expr) (Value, error) { return in.eval(x
 func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 	switch k := x.GetKind().(type) {
 	case *umpirespb.Expr_Literal:
-		return in.literal(k.Literal), nil
+		return in.Literal(k.Literal), nil
 	case *umpirespb.Expr_Var:
 		return in.variable(x, k.Var, e)
 	case *umpirespb.Expr_Field:
@@ -331,11 +342,11 @@ func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 		if h, ok := in.holes[k.Hole]; ok {
 			name = h.GetName()
 		}
-		return Value{}, &Hole{ID: k.Hole, Position: where(x.GetPosition()), Message: "reaches the hole " + name}
+		return Value{}, &Hole{ID: k.Hole, Position: Where(x.GetPosition()), Message: "reaches the hole " + name}
 	case *umpirespb.Expr_Inbox:
 		return in.inbox(x, k.Inbox, e)
 	default:
-		return Value{}, errorAt(x.GetPosition(), "unknown expression %T", k)
+		return Value{}, ErrorAt(x.GetPosition(), "unknown expression %T", k)
 	}
 }
 
@@ -343,7 +354,7 @@ func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 func (in *Interpreter) variable(x *umpirespb.Expr, name string, e *env) (Value, error) {
 	b := e.find(name)
 	if b == nil {
-		return Value{}, errorAt(x.GetPosition(), "unbound name %s", name)
+		return Value{}, ErrorAt(x.GetPosition(), "unbound name %s", name)
 	}
 	if b.state && in.trace != nil {
 		in.trace.reads++
@@ -374,7 +385,7 @@ func (in *Interpreter) evalAll(xs []*umpirespb.Expr, e *env) ([]Value, error) {
 	return out, nil
 }
 
-func (in *Interpreter) literal(v *umpirespb.Value) Value {
+func (in *Interpreter) Literal(v *umpirespb.Value) Value {
 	switch k := v.GetKind().(type) {
 	case *umpirespb.Value_Bool:
 		return Value{Kind: BoolValue, Bool: k.Bool}
@@ -385,19 +396,19 @@ func (in *Interpreter) literal(v *umpirespb.Value) Value {
 	case *umpirespb.Value_Enum:
 		out := Value{Kind: EnumValue, Type: k.Enum.GetType(), Case: k.Enum.GetCase()}
 		for _, f := range k.Enum.GetFields() {
-			out.Fields = append(out.Fields, in.literal(f))
+			out.Fields = append(out.Fields, in.Literal(f))
 		}
 		return out
 	case *umpirespb.Value_Record:
 		out := Value{Kind: RecordValue, Type: k.Record.GetType()}
 		for _, f := range k.Record.GetFields() {
-			out.Fields = append(out.Fields, in.literal(f))
+			out.Fields = append(out.Fields, in.Literal(f))
 		}
 		return out
 	case *umpirespb.Value_List:
 		out := Value{Kind: ListValue}
 		for _, f := range k.List.GetItems() {
-			out.Items = append(out.Items, in.literal(f))
+			out.Items = append(out.Items, in.Literal(f))
 		}
 		return out
 	default:
@@ -408,10 +419,10 @@ func (in *Interpreter) literal(v *umpirespb.Value) Value {
 // conforms is whether a value is of a type: of the kind the type admits, within a range's bounds, of a
 // declared type's own case with fields of theirs, and for a channel a list of its deliveries. It does
 // not ask whether a channel's contents are in its catalog: the state domain does.
-func (in *Interpreter) conforms(v Value, t *umpirespb.TypeRef) bool {
+func (in *Interpreter) Conforms(v Value, t *umpirespb.TypeRef) bool {
 	all := func(vs []Value, t *umpirespb.TypeRef) bool {
 		for _, x := range vs {
-			if !in.conforms(x, t) {
+			if !in.Conforms(x, t) {
 				return false
 			}
 		}
@@ -434,7 +445,7 @@ func (in *Interpreter) conforms(v Value, t *umpirespb.TypeRef) bool {
 		redeliveries := &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_IntRange{IntRange: &umpirespb.IntRange{High: int64(c.GetDuplicates())}}}
 		for _, d := range v.Items {
 			if d.Kind != RecordValue || d.Type != deliveryType || len(d.Fields) != len(deliveryFields) ||
-				!in.conforms(d.Fields[0], c.GetMessage()) || !in.conforms(d.Fields[1], redeliveries) {
+				!in.Conforms(d.Fields[0], c.GetMessage()) || !in.Conforms(d.Fields[1], redeliveries) {
 				return false
 			}
 		}
@@ -470,7 +481,7 @@ func (in *Interpreter) conformsToDeclared(v Value, name string) bool {
 		return false
 	}
 	for i, f := range fields {
-		if !in.conforms(v.Fields[i], f.GetType()) {
+		if !in.Conforms(v.Fields[i], f.GetType()) {
 			return false
 		}
 	}
@@ -481,7 +492,7 @@ func (in *Interpreter) conformsToDeclared(v Value, name string) bool {
 func (in *Interpreter) fieldNames(typeName, caseName string) ([]string, bool) {
 	switch typeName {
 	case StepType:
-		return stepFields, true
+		return StepFields, true
 	case deliveryType:
 		return deliveryFields, true
 	default:
@@ -524,7 +535,7 @@ func (in *Interpreter) field(x *umpirespb.Expr, f *umpirespb.FieldAccess, e *env
 			return base.Fields[i], nil
 		}
 	}
-	return Value{}, errorAt(x.GetPosition(), "%s has no field %s", base.Type, f.GetField())
+	return Value{}, ErrorAt(x.GetPosition(), "%s has no field %s", base.Type, f.GetField())
 }
 
 func (in *Interpreter) construct(x *umpirespb.Expr, c *umpirespb.Construct, e *env) (Value, error) {
@@ -534,10 +545,10 @@ func (in *Interpreter) construct(x *umpirespb.Expr, c *umpirespb.Construct, e *e
 	}
 	names, ok := in.fieldNames(c.GetType(), c.GetCase())
 	if !ok {
-		return Value{}, errorAt(x.GetPosition(), "no type %s %s", c.GetType(), c.GetCase())
+		return Value{}, ErrorAt(x.GetPosition(), "no type %s %s", c.GetType(), c.GetCase())
 	}
 	if len(args) != len(names) {
-		return Value{}, errorAt(x.GetPosition(), "%s %s takes %d fields, got %d", c.GetType(), c.GetCase(), len(names), len(args))
+		return Value{}, ErrorAt(x.GetPosition(), "%s %s takes %d fields, got %d", c.GetType(), c.GetCase(), len(names), len(args))
 	}
 	if c.GetCase() != "" {
 		return Value{Kind: EnumValue, Type: c.GetType(), Case: c.GetCase(), Fields: args}, nil
@@ -560,7 +571,7 @@ func (in *Interpreter) copy(x *umpirespb.Expr, c *umpirespb.Copy, e *env) (Value
 		}
 		i := indexOf(names, u.GetName())
 		if i < 0 {
-			return Value{}, errorAt(x.GetPosition(), "%s has no field %s", base.Type, u.GetName())
+			return Value{}, ErrorAt(x.GetPosition(), "%s has no field %s", base.Type, u.GetName())
 		}
 		out.Fields[i] = v
 	}
@@ -578,7 +589,7 @@ func (in *Interpreter) unary(x *umpirespb.Expr, u *umpirespb.Unary, e *env) (Val
 	case umpirespb.Unary_OP_NEG:
 		return Value{Kind: IntValue, Int: -v.Int}, nil
 	default:
-		return Value{}, errorAt(x.GetPosition(), "unknown unary operator %v", u.GetOp())
+		return Value{}, ErrorAt(x.GetPosition(), "unknown unary operator %v", u.GetOp())
 	}
 }
 
@@ -608,9 +619,9 @@ func (in *Interpreter) binary(x *umpirespb.Expr, b *umpirespb.Binary, e *env) (V
 	boolean := func(v bool) (Value, error) { return Value{Kind: BoolValue, Bool: v}, nil }
 	switch b.GetOp() {
 	case umpirespb.Binary_OP_EQ:
-		return boolean(l.equal(r))
+		return boolean(l.Equal(r))
 	case umpirespb.Binary_OP_NE:
-		return boolean(!l.equal(r))
+		return boolean(!l.Equal(r))
 	case umpirespb.Binary_OP_LT:
 		return boolean(l.Int < r.Int)
 	case umpirespb.Binary_OP_LE:
@@ -627,13 +638,13 @@ func (in *Interpreter) binary(x *umpirespb.Expr, b *umpirespb.Binary, e *env) (V
 		return Value{Kind: ListValue, Items: append(append([]Value{}, l.Items...), r.Items...)}, nil
 	case umpirespb.Binary_OP_CONTAINS:
 		for _, item := range r.Items {
-			if item.equal(l) {
+			if item.Equal(l) {
 				return boolean(true)
 			}
 		}
 		return boolean(false)
 	default:
-		return Value{}, errorAt(x.GetPosition(), "unknown binary operator %v", b.GetOp())
+		return Value{}, ErrorAt(x.GetPosition(), "unknown binary operator %v", b.GetOp())
 	}
 }
 
@@ -665,7 +676,7 @@ func (in *Interpreter) match(x *umpirespb.Expr, m *umpirespb.Match, e *env) (Val
 		return in.eval(c.GetBody(), bound)
 	}
 	in.decided(d, x, false, -1, false)
-	return Value{}, &Hole{Position: where(x.GetPosition()), Message: "no case matches " + v.Key()}
+	return Value{}, &Hole{Position: Where(x.GetPosition()), Message: "no case matches " + v.Key()}
 }
 
 // bindPattern matches a pattern, binding its names; state is whether a traced evaluation computed
@@ -681,7 +692,7 @@ func (in *Interpreter) bindPattern(p *umpirespb.Pattern, v Value, e *env, state 
 		}
 		return inner.bindFrom(k.Bind.GetName(), v, state), true
 	case *umpirespb.Pattern_Literal:
-		return e, in.literal(k.Literal).equal(v)
+		return e, in.Literal(k.Literal).Equal(v)
 	case *umpirespb.Pattern_Case:
 		if v.Kind != EnumValue || v.Type != k.Case.GetType() || v.Case != k.Case.GetCase() ||
 			len(v.Fields) != len(k.Case.GetFields()) {
