@@ -11,9 +11,10 @@
 // The feature has two levels, each in a folder of its own, because different people read them
 // (model/irgen/testdata/layout/lamp is the template):
 //
-//   - this file: the shared types; the signature (the activity and its inputs; the client and its
-//     actions, the worker's actions on the activity, its timers and deadlines; and the bounds); and
-//     last exports, its IR files;
+//   - ../Activity.scala: the kind's types, the worker's actions, its timers and deadlines;
+//   - this file: the form's types; the signature (the activity and its inputs; the client and its
+//     actions, the worker's actions bound to the activity; and the bounds); and last exports, its
+//     IR files;
 //   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
 //     what a client reads;
 //   - system/System.scala: System Phase, State, Fact, timer and composition types; ActivitySystem,
@@ -28,25 +29,15 @@
 // states, refinement, effects, monitors, rules, properties, implements and queries. A composition
 // reads end, then states, syncs, properties, implements and queries.
 package temporal
-package features.activity.standalone
+package features.activity
+package standalone
 
 import umpire.*
-import shared.worker.worker as process
 import io.temporal.api.workflowservice.v1.*
 import product.ActivityProduct
 import system.{ActivityRealization, ActivitySystem, StandaloneActivity}
 
 // ### Types
-
-// Whether the start request sets a deadline.
-enum Timeout derives Finite:
-  case unset, expires
-
-// The worker's answer; failed(retryable) is two classes, like ApplicationFailure's flag.
-enum AttemptResult derives Finite:
-  case completed
-  case failed(retryable: Boolean)
-  case canceled
 
 enum Control derives Finite:
   case pause, unpause, requestCancel, terminate
@@ -60,11 +51,10 @@ enum Outcome derives Finite:
 // Named by the id the client chose: every read carries it, so no run id or event id is needed.
 val activity = Entity(key = "activityId")
 
-// The start's inputs, which the deadline timers no longer collide with, and the worker's answer.
+// The start's inputs, which the deadline timers no longer collide with.
 val scheduleToClose = input[Timeout]
 val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
-val result = input[AttemptResult]
 
 // The control's input, apart because inside `client` its name is the control action.
 object Inputs:
@@ -93,31 +83,11 @@ object client extends Client:
     .schema[TerminateActivityExecutionRequest]
     .results("Delivery")
 
-// The shared worker's actions on this activity: its poll receives the task for the current attempt,
-// and its answer settles it. The worker's stop is the worker's own action, `process.stop`:
-// nothing it records names the activity, so the activity's machines keep their state.
+// The kind's worker actions (../Activity.scala) bound to this activity. The timers and deadlines
+// are the kind's.
 object worker:
-  val poll = action(process).on(activity).schema[PollActivityTaskQueueResponse]
-
-  val respond = action(process)
-    .on(activity)
-    .input(result)
-    .schema[RespondActivityTaskCompletedRequest]
-    .schema[RespondActivityTaskFailedRequest]
-    .schema[RespondActivityTaskCanceledRequest]
-    .example(AttemptResult.failed(false), "ApplicationFailureNonRetryable")
-    .example(AttemptResult.failed(true), "ApplicationFailureRetryable")
-
-// One of the activity's deadlines firing, as the product machine sees it, and the backoff.
-object timers:
-  val timeout = timer
-  val backoff = timer
-
-// The System's three deadlines, each armed by the start's input of its name.
-object deadline:
-  val scheduleToClose = timer
-  val scheduleToStart = timer
-  val startToClose = timer
+  val poll = temporal.features.activity.worker.poll.on(activity)
+  val respond = temporal.features.activity.worker.respond.on(activity)
 
 // A retry shows the client only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.

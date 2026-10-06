@@ -14,7 +14,8 @@ package fixture.hints
 
 import umpire.realize.*
 import temporal.realize.*
-import temporal.features.activity.standalone.{activity, deadline, worker}
+import temporal.features.activity.deadline
+import temporal.features.activity.standalone.{activity, worker}
 import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 

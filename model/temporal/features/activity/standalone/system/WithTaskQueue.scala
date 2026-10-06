@@ -13,7 +13,8 @@
 // RecordOverLossyMatching. A composition reads end, then its sections in order: states, syncs,
 // properties, implements and queries.
 package temporal
-package features.activity.standalone
+package features.activity
+package standalone
 package system
 
 import umpire.*

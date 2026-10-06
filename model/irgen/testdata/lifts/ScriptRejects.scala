@@ -7,7 +7,8 @@ import umpire.*
 import umpire.realize.*
 import temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.activity.standalone.{activity, client, scheduleToStart, Control, Timeout}
+import temporal.features.activity.Timeout
+import temporal.features.activity.standalone.{activity, client, scheduleToStart, Control}
 import temporal.features.activity.standalone.system.Fact as ActivityFact
 import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*

@@ -13,7 +13,7 @@
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:91"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:92"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -29,7 +29,7 @@
       "running": "temporal.features.activity.standalone.product.ActivityProduct$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:96"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:97"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -41,7 +41,7 @@
       "terminal": "temporal.features.activity.standalone.product.ActivityProduct$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/product/Product.scala:91"
+    "position": "model/temporal/features/activity/standalone/product/Product.scala:92"
   }, {
     "machine": "activityRecord",
     "name": "activityRecord.pausedIsNotDispatched",
@@ -57,7 +57,7 @@
       "running": "temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/Record.scala:275"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:276"
   }, {
     "machine": "activityRecord",
     "name": "activityRecord.terminalStatesAreFinal",
@@ -69,7 +69,7 @@
       "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/Record.scala:270"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:271"
   }, {
     "machine": "recordOverLossyMatching",
     "name": "recordOverLossyMatching.pausedIsNotDispatched",
@@ -85,7 +85,7 @@
       "running": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:189"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:190"
   }, {
     "machine": "recordOverLossyMatching",
     "name": "recordOverLossyMatching.terminalStatesAreFinal",
@@ -97,7 +97,7 @@
       "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:184"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:185"
   }, {
     "machine": "recordOverMatching",
     "name": "recordOverMatching.pausedIsNotDispatched",
@@ -113,7 +113,7 @@
       "running": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:189"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:190"
   }, {
     "machine": "recordOverMatching",
     "name": "recordOverMatching.terminalStatesAreFinal",
@@ -125,7 +125,7 @@
       "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:184"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:185"
   }, {
     "machine": "recordOverQueue",
     "name": "recordOverQueue.pausedIsNotDispatched",
@@ -141,7 +141,7 @@
       "running": "temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:103"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:104"
   }, {
     "machine": "recordOverQueue",
     "name": "recordOverQueue.terminalStatesAreFinal",
@@ -153,7 +153,7 @@
       "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:98"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:99"
   }, {
     "machine": "trustingActivityRecord",
     "name": "trustingActivityRecord.pausedIsNotDispatched",
@@ -169,7 +169,7 @@
       "running": "temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/Record.scala:275"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:276"
   }, {
     "machine": "trustingActivityRecord",
     "name": "trustingActivityRecord.terminalStatesAreFinal",
@@ -181,7 +181,7 @@
       "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/Record.scala:270"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:271"
   }, {
     "machine": "trustingRecordOverMatching",
     "name": "trustingRecordOverMatching.pausedIsNotDispatched",
@@ -197,7 +197,7 @@
       "running": "temporal.features.activity.standalone.system.OverMatching.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:189"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:190"
   }, {
     "machine": "trustingRecordOverMatching",
     "name": "trustingRecordOverMatching.terminalStatesAreFinal",
@@ -209,7 +209,7 @@
       "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:184"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:185"
   }, {
     "machine": "trustingRecordOverQueue",
     "name": "trustingRecordOverQueue.pausedIsNotDispatched",
@@ -225,7 +225,7 @@
       "running": "temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:103"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:104"
   }, {
     "machine": "trustingRecordOverQueue",
     "name": "trustingRecordOverQueue.terminalStatesAreFinal",
@@ -237,50 +237,50 @@
       "terminal": "temporal.features.activity.standalone.system.ActivityRecord$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:98"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:99"
   } ],
   "waivers": [ {
     "machine": "activityRecord",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted",
-    "position": "model/temporal/features/activity/standalone/system/Record.scala:281"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:282"
   }, {
     "machine": "recordOverLossyMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:198"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:199"
   }, {
     "machine": "recordOverMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:198"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:199"
   }, {
     "machine": "recordOverQueue",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:112"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:113"
   }, {
     "machine": "trustingActivityRecord",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted",
-    "position": "model/temporal/features/activity/standalone/system/Record.scala:281"
+    "position": "model/temporal/features/activity/standalone/system/Record.scala:282"
   }, {
     "machine": "trustingRecordOverMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:198"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:199"
   }, {
     "machine": "trustingRecordOverQueue",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:112"
+    "position": "model/temporal/features/activity/standalone/system/WithTaskQueue.scala:113"
   } ],
   "catalog": [ {
     "law": "closedIsRejectedUniformly",

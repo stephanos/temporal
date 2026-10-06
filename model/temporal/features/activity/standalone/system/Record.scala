@@ -15,7 +15,8 @@
 // response. Each reads its header, then its sections in order: states, refinement, effects,
 // monitors, rules, properties, implements and queries.
 package temporal
-package features.activity.standalone
+package features.activity
+package standalone
 package system
 
 import umpire.*

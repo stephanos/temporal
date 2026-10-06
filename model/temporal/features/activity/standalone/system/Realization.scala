@@ -12,7 +12,8 @@
 // The roles, bindings, window and run records are the kit's (temporal/realize); Go lowers a
 // Query's witness through these declarations (tools/umpire/lower).
 package temporal
-package features.activity.standalone
+package features.activity
+package standalone
 package system
 
 import umpire.*

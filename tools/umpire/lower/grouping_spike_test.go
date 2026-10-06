@@ -58,7 +58,7 @@ func TestGroupingBindingsKeepExecutablePrograms(t *testing.T) {
 									require.True(t, ok, "undeclared shared wait-source coordinate %d", hint.Source.Line)
 									hint.Source.Line = line
 								case "model/temporal/features/activity/standalone/system/Realization.scala":
-									line, ok := map[int32]int32{226: 230, 227: 231}[hint.Source.Line]
+									line, ok := map[int32]int32{227: 230, 228: 231}[hint.Source.Line]
 									require.True(t, ok, "undeclared Activity wait-source coordinate %d", hint.Source.Line)
 									hint.Source.Path = "model/irgen/testdata/grouping/activity/standalone/system/Realization.scala"
 									hint.Source.Line = line

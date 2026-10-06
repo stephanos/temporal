@@ -3,7 +3,8 @@
 // refines nothing; system/System.scala refines it. The two package clauses read the feature's
 // package as well as this one, so its types and signature are in scope.
 package temporal
-package features.activity.standalone
+package features.activity
+package standalone
 package product
 
 import umpire.*

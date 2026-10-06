@@ -548,7 +548,8 @@ Related forms of one kind live together under `features/<kind>/`. Nexus has `nex
 `nexus/standalone/`; activity currently has `activity/standalone/`. The kind has one general file
 named after it, `Nexus.scala` or `Activity.scala`, for types and signature shared by its forms. It
 holds no machine and needs no `object exports`. Nexus declares its shared Reply, Resolution,
-Outcome and canonical action/input signature there; Activity still has a package-only header.
+Outcome and canonical action/input signature there; Activity declares Timeout, TimeoutType,
+AttemptResult, the worker's poll and respond, the timers and the deadlines.
 A kind may also own `product/Product.scala`, with
 no kind-level System. Each form keeps its own feature file and exports, realization and tests;
 `workflow/` and `standalone/` belong inside a kind, never directly under `features/`.
@@ -566,9 +567,9 @@ below holds it), and the standalone activity is the example:
 ```text
 features/
   activity/
-    Activity.scala            package header only; the standalone form owns its exports
+    Activity.scala            Timeout, TimeoutType, AttemptResult, worker actions, timers, deadline
     standalone/
-      Standalone.scala         shared types and signature; exports
+      Standalone.scala         the form's types and signature, worker bindings; exports
       product/
         Product.scala          Product Phase, State and Fact; ActivityProduct
       system/

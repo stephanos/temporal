@@ -4,7 +4,8 @@
 // worker. Beside it, one file per subject: Record.scala, history's record of the activity, and
 // WithTaskQueue.scala, that record composed with the shared task queue.
 package temporal
-package features.activity.standalone
+package features.activity
+package standalone
 package system
 
 import scala.annotation.unused
@@ -30,10 +31,6 @@ final case class State(
     scheduleToStart: Timeout,
     startToClose: Timeout
 ) derives Finite
-
-// Which deadline fired.
-enum TimeoutType derives Finite:
-  case scheduleToClose, scheduleToStart, startToClose
 
 // What the System machine records; `attemptCount` is named after its observation.
 enum Fact derives Finite:
