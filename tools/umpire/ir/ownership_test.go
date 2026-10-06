@@ -43,7 +43,7 @@ func TestCheckerAndProducerHaveOneLiveOwner(t *testing.T) {
 					return err
 				}
 				rel = filepath.ToSlash(rel)
-				require.True(t, readerPackages[filepath.Dir(rel)] || strings.HasPrefix(rel, "internal/engine/"), "%s imports the private engine", path)
+				require.True(t, filepath.Dir(rel) == "interp" || filepath.Dir(rel) == "check" || strings.HasPrefix(rel, "internal/engine/"), "%s imports the private engine", path)
 			}
 			if strings.HasSuffix(name, "/internal/producer") {
 				require.True(t, strings.HasPrefix(path, filepath.Join(base, "lower")+string(filepath.Separator)), "%s imports the private producer", path)
@@ -66,8 +66,6 @@ func TestQuintOwnsBackendExport(t *testing.T) {
 	}
 }
 
-// readerPackages are the reader's packages, which the rules below call "model", the package they were
-// split from (fn-124.8).
 var readerPackages = map[string]bool{"ir": true, "interp": true, "check": true, "realization": true}
 
 // modelImportProblem says why file may not import imported, or "" when it may. external is whether
@@ -80,6 +78,9 @@ func modelImportProblem(file string, external bool, imported string) string {
 		return ""
 	}
 	name := strings.TrimPrefix(imported, module)
+	if name == "tools/umpire/model" || strings.HasPrefix(name, "tools/umpire/model/") {
+		return "retired reader import"
+	}
 	if strings.HasPrefix(name, "model/") {
 		return "retired model import"
 	}
@@ -91,11 +92,8 @@ func modelImportProblem(file string, external bool, imported string) string {
 	}
 	part := strings.TrimPrefix(file, "tools/umpire/")
 	owner := strings.Split(part, "/")[0]
-	if readerPackages[owner] {
-		owner = "model"
-	}
-	if strings.HasPrefix(name, "tools/umpire/internal/engine") && owner != "model" && !strings.HasPrefix(part, "internal/engine/") {
-		return "engine is private to reader"
+	if strings.HasPrefix(name, "tools/umpire/internal/engine") && owner != "interp" && owner != "check" && !strings.HasPrefix(part, "internal/engine/") {
+		return "engine is private to interpretation and checking"
 	}
 	if strings.HasPrefix(name, "tools/umpire/lower/internal/producer") && owner != "lower" {
 		return "producer is private to lowering"
@@ -124,7 +122,7 @@ func modelImportProblem(file string, external bool, imported string) string {
 			return "unapproved Testpilot helper dependency"
 		}
 	}
-	if owner == "model" && (strings.HasPrefix(name, "common/testing/testpilot") || strings.HasPrefix(name, "api/testpilot/")) {
+	if (readerPackages[owner] || strings.HasPrefix(part, "internal/engine/")) && (strings.HasPrefix(name, "common/testing/testpilot") || strings.HasPrefix(name, "api/testpilot/")) {
 		return "reader imports Testpilot"
 	}
 	if strings.HasPrefix(part, "internal/engine/") && strings.HasPrefix(name, "tools/umpire/") && !strings.HasPrefix(name, "tools/umpire/internal/engine") {
@@ -136,15 +134,17 @@ func modelImportProblem(file string, external bool, imported string) string {
 	if strings.HasPrefix(name, "tools/umpire/") {
 		dependency := strings.TrimPrefix(name, "tools/umpire/")
 		dependency = strings.Split(dependency, "/")[0]
-		if readerPackages[dependency] {
-			dependency = "model"
-		}
 		if dependency == owner || owner == "cmd" {
 			return ""
 		}
-		// Lint reads lowering only through what its command hands it, so the reader is its one edge.
-		allowed := map[string][]string{"lower": {"model"}, "conformance": {"model"}, "export": {"model"}, "explore": {"model", "lower"},
-			"lint": {"model"}, "model": {}}
+		allowed := map[string][]string{
+			"interp": {}, "realization": {"interp"}, "ir": {"interp", "realization"}, "check": {"ir", "interp"},
+			"lower": {"ir", "interp", "check", "realization"}, "conformance": {"ir", "interp", "check", "realization"},
+			"export": {"ir", "interp", "check"}, "lint": {"ir", "interp", "check"}, "explore": {"ir", "interp", "check", "lower"},
+		}
+		if strings.HasPrefix(part, "lower/internal/producer/") {
+			allowed[owner] = []string{"interp", "check"}
+		}
 		if test {
 			if owner == "lower" && external && !strings.Contains(part, "/internal/") {
 				allowed[owner] = append(allowed[owner], "explore", "conformance")
@@ -311,14 +311,29 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		external         bool
 		allowed          bool
 	}{
-		{file: "tools/umpire/model/load.go", dependency: module + "api/umpire/v1", allowed: true},
-		{file: "tools/umpire/model/load.go", dependency: module + "api/testpilot/v1"},
-		{file: "tools/umpire/model/load_test.go", dependency: module + "common/testing/testpilot"},
-		{file: "tools/umpire/model/load_test.go", dependency: module + "common/testing/testpilot", external: true},
-		{file: "tools/umpire/model/load.go", dependency: module + "tools/umpire/lower"},
-		{file: "tools/umpire/internal/engine/table.go", dependency: module + "tools/umpire/model"},
+		{file: "tools/umpire/ir/load.go", dependency: module + "api/umpire/v1", allowed: true},
+		{file: "tools/umpire/interp/eval.go", dependency: module + "tools/umpire/ir"},
+		{file: "tools/umpire/realization/operand.go", dependency: module + "tools/umpire/ir"},
+		{file: "tools/umpire/ir/validate.go", dependency: module + "tools/umpire/check"},
+		{file: "tools/umpire/check/claims.go", dependency: module + "tools/umpire/realization"},
+		{file: "tools/umpire/export/slice.go", dependency: module + "tools/umpire/realization"},
+		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/realization"},
+		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/ir"},
+		{file: "tools/umpire/internal/cli/cli.go", dependency: module + "tools/umpire/internal/engine"},
+		{file: "tools/umpire/ir/validate.go", dependency: module + "tools/umpire/realization", allowed: true},
+		{file: "tools/umpire/interp/machine.go", dependency: module + "tools/umpire/internal/engine", allowed: true},
+		{file: "tools/umpire/check/claims.go", dependency: module + "tools/umpire/internal/engine", allowed: true},
+		{file: "tools/umpire/conformance/guard.go", dependency: module + "tools/umpire/realization", allowed: true},
+		{file: "tools/umpire/ir/validate.go", dependency: module + "tools/umpire/internal/engine"},
+		{file: "tools/umpire/realization/operand_test.go", dependency: module + "tools/umpire/internal/engine", external: true},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "tools/umpire/model"},
+		{file: "tools/umpire/ir/load.go", dependency: module + "api/testpilot/v1"},
+		{file: "tools/umpire/ir/load_test.go", dependency: module + "common/testing/testpilot"},
+		{file: "tools/umpire/ir/load_test.go", dependency: module + "common/testing/testpilot", external: true},
+		{file: "tools/umpire/ir/load.go", dependency: module + "tools/umpire/lower"},
+		{file: "tools/umpire/internal/engine/table.go", dependency: module + "tools/umpire/ir"},
 		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/internal/engine"},
-		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/check", allowed: true},
 		{file: "tools/umpire/lower/lower.go", dependency: module + "common/testing/testpilot", allowed: true},
 		{file: "tools/umpire/lower/lower.go", dependency: module + "tools/umpire/explore"},
 		{file: "tools/umpire/lower/lower.go", dependency: module + "tools/umpire/conformance"},
@@ -339,7 +354,7 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/conformance/conformance.go", dependency: module + "tools/umpire/lower"},
 		{file: "tools/umpire/conformance/conformance_test.go", dependency: module + "tools/umpire/lower", allowed: true},
 		{file: "tools/umpire/conformance/conformance.go", dependency: module + "tools/umpire/explore"},
-		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/ir", allowed: true},
 		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/lower"},
 		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/explore"},
 		{file: "tools/umpire/lint/lint_test.go", dependency: module + "tools/umpire/lower"},
@@ -347,12 +362,12 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/cmd/umpire-lint/main.go", dependency: module + "tools/umpire/lower", allowed: true},
 		{file: "tools/umpire/cmd/umpire-run/run.go", dependency: module + "tools/umpire/conformance", allowed: true},
 		{file: "tools/umpire/cmd/umpire-run/run.go", dependency: module + "tools/umpire/lower", allowed: true},
-		{file: "tools/umpire/cmd/umpire-run/run.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/cmd/umpire-run/run.go", dependency: module + "tools/umpire/ir", allowed: true},
 		{file: "tools/umpire/cmd/umpire-assess/run.go", dependency: module + "tools/umpire/conformance", allowed: true},
 		{file: "tools/umpire/cmd/umpire-assess/run.go", dependency: module + "tools/umpire/lower", allowed: true},
-		{file: "tools/umpire/cmd/umpire-assess/run.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/cmd/umpire-assess/run.go", dependency: module + "tools/umpire/ir", allowed: true},
 		{file: "tools/umpire/cmd/umpire-assess/run.go", dependency: module + "common/testing/testpilot/temporal", allowed: true},
-		{file: "tools/umpire/export/slice.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/export/slice.go", dependency: module + "tools/umpire/ir", allowed: true},
 		{file: "tools/umpire/export/slice.go", dependency: module + "api/umpire/v1", allowed: true},
 		{file: "tools/umpire/export/slice.go", dependency: module + "common/testing/testpilot"},
 		{file: "tools/umpire/export/slice.go", dependency: module + "api/testpilot/v1"},
@@ -361,7 +376,7 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/export/verify_test.go", dependency: module + "common/testing/testpilot/recordedrun"},
 		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/temporal"},
 		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/lower", allowed: true},
-		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/ir", allowed: true},
 		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/campaign", allowed: true},
 		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/replay", allowed: true},
 		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/recordedrun", allowed: true},
