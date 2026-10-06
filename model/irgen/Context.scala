@@ -5,10 +5,8 @@ import scala.quoted.Quotes
 import scala.tasty.inspector.Tasty
 import io.temporal.server.api.umpire.v1 as ir
 
-/**
- * What every IR file of one lifter run reads: every definition of the inspected files by symbol, and
- * the repository prefix of each source. It is read once, however many IR files are lifted.
- */
+// What every IR file of one lifter run reads: every definition of the inspected files by symbol, and
+// the repository prefix of each source. It is read once, however many IR files are lifted.
 final private[irgen] class Index(using val quotes: Quotes)(
     tastys: List[Tasty[quotes.type]],
     prefixes: Map[String, String]
@@ -37,11 +35,9 @@ final private[irgen] class Index(using val quotes: Quotes)(
       prefixes.collectFirst { case (tasty, p) if t.path.endsWith(tasty) => p }.getOrElse("")
     scala.util.Try(t.ast.pos.sourceFile.path).foreach(path => sourceRoots(path) = prefix)
 
-/**
- * What the concerns of one lift share: the run's index, and the declarations lifted so far. Each IR
- * file is lifted with a Context of its own, so nothing one file lifted, cached or refused reaches
- * another.
- */
+// What the concerns of one lift share: the run's index, and the declarations lifted so far. Each IR
+// file is lifted with a Context of its own, so nothing one file lifted, cached or refused reaches
+// another.
 final private[irgen] class Context(val index: Index):
   val quotes: index.quotes.type = index.quotes
   given Quotes = quotes
@@ -53,13 +49,13 @@ final private[irgen] class Context(val index: Index):
     case Some(_: DefDef) => true
     case _               => false
 
-  /** A stable path, `a` or `a.b.c`: what an alias is a name for. */
+  // A stable path, `a` or `a.b.c`: what an alias is a name for.
   def path(t: Term): Boolean = t match
     case Ident(_)     => true
     case Select(q, _) => path(q)
     case _            => false
 
-  /** The symbol a reference finally names, through aliases such as `val stop = worker.stop`. */
+  // The symbol a reference finally names, through aliases such as `val stop = worker.stop`.
   def resolveSymbol(ref: Term): Symbol = resolveThrough(ref, Nil)
 
   private def resolveThrough(ref: Term, aliases: List[Symbol]): Symbol = ref match
@@ -79,7 +75,7 @@ final private[irgen] class Context(val index: Index):
     case Typed(e, _) => resolveThrough(e, aliases)
     case other       => fail(other, "expected a reference to a declared value")
 
-  /** A declaration value of the lifted sources: its definition. */
+  // A declaration value of the lifted sources: its definition.
   def valDef(sym: Symbol, at: Tree, kind: String): ValDef = defs.get(sym) match
     case Some(v @ ValDef(_, _, Some(_))) => v
     case _ => fail(at, s"${sym.fullName} is not $kind declared by a val of the lifted sources")
@@ -119,10 +115,8 @@ final private[irgen] class Context(val index: Index):
   // class, which an expression or a class reads in its place.
   var boundValues = Map.empty[Symbol, Term] // scalafix:ok DisableSyntax.var
 
-  /**
-   * A member's def read from the composed state, `through(select, read)`: the function
-   * `s => read(s.<path>)` lifted under `name`, over `state`, written at `at`.
-   */
+  // A member's def read from the composed state, `through(select, read)`: the function
+  // `s => read(s.<path>)` lifted under `name`, over `state`, written at `at`.
   final case class Through(
       name: String,
       state: TypeRepr,
@@ -135,10 +129,10 @@ final private[irgen] class Context(val index: Index):
   val throughs = mutable.Map.empty[String, Symbol]
   val throughOf = mutable.Map.empty[Symbol, Through]
 
-  /** The name of the function a def or a `through` is lifted under. */
+  // The name of the function a def or a `through` is lifted under.
   def functionName(sym: Symbol): String = throughOf.get(sym).fold(sym.fullName)(_.name)
 
-  /** `body`, with the bindings of one call of a declaring function added to those around it. */
+  // `body`, with the bindings of one call of a declaring function added to those around it.
   def binding[A](
       functions: Map[Symbol, Symbol],
       types: Map[Symbol, TypeRepr],
@@ -158,14 +152,14 @@ final private[irgen] class Context(val index: Index):
   // whatever name its body writes or its val would give it.
   var generatedName: Option[String] = None // scalafix:ok DisableSyntax.var
 
-  /** `body`, with the first Property it declares named `name`. */
+  // `body`, with the first Property it declares named `name`.
   def generating[A](name: String)(body: => A): A =
     val was = generatedName
     generatedName = Some(name)
     try body
     finally generatedName = was
 
-  /** The name the Property being declared takes from a law's expansion, used once. */
+  // The name the Property being declared takes from a law's expansion, used once.
   def takeGenerated(): Option[String] =
     val name = generatedName
     generatedName = None
@@ -175,7 +169,7 @@ final private[irgen] class Context(val index: Index):
   // several steps itself, with its own message, so the refusal of an unnamed list waits for it.
   var choosing = false // scalafix:ok DisableSyntax.var
 
-  /** `body`, lifted as the steps of one alternative of a choose, or, with `false`, as any others. */
+  // `body`, lifted as the steps of one alternative of a choose, or, with `false`, as any others.
   def alternativeOf[A](inside: Boolean)(body: => A): A =
     val was = choosing
     choosing = inside
@@ -187,7 +181,7 @@ final private[irgen] class Context(val index: Index):
   // refusal of a step made anywhere else. A declared value, such as a start, makes none.
   var making: (Boolean, String) = (false, "a declared value") // scalafix:ok DisableSyntax.var
 
-  /** `body`, lifted where `where` says, making steps only when `steps` holds. */
+  // `body`, lifted where `where` says, making steps only when `steps` holds.
   def makingIn[A](steps: Boolean, where: String)(body: => A): A =
     val was = making
     making = (steps, where)
@@ -201,7 +195,7 @@ final private[irgen] class Context(val index: Index):
   val lawWaivers = mutable.ArrayBuffer.empty[LawWaiver]
   val lawCatalog = mutable.LinkedHashMap.empty[String, LawEntry]
 
-  /** A type with the type parameters of the declaring functions being folded applied. */
+  // A type with the type parameters of the declaring functions being folded applied.
   def instantiated(tpe: TypeRepr): TypeRepr =
     if boundTypes.isEmpty then tpe
     else tpe.substituteTypes(boundTypes.keys.toList, boundTypes.values.toList)
@@ -231,10 +225,8 @@ final private[irgen] class Context(val index: Index):
 
   // ### Names taken from vals, and the Definition IDs symbol-based declarations take
 
-  /**
-   * The name a declaration takes from the `val` that declares it. A name the compiler made up, such
-   * as an anonymous given's `given_Limits`, names nothing the author wrote, so it is refused.
-   */
+  // The name a declaration takes from the `val` that declares it. A name the compiler made up, such
+  // as an anonymous given's `given_Limits`, names nothing the author wrote, so it is refused.
   def capturedName(sym: Symbol, at: Tree, kind: String): String =
     if sym.name.contains('$') || sym.flags.is(Flags.Synthetic) ||
       (sym.flags.is(Flags.Given) && sym.name.startsWith("given_"))
@@ -246,14 +238,12 @@ final private[irgen] class Context(val index: Index):
       )
     sym.name
 
-  /**
-   * The name a declaration is known by: its fully qualified Scala name, the package and every object
-   * it sits in, section and actor objects too, then its own name, `temporal.features.lamp.user.press`
-   * or `temporal.features.lamp.system.LampSystem.monitors.lit`. A file's top-level definitions sit
-   * in its package, not in the object the compiler makes of the file, so moving a declaration between
-   * files of one package keeps its name. A declaration inside anything but objects, such as a class
-   * or a def, has no such name, and is refused.
-   */
+  // The name a declaration is known by: its fully qualified Scala name, the package and every object
+  // it sits in, section and actor objects too, then its own name, `temporal.features.lamp.user.press`
+  // or `temporal.features.lamp.system.LampSystem.monitors.lit`. A file's top-level definitions sit
+  // in its package, not in the object the compiler makes of the file, so moving a declaration between
+  // files of one package keeps its name. A declaration inside anything but objects, such as a class
+  // or a def, has no such name, and is refused.
   def qualifiedName(sym: Symbol, at: Tree): String =
     val owners = Iterator
       .iterate(sym.maybeOwner)(_.maybeOwner)
@@ -269,10 +259,8 @@ final private[irgen] class Context(val index: Index):
       owners.reverse.filterNot(_.name.endsWith("$package$")).map(_.name.stripSuffix("$"))
     (familyOf(sym) +: objects :+ sym.name.stripSuffix("$")).filter(_.nonEmpty).mkString(".")
 
-  /**
-   * The family of a declaration: the package it is declared in, whose name every ID derived from a
-   * machine hangs off (`<family>.query.<name>`), as the IR's `family` names it.
-   */
+  // The family of a declaration: the package it is declared in, whose name every ID derived from a
+  // machine hangs off (`<family>.query.<name>`), as the IR's `family` names it.
   def familyOf(sym: Symbol): String =
     Iterator
       .iterate(sym)(_.maybeOwner)
@@ -280,13 +268,11 @@ final private[irgen] class Context(val index: Index):
       .filter(_.isPackageDef)
       .fold("")(_.fullName)
 
-  /**
-   * The Definition ID of an action, monitor, assumption, hole, channel or realization: the fully
-   * qualified name of its val (`qualifiedName`). Scala names no two of them alike.
-   */
+  // The Definition ID of an action, monitor, assumption, hole, channel or realization: the fully
+  // qualified name of its val (`qualifiedName`). Scala names no two of them alike.
   def definitionId(sym: Symbol, at: Tree): String = qualifiedName(sym, at)
 
-  /** Whether `owner` is the section `name` of an object, such as a machine's `effects`. */
+  // Whether `owner` is the section `name` of an object, such as a machine's `effects`.
   def isSection(owner: Symbol, name: String): Boolean =
     owner.isClassDef && owner.flags.is(Flags.Module) && owner.name.stripSuffix("$") == name &&
       !owner.maybeOwner.isPackageDef
@@ -304,25 +290,25 @@ final private[irgen] class Context(val index: Index):
   lazy val syncsClass: Symbol = Symbol.requiredClass("umpire.Syncs")
   lazy val refinementClass: Symbol = Symbol.requiredClass("umpire.Refinement")
 
-  /** Whether a value of this type is a machine: a machine object, or a derivation of one. */
+  // Whether a value of this type is a machine: a machine object, or a derivation of one.
   def isMachine(t: TypeRepr): Boolean = t.widen.dealias.derivesFrom(machineClass)
 
-  /** Whether a value of this type is a composition. */
+  // Whether a value of this type is a composition.
   def isComposition(t: TypeRepr): Boolean = t.widen.dealias.derivesFrom(compositionClass)
 
-  /** The class of an object, given its value's symbol or the class itself. */
+  // The class of an object, given its value's symbol or the class itself.
   def moduleClassOf(sym: Symbol): Symbol =
     if sym.isClassDef then sym
     else if sym.flags.is(Flags.Module) then sym.moduleClass
     else Symbol.noSymbol
 
-  /** Whether `sym` names an object that is a machine or a composition. */
+  // Whether `sym` names an object that is a machine or a composition.
   def objectForm(sym: Symbol): Boolean =
     val cls = moduleClassOf(sym)
     !cls.isNoSymbol && cls.flags.is(Flags.Module) &&
     (cls.typeRef.derivesFrom(machineClass) || cls.typeRef.derivesFrom(compositionClass))
 
-  /** An object form's name: its object's, with the first letter lowered. */
+  // An object form's name: its object's, with the first letter lowered.
   def objectFormName(sym: Symbol): String =
     val name = moduleClassOf(sym).name.stripSuffix("$")
     name.take(1).toLowerCase + name.drop(1)
@@ -331,10 +317,8 @@ final private[irgen] class Context(val index: Index):
   private val typeTakenBy = mutable.Map.empty[String, Symbol]
   private val typeNames = mutable.Map.empty[Symbol, String]
 
-  /**
-   * The name the IR gives the type `sym`: its fully qualified name (`qualifiedName`). Two types the
-   * lift reads that would share a name are refused, which only a name the compiler made up allows.
-   */
+  // The name the IR gives the type `sym`: its fully qualified name (`qualifiedName`). Two types the
+  // lift reads that would share a name are refused, which only a name the compiler made up allows.
   def irTypeName(sym: Symbol): String = typeNames.getOrElseUpdate(
     sym, {
       val name = qualifiedName(sym, scala.util.Try(sym.tree).getOrElse(Literal(UnitConstant())))

@@ -1,8 +1,7 @@
-/* The Nexus caller's Product: what an operation does, the level a caller reads (fn-126 decision
- * 16). The level's own file holds the product machine, NexusProduct, which refines nothing;
- * system/System.scala refines it. The two package clauses read the feature's package as well as
- * this one, so its types and signature are in scope.
- */
+// The Nexus caller's Product: what an operation does, the level a caller reads (fn-126 decision
+// 16). The level's own file holds the product machine, NexusProduct, which refines nothing;
+// system/System.scala refines it. The two package clauses read the feature's package as well as
+// this one, so its types and signature are in scope.
 package temporal
 package features.nexus.workflow
 package product
@@ -10,7 +9,7 @@ package product
 import umpire.*
 import shared.worker.worker
 
-/** What an operation does. */
+// What an operation does.
 enum Phase derives Finite:
   case scheduled, started, succeeded, failed, canceled, timedOut
 
@@ -32,12 +31,12 @@ object NexusProduct extends Machine[State, Outcome, Fact]:
   val init = product.State(scheduled)
   def end(s: State) = states.productTerminal(s)
 
-  /** The product's phase sets. */
+  // The product's phase sets.
   object states:
-    /** The four phases the product machine ends on. */
+    // The four phases the product machine ends on.
     def productTerminal(s: State) = s.phase.in(succeeded, failed, canceled, timedOut)
 
-  /** Every fact the product machine records is confirmed by the history event of its name. */
+  // Every fact the product machine records is confirmed by the history event of its name.
   object effects:
     import Fact.*
 
@@ -49,13 +48,11 @@ object NexusProduct extends Machine[State, Outcome, Fact]:
 
     def cancel(s: State) = enter(s.copy(phase = canceled), nexusOperationCanceled)
 
-    /** A completion that arrives after the operation is over is not found, and changes nothing. */
+    // A completion that arrives after the operation is over is not found, and changes nothing.
     def notFound(s: State) = reject(Outcome.notFound, s)
 
-    /**
-     * One of the operation's deadlines firing. Which deadline is the System's account of how, so
-     * the product machine has one timer.
-     */
+    // One of the operation's deadlines firing. Which deadline is the System's account of how, so
+    // the product machine has one timer.
     def timeOut(s: State) = enter(s.copy(phase = timedOut), nexusOperationTimedOut)
 
   object rules extends Rules(_.phase):
@@ -90,8 +87,6 @@ object NexusProduct extends Machine[State, Outcome, Fact]:
   // action the Case performs; a transition claim is searched and verified, never realized.
 
   object properties:
-    /**
-     * Once an operation is over, no step changes its phase. Declared on the product machine and read
-     * on the System machine through the map.
-     */
+    // Once an operation is over, no step changes its phase. Declared on the product machine and read
+    // on the System machine through the map.
     val terminalIsFinal = property.once(states.productTerminal).keeps(_.phase)

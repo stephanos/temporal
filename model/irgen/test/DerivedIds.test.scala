@@ -2,12 +2,10 @@ package umpire.irgen
 
 import io.temporal.server.api.umpire.v1 as ir
 
-/**
- * The whole-run check of the IDs a lift derives from names (fn-126 decision 23): a machine's
- * `<family>.target.<name>` and a Query's `<family>.query.<name>`, the family its package. Scala names
- * no two declarations alike, but two files of one package may each name a Query `completion`; one
- * declaration lifted into several IR files is one.
- */
+// The whole-run check of the IDs a lift derives from names (fn-126 decision 23): a machine's
+// `<family>.target.<name>` and a Query's `<family>.query.<name>`, the family its package. Scala names
+// no two declarations alike, but two files of one package may each name a Query `completion`; one
+// declaration lifted into several IR files is one.
 class DerivedIds extends munit.FunSuite:
   private def at(file: String, line: Int) = Some(ir.Position(file = file, line = line))
   private val lamp =

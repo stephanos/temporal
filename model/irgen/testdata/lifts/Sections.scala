@@ -14,10 +14,10 @@ final case class Light(on: Boolean) derives Finite
 enum Outcome derives Finite:
   case accepted
 
-/** A top-level action beside the objects, named after its package alone. */
+// A top-level action beside the objects, named after its package alone.
 val reset = internal
 
-/** An object at the top level: its member's ID is the object's, `fixture.sections.panel.flip`. */
+// An object at the top level: its member's ID is the object's, `fixture.sections.panel.flip`.
 object panel:
   val flip = action(Actor("panel"))
 
@@ -32,7 +32,7 @@ object Switch extends Machine[Light, Outcome, Nothing]:
   val init = Light(false)
   def end(light: State) = true
 
-  /** An actor directly in the machine's object: its action's ID names the machine's object too. */
+  // An actor directly in the machine's object: its action's ID names the machine's object too.
   object operator extends Actor:
     val press = action(this)
 
@@ -51,7 +51,7 @@ object Switch extends Machine[Light, Outcome, Nothing]:
         leftHand.clap ~> flipStep
       )
 
-/** The other hand's clap, an action of the name of the left hand's, which its object tells apart. */
+// The other hand's clap, an action of the name of the left hand's, which its object tells apart.
 object Clapper extends Machine[Light, Outcome, Nothing]:
   val init = Light(false)
   def end(light: State) = true

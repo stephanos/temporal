@@ -10,7 +10,7 @@ package fixture.totals
 
 import umpire.*
 
-/** A lamp's state, named apart from the machine object `Lamp`. */
+// A lamp's state, named apart from the machine object `Lamp`.
 final case class LampState(lit: Boolean) derives Finite
 
 enum Dim derives Finite:
@@ -61,20 +61,18 @@ val run = realize.RunExpectation(
 val totalThenExpect = (query find litOnce in flipTwice limits two total 4).expect(run)
 val expectThenTotal = (query find litOnce in flipTwice limits two).expect(run).total(4)
 
-/**
- * A Query declared once over a machine, whose total each call supplies. Free: 2 states x the
- * machine's action classes x 2 steps, so 12 on `lamp` (3 classes) and 4 on `plainLamp` (1 class).
- */
+// A Query declared once over a machine, whose total each call supplies. Free: 2 states x the
+// machine's action classes x 2 steps, so 12 on `lamp` (3 classes) and 4 on `plainLamp` (1 class).
 def lampQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] = Vector(
   query(s"${m.name}.anyLit") find (m.property(s"${m.name}.lit") holds (after =>
     after.state.lit
   )) in m.scenario("any").free limits two total total
 )
 
-/** No total: the lifter counts the 4 the author writes for `infixTotal`. */
+// No total: the lifter counts the 4 the author writes for `infixTotal`.
 val countedTotal = query find litOnce in flipTwice limits two
 
-/** The shared def's Query with no total: the lifter counts 12 on `lamp` and 4 on `plainLamp`. */
+// The shared def's Query with no total: the lifter counts 12 on `lamp` and 4 on `plainLamp`.
 def countedQueries(m: Machine[LampState, Outcome, Nothing]): Vector[Query] = Vector(
   query(s"${m.name}.anyLit") find (m.property(s"${m.name}.lit") holds (after =>
     after.state.lit
@@ -90,7 +88,7 @@ val plainLampCounted: Vector[Query] = countedQueries(PlainLamp)
 
 // ### Two claims a shared def declares together, as a bundle read back by field
 
-/** The claims every lamp is held to, declared together by `lampLaws`. */
+// The claims every lamp is held to, declared together by `lampLaws`.
 final case class LampLaws(lit: Property[LampState], unlit: Property[LampState])
 
 def lampLaws(m: Machine[LampState, Outcome, Nothing]): LampLaws = LampLaws(
@@ -98,7 +96,7 @@ def lampLaws(m: Machine[LampState, Outcome, Nothing]): LampLaws = LampLaws(
   m.property("bundledUnlit") holds (after => !after.state.lit)
 )
 
-/** The laws of `m`, each read from the bundle by field. Free, so 12 on `lamp` and 4 on `plainLamp`. */
+// The laws of `m`, each read from the bundle by field. Free, so 12 on `lamp` and 4 on `plainLamp`.
 def bundledLawQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
   val laws = lampLaws(m)
   val any = m.scenario("bundledAny").free
@@ -107,7 +105,7 @@ def bundledLawQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vect
     query(s"${m.name}.bundledUnlit") find laws.unlit in any limits two total total
   )
 
-/** The same claims declared directly. */
+// The same claims declared directly.
 def directLawQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
   val any = m.scenario("directAny").free
   Vector(

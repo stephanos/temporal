@@ -44,11 +44,11 @@ object Switch extends Machine[Lamp, Outcome, Fact]:
   val evidence: PartialFunction[Fact, String] = { case Fact.worn => "wear" }
 
   object states:
-    /** A broken lamp, its state named through the machine, `State`, and as `Lamp` (below). */
+    // A broken lamp, its state named through the machine, `State`, and as `Lamp` (below).
     def broken(s: State) = s.light == Light.broken
     def brokenLamp(s: Lamp) = s.light == Light.broken
 
-    /** The presses counted so far, one more, up to two. */
+    // The presses counted so far, one more, up to two.
     def worn(p: UpTo[2]): UpTo[2] = UpTo((p + 1).min(2))
 
   object effects:
@@ -90,7 +90,7 @@ object Switch extends Machine[Lamp, Outcome, Fact]:
       ) limits
         two total 18
 
-/** `Switch`'s step functions in the core, hand-written, one per action, as its rules lower. */
+// `Switch`'s step functions in the core, hand-written, one per action, as its rules lower.
 object Core:
   import Switch.effects.*
 
@@ -114,7 +114,7 @@ object Core:
 
   def restStep(s: Lamp): List[Step[Lamp, Outcome, Fact]] = Nil
 
-/** `Switch` in the core: its rules are the step functions `Core` writes out, bound by hand. */
+// `Switch` in the core: its rules are the step functions `Core` writes out, bound by hand.
 object CoreSwitch extends Machine[Lamp, Outcome, Fact]:
   val init = Lamp(Light.off, UpTo(0))
   def end(s: State) = s.light == Light.broken
@@ -131,7 +131,7 @@ object CoreSwitch extends Machine[Lamp, Outcome, Fact]:
         clock.rest ~> Core.restStep
       )
 
-/** A lamp that reads as the switch it refines, state for state, and whose rest is unobservable. */
+// A lamp that reads as the switch it refines, state for state, and whose rest is unobservable.
 object Mirror extends Machine[Lamp, Outcome, Fact]:
   val init = Lamp(Light.off, UpTo(0))
   def end(s: Lamp) = Switch.states.brokenLamp(s)
@@ -145,13 +145,13 @@ object Mirror extends Machine[Lamp, Outcome, Fact]:
     }
     disabled(clock.rest)
 
-/** A tick that keeps the lamp where a tick fires: the rules' guards, another effect. */
+// A tick that keeps the lamp where a tick fires: the rules' guards, another effect.
 object Steady extends Derived(Switch.rebind(clock.tick ~> Switch.effects.keep))
 
-/** A press that keeps the lamp in every state: rules in place of the press's rules. */
+// A press that keeps the lamp in every state: rules in place of the press's rules.
 object Loose extends Derived(Switch.rebind(on(hand.press)(always ~> Switch.effects.keep)))
 
-/** A lamp that also dims while it is off: rules a derivation adds. */
+// A lamp that also dims while it is off: rules a derivation adds.
 object Dimming
     extends Derived(
       Switch.extend(on(clock.dim)(where(_.light == Light.off) ~> Switch.effects.keep))
@@ -161,7 +161,7 @@ object Plain extends Derived(Switch.unmonitored)
 
 final case class Pair(left: Lamp, right: Lamp)
 
-/** Two lamps whose presses step together. */
+// Two lamps whose presses step together.
 object Twins extends Composition[Pair](_.left -> Plain, _.right -> Plain):
   def end(s: Pair) = Switch.end(s.left)
   object syncs extends Syncs:
@@ -169,10 +169,10 @@ object Twins extends Composition[Pair](_.left -> Plain, _.right -> Plain):
 
 object Unbending extends Derived(Steady.unmonitored)
 
-/** The twins, the right one steady. */
+// The twins, the right one steady.
 object Unequal extends Composition(Twins.withMember(_.right -> Unbending))
 
-/** A knob whose two classes fire with effects of their own. */
+// A knob whose two classes fire with effects of their own.
 object Dial extends Machine[Lamp, Outcome, Fact]:
   val init = Lamp(Light.off, UpTo(0))
   def end(s: State) = Switch.states.broken(s)
@@ -180,5 +180,5 @@ object Dial extends Machine[Lamp, Outcome, Fact]:
     on(hand.turn(Knob.up))(in(Light.off, Light.on) ~> Switch.effects.light)
     on(hand.turn(Knob.down))(in(Light.off, Light.on) ~> Switch.effects.dark)
 
-/** One effect, which reads the class, in place of the two classes' effects, each keeping its guard. */
+// One effect, which reads the class, in place of the two classes' effects, each keeping its guard.
 object Turned extends Derived(Dial.rebind(hand.turn ~> Switch.effects.turned))

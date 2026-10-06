@@ -1,10 +1,9 @@
-/* The lamp's Product: what a caller reads (fn-126 R20). The level's own file, named after its
- * folder, holds the feature's Product machine, `<Feature>Product`, which refines nothing.
- * Product-level elaborations, read by the same audience, would sit beside it, one file per subject.
- *
- * The two package clauses read the feature's package as well as this one, so its types and its
- * signature are in scope.
- */
+// The lamp's Product: what a caller reads (fn-126 R20). The level's own file, named after its
+// folder, holds the feature's Product machine, `<Feature>Product`, which refines nothing.
+// Product-level elaborations, read by the same audience, would sit beside it, one file per subject.
+//
+// The two package clauses read the feature's package as well as this one, so its types and its
+// signature are in scope.
 package fixture.features.lamp
 package product
 
@@ -18,7 +17,7 @@ final case class State(phase: Phase) derives Finite
 enum Fact derives Finite:
   case switchedOn, switchedOff
 
-/** The lamp as a caller sees it: switched on, it is lit; switched off, it is dark. */
+// The lamp as a caller sees it: switched on, it is lit; switched off, it is dark.
 object LampProduct extends Machine[product.State, Outcome, Fact]:
   val init = product.State(phase = Phase.dark)
   def end(s: State) = true

@@ -1,35 +1,34 @@
-/* The one place an external tool is run from. Every scala-cli, protoc, go and java process of the
- * gate and of the lifter's tests goes through `Tools`, so a tool's verdict is read in one function:
- * a missing tool fails with its name, a nonzero exit fails, and so does a scala-cli run that prints
- * an error and exits 0.
- */
+// The one place an external tool is run from. Every scala-cli, protoc, go and java process of the
+// gate and of the lifter's tests goes through `Tools`, so a tool's verdict is read in one function:
+// a missing tool fails with its name, a nonzero exit fails, and so does a scala-cli run that prints
+// an error and exits 0.
 package umpire.check
 
 import java.io.File
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 
-/** A missing tool or a failed run. The message names the tool. */
+// A missing tool or a failed run. The message names the tool.
 final class ToolError(message: String) extends Exception(message)
 
-/** Where a run's output goes. */
+// Where a run's output goes.
 enum Output:
-  /** Kept, standard error within standard output, and shown only when the run fails. */
+  // Kept, standard error within standard output, and shown only when the run fails.
   case Kept
 
   // Only kept output can be read for a printed error. A scala-cli run whose output is kept apart or
   // shown is judged by its exit status alone, so it follows a kept run that built the same sources.
-  /** Standard output kept on its own; standard error goes to the terminal. */
+  // Standard output kept on its own; standard error goes to the terminal.
   case KeptApart
 
-  /** Straight to the terminal, for a run long enough to be watched. */
+  // Straight to the terminal, for a run long enough to be watched.
   case Shown
 
-/** What a run left: its exit status and what it printed, colors removed. */
+// What a run left: its exit status and what it printed, colors removed.
 final case class Ran(command: Seq[String], directory: Path, exit: Int, output: String):
   private def tool = Path.of(command.head).getFileName.toString
 
-  /** The lines the build printed as errors. */
+  // The lines the build printed as errors.
   def errors: Seq[String] = output.linesIterator.filter(_.startsWith("[error]")).toSeq
 
   // Through its Bloop server, scala-cli 1.17.1 prints a -Werror failure (a non-exhaustive match, an
@@ -38,7 +37,7 @@ final case class Ran(command: Seq[String], directory: Path, exit: Int, output: S
   // error, so every caller sees the compiler's verdict.
   def failed: Boolean = exit != 0 || (tool == "scala-cli" && errors.nonEmpty)
 
-  /** The output worth reading: without scala-cli's hints and the JVM's warnings. */
+  // The output worth reading: without scala-cli's hints and the JVM's warnings.
   def diagnostics: String = output.linesIterator
     .filterNot(line => line.startsWith("WARNING") || line.matches("""^\S*\[.*hint.*"""))
     .mkString("\n")
@@ -51,14 +50,12 @@ final case class Ran(command: Seq[String], directory: Path, exit: Int, output: S
       val shown = if diagnostics.isBlank then "" else s"\n$diagnostics"
       throw ToolError(s"$tool $verdict in $directory: ${command.mkString(" ")}$shown")
 
-/**
- * Runs tools found on the `PATH` of `environment`, in `directory`. The tools' versions are pinned in
- * mise.toml, so the gate is run under `mise exec --`, as the Makefile does, and names no version.
- */
+// Runs tools found on the `PATH` of `environment`, in `directory`. The tools' versions are pinned in
+// mise.toml, so the gate is run under `mise exec --`, as the Makefile does, and names no version.
 final class Tools(val directory: Path, environment: Map[String, String]):
   def withEnvironment(more: (String, String)*): Tools = Tools(directory, environment ++ more)
 
-  /** The executable a name stands for; a name with a separator is a path and is taken as given. */
+  // The executable a name stands for; a name with a separator is a path and is taken as given.
   def find(tool: String): Path =
     val searched = environment
       .getOrElse("PATH", "")
@@ -108,10 +105,10 @@ final class Tools(val directory: Path, environment: Map[String, String]):
     run("scala-cli", (own :+ "--suppress-outdated-dependency-warning") ++ program, output)
 
 object Tools:
-  /** The tools of this process's environment, run from the repository's root. */
+  // The tools of this process's environment, run from the repository's root.
   def here: Tools = Tools(repository(Path.of("").toAbsolutePath), sys.env)
 
-  /** The repository's root: the nearest directory, from `start` up, that holds the gate. */
+  // The repository's root: the nearest directory, from `start` up, that holds the gate.
   def repository(start: Path): Path =
     Iterator
       .iterate(Option(start.toAbsolutePath.normalize))(_.flatMap(dir => Option(dir.getParent)))

@@ -1,6 +1,5 @@
-/* The System realization belongs beside LampSystem. A Product realization is added only when
- * there is an executable Product subject; this template keeps the existing wrapper-object form.
- */
+// The System realization belongs beside LampSystem. A Product realization is added only when
+// there is an executable Product subject; this template keeps the existing wrapper-object form.
 package fixture.features.lamp
 package system
 

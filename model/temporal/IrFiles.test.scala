@@ -8,14 +8,14 @@ import scala.jdk.CollectionConverters.*
 import umpire.IrFile
 
 class IrFilesTest extends munit.FunSuite:
-  /** Each feature's `object exports`, which declares its IR files as it initializes. */
+  // Each feature's `object exports`, which declares its IR files as it initializes.
   val declaring: Seq[AnyRef] = Seq(
     features.activity.standalone.exports,
     features.nexus.workflow.exports,
     features.nexus.standalone.exports
   )
 
-  /** The checked-in IR files, by name: model/ir/<name>.json, beside no sidecar. */
+  // The checked-in IR files, by name: model/ir/<name>.json, beside no sidecar.
   def checkedIn: Set[String] =
     val ir = Path.of("model/ir")
     assert(
@@ -31,7 +31,7 @@ class IrFilesTest extends munit.FunSuite:
         .toSet
     finally stream.close()
 
-  /** The names of the machines an IR file lifts: its `machines`, each by its `name`. */
+  // The names of the machines an IR file lifts: its `machines`, each by its `name`.
   def liftedMachines(file: String): Set[String] =
     import org.json4s.*
     val ir = org.json4s.jackson.JsonMethods.parse(Files.readString(Path.of(s"model/ir/$file.json")))

@@ -4,7 +4,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
 
 class SyntaxRuleSuite extends munit.FunSuite:
-  /** A repository of the files given, each a path under its root and its text. */
+  // A repository of the files given, each a path under its root and its text.
   private def repository(files: (String, String)*): Path =
     val root = Files.createTempDirectory("umpire-syntax-rule")
     for (file, text) <- files do
@@ -16,42 +16,40 @@ class SyntaxRuleSuite extends munit.FunSuite:
   private def findings(files: (String, String)*): Vector[String] =
     SyntaxRule.findings(repository(files*))
 
-  /** The framework's sugar as model/umpire/Syntax.scala declares it, documented. */
+  // The framework's sugar as model/umpire/Syntax.scala declares it, documented.
   private val syntax =
-    """/* Sugar of the framework. */
+    """// Sugar of the framework.
       |package umpire
       |
-      |/** The ok outcome of a machine. Core form: the outcome itself, `Outcome.accepted`. */
+      |// The ok outcome of a machine. Core form: the outcome itself, `Outcome.accepted`.
       |final case class Ok[O](outcome: O)
       |
-      |/**
-      | * One step with the ok outcome. Core form:
-      | * `List(Step(Outcome.accepted, state, List(facts*)))`.
-      | */
+      |// One step with the ok outcome. Core form:
+      |// `List(Step(Outcome.accepted, state, List(facts*)))`.
       |def enter[S, O, F](state: S, facts: F*)(using ok: Ok[O]): List[Step[S, O, F]] =
       |  List(Step(ok.outcome, state, facts.toList))
       |
-      |/** No step. Core form: `Nil`. */
+      |// No step. Core form: `Nil`.
       |val disabled: List[Nothing] = Nil
       |
-      |/** `phase.in(a, b)`. Core form: `List(a, b).contains(phase)`. */
+      |// `phase.in(a, b)`. Core form: `List(a, b).contains(phase)`.
       |extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
       |
-      |/** `a implies b`. Core form: `!a || b`. */
+      |// `a implies b`. Core form: `!a || b`.
       |@deprecated("example")
       |extension (a: Boolean) infix def implies(b: => Boolean): Boolean = !a || b
       |
       |extension [S, O, F](step: Step[S, O, F])
-      |  /** `after.records(fact)`. Core form: `after.facts.contains(fact)`. */
+      |  // `after.records(fact)`. Core form: `after.facts.contains(fact)`.
       |  def records(fact: F): Boolean = step.facts.contains(fact)
       |
       |private def helper(n: Int): Int =
       |  val in = n
       |  in + 1
       |
-      |/** Sugar spelled through an object. Core form: `Sugar.stay(s)` is its member's. */
+      |// Sugar spelled through an object. Core form: `Sugar.stay(s)` is its member's.
       |object Sugar:
-      |  /** One step that keeps the state. Core form: `List(Step(Outcome.accepted, s))`. */
+      |  // One step that keeps the state. Core form: `List(Step(Outcome.accepted, s))`.
       |  def stay[S](s: S): List[S] = List(s)
       |
       |  private[umpire] def internal: Int = 1
@@ -60,24 +58,24 @@ class SyntaxRuleSuite extends munit.FunSuite:
   test("a documented Syntax.scala, its private helpers and its locals pass"):
     assertEquals(findings("model/umpire/Syntax.scala" -> syntax), Vector.empty)
 
-  test("a Syntax.scala definition without a scaladoc, or whose scaladoc names no core form, fails"):
+  test("a Syntax.scala definition without a doc comment, or whose doc names no core form, fails"):
     val source =
       """package umpire
         |
         |def enter(n: Int): Int = n
         |
-        |/** One step: what it means, without its core spelling. */
+        |// One step: what it means, without its core spelling.
         |def stay(n: Int): Int = n
         |
-        |/** Core form: without a code span. */
+        |// Core form: without a code span.
         |val disabled: List[Nothing] = Nil
         |
-        |/** A doc a line comment separates from its definition. Core form: `x`. */
-        |// a remark
+        |private val hidden = 0 // A remark after code, no doc. Core form: `x`.
+        |
         |extension (a: Boolean) infix def implies(b: => Boolean): Boolean = !a || b
         |
         |extension (a: Int)
-        |  /** Documented. Core form: `a + 1`. */
+        |  // Documented. Core form: `a + 1`.
         |  def next: Int = a + 1
         |  def previous: Int = a - 1
         |
@@ -89,19 +87,19 @@ class SyntaxRuleSuite extends munit.FunSuite:
       found.map(_.takeWhile(_ != ' ')),
       Vector(3, 6, 9, 13, 18, 20, 21).map(line => s"model/temporal/realize/Syntax.scala:$line:")
     )
-    assert(found.head.contains("`enter` in a Syntax.scala has no scaladoc"), found.head)
+    assert(found.head.contains("`enter` in a Syntax.scala has no doc comment"), found.head)
     assert(
-      found(1).contains("the scaladoc of `stay` in a Syntax.scala names no core form"),
+      found(1).contains("the doc comment of `stay` in a Syntax.scala names no core form"),
       found(1)
     )
-    assert(found(5).contains("`Sugar` in a Syntax.scala has no scaladoc"), found(5))
+    assert(found(5).contains("`Sugar` in a Syntax.scala has no doc comment"), found(5))
     assert(found(6).contains("an anonymous given"), found(6))
 
   test("an extension's first definition may be documented above the extension"):
     val source =
       """package umpire
         |
-        |/** `a implies b`. Core form: `!a || b`. */
+        |// `a implies b`. Core form: `!a || b`.
         |extension (a: Boolean)
         |  infix def implies(b: => Boolean): Boolean = !a || b
         |""".stripMargin
@@ -111,18 +109,18 @@ class SyntaxRuleSuite extends munit.FunSuite:
     val source =
       """package umpire.irgen
         |
-        |/** The lifting of the sugar. */
+        |// The lifting of the sugar.
         |private[irgen] trait Syntax:
         |  self: Lifting =>
         |  import ctx.*
         |
         |  private val owner = "umpire.Syntax$package$"
         |
-        |  /** Hook: a sugar form lifted. Core form: `s.facts.contains(f)` lifts the same. */
+        |  // Hook: a sugar form lifted. Core form: `s.facts.contains(f)` lifts the same.
         |  def sugar(t: Term): Expr = t match
         |    case _ => fail(t)
         |
-        |  /** Hook: whether the term is a sugar form. */
+        |  // Hook: whether the term is a sugar form.
         |  def sugared(t: Term): Boolean = true
         |""".stripMargin
     val found = findings("model/irgen/Syntax.scala" -> source)
@@ -146,7 +144,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
       """package temporal.features.activity.standalone
         |
         |extension (m: Machine)
-        |  /** Doc comments may say once, never and keeps. */
+        |  // Doc comments may say once, never and keeps.
         |  def never(p: Boolean): Boolean = !p
         |  inline def once(p: Boolean): Boolean = p
         |
@@ -186,7 +184,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
       """package umpire
         |
         |final class QueryOn[P] private[umpire] (name: String, p: Property[P]):
-        |  /** The scenario clause: `query find p in s`. Sugar words in a doc: enter, implies. */
+        |  // The scenario clause: `query find p in s`. Sugar words in a doc: enter, implies.
         |  infix def in[S](s: Scenario[S]): QueryIn = QueryIn(name, p.decl, s.decl)
         |
         |final class Progress[S] private[umpire] (
@@ -242,12 +240,12 @@ class SyntaxRuleSuite extends munit.FunSuite:
     val lifterSyntax =
       """package umpire.irgen
         |
-        |/** The lifting of the sugar. */
+        |// The lifting of the sugar.
         |private[irgen] trait Syntax:
-        |  /** Hook: a sugar form. Core form: `xs.contains(x)` lifts the same. */
+        |  // Hook: a sugar form. Core form: `xs.contains(x)` lifts the same.
         |  def sugared(t: Term): Boolean = true
         |
-        |  /** Hook: its IR. Core form: `xs.contains(x)` lifts the same. */
+        |  // Hook: its IR. Core form: `xs.contains(x)` lifts the same.
         |  def sugar(t: Term): Expr = ???
         |""".stripMargin
     val umpire =
@@ -285,7 +283,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
     val core =
       """package umpire
         |
-        |/** Doc comments may say `enter(s)` and `a implies b`. */
+        |// Doc comments may say `enter(s)` and `a implies b`.
         |def step[S](s: S)(using Ok[String]): List[Step[S, String, Nothing]] =
         |  val entered = "enter"
         |  if s.isInstanceOf[Int] implies true then enter(s) else disabled
@@ -310,9 +308,9 @@ class SyntaxRuleSuite extends munit.FunSuite:
     val lifterSyntax =
       """package umpire.irgen
         |
-        |/** The lifting of the sugar. */
+        |// The lifting of the sugar.
         |private[irgen] trait Syntax:
-        |  /** Hook: whether it is sugar. Core form: `xs.contains(x)` lifts the same. */
+        |  // Hook: whether it is sugar. Core form: `xs.contains(x)` lifts the same.
         |  def sugared(t: Term): Boolean = true
         |""".stripMargin
     val core =

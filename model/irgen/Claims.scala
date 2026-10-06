@@ -3,26 +3,22 @@ package umpire.irgen
 import scala.collection.mutable
 import io.temporal.server.api.umpire.v1 as ir
 
-/**
- * What a declaration folds to at lift time: a name or text the IR uses, or a declaration still being
- * built by the calls chained onto it.
- */
+// What a declaration folds to at lift time: a name or text the IR uses, or a declaration still being
+// built by the calls chained onto it.
 private enum Decl:
   case Text(value: String)
 
-  /** A machine or a composition, by name. */
+  // A machine or a composition, by name.
   case Model(name: String)
   case Items(items: List[Decl])
   case PropertyOn(machine: String, name: String, when: Option[Either[ir.ActionClass, String]])
   case ScenarioOn(machine: String, name: String, start: Option[ir.Expr])
 
-  /** A declared Property or Scenario. */
+  // A declared Property or Scenario.
   case Claim(ref: ir.ClaimRef)
 
-  /**
-   * A Query being declared, by the name `query("...")` or its val gives it, or None where neither
-   * does: `query` then names it after its Scenario and Property.
-   */
+  // A Query being declared, by the name `query("...")` or its val gives it, or None where neither
+  // does: `query` then names it after its Scenario and Property.
   case QueryNamed(name: Option[String])
   case QueryOn(name: Option[String], form: ir.Query.Form, property: ir.ClaimRef)
   case QueryIn(
@@ -33,19 +29,19 @@ private enum Decl:
   )
   case Bounds(limits: ir.Limits)
 
-  /** A declared Query or progress claim. */
+  // A declared Query or progress claim.
   case Declared(name: String)
 
-  /** A function-valued argument: the def of the lifted sources it names, by its full name. */
+  // A function-valued argument: the def of the lifted sources it names, by its full name.
   case FunctionRef(name: String)
 
-  /** An integer literal, such as the total a shared def's call supplies. */
+  // An integer literal, such as the total a shared def's call supplies.
   case Number(value: Long)
 
-  /** A bundle of claims a shared def declares together, by field. */
+  // A bundle of claims a shared def declares together, by field.
   case Bundle(fields: Map[String, Decl])
 
-  /** A capability declaration, by the machine or composition it declares the capabilities of. */
+  // A capability declaration, by the machine or composition it declares the capabilities of.
   case Capable(model: String)
 
 private[irgen] trait Claims:
@@ -66,10 +62,8 @@ private[irgen] trait Claims:
     case other           => fail(at, s"expected a Property or a Scenario, got $other")
   def claim(machine: String, name: String): ir.ClaimRef = ir.ClaimRef(machine, name)
 
-  /**
-   * One class of an action: the action bare, applied to one value per input, or applied to its inputs
-   * by name, which `named` lifts.
-   */
+  // One class of an action: the action bare, applied to one value per input, or applied to its inputs
+  // by name, which `named` lifts.
   def classOf(t: Term): ir.ActionClass = t match
     case Typed(e, _)                                      => classOf(e)
     case r: Ref if boundValues.contains(r.symbol)         => classOf(boundValues(r.symbol))
@@ -80,24 +74,20 @@ private[irgen] trait Claims:
     case ref => ir.ActionClass(action(ref))
   private def isAction(t: Term): Boolean = isNamed(t.tpe, "umpire.Action")
 
-  /**
-   * `start()`: the class of every input of the action `a` at its domain's first value, as
-   * `start(unset, unset, unset)` writes it, and the one class of an action with no input.
-   */
+  // `start()`: the class of every input of the action `a` at its domain's first value, as
+  // `start(unset, unset, unset)` writes it, and the one class of an action with no input.
   def firstClass(a: Term, at: Tree): ir.ActionClass =
     val id = action(a)
     ir.ActionClass(id, actions(id).inputs.map(firstInput(_, actions(id).name, at)))
 
-  /** The value an input a class omits takes, its domain's first, refused where it has none. */
+  // The value an input a class omits takes, its domain's first, refused where it has none.
   def firstInput(input: ir.Param, action: String, at: Tree): ir.Value =
     firstValue(input.getType).getOrElse(
       fail(at, s"input ${input.name} of $action has no values to default to: supply it")
     )
 
-  /**
-   * Keeps the first declaration under a key and refuses a different second one, which would share
-   * its Definition ID.
-   */
+  // Keeps the first declaration under a key and refuses a different second one, which would share
+  // its Definition ID.
   def register[K, V](
       into: mutable.LinkedHashMap[K, V],
       key: K,
@@ -110,7 +100,7 @@ private[irgen] trait Claims:
         fail(at, s"$what is declared twice, and both would share one Definition ID")
       case _ => into(key) = value
 
-  /** Limits, named by their `name` or else by `named`, the val that declares them. */
+  // Limits, named by their `name` or else by `named`, the val that declares them.
   def limitsOf(t: Term, named: => String): ir.Limits = arguments(t) match
     case Apply(Select(companion, "apply"), List(name, steps, actions, search))
         if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Limits" =>
@@ -141,11 +131,9 @@ private[irgen] trait Claims:
   // The limits each name was declared with, and where, so one name never bounds two ways.
   private val limitsNamed = mutable.Map.empty[String, (ir.Limits, String)]
 
-  /**
-   * Whether a Query reads its Property through a refinement: when the Property is of another machine
-   * than the Scenario, the one the Scenario's machine declares it refines. `Machine[S, O, F]` does not
-   * carry the type it refines, so this is where a Property of an unrelated machine is refused.
-   */
+  // Whether a Query reads its Property through a refinement: when the Property is of another machine
+  // than the Scenario, the one the Scenario's machine declares it refines. `Machine[S, O, F]` does not
+  // carry the type it refines, so this is where a Property of an unrelated machine is refused.
   def readsThrough(name: String, p: ir.ClaimRef, s: ir.ClaimRef, at: Tree): Boolean =
     if p.machine == s.machine then false
     else
@@ -193,18 +181,14 @@ private[irgen] trait Claims:
     register(queries, name, q, at, s"Query $name")
     Decl.Declared(name)
 
-  /**
-   * The name of a Query neither `query("...")` nor a val names, such as an item of a list a shared
-   * def declares: `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on,
-   * its Scenario and its Property, so the Query of `notAdmittedWhilePaused` in the Scenario `any` of
-   * `m` is `m.any.notAdmittedWhilePaused`.
-   */
+  // The name of a Query neither `query("...")` nor a val names, such as an item of a list a shared
+  // def declares: `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on,
+  // its Scenario and its Property, so the Query of `notAdmittedWhilePaused` in the Scenario `any` of
+  // `m` is `m.any.notAdmittedWhilePaused`.
   def defaultQueryName(p: ir.ClaimRef, s: ir.ClaimRef): String = s"${s.machine}.${s.name}.${p.name}"
 
-  /**
-   * The name a declaration chain takes from the val that declares it, or a refusal where no val
-   * declares it, such as in a list or in the body of a function.
-   */
+  // The name a declaration chain takes from the val that declares it, or a refusal where no val
+  // declares it, such as in a list or in the body of a function.
   def captured(named: Option[Symbol], kind: String, form: String, at: Tree): String =
     named match
       case Some(sym) => capturedName(sym, at, kind)
@@ -215,11 +199,11 @@ private[irgen] trait Claims:
             s"declare it with a val, or name it with $form"
         )
 
-  /** Whether a type is one a claim is declared on: a machine, a composition, or `Declares[S]`. */
+  // Whether a type is one a claim is declared on: a machine, a composition, or `Declares[S]`.
   def declares(tpe: TypeRepr): Boolean =
     tpe.widen.dealias.derivesFrom(Symbol.requiredClass("umpire.Declares"))
 
-  /** An inherited member read without a receiver, read on the object it is inherited by. */
+  // An inherited member read without a receiver, read on the object it is inherited by.
   def onThis(t: Term): Term =
     def of(tpe: TypeRepr): Option[Symbol] = tpe match
       case TermRef(prefix, _) => of(prefix)
@@ -229,19 +213,17 @@ private[irgen] trait Claims:
       case Some(cls) => Select(This(cls), t.symbol)
       case None => fail(t, s"${t.show} names no machine or composition object it is declared in")
 
-  /** The name of a machine or composition object, lifting it on first use. */
+  // The name of a machine or composition object, lifting it on first use.
   def modelOfObject(cls: Symbol, at: Tree): String =
     val module = cls.companionModule
     if isMachine(cls.typeRef) then machineOf(module, at).name else compositionOf(module, at).name
 
-  /** Whether a call is one of `Declares`'s, `property` or `scenario`, which every model inherits. */
+  // Whether a call is one of `Declares`'s, `property` or `scenario`, which every model inherits.
   def declared(t: Term): Boolean = t.symbol.maybeOwner.fullName == "umpire.Declares"
 
-  /**
-   * What a declaration of the lifted sources folds to, with the helper function parameters bound
-   * in `env`. `named` is the name of the val whose right-hand side `t` is: a declaration that takes
-   * its name from its val gets it through the calls chained onto it, and no argument gets it.
-   */
+  // What a declaration of the lifted sources folds to, with the helper function parameters bound
+  // in `env`. `named` is the name of the val whose right-hand side `t` is: a declaration that takes
+  // its name from its val gets it through the calls chained onto it, and no argument gets it.
   def fold(t: Term, env: Map[Symbol, Decl], named: Option[Symbol] = None): Decl = t match
     case Typed(e, _)                                => fold(e, env, named)
     case Inlined(_, Nil, e)                         => fold(e, env, named)
@@ -441,7 +423,7 @@ private[irgen] trait Claims:
         case _ => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
     case other => fail(other, s"not a declaration the IR carries: ${other.show}")
 
-  /** Records the Run the Query `name` expects of a server, `expected`, as `.expect` declares it. */
+  // Records the Run the Query `name` expects of a server, `expected`, as `.expect` declares it.
   def expectedRun(name: String, expected: Term): Unit =
     val run = emit(ir.RunExpectation, Bound(expected, Map.empty))
     val machine = queries(name).getScenario.machine
@@ -457,20 +439,16 @@ private[irgen] trait Claims:
       )
     queries(name) = queries(name).withExpectedRun(run)
 
-  /**
-   * Whether `cls` bundles claims: a case class of the lifted sources whose every field is a
-   * Property, a Scenario or a Query.
-   */
+  // Whether `cls` bundles claims: a case class of the lifted sources whose every field is a
+  // Property, a Scenario or a Query.
   def bundle(cls: Symbol): Boolean =
     cls.flags.is(Flags.Case) && !cls.flags.is(Flags.Enum) && cls.caseFields.nonEmpty &&
       fieldTypes(cls).forall((_, tpe) => claimType(tpe))
   def claimType(tpe: TypeRepr): Boolean =
     Seq("umpire.Property", "umpire.Scenario", "umpire.Query").exists(isNamed(tpe, _))
 
-  /**
-   * Records the total the Query `name` asserts, `n`: an integer literal, or a parameter of the
-   * declaring def around it that each call supplies as one.
-   */
+  // Records the total the Query `name` asserts, `n`: an integer literal, or a parameter of the
+  // declaring def around it that each call supplies as one.
   def totalOf(name: String, n: Term, env: Map[Symbol, Decl]): Decl =
     val total = numberOf(n, env).getOrElse(
       fail(
@@ -491,17 +469,15 @@ private[irgen] trait Claims:
     queries(name) = q.withTotal(total)
     Decl.Declared(name)
 
-  /**
-   * An integer the author wrote: a literal, or a parameter of the declaring def around it bound to
-   * one.
-   */
+  // An integer the author wrote: a literal, or a parameter of the declaring def around it bound to
+  // one.
   def numberOf(t: Term, env: Map[Symbol, Decl]): Option[Long] = unwidened(t) match
     case Literal(IntConstant(i))  => Some(i.toLong)
     case Literal(LongConstant(l)) => Some(l)
     case r: Ref                   => env.get(r.symbol).collect { case Decl.Number(v) => v }
     case _                        => None
 
-  /** A term without Scala's widening of an Int to a Long: `Int.int2long(n)` or `n.toLong`. */
+  // A term without Scala's widening of an Int to a Long: `Int.int2long(n)` or `n.toLong`.
   def unwidened(t: Term): Term = t match
     case Typed(e, _)                                        => unwidened(e)
     case Inlined(_, Nil, e)                                 => unwidened(e)
@@ -512,13 +488,11 @@ private[irgen] trait Claims:
   private def widens(f: Symbol): Boolean =
     f.name == "int2long" && f.maybeOwner.fullName.stripSuffix("$") == "scala.Int"
 
-  /**
-   * The body of a declaring function `d` at its call `t`, its arguments bound: each value folded, each
-   * function-valued argument to the def of the lifted sources it names, and each type parameter to
-   * the type the call applies it to, so a claim written once over `Declares[S]` and its predicates
-   * reads the machine's own. A declaration the body ends in takes its name from `named`, the val
-   * that declares the call, as a law's instance does: `val terminalStays = terminalStatesAreFinal(…)`.
-   */
+  // The body of a declaring function `d` at its call `t`, its arguments bound: each value folded, each
+  // function-valued argument to the def of the lifted sources it names, and each type parameter to
+  // the type the call applies it to, so a claim written once over `Declares[S]` and its predicates
+  // reads the machine's own. A declaration the body ends in takes its name from `named`, the val
+  // that declares the call, as a law's instance does: `val terminalStays = terminalStatesAreFinal(…)`.
   def declaring(d: DefDef, t: Term, env: Map[Symbol, Decl], named: Option[Symbol]): Decl =
     def parts(t: Term): (List[TypeTree], List[Term]) = t match
       case Apply(fn, args) =>
@@ -531,11 +505,9 @@ private[irgen] trait Claims:
     val types = d.leadingTypeParams.map(_.symbol).zip(targs.map(a => instantiated(a.tpe))).toMap
     bodyOf(d, d.termParamss.flatMap(_.params).zip(args), types, env, named)
 
-  /**
-   * The body of `d` with each parameter bound to its argument: a function-valued one to the def of
-   * the lifted sources it names, a value one (an outcome, a fact, an action class) to the term an
-   * expression or a class reads in its place, any other folded; and each type parameter to `types`.
-   */
+  // The body of `d` with each parameter bound to its argument: a function-valued one to the def of
+  // the lifted sources it names, a value one (an outcome, a fact, an action class) to the term an
+  // expression or a class reads in its place, any other folded; and each type parameter to `types`.
   def bodyOf(
       d: DefDef,
       args: List[(ValDef, Term)],
@@ -557,11 +529,9 @@ private[irgen] trait Claims:
     }
     binding(functions, types, values)(fold(d.rhs.get, bound.toMap, named))
 
-  /**
-   * Whether a parameter takes a value an expression or a class reads, such as an outcome, a fact or
-   * an action class, rather than one the fold reads: a model, a claim, Limits, a string, an integer,
-   * a bundle or a list.
-   */
+  // Whether a parameter takes a value an expression or a class reads, such as an outcome, a fact or
+  // an action class, rather than one the fold reads: a model, a claim, Limits, a string, an integer,
+  // a bundle or a list.
   def valued(p: ValDef): Boolean =
     val tpe = instantiated(p.tpt.tpe).widen.dealias
     val folds = Seq(
@@ -574,12 +544,10 @@ private[irgen] trait Claims:
     !(declares(tpe) || claimType(tpe) || folds.exists(isNamed(tpe, _)) ||
       bundle(tpe.typeSymbol) || isList(tpe.typeSymbol))
 
-  /**
-   * The value argument `a` of the parameter `p` of `d`, folded: an integer parameter, such as the
-   * total of a Query the def declares, takes a literal the author computed, or a parameter of the
-   * declaring def around the call bound to one.
-   */
-  /** A declaring def's name as written: a law's `apply` by its object's. */
+  // The value argument `a` of the parameter `p` of `d`, folded: an integer parameter, such as the
+  // total of a Query the def declares, takes a literal the author computed, or a parameter of the
+  // declaring def around the call bound to one.
+  // A declaring def's name as written: a law's `apply` by its object's.
   def declaringName(d: DefDef): String =
     val owner = d.symbol.maybeOwner
     if d.name == "apply" && owner.flags.is(Flags.Module) then owner.name.stripSuffix("$")
@@ -598,11 +566,9 @@ private[irgen] trait Claims:
         )
       )
 
-  /**
-   * The def of the lifted sources an argument for the function-valued parameter `p` of `d` names: the
-   * def itself, eta-expanded or called with the lambda's parameters, or the def a parameter of the
-   * declaring function around it is bound to. A lambda with a body of its own has no def to bind.
-   */
+  // The def of the lifted sources an argument for the function-valued parameter `p` of `d` names: the
+  // def itself, eta-expanded or called with the lambda's parameters, or the def a parameter of the
+  // declaring function around it is bound to. A lambda with a body of its own has no def to bind.
   def boundDef(p: ValDef, d: DefDef, arg: Term): Symbol = forwardedDef(arg).getOrElse(
     fail(
       arg,
@@ -623,10 +589,8 @@ private[irgen] trait Claims:
       Decl.Claim(claim(m, name))
     case other => fail(at, s"expected a Scenario, got $other")
 
-  /**
-   * The start of a Scenario that names none: its machine's `init`, or for a composition the
-   * composed state of its members'.
-   */
+  // The start of a Scenario that names none: its machine's `init`, or for a composition the
+  // composed state of its members'.
   def declaredStart(m: String, scenario: String, at: Tree): ir.Expr =
     // A machine object declares one start, its `init`.
     def only(machine: ir.Machine): ir.Expr = machine.starts.head

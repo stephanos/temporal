@@ -15,7 +15,7 @@ import umpire.*
 enum JobPhase derives Finite:
   case idle, sent, started, settled
 
-/** The job's state, named apart from the machine object `Job`. */
+// The job's state, named apart from the machine object `Job`.
 final case class JobState(phase: JobPhase) derives Finite
 
 enum JobOutcome derives Finite:
@@ -29,14 +29,12 @@ val send = internal
 val start = internal
 val settle = internal
 
-/**
- * A failed enqueue leaves nothing outstanding, so the job may be sent again; the queue disables the
- * enqueue of a second message while one is outstanding.
- */
+// A failed enqueue leaves nothing outstanding, so the job may be sent again; the queue disables the
+// enqueue of a second message while one is outstanding.
 def sendStep(j: JobState): List[JobStep] =
   if j.phase.in(JobPhase.idle, JobPhase.sent) then enter(JobState(JobPhase.sent)) else disabled
 
-/** The queue may deliver a message twice, and the second delivery finds the job started. */
+// The queue may deliver a message twice, and the second delivery finds the job started.
 def startStep(j: JobState): List[JobStep] = j.phase match
   case JobPhase.sent                    => enter(JobState(JobPhase.started))
   case JobPhase.started                 => stay(j)
@@ -66,7 +64,7 @@ val queueSettles =
   JobOverQueue.property("settles").whenAction(JobOverQueue.synced(_.job -> settle)) holds
     (_.state.job.phase == JobPhase.settled)
 
-/** Settling is the acknowledgment, so a settled job leaves no message outstanding. */
+// Settling is the acknowledgment, so a settled job leaves no message outstanding.
 val queueSettledLeavesNothing = JobOverQueue
   .property("settledLeavesNothing")
   .never(after =>
@@ -97,10 +95,8 @@ object JobOverMatching
     sync(_.job -> settle, _.queue -> queue.acknowledge)
     replaces(_.queue, TaskQueueProduct)
 
-/**
- * The negative control: the replacement is what must fail. No Query asks it; the check of the
- * member that stands in for the opaque queue refutes it.
- */
+// The negative control: the replacement is what must fail. No Query asks it; the check of the
+// member that stands in for the opaque queue refutes it.
 object JobOverForgetful
     extends Composition(JobOverMatching.withMember(_.queue -> ForgetfulQueue)),
       NegativeControl

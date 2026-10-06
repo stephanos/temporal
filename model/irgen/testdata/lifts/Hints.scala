@@ -29,7 +29,7 @@ private def realizing(serverSteps: Vector[ServerStep], behavior: ApiBehavior) =
     behavior = behavior
   )
 
-/** The kit's behavior, which `temporalRealization` attaches, and a delivery and a timer step. */
+// The kit's behavior, which `temporalRealization` attaches, and a delivery and a timer step.
 val keptBehavior: Realization = temporalRealization(
   machine = activitySystem,
   operation = activity,
@@ -48,7 +48,7 @@ private val pauseSeen =
 
 private val slowly = Visible.eventually(WaitBound(intervalMs = 100, atMostMs = 1500))
 
-/** A behavior of its own, which bounds each kind of its server steps. */
+// A behavior of its own, which bounds each kind of its server steps.
 val ownBehavior: Realization = realizing(
   Vector(
     ServerStep(worker.poll, CauseKind.delivery),
@@ -73,7 +73,7 @@ val ownBehavior: Realization = realizing(
 
 // ### Refused by the reader
 
-/** A wait that never looks again. */
+// A wait that never looks again.
 val zeroInterval: Realization = realizing(
   Vector.empty,
   ApiBehavior(
@@ -82,7 +82,7 @@ val zeroInterval: Realization = realizing(
   )
 )
 
-/** Waits that end before they start: a negative bound and a bound of zero. */
+// Waits that end before they start: a negative bound and a bound of zero.
 val nonPositiveBound: Realization = realizing(
   Vector.empty,
   ApiBehavior(
@@ -96,7 +96,7 @@ val nonPositiveBound: Realization = realizing(
   )
 )
 
-/** A wait that looks less often than it lasts. */
+// A wait that looks less often than it lasts.
 val intervalOverBound: Realization = realizing(
   Vector.empty,
   ApiBehavior(
@@ -105,7 +105,7 @@ val intervalOverBound: Realization = realizing(
   )
 )
 
-/** A delivery step, and a behavior that bounds only timers. */
+// A delivery step, and a behavior that bounds only timers.
 val unboundedStep: Realization = realizing(
   Vector(ServerStep(worker.poll, CauseKind.delivery)),
   ApiBehavior(
@@ -114,11 +114,11 @@ val unboundedStep: Realization = realizing(
   )
 )
 
-/** A timer step that names no deadline. */
+// A timer step that names no deadline.
 val timerNoDeadline: Realization =
   realizing(Vector(ServerStep(deadline.scheduleToStart, CauseKind.timer)), temporalBehavior)
 
-/** A delivery step that names a deadline, which only a timer has. */
+// A delivery step that names a deadline, which only a timer has.
 val deliveryDeadline: Realization =
   realizing(
     Vector(ServerStep(worker.poll, CauseKind.delivery, deadlineMs)),

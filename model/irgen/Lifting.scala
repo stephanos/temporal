@@ -1,9 +1,7 @@
 package umpire.irgen
 
-/**
- * The concerns of one lift over its context. They call one another, so each is a trait of its own
- * file and this class is where they meet.
- */
+// The concerns of one lift over its context. They call one another, so each is a trait of its own
+// file and this class is where they meet.
 final private[irgen] class Lifting(val ctx: Context)
     extends Types,
       Constants,
@@ -18,11 +16,9 @@ final private[irgen] class Lifting(val ctx: Context)
   import ctx.*
   import ctx.quotes.reflect.*
 
-  /**
-   * A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, a
-   * capability declaration, an `implements` section, which is its object's, or a `queries` section,
-   * which roots every Query, list of Queries and progress claim it declares, in the order written.
-   */
+  // A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, a
+  // capability declaration, an `implements` section, which is its object's, or a `queries` section,
+  // which roots every Query, list of Queries and progress claim it declares, in the order written.
   def liftRoot(root: String): Unit =
     val sym = defs.keys
       .find(s => s.isValDef && s.fullName == root)
@@ -63,23 +59,21 @@ final private[irgen] class Lifting(val ctx: Context)
         )
       fold(Ref(sym), Map.empty)
 
-  /** Whether a symbol names the `queries` section of a machine or composition object. */
+  // Whether a symbol names the `queries` section of a machine or composition object.
   private def queriesSection(sym: Symbol): Boolean =
     val cls = moduleClassOf(sym)
     !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" && objectForm(cls.maybeOwner)
 
-  /**
-   * Whether the IR file reads a val of a `queries` section at run time (`IrFile.queriesOf`): a
-   * public one that is a Query or a sequence. One the lifter does not root is refused, so the IR and
-   * the run never disagree on a section's Queries.
-   */
+  // Whether the IR file reads a val of a `queries` section at run time (`IrFile.queriesOf`): a
+  // public one that is a Query or a sequence. One the lifter does not root is refused, so the IR and
+  // the run never disagree on a section's Queries.
   private def readAtRunTime(v: ValDef): Boolean =
     val kind = v.tpt.tpe.widen.dealias
     !v.symbol.flags.is(Flags.Private) && !v.symbol.flags.is(Flags.Protected) &&
     (kind.baseClasses.exists(_.fullName == "umpire.Query") ||
       kind.baseClasses.exists(_.fullName == "scala.collection.Seq"))
 
-  /** Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim. */
+  // Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim.
   private def claimRoot(t: TypeRepr): Boolean =
     val kind = t.widen.dealias
     val listed =
@@ -87,12 +81,10 @@ final private[irgen] class Lifting(val ctx: Context)
     Set("umpire.Query", "umpire.Progress")(kind.typeSymbol.fullName) ||
     (listed && kind.typeArgs.headOption.exists(a => isNamed(a, "umpire.Query")))
 
-  /**
-   * The IR files the lifted sources declare, `val f = irFile("name")(root, ...)`: each file's name
-   * and its roots' fully qualified names, in the order written. A root is a reference to a val, so
-   * one that names nothing does not compile; the lift refuses it as it refuses a root of the command
-   * line that is not a declaration. A declaration that cannot be read is given to `refused`, each one.
-   */
+  // The IR files the lifted sources declare, `val f = irFile("name")(root, ...)`: each file's name
+  // and its roots' fully qualified names, in the order written. A root is a reference to a val, so
+  // one that names nothing does not compile; the lift refuses it as it refuses a root of the command
+  // line that is not a declaration. A declaration that cannot be read is given to `refused`, each one.
   def irFiles(refused: LiftError => Unit): Seq[(String, Seq[String])] =
     val declared = defs.values.toSeq
       .collect { case v: ValDef if v.rhs.nonEmpty && isNamed(v.tpt.tpe, "umpire.IrFile") => v }

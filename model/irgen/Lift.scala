@@ -1,14 +1,13 @@
-/* The lifter: reads the typed trees (TASTy) of Scala Models compiled against the umpire framework,
- * and emits the Umpire IR they declare. It lifts what authors wrote, as written: the `machine`
- * blocks, the action chains, and the step functions' bodies, including native `match`, `if`,
- * `copy` and local `val`s. Unsupported constructs stop the lift at their Scala source positions.
- * Go checks Model semantics from the IR at the positions the lifter recorded.
- * The IR is built as the gate's generated ScalaPB classes and written as ProtoJSON.
- *
- * TASTy is read after compilation rather than by a macro during it: a macro sees a function's body
- * only for definitions of its own compilation run, and there only after pattern matching has been
- * compiled away; TASTy keeps the typed tree with every `match` intact.
- */
+// The lifter: reads the typed trees (TASTy) of Scala Models compiled against the umpire framework,
+// and emits the Umpire IR they declare. It lifts what authors wrote, as written: the `machine`
+// blocks, the action chains, and the step functions' bodies, including native `match`, `if`,
+// `copy` and local `val`s. Unsupported constructs stop the lift at their Scala source positions.
+// Go checks Model semantics from the IR at the positions the lifter recorded.
+// The IR is built as the gate's generated ScalaPB classes and written as ProtoJSON.
+//
+// TASTy is read after compilation rather than by a macro during it: a macro sees a function's body
+// only for definitions of its own compilation run, and there only after pattern matching has been
+// compiled away; TASTy keeps the typed tree with every `match` intact.
 // The declarations checks read over the machines -- compositions, channels, monitors, assumptions,
 // holes, Properties, Scenarios, Queries and progress claims -- are folded at lift time: one written
 // through a helper function, such as a list of Queries per design, is lifted once per call, with the
@@ -30,29 +29,29 @@ import io.temporal.server.api.umpire.v1 as ir
 import org.json4s.jackson.JsonMethods
 import scalapb.json4s.Printer
 
-/** A construct the IR cannot express, at the position the author wrote it. */
+// A construct the IR cannot express, at the position the author wrote it.
 final case class LiftError(position: String, message: String)
     extends Exception(s"$position: $message")
 
-/** What one lifter run lifts: the roots named on its command line, or IR files a Model declares. */
+// What one lifter run lifts: the roots named on its command line, or IR files a Model declares.
 enum Target:
-  /** One Model of the declarations these fully qualified names name. */
+  // One Model of the declarations these fully qualified names name.
   case Roots(roots: Seq[String])
 
-  /** Every IR file the lifted sources declare with `irFile`, or the ones named. */
+  // Every IR file the lifted sources declare with `irFile`, or the ones named.
   case IrFiles(names: Seq[String])
 
 class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
-  /** The Model of each IR file lifted, by the file's name; a lift of roots has one, named "". */
+  // The Model of each IR file lifted, by the file's name; a lift of roots has one, named "".
   val models = mutable.LinkedHashMap.empty[String, ir.Model]
 
-  /** The law sidecar of each IR file lifted that declares capabilities, by the file's name. */
+  // The law sidecar of each IR file lifted that declares capabilities, by the file's name.
   val sidecars = mutable.LinkedHashMap.empty[String, org.json4s.JValue]
 
-  /** Every refusal, with the IR file it was lifting: "" for a lift of roots, or for none. */
+  // Every refusal, with the IR file it was lifting: "" for a lift of roots, or for none.
   val errors = mutable.ArrayBuffer.empty[(String, LiftError)]
 
-  /** What each negative control of every file lifted asks of the run's Queries. */
+  // What each negative control of every file lifted asks of the run's Queries.
   private val refutations = mutable.ArrayBuffer.empty[Refutation]
 
   // A lift error is kept rather than thrown through the compiler, which would report it as a crash.
@@ -135,15 +134,13 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
     )
     for laws <- lawSidecar(ctx) do sidecars(file) = laws
 
-/**
- * The refusal of two declarations of one package that derive one ID across the IR files of a run:
- * two machines or compositions of one name (`<family>.target.<name>`), or two Queries of one name
- * (`<family>.query.<name>`), the family the package their machine is declared in. Scala names no
- * two declarations alike, but these IDs are derived from names, so two files of one package may
- * declare `completion` twice, and one shared `def` may build `query("completion")` over two
- * machines of one package. One declaration lifted into several files is one: the same position
- * over the same machine.
- */
+// The refusal of two declarations of one package that derive one ID across the IR files of a run:
+// two machines or compositions of one name (`<family>.target.<name>`), or two Queries of one name
+// (`<family>.query.<name>`), the family the package their machine is declared in. Scala names no
+// two declarations alike, but these IDs are derived from names, so two files of one package may
+// declare `completion` twice, and one shared `def` may build `query("completion")` over two
+// machines of one package. One declaration lifted into several files is one: the same position
+// over the same machine.
 private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftError] =
   def at(p: Option[ir.Position]) = p.fold("")(p => s"${p.file}:${p.line}")
   // Each derived ID with the declaration that derives it: its position and what it is over.
@@ -177,11 +174,9 @@ private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftErro
         case _ => Nil
     }
 
-/**
- * `lift <model.jar> <classpath file> <out.json> <source prefix> <root>...`: lift the machines named
- * by the roots, the fully qualified names of their `val`s, from the Temporal Models in the jar. The
- * prefix turns the sources' build-relative paths into repository-relative ones.
- */
+// `lift <model.jar> <classpath file> <out.json> <source prefix> <root>...`: lift the machines named
+// by the roots, the fully qualified names of their `val`s, from the Temporal Models in the jar. The
+// prefix turns the sources' build-relative paths into repository-relative ones.
 // `lift <jar=prefix>,... <classpath file> <out.json> <root>...` reads several jars, each with the
 // prefix of its own sources. Either way a root may also name a composition, a Query, a list of Queries
 // or a progress claim; every jar's TASTy but the framework's is read; and every root is lifted and
@@ -264,10 +259,10 @@ private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftErro
       for (file, laws) <- lifter.sidecars do
         Files.writeString(directory.resolve(s"$file.laws.json"), json(laws))
 
-/** Whether a jar entry is of the lifted sources: a Model's, never the framework's. */
+// Whether a jar entry is of the lifted sources: a Model's, never the framework's.
 private def lifted(entry: String): Boolean = !entry.startsWith("umpire/")
 
-/** Jackson's indented layout, with a field's value after `": "` as ProtoJSON is usually written. */
+// Jackson's indented layout, with a field's value after `": "` as ProtoJSON is usually written.
 final private class Pretty extends DefaultPrettyPrinter:
   override def createInstance(): DefaultPrettyPrinter = Pretty()
   override def writeObjectFieldValueSeparator(g: JsonGenerator): Unit = g.writeRaw(": ")

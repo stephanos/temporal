@@ -21,10 +21,10 @@ private def realizing(hint: Visibility) = temporalRealization(
 private val METHOD_DESCRIBE_NOTHING =
   METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
 
-/** A write no generated constant declares. */
+// A write no generated constant declares.
 val builtWrite: Realization =
   realizing(METHOD_DESCRIBE_NOTHING.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce))
 
-/** A read no generated constant declares. */
+// A read no generated constant declares.
 val builtRead: Realization =
   realizing(METHOD_START_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_NOTHING, Visible.atOnce))

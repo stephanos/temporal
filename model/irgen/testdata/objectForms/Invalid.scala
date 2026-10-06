@@ -27,24 +27,24 @@ object Lit extends Machine[Bulb, Outcome, Nothing]:
   object rules extends Rules(_.glow):
     on(hand.push)(in(Glow.dim) ~> effects.brighten)
 
-/** No init. */
+// No init.
 object Unstarted extends Machine[Bulb, Outcome, Nothing]:
   def end(s: Bulb) = true
   object rules extends Rules:
     on(hand.push)(always ~> Lit.effects.brighten)
 
-/** No end. */
+// No end.
 object Endless extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   object rules extends Rules:
     on(hand.push)(always ~> Lit.effects.brighten)
 
-/** No rules. */
+// No rules.
 object Ruleless extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
 
-/** A derived machine with rules of its own: its rules are its derivation's. */
+// A derived machine with rules of its own: its rules are its derivation's.
 object Overruled extends Derived(Lit.restrict(hand.push)):
   object rules extends Rules:
     on(hand.push)(always ~> Lit.effects.brighten)

@@ -12,15 +12,15 @@ enum Outcome derives Finite:
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-/** Where the counted run is. */
+// Where the counted run is.
 enum Stage derives Finite:
   case unstarted, scheduled, backingOff, started, completed
 
-/** Whether a start sets a deadline. */
+// Whether a start sets a deadline.
 enum Deadline derives Finite:
   case unset, expires
 
-/** The worker's answer: its first value, the default, is `completed`. */
+// The worker's answer: its first value, the default, is `completed`.
 enum Answer derives Finite:
   case completed
   case failed(retryable: Boolean)
@@ -45,10 +45,8 @@ val respond = action(Actor("worker")).input(answer).input(urgent)
 // Reports results by name: the IR keeps the text, and no `Delivery` enum is declared.
 val steer = action(Actor("caller")).input(control).results("Delivery")
 
-/**
- * Five stages, a counter of 0 to 2 bounded by its type and three deadlines: 120 states. Named apart
- * from the machine object `Counted`.
- */
+// Five stages, a counter of 0 to 2 bounded by its type and three deadlines: 120 states. Named apart
+// from the machine object `Counted`.
 final case class CountedState(
     phase: Stage,
     attempts: UpTo[2],

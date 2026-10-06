@@ -1,17 +1,16 @@
-/* How Temporal's APIs behave between calls, declared once for every Temporal realization
- * (.plans/API_BEHAVIOR_HINTS.md): when a write's effect is visible to a read, and how long each
- * kind of asynchronous cause may take. Each hint is a claim about the server and cites the code it
- * rests on; a wrong one hides a bug or wastes time, so a change to one changes its citation too.
- *
- * Only the pairs and causes an existing Query's path needs are declared. The lowering derives each
- * read's wait from them (tools/umpire/lower/waits.go): a realization writes no interval and no
- * deadline of its own.
- */
+// How Temporal's APIs behave between calls, declared once for every Temporal realization
+// (.plans/API_BEHAVIOR_HINTS.md): when a write's effect is visible to a read, and how long each
+// kind of asynchronous cause may take. Each hint is a claim about the server and cites the code it
+// rests on; a wrong one hides a bug or wastes time, so a change to one changes its citation too.
+//
+// Only the pairs and causes an existing Query's path needs are declared. The lowering derives each
+// read's wait from them (tools/umpire/lower/waits.go): a realization writes no interval and no
+// deadline of its own.
 package temporal.realize
 
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
-/** The API behavior `temporalRealization` attaches to every Temporal realization. */
+// The API behavior `temporalRealization` attaches to every Temporal realization.
 val temporalBehavior: ApiBehavior = ApiBehavior(
   visibility = Vector(
     // A start persists the new activity, scheduled, before it returns, and a describe reads that

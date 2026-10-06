@@ -7,18 +7,16 @@ import java.nio.file.attribute.FileTime
 class GateSuite extends munit.FunSuite:
   private val schemaFile = "proto/internal/temporal/server/api/umpire/v1/ir.proto"
 
-  /** What a run of the gate's command line answered: its status and what it printed. */
+  // What a run of the gate's command line answered: its status and what it printed.
   final private case class Answer(status: Int, out: String, err: String)
   private def gate(tools: => Tools, arguments: String*): Answer =
     val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
     val status = Gate.main(arguments, tools, PrintStream(out), PrintStream(err))
     Answer(status, out.toString, err.toString)
 
-  /**
-   * A repository with an IR schema and its generated Go code, and stand-ins for the tools: each
-   * records its command line in `log`, and scala-cli writes the file it is asked to package, as an
-   * executable, since one of them is protoc's plugin.
-   */
+  // A repository with an IR schema and its generated Go code, and stand-ins for the tools: each
+  // records its command line in `log`, and scala-cli writes the file it is asked to package, as an
+  // executable, since one of them is protoc's plugin.
   final private class Repository(scalaCli: String = "", go: String = passingVocabulary):
     val root: Path = Files.createTempDirectory("umpire-gate-repository")
     val log: Path = root.resolve("tools.log")
@@ -90,7 +88,9 @@ class GateSuite extends munit.FunSuite:
         Seq("--generate-ir", "--update"),
         Seq("--generate-ir", "--skip-go-checks"),
         Seq("--check-syntax", "--update"),
-        Seq("--check-syntax", "--generate-ir")
+        Seq("--check-syntax", "--generate-ir"),
+        Seq("--check-syntax", "--check-comments"),
+        Seq("--check-comments", "--update")
       )
     do assertEquals(gate(unreachable, arguments*), Answer(2, "", Gate.usage + "\n"))
 
@@ -425,7 +425,7 @@ class GateSuite extends munit.FunSuite:
       .map(file => file -> Files.readString(repository.root.resolve("model/ir").resolve(file)))
       .toMap
 
-  /** A repository whose model/ir holds every file the gate lifts, each of them stale. */
+  // A repository whose model/ir holds every file the gate lifts, each of them stale.
   private def staleRepository(): Repository =
     val repository = Repository(scalaCli = lifting)
     val ir = Files.createDirectories(repository.root.resolve("model/ir"))
@@ -478,7 +478,7 @@ class GateSuite extends munit.FunSuite:
     )
     assert(check.out.contains("== lint every IR file and print its coverage"), check.out)
 
-  /** A repository whose model/ir is current, so only the vocabulary check can stop the gate. */
+  // A repository whose model/ir is current, so only the vocabulary check can stop the gate.
   private def currentRepository(go: String): Repository =
     val repository = Repository(scalaCli = lifting, go = go)
     val ir = Files.createDirectories(repository.root.resolve("model/ir"))
@@ -644,7 +644,7 @@ class GateSuite extends munit.FunSuite:
       s"gate: java.nio.file.NoSuchFileException: ${repository.root.resolve("model/ir")}\n"
     )
 
-  /** A checked-in tree and a produced one, each with the given files. */
+  // A checked-in tree and a produced one, each with the given files.
   final private class Trees(checkedIn: Map[String, String], produced: Map[String, String]):
     val root: Path = Files.createTempDirectory("umpire-gate-trees")
     val tree: Path = Files.createDirectories(root.resolve("model/ir"))

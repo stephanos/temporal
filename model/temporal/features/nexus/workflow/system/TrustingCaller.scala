@@ -1,10 +1,9 @@
-/* The Nexus caller's control: a caller design that predicts success for a failed completion, which
- * the forged-completion Query must refuse. A subject of the System level, beside
- * system/System.scala (fn-126 decisions 16 and 22). It is the System machine without its
- * refinement, its completion forged and the caller's inspection added, declared rather than derived
- * from NexusSystem: a derivation lifts its source machines, and nexus-workflow-control.json holds this
- * machine alone.
- */
+// The Nexus caller's control: a caller design that predicts success for a failed completion, which
+// the forged-completion Query must refuse. A subject of the System level, beside
+// system/System.scala (fn-126 decisions 16 and 22). It is the System machine without its
+// refinement, its completion forged and the caller's inspection added, declared rather than derived
+// from NexusSystem: a derivation lifts its source machines, and nexus-workflow-control.json holds this
+// machine alone.
 package temporal
 package features.nexus.workflow
 package system
@@ -35,11 +34,9 @@ object TrustingCaller extends Machine[system.State, Outcome, system.Fact], Negat
   object effects:
     def inspect(s: State) = stay(s)
 
-    /**
-     * The System's completion of an operation once scheduled: not found once it is over, and
-     * resolved while it runs. One effect rather than two rules, because the forged completion names
-     * both alternatives of a failed callback in every such phase, the not-found ones included.
-     */
+    // The System's completion of an operation once scheduled: not found once it is over, and
+    // resolved while it runs. One effect rather than two rules, because the forged completion names
+    // both alternatives of a failed callback in every such phase, the not-found ones included.
     def settle(s: State, resolution: Resolution) =
       if NexusSystem.states.terminalPhase(s.phase) then NexusSystem.effects.notFound(s)
       else NexusSystem.effects.complete(s, resolution)
@@ -77,9 +74,7 @@ object TrustingCaller extends Machine[system.State, Outcome, system.Fact], Negat
     }
 
   object properties:
-    /**
-     * A failed completion is recorded as completed: what the control predicts and no runtime sends.
-     */
+    // A failed completion is recorded as completed: what the control predicts and no runtime sends.
     val forgedSuccess = property when handler.complete(Resolution.failed) holds
       (_.records(Fact.nexusOperationCompleted))
 
@@ -92,10 +87,8 @@ object TrustingCaller extends Machine[system.State, Outcome, system.Fact], Negat
       handler.complete(Resolution.failed)
     )
 
-    /**
-     * The forged control, which every modeled execution that explains the evidence refutes, on a
-     * path that inspects the operation around a failed completion.
-     */
+    // The forged control, which every modeled execution that explains the evidence refutes, on a
+    // path that inspects the operation around a failed completion.
     val forgedCompletion =
       (query find properties.forgedSuccess in inspectedFailure limits control)
         .expect(

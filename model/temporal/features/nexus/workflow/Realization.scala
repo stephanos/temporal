@@ -1,18 +1,17 @@
-/* The Nexus caller-side realization: what a Case does to a deployment to take the path a Query
- * found.
- *
- * A controller-started workflow schedules one Nexus operation on the Case's endpoint role; the
- * handler answers it, and the controller completes it when the handler answered asynchronously; the
- * controller reads the history the Case's evidence is lifted from. The realization writes no
- * Program: it declares that scaffolding once and binds each action class of a Model to the
- * instruction that performs it, so the producer puts those instructions where a Query's path took
- * them.
- *
- * The roles, bindings, correlation window, correlated record and run records are the Temporal kit's
- * (temporal/realize). Everything below is a declaration the lifter emits into the IR, each referring
- * to the others by value; Go lowers a Query's witness through it into a Testpilot Case
- * (tools/umpire/lower).
- */
+// The Nexus caller-side realization: what a Case does to a deployment to take the path a Query
+// found.
+//
+// A controller-started workflow schedules one Nexus operation on the Case's endpoint role; the
+// handler answers it, and the controller completes it when the handler answered asynchronously; the
+// controller reads the history the Case's evidence is lifted from. The realization writes no
+// Program: it declares that scaffolding once and binds each action class of a Model to the
+// instruction that performs it, so the producer puts those instructions where a Query's path took
+// them.
+//
+// The roles, bindings, correlation window, correlated record and run records are the Temporal kit's
+// (temporal/realize). Everything below is a declaration the lifter emits into the IR, each referring
+// to the others by value; Go lowers a Query's witness through it into a Testpilot Case
+// (tools/umpire/lower).
 package temporal
 package features.nexus.workflow
 
@@ -69,7 +68,7 @@ object NexusRealization:
   // The scheduled event is read out of history as soon as it exists, the other events of the
   // operation once the workflow has closed, and the attempt count from the pending operation.
 
-  /** Every event the history command reads, recorded as the protobuf it is. */
+  // Every event the history command reads, recorded as the protobuf it is.
   private val historyEvent = Observed[HistoryEvent]("history-event")
 
   private val historyEvents = Field[GetWorkflowExecutionHistoryResponse, Seq[HistoryEvent]](
@@ -85,11 +84,9 @@ object NexusRealization:
     commitment = Commitment.reported
   )
 
-  /**
-   * One history event kind of the operation, keyed by the scheduled event it answers. The history is
-   * read once the workflow has closed, when it holds every event the operation will ever have, so the
-   * kind is exhaustive and that read closes it.
-   */
+  // One history event kind of the operation, keyed by the scheduled event it answers. The history is
+  // read once the workflow has closed, when it holds every event the operation will ever have, so the
+  // kind is exhaustive and that read closes it.
   private def historyKind[Attributes](
       kind: String,
       records: Fact,
@@ -152,10 +149,10 @@ object NexusRealization:
 
   // ### The controller's commands
 
-  /** The handler's worker stops polling its own queue, so the caller workflow keeps running. */
+  // The handler's worker stops polling its own queue, so the caller workflow keeps running.
   private val stopHandlerWorker = Fault(handlerTaskQueue, FaultKind.workerStop)
 
-  /** Each Case starts a workflow type of its own, so two Cases on one worker never share one. */
+  // Each Case starts a workflow type of its own, so two Cases on one worker never share one.
   private val workflowType = perCase("workflow")
 
   private val startWorkflow =
@@ -167,7 +164,7 @@ object NexusRealization:
       field(_.requestId) := run
     }
 
-  /** Polls the history for the scheduled event, run until the event exists. */
+  // Polls the history for the scheduled event, run until the event exists.
   private val awaitScheduled = await(scheduled, workflowService)(
     Condition.present(
       Field[HistoryEvent, Option[NexusOperationScheduledEventAttributes]](
@@ -179,7 +176,7 @@ object NexusRealization:
     field(_.getExecution.workflowId) := run
   }
 
-  /** Polls the pending operation until its first attempt has failed. */
+  // Polls the pending operation until its first attempt has failed.
   private val pendingAttempts = await(pending, workflowService)(
     Condition.equal(Field[PendingNexusOperationInfo, Int](_.attempt), Operand.integer(1))
   ) {
@@ -187,12 +184,12 @@ object NexusRealization:
     field(_.getExecution.workflowId) := run
   }
 
-  /** The handle an asynchronous reply publishes and a completion reads. */
+  // The handle an asynchronous reply publishes and a completion reads.
   private val completionAuthority = Learned("completion-authority", LearnedKind.handle)
 
   private val awaitCompletionAuthority = AwaitLearned(completionAuthority.id)
 
-  /** A JSON payload of one string, as the SDK's default data converter encodes it. */
+  // A JSON payload of one string, as the SDK's default data converter encodes it.
   private def textPayload(value: String) =
     Proto[Payload](
       ProtoField.typed(
@@ -205,7 +202,7 @@ object NexusRealization:
       )
     )
 
-  /** The failure a failed reply or completion carries. */
+  // The failure a failed reply or completion carries.
   private val handlerFailure = Proto[ApiFailure](
     ProtoField.typed(Field[ApiFailure, String](_.message), ProtoValue.text("operation failed")),
     ProtoField.typed(
@@ -229,7 +226,7 @@ object NexusRealization:
     NexusCompletion(completionAuthority.id, textPayload("completed"))
   private val failNexusOperation = NexusCompletion(completionAuthority.id, handlerFailure)
 
-  /** Resolves only once the workflow closes, so a read placed after it observes the whole history. */
+  // Resolves only once the workflow closes, so a read placed after it observes the whole history.
   private val awaitClose =
     rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY) {
       field(_.namespace) := workerNamespace
@@ -240,12 +237,10 @@ object NexusRealization:
         Operand.enumValue(HistoryEventFilterType.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT)
     }
 
-  /**
-   * Lifts the history kinds among the resolved rules; a path that records none lifts nothing,
-   * because a lift with no rule is a Case preparation rejects. It runs after the workflow closed, so
-   * it is the closing read of every history kind. A call's scope assigns its request and reads
-   * nothing back, so this call, which reads its response, is written in the core form.
-   */
+  // Lifts the history kinds among the resolved rules; a path that records none lifts nothing,
+  // because a lift with no rule is a Case preparation rejects. It runs after the workflow closed, so
+  // it is the closing read of every history kind. A call's scope assigns its request and reads
+  // nothing back, so this call, which reads its response, is written in the core form.
   private val history = command(
     Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
       Vector(
@@ -277,7 +272,7 @@ object NexusRealization:
     closes = Vector(started, completed, failed, canceled, timedOut)
   )
 
-  /** Only the forged control's path inspects the workflow. */
+  // Only the forged control's path inspects the workflow.
   private val inspectWorkflow =
     rpc(workflowService, WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION) {
       field(_.namespace) := workerNamespace
@@ -313,7 +308,7 @@ object NexusRealization:
 
   // ### The workflow
 
-  /** The service and operation the handler script answers, which the schedule command names. */
+  // The service and operation the handler script answers, which the schedule command names.
   private val service = "umpire.case.service"
   private val operation = "complete"
 
@@ -336,11 +331,9 @@ object NexusRealization:
     )
   )
 
-  /**
-   * The schedule command, setting the deadlines one class of the schedule action sets. Every class
-   * performs the one command, so the await names one: its id is written out, and each class's
-   * deadlines are written where the class binds the command.
-   */
+  // The schedule command, setting the deadlines one class of the schedule action sets. Every class
+  // performs the one command, so the await names one: its id is written out, and each class's
+  // deadlines are written where the class binds the command.
   private def scheduling(deadlines: TypedProtoField[ScheduleNexusOperationCommandAttributes, ?]*) =
     Command(
       "start-nexus-operation",
@@ -364,7 +357,7 @@ object NexusRealization:
 
   private val startNexusOperation = scheduling()
 
-  /** The duration a deadline a path sets realizes as; the backoff is the server's own. */
+  // The duration a deadline a path sets realizes as; the backoff is the server's own.
   private val requestDeadline =
     ProtoValue.message(
       Proto[Duration](
@@ -488,11 +481,9 @@ object NexusRealization:
       )
     )
 
-  /**
-   * One Nexus operation scheduled by a controller-started workflow and answered by a handler inside
-   * the Case's own worker, named after the val that declares it. `steps` are the forged control's
-   * own, after the scheduled event.
-   */
+  // One Nexus operation scheduled by a controller-started workflow and answered by a handler inside
+  // the Case's own worker, named after the val that declares it. `steps` are the forged control's
+  // own, after the scheduled event.
   private def realization(
       machine: Machine[
         system.State,

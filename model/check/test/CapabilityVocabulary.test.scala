@@ -3,11 +3,9 @@ package umpire.check
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 
-/**
- * The framework and the lifter keep the capability mechanism and name no capability of a feature
- * kit's (fn-122.8): Temporal's kinds, their laws and their catalog live in
- * model/temporal/capabilities. The lifter's fixtures, which lift Temporal's laws, are not its sources.
- */
+// The framework and the lifter keep the capability mechanism and name no capability of a feature
+// kit's (fn-122.8): Temporal's kinds, their laws and their catalog live in
+// model/temporal/capabilities. The lifter's fixtures, which lift Temporal's laws, are not its sources.
 class CapabilityVocabularySuite extends munit.FunSuite:
   private val kinds =
     Seq("Closable", "Terminable", "Pausable", "Cancelable", "Pollable", "Describable")

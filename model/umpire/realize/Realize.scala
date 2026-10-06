@@ -1,19 +1,18 @@
-/* What a Model says about running its Queries against a system: the roles a run addresses, the
- * values it learns, what it observes and reads as evidence, the controls it needs, and the scripts
- * its controller and the system's own activations follow.
- *
- * These are declarations and nothing else. No code here builds a Case: the lifter emits a
- * declaration into the IR as written, each class by its simple name and each parameter by its own,
- * and Go lowers one Query's witness through it (model/SEMANTICS.md, Realizations). A default
- * is therefore always the empty value, which the IR leaves unset.
- *
- * Nothing here is particular to one system. What a system has of its own (the roles it addresses
- * and their kinds, who runs a script beside the controller, the instructions only it carries out,
- * the records only it keeps, the settings it runs under, how its calls behave between each other and
- * which steps it takes on its own) its realization kit declares, by extending the open traits
- * `Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`, `Behavior` and `SystemStep`. The
- * lifter reads a kit's classes by name, as it reads these.
- */
+// What a Model says about running its Queries against a system: the roles a run addresses, the
+// values it learns, what it observes and reads as evidence, the controls it needs, and the scripts
+// its controller and the system's own activations follow.
+//
+// These are declarations and nothing else. No code here builds a Case: the lifter emits a
+// declaration into the IR as written, each class by its simple name and each parameter by its own,
+// and Go lowers one Query's witness through it (model/SEMANTICS.md, Realizations). A default
+// is therefore always the empty value, which the IR leaves unset.
+//
+// Nothing here is particular to one system. What a system has of its own (the roles it addresses
+// and their kinds, who runs a script beside the controller, the instructions only it carries out,
+// the records only it keeps, the settings it runs under, how its calls behave between each other and
+// which steps it takes on its own) its realization kit declares, by extending the open traits
+// `Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`, `Behavior` and `SystemStep`. The
+// lifter reads a kit's classes by name, as it reads these.
 package umpire.realize
 
 import io.grpc.MethodDescriptor
@@ -23,19 +22,15 @@ import scala.util.NotGiven
 import com.google.protobuf.ByteString
 import umpire.{Channel, ClassRef, Machine, Monitor}
 
-/**
- * The root of the Definition IDs a realization declares, such as its evidence's,
- * `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR
- * generator writes in its place wherever a realization's declarations reach it, through the
- * functions of a realization kit shared by several features too. Nobody writes it: a declaration's
- * package is where its IDs come from. Nothing reads it at run time, where it is empty.
- */
+// The root of the Definition IDs a realization declares, such as its evidence's,
+// `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR
+// generator writes in its place wherever a realization's declarations reach it, through the
+// functions of a realization kit shared by several features too. Nobody writes it: a declaration's
+// package is where its IDs come from. Nothing reads it at run time, where it is empty.
 val family: String = ""
 
-/**
- * How the find Queries of one machine run against a system. Declared with named arguments and no
- * `name`, it is named after the `val` that declares it.
- */
+// How the find Queries of one machine run against a system. Declared with named arguments and no
+// `name`, it is named after the `val` that declares it.
 final case class Realization(
     name: String = "",
     machine: Machine[?, ?, ?],
@@ -54,44 +49,36 @@ final case class Realization(
     serverSteps: Vector[SystemStep] = Vector.empty
 )
 
-/**
- * A setting the realized system must run under, such as the flag that enables a feature, as the
- * system's kit declares one. A Case lowered through the realization carries it, and preparation
- * refuses an environment that sets it otherwise.
- */
+// A setting the realized system must run under, such as the flag that enables a feature, as the
+// system's kit declares one. A Case lowered through the realization carries it, and preparation
+// refuses an environment that sets it otherwise.
 trait Setting
 
-/**
- * How the realized system's calls behave between each other, as the system's kit declares it once
- * for every realization of the system: when a call's effect is visible to a later read, and how long
- * what a read waits for may take. It shapes how long and how often a Case waits, and never what a
- * Model says, what a Property checks or what a Contract asserts.
- */
+// How the realized system's calls behave between each other, as the system's kit declares it once
+// for every realization of the system: when a call's effect is visible to a later read, and how long
+// what a read waits for may take. It shapes how long and how often a Case waits, and never what a
+// Model says, what a Property checks or what a Contract asserts.
 trait Behavior
 
-/**
- * A step of the machine the realized system takes on its own: no command of a script performs it,
- * and the declaration says what kind of cause it is, so a read that waits for it has a bound.
- */
+// A step of the machine the realized system takes on its own: no command of a script performs it,
+// and the declaration says what kind of cause it is, so a read that waits for it has a bound.
 trait SystemStep
 
-/**
- * A symbolic participant commands, activations and controls address, named by its `id`. The
- * system's kit declares its roles, with the kinds and the environment bindings its system has.
- */
+// A symbolic participant commands, activations and controls address, named by its `id`. The
+// system's kit declares its roles, with the kinds and the environment bindings its system has.
 trait Addressee:
   def id: String
 
 enum LearnedKind:
   case text
 
-  /** An effect handle the system issues, which only the command that completes the effect reads. */
+  // An effect handle the system issues, which only the command that completes the effect reads.
   case handle
 
-/** A value a run learns: bound once, by one command, and read by the commands that depend on it. */
+// A value a run learns: bound once, by one command, and read by the commands that depend on it.
 final case class Learned(id: String, kind: LearnedKind)
 
-/** A typed value a run records for its checks: one protobuf message, by its full name. */
+// A typed value a run records for its checks: one protobuf message, by its full name.
 final class Observed private[realize] (val id: String, val message: String)
 
 object Observed:
@@ -99,14 +86,12 @@ object Observed:
       companion: GeneratedMessageCompanion[Message]
   ): Observed = new Observed(id, companion.scalaDescriptor.fullName)
 
-/**
- * Where one kind of evidence is recorded: in the response of a read, in the Run's own record, or in
- * a record of the system's that its kit declares.
- */
+// Where one kind of evidence is recorded: in the response of a read, in the Run's own record, or in
+// a record of the system's that its kit declares.
 trait Recorded
 
 object Recorded:
-  /** The elements of the repeated field selected in the response of a unary method. */
+  // The elements of the repeated field selected in the response of a unary method.
   final case class TypedRead[
       Req <: GeneratedMessage,
       Rsp <: GeneratedMessage,
@@ -116,7 +101,7 @@ object Recorded:
       path: Field[Rsp, Seq[Projected]]
   ) extends Recorded
 
-  /** The one message selected in the response of a unary method. */
+  // The one message selected in the response of a unary method.
   final case class TypedSingle[
       Req <: GeneratedMessage,
       Rsp <: GeneratedMessage,
@@ -126,16 +111,14 @@ object Recorded:
       path: Field[Rsp, Projected]
   ) extends Recorded
 
-  /**
-   * The Run's own record of the events of one kind that one command of a script records, where
-   * `guard` holds of the event's payload, its instruction outcome. `key` names the operation an event
-   * is of: the run's own id, or a path of the payload.
-   *
-   * `attempt` says the events are the record of one attempt a script's activation is delivered, and
-   * a `diagnostic` always names one. A Run records an attempt once it is answered, so the evidence
-   * reaches the Run with that answer and not with the carrying command, as the events that record
-   * the attempt of that number.
-   */
+  // The Run's own record of the events of one kind that one command of a script records, where
+  // `guard` holds of the event's payload, its instruction outcome. `key` names the operation an event
+  // is of: the run's own id, or a path of the payload.
+  //
+  // `attempt` says the events are the record of one attempt a script's activation is delivered, and
+  // a `diagnostic` always names one. A Run records an attempt once it is answered, so the evidence
+  // reaches the Run with that answer and not with the carrying command, as the events that record
+  // the attempt of that number.
   final case class TypedRunEvent[Root <: GeneratedMessage](
       kind: EventKind,
       script: String | Script,
@@ -177,40 +160,36 @@ object Recorded:
       Recorded.TypedRunEvent(kind, script, command, key, guard, attempt)
     )
 
-/**
- * One attempt of what one script's activation runs: the `number`-th delivery of it, counted from
- * one, as the system numbers attempts.
- */
+// One attempt of what one script's activation runs: the `number`-th delivery of it, counted from
+// one, as the system numbers attempts.
 final case class AttemptOf(script: String | Script, number: Long)
 
-/** The kinds of Run Event that carry an instruction outcome. */
+// The kinds of Run Event that carry an instruction outcome.
 enum EventKind:
-  /** The command's own completion. */
+  // The command's own completion.
   case instructionCompleted
   case instructionTimedOut
 
-  /** What the system reports of an activation the command carries, such as one attempt of it. */
+  // What the system reports of an activation the command carries, such as one attempt of it.
   case diagnostic
 
-/** What evidence commits to: what a caller was told, or a durable commit of the receiver. */
+// What evidence commits to: what a caller was told, or a durable commit of the receiver.
 enum Commitment:
   case reported, durable
 
-/** The identity a field of evidence names. */
+// The identity a field of evidence names.
 enum FieldRole:
-  /** The logical operation, as the kind's operation key names it. */
+  // The logical operation, as the kind's operation key names it.
   case operation
 
-  /** The execution attempt the fact belongs to. */
+  // The execution attempt the fact belongs to.
   case attempt
 
-  /** The delivery the fact belongs to. */
+  // The delivery the fact belongs to.
   case delivery
 
-/**
- * One field evidence carries, read at `path` in the recorded data. A field with a role names an
- * identity a check compares; a redacted field is carried without its value, and so names none.
- */
+// One field evidence carries, read at `path` in the recorded data. A field with a role names an
+// identity a check compares; a redacted field is carried without its value, and so names none.
 final class EvidenceField private[realize] (
     val id: String,
     val path: String,
@@ -218,22 +197,20 @@ final class EvidenceField private[realize] (
     val redacted: Boolean = false
 )
 
-/** One step of a path: the `occurrence`-th step, counted from one, of a class. */
+// One step of a path: the `occurrence`-th step, counted from one, of a class.
 final case class Taking(step: ClassRef, occurrence: Long)
 
-/**
- * One kind of evidence: the recorded data that confirms the facts the machine's evidence function
- * names `records`, and the field that keys it to its operation, which a Run Event's evidence leaves
- * empty, since its source's key names the operation. An `exhaustive` kind's source reports
- * every occurrence of those facts for the operations its closing read covers, the read of the command
- * that names the kind in `closes`; only then does a fact nothing reports count as one that did not
- * happen.
- *
- * A kind confirms the one step of a path that records its fact. Where steps of several classes
- * record one fact, or a path takes one class more than once, each such step has evidence of its own:
- * a kind that names the steps it `confirms` is evidence of those and of no other, all of them by one
- * piece of evidence, and several such kinds may record one fact.
- */
+// One kind of evidence: the recorded data that confirms the facts the machine's evidence function
+// names `records`, and the field that keys it to its operation, which a Run Event's evidence leaves
+// empty, since its source's key names the operation. An `exhaustive` kind's source reports
+// every occurrence of those facts for the operations its closing read covers, the read of the command
+// that names the kind in `closes`; only then does a fact nothing reports count as one that did not
+// happen.
+//
+// A kind confirms the one step of a path that records its fact. Where steps of several classes
+// record one fact, or a path takes one class more than once, each such step has evidence of its own:
+// a kind that names the steps it `confirms` is evidence of those and of no other, all of them by one
+// piece of evidence, and several such kinds may record one fact.
 final class Evidence private[realize] (
     val id: String,
     val records: Fact,
@@ -275,10 +252,8 @@ object Evidence:
       fields
     )
 
-  /**
-   * Evidence recorded where the system's kit says, `from`, keyed to its operation by the field
-   * `operation` of the recorded message.
-   */
+  // Evidence recorded where the system's kit says, `from`, keyed to its operation by the field
+  // `operation` of the recorded message.
   def keyed[Root <: GeneratedMessage](
       id: String,
       records: Fact,
@@ -330,7 +305,7 @@ object Evidence:
     fields
   )
 
-/** How a run's evidence is keyed into operations, and the window a check of it keeps. */
+// How a run's evidence is keyed into operations, and the window a check of it keeps.
 final case class Correlation(
     projection: String,
     run: String,
@@ -345,60 +320,50 @@ final case class Correlation(
 )
 
 enum ControlKind:
-  /** Holds a channel's deliveries until a command releases them. */
+  // Holds a channel's deliveries until a command releases them.
   case HoldDelivery(channel: Channel[?])
 
-  /**
-   * Holds what a step of the class dispatches until a command releases it: the step has sent its
-   * message, and nothing has delivered it.
-   */
+  // Holds what a step of the class dispatches until a command releases it: the step has sent its
+  // message, and nothing has delivered it.
   case HoldDispatched(step: ClassRef)
 
-/**
- * An actuator a run needs beyond its commands, which the IR calls a control. `role` is the role
- * whose deliveries a run holds: a run reaches the channel through the deliveries of that role. It is
- * not named `Control`, a word Models take for their own actions' inputs.
- */
+// An actuator a run needs beyond its commands, which the IR calls a control. `role` is the role
+// whose deliveries a run holds: a run reaches the channel through the deliveries of that role. It is
+// not named `Control`, a word Models take for their own actions' inputs.
 final case class Actuator(id: String, kind: ControlKind, role: String | Addressee = "")
 
-/**
- * A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is
- * set, then the suffix.
- */
+// A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is
+// set, then the suffix.
 final case class Name(prefix: String, fixture: Boolean = false, suffix: String = "")
 
-/** Who runs a script: the controller, or an activation of the system its kit declares. */
+// Who runs a script: the controller, or an activation of the system its kit declares.
 trait Activation
 
 object Activation:
-  /** The run's own controller, which makes a Case's calls and works its controls. */
+  // The run's own controller, which makes a Case's calls and works its controls.
   case object Controller extends Activation
 
-/** One ordered list of commands and who runs it. */
+// One ordered list of commands and who runs it.
 final case class Script(id: String, activation: Activation, items: Vector[Item])
 
-/**
- * One item of a script: a command every Case carries, a command only the Cases whose path performs
- * one of the `when` classes carry, or the place the path's steps of the classes `performs` binds
- * land, in path order.
- */
+// One item of a script: a command every Case carries, a command only the Cases whose path performs
+// one of the `when` classes carry, or the place the path's steps of the classes `performs` binds
+// land, in path order.
 final case class Item(
     command: Option[Command] = None,
     when: Vector[ClassRef] = Vector.empty,
     performs: Vector[Performance] = Vector.empty
 )
 
-/** The command that performs one class of an action. */
+// The command that performs one class of an action.
 final case class Performance(step: ClassRef, command: Command)
 
-/** The commands of its script a command runs after. */
+// The commands of its script a command runs after.
 final case class After(commands: String*)
 
-/**
- * One command of a script. Without `after` it runs after the command before it; `regardless` runs
- * it whatever became of the commands it runs after. `closes` names the exhaustive kinds of evidence
- * its read is the closing read of.
- */
+// One command of a script. Without `after` it runs after the command before it; `regardless` runs
+// it whatever became of the commands it runs after. `closes` names the exhaustive kinds of evidence
+// its read is the closing read of.
 final case class Command(
     id: String,
     instruction: Instruction,
@@ -411,17 +376,17 @@ final case class Command(
 enum Cardinality:
   case one
 
-  /** One value per element of a repeated path. */
+  // One value per element of a repeated path.
   case each
 
-/** Where a read value goes. */
+// Where a read value goes.
 enum Target:
   case Observe(observation: String)
 
-  /** Binds a learned value. */
+  // Binds a learned value.
   case Bind(learned: String)
 
-  /** Lifts the evidence kinds the read confirms into an observation. */
+  // Lifts the evidence kinds the read confirms into an observation.
   case Lift(observation: String)
 
 object Assignment:
@@ -448,11 +413,11 @@ object ResponseRead:
   ): TypedResponseRead[Root, Value] =
     TypedResponseRead(path, cardinality, targets)
 
-/** What a command does: one of the instructions below, or one the system's kit declares. */
+// What a command does: one of the instructions below, or one the system's kit declares.
 trait Instruction
 
 object Instruction:
-  /** A unary call on an endpoint role. */
+  // A unary call on an endpoint role.
   final case class TypedRpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
       role: String | Addressee,
       method: MethodDescriptor[Req, Rsp],
@@ -460,7 +425,7 @@ object Instruction:
       reads: Vector[TypedResponseRead[Rsp, ?]]
   ) extends Instruction
 
-  /** Polls the read an evidence kind names until an element satisfies `until`. */
+  // Polls the read an evidence kind names until an element satisfies `until`.
   final case class TypedPoll[Req, Projected](
       evidence: EvidenceRef[Req, Projected],
       role: String | Addressee,
@@ -470,10 +435,10 @@ object Instruction:
   ) extends Instruction
   final case class AwaitLearned(learned: String) extends Instruction
 
-  /** Waits for the operation an earlier command of the script started. */
+  // Waits for the operation an earlier command of the script started.
   final case class AwaitCommand(command: String) extends Instruction
 
-  /** Completes the activation the script runs in with a result. */
+  // Completes the activation the script runs in with a result.
   final case class Finish(result: Operand) extends Instruction
   final case class Hold(control: String | Actuator) extends Instruction
   final case class Release(control: String | Actuator) extends Instruction
@@ -492,16 +457,16 @@ object Instruction:
       intervalMs: Long = 0
   ): Instruction = TypedPoll(evidence, role, assign, until, intervalMs)
 
-/** A value a command computes when it runs. */
+// A value a command computes when it runs.
 enum Operand:
   case Literal(value: ProtoValue)
   case Environment(binding: String)
 
-  /** The run's own id. */
+  // The run's own id.
   case Run
   case LearnedValue(learned: String)
 
-  /** The value a poll is looking at, or the payload a Run Event's guard and key read. */
+  // The value a poll is looking at, or the payload a Run Event's guard and key read.
   case Projected
 
 object Operand:
@@ -539,10 +504,8 @@ object Operand:
         case Operand.Projected => new ProjectedOrigin(Operand.Projected)
         case _                 => error("only Operand.Projected has a dynamic message root")
 
-/**
- * A protobuf message written out: its generated type and the fields it sets. A field it does not
- * name stays unset.
- */
+// A protobuf message written out: its generated type and the fields it sets. A field it does not
+// name stays unset.
 object Proto:
   def apply[Message <: GeneratedMessage](
       fields: TypedProtoField[Message, ?]*
@@ -564,10 +527,10 @@ enum ProtoValue:
   case Number(number: Long)
   private[realize] case EnumName(name: String)
 
-  /** Bytes, as the UTF-8 text they encode. */
+  // Bytes, as the UTF-8 text they encode.
   case Utf8(text: String)
 
-  /** A role, where a field names the role a run resolves. */
+  // A role, where a field names the role a run resolves.
   case RoleId(role: String)
   case Named(name: Name)
 
@@ -593,14 +556,12 @@ object ProtoValue:
   )
   def named(value: Name): TypedProtoValue[String] = new TypedProtoValue(Named(value))
 
-/**
- * The assessment a completed live Run must support, independently of the model-search answer: the
- * model assessment's conformance and the Property's outcome, the Contract's Verdict, how the Run
- * ends and how its cleanup ends. Each is declared, none defaulted, so a generated Case's check
- * compares what the Model says and infers nothing. An outcome short of satisfied names its `reason`,
- * the judge's own; a satisfied one names none. Conformance short of conformant names its
- * `conformanceReason` the same way, and conformant names none.
- */
+// The assessment a completed live Run must support, independently of the model-search answer: the
+// model assessment's conformance and the Property's outcome, the Contract's Verdict, how the Run
+// ends and how its cleanup ends. Each is declared, none defaulted, so a generated Case's check
+// compares what the Model says and infers nothing. An outcome short of satisfied names its `reason`,
+// the judge's own; a satisfied one names none. Conformance short of conformant names its
+// `conformanceReason` the same way, and conformant names none.
 final case class RunExpectation(
     conformance: Conformance,
     property: PropertyOutcome,
@@ -618,31 +579,27 @@ enum Conformance:
 enum PropertyOutcome:
   case satisfied, violated, inconclusive
 
-/** How a Run ends: it completes, its Contract's monitor stops it, or it does not close complete. */
+// How a Run ends: it completes, its Contract's monitor stops it, or it does not close complete.
 enum Disposition:
   case completed, stoppedByMonitor, incomplete
 
-/** How a Run's cleanup ends. */
+// How a Run's cleanup ends.
 enum Cleanup:
   case succeeded, failed, timedOut
 
-/**
- * Why the model assessment leaves an outcome short of satisfied, or conformance short of
- * conformant, by the judge's id: no evidence of the machine, a Run that did not close complete, a
- * hole of the Model in reach, evidence no modeled execution explains, explaining executions that
- * disagree on the claim, one that never reaches the claim's evaluation point, one the claim cannot
- * be read on, or every one violating it. The judge owns each reason's wording
- * (tools/umpire/conformance/conclude.go).
- */
+// Why the model assessment leaves an outcome short of satisfied, or conformance short of
+// conformant, by the judge's id: no evidence of the machine, a Run that did not close complete, a
+// hole of the Model in reach, evidence no modeled execution explains, explaining executions that
+// disagree on the claim, one that never reaches the claim's evaluation point, one the claim cannot
+// be read on, or every one violating it. The judge owns each reason's wording
+// (tools/umpire/conformance/conclude.go).
 enum Reason:
   case noEvidence, incomplete, hole, unexplained, explanationsDisagree, neverEvaluated, unreadable,
     everyExplanationViolates
 
-/**
- * The verdict a completed live Run must support for one monitor of the Query's machine, named by
- * value, `MonitorExpectation(terminalFinality, PropertyOutcome.satisfied)`, or by its name, with
- * its reason when it is not satisfied.
- */
+// The verdict a completed live Run must support for one monitor of the Query's machine, named by
+// value, `MonitorExpectation(terminalFinality, PropertyOutcome.satisfied)`, or by its name, with
+// its reason when it is not satisfied.
 final case class MonitorExpectation(
     name: String | Monitor[?, ?, ?, ?],
     outcome: PropertyOutcome,

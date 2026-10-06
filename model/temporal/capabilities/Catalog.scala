@@ -1,6 +1,5 @@
-/* The Temporal catalog: every law of this folder, keyed by the capability kinds that bring it, the
- * one catalog a Temporal Model's capability declarations read.
- */
+// The Temporal catalog: every law of this folder, keyed by the capability kinds that bring it, the
+// one catalog a Temporal Model's capability declarations read.
 package temporal.capabilities
 
 import umpire.Catalog

@@ -11,7 +11,7 @@ private[irgen] trait Declarations:
 
   // ### Declarations: actions and machines, from the framework calls that declare them
 
-  /** A call's function name and its argument lists, outermost last, through type applications. */
+  // A call's function name and its argument lists, outermost last, through type applications.
   def call(t: Term): Option[(String, List[List[Term]])] = t match
     case Apply(fn, args)  => call(fn).map((n, as) => (n, as :+ args))
     case TypeApply(fn, _) => call(fn)
@@ -22,7 +22,7 @@ private[irgen] trait Declarations:
   private val declaredActions = mutable.Map.empty[Symbol, ir.Action]
   private val resolvingActions = mutable.Set.empty[Symbol]
 
-  /** A form's entity binding keeps the action's declaration, including its ordered inputs. */
+  // A form's entity binding keeps the action's declaration, including its ordered inputs.
   private def declaredAction(ref: Term): ir.Action =
     val sym = resolveSymbol(ref)
     val d = defs.get(sym) match
@@ -60,7 +60,7 @@ private[irgen] trait Declarations:
         case _ => actions(declared.id) = declared
       declared.id
 
-  /** An action, from its declaration and the calls chained onto it; `sym` is its val. */
+  // An action, from its declaration and the calls chained onto it; `sym` is its val.
   def actionOf(id: String, sym: Symbol, chain: Term): ir.Action =
     val tokens = mutable.ArrayBuffer.empty[Option[Symbol]]
     def named(name: String): ir.Action =
@@ -100,11 +100,9 @@ private[irgen] trait Declarations:
     inputTokens(id) = tokens.toVector
     declared
 
-  /**
-   * The name of the actor an action names: an actor object's, `object caller extends Actor` named
-   * `caller` and written `this` among its members, with its first letter lowered; or the name an
-   * actor is given in place, `Actor("fixture")`, as `Actor.system` is.
-   */
+  // The name of the actor an action names: an actor object's, `object caller extends Actor` named
+  // `caller` and written `this` among its members, with its first letter lowered; or the name an
+  // actor is given in place, `Actor("fixture")`, as `Actor.system` is.
   def actorName(t: Term): String = t match
     case Typed(e, _)                  => actorName(e)
     case Inlined(_, Nil, e)           => actorName(e)
@@ -121,7 +119,7 @@ private[irgen] trait Declarations:
     val name = cls.name.stripSuffix("$")
     name.take(1).toLowerCase + name.drop(1)
 
-  /** The val of an input token, `val scheduleToStart = input[Timeout]`, which names the input. */
+  // The val of an input token, `val scheduleToStart = input[Timeout]`, which names the input.
   def inputToken(token: Term): Symbol =
     val sym = token match
       case r: Ref => Some(resolveSymbol(r))
@@ -138,7 +136,7 @@ private[irgen] trait Declarations:
             s"`.input(level)`, not $written"
         )
 
-  /** A constant value, for an example: an enum case, with constant fields. */
+  // A constant value, for an example: an enum case, with constant fields.
   def literalValue(t: Term): ir.Value = ir.Value(resolve(t) match
     case Literal(BooleanConstant(v))    => ir.Value.Kind.Bool(v)
     case Literal(IntConstant(v))        => ir.Value.Kind.Int(v)
@@ -149,10 +147,8 @@ private[irgen] trait Declarations:
       ir.Value.Kind.Enum(ir.EnumValue(irTypeName(enumOf(cls)), cls.name, args.map(literalValue)))
     case other => fail(other, s"an example is a constant value, not ${other.show}"))
 
-  /**
-   * A step binding's function: the def an eta-expanded lambda or a bound function-valued parameter
-   * names, or the lambda itself.
-   */
+  // A step binding's function: the def an eta-expanded lambda or a bound function-valued parameter
+  // names, or the lambda itself.
   def stepFunction(fn: Term, machine: String, actionName: String): String = fn match
     // A lambda written as a block, `holds { s => ... }`, is positioned at the lambda.
     case Block(Nil, e)      => stepFunction(e, machine, actionName)
@@ -169,11 +165,9 @@ private[irgen] trait Declarations:
 
   // ### Machine objects: `object M extends Machine[S, O, F]`, its header members and its sections
 
-  /**
-   * Where a rule fires, as its case says: a condition of the state (`where(g)`), phases of its
-   * projection (`in(p1, p2)`), a named set of them (`in(states.open)`), every state (`always`), or
-   * one of these where a condition also holds (`in(...).where(g)`).
-   */
+  // Where a rule fires, as its case says: a condition of the state (`where(g)`), phases of its
+  // projection (`in(p1, p2)`), a named set of them (`in(states.open)`), every state (`always`), or
+  // one of these where a condition also holds (`in(...).where(g)`).
   enum Heading:
     case When(guard: Term)
     case In(projection: Term, phases: List[Term])
@@ -181,10 +175,8 @@ private[irgen] trait Declarations:
     case Always
     case And(heading: Heading, guard: Term)
 
-  /**
-   * One rule of a machine's `rules`, as written: its place among them, its heading, the action it
-   * fires by Definition ID, the class where it fires one, its effect and where it is written.
-   */
+  // One rule of a machine's `rules`, as written: its place among them, its heading, the action it
+  // fires by Definition ID, the class where it fires one, its effect and where it is written.
   final case class LiftedRule(
       index: Int,
       heading: Heading,
@@ -194,42 +186,40 @@ private[irgen] trait Declarations:
       at: Tree
   )
 
-  /** The rules of each machine lifted so far that binds by rules, by its name and action. */
+  // The rules of each machine lifted so far that binds by rules, by its name and action.
   val rulesOf = mutable.Map.empty[String, Map[String, Vector[LiftedRule]]]
 
-  /** The class body of an object, which the lifter reads from its source. */
+  // The class body of an object, which the lifter reads from its source.
   def objectBody(cls: Symbol, at: Tree): ClassDef = scala.util.Try(cls.tree) match
     case scala.util.Success(c: ClassDef) => c
     case _ => fail(at, s"${cls.fullName.stripSuffix("$")} is not an object of the lifted sources")
 
-  /** The arguments of the parent constructor an object's class calls, outermost list last. */
+  // The arguments of the parent constructor an object's class calls, outermost list last.
   def parentArguments(c: ClassDef): List[List[Term]] =
     c.parents.collectFirst { case t: Term => t }.flatMap(call).fold(Nil)(_._2)
 
-  /** A member section of an object form: `object effects` and the like. */
+  // A member section of an object form: `object effects` and the like.
   def sectionOf(c: ClassDef, name: String): Option[ClassDef] = c.body.collectFirst {
     case s: ClassDef if s.symbol.flags.is(Flags.Module) && s.name.stripSuffix("$") == name => s
   }
 
-  /** The statements of a section's body: no synthetic member, no constructor. */
+  // The statements of a section's body: no synthetic member, no constructor.
   def statements(c: ClassDef): List[Statement] = c.body.filter {
     case d: Definition => !d.symbol.flags.is(Flags.Synthetic) && !d.symbol.isClassConstructor
     case _: Import     => false
     case _             => true
   }
 
-  /** The lambda `s => body` a `def end(s) = body` is, as `ends(s => body)` lifts. */
+  // The lambda `s => body` a `def end(s) = body` is, as `ends(s => body)` lifts.
   def endOf(d: DefDef): ir.Expr = d.termParamss.flatMap(_.params) match
     case List(p) =>
       val body = d.rhs.get
       expr(d)(E.Lambda(ir.Lambda(parameters(List(p), body), Some(giving(body.tpe)(lift(body))))))
     case _ => fail(d, "end reads one state: `def end(s: S) = ...`")
 
-  /**
-   * A machine object, `object M extends Machine[S, O, F]` or `object M extends Derived(...)`, named
-   * after its object: its header members, its `rules`, lowered to one step function per action, and
-   * the monitors and assumptions of its `monitors` section.
-   */
+  // A machine object, `object M extends Machine[S, O, F]` or `object M extends Derived(...)`, named
+  // after its object: its header members, its `rules`, lowered to one step function per action, and
+  // the monitors and assumptions of its `monitors` section.
   def objectMachine(cls: Symbol, at: Tree): ir.Machine =
     val c = objectBody(cls, at)
     val name = objectFormName(cls)
@@ -383,10 +373,8 @@ private[irgen] trait Declarations:
       checkChannels(m, irTypeName(s.dealias.typeSymbol), c)
       m
 
-  /**
-   * A machine object's entity where it names none: the one entity the actions it binds are `on` or
-   * create. A machine whose actions name several entities, or none, names its own, `val entity`.
-   */
+  // A machine object's entity where it names none: the one entity the actions it binds are `on` or
+  // create. A machine whose actions name several entities, or none, names its own, `val entity`.
   def inferredEntity(m: ir.Machine, at: Tree): ir.Machine =
     if m.entity.nonEmpty then m
     else
@@ -405,10 +393,8 @@ private[irgen] trait Declarations:
               "keeps state for, `val entity = ...`"
           )
 
-  /**
-   * A declared machine with its default evidence, held to the checks every declared machine is: its
-   * actions told apart by name, and visible facts or outcomes only where it refines.
-   */
+  // A declared machine with its default evidence, held to the checks every declared machine is: its
+  // actions told apart by name, and visible facts or outcomes only where it refines.
   def finished(
       folded: ir.Machine,
       f: TypeRepr,
@@ -433,11 +419,9 @@ private[irgen] trait Declarations:
       )
     )
 
-  /**
-   * The step of each action a machine's `rules` name, in the order each is first named: its rules
-   * lowered to one step function, or no step where it is `disabled`. Each `on` block names an action,
-   * or one class of it, once, and holds its cases alone.
-   */
+  // The step of each action a machine's `rules` name, in the order each is first named: its rules
+  // lowered to one step function, or no step where it is `disabled`. Each `on` block names an action,
+  // or one class of it, once, and holds its cases alone.
   def ruleSteps(machine: String, state: ir.TypeRef, rules: ClassDef): Seq[ir.StepBinding] =
     val projection = parentArguments(rules).flatten.find(a => lambda(a).nonEmpty)
     val written = mutable.ArrayBuffer.empty[LiftedRule]
@@ -496,23 +480,21 @@ private[irgen] trait Declarations:
       ir.StepBinding(id, function, Some(pos(at)))
     }
 
-  /** The kinds of case a heading is made of, `in` among them where it names phases. */
+  // The kinds of case a heading is made of, `in` among them where it names phases.
   private def headingNames(h: Heading): List[String] = h match
     case Heading.In(_, _) | Heading.InSet(_, _) => List("in")
     case Heading.And(inner, _)                  => headingNames(inner)
     case _                                      => Nil
 
-  /** A heading whose phases read the rules' projection, which `cases` leaves unread. */
+  // A heading whose phases read the rules' projection, which `cases` leaves unread.
   private def projected(h: Heading, projection: Option[Term]): Heading = h match
     case Heading.In(_, phases) => Heading.In(projection.get, phases)
     case Heading.InSet(_, set) => Heading.InSet(projection.get, set)
     case Heading.And(inner, g) => Heading.And(projected(inner, projection), g)
     case other                 => other
 
-  /**
-   * The cases of an `on` block, each `case ~> effect`: where it fires, its effect, and where it is
-   * written. A case's phases are read with the rules' projection later, so here they read none.
-   */
+  // The cases of an `on` block, each `case ~> effect`: where it fires, its effect, and where it is
+  // written. A case's phases are read with the rules' projection later, so here they read none.
   def cases(block: Term, machine: String): List[(Heading, Term, Term)] =
     def one(t: Term): (Heading, Term, Term) = unwrapped(t) match
       case b if b.symbol.name == "on" && b.symbol.maybeOwner == rulesClass =>
@@ -540,7 +522,7 @@ private[irgen] trait Declarations:
           case e                       => all :+ one(e)
       case e => List(one(e))
 
-  /** The term a method is selected from, through its type applications. */
+  // The term a method is selected from, through its type applications.
   private def receiverOf(fn: Term): Term = fn match
     case TypeApply(f, _) => receiverOf(f)
     case Select(q, _)    => q
@@ -548,7 +530,7 @@ private[irgen] trait Declarations:
 
   private lazy val caseClass = Symbol.requiredClass("umpire.Case")
 
-  /** Where a case fires: `in(...)`, `where(g)`, `always`, or one of them `.where(g)`. */
+  // Where a case fires: `in(...)`, `where(g)`, `always`, or one of them `.where(g)`.
   private def heading(c: Term, machine: String): Heading = unwrapped(c) match
     case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == caseClass =>
       Heading.And(heading(inner, machine), g)
@@ -569,7 +551,7 @@ private[irgen] trait Declarations:
 
   private val syntaxPackage = "umpire.Syntax$package$"
 
-  /** A term without the wrappers an argument arrives in. */
+  // A term without the wrappers an argument arrives in.
   def unwrapped(t: Term): Term = t match
     case Typed(e, _)        => unwrapped(e)
     case Inlined(_, Nil, e) => unwrapped(e)
@@ -577,7 +559,7 @@ private[irgen] trait Declarations:
     case Block(Nil, e)      => unwrapped(e)
     case _                  => t
 
-  /** Every value of a finite type the IR declares, in catalog order. */
+  // Every value of a finite type the IR declares, in catalog order.
   def valuesOf(t: ir.TypeRef, at: Tree): Seq[ir.Value] = t.ref match
     case ir.TypeRef.Ref.Bool(_)     => Seq(false, true).map(b => ir.Value(ir.Value.Kind.Bool(b)))
     case ir.TypeRef.Ref.IntRange(r) => (r.low to r.high).map(i => ir.Value(ir.Value.Kind.Int(i)))
@@ -596,7 +578,7 @@ private[irgen] trait Declarations:
         case _ => fail(at, s"$n has no values the rules can name")
     case _ => fail(at, "an input of a rule's action has no finite values")
 
-  /** The pattern that matches one value, as a match over its type writes it. */
+  // The pattern that matches one value, as a match over its type writes it.
   def patternOf(v: ir.Value): ir.Pattern = v.kind match
     case ir.Value.Kind.Enum(e) if e.fields.nonEmpty =>
       ir.Pattern(
@@ -606,12 +588,10 @@ private[irgen] trait Declarations:
       )
     case _ => ir.Pattern(ir.Pattern.Kind.Literal(v))
 
-  /**
-   * One action's rules, in order, lowered to its step function `<machine>.rules.<action>`: each rule
-   * an arm `if guard(s) then effect(s, inputs) else ...`, and no step where none fires. Where a rule
-   * fires one class, the inputs are matched first, one case per class, so the state alone decides
-   * among the rules of a class (core form: model/umpire/Syntax.scala, Rules).
-   */
+  // One action's rules, in order, lowered to its step function `<machine>.rules.<action>`: each rule
+  // an arm `if guard(s) then effect(s, inputs) else ...`, and no step where none fires. Where a rule
+  // fires one class, the inputs are matched first, one case per class, so the state alone decides
+  // among the rules of a class (core form: model/umpire/Syntax.scala, Rules).
   def lowered(
       machine: String,
       state: ir.TypeRef,
@@ -704,14 +684,12 @@ private[irgen] trait Declarations:
     )
     name
 
-  /** Whether a def is a member of a machine's `effects` section. */
+  // Whether a def is a member of a machine's `effects` section.
   def inEffects(sym: Symbol): Boolean = isSection(sym.maybeOwner, "effects")
 
-  /**
-   * Refuses an effect that gives no step where it is reached: the rules say where it fires. It reads
-   * the effect's own result positions (`disabled`, `Nil`, `List()`); a helper the effect calls that
-   * gives none is not followed.
-   */
+  // Refuses an effect that gives no step where it is reached: the rules say where it fires. It reads
+  // the effect's own result positions (`disabled`, `Nil`, `List()`); a helper the effect calls that
+  // gives none is not followed.
   def givesNoEmpty(f: DefDef): Unit =
     def empty(t: Term): List[Term] = t match
       case Typed(e, _)        => empty(e)
@@ -734,13 +712,13 @@ private[irgen] trait Declarations:
 
   // ### Derived machines: another machine's declaration with bindings, refinement or assumptions changed
 
-  /** `action ~> function`, bound by `machine`, or a refusal saying what `binding` should be. */
+  // `action ~> function`, bound by `machine`, or a refusal saying what `binding` should be.
   def stepBinding(binding: Term, machine: String, should: => String): ir.StepBinding =
     val (a, fn) = coreBinding(binding, should)
     val id = action(a)
     ir.StepBinding(id, stepFunction(fn, machine, actions(id).name), Some(pos(binding)))
 
-  /** The action and the function of the core `action ~> function`, or a refusal. */
+  // The action and the function of the core `action ~> function`, or a refusal.
   def coreBinding(binding: Term, should: => String): (Term, Term) = binding match
     case Typed(e, _)                                                    => coreBinding(e, should)
     case Block(Nil, e)                                                  => coreBinding(e, should)
@@ -751,7 +729,7 @@ private[irgen] trait Declarations:
         case _                                     => fail(t, s"$should, not ${t.show}")
     case other => fail(other, s"$should, not ${other.show}")
 
-  /** The body of a context function an argument arrives as, or the argument. */
+  // The body of a context function an argument arrives as, or the argument.
   def contextBody(t: Term): Term = t match
     case Typed(e, _)        => contextBody(e)
     case Inlined(_, Nil, e) => contextBody(e)
@@ -763,7 +741,7 @@ private[irgen] trait Declarations:
       contextBody(body)
     case _ => t
 
-  /** `on(action) { case ~> effect ... }` of a derivation: its action and its block of cases. */
+  // `on(action) { case ~> effect ... }` of a derivation: its action and its block of cases.
   def onGroup(t: Term): Option[(Term, Term)] = t match
     case Typed(e, _)        => onGroup(e)
     case Inlined(_, Nil, e) => onGroup(e)
@@ -772,10 +750,8 @@ private[irgen] trait Declarations:
       Some(a -> block)
     case _ => None
 
-  /**
-   * One derivation of a machine: the operation, the machine it derives from and its arguments. A
-   * chain of them is lifted from the val that declares the last.
-   */
+  // One derivation of a machine: the operation, the machine it derives from and its arguments. A
+  // chain of them is lifted from the val that declares the last.
   object Derivation:
     def unapply(t: Term): Option[(String, Term, List[Term])] = t match
       case Apply(Select(source, op @ ("restrict" | "rebind" | "extend" | "assuming")), List(items))
@@ -788,11 +764,9 @@ private[irgen] trait Declarations:
         Some(("unmonitored", source, Nil))
       case _ => None
 
-  /**
-   * A machine derived by `restrict`, `rebind`, `extend`, `refining`, `assuming` and `unmonitored`:
-   * its source's declaration with only what the operations change, in the family of the object that
-   * declares it and under its name, as a restricted machine owns its own.
-   */
+  // A machine derived by `restrict`, `rebind`, `extend`, `refining`, `assuming` and `unmonitored`:
+  // its source's declaration with only what the operations change, in the family of the object that
+  // declares it and under its name, as a restricted machine owns its own.
   def derivedMachine(rhs: Term, family: String, name: String): ir.Machine =
     // Each item a bare binding, `action ~> function`, or one action's rules, `on(a) { ... }`: the
     // step it binds, and the rules it lowers from where it binds rules. A bare binding of an action
@@ -959,10 +933,8 @@ private[irgen] trait Declarations:
       checkChannels(m, m.stateType, rhs)
     m
 
-  /**
-   * A machine binds each channel's actions only for a channel its state holds, and says what losing
-   * a message of a lossy one does.
-   */
+  // A machine binds each channel's actions only for a channel its state holds, and says what losing
+  // a message of a lossy one does.
   def checkChannels(b: ir.Machine, state: String, at: Tree): Unit =
     val fields = types
       .get(state)
@@ -994,7 +966,7 @@ private[irgen] trait Declarations:
         s"${b.name} binds ${channels(c).name}Loss, and ${channels(c).name} is reliable"
       )
 
-  /** Two actions a machine binds are told apart by name, as its steps, syncs and claims name them. */
+  // Two actions a machine binds are told apart by name, as its steps, syncs and claims name them.
   def distinctActionNames(m: ir.Machine, at: Tree): Unit =
     for
       (n, bound) <- m.steps.groupBy(s => actions(s.action).name).toList.sortBy(_._1)
@@ -1008,21 +980,21 @@ private[irgen] trait Declarations:
 
   // ### Evidence: a fact no line names is confirmed by evidence of its own name
 
-  /** A fact type's cases, in catalog order, each with whether it has fields. */
+  // A fact type's cases, in catalog order, each with whether it has fields.
   def factCases(f: TypeRepr, at: Tree): Seq[(String, Boolean)] =
     types.get(typeRef(f, at).getNamed).filter(_.shape.isEnum) match
       case Some(t) => t.getEnum.cases.map(c => c.name -> c.fields.nonEmpty)
       case None    =>
         fail(at, s"${f.show} is no enum, so its facts have no names to default their evidence to")
 
-  /** The evidence line of one fact case: the evidence of its own name. */
+  // The evidence line of one fact case: the evidence of its own name.
   def defaultLine(f: String, c: String, at: Tree): ir.MatchCase =
     ir.MatchCase(
       pattern = Some(ir.Pattern(ir.Pattern.Kind.Literal(ir.Value(enumValue(f, c))))),
       body = Some(text(c, at))
     )
 
-  /** The evidence of a machine that declares none: each fact confirmed by evidence of its name. */
+  // The evidence of a machine that declares none: each fact confirmed by evidence of its name.
   def defaultEvidence(name: String, f: TypeRepr, at: Tree): ir.Function =
     val cases = factCases(f, at)
     for (c, _) <- cases.find(_._2) do
@@ -1049,11 +1021,9 @@ private[irgen] trait Declarations:
       )
     )
 
-  /**
-   * `evidence { case ... }` listing only exceptions: each fact case no line covers is given the line
-   * of its own name, in catalog order among the author's lines. A case with fields needs a line that
-   * covers all of it, since its name alone does not say which of its values the evidence confirms.
-   */
+  // `evidence { case ... }` listing only exceptions: each fact case no line covers is given the line
+  // of its own name, in catalog order among the author's lines. A case with fields needs a line that
+  // covers all of it, since its name alone does not say which of its values the evidence confirms.
   def evidenceDefaults(fn: ir.Function, f: TypeRepr, at: Tree): ir.Function =
     fn.getBody.kind match
       case ir.Expr.Kind.Match(m)
@@ -1112,10 +1082,8 @@ private[irgen] trait Declarations:
           fn.withBody(fn.getBody.withMatch(m.withCases(all)))
       case _ => fn
 
-  /**
-   * Results, steps and claims name channels, assumptions, holes and realizations by name, so two
-   * declarations of one kind never share one.
-   */
+  // Results, steps and claims name channels, assumptions, holes and realizations by name, so two
+  // declarations of one kind never share one.
   def distinctName(
       kind: String,
       declared: Iterable[(String, String)],
@@ -1126,7 +1094,7 @@ private[irgen] trait Declarations:
     for (_, other) <- declared.find(_._1 == name) do
       fail(at, s"two $kind are named $name: $other and $id, and the IR names them by name")
 
-  /** A lifted machine, by the name the IR gives it. */
+  // A lifted machine, by the name the IR gives it.
   def machineNamed(name: String): Option[ir.Machine] = machines.values.find(_.name == name)
 
   def machineOf(sym: Symbol, at: Tree): ir.Machine =
@@ -1157,7 +1125,7 @@ private[irgen] trait Declarations:
   // The machines whose declarations are being lifted, so a machine derived from itself is refused.
   private val declaring = mutable.LinkedHashSet.empty[Symbol]
 
-  /** Claims name a machine or a composition by name, so two of them never share one. */
+  // Claims name a machine or a composition by name, so two of them never share one.
   def distinctModelName(name: String, sym: Symbol, at: ir.Position): Unit =
     val other = machines
       .collectFirst { case (k, m) if k != sym.fullName && m.name == name => k }
@@ -1172,7 +1140,7 @@ private[irgen] trait Declarations:
 
   // ### Channels, monitors, assumptions and holes
 
-  /** A channel, from its `channel[M](capacity, order, loss, duplicates)` declaration and its val. */
+  // A channel, from its `channel[M](capacity, order, loss, duplicates)` declaration and its val.
   def channelOf(sym: Symbol, at: Tree): String =
     val id = definitionId(sym, at)
     if !channels.contains(id) then
@@ -1190,7 +1158,7 @@ private[irgen] trait Declarations:
       if dup < 0 then fail(d, s"channel $n delivers a message $dup more times than once; no fewer")
       distinctName("channels", channels.values.map(c => c.name -> c.id), n, id, d)
 
-      /** The case of a framework enum a policy argument names; anything computed is refused. */
+      // The case of a framework enum a policy argument names; anything computed is refused.
       def policy[V](arg: Term, enumName: String, cases: Map[String, V]): V = resolve(arg) match
         case r: Ref if isEnumCase(r.symbol) && enumOf(r.symbol).fullName == s"umpire.$enumName" =>
           cases(r.symbol.name)
@@ -1219,11 +1187,9 @@ private[irgen] trait Declarations:
       )
     id
 
-  /**
-   * A channel's message type, as its finite catalog: a named type, the Booleans, an opaque type's
-   * own range, or, for Int, the range the channel's `Finite.upTo(n)` declares. The IR has no catalog
-   * for any other Int or for a list, so those are refused at the declaration.
-   */
+  // A channel's message type, as its finite catalog: a named type, the Booleans, an opaque type's
+  // own range, or, for Int, the range the channel's `Finite.upTo(n)` declares. The IR has no catalog
+  // for any other Int or for a list, so those are refused at the declaration.
   def messageRef(message: TypeRepr, finite: Term, at: Tree, channel: String): ir.TypeRef =
     val t = message.dealias.widen
     if !message.widen.typeSymbol.flags.is(Flags.Opaque) && t.typeSymbol == defn.IntClass then
@@ -1246,7 +1212,7 @@ private[irgen] trait Declarations:
       )
     else typeRef(message, at)
 
-  /** A channel's delivery or loss of one message, the action's one input. */
+  // A channel's delivery or loss of one message, the action's one input.
   def channelAction(sym: Symbol, op: String, at: Tree): String =
     val channel = channels(channelOf(sym, at))
     val id = s"${channel.id}.$op"
@@ -1263,10 +1229,8 @@ private[irgen] trait Declarations:
         else a.withName(s"${channel.name}Loss").withLoses(channel.id)
     id
 
-  /**
-   * The channel an `Inbox` value belongs to: the one the state field it is read from holds, or else
-   * the only channel of its message type.
-   */
+  // The channel an `Inbox` value belongs to: the one the state field it is read from holds, or else
+  // the only channel of its message type.
   def inboxChannel(recv: Term): String =
     val message = messageType(recv.tpe)
     val owned = recv match
@@ -1285,10 +1249,8 @@ private[irgen] trait Declarations:
             "Inbox from the state field that holds it"
         )
 
-  /**
-   * A monitor, from its `monitor[S, O, F, M](name, initial)(next)(violated)` declaration and the
-   * evaluation point chained onto it.
-   */
+  // A monitor, from its `monitor[S, O, F, M](name, initial)(next)(violated)` declaration and the
+  // evaluation point chained onto it.
   def monitorOf(sym: Symbol, at: Tree): String =
     val id = definitionId(sym, at)
     if !monitors.contains(id) then
@@ -1347,7 +1309,7 @@ private[irgen] trait Declarations:
       monitors(id) = m
     id
 
-  /** An assumption, from `assume(name)` and the fairness chained onto it. */
+  // An assumption, from `assume(name)` and the fairness chained onto it.
   def assumptionOf(sym: Symbol, at: Tree): String =
     val id = definitionId(sym, at)
     if !assumptions.contains(id) then
@@ -1364,7 +1326,7 @@ private[irgen] trait Declarations:
       assumptions(id) = a
     id
 
-  /** A hole, from `hole`, named after its val. */
+  // A hole, from `hole`, named after its val.
   def holeOf(sym: Symbol, at: Tree): String =
     val id = definitionId(sym, at)
     if !holes.contains(id) then

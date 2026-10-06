@@ -1,33 +1,29 @@
 package umpire
 
-/** The order a channel delivers the messages it holds in. */
+// The order a channel delivers the messages it holds in.
 enum Order:
-  /** The order they were sent in. */
+  // The order they were sent in.
   case fifo
 
-  /** Any held message may be delivered next. */
+  // Any held message may be delivered next.
   case unordered
 
-/**
- * Whether a channel may lose a message it holds. A lossy channel's loss is a step the machine
- * binds, as every fault is an action.
- */
+// Whether a channel may lose a message it holds. A lossy channel's loss is a step the machine
+// binds, as every fault is an action.
 enum Loss:
   case reliable, lossy
 
-/** One message a channel holds, and how many more times than once it has been delivered. */
+// One message a channel holds, and how many more times than once it has been delivered.
 final case class Delivery[M](message: M, redeliveries: Int)
 
-/**
- * A bounded channel: the messages one machine's state holds between their send and their delivery,
- * declared with its capacity, its order, whether it loses messages, and how many more times than
- * once it may deliver one whose acknowledgment was lost.
- *
- * A machine holds it in a state field of type `Inbox[M]`, sends with `Inbox.send`, and binds
- * `deliver` to what receiving a message does and, for a lossy channel, `lose` to what losing one
- * does. When a message can be delivered or lost, and the redelivery after a lost acknowledgment,
- * are derived from this declaration by the IR interpreter (model/SEMANTICS.md, Channels).
- */
+// A bounded channel: the messages one machine's state holds between their send and their delivery,
+// declared with its capacity, its order, whether it loses messages, and how many more times than
+// once it may deliver one whose acknowledgment was lost.
+//
+// A machine holds it in a state field of type `Inbox[M]`, sends with `Inbox.send`, and binds
+// `deliver` to what receiving a message does and, for a lossy channel, `lose` to what losing one
+// does. When a message can be delivered or lost, and the redelivery after a lost acknowledgment,
+// are derived from this declaration by the IR interpreter (model/SEMANTICS.md, Channels).
 final class Channel[M] private[umpire] (
     val name: String,
     val capacity: Int,
@@ -35,15 +31,13 @@ final class Channel[M] private[umpire] (
     val loss: Loss,
     val duplicates: Int
 )(using val messages: Finite[M]):
-  /** Every entry a channel can hold, messages in catalog order and each one's redeliveries within. */
+  // Every entry a channel can hold, messages in catalog order and each one's redeliveries within.
   private[umpire] lazy val entries: Vector[Delivery[M]] =
     for m <- messages.values.toVector; r <- (0 to duplicates).toVector yield Delivery(m, r)
 
-  /**
-   * Everything the channel can hold, for the state field that holds it: no message, then every
-   * sequence of one entry, of two, up to the capacity, the last entry varying fastest. Unordered
-   * contents are the sequences whose entries are in catalog order, one per multiset.
-   */
+  // Everything the channel can hold, for the state field that holds it: no message, then every
+  // sequence of one entry, of two, up to the capacity, the last entry varying fastest. Unordered
+  // contents are the sequences whose entries are in catalog order, one per multiset.
   lazy val contents: Finite[Inbox[M]] =
     val index = entries.zipWithIndex.toMap
     val sequences = (0 to capacity).toList.flatMap { n =>
@@ -55,10 +49,10 @@ final class Channel[M] private[umpire] (
     else sequences.filter(s => s.map(index) == s.map(index).sorted)
     Finite.of(held.map(Inbox(this, _))*)
 
-  /** The channel holding nothing. */
+  // The channel holding nothing.
   val empty: Inbox[M] = Inbox(this, Nil)
 
-  /** The delivery of one held message, the action's one input. */
+  // The delivery of one held message, the action's one input.
   val deliver: Action[M *: EmptyTuple] = Action(
     ActionDecl(
       s"${name}Delivery",
@@ -70,7 +64,7 @@ final class Channel[M] private[umpire] (
     )
   )
 
-  /** The loss of one held message, for a lossy channel. */
+  // The loss of one held message, for a lossy channel.
   val lose: Action[M *: EmptyTuple] = Action(
     ActionDecl(
       s"${name}Loss",
@@ -84,11 +78,9 @@ final class Channel[M] private[umpire] (
 
   override def toString: String = s"channel $name"
 
-/**
- * Declares a bounded channel of messages of `M`, named after the `val` that declares it: `val wire
- * = channel[Note](capacity = 2, ...)`. The name is read by the lifter, so the channel's own `name`
- * is empty here.
- */
+// Declares a bounded channel of messages of `M`, named after the `val` that declares it: `val wire
+// = channel[Note](capacity = 2, ...)`. The name is read by the lifter, so the channel's own `name`
+// is empty here.
 def channel[M](capacity: Int, order: Order, loss: Loss, duplicates: Int = 0)(using
     Finite[M]
 ): Channel[M] =
@@ -102,15 +94,11 @@ def channel[M](capacity: Int, order: Order, loss: Loss, duplicates: Int = 0)(usi
   )
   Channel("", capacity, order, loss, duplicates)
 
-/**
- * What a channel holds: its deliveries in send order, or in catalog order for an unordered channel,
- * so that sending the same messages in another order reaches the same state.
- */
+// What a channel holds: its deliveries in send order, or in catalog order for an unordered channel,
+// so that sending the same messages in another order reaches the same state.
 final case class Inbox[M] private[umpire] (channel: Channel[M], deliveries: List[Delivery[M]]):
-  /**
-   * The contents with `m` added: at the end, or at its catalog position for an unordered channel.
-   * Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
-   */
+  // The contents with `m` added: at the end, or at its catalog position for an unordered channel.
+  // Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
   def send(m: M): Inbox[M] =
     val d = Delivery(m, 0)
     if channel.order == Order.fifo then copy(deliveries = deliveries :+ d)
@@ -121,5 +109,5 @@ final case class Inbox[M] private[umpire] (channel: Channel[M], deliveries: List
 
   def isEmpty: Boolean = deliveries.isEmpty
 
-  /** Whether it holds as many messages as the channel's capacity. */
+  // Whether it holds as many messages as the channel's capacity.
   def isFull: Boolean = deliveries.size >= channel.capacity

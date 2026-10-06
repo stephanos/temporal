@@ -35,10 +35,8 @@ final class TypedEvidence[Root] private[realize] (
     val fields: Vector[TypedEvidenceField[Root, ?]]
 )
 
-/**
- * Recorded data of message type `Root` from a record of the system's that its kit declares, which
- * `Evidence.keyed` reads: the kit's own factory writes one.
- */
+// Recorded data of message type `Root` from a record of the system's that its kit declares, which
+// `Evidence.keyed` reads: the kit's own factory writes one.
 final class KeyedRef[Root](val recorded: Recorded)
 
 final class RunEventRef[Root] private[realize] (val recorded: Recorded)
@@ -97,7 +95,7 @@ object Condition:
   def not[Root](of: Condition[Root]): Condition[Root] =
     new Condition(None, None, Vector(of))
 
-  /** Holds when every operand does, read left to right up to the first that does not. */
+  // Holds when every operand does, read left to right up to the first that does not.
   def all[Root](
       first: Condition[Root],
       rest: Condition[Root]*

@@ -1,20 +1,19 @@
-/* Admission: history's authoritative record of one activity, and how admission at
- * RecordActivityTaskStarted keeps the product's promise that a paused activity is dispatched to no
- * worker. Grounded in chasm/lib/activity/tasks.go (the dispatch task) and
- * chasm/lib/activity/activity.go (HandleStarted), and reviewed as model/specimens/activity.md.
- * Three identities stay apart. The logical activity is the entity. An attempt is what admission
- * commits, counted in the record. A delivery is one dispatch message, which the queue holds and may
- * hand out more than once. The record and the queue are separate machines, checked together by a
- * composition (WithTaskQueue.scala). The stale design is a deliberately faulty control, not a claim about
- * a known server defect.
- *
- * Read top to bottom: the types; the signature (history's internal steps and admission's choices);
- * then one object per design -- ActivityRecord, the corrected design, whose status sets, effects
- * and monitors every design reads; TrustingActivityRecord, the deliberately faulty design derived from it;
- * HeldDispatch, the held race a server is run through; LostStartAnswer, a lost admission
- * response. Each reads its header, then its sections in order: states, refinement, effects,
- * monitors, rules, properties, implements and queries.
- */
+// Admission: history's authoritative record of one activity, and how admission at
+// RecordActivityTaskStarted keeps the product's promise that a paused activity is dispatched to no
+// worker. Grounded in chasm/lib/activity/tasks.go (the dispatch task) and
+// chasm/lib/activity/activity.go (HandleStarted), and reviewed as model/specimens/activity.md.
+// Three identities stay apart. The logical activity is the entity. An attempt is what admission
+// commits, counted in the record. A delivery is one dispatch message, which the queue holds and may
+// hand out more than once. The record and the queue are separate machines, checked together by a
+// composition (WithTaskQueue.scala). The stale design is a deliberately faulty control, not a claim about
+// a known server defect.
+//
+// Read top to bottom: the types; the signature (history's internal steps and admission's choices);
+// then one object per design -- ActivityRecord, the corrected design, whose status sets, effects
+// and monitors every design reads; TrustingActivityRecord, the deliberately faulty design derived from it;
+// HeldDispatch, the held race a server is run through; LostStartAnswer, a lost admission
+// response. Each reads its header, then its sections in order: states, refinement, effects,
+// monitors, rules, properties, implements and queries.
 package temporal
 package features.activity.standalone
 package system
@@ -29,43 +28,41 @@ import product.ActivityProduct
 
 // ### Types. Both deadlines are armed in every state, which lets them compete with a delivery.
 
-/** `pausedWhileHeld` is a pause after admission: the attempt it holds was admitted before it. */
+// `pausedWhileHeld` is a pause after admission: the attempt it holds was admitted before it.
 enum AdmissionPhase derives Finite:
   case scheduled, paused, pausedWhileHeld, started, completed, timedOut
 
-/** Attempts admitted and not closed: an enum, not an `UpTo[2]`, as its cases are frozen keys. */
+// Attempts admitted and not closed: an enum, not an `UpTo[2]`, as its cases are frozen keys.
 enum Active derives Finite:
   case none, one, two
 
-/** Whether admission owes matching the answer that lets it complete the task. */
+// Whether admission owes matching the answer that lets it complete the task.
 enum Answer derives Finite:
   case settled, owed
 
 final case class AdmissionState(phase: AdmissionPhase, active: Active, answer: Answer)
     derives Finite
 
-/** The statuses the product reads, by their product names, and admission's internal facts. */
+// The statuses the product reads, by their product names, and admission's internal facts.
 enum AdmissionFact derives Finite:
   case statusStarted, statusPaused, statusCompleted
   case statusTimedOut(timeoutType: TimeoutType)
   case dispatchSent, attemptAdmitted, admissionRejected, admissionCommitFailed, deliveryAnswered
 
-/** Whether the activity is over, and whether it left where it ended: what `terminalFinality` counts. */
+// Whether the activity is over, and whether it left where it ended: what `terminalFinality` counts.
 enum Finality derives Finite:
   case open, closed, reopened
 
-/** The record with the one response-loss budget a lost admission response consumes. */
+// The record with the one response-loss budget a lost admission response consumes.
 final case class AdmissionResponseState(record: AdmissionState, lossAvailable: Boolean)
     derives Finite
 
 enum AdmissionResponseFact derives Finite:
   case dispatchSent, attemptAdmitted
 
-/**
- * The claims every admission design is held to: the laws its capabilities bring, the record's own
- * count of active attempts, and each deadline timing the activity out with the status that says which.
- * `notPaused` is the generated `<design>.pausedIsNotDispatched`, which the pinned paths read.
- */
+// The claims every admission design is held to: the laws its capabilities bring, the record's own
+// count of active attempts, and each deadline timing the activity out with the status that says which.
+// `notPaused` is the generated `<design>.pausedIsNotDispatched`, which the pinned paths read.
 final case class AdmissionClaims(
     notPaused: Property[AdmissionState],
     oneActive: Property[AdmissionState],
@@ -78,12 +75,12 @@ final case class AdmissionClaims(
 val admissionCommits = choice
 val admissionCommitFails = choice
 
-/** History's internal steps. */
+// History's internal steps.
 object history:
-  /** History's dispatch task: its Validate sends the message only while the activity can start. */
+  // History's dispatch task: its Validate sends the message only while the activity can start.
   val dispatch = internal
 
-  /** Admission's answer reaches matching, which may then complete the task. */
+  // Admission's answer reaches matching, which may then complete the task.
   val answerMatching = internal
 
 val committedThenLost = choice
@@ -92,7 +89,7 @@ val failedThenLost = choice
 // ### The corrected design. A design alone takes a delivery whenever one could arrive: what holds of
 // it holds over every queue, and what fails of it is confirmed over a queue (WithTaskQueue.scala).
 
-/** The corrected design, whose status sets a composition reads through `activity`. */
+// The corrected design, whose status sets a composition reads through `activity`.
 object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
   import AdmissionFact.*
 
@@ -103,53 +100,49 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
     "statusTimedOut"
   }
 
-  /** The record's status sets, which a composition reads through `activity`, and its counts. */
+  // The record's status sets, which a composition reads through `activity`, and its counts.
   object states:
-    /** Paused before any attempt was admitted: the pause a delivery must not get past. */
+    // Paused before any attempt was admitted: the pause a delivery must not get past.
     def paused(s: State) = s.phase == AdmissionPhase.paused
     def running(s: State) = s.phase == AdmissionPhase.started
     def terminal(p: AdmissionPhase) = p.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
     def twoActive(s: State) = s.active == Active.two
     def phase(s: State) = s.phase
 
-    /**
-     * No unpause is in scope, so a pause is where a path may end, as a completion is: `end` reads
-     * this named predicate.
-     */
+    // No unpause is in scope, so a pause is where a path may end, as a completion is: `end` reads
+    // this named predicate.
     def stopped(s: State) =
       !s.phase.in(AdmissionPhase.scheduled, AdmissionPhase.started)
 
     def oneMore(a: Active) = if a == Active.none then Active.one else Active.two
     def oneLess(a: Active) = if a == Active.two then Active.one else Active.none
 
-    /** The record once an attempt is admitted: started, one more active, its answer owed. */
+    // The record once an attempt is admitted: started, one more active, its answer owed.
     def admitted(s: State) =
       s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed)
 
-    /** The active attempts after a step, counted from what it records. */
+    // The active attempts after a step, counted from what it records.
     def countActive(active: Active, after: Step[State, Outcome, AdmissionFact]) =
       if after.records(attemptAdmitted) then oneMore(active)
       else if after.records(statusCompleted) then oneLess(active)
       else if after.state.phase == AdmissionPhase.timedOut then Active.none
       else active
 
-    /** Whether the activity is over after a step, and whether it left where it ended. */
+    // Whether the activity is over after a step, and whether it left where it ended.
     def finality(f: Finality, after: Step[State, Outcome, AdmissionFact]) =
       if f == Finality.reopened then Finality.reopened
       else if terminal(after.state.phase) then Finality.closed
       else if f == Finality.closed then Finality.reopened
       else Finality.open
 
-    /**
-     * Why the record waives closedIsRejectedUniformly: a delivery that reaches a closed record is
-     * admission's to reject, and rejecting it records `admissionRejected` and owes matching the
-     * answer, so the record steps where the law has it stay (chasm/lib/activity/activity.go
-     * HandleStarted).
-     */
+    // Why the record waives closedIsRejectedUniformly: a delivery that reaches a closed record is
+    // admission's to reject, and rejecting it records `admissionRejected` and owes matching the
+    // answer, so the record steps where the law has it stay (chasm/lib/activity/activity.go
+    // HandleStarted).
     val deliveryAfterClose =
       "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
 
-  /** The record refines the product, which sees its statuses alone. */
+  // The record refines the product, which sees its statuses alone.
   object refinement extends Refinement(ActivityProduct):
     def toProduct(s: State): product.State = s.phase match
       case AdmissionPhase.scheduled => product.State(product.Phase.scheduled)
@@ -159,7 +152,7 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
       case AdmissionPhase.completed => product.State(product.Phase.completed)
       case AdmissionPhase.timedOut  => product.State(product.Phase.timedOut)
 
-    /** A client reads statuses and nothing of the dispatch, the admission or its answer. */
+    // A client reads statuses and nothing of the dispatch, the admission or its answer.
     def visible(f: AdmissionFact) = f match
       case AdmissionFact.statusStarted | AdmissionFact.statusPaused |
           AdmissionFact.statusCompleted | AdmissionFact.statusTimedOut(_) =>
@@ -172,21 +165,21 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
   object effects:
     def sendDispatch(s: State) = enter(s, dispatchSent)
 
-    /** A pause keeps whatever message is in flight: nothing recalls it. */
+    // A pause keeps whatever message is in flight: nothing recalls it.
     def pause(s: State) = enter(s.copy(phase = AdmissionPhase.paused), statusPaused)
 
-    /** A pause after admission: the attempt it holds was admitted before it. */
+    // A pause after admission: the attempt it holds was admitted before it.
     def pauseHeld(s: State) =
       enter(s.copy(phase = AdmissionPhase.pausedWhileHeld), statusPaused)
 
-    /** Its durable update commits or fails; a failed commit owes no answer, so its delivery stays. */
+    // Its durable update commits or fails; a failed commit owes no answer, so its delivery stays.
     def admit(s: State) = choose(
       admissionCommits -> enter(states.admitted(s), statusStarted, attemptAdmitted),
       admissionCommitFails -> enter(s, admissionCommitFailed)
         .because("the durable update fails: nothing is admitted and the message stays deliverable")
     )
 
-    /** A delivery that meets a paused activity or an admitted attempt is answered and admits nothing. */
+    // A delivery that meets a paused activity or an admitted attempt is answered and admits nothing.
     def rejectDelivery(s: State) = enter(s.copy(answer = Answer.owed), admissionRejected)
 
     def answerMatching(s: State) =
@@ -248,7 +241,7 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
   // takes the states it speaks of as predicates, so one definition serves the record and a
   // composition, which reads the record through its `activity` member.
   object properties:
-    /** No step leaves two admitted attempts active. */
+    // No step leaves two admitted attempts active.
     def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
       m.property("atMostOneActive").never(s => twoActive(s.state))
 
@@ -267,12 +260,10 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
         scheduleToCloseTimesOut
       )
 
-  /**
-   * What an admission design is as the laws of model/temporal/capabilities read it, the record as a
-   * machine of its own: it closes, it pauses before an attempt is admitted, and its work is handed out
-   * by a worker's poll. Its free Queries run within `five`, as the history record's did. It waives
-   * closedIsRejectedUniformly, the one law the record does not keep.
-   */
+  // What an admission design is as the laws of model/temporal/capabilities read it, the record as a
+  // machine of its own: it closes, it pauses before an attempt is admitted, and its work is handed out
+  // by a worker's poll. Its free Queries run within `five`, as the history record's did. It waives
+  // closedIsRejectedUniformly, the one law the record does not keep.
   object implements:
     def admissionCapabilities(m: Machine[State, Outcome, AdmissionFact]) =
       capabilities(m, limits = five)(
@@ -290,11 +281,9 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
       ).except(closedIsRejectedUniformly, because = states.deliveryAfterClose)
 
   object queries:
-    /**
-     * The System's own deadlines, which the record's IR file carries: neither is ordered before
-     * the other, so each firing is a trace of its own. Both deadlines are set and no attempt started,
-     * so either may fire first.
-     */
+    // The System's own deadlines, which the record's IR file carries: neither is ordered before
+    // the other, so each firing is a trace of its own. Both deadlines are set and no attempt started,
+    // so either may fire first.
     val bothDeadlinesStartFirst = ActivitySystem.scenario.actions(
       client.start(scheduleToClose := Timeout.expires, scheduleToStart := Timeout.expires),
       deadline.scheduleToStart
@@ -304,7 +293,7 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
       deadline.scheduleToClose
     )
 
-    /** Every claim and path, declared on the design `m`, since each belongs to one machine. */
+    // Every claim and path, declared on the design `m`, since each belongs to one machine.
     def admissionQueries(m: Machine[State, Outcome, AdmissionFact]) =
       val claims = properties.admissionClaims(m)
       val staleDeliveryAfterPause =
@@ -384,13 +373,13 @@ object HeldDispatch extends Machine[AdmissionState, Outcome, AdmissionFact]:
     "statusTimedOut"
   }
 
-  /** It refines the product as the corrected design does. */
+  // It refines the product as the corrected design does.
   object refinement extends Refinement(ActivityProduct):
     def toProduct(s: State): product.State = ActivityRecord.refinement.toProduct(s)
     def visible(f: AdmissionFact) = ActivityRecord.refinement.visible(f)
 
   object effects:
-    /** Admission as the corrected design decides it, with no failure of its durable update. */
+    // Admission as the corrected design decides it, with no failure of its durable update.
     def admitCommitted(s: State) =
       enter(
         ActivityRecord.states.admitted(s),
@@ -427,7 +416,7 @@ object HeldDispatch extends Machine[AdmissionState, Outcome, AdmissionFact]:
 
   // What the machine a server's Run is checked against promises.
   object properties:
-    /** Admission met the stale message and rejected it. */
+    // Admission met the stale message and rejected it.
     val staleDeliveryRejected =
       property when worker.poll holds (_.records(AdmissionFact.admissionRejected))
 
@@ -493,7 +482,7 @@ object LostStartAnswer
     on(shared.taskqueue.fault.ackLoss)(where(_.lossAvailable) ~> effects.loseResponse)
 
   object properties:
-    /** A lost response still leaves the attempt admitted when the update committed. */
+    // A lost response still leaves the attempt admitted when the update committed.
     val committedDespiteLostResponse =
       property when shared.taskqueue.fault.ackLoss holds (after =>
         after.records(AdmissionResponseFact.attemptAdmitted)

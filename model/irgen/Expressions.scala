@@ -39,17 +39,15 @@ private[irgen] trait Expressions:
   def param(p: ValDef): ir.Param =
     ir.Param(name = nameOf(p.symbol), `type` = Some(typeRef(p.tpt.tpe, p)))
 
-  /**
-   * The parameters of a function or a lambda over `body`. A name the compiler made up, such as the
-   * `_$1` of a placeholder `_` or the `x$1` of a `{ case ... }` lambda, is numbered by the other
-   * placeholders of the source, so such a parameter is lifted with a name of its type instead: the
-   * type's simple name with a lower-case first letter (`step`, `admissionState`). It is the name of
-   * the outer type constructor (`tuple2`, `function1`, `list`), and `it` for a type with no plain
-   * name or whose name in lower case is a keyword. A name already taken in scope or in the body
-   * gets the first free numeric suffix from 2 (`step2`), so the parameter neither hides another
-   * name nor is hidden by one. References are lifted by symbol, so they read the new name through
-   * `nameOf`.
-   */
+  // The parameters of a function or a lambda over `body`. A name the compiler made up, such as the
+  // `_$1` of a placeholder `_` or the `x$1` of a `{ case ... }` lambda, is numbered by the other
+  // placeholders of the source, so such a parameter is lifted with a name of its type instead: the
+  // type's simple name with a lower-case first letter (`step`, `admissionState`). It is the name of
+  // the outer type constructor (`tuple2`, `function1`, `list`), and `it` for a type with no plain
+  // name or whose name in lower case is a keyword. A name already taken in scope or in the body
+  // gets the first free numeric suffix from 2 (`step2`), so the parameter neither hides another
+  // name nor is hidden by one. References are lifted by symbol, so they read the new name through
+  // `nameOf`.
   def parameters(ps: List[ValDef], body: Term): Seq[ir.Param] =
     // `Flags.Synthetic` marks neither every placeholder `_$N` nor only compiler-named parameters.
     val made = ps.filter(_.name.contains('$'))
@@ -74,12 +72,10 @@ private[irgen] trait Expressions:
     val lower = n.take(1).toLowerCase + n.drop(1)
     if n.matches("[A-Za-z][A-Za-z0-9]*") && !keywords(lower) then lower else "it"
 
-  /**
-   * The local names a parameter of `fn` must not take: those bound by `fn` and by the functions,
-   * lambdas and local values around it, and those bound or read in `body`. A lambda inlined from a
-   * top-level val avoids the names of its definition site, not of its use site, which is harmless:
-   * its body cannot read the use site's locals.
-   */
+  // The local names a parameter of `fn` must not take: those bound by `fn` and by the functions,
+  // lambdas and local values around it, and those bound or read in `body`. A lambda inlined from a
+  // top-level val avoids the names of its definition site, not of its use site, which is harmless:
+  // its body cannot read the use site's locals.
   def inScope(fn: Symbol, body: Term): Set[Symbol] =
     val around = Iterator
       .iterate(fn)(_.maybeOwner)
@@ -98,7 +94,7 @@ private[irgen] trait Expressions:
     val outermost = around.lastOption.flatMap(defs.get).getOrElse(body)
     names(outermost, s => around.contains(s.maybeOwner)) ++ names(body, _ => true)
 
-  /** The parameters and body of the lambda a term is, through the wrappers an argument arrives in. */
+  // The parameters and body of the lambda a term is, through the wrappers an argument arrives in.
   def lambda(t: Term): Option[(List[ValDef], Term)] = t match
     case Typed(e, _)        => lambda(e)
     case Inlined(_, Nil, e) => lambda(e)
@@ -110,10 +106,8 @@ private[irgen] trait Expressions:
       Some((params, body))
     case _ => None
 
-  /**
-   * The def of the lifted sources a function value names: the def, eta-expanded or called with a
-   * lambda's own parameters, or a function-valued parameter bound to one, also called so.
-   */
+  // The def of the lifted sources a function value names: the def, eta-expanded or called with a
+  // lambda's own parameters, or a function-valued parameter bound to one, also called so.
   def forwardedDef(t: Term): Option[Symbol] = t match
     case Typed(e, _)                                 => forwardedDef(e)
     case Inlined(_, Nil, e)                          => forwardedDef(e)
@@ -134,16 +128,14 @@ private[irgen] trait Expressions:
           case _ => None
       }
 
-  /** Whether a call is the framework's `through(select, read)`. */
+  // Whether a call is the framework's `through(select, read)`.
   def throughCall(c: Apply): Boolean =
     c.symbol.name == "through" && c.symbol.maybeOwner.fullName.startsWith("umpire.Compose$package")
 
-  /**
-   * `through(select, read)`: the symbol that stands for the function `s => read(s.<path>)` of the
-   * composed state where a def is bound or named, one per state, path and def. `callee` lifts it on
-   * its first call, named `<state>.through.<path>.<def>`. Refused at its argument, as a lambda is: a
-   * selector that is not a field path, and a `read` that names no def of the lifted sources.
-   */
+  // `through(select, read)`: the symbol that stands for the function `s => read(s.<path>)` of the
+  // composed state where a def is bound or named, one per state, path and def. `callee` lifts it on
+  // its first call, named `<state>.through.<path>.<def>`. Refused at its argument, as a lambda is: a
+  // selector that is not a field path, and a `read` that names no def of the lifted sources.
   def through(c: Apply): Symbol =
     def unwrapped(t: Term): Term = t match
       case NamedArg(_, e)     => unwrapped(e)
@@ -180,10 +172,8 @@ private[irgen] trait Expressions:
       }
     )
 
-  /**
-   * The fields a lambda's body reads off its one parameter, outermost first: `List("activity",
-   * "phase")` for `_.activity.phase`, `Nil` for the parameter itself. Anything else reads no path.
-   */
+  // The fields a lambda's body reads off its one parameter, outermost first: `List("activity",
+  // "phase")` for `_.activity.phase`, `Nil` for the parameter itself. Anything else reads no path.
   def fieldPath(param: ValDef, body: Term): Option[List[String]] = body match
     case Typed(e, _)                          => fieldPath(param, e)
     case Inlined(_, Nil, e)                   => fieldPath(param, e)
@@ -193,10 +183,8 @@ private[irgen] trait Expressions:
       fieldPath(param, recv).map(_ :+ field)
     case _ => None
 
-  /**
-   * A constant value's key, as Umpire keys it (tools/umpire/interp's `Value.Key`): a case by its name
-   * followed by its fields, all joined by "-".
-   */
+  // A constant value's key, as Umpire keys it (tools/umpire/interp's `Value.Key`): a case by its name
+  // followed by its fields, all joined by "-".
   def valueKey(v: ir.Value): String = v.kind match
     case ir.Value.Kind.Bool(b)   => b.toString
     case ir.Value.Kind.Int(i)    => i.toString
@@ -236,15 +224,13 @@ private[irgen] trait Expressions:
       )
     )
 
-  /**
-   * The function a reference names, lifting its body on first use. A function-valued parameter of a
-   * declaring function being folded names the def its call binds it to.
-   */
+  // The function a reference names, lifting its body on first use. A function-valued parameter of a
+  // declaring function being folded names the def its call binds it to.
   def callee(named: Symbol, at: Tree): String =
     val sym = boundFunctions.getOrElse(named, named)
     throughOf.get(sym).fold(defCallee(sym, at))(throughCallee)
 
-  /** The function a `through` stands for, lifted on its first call: `s => read(s.<path>)`. */
+  // The function a `through` stands for, lifted on its first call: `s => read(s.<path>)`.
   private def throughCallee(t: Through): String =
     if !functions.contains(t.name) then
       functions(t.name) = ir.Function.defaultInstance
@@ -299,10 +285,8 @@ private[irgen] trait Expressions:
       body = Some(giving(rest.tpe)(lift(rest)))
     )
 
-  /**
-   * `{ require(p); body }.ensuring(q)` is `body` under precondition `p`.
-   * Go evaluates the precondition before the body.
-   */
+  // `{ require(p); body }.ensuring(q)` is `body` under precondition `p`.
+  // Go evaluates the precondition before the body.
   def stripContracts(t: Term): (Option[Term], Term) = t match
     case Apply(Select(Apply(TypeApply(e, _), List(body)), "ensuring"), _)
         if e.symbol.name == "Ensuring" =>
@@ -311,22 +295,18 @@ private[irgen] trait Expressions:
       (Some(cond), if rest.isEmpty then e else Block(rest, e))
     case other => (None, other)
 
-  /**
-   * Whether a function's own scope owns the name: a parameter, a local `val`, or a name a pattern
-   * binds, also inside a local `val`'s right-hand side.
-   */
+  // Whether a function's own scope owns the name: a parameter, a local `val`, or a name a pattern
+  // binds, also inside a local `val`'s right-hand side.
   def local(sym: Symbol): Boolean =
     val owner = sym.maybeOwner
     !owner.isNoSymbol && (owner.isDefDef || (owner.isValDef && local(owner)))
 
-  /** Whether named arguments out of parameter order arrived as a block of synthetic vals. */
+  // Whether named arguments out of parameter order arrived as a block of synthetic vals.
   def synthetic(stats: List[Statement]): Boolean =
     stats.nonEmpty && stats.forall { case v: ValDef => v.name.contains("$"); case _ => false }
 
-  /**
-   * A call whose named arguments out of parameter order arrived as a block of synthetic vals, with
-   * the vals substituted back into it.
-   */
+  // A call whose named arguments out of parameter order arrived as a block of synthetic vals, with
+  // the vals substituted back into it.
   def arguments(t: Term): Term = t match
     case Block(stats, call: Apply) if synthetic(stats) =>
       val bound = stats.collect { case v: ValDef => v.symbol -> v.rhs.get }.toMap
@@ -527,7 +507,7 @@ private[irgen] trait Expressions:
       case _               => Nil
     expr(at)(E.Call(ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))))
 
-  /** Steps written out as a list and not explained yet, each with `reason` as its explanation. */
+  // Steps written out as a list and not explained yet, each with `reason` as its explanation.
   def because(steps: ir.Expr, reason: String, at: Tree): ir.Expr =
     val unexplained = ir.Value(ir.Value.Kind.Text(""))
     val explained = steps.kind match
@@ -547,13 +527,11 @@ private[irgen] trait Expressions:
       )
     steps.withList(ir.ListOf(explained.flatten))
 
-  /**
-   * The step of each alternative of a choose, in the order written, named after its token's val. An
-   * alternative has its choose's type, so each lifts as the step function's steps do, `enter`,
-   * `stay`, `List(Step(...))` and `because` included, and must give one step written out, or call a
-   * function of the lifted sources that gives at most one: the call is then to a copy of that
-   * function whose every step is named (`namedCopy`).
-   */
+  // The step of each alternative of a choose, in the order written, named after its token's val. An
+  // alternative has its choose's type, so each lifts as the step function's steps do, `enter`,
+  // `stay`, `List(Step(...))` and `because` included, and must give one step written out, or call a
+  // function of the lifted sources that gives at most one: the call is then to a copy of that
+  // function whose every step is named (`namedCopy`).
   def choose(alternatives: List[Term], expected: Option[TypeRepr]): Seq[ir.Expr] =
     val named = alternatives.foldLeft(Vector.empty[(Symbol, ir.Expr)]): (done, a) =>
       val (written, steps) = alternative(a)
@@ -587,10 +565,8 @@ private[irgen] trait Expressions:
       done :+ (token -> one)
     named.map(_._2)
 
-  /**
-   * The results of a choose: the steps written out as one list, as an unnamed list of them lifts,
-   * and a helper's steps joined to them where its alternative calls one, in the order written.
-   */
+  // The results of a choose: the steps written out as one list, as an unnamed list of them lifts,
+  // and a helper's steps joined to them where its alternative calls one, in the order written.
   def chosen(alternatives: Seq[ir.Expr], at: Tree): ir.Expr =
     val parts = alternatives.foldLeft(Vector.empty[ir.Expr]): (done, a) =>
       (a.kind, done.lastOption.map(_.kind)) match
@@ -600,12 +576,10 @@ private[irgen] trait Expressions:
         case _                   => done :+ a
     parts.reduceLeft((l, r) => binary(ir.Binary.Op.OP_CONCAT, l, r, at))
 
-  /**
-   * The copy of a function an alternative calls whose every step is named `choice`: each branch of
-   * its body gives no step, one step written out, or a call of another function, whose copy it
-   * calls in turn. The copy is a function of its own, `<function>$<choice>`, so the function keeps
-   * its unnamed steps wherever else it is called.
-   */
+  // The copy of a function an alternative calls whose every step is named `choice`: each branch of
+  // its body gives no step, one step written out, or a call of another function, whose copy it
+  // calls in turn. The copy is a function of its own, `<function>$<choice>`, so the function keeps
+  // its unnamed steps wherever else it is called.
   def namedCopy(function: String, choice: String, alternative: Tree): String =
     val copy = s"$function$$$choice"
     def refuse(at: ir.Expr, what: String): Nothing =
@@ -634,15 +608,15 @@ private[irgen] trait Expressions:
       functions(copy) = f.withName(copy).withBody(steps(f.getBody))
     copy
 
-  /** Whether a type is a list of steps, the results of a step function. */
+  // Whether a type is a list of steps, the results of a step function.
   def stepList(t: TypeRepr): Boolean =
     val list = t.widen.dealias
     isList(list.typeSymbol) && list.typeArgs.headOption.exists(isNamed(_, stepType))
 
-  /** Whether a type is a step or a list of steps, which only a step function makes. */
+  // Whether a type is a step or a list of steps, which only a step function makes.
   def makesSteps(t: TypeRepr): Boolean = isNamed(t, stepType) || stepList(t)
 
-  /** `body`, lifted as the body of a function that gives `result`: steps only where it gives them. */
+  // `body`, lifted as the body of a function that gives `result`: steps only where it gives them.
   def giving[A](result: TypeRepr)(body: => A): A =
     // A function of literal results, such as `if c then "a" else "b"`, gives their union's type.
     def named(r: TypeRepr): String = r.widen.dealias match
@@ -651,11 +625,9 @@ private[irgen] trait Expressions:
     val gives = named(result).split(" \\| ").distinct.mkString(" | ")
     makingIn(makesSteps(result), s"a function that gives $gives")(body)
 
-  /**
-   * The refusal of a step made outside a step function: a start, an `ends`, evidence, a refinement,
-   * a monitor, a Property or a progress claim reads values, states and steps and makes none
-   * (model/SEMANTICS.md, Levels).
-   */
+  // The refusal of a step made outside a step function: a start, an `ends`, evidence, a refinement,
+  // a monitor, a Property or a progress claim reads values, states and steps and makes none
+  // (model/SEMANTICS.md, Levels).
   def wrongLevel(t: Term): Nothing =
     def made(t: Term): String = t match
       case Apply(fn, _)        => made(fn)
@@ -668,10 +640,8 @@ private[irgen] trait Expressions:
         "makes one, and every other declaration reads a value, a state or a step"
     )
 
-  /**
-   * The refusal of a step function's several results written without names: every branching of a
-   * Model is intentional and named (model/SEMANTICS.md, Named choices).
-   */
+  // The refusal of a step function's several results written without names: every branching of a
+  // Model is intentional and named (model/SEMANTICS.md, Named choices).
   def unnamed(at: Tree, written: String): Nothing =
     fail(
       at,
@@ -679,7 +649,7 @@ private[irgen] trait Expressions:
         s"`choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not $written"
     )
 
-  /** An alternative of a choose, `token -> steps`, as the call writes it. */
+  // An alternative of a choose, `token -> steps`, as the call writes it.
   def alternative(t: Term): (Term, Term) = t match
     case Typed(e, _)        => alternative(e)
     case Inlined(_, Nil, e) => alternative(e)
@@ -695,7 +665,7 @@ private[irgen] trait Expressions:
         s"an alternative of a choose is written in the call as `token -> step`, not $written"
       )
 
-  /** The val of a choice token, `val committed = choice`, which names the alternative. */
+  // The val of a choice token, `val committed = choice`, which names the alternative.
   def choiceToken(token: Term): Symbol =
     val sym = token match
       case r: Ref => Some(resolveSymbol(r))

@@ -10,7 +10,7 @@ private[irgen] trait Compositions:
 
   // ### Compositions
 
-  /** `s.field -> value`, the body of a selector. */
+  // `s.field -> value`, the body of a selector.
   def arrow(t: Term): (Term, Term) = t match
     case Apply(
           TypeApply(Select(Apply(TypeApply(Ident("ArrowAssoc"), _), List(k)), "->"), _),
@@ -19,15 +19,13 @@ private[irgen] trait Compositions:
       (k, v)
     case other => fail(other, s"expected `_.member -> value`, not ${other.show}")
 
-  /** The parameter and body of a selector of the composed state, such as `_.queue -> enqueue`. */
+  // The parameter and body of a selector of the composed state, such as `_.queue -> enqueue`.
   def selector(t: Term): Option[(ValDef, Term)] = lambda(t).collect { case (List(p), body) =>
     (p, body)
   }
 
-  /**
-   * The field of the composed state a selector's `key` reads, `_.queue`: one field, read off the
-   * selector's parameter, refused at `at` otherwise.
-   */
+  // The field of the composed state a selector's `key` reads, `_.queue`: one field, read off the
+  // selector's parameter, refused at `at` otherwise.
   def selectedField(param: ValDef, key: Term, at: Tree, what: String): String =
     fieldPath(param, key) match
       case Some(List(field)) => field
@@ -41,7 +39,7 @@ private[irgen] trait Compositions:
           s"$what names a member by one field of ${state.name}, such as `_.$example`, not `$written`"
         )
 
-  /** The member of `c` that fills `field`, refused at `at` where none does. */
+  // The member of `c` that fills `field`, refused at `at` where none does.
   def filled(c: ir.Composition, field: String, at: Tree, what: String): ir.Member =
     c.members
       .find(_.field == field)
@@ -53,10 +51,8 @@ private[irgen] trait Compositions:
         )
       )
 
-  /**
-   * The machine a selector puts in the field its `key` reads, refused at `at` where the machine's
-   * state is not that field's type.
-   */
+  // The machine a selector puts in the field its `key` reads, refused at `at` where the machine's
+  // state is not that field's type.
   def memberMachine(field: String, key: Term, value: Term, at: Tree, of: String): ir.Machine =
     val m = machineOf(resolveSymbol(value), value)
     val state = typeRef(key.tpe.widen, key).getNamed
@@ -68,13 +64,13 @@ private[irgen] trait Compositions:
       )
     m
 
-  /** The action of `name` a machine binds, by its Definition ID. */
+  // The action of `name` a machine binds, by its Definition ID.
   def boundNamed(machine: String, name: String): Option[String] =
     machineNamed(machine).flatMap(
       _.steps.map(_.action).find(id => actions.get(id).exists(_.name == name))
     )
 
-  /** Whether a machine binds the action of the Definition ID `id`: the declaration, not its name. */
+  // Whether a machine binds the action of the Definition ID `id`: the declaration, not its name.
   def binds(machine: String, id: String): Boolean =
     machineNamed(machine).exists(_.steps.exists(_.action == id))
 
@@ -106,14 +102,14 @@ private[irgen] trait Compositions:
   // The compositions whose declarations are being lifted, so one derived from itself is refused.
   private val composing = mutable.LinkedHashSet.empty[Symbol]
 
-  /** Every sync names members of its composition. */
+  // Every sync names members of its composition.
   private def checkedSyncs(c: ir.Composition, at: Tree): ir.Composition =
     val fields = c.members.map(_.field)
     for s <- c.syncs; m <- Seq(s.getFirst, s.getSecond) if !fields.contains(m.member) do
       fail(at, s"sync ${s.name} names ${m.member}, which is not a member of ${c.name}")
     c
 
-  /** A composition of members, each named by a selector of its field. */
+  // A composition of members, each named by a selector of its field.
   private def declaredComposition(
       s: TypeRepr,
       family: String,
@@ -137,7 +133,7 @@ private[irgen] trait Compositions:
       }
     )
 
-  /** `base.withMember(member)`, named `name` in `family`. */
+  // `base.withMember(member)`, named `name` in `family`.
   private def derivedComposition(
       base: Term,
       member: Term,
@@ -151,7 +147,7 @@ private[irgen] trait Compositions:
       case chain  => walk(chain)
     withMember(c, member).copy(family = family, name = name, position = Some(pos(at)))
 
-  /** The name of a sync written without one: its first member's action's. */
+  // The name of a sync written without one: its first member's action's.
   private def syncName(first: Term): String =
     val (_, body) = selector(first).getOrElse(
       fail(first, s"sync names a member by a selector, `_.member -> action`, not ${first.show}")
@@ -185,7 +181,7 @@ private[irgen] trait Compositions:
       )
     c.addSyncs(ir.Sync(n, Some(move(c, n, first)), Some(move(c, n, second))))
 
-  /** `replaces(_.field, opaque)`: the member of the field stands in for `opaque`. */
+  // `replaces(_.field, opaque)`: the member of the field stands in for `opaque`.
   private def replacing(c: ir.Composition, field: Term, opaque: Term): ir.Composition =
     val replaced = machineOf(resolveSymbol(opaque), opaque).name
     val (param, body) = selector(field).getOrElse(
@@ -193,11 +189,9 @@ private[irgen] trait Compositions:
     )
     replaces(c, selectedField(param, body, field, "replaces"), replaced, field)
 
-  /**
-   * A composition object, `object C extends Composition[S](members*)` with its `end` and its
-   * `syncs`, or `object C extends Composition(c.withMember(...))`, which keeps its source's: named
-   * after its object.
-   */
+  // A composition object, `object C extends Composition[S](members*)` with its `end` and its
+  // `syncs`, or `object C extends Composition(c.withMember(...))`, which keeps its source's: named
+  // after its object.
   def objectComposition(cls: Symbol, at: Tree): ir.Composition =
     val c = objectBody(cls, at)
     val name = objectFormName(cls)
@@ -265,7 +259,7 @@ private[irgen] trait Compositions:
             )
         checkedSyncs(synced, c)
 
-  /** `c` with the member of `field` standing in for `opaque`, which its machine must refine. */
+  // `c` with the member of `field` standing in for `opaque`, which its machine must refine.
   def replaces(c: ir.Composition, field: String, opaque: String, at: Tree): ir.Composition =
     val i = c.members.indexWhere(_.field == field)
     if i < 0 then fail(at, s"$field replaces $opaque, and no member fills $field")
@@ -274,12 +268,10 @@ private[irgen] trait Compositions:
       fail(at, s"$field replaces $opaque, and its member $member does not refine $opaque")
     c.withMembers(c.members.updated(i, c.members(i).withReplaces(opaque)))
 
-  /**
-   * `base` with the member its selector names replaced in place by the selector's machine. That
-   * machine binds the very actions the syncs of the member pair, and where the member stood in for
-   * a machine, the new one stands in for the machine it declares it refines, which a provider over
-   * another interface names differently.
-   */
+  // `base` with the member its selector names replaced in place by the selector's machine. That
+  // machine binds the very actions the syncs of the member pair, and where the member stood in for
+  // a machine, the new one stands in for the machine it declares it refines, which a provider over
+  // another interface names differently.
   def withMember(base: ir.Composition, sel: Term): ir.Composition =
     val (param, body) = selector(sel).getOrElse(
       fail(sel, s"withMember names a member by a selector, `_.member -> machine`, not ${sel.show}")
@@ -320,7 +312,7 @@ private[irgen] trait Compositions:
 
   // ### Composed classes: what `c.synced(...)` and `c.own(...)` select
 
-  /** The receiver, the operation and the arguments of `c.synced(...)` or `c.own(...)`. */
+  // The receiver, the operation and the arguments of `c.synced(...)` or `c.own(...)`.
   private def selection(t: Term): Option[(Term, String, List[Term])] = t match
     case Typed(e, _)        => selection(e)
     case Inlined(_, Nil, e) => selection(e)
@@ -335,17 +327,15 @@ private[irgen] trait Compositions:
         case _            => None
     case _ => None
 
-  /** Whether a term selects a composed class or action: `c.synced(...)` or `c.own(...)`. */
+  // Whether a term selects a composed class or action: `c.synced(...)` or `c.own(...)`.
   def composed(t: Term): Boolean = selection(t).isDefined
 
-  /** The composed action key `whenAction(c.synced(...))` or `whenAction(c.own(...))` names. */
+  // The composed action key `whenAction(c.synced(...))` or `whenAction(c.own(...))` names.
   def composedAction(t: Term, composition: String, env: Map[Symbol, Decl]): String =
     composedKey(t, composition, env, classes = false)
 
-  /**
-   * A Scenario's pinned schedule: a machine's classes, or a composition's composed class keys, each
-   * selected by `c.synced(...)` or `c.own(...)`.
-   */
+  // A Scenario's pinned schedule: a machine's classes, or a composition's composed class keys, each
+  // selected by `c.synced(...)` or `c.own(...)`.
   def scheduled(s: ir.Scenario, items: List[Term], env: Map[Symbol, Decl]): ir.Scenario =
     items.filter(composed) match
       case Nil        => s.addAllActions(items.map(classOf))
@@ -365,11 +355,9 @@ private[irgen] trait Compositions:
           )
         s.addAllKeys(items.map(composedKey(_, s.machine, env, classes = true)))
 
-  /**
-   * The composed key `t` selects in the composition `of`, as SEMANTICS.md keys it: for a Scenario
-   * (`classes`) the class, a sync's name or `<field>_<action>` followed by the class's inputs; for
-   * `whenAction` the action, its name alone.
-   */
+  // The composed key `t` selects in the composition `of`, as SEMANTICS.md keys it: for a Scenario
+  // (`classes`) the class, a sync's name or `<field>_<action>` followed by the class's inputs; for
+  // `whenAction` the action, its name alone.
   def composedKey(t: Term, of: String, env: Map[Symbol, Decl], classes: Boolean): String =
     val (receiver, op, args) = selection(t).get
     val name = modelName(fold(receiver, env), receiver)

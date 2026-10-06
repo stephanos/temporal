@@ -20,12 +20,12 @@ enum Switched derives Finite:
 
 final case class Switch(on: Boolean) derives Finite
 
-/** The two switches' state, named apart from the composition object `Switches`. */
+// The two switches' state, named apart from the composition object `Switches`.
 final case class SwitchesState(left_side: Switch, right_side: Switch)
 
 val turnOn = action("turn-on", Actor("fixture")).input[Level]("level")
 
-/** The left switch's actions, spelled as the right switch's are. */
+// The left switch's actions, spelled as the right switch's are.
 object Left:
   val tap = action(Actor("fixture"))
   val flick = action(Actor("fixture"))

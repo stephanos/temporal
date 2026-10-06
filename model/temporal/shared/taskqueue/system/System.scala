@@ -1,8 +1,7 @@
-/* The task queue's System: its provider, the route one message takes through history and matching
- * (fn-126 decision 16). The level's own file holds TaskQueueSystem, the detailed provider whose
- * refinement says what the opaque contract (product/Product.scala) reads of it, and the providers
- * derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
- */
+// The task queue's System: its provider, the route one message takes through history and matching
+// (fn-126 decision 16). The level's own file holds TaskQueueSystem, the detailed provider whose
+// refinement says what the opaque contract (product/Product.scala) reads of it, and the providers
+// derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
 package temporal
 package shared.taskqueue
 package system
@@ -16,7 +15,7 @@ import QueueOutcome.given
 // from the detailed provider in what one ordinary crash does, and neither assumes storage loss. They
 // are negative controls a feature may compose its own design with: the replacement is what must fail.
 
-/** The detailed provider, under ordinary crashes and lost answers to the poller. */
+// The detailed provider, under ordinary crashes and lost answers to the poller.
 object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], FailureModel:
   val init = states.idleQueue
   def end(d: State) = states.queueEnds(d)
@@ -31,25 +30,23 @@ object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], Fa
       case Delivered.never => Delivered.once
       case _               => Delivered.twice
 
-    /** Matching holds a task a poll can take: reserved for a waiting poller, or persisted. */
+    // Matching holds a task a poll can take: reserved for a waiting poller, or persisted.
     def matchable(c: Custody) = c.in(Custody.reserved, Custody.persisted)
 
-    /** A custodian holds the message. */
+    // A custodian holds the message.
     def held(s: State) = s.custody != Custody.nowhere
 
-    /** Matching holds the task, no poller holds it, and it was not yet handed out twice. */
+    // Matching holds the task, no poller holds it, and it was not yet handed out twice.
     def deliverable(s: State) =
       matchable(s.custody) && !s.polled && s.delivered != Delivered.twice
 
-    /** A poller holds a task matching handed out, whose consumer may now answer. */
+    // A poller holds a task matching handed out, whose consumer may now answer.
     def answerable(s: State) =
       s.polled && s.custody != Custody.nowhere && s.delivered != Delivered.never
 
   object refinement extends Refinement(TaskQueueProduct):
-    /**
-     * The interface state a detailed state stands for: a message is outstanding while anyone holds
-     * it.
-     */
+    // The interface state a detailed state stands for: a message is outstanding while anyone holds
+    // it.
     def toProduct(d: State) =
       if d.custody == Custody.nowhere then QueueView(Outstanding.empty)
       else
@@ -82,7 +79,7 @@ object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], Fa
           .because("the durable write fails and no message is outstanding")
       )
 
-    /** An invocation implies no receiver effect: nothing durable changes until matching persists. */
+    // An invocation implies no receiver effect: nothing durable changes until matching persists.
     def invokeDetail(s: State) =
       enter(s.copy(custody = Custody.invoked), QueueFact.addInvoked)
 
@@ -101,48 +98,40 @@ object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], Fa
         )
       )
 
-    /** Matching completes the task, which discharges every custodian's obligation. */
+    // Matching completes the task, which discharges every custodian's obligation.
     def acknowledgeDetail(@unused s: State) =
       List(Step(QueueOutcome.acknowledged, states.idleQueue, List(QueueFact.acknowledged)))
 
-    /**
-     * The answer to the poller is lost. A persisted task stays queued; a sync match fails back to the
-     * invocation, which history retries.
-     */
+    // The answer to the poller is lost. A persisted task stays queued; a sync match fails back to the
+    // invocation, which history retries.
     def ackLossDetail(s: State) =
       if s.custody == Custody.reserved then
         enter(s.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
       else enter(s.copy(polled = false), QueueFact.ackLost)
 
-    /**
-     * An ordinary crash loses what is only in memory, the poll, the invocation and a sync match, and
-     * nothing durable: history still holds its dispatch task and retries, and a persisted task is
-     * still queued.
-     */
+    // An ordinary crash loses what is only in memory, the poll, the invocation and a sync match, and
+    // nothing durable: history still holds its dispatch task and retries, and a persisted task is
+    // still queued.
     def crashDetail(s: State) = s.custody match
       case Custody.invoked | Custody.reserved =>
         enter(s.copy(custody = Custody.history, polled = false), QueueFact.crashed)
       case Custody.nowhere | Custody.history | Custody.persisted =>
         enter(s.copy(polled = false), QueueFact.crashed)
 
-    /** Bound by LossyMatchingQueue alone. */
+    // Bound by LossyMatchingQueue alone.
     def storageLossDetail(@unused s: State) =
       List(Step(QueueOutcome.lost, states.idleQueue, List(QueueFact.storageLost)))
 
-    /**
-     * Bound by ForgetfulQueue alone. History drops its dispatch task when it invokes
-     * AddActivityTask, before matching persists anything, so a crash there leaves no custodian for a
-     * message the interface still calls committed.
-     */
+    // Bound by ForgetfulQueue alone. History drops its dispatch task when it invokes
+    // AddActivityTask, before matching persists anything, so a crash there leaves no custodian for a
+    // message the interface still calls committed.
     def forgetfulCrash(s: State) = s.custody match
       case Custody.invoked | Custody.reserved => enter(states.idleQueue, QueueFact.crashed)
       case Custody.nowhere | Custody.history | Custody.persisted =>
         enter(s.copy(polled = false), QueueFact.crashed)
 
-    /**
-     * Bound by VolatileQueue alone. A crash wipes the tasks matching persisted, which history no
-     * longer backs.
-     */
+    // Bound by VolatileQueue alone. A crash wipes the tasks matching persisted, which history no
+    // longer backs.
     def volatileCrash(s: State) = s.custody match
       case Custody.persisted                  => enter(states.idleQueue, QueueFact.crashed)
       case Custody.invoked | Custody.reserved =>
@@ -163,13 +152,11 @@ object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], Fa
     on(fault.ackLoss)(where(_.polled) ~> effects.ackLossDetail)
     on(fault.crash)(always ~> effects.crashDetail)
 
-  /** What a provider promises. */
+  // What a provider promises.
   object properties:
-    /**
-     * The laws of the provider `m`: a delivery hands the message out, and a message a custodian holds
-     * stays held until it is acknowledged. Each takes its name explicitly, so every provider's
-     * instance keeps the name its checks read.
-     */
+    // The laws of the provider `m`: a delivery hands the message out, and a message a custodian holds
+    // stays held until it is acknowledged. Each takes its name explicitly, so every provider's
+    // instance keeps the name its checks read.
     def queueLaws(m: Machine[State, QueueOutcome, QueueFact]) = QueueLaws(
       m.property("delivers") when queue.deliver holds (after => after.records(QueueFact.delivered)),
       m.property("committedStays")
@@ -177,12 +164,10 @@ object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], Fa
         .unless(_.records(QueueFact.acknowledged))
     )
 
-  /** The crash cuts: one crash at each point of the route, and the delivery that must still follow it. */
+  // The crash cuts: one crash at each point of the route, and the delivery that must still follow it.
   object queries:
-    /**
-     * One crash after the invocation, after the sync match, after persistence and after a delivery,
-     * declared on the provider `m`. After the acknowledgment nothing is left to deliver.
-     */
+    // One crash after the invocation, after the sync match, after persistence and after a delivery,
+    // declared on the provider `m`. After the acknowledgment nothing is left to deliver.
     def providerQueries(m: Machine[State, QueueOutcome, QueueFact]) =
       val laws = properties.queueLaws(m)
       val crashAfterInvocation = m.scenario.actions(
@@ -242,10 +227,8 @@ object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], Fa
 
     val matchingQueueQueries = providerQueries(TaskQueueSystem)
 
-/**
- * The detailed provider with the storage-loss fault, which only its assumption allows. It refines
- * the interface that allows the loss.
- */
+// The detailed provider with the storage-loss fault, which only its assumption allows. It refines
+// the interface that allows the loss.
 object LossyMatchingQueue
     extends Derived(
       TaskQueueSystem
@@ -257,16 +240,14 @@ object LossyMatchingQueue
     ),
       FailureModel:
   object properties:
-    /**
-     * Storage loss drops a committed message, and the queue records that it did. Only the lossy
-     * provider binds the loss, so this is its own Property, not a law of every provider.
-     */
+    // Storage loss drops a committed message, and the queue records that it did. Only the lossy
+    // provider binds the loss, so this is its own Property, not a law of every provider.
     val storageLossDrops =
       property when fault.storageLoss holds { after =>
         after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost)
       }
 
-  /** The crash cuts of every provider, and the storage loss. */
+  // The crash cuts of every provider, and the storage loss.
   object queries:
     val persistedThenLost = scenario.actions(
       queue.enqueue,
@@ -280,7 +261,7 @@ object LossyMatchingQueue
       query("lossyMatchingQueue.storageLoss") find properties.storageLossDrops in
         persistedThenLost limits seven
 
-/** A crash that loses the message history dropped on invoking AddActivityTask. */
+// A crash that loses the message history dropped on invoking AddActivityTask.
 object ForgetfulQueue
     extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.effects.forgetfulCrash)),
       NegativeControl:
@@ -288,7 +269,7 @@ object ForgetfulQueue
     val forgetfulQueueQueries =
       TaskQueueSystem.queries.providerQueries(ForgetfulQueue)
 
-/** A crash that wipes the tasks matching persisted. */
+// A crash that wipes the tasks matching persisted.
 object VolatileQueue
     extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.effects.volatileCrash)),
       NegativeControl:

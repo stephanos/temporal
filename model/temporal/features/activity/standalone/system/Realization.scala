@@ -1,17 +1,16 @@
-/* The standalone activity's System realizations: StandaloneActivity, HeldDispatch and LostStartAnswer.
- * A controller starts one activity through
- * StartActivityExecution, controls it, and reads its status back; the Case's own worker runs its
- * attempts, each ending as the path's answer for it says.
- *
- * No kind of evidence depends on seeing a state the activity passes through on its own: with a
- * running worker a scheduled activity is started, and a started one answered, before any read need
- * see either. A call's answer is the Run's record of that call; an attempt start is the Run's record
- * of the attempt the worker was delivered; and a status is read back from DescribeActivityExecution
- * only where the activity stays in it, paused until the controller releases it, or over.
- *
- * The roles, bindings, window and run records are the kit's (temporal/realize); Go lowers a
- * Query's witness through these declarations (tools/umpire/lower).
- */
+// The standalone activity's System realizations: StandaloneActivity, HeldDispatch and LostStartAnswer.
+// A controller starts one activity through
+// StartActivityExecution, controls it, and reads its status back; the Case's own worker runs its
+// attempts, each ending as the path's answer for it says.
+//
+// No kind of evidence depends on seeing a state the activity passes through on its own: with a
+// running worker a scheduled activity is started, and a started one answered, before any read need
+// see either. A call's answer is the Run's record of that call; an attempt start is the Run's record
+// of the attempt the worker was delivered; and a status is read back from DescribeActivityExecution
+// only where the activity stays in it, paused until the controller releases it, or over.
+//
+// The roles, bindings, window and run records are the kit's (temporal/realize); Go lowers a
+// Query's witness through these declarations (tools/umpire/lower).
 package temporal
 package features.activity.standalone
 package system
@@ -31,7 +30,7 @@ import Timeout.expires
 import shared.worker.worker as process
 
 object ActivityRealization:
-  /** A status DescribeActivityExecution reports, each kind in its own source: a poll reads one. */
+  // A status DescribeActivityExecution reports, each kind in its own source: a poll reads one.
   private def status(fact: RealizationFact) = Evidence.read(
     id = evidenceId(fact),
     records = fact,
@@ -41,7 +40,7 @@ object ActivityRealization:
     commitment = Commitment.reported
   )
 
-  /** The status the activity's description reports while each fact holds. */
+  // The status the activity's description reports while each fact holds.
   val activityStatus = statusTable(
     system.Fact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
     system.Fact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
@@ -51,7 +50,7 @@ object ActivityRealization:
     system.Fact.statusTimedOut -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
   )
 
-  /** Reads the activity's description until it reports the status the fact's evidence names. */
+  // Reads the activity's description until it reports the status the fact's evidence names.
   private def awaitStatus(fact: RealizationFact) =
     await(status(fact), workflowService)(
       Condition.equal(Field(_.status), Operand.enumValue(activityStatus(fact)))
@@ -66,14 +65,12 @@ object ActivityRealization:
   private val stopWorkerUntilReleased = Fault(taskQueue, FaultKind.workerStop)
   private val resumeWorker = Fault(taskQueue, FaultKind.workerResume)
 
-  /** Each Case runs an activity type of its own, so two Cases on one worker never share one. */
+  // Each Case runs an activity type of its own, so two Cases on one worker never share one.
   private val activityType = perCase("activity")
 
-  /**
-   * The start every class of the start action makes, under the run's id; a class adds the deadlines
-   * it sets. The server refuses a start that sets neither a start-to-close nor a schedule-to-close
-   * deadline, so a class that sets none carries a start-to-close deadline no Case lives to see.
-   */
+  // The start every class of the start action makes, under the run's id; a class adds the deadlines
+  // it sets. The server refuses a start that sets neither a start-to-close nor a schedule-to-close
+  // deadline, so a class that sets none carries a start-to-close deadline no Case lives to see.
   private val startActivity = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
     field(_.namespace) := workerNamespace
     field(_.activityId) := run
@@ -142,7 +139,7 @@ object ActivityRealization:
 
   // ### The worker
 
-  /** The failure an attempt that fails ends with. */
+  // The failure an attempt that fails ends with.
   private def attemptFailure(nonRetryable: Boolean) = AttemptFailure(
     Proto[Failure](
       ProtoField.typed(Field(_.message), ProtoValue.text("attempt failed")),
@@ -163,7 +160,7 @@ object ActivityRealization:
   private val failActivity = attemptFailure(nonRetryable = true)
   private val cancelAttempt = AttemptCanceled
 
-  /** The activity's attempts: each delivery to the worker is an attempt start, answered in order. */
+  // The activity's attempts: each delivery to the worker is an attempt start, answered in order.
   private val attempts = script(
     "activity",
     WorkerActivation
@@ -182,7 +179,7 @@ object ActivityRealization:
   // second attempt's delivery, which shows the first failed, the activity was scheduled again and a
   // worker took it again, confirming the three at once.
 
-  /** One standalone activity a controller starts and the Case's own worker runs. */
+  // One standalone activity a controller starts and the Case's own worker runs.
   val standalone = temporalRealization(
     machine = ActivitySystem,
     operation = activity,
@@ -247,20 +244,18 @@ object ActivityRealization:
   private val releaseDispatch =
     command(Release(dispatchHold), closes = Vector(evidenceId(AdmissionFact.attemptAdmitted)))
 
-  /** The lost answer's release: the held race's command, so each race's evidence reads one name. */
+  // The lost answer's release: the held race's command, so each race's evidence reads one name.
   private val loseAdmissionResponse =
     Command("release-dispatch", Fault(taskQueue, FaultKind.admissionResponseLoss))
 
-  /** That admission committed `decision`, as the release's record of the delivery names it. */
+  // That admission committed `decision`, as the release's record of the delivery names it.
   private def decided(decision: DeliveryAdmissionDecision): Condition[InstructionOutcome] =
     Condition.equal(Field(_.getDeliveryAdmission.decision), Operand.enumValue(decision))
   private val admitted = decided(DELIVERY_ADMISSION_DECISION_ADMITTED)
   private val rejected = decided(DELIVERY_ADMISSION_DECISION_REJECTED)
 
-  /**
-   * What admission committed for the released delivery, from the release's record where it meets
-   * `guard`: never what a client was told; keyed by the record's activity, stamped with its delivery.
-   */
+  // What admission committed for the released delivery, from the release's record where it meets
+  // `guard`: never what a client was told; keyed by the record's activity, stamped with its delivery.
   private def committed(
       fact: RealizationFact,
       release: Command | Instruction,
@@ -289,7 +284,7 @@ object ActivityRealization:
   // The machine starts scheduled, so every Case carries the start. Its one deadline, a start-to-close
   // no Case lives to see, competes with no delivery.
 
-  /** The stale dispatch of one paused activity, held, then delivered to admission. */
+  // The stale dispatch of one paused activity, held, then delivered to admission.
   val heldDelivery = temporalRealization(
     machine = HeldDispatch,
     operation = activity,
@@ -312,7 +307,7 @@ object ActivityRealization:
     controls = Vector(dispatchHold)
   )
 
-  /** One lost admission answer, with its durable decision observed before the response is replaced. */
+  // One lost admission answer, with its durable decision observed before the response is replaced.
   val lostAdmissionResponse = temporalRealization(
     machine = LostStartAnswer,
     operation = activity,

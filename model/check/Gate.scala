@@ -14,6 +14,9 @@
 //   scala-cli run model/check -- --check-syntax      hold the sugar to the Syntax.scala files and
 //                                                    their `Core form:` docs (SyntaxRule.scala);
 //                                                    make lint-model runs it
+//   scala-cli run model/check -- --check-comments    hold every Scala file of model/ to `//`
+//                                                    comments (CommentRule.scala); make lint-model
+//                                                    runs it
 //
 // The IR generator's fixtures under irgen/testdata are built and lifted too, by its own tests: the
 // Models it must lift, compared with the IR in irgen/testdata/lifts/expected, which --update
@@ -29,10 +32,10 @@ import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-/** A check of the gate that failed. */
+// A check of the gate that failed.
 final class GateError(message: String) extends Exception(message)
 
-/** The gate over the repository `tools` runs in; `log` receives its progress. */
+// The gate over the repository `tools` runs in; `log` receives its progress.
 final class Gate(tools: Tools, log: PrintStream):
   private val root = tools.directory
   private val model = root.resolve("model")
@@ -64,7 +67,7 @@ final class Gate(tools: Tools, log: PrintStream):
     log.println(s"   ${(System.nanoTime() - started) / 1000000000}s")
     result
 
-  /** A step started beside others: its title, its output or failure, and how long it took. */
+  // A step started beside others: its title, its output or failure, and how long it took.
   private type Beside = (String, Future[(Try[String], Long)])
 
   // Its output is kept, so steps that run side by side do not interleave; `report` prints it.
@@ -102,15 +105,13 @@ final class Gate(tools: Tools, log: PrintStream):
   private def scratch(name: String): Path =
     Files.createTempDirectory(Files.createDirectories(build.resolve("history")), s"$name.")
 
-  /**
-   * Packages the classes the lifter compiles against: model/build/ir-scalapb.jar, the IR's ScalaPB
-   * classes, compiled against scalapb-runtime. The IR schema is the file
-   * proto/internal/temporal/server/api/umpire/v1/ir.proto; its Go code is generated with every
-   * other internal proto by `make protoc` into api/umpire/v1.
-   *
-   * The jar has a stamp beside it, the hash of the schema and the versions of the generator and of
-   * Scala. With `ifStale`, the jar is packaged only when one of those changed since it was packaged.
-   */
+  // Packages the classes the lifter compiles against: model/build/ir-scalapb.jar, the IR's ScalaPB
+  // classes, compiled against scalapb-runtime. The IR schema is the file
+  // proto/internal/temporal/server/api/umpire/v1/ir.proto; its Go code is generated with every
+  // other internal proto by `make protoc` into api/umpire/v1.
+  //
+  // The jar has a stamp beside it, the hash of the schema and the versions of the generator and of
+  // Scala. With `ifStale`, the jar is packaged only when one of those changed since it was packaged.
   def generateIr(ifStale: Boolean): Unit =
     if !Files.isRegularFile(schema) then throw GateError(s"the IR schema $schema is missing")
     val hash =
@@ -194,7 +195,7 @@ final class Gate(tools: Tools, log: PrintStream):
       Files.writeString(stampFile, stamp + "\n")
       log.println(s"generated $jar")
 
-  /** Packages the linked Temporal API and Testpilot classes for Model authoring and lifting. */
+  // Packages the linked Temporal API and Testpilot classes for Model authoring and lifting.
   def generateApi(ifStale: Boolean): Unit =
     if !Files.isRegularFile(apiDescriptor) then
       throw GateError("proto/api.binpb is missing; run make proto/api.binpb")
@@ -324,7 +325,7 @@ final class Gate(tools: Tools, log: PrintStream):
       Files.writeString(stampFile, stamp + "\n")
       log.println("generated model/build/api-scalapb.jar")
 
-  /** The whole gate. An update rewrites the checked-in IR and Cases; a check writes neither. */
+  // The whole gate. An update rewrites the checked-in IR and Cases; a check writes neither.
   def run(update: Boolean, goChecks: Boolean): Unit =
     Seq("scala-cli", "protoc", "go").foreach(tools.find)
 
@@ -391,7 +392,7 @@ final class Gate(tools: Tools, log: PrintStream):
       ""
     else tools.run("go", Seq("run", "./tools/umpire/cmd/umpire-gen-cases")).orFail().output
 
-  /** Generates and compiles what the lifter reads, then builds its fixtures and lifts the Models. */
+  // Generates and compiles what the lifter reads, then builds its fixtures and lifts the Models.
   private def build(update: Boolean): Unit =
     step("generate the IR's classes when their inputs changed"):
       generateIr(ifStale = true)
@@ -473,7 +474,7 @@ final class Gate(tools: Tools, log: PrintStream):
 object Gate:
   val usage =
     "usage: gate [--update] [--skip-go-checks] | gate --generate-ir|--generate-api [--if-stale]" +
-      " | gate --check-syntax"
+      " | gate --check-syntax | gate --check-comments"
 
   private def same(checkedIn: Path, produced: Path) =
     Files.isRegularFile(checkedIn) && Files.mismatch(checkedIn, produced) == -1L
@@ -495,13 +496,11 @@ object Gate:
   // lifter does not, and umpire-lint fails on one beside no IR file.
   private val acceptedSuffix = ".lint.json"
 
-  /**
-   * Holds the checked-in `tree` to the `produced` directory, file for file: the tree is the files
-   * that were produced and no others, apart from the accepted lint findings an author writes. A
-   * check writes nothing and fails on every file that is stale, missing or produced by nothing. An
-   * update writes the files that changed, and only once every file was produced and none is left
-   * over.
-   */
+  // Holds the checked-in `tree` to the `produced` directory, file for file: the tree is the files
+  // that were produced and no others, apart from the accepted lint findings an author writes. A
+  // check writes nothing and fails on every file that is stale, missing or produced by nothing. An
+  // update writes the files that changed, and only once every file was produced and none is left
+  // over.
   def settle(tree: Path, produced: Path, root: Path, update: Boolean): Unit =
     def name(file: Path) = root.relativize(file)
     val (held, lifted) = (files(tree).filterNot(_.endsWith(acceptedSuffix)), files(produced))
@@ -526,7 +525,7 @@ object Gate:
           s"rerun with --update (make umpire-gen-model); the lifted files are in $produced"
         throw GateError((stale ++ orphans :+ remedy).mkString("\n"))
 
-  /** Runs the gate as its command line says and answers its exit status. */
+  // Runs the gate as its command line says and answers its exit status.
   def main(arguments: Seq[String], tools: => Tools, out: PrintStream, err: PrintStream): Int =
     val known = Set(
       "--update",
@@ -534,12 +533,14 @@ object Gate:
       "--generate-ir",
       "--generate-api",
       "--if-stale",
-      "--check-syntax"
+      "--check-syntax",
+      "--check-comments"
     )
     val flags = arguments.toSet
     val generate = flags("--generate-ir") || flags("--generate-api")
     val valid = flags.subsetOf(known) &&
       (if flags("--check-syntax") then flags == Set("--check-syntax")
+       else if flags("--check-comments") then flags == Set("--check-comments")
        else if generate then
          !flags("--update") && !flags("--skip-go-checks") &&
          !(flags("--generate-ir") && flags("--generate-api"))
@@ -549,9 +550,11 @@ object Gate:
       2
     else
       try
-        if flags("--check-syntax") then
+        if flags("--check-syntax") || flags("--check-comments") then
           // A finding is a line of its own, `file:line: reason`, so an editor opens it.
-          val findings = SyntaxRule.findings(tools.directory)
+          val findings =
+            if flags("--check-syntax") then SyntaxRule.findings(tools.directory)
+            else CommentRule.findings(tools.directory)
           findings.foreach(err.println)
           if findings.isEmpty then 0 else 1
         else

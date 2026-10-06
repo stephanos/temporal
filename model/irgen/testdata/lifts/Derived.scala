@@ -8,7 +8,7 @@ import umpire.*
 enum Light derives Finite:
   case off, on, broken
 
-/** A lamp's state, named apart from the machine object `Lamp`. */
+// A lamp's state, named apart from the machine object `Lamp`.
 final case class LampState(light: Light) derives Finite
 
 enum Outcome derives Finite:
@@ -27,7 +27,7 @@ val burnOutAssumed = assume
 enum Shown derives Finite:
   case dark, bright
 
-/** The view's state, named apart from the machine object `View`. */
+// The view's state, named apart from the machine object `View`.
 final case class ViewState(shown: Shown) derives Finite
 
 def pressView(v: ViewState): List[Step[ViewState, Outcome, Fact]] =
@@ -38,21 +38,21 @@ def pressView(v: ViewState): List[Step[ViewState, Outcome, Fact]] =
 def burnOutView(v: ViewState): List[Step[ViewState, Outcome, Fact]] =
   List(Step(Outcome.refused, ViewState(Shown.dark), List(Fact.burnedOut)))
 
-/** The opaque lamp the detailed ones refine. */
+// The opaque lamp the detailed ones refine.
 object View extends Machine[ViewState, Outcome, Fact]:
   val init = ViewState(Shown.dark)
   def end(view: State) = true
 
   object rules extends Bindings(press ~> pressView)
 
-/** The opaque lamp under faults: the same types as `View`, with a burn-out. */
+// The opaque lamp under faults: the same types as `View`, with a burn-out.
 object ViewUnderFaults extends Machine[ViewState, Outcome, Fact], FailureModel:
   val init = ViewState(Shown.dark)
   def end(view: State) = true
 
   object rules extends Bindings(press ~> pressView, burnOut ~> burnOutView)
 
-/** What a lamp shows: the map `refining` names, and each refinement below writes out. */
+// What a lamp shows: the map `refining` names, and each refinement below writes out.
 def seen(l: LampState): ViewState =
   if l.light == Light.on then ViewState(Shown.bright) else ViewState(Shown.dark)
 
@@ -85,7 +85,7 @@ def countLit(seen: Lit, before: LampState, after: Step[LampState, Outcome, Fact]
 val litAgain =
   monitor[LampState, Outcome, Fact, Lit](Lit.never)(countLit)(seen => seen == Lit.again)
 
-/** The detailed lamp: every part a derivation keeps or replaces. */
+// The detailed lamp: every part a derivation keeps or replaces.
 object Lamp extends Machine[LampState, Outcome, Fact]:
   val init = LampState(Light.off)
   def end(l: State) = l.light != Light.broken
@@ -104,7 +104,7 @@ object Lamp extends Machine[LampState, Outcome, Fact]:
 
   object rules extends Bindings(press ~> pressLamp, wear ~> wearLamp)
 
-/** One step function replaced, in its place. */
+// One step function replaced, in its place.
 object StiffLamp extends Derived(Lamp.rebind(press ~> pressStiff))
 
 object StiffLampSpelled extends Machine[LampState, Outcome, Fact]:
@@ -125,7 +125,7 @@ object StiffLampSpelled extends Machine[LampState, Outcome, Fact]:
 
   object rules extends Bindings(press ~> pressStiff, wear ~> wearLamp)
 
-/** An action added, the refined machine replaced and an assumption appended, in one chain. */
+// An action added, the refined machine replaced and an assumption appended, in one chain.
 object FaultyLamp
     extends Derived(
       Lamp
@@ -154,7 +154,7 @@ object FaultyLampSpelled extends Machine[LampState, Outcome, Fact], FailureModel
 
   object rules extends Bindings(press ~> pressLamp, wear ~> wearLamp, burnOut ~> burnOutLamp)
 
-/** The monitors and the refinement dropped, with its visibility. */
+// The monitors and the refinement dropped, with its visibility.
 object PlainLamp extends Derived(Lamp.unmonitored)
 
 object PlainLampSpelled extends Machine[LampState, Outcome, Fact]:
@@ -168,7 +168,7 @@ object PlainLampSpelled extends Machine[LampState, Outcome, Fact]:
 
   object rules extends Bindings(press ~> pressLamp, wear ~> wearLamp)
 
-/** A derivation of a derivation: a lambda bound by it is named after the machine it declares. */
+// A derivation of a derivation: a lambda bound by it is named after the machine it declares.
 object PlainStiffLamp
     extends Derived(
       StiffLamp.unmonitored.rebind(
@@ -191,7 +191,7 @@ object PlainStiffLampSpelled extends Machine[LampState, Outcome, Fact]:
         wear ~> (l => if l.light == Light.broken then Nil else wearLamp(l))
       )
 
-/** A restriction chained after a derivation: it keeps the monitors and assumptions, not the rest. */
+// A restriction chained after a derivation: it keeps the monitors and assumptions, not the rest.
 object StiffPressOnly extends Derived(Lamp.rebind(press ~> pressStiff).restrict(press))
 
 object StiffPressOnlySpelled extends Machine[LampState, Outcome, Fact]:

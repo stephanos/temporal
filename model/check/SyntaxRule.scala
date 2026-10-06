@@ -4,31 +4,29 @@ import java.nio.file.{Files, Path}
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.*
 
-/**
- * The framework's sugar stays in the files named `Syntax.scala`, each definition documented with the
- * core form it stands for, and no core file reaches it. `make lint-model` holds the Models, the
- * framework and the lifter to three rules (`gate --check-syntax`):
- *
- *   - Each definition of a `Syntax.scala` under model/umpire, model/temporal or model/irgen that is
- *     top-level, a member of an object or an extension method (in model/irgen also a member of a
- *     top-level class or trait) has a scaladoc directly before it, with only blank lines and
- *     annotations between, that says `Core form:` and, after it, the core spelling in backticks.
- *     Private definitions are helpers and exempt.
- *   - No other file of model/umpire, model/temporal or model/irgen (its own files, not its
- *     fixtures or tests) defines a sugar name at the top level, in an object or as an extension
- *     method. Members of a class, trait or enum, constructor parameters and locals are not sugar.
- *   - A core file, the files of model/umpire, model/temporal/realize and model/irgen beside their
- *     tree's `Syntax.scala`, imports no `Syntax` module and no name that file defines. In
- *     model/umpire and model/temporal/realize it names none of them either, outside comments and
- *     strings: top-level sugar of package `umpire` needs no import there. A name the core of the tree
- *     declares itself, as a member, parameter or local, reads as that declaration and is left alone.
- *
- * The Models are scalafmt-formatted Scala 3 with significant indentation, so a definition's place is
- * read from the indentation of the lines that open its containers, on the source with its comments
- * and strings blanked (ProtoLiterals' scanner).
- */
+// The framework's sugar stays in the files named `Syntax.scala`, each definition documented with the
+// core form it stands for, and no core file reaches it. `make lint-model` holds the Models, the
+// framework and the lifter to three rules (`gate --check-syntax`):
+//
+//   - Each definition of a `Syntax.scala` under model/umpire, model/temporal or model/irgen that is
+//     top-level, a member of an object or an extension method (in model/irgen also a member of a
+//     top-level class or trait) has a doc comment directly before it, with only blank lines and
+//     annotations between, that says `Core form:` and, after it, the core spelling in backticks.
+//     Private definitions are helpers and exempt.
+//   - No other file of model/umpire, model/temporal or model/irgen (its own files, not its
+//     fixtures or tests) defines a sugar name at the top level, in an object or as an extension
+//     method. Members of a class, trait or enum, constructor parameters and locals are not sugar.
+//   - A core file, the files of model/umpire, model/temporal/realize and model/irgen beside their
+//     tree's `Syntax.scala`, imports no `Syntax` module and no name that file defines. In
+//     model/umpire and model/temporal/realize it names none of them either, outside comments and
+//     strings: top-level sugar of package `umpire` needs no import there. A name the core of the tree
+//     declares itself, as a member, parameter or local, reads as that declaration and is left alone.
+//
+// The Models are scalafmt-formatted Scala 3 with significant indentation, so a definition's place is
+// read from the indentation of the lines that open its containers, on the source with its comments
+// and strings blanked (ProtoLiterals' scanner).
 private[check] object SyntaxRule:
-  /** The sugar of the framework and of the Temporal kit: no file but a `Syntax.scala` defines them. */
+  // The sugar of the framework and of the Temporal kit: no file but a `Syntax.scala` defines them.
   val sugarNames: Set[String] = Set(
     "implies",
     "in",
@@ -60,21 +58,19 @@ private[check] object SyntaxRule:
   final case class Finding(file: String, line: Int, reason: String):
     override def toString: String = s"$file:$line: $reason"
 
-  /** Where a definition sits. */
+  // Where a definition sits.
   enum Place:
-    /** Top-level, a member of an object, or an extension method. */
+    // Top-level, a member of an object, or an extension method.
     case Sugar
 
-    /** A member of a top-level class or trait. */
+    // A member of a top-level class or trait.
     case TemplateMember
 
-    /** Anything deeper: a member of a class, a parameter, a local. */
+    // Anything deeper: a member of a class, a parameter, a local.
     case Inner
 
-  /**
-   * A definition: its keyword and name (none for an anonymous given), its line, the offsets its
-   * scaladoc may end before, whether it is private, and its place.
-   */
+  // A definition: its keyword and name (none for an anonymous given), its line, the offsets its
+  // doc comment may end before, whether it is private, and its place.
   final case class Definition(
       keyword: String,
       name: Option[String],
@@ -105,6 +101,8 @@ private[check] object SyntaxRule:
   private val nameAt = name.r
   private val givenName = s"($identifier)\\s*(?:\\[[^\\]]*\\])?\\s*(?:\\([^)]*\\)\\s*)*:(?![:=])".r
   private val docGap = s"\\s*$annotations".r
+  private val lineStart = "[ \\t]*".r
+  private val adjacent = "[ \\t]*\\n[ \\t]*".r
   private val coreForm = "(?s)Core form:.*?`[^`\\n]+`".r
   private val parameter =
     s"(?m)(?:[(,]|^)\\s*(?:using\\s+)?(?:$modifier\\s+)*(?:val\\s+|var\\s+)?($identifier)\\s*:(?![:=])".r
@@ -115,7 +113,7 @@ private[check] object SyntaxRule:
 
   private def unquoted(name: String) = name.stripPrefix("`").stripSuffix("`")
 
-  /** The offset of the bracket that closes the one `text` starts with. */
+  // The offset of the bracket that closes the one `text` starts with.
   private def closing(text: String): Option[Int] =
     val depths = text
       .scanLeft(0): (depth, c) =>
@@ -125,7 +123,7 @@ private[check] object SyntaxRule:
       .tail
     Some(depths.indexWhere(_ == 0)).filter(_ >= 0)
 
-  /** What follows an extension's type and value parameters on its line; none while they go on. */
+  // What follows an extension's type and value parameters on its line; none while they go on.
   @tailrec private def afterParameters(text: String): Option[String] =
     val rest = text.dropWhile(_ == ' ')
     if rest.startsWith("(") || rest.startsWith("[") then
@@ -144,12 +142,12 @@ private[check] object SyntaxRule:
       )
     case _ => None
 
-  /** The source with its comments and strings blanked: offsets and line breaks unchanged. */
+  // The source with its comments and strings blanked: offsets and line breaks unchanged.
   def code(source: String): String =
     val blanked = ProtoLiterals.code(source, ProtoLiterals.literals(source))
     blanked.indices.map(i => if source(i) == '\n' then '\n' else blanked(i)).mkString
 
-  /** The definitions of a source whose comments and strings are blanked, each at its place. */
+  // The definitions of a source whose comments and strings are blanked, each at its place.
   def definitions(code: String): Vector[Definition] =
     val texts = code.split("\n", -1).toVector
     val starts = texts.scanLeft(0)((at, text) => at + text.length + 1)
@@ -196,7 +194,7 @@ private[check] object SyntaxRule:
                 case None => (opened(Kind.Other) :: open, found)
     found
 
-  /** A source file, read and blanked once. */
+  // A source file, read and blanked once.
   final private case class Source(
       file: String,
       source: String,
@@ -207,18 +205,26 @@ private[check] object SyntaxRule:
     def isSyntax: Boolean = file == "Syntax.scala" || file.endsWith("/Syntax.scala")
     def lineAt(offset: Int): Int = code.substring(0, offset).count(_ == '\n') + 1
 
-    /** The scaladoc that ends right before `at`, with blank lines and annotations between. */
+    // The doc comment that ends right before `at`, with blank lines and annotations between: the run
+    // of `//` lines, each on a line of its own, that ends there.
     def doc(at: Int): Option[String] =
-      comments
+      val own = comments.filter: (start, _) =>
+        source.startsWith("//", start) && lineStart.matches(code.substring(lineOf(start), start))
+      own
         .filter(_._2 <= at)
         .lastOption
-        .collect:
-          case (start, end)
-              if source.startsWith("/**", start) && !source.startsWith("/**/", start) &&
-                docGap.matches(code.substring(end, at)) =>
-            source.substring(start, end)
+        .filter((_, end) => docGap.matches(code.substring(end, at)))
+        .map: (last, end) =>
+          @tailrec def first(start: Int, earlier: Vector[(Int, Int)]): Int =
+            earlier.lastOption match
+              case Some((previous, until)) if adjacent.matches(code.substring(until, start)) =>
+                first(previous, earlier.init)
+              case _ => start
+          source.substring(first(last, own.takeWhile(_._1 < last)), end)
 
-    /** The import and export clauses: where each starts and ends. */
+    private def lineOf(offset: Int): Int = code.lastIndexOf('\n', offset - 1) + 1
+
+    // The import and export clauses: where each starts and ends.
     def clauses: Vector[(Int, Int)] =
       clause
         .findAllMatchIn(code)
@@ -232,7 +238,7 @@ private[check] object SyntaxRule:
           found.start -> end
         .toVector
 
-    /** The names this file declares anywhere: definitions, parameters and locals. */
+    // The names this file declares anywhere: definitions, parameters and locals.
     def declared: Set[String] =
       definitions.flatMap(_.name).toSet ++ parameter.findAllMatchIn(code).map(_.group(1))
 
@@ -241,7 +247,7 @@ private[check] object SyntaxRule:
     val file = root.relativize(path).iterator.asScala.mkString("/")
     Source(file, source, code(source), ProtoLiterals.literals(source).comments)
 
-  /** The Scala sources of a directory: its own, not its tests, fixtures or build output. */
+  // The Scala sources of a directory: its own, not its tests, fixtures or build output.
   private def sources(root: Path, directory: String, recursive: Boolean): Vector[Path] =
     val base = root.resolve(directory)
     if !Files.isDirectory(base) then Vector.empty
@@ -258,7 +264,7 @@ private[check] object SyntaxRule:
           .sortBy(_.toString)
       finally stream.close()
 
-  /** A tree of the framework: its directory, and whether its core is held to the names of its sugar. */
+  // A tree of the framework: its directory, and whether its core is held to the names of its sugar.
   final private case class Tree(directory: String, recursive: Boolean, references: Boolean):
     val syntax: String = s"$directory/Syntax.scala"
     def holds(file: String): Boolean =
@@ -278,7 +284,7 @@ private[check] object SyntaxRule:
     else if file.startsWith("model/temporal/") then "model/temporal/realize/Syntax.scala"
     else "model/umpire/Syntax.scala"
 
-  /** The definitions of a `Syntax.scala` that are its sugar: public, at a place the rule reads. */
+  // The definitions of a `Syntax.scala` that are its sugar: public, at a place the rule reads.
   private def sugar(file: Source): Vector[Definition] =
     val lifter = file.file.startsWith("model/irgen/")
     file.definitions.filter: d =>
@@ -292,9 +298,9 @@ private[check] object SyntaxRule:
             Finding(
               file.file,
               d.line,
-              s"syntax rule: ${d.shown} in a Syntax.scala has no scaladoc right before it: " +
+              s"syntax rule: ${d.shown} in a Syntax.scala has no doc comment right before it: " +
                 "document it with `Core form:` and the core spelling in backticks, " +
-                "/** ... Core form: `...`. */, or make it private if it is a helper"
+                "// ... Core form: `...`., or make it private if it is a helper"
             )
           )
         case Some(doc) if coreForm.findFirstIn(doc).isEmpty =>
@@ -302,7 +308,7 @@ private[check] object SyntaxRule:
             Finding(
               file.file,
               d.line,
-              s"syntax rule: the scaladoc of ${d.shown} in a Syntax.scala names no core form: " +
+              s"syntax rule: the doc comment of ${d.shown} in a Syntax.scala names no core form: " +
                 "add `Core form:` followed by the core spelling in backticks"
             )
           )
@@ -316,7 +322,7 @@ private[check] object SyntaxRule:
           file.file,
           d.line,
           s"syntax rule: ${d.shown} is a sugar name defined outside a Syntax.scala: move it into " +
-            s"${home(file.file)} with a `Core form:` scaladoc, or name it after what it declares"
+            s"${home(file.file)} with a `Core form:` doc comment, or name it after what it declares"
         )
 
   private def reaching(tree: Tree, files: Vector[Source]): Vector[Finding] =
@@ -354,11 +360,11 @@ private[check] object SyntaxRule:
             file.file,
             file.lineAt(found.start),
             s"syntax rule: a core file uses `${unquoted(found.matched)}`, sugar defined in " +
-              s"${tree.syntax}: write its core form instead (its scaladoc names it after `Core form:`)"
+              s"${tree.syntax}: write its core form instead (its doc comment names it after `Core form:`)"
           )
       imports ++ uses
 
-  /** What breaks the rules in the repository at `root`, each as `file:line: reason`, in order. */
+  // What breaks the rules in the repository at `root`, each as `file:line: reason`, in order.
   def findings(root: Path): Vector[String] =
     val files = Vector(
       "model/umpire" -> true,

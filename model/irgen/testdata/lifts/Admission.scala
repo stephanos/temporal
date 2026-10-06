@@ -15,7 +15,7 @@ import Entities.activity
 object caller extends Actor
 object worker extends Actor
 
-/** The entity, in an object of its own, which the machine objects read while they initialize. */
+// The entity, in an object of its own, which the machine objects read while they initialize.
 object Entities:
   val activity = Entity(key = "activityId")
 
@@ -63,13 +63,13 @@ object Product:
       enter(ProductState(completed), statusCompleted)
     else disabled
 
-  /** A pause holds before an attempt starts or while one runs; a completed activity is not found. */
+  // A pause holds before an attempt starts or while one runs; a completed activity is not found.
   def control(s: ProductState, c: Control) =
     if s.phase == completed then List(Step(Outcome.notFound, s))
     else if c == Control.pause && s.phase != paused then enter(ProductState(paused), statusPaused)
     else disabled
 
-/** No unpause is in scope, so a path may end paused, as the designs' paths may. */
+// No unpause is in scope, so a path may end paused, as the designs' paths may.
 object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
   val entity = activity
   val init = ProductState(ProductPhase.scheduled)
@@ -82,41 +82,33 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
         control ~> Product.control
       )
 
-/** The product's promise the designs are read against: no step from paused lands in started. */
+// The product's promise the designs are read against: no step from paused lands in started.
 val pausedIsNotDispatched = ActivityProduct.property
   .never(_.state.phase == ProductPhase.started)
   .from(_.phase == ProductPhase.paused)
 
 // ### System vocabulary: one logical activity, one dispatch message, the attempts admission committed
 
-/**
- * The activity as history's authoritative record has it. `pausedWhileHeld` is a pause that
- * arrived after admission: the attempt it holds is work admitted before the pause.
- */
+// The activity as history's authoritative record has it. `pausedWhileHeld` is a pause that
+// arrived after admission: the attempt it holds is work admitted before the pause.
 enum AdmissionPhase derives Finite:
   case scheduled, paused, pausedWhileHeld, started, completed
 
-/**
- * The dispatch channel holds at most one message. It was validated when it was enqueued, and
- * nothing re-reads that eligibility while it is in flight.
- */
+// The dispatch channel holds at most one message. It was validated when it was enqueued, and
+// nothing re-reads that eligibility while it is in flight.
 enum Message derives Finite:
   case empty, queued, redelivery
 
-/**
- * Attempts admission committed and no result closed. An enum rather than an Int, because the
- * lifter gives every Int field of one record the same range.
- */
+// Attempts admission committed and no result closed. An enum rather than an Int, because the
+// lifter gives every Int field of one record the same range.
 enum Active derives Finite:
   case none, one, two
 
 final case class AdmissionState(phase: AdmissionPhase, message: Message, active: Active)
     derives Finite
 
-/**
- * The statuses the product reads, by their product names, and the internal facts no product fact
- * is named after, which the refinement therefore drops.
- */
+// The statuses the product reads, by their product names, and the internal facts no product fact
+// is named after, which the refinement therefore drops.
 enum AdmissionFact derives Finite:
   case statusStarted, statusPaused, statusCompleted
   case dispatchEnqueued, attemptAdmitted, admissionRejected
@@ -126,7 +118,7 @@ type AdmissionStep = Step[AdmissionState, Outcome, AdmissionFact]
 val committed = choice
 val redelivered = choice
 
-/** History's dispatch task sends the message. System-internal, so spelled as a timer today. */
+// History's dispatch task sends the message. System-internal, so spelled as a timer today.
 val dispatch = timer
 
 val scheduledEmpty: AdmissionState =
@@ -141,7 +133,7 @@ def dispatchStep(s: AdmissionState): List[AdmissionStep] =
       Step(Outcome.accepted, s.copy(message = Message.queued), List(AdmissionFact.dispatchEnqueued))
     )
 
-/** Only pause is in scope; no unpause intervenes. A pause keeps the message in flight. */
+// Only pause is in scope; no unpause intervenes. A pause keeps the message in flight.
 def pauseStep(s: AdmissionState, c: Control): List[AdmissionStep] = c match
   case Control.pause =>
     s.phase match
@@ -172,10 +164,8 @@ def oneLess(a: Active): Active = a match
   case Active.two => Active.one
   case _          => Active.none
 
-/**
- * A committed admission. The channel is at-least-once: the message may be consumed, or retained
- * and delivered again before matching acknowledges it.
- */
+// A committed admission. The channel is at-least-once: the message may be consumed, or retained
+// and delivered again before matching acknowledges it.
 def admitted(s: AdmissionState): List[AdmissionStep] =
   val next = s.copy(phase = AdmissionPhase.started, active = oneMore(s.active))
   if s.message == Message.redelivery then
@@ -205,7 +195,7 @@ def admitted(s: AdmissionState): List[AdmissionStep] =
       )
     )
 
-/** The corrected design: admission re-reads current eligibility and drops a stale message. */
+// The corrected design: admission re-reads current eligibility and drops a stale message.
 def admitCurrent(s: AdmissionState): List[AdmissionStep] = s.message match
   case Message.empty                       => Nil
   case Message.queued | Message.redelivery =>
@@ -219,7 +209,7 @@ def admitCurrent(s: AdmissionState): List[AdmissionStep] = s.message match
         )
       )
 
-/** The deliberately faulty design: admission trusts the eligibility the message was enqueued with. */
+// The deliberately faulty design: admission trusts the eligibility the message was enqueued with.
 def admitStale(s: AdmissionState): List[AdmissionStep] = s.message match
   case Message.empty                       => Nil
   case Message.queued | Message.redelivery => admitted(s)
@@ -237,7 +227,7 @@ def resultStep(s: AdmissionState, r: AttemptResult): List[AdmissionStep] = r mat
       )
   case AttemptResult.failed(_) | AttemptResult.canceled => Nil
 
-/** Both pauses read as the product's one paused status; every other phase as its namesake. */
+// Both pauses read as the product's one paused status; every other phase as its namesake.
 def productOfAdmission(s: AdmissionState): ProductState =
   val read = s.phase match
     case AdmissionPhase.scheduled                               => ProductPhase.scheduled
@@ -254,13 +244,13 @@ def admissionEvidence(f: AdmissionFact): String = f match
   case AdmissionFact.attemptAdmitted   => "attemptAdmitted"
   case AdmissionFact.admissionRejected => "admissionRejected"
 
-/** No unpause is in scope, so a pause is where a path may end, as a completion is. */
+// No unpause is in scope, so a pause is where a path may end, as a completion is.
 def admissionEnds(s: AdmissionState): Boolean =
   s.phase != AdmissionPhase.scheduled && s.phase != AdmissionPhase.started
 
 // ### Monitors: at most one admitted active attempt, and terminal finality
 
-/** The attempts admission committed and no result closed, counted from the steps' facts. */
+// The attempts admission committed and no result closed, counted from the steps' facts.
 def countActive(active: Active, before: AdmissionState, after: AdmissionStep): Active =
   if after.facts.contains(AdmissionFact.attemptAdmitted) then oneMore(active)
   else if after.facts.contains(AdmissionFact.statusCompleted) then oneLess(active)
@@ -271,7 +261,7 @@ val atMostOneActiveAttempt: Monitor[AdmissionState, Outcome, AdmissionFact, Acti
     countActive
   )(_ == Active.two).readAfter(after => after.facts.contains(AdmissionFact.attemptAdmitted))
 
-/** Whether the activity completed, and whether a step after that left completed. */
+// Whether the activity completed, and whether a step after that left completed.
 enum Finality derives Finite:
   case open, completed, reopened
 
@@ -344,7 +334,7 @@ def terminalStays(before: AdmissionState, after: AdmissionStep): Boolean =
 val three: Limits = Limits(steps = 3, actions = 3, search = 4096)
 val five: Limits = Limits(steps = 5, actions = 5, search = 65536)
 
-/** Every claim and path, declared on one design: a Property or Scenario belongs to one machine. */
+// Every claim and path, declared on one design: a Property or Scenario belongs to one machine.
 def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector[Query] =
   val notPaused = m.property("notAdmittedWhilePaused") holdsAcross notAdmittedWhilePaused
   val oneActive = m.property("atMostOneActive") holds atMostOneActive

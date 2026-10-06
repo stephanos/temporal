@@ -743,10 +743,12 @@ lint-model-check:
 	@cd $(MODEL_ROOT)/check && $(MODEL_SCALAFIX) --check .
 
 # Sugar is defined only in a Syntax.scala, each definition documented with its `Core form:`, and no
-# core file of the framework or the IR generator imports or names it.
+# core file of the framework or the IR generator imports or names it. Comments are `//` lines in
+# every Scala file of model/, its tests and fixtures too.
 lint-model-syntax:
-	@printf $(COLOR) "Checking the model's sugar..."
+	@printf $(COLOR) "Checking the model's sugar and comments..."
 	@$(MODEL_GATE) --check-syntax
+	@$(MODEL_GATE) --check-comments
 
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
 fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)

@@ -3,57 +3,55 @@ package umpire.irgen
 import scala.annotation.tailrec
 import scala.collection.mutable
 
-/**
- * The declaration-order lint (fn-126 R4), run over the inspected sources before anything is lifted.
- * A Scala object initializes its vals in the order they are written, and an object read while
- * another initializes is initialized then. So a val read before it is declared is still null (or
- * zero) when it is read, and two objects that read each other while they initialize see each other
- * half made, depending on which is loaded first. It refuses, each at its line:
- *
- *   - (a) a val read while its owner initializes, before the owner declares it;
- *   - (b) a cycle of owners -- objects, files' top levels and the objects nested in them -- each
- *     read while the one before it initializes;
- *   - (c) in a feature file, a declaration out of the reading order of model/README.md;
- *   - (d) in a feature file, a declaration outside the place that order gives its kind; beside a
- *     feature file, a Model declaration of another file; and in a Model package whose folder has
- *     no feature file, a Model declaration of a file not named after its folder;
- *   - (e) in a feature file, R17's section rules: in a machine or composition object
- *     (`umpire.Machine`, `Derived`, `Composition`), its header and sections out of the order
- *     states, refinement, effects, monitors, rules (a composition's syncs), properties,
- *     implements, queries; a declaration in a section other than its kind's, vocabulary outside
- *     `states`, a refinement's member outside `refinement`, an effect outside `effects` and a
- *     monitor outside `monitors`; a step function bound by hand, `action ~> step`, outside a
- *     derivation's `rebind`; a machine's section outside its object, or in another section; and
- *     an object that holds a Model declaration and is no machine or composition object.
- *
- * A section is an object of a machine or composition object named as one, `object effects`: its name
- * says what it holds (the structure lint, Structure.scala, refuses any other name there).
- *
- * A read inside a def, a lambda, a by-name argument or a lazy val of the owner itself, and an object
- * declared but not read, initializes nothing. A context function the DSL applies at once is read
- * as written, and so are a rule block's cases and their conditions, and the phase projection of
- * `Rules(_.phase)`, which the rules' disjointness check calls while they initialize. A def called
- * while its owner initializes is not followed, so a val it reads is not checked.
- *
- * Scala's own checkers do not serve: `-Wsafe-init` checks classes, not objects (Scala 3.9), and
- * `-Ysafe-init-global`, which checks objects, stops the compiler on a read of a ScalaPB gRPC method
- * descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization makes (through 3.10.0-RC3).
- *
- * A feature file is a source named after its folder, case aside, in a package under `features` or
- * `shared`, as every Model's is: `features/activity/standalone/Standalone.scala`. A file of a
- * level folder, `product/` or `system/` (fn-126 R20), reads as one too, the level's own file and each
- * subject's beside it, without `object exports`, which only the root feature file holds; only the
- * root feature file has siblings that declare no Model, such as `Realization.scala`. A file of
- * declarations the lifter must refuse, `*Rejects.scala` among its fixtures (model/irgen/testdata),
- * holds specimens of other refusals, a val read before it is declared among them, and is left to
- * those refusals.
- */
+// The declaration-order lint (fn-126 R4), run over the inspected sources before anything is lifted.
+// A Scala object initializes its vals in the order they are written, and an object read while
+// another initializes is initialized then. So a val read before it is declared is still null (or
+// zero) when it is read, and two objects that read each other while they initialize see each other
+// half made, depending on which is loaded first. It refuses, each at its line:
+//
+//   - (a) a val read while its owner initializes, before the owner declares it;
+//   - (b) a cycle of owners -- objects, files' top levels and the objects nested in them -- each
+//     read while the one before it initializes;
+//   - (c) in a feature file, a declaration out of the reading order of model/README.md;
+//   - (d) in a feature file, a declaration outside the place that order gives its kind; beside a
+//     feature file, a Model declaration of another file; and in a Model package whose folder has
+//     no feature file, a Model declaration of a file not named after its folder;
+//   - (e) in a feature file, R17's section rules: in a machine or composition object
+//     (`umpire.Machine`, `Derived`, `Composition`), its header and sections out of the order
+//     states, refinement, effects, monitors, rules (a composition's syncs), properties,
+//     implements, queries; a declaration in a section other than its kind's, vocabulary outside
+//     `states`, a refinement's member outside `refinement`, an effect outside `effects` and a
+//     monitor outside `monitors`; a step function bound by hand, `action ~> step`, outside a
+//     derivation's `rebind`; a machine's section outside its object, or in another section; and
+//     an object that holds a Model declaration and is no machine or composition object.
+//
+// A section is an object of a machine or composition object named as one, `object effects`: its name
+// says what it holds (the structure lint, Structure.scala, refuses any other name there).
+//
+// A read inside a def, a lambda, a by-name argument or a lazy val of the owner itself, and an object
+// declared but not read, initializes nothing. A context function the DSL applies at once is read
+// as written, and so are a rule block's cases and their conditions, and the phase projection of
+// `Rules(_.phase)`, which the rules' disjointness check calls while they initialize. A def called
+// while its owner initializes is not followed, so a val it reads is not checked.
+//
+// Scala's own checkers do not serve: `-Wsafe-init` checks classes, not objects (Scala 3.9), and
+// `-Ysafe-init-global`, which checks objects, stops the compiler on a read of a ScalaPB gRPC method
+// descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization makes (through 3.10.0-RC3).
+//
+// A feature file is a source named after its folder, case aside, in a package under `features` or
+// `shared`, as every Model's is: `features/activity/standalone/Standalone.scala`. A file of a
+// level folder, `product/` or `system/` (fn-126 R20), reads as one too, the level's own file and each
+// subject's beside it, without `object exports`, which only the root feature file holds; only the
+// root feature file has siblings that declare no Model, such as `Realization.scala`. A file of
+// declarations the lifter must refuse, `*Rejects.scala` among its fixtures (model/irgen/testdata),
+// holds specimens of other refusals, a val read before it is declared among them, and is left to
+// those refusals.
 final private[irgen] class Order(index: Index):
   import index.quotes.reflect.*
 
   private val refused = mutable.ArrayBuffer.empty[(String, Int, LiftError)]
 
-  /** Every refusal, in the order of the files and lines it is at. */
+  // Every refusal, in the order of the files and lines it is at.
   def refusals: Seq[LiftError] =
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
     checked.foreach(initialization)
@@ -88,7 +86,7 @@ final private[irgen] class Order(index: Index):
   private val rulesClass = Symbol.requiredClass("umpire.Rules")
   private val caseClass = Symbol.requiredClass("umpire.Case")
 
-  /** Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`. */
+  // Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`.
   private def objectForm(c: Symbol): Boolean =
     isOwner(c) && (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(compositionClass))
 
@@ -97,7 +95,7 @@ final private[irgen] class Order(index: Index):
   private def isOwner(s: Symbol): Boolean =
     s.exists && s.isClassDef && s.flags.is(Flags.Module)
 
-  /** An owner's name as its source writes it: `Protocol.laws`, or `Model$package` for a file's. */
+  // An owner's name as its source writes it: `Protocol.laws`, or `Model$package` for a file's.
   private def nameOf(owner: Symbol): String =
     val pkg = Iterator.iterate(owner)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
     val prefix = pkg.filter(_.isPackageDef).fold("")(_.fullName + ".")
@@ -105,7 +103,7 @@ final private[irgen] class Order(index: Index):
 
   private def lazily(s: Symbol): Boolean = s.flags.is(Flags.Lazy) || s.flags.is(Flags.Module)
 
-  /** A `final val` of a literal, which the compiler writes in place of each read. */
+  // A `final val` of a literal, which the compiler writes in place of each read.
   private def constant(s: Symbol): Boolean =
     s.isValDef && s.flags.is(Flags.Final) && treeOf(s).exists {
       case v: ValDef =>
@@ -201,12 +199,10 @@ final private[irgen] class Order(index: Index):
           case _         => super.traverseTree(t)(o)
       initReads.traverseTree(init)(owner)
 
-  /**
-   * A call that runs its function arguments while it is made: a rule block, `on(a) { ... }` of
-   * `rules` or of a derivation, whose cases run at once; a case, `in(set)`, `where(g)` or
-   * `.where(g)`, whose condition the disjointness check calls; and `Rules`'s constructor, whose
-   * phase projection the conditions of `in` call.
-   */
+  // A call that runs its function arguments while it is made: a rule block, `on(a) { ... }` of
+  // `rules` or of a derivation, whose cases run at once; a case, `in(set)`, `where(g)` or
+  // `.where(g)`, whose condition the disjointness check calls; and `Rules`'s constructor, whose
+  // phase projection the conditions of `in` call.
   private def appliesAtOnce(s: Symbol): Boolean =
     s.exists && {
       val owner = s.maybeOwner
@@ -215,10 +211,8 @@ final private[irgen] class Order(index: Index):
       (Set("on", "where")(s.name) && owner.fullName == "umpire.Syntax$package$")
     }
 
-  /**
-   * Each cycle of owners, once, at its first read in source order: the owners of one strongly
-   * connected part of the reads, written from that read round to where it began.
-   */
+  // Each cycle of owners, once, at its first read in source order: the owners of one strongly
+  // connected part of the reads, written from that read round to where it began.
   private def cycles(): Unit =
     def edges(s: Symbol): Seq[Symbol] = reads.get(s).fold(Seq.empty[Symbol])(_.keys.toSeq)
     val indexOf = mutable.Map.empty[Symbol, Int]
@@ -264,7 +258,7 @@ final private[irgen] class Order(index: Index):
 
   // ### (c) and (d): the reading order and the places of a feature file
 
-  /** The kinds of declaration whose place the order gives, by the type a val or def declares. */
+  // The kinds of declaration whose place the order gives, by the type a val or def declares.
   private enum Kind(val written: String, val belongs: String):
     case Step extends Kind("a step function", "the `effects` object of its machine's object")
     case Watch extends Kind("a monitor, assumption, hole or channel", "its machine's object itself")
@@ -313,22 +307,22 @@ final private[irgen] class Order(index: Index):
     case c: ClassDef if objectForm(c.symbol) => Some(Kind.Machine)
     case _                                   => None
 
-  /** The place a kind belongs in: in an object form, a monitor's is the `monitors` section. */
+  // The place a kind belongs in: in an object form, a monitor's is the `monitors` section.
   private def belongs(k: Kind, inObjectForm: Boolean): String = k match
     case Kind.Watch if inObjectForm => "the `monitors` object of its machine's object"
     case Kind.Laws if inObjectForm  => "the `implements` object of its machine's object"
     case _                          => k.belongs
 
-  /** The sections of a machine or composition object, in R2's order (Structure.formSections). */
+  // The sections of a machine or composition object, in R2's order (Structure.formSections).
   private val formSections = Structure.formSections
   private def plain(name: String) = name.stripSuffix("$")
 
-  /** The section of a machine or composition object an object is named as, `syncs` as `rules`. */
+  // The section of a machine or composition object an object is named as, `syncs` as `rules`.
   private def sectionNamed(o: ClassDef): Option[String] = plain(o.name) match
     case "syncs" => Some("rules")
     case n       => Option.when(formSections.contains(n))(n)
 
-  /** A member declaration of an owner: no synthetic one, no object's own val, no constructor. */
+  // A member declaration of an owner: no synthetic one, no object's own val, no constructor.
   private def members(cls: ClassDef): List[Definition] = cls.body.flatMap {
     case v: ValDef if v.symbol.flags.is(Flags.Module) => None
     case d: Definition if !d.symbol.flags.is(Flags.Synthetic) && !d.symbol.isClassConstructor =>
@@ -340,7 +334,7 @@ final private[irgen] class Order(index: Index):
     case c: ClassDef if c.symbol.flags.is(Flags.Module) => Some(c)
     case _                                              => None
 
-  /** Whether a source's package is a Model's, one under `features` or `shared`. */
+  // Whether a source's package is a Model's, one under `features` or `shared`.
   private def modelPackage(trees: List[Tree]): Boolean =
     val pkg = topLevel(trees).headOption.fold("")(d =>
       Iterator
@@ -357,7 +351,7 @@ final private[irgen] class Order(index: Index):
     parts.last.stripSuffix(".scala").equalsIgnoreCase(parts(parts.length - 2)) &&
     modelPackage(trees)
 
-  /** The declarations at the top level of a source, in order: types, objects, definitions. */
+  // The declarations at the top level of a source, in order: types, objects, definitions.
   private def topLevel(trees: List[Tree]): List[Definition] =
     def in(t: Tree): List[Definition] = t match
       case PackageClause(_, stats) => stats.flatMap(in)
@@ -370,7 +364,7 @@ final private[irgen] class Order(index: Index):
       case _             => Nil
     trees.flatMap(in).sortBy(d => scala.util.Try(d.pos.start).getOrElse(0))
 
-  /** The objects at the top level of a source that are a type's companions. */
+  // The objects at the top level of a source that are a type's companions.
   private def companions(trees: List[Tree]): List[ClassDef] =
     def in(t: Tree): List[ClassDef] = t match
       case PackageClause(_, stats) => stats.flatMap(in)
@@ -385,15 +379,13 @@ final private[irgen] class Order(index: Index):
     kindOf(m).nonEmpty || objectOf(m).exists(o => formSections.contains(plain(o.name)))
   }
 
-  /** Whether an object holds a Model declaration, or a section, at any depth. */
+  // Whether an object holds a Model declaration, or a section, at any depth.
   private def holdsModelWithin(c: ClassDef): Boolean =
     holdsModel(c) || members(c).flatMap(objectOf).exists(holdsModelWithin)
 
-  /**
-   * Refuses each Model declaration an object holds where none may be: in a type's companion, in an
-   * object of the signature, or in an object nested in a machine object or a section that is not a
-   * section of its own. A nested object that holds them is refused at its line, once.
-   */
+  // Refuses each Model declaration an object holds where none may be: in a type's companion, in an
+  // object of the signature, or in an object nested in a machine object or a section that is not a
+  // section of its own. A nested object that holds them is refused at its line, once.
   private def noModelIn(c: ClassDef, where: String): Unit =
     for m <- members(c) do
       objectOf(m) match
@@ -480,10 +472,8 @@ final private[irgen] class Order(index: Index):
     "object exports"
   )
 
-  /**
-   * A feature file's layout, or, where `level`, a level folder's file's, whose order ends with its
-   * machine and composition objects: its `object exports` is refused by the structure lint (R20).
-   */
+  // A feature file's layout, or, where `level`, a level folder's file's, whose order ends with its
+  // machine and composition objects: its `object exports` is refused by the structure lint (R20).
   private def featureLayout(declared: List[Definition], level: Boolean): Unit =
     // (c): the file's order, each top-level declaration by its rank in it.
     def rank(d: Definition): Int = objectOf(d) match
@@ -531,11 +521,9 @@ final private[irgen] class Order(index: Index):
                 s"belongs in ${k.belongs}"
             )
 
-  /**
-   * A machine or composition object (R2, R15, R17): its header, then its sections in order, its
-   * vocabulary in `states` and its refinement in `refinement`, each holding its own kind of
-   * declaration alone, and no step function bound by hand.
-   */
+  // A machine or composition object (R2, R15, R17): its header, then its sections in order, its
+  // vocabulary in `states` and its refinement in `refinement`, each holding its own kind of
+  // declaration alone, and no step function bound by hand.
   private def formObject(c: ClassDef): Unit =
     val owner = nameOf(c.symbol)
     val composed = c.symbol.typeRef.derivesFrom(compositionClass)
@@ -590,12 +578,10 @@ final private[irgen] class Order(index: Index):
             case None              => vocabulary(m)
     handBound(c, owner)
 
-  /**
-   * Refuses a step function bound by hand, `action ~> step` (umpire.Machine's core binding), in a
-   * machine or composition object (R17): its `rules` say when each action fires. A derivation's
-   * `rebind(action ~> effect)`, which keeps the action's rules, and the rules a derivation binds,
-   * `on(action) { where(g) ~> effect }`, are no hand-written step function.
-   */
+  // Refuses a step function bound by hand, `action ~> step` (umpire.Machine's core binding), in a
+  // machine or composition object (R17): its `rules` say when each action fires. A derivation's
+  // `rebind(action ~> effect)`, which keeps the action's rules, and the rules a derivation binds,
+  // `on(action) { where(g) ~> effect }`, are no hand-written step function.
   private def handBound(c: ClassDef, owner: String): Unit =
     def core(s: Symbol) =
       s.exists && s.name == "~>" && s.maybeOwner.fullName == "umpire.Machine$package$"
@@ -664,10 +650,8 @@ final private[irgen] class Order(index: Index):
             else s"${named.name}, which ${nameOf(named.maybeOwner)} declares"
           refuse(m, s"${m.name} is declared over $declaring: it belongs in ${nameOf(home)}$where")
 
-  /**
-   * The machines and Scenarios a declaration names that are declared elsewhere than it must sit
-   * beside: each, the owner it belongs in, and that owner's section to name.
-   */
+  // The machines and Scenarios a declaration names that are declared elsewhere than it must sit
+  // beside: each, the owner it belongs in, and that owner's section to name.
   private def over(
       d: Definition,
       machineObject: Symbol,
@@ -710,7 +694,7 @@ final private[irgen] class Order(index: Index):
       case _         => ()
     found.distinct.toList
 
-  /** Refuses each declaration of `ds` whose rank is below that of one declared before it. */
+  // Refuses each declaration of `ds` whose rank is below that of one declared before it.
   private def ordered(
       ds: List[Definition],
       rank: Definition => Int,

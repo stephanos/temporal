@@ -36,7 +36,7 @@ private[irgen] trait Constants:
       Apply.copy(call)(fn, args.map(inPlace))
     case _ => t
 
-  /** A val the compiler binds a call's argument to, such as `refer$1`, in the order written. */
+  // A val the compiler binds a call's argument to, such as `refer$1`, in the order written.
   private def syntheticArgument(s: Statement): Boolean = s match
     case v: ValDef =>
       v.rhs.nonEmpty && (v.symbol.flags.is(Flags.Synthetic) || v.name.matches(".+\\$\\d+"))
@@ -64,11 +64,11 @@ private[irgen] trait Constants:
     case Apply(Select(_, "apply"), first :: _) => constString(first)
     case other                                 => fail(t, s"expected a string, got ${other.show}")
 
-  /** Whether a declaration of this class takes its name from its val where it states none. */
+  // Whether a declaration of this class takes its name from its val where it states none.
   def namedByVal(cls: Symbol): Boolean =
     Set("umpire.Entity", "umpire.Observation")(cls.fullName)
 
-  /** The val whose right-hand side `resolve` reaches: the last of the vals it goes through. */
+  // The val whose right-hand side `resolve` reaches: the last of the vals it goes through.
   private def resolvedVal(t: Term): Option[Symbol] = t match
     case Typed(e, _)        => resolvedVal(e)
     case Inlined(_, Nil, e) => resolvedVal(e)
@@ -88,7 +88,7 @@ private[irgen] trait Constants:
       constOps(op)(constInt(a), constInt(b))
     case other => fail(t, s"expected an integer constant, got ${other.show}")
 
-  /** An argument the default of its parameter supplies. */
+  // An argument the default of its parameter supplies.
   def isDefault(t: Term): Boolean = t match
     case TypeApply(Select(_, n), _) => n.contains("$default$")
     case Select(_, n)               => n.contains("$default$")

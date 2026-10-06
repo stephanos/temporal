@@ -4,20 +4,18 @@ import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 import umpire.check.Tools
 
-/**
- * The lifter's fixtures hold Models of their own (fn-114.10). A fixture that copies a live Model's
- * text drifts whenever that Model changes and tests again what the gate already holds: it lifts every
- * live Model under model/temporal into model/ir and compares it byte for byte. So no fixture under
- * testdata may share more than `threshold` substantive lines with the files under model/temporal.
- *
- * A substantive line is one with code on it: not blank, not a comment, not an import or a package
- * clause, and not punctuation alone; whitespace inside it is collapsed. A fixture line counts as
- * shared when it lies in a run of at least `run` consecutive substantive lines that also stand
- * consecutively in one model/temporal file. Shorter runs are the vocabulary every Model writes the
- * same way, such as an `enum Outcome derives Finite:` with its `case accepted`. The threshold is
- * Scripts.scala's: its core records spell the six correlation bounds the Temporal kit's helper
- * produces, which is what the fixture compares the helper with.
- */
+// The lifter's fixtures hold Models of their own (fn-114.10). A fixture that copies a live Model's
+// text drifts whenever that Model changes and tests again what the gate already holds: it lifts every
+// live Model under model/temporal into model/ir and compares it byte for byte. So no fixture under
+// testdata may share more than `threshold` substantive lines with the files under model/temporal.
+//
+// A substantive line is one with code on it: not blank, not a comment, not an import or a package
+// clause, and not punctuation alone; whitespace inside it is collapsed. A fixture line counts as
+// shared when it lies in a run of at least `run` consecutive substantive lines that also stand
+// consecutively in one model/temporal file. Shorter runs are the vocabulary every Model writes the
+// same way, such as an `enum Outcome derives Finite:` with its `case accepted`. The threshold is
+// Scripts.scala's: its core records spell the six correlation bounds the Temporal kit's helper
+// produces, which is what the fixture compares the helper with.
 class Overlap extends munit.FunSuite:
   private val root = Tools.here.directory
   private val run = 4
@@ -30,7 +28,7 @@ class Overlap extends munit.FunSuite:
 
   private val punctuation = """[\s(){}\[\],;:=>.]*""".r
 
-  /** The substantive lines of a file, each with its line number. */
+  // The substantive lines of a file, each with its line number.
   private def substantive(file: Path): Vector[(String, Int)] =
     Files
       .readAllLines(file)
@@ -47,7 +45,7 @@ class Overlap extends munit.FunSuite:
   private def runs(lines: Vector[String]): Iterator[Vector[String]] =
     lines.sliding(run).filter(_.size == run)
 
-  /** For each fixture with shared lines, the numbers of those lines, beside the files they are in. */
+  // For each fixture with shared lines, the numbers of those lines, beside the files they are in.
   private def shared(fixtures: Seq[Path], live: Seq[Path]): Map[Path, (Seq[Int], Set[Path])] =
     val owners = live.flatMap(f => runs(substantive(f).map(_._1)).map(_ -> f)).groupMap(_._1)(_._2)
     fixtures.flatMap { fixture =>

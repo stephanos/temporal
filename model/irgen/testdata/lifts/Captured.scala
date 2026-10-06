@@ -14,7 +14,7 @@ import Entities.{entry, lostData}
 enum Kept derives Finite:
   case nothing, held
 
-/** The store's state, named apart from the machine object `Store`. */
+// The store's state, named apart from the machine object `Store`.
 final case class StoreState(kept: Kept) derives Finite
 
 enum Outcome derives Finite:
@@ -36,16 +36,16 @@ object Entities:
 // each action is named after where it is declared, fixture.captured.client.put, as the lifter's
 // tests check.
 
-/** The actor `client`, whose members are the actions it takes. */
+// The actor `client`, whose members are the actions it takes.
 object client extends Actor:
   val put = action(this)
 
-/** The system's own steps: a flush and a timer. */
+// The system's own steps: a flush and a timer.
 object background:
   val flush = internal
   val expire = timer
 
-/** A fault, taken by an actor named in place. */
+// A fault, taken by an actor named in place.
 object faults:
   val crash = action(Actor("fault"))
 
@@ -61,7 +61,7 @@ def putStore(s: StoreState): List[Step[StoreState, Outcome, Fact]] =
 def expireStore(s: StoreState): List[Step[StoreState, Outcome, Fact]] =
   if s.kept == Kept.held then List(Step(Outcome.deferred, s, List(Fact.lost(false)))) else Nil
 
-/** The opaque provider: only the fact whose evidence is not its name has a line. */
+// The opaque provider: only the fact whose evidence is not its name has a line.
 object Store extends Machine[StoreState, Outcome, Fact]:
   val entity = entry
   val init = StoreState(Kept.nothing)
@@ -76,7 +76,7 @@ object Store extends Machine[StoreState, Outcome, Fact]:
 enum Stage derives Finite:
   case empty, staged, durable
 
-/** The disk's state, named apart from the machine object `Disk`. */
+// The disk's state, named apart from the machine object `Disk`.
 final case class DiskState(stage: Stage) derives Finite
 
 def putDisk(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
@@ -108,13 +108,13 @@ object Watched:
   val storedTwice =
     monitor[DiskState, Outcome, Fact, Seen](Seen.never)(countStored)(seen => seen == Seen.twice)
 
-/** The detailed provider, its types stated once in its object's parent. */
+// The detailed provider, its types stated once in its object's parent.
 object Disk extends Machine[DiskState, Outcome, Fact], FailureModel:
   val init = DiskState(Stage.empty)
   def end(d: State) = d.stage != Stage.staged
   val evidence: PartialFunction[Fact, String] = { case Fact.lost(_) => "lostData" }
 
-  /** What the store sees of a disk: whether it holds anything. */
+  // What the store sees of a disk: whether it holds anything.
   object refinement extends Refinement(Store):
     def toProduct(d: DiskState): StoreState =
       if d.stage == Stage.empty then StoreState(Kept.nothing) else StoreState(Kept.held)
@@ -131,10 +131,10 @@ object Disk extends Machine[DiskState, Outcome, Fact], FailureModel:
         faults.crash ~> crashDisk
       )
 
-/** A machine derived by keeping some of another's actions. */
+// A machine derived by keeping some of another's actions.
 object PutOnly extends Derived(Disk.restrict(client.put))
 
-/** The pair's state, named apart from the composition object `DetailedPair`. */
+// The pair's state, named apart from the composition object `DetailedPair`.
 final case class DetailedPairState(front: StoreState, back: DiskState)
 
 // Its sync is named after its first member's action, `put`.
@@ -166,11 +166,9 @@ val durableAfterFlush = query verify durableStays in putThenFlush limits two tot
 val putStoresThroughDisk = query verify putStores in putThenFlush limits two total 6
 val bothPutHeld = query find frontHeld in bothPut limits two total 6
 
-/**
- * Claims declared inside a function over a machine have no val: a Query named by neither is named
- * after its Scenario's machine, its Scenario and its Property, `disk.any.durableStays`, and a
- * Property and a Scenario in a list take the one explicit-name form.
- */
+// Claims declared inside a function over a machine have no val: a Query named by neither is named
+// after its Scenario's machine, its Scenario and its Property, `disk.any.durableStays`, and a
+// Property and a Scenario in a list take the one explicit-name form.
 def anyQueries(m: Machine[DiskState, Outcome, Fact]): Vector[Query] = Vector(
   query verify durableStays in m
     .scenario("any")
@@ -181,7 +179,7 @@ def anyQueries(m: Machine[DiskState, Outcome, Fact]): Vector[Query] = Vector(
   )) in m.scenario("anyPut").starts(DiskState(Stage.empty)).free limits two total 18
 )
 
-/** A local val inside a function names its declaration. */
+// A local val inside a function names its declaration.
 def localQueries(m: Machine[DiskState, Outcome, Fact]): Vector[Query] =
   val stays = m.property holds (after => after.state.stage != Stage.empty)
   Vector(query("localStays") verify stays in putThenFlush limits two total 6)
@@ -223,7 +221,7 @@ val ledger = Realization(
 // A channel the relay holds, with its delivery and its loss.
 val wire = channel[Kept](capacity = 1, order = Order.fifo, loss = Loss.lossy)
 
-/** The relay's state, named apart from the machine object `Relay`. */
+// The relay's state, named apart from the machine object `Relay`.
 final case class RelayState(heard: Kept, wire: Inbox[Kept])
 
 given Finite[RelayState] =
@@ -233,7 +231,7 @@ given Finite[RelayState] =
 enum Note derives Finite:
   case heard, missed
 
-/** The client's send, which names the actor object as its actor. */
+// The client's send, which names the actor object as its actor.
 object relaying:
   val send = action(client)
 

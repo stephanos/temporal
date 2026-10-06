@@ -64,7 +64,7 @@ object Switch extends Machine[Lamp, Outcome, Nothing]:
     val flipped = scenario.actions(hand.flip)
     val asked = query verify properties.turnsOn in flipped limits one total 2
 
-/** A machine that refines Switch, its refinement in its own section. */
+// A machine that refines Switch, its refinement in its own section.
 object Dimmer extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: Lamp) = true
@@ -79,7 +79,7 @@ object Dimmer extends Machine[Lamp, Outcome, Nothing]:
   object rules extends Rules:
     on(clock.tick)(always ~> effects.kept)
 
-/** A bare binding in a derivation keeps the rules' guards: no step function bound by hand. */
+// A bare binding in a derivation keeps the rules' guards: no step function bound by hand.
 object Kept extends Derived(Switch.rebind(hand.flip ~> Switch.effects.kept))
 
 object Twins extends Composition[Pair](_.left -> Switch, _.right -> Kept):
@@ -152,13 +152,13 @@ object Guarded extends Machine[Lamp, Outcome, Nothing]:
     on(hand.flip)(where(s => s.lit == armed) ~> effects.flipped)
     val armed = true
 
-/** A bare binding in the source a rebind derives from, which no rebind keeps: bound by hand. */
+// A bare binding in the source a rebind derives from, which no rebind keeps: bound by hand.
 object Escaped
     extends Derived(
       Switch.extend(hand.tap ~> Switch.effects.kept).rebind(hand.flip ~> Switch.effects.kept)
     )
 
-/** A machine whose rules are its step functions bound by hand: the core no Model writes. */
+// A machine whose rules are its step functions bound by hand: the core no Model writes.
 object Cored extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: Lamp) = true

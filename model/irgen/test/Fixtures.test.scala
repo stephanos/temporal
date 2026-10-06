@@ -9,14 +9,12 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import umpire.check.{Ran, Tools}
 
-/**
- * The lifter's fixtures under testdata: the Models it must lift, compared with the IR in
- * testdata/lifts/expected, and the declarations the build or the lifter must refuse, at their lines.
- *
- * The fixtures build against the framework and the Temporal Models the gate packaged into
- * model/build, so the gate runs these tests after it packaged them. With UMPIRE_LIFTER_UPDATE set,
- * as the gate's --update sets it, the expected files are rewritten instead of compared.
- */
+// The lifter's fixtures under testdata: the Models it must lift, compared with the IR in
+// testdata/lifts/expected, and the declarations the build or the lifter must refuse, at their lines.
+//
+// The fixtures build against the framework and the Temporal Models the gate packaged into
+// model/build, so the gate runs these tests after it packaged them. With UMPIRE_LIFTER_UPDATE set,
+// as the gate's --update sets it, the expected files are rewritten instead of compared.
 class Fixtures extends munit.FunSuite:
   // A test builds a fixture with scala-cli and lifts it in a JVM of its own.
   override val munitTimeout: Duration = 20.minutes
@@ -74,7 +72,7 @@ class Fixtures extends munit.FunSuite:
   // The lifter's positions of a materialized fixture: its stored files.
   private def stored(fixture: String) = s"model/irgen/testdata/$fixture/"
 
-  /** The lines of the stored files at which the fixture's build fails, as `<file>:<line>:<column>`. */
+  // The lines of the stored files at which the fixture's build fails, as `<file>:<line>:<column>`.
   private def refusals(fixture: String): Seq[String] =
     val built = bounded(tools.scalaCli(Seq("compile", materialize(fixture).toString)))
     assert(built.failed, s"model/irgen/testdata/$fixture built")
@@ -443,18 +441,18 @@ class Fixtures extends munit.FunSuite:
     }.toMap
   private def ran(name: String): Ran = Await.result(lifts(name), munitTimeout)
 
-  /** The IR a fixture lifted to. */
+  // The IR a fixture lifted to.
   private def ir(name: String): String =
     val lift = ran(name)
     assert(!lift.failed, s"the $name fixture did not lift:\n${lift.diagnostics}")
     Files.readString(lifted(name))
 
-  /** The law sidecar a fixture's capability declarations wrote beside its IR. */
+  // The law sidecar a fixture's capability declarations wrote beside its IR.
   private def laws(name: String): String =
     ir(name): Unit
     Files.readString(scratch.resolve(s"$name.laws.json"))
 
-  /** The declarations the lifter refused, one line each, and no IR. */
+  // The declarations the lifter refused, one line each, and no IR.
   private def rejections(): String =
     val lift = ran("rejects")
     assert(
@@ -463,7 +461,7 @@ class Fixtures extends munit.FunSuite:
     )
     refused(lift).map(_ + "\n").mkString
 
-  /** The files of the expected directory that no fixture lifts to. */
+  // The files of the expected directory that no fixture lifts to.
   private def leftOver(): Seq[String] =
     val stream = Files.list(expected)
     val held =
@@ -1062,16 +1060,14 @@ class Fixtures extends munit.FunSuite:
       f.toPrettyString
     assertEquals(function("broken"), function("brokenLamp"))
 
-  /** The root of the machine object `fixture.<fixture>.<Name>` a machine `name` is declared by. */
+  // The root of the machine object `fixture.<fixture>.<Name>` a machine `name` is declared by.
   private def objectRoot(fixture: String)(name: String): String =
     s"fixture.$fixture.${name.capitalize}"
 
-  /**
-   * The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each
-   * as a pair compares it: without its name, its machine and positions, and with each function it
-   * refers to in place of the function's name, so two spellings may name their functions apart. A
-   * root of the Temporal Models, and a machine object of the fixture, is named in full.
-   */
+  // The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each
+  // as a pair compares it: without its name, its machine and positions, and with each function it
+  // refers to in place of the function's name, so two spellings may name their functions apart. A
+  // root of the Temporal Models, and a machine object of the fixture, is named in full.
   private def declarations(
       fixture: String,
       roots: Seq[String]
@@ -1883,7 +1879,7 @@ class Fixtures extends munit.FunSuite:
     assert(refused(cycle).exists(_.contains("cyclic action binding")), cycle.diagnostics)
     assert(!cycle.diagnostics.contains("StackOverflowError"))
 
-  /** A fixture whose features have folders, copied with them, its jar's path resolved. */
+  // A fixture whose features have folders, copied with them, its jar's path resolved.
   private def materializeTree(
       fixture: String,
       name: String = "",

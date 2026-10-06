@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.*
 
-/** Proto names written as text in Models bypass compiler checking even when no old constructor uses them. */
+// Proto names written as text in Models bypass compiler checking even when no old constructor uses them.
 private[check] object ProtoLiterals:
   final case class Problem(line: Int, category: String, value: String)
   final private[check] case class Literal(value: String, line: Int, start: Int, end: Int)
@@ -43,6 +43,13 @@ private[check] object ProtoLiterals:
       else if source.startsWith("/*", offset) then
         val (next, at) = skipBlock(offset + 2, 1, line)
         scan(next, at, found, comments :+ (offset -> next))
+      // A character literal, `'"'` or `'\''`, opens no string; a quote of Scala 3 (`'{`, `'[`) is
+      // left to the characters after it.
+      else if source(offset) == '\'' && offset + 2 < source.length && source(offset + 2) == '\'' &&
+        source(offset + 1) != '\\'
+      then scan(offset + 3, line, found, comments)
+      else if source.startsWith("'\\", offset) && source.indexOf('\'', offset + 3) > 0 then
+        scan(source.indexOf('\'', offset + 3) + 1, line, found, comments)
       else if source(offset) == '"' then
         val triple = source.startsWith("\"\"\"", offset)
         val width = if triple then 3 else 1
@@ -98,7 +105,7 @@ private[check] object ProtoLiterals:
     else if value.matches("[a-z][a-z0-9_]*") && fieldContext then Some("field path")
     else None
 
-  /** The source with its comments and string literals blanked, offsets unchanged. */
+  // The source with its comments and string literals blanked, offsets unchanged.
   private[check] def code(source: String, scanned: Scanned): String =
     val spans =
       (scanned.comments ++ scanned.values.map(value => value.start -> value.end)).sortBy(_._1)

@@ -20,7 +20,7 @@ import temporal.capabilities.{given, *}
 enum Phase derives Finite:
   case queued, running, paused, done, killed
 
-/** A job's state, named apart from the machine object `Job`. */
+// A job's state, named apart from the machine object `Job`.
 final case class JobState(phase: Phase) derives Finite
 
 enum Answer derives Finite:
@@ -41,7 +41,7 @@ val resume = action(client)
 val kill = action(client)
 val cancel = action(client)
 
-/** The job's status sets and step functions; a control of a closed job is answered `gone`. */
+// The job's status sets and step functions; a control of a closed job is answered `gone`.
 object Jobs:
   import Phase.*
 
@@ -70,12 +70,12 @@ object Jobs:
   def cancel(j: JobState): List[Step[JobState, Answer, Note]] =
     if terminal(j.phase) then closed(j) else enter(j, Note.cancelAsked)
 
-  /** The rogue job's poll, which dispatches a paused job as it does a queued one. */
+  // The rogue job's poll, which dispatches a paused job as it does a queued one.
   def rogueDispatch(j: JobState): List[Step[JobState, Answer, Note]] =
     if j.phase.in(queued, Phase.paused) then enter(JobState(Phase.running), Note.started)
     else disabled
 
-  /** The legacy job's answer to a closed job: it keeps the state, whatever it answers. */
+  // The legacy job's answer to a closed job: it keeps the state, whatever it answers.
   def closedKeepsTheState[S, P](m: Declares[S])(
       status: S => P,
       terminal: P => Boolean,
@@ -109,10 +109,10 @@ val three = Limits(steps = 3, actions = 3, search = 512)
 
 val jobStatus = statusTable(Note.started -> "RUNNING", Note.killedNote -> "TERMINATED")
 
-/** The server code the jobs' cited bindings name: a closed job's answer, and which phases close. */
+// The server code the jobs' cited bindings name: a closed job's answer, and which phases close.
 val jobsCode = "model/irgen/testdata/lifts/Capabilities.scala"
 
-/** The Run a server is expected to give the job's functional laws, a hole of the Model in reach. */
+// The Run a server is expected to give the job's functional laws, a hole of the Model in reach.
 val settles = RunExpectation(
   Conformance.inconclusive,
   PropertyOutcome.satisfied,
@@ -149,7 +149,7 @@ val legacyCapabilities = capabilities(LegacyJob, limits = three)(
 
 // ### The cross-entity form: a composition's capabilities, read through a member's projection
 
-/** Two jobs' state, named apart from the composition object `Pair`. */
+// Two jobs' state, named apart from the composition object `Pair`.
 final case class PairState(left: JobState, right: JobState) derives Finite
 
 object Pairs:
@@ -172,7 +172,7 @@ val pairCapabilities = capabilities(Pair, limits = three)(
 )
 
 // ### A catalog of the fixture's own, whose law reads a bound field-path def as its `keeps`
-/** Once closed, the status stays: `once(...).keeps(status)` over the bound `status`. */
+// Once closed, the status stays: `once(...).keeps(status)` over the bound `status`.
 object statusStaysClosed
     extends Law(
       cites = Seq("model/irgen/testdata/lifts/Capabilities.scala"),
@@ -221,7 +221,7 @@ val rogueCapabilities = capabilities(RogueJob, limits = three)(
 
 // ### A declaring function's function-valued argument read with `through`
 
-/** The member a selector reads is never held: a shared claim, as `atMostOneActive` is. */
+// The member a selector reads is never held: a shared claim, as `atMostOneActive` is.
 def neverHeld[S](m: Declares[S])(held: S => Boolean): Property[S] =
   m.property("neverHeld").never(s => held(s.state))
 

@@ -3,14 +3,14 @@ package umpire.check
 import java.nio.file.{Files, Path}
 import java.nio.file.attribute.PosixFilePermissions
 
-/** A directory of stand-in tools, each a script that plays one behavior of the real tool. */
+// A directory of stand-in tools, each a script that plays one behavior of the real tool.
 final class Stubs(val directory: Path):
   def tool(name: String, script: String): Stubs =
     val file = Files.writeString(directory.resolve(name), s"#!/bin/sh\n$script\n")
     Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rwxr-xr-x"))
     this
 
-  /** The tools as a run in `in` finds them: nothing but the stand-ins is on the PATH. */
+  // The tools as a run in `in` finds them: nothing but the stand-ins is on the PATH.
   def tools(in: Path, environment: (String, String)*): Tools =
     Tools(in, Map("PATH" -> directory.toString) ++ environment)
 

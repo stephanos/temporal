@@ -55,14 +55,14 @@ enum DoorFact derives Finite:
 
 type DoorStep = Step[DoorState, DoorOutcome, DoorFact]
 
-/** The doors' entity, in an object of its own, which the machine objects read while they initialize. */
+// The doors' entity, in an object of its own, which the machine objects read while they initialize.
 object DoorEntity:
   val door: Entity = Entity(key = "doorId")
 
 object doorkeeper extends Actor
 val push = action(doorkeeper) on door
 
-/** A push opens a closed door, and says why; an open door takes no push. */
+// A push opens a closed door, and says why; an open door takes no push.
 def pushStep(s: DoorState): List[DoorStep] = s match
   case DoorState.closed =>
     List(Step(DoorOutcome.accepted, DoorState.open, List(DoorFact.doorOpened), "the latch gives"))
@@ -79,7 +79,7 @@ object Door extends Machine[DoorState, DoorOutcome, DoorFact]:
 
   object rules extends Bindings(push ~> pushStep)
 
-/** The step's explanation is part of the step a Property reads, as its outcome and facts are. */
+// The step's explanation is part of the step a Property reads, as its outcome and facts are.
 private val opensBecauseTheLatchGives =
   Door.property when push holds { s =>
     s.because == "the latch gives" && s.facts.contains(DoorFact.doorOpened)
@@ -192,10 +192,10 @@ val doorRealization: Realization = Realization(
   )
 )
 
-/** The bounds of a path of one push, which every door below is checked within. */
+// The bounds of a path of one push, which every door below is checked within.
 private val onePush = Limits("one", steps = 1, actions = 1, search = 16)
 
-/** A small correlation, scoped by the section's own prefix. */
+// A small correlation, scoped by the section's own prefix.
 private def doorCorrelation(scope: String) = Correlation(
   projection = s"fixture.realizations.$scope.projection",
   run = s"fixture.realizations.$scope.scope.run",
@@ -211,7 +211,7 @@ private def doorCorrelation(scope: String) = Correlation(
 
 // ### A learned run id, read by two branches
 
-/** A door the start call opens. A machine runs under one realization, so it is a door of its own. */
+// A door the start call opens. A machine runs under one realization, so it is a door of its own.
 object Run extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
@@ -229,7 +229,7 @@ val runOpens: Query = query("run.opens") find runOpened in started limits onePus
 private val run = "workflow-run"
 private val workflowType = Name("umpire-", fixture = true, suffix = "-workflow")
 
-/** The workflow a read names: the run's id, and the run id the start call returned. */
+// The workflow a read names: the run's id, and the run id the start call returned.
 private val startedRun = Vector(
   Assignment.typed(
     Field[GetWorkflowExecutionHistoryRequest, String](_.namespace),
@@ -259,7 +259,7 @@ private val runOpenedEvidence = Evidence.read(
   commitment = Commitment.reported
 )
 
-/** The push: starts the workflow and binds the run id it returns, once. */
+// The push: starts the workflow and binds the run id it returns, once.
 private val start = Command(
   "start-workflow",
   Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_START_WORKFLOW_EXECUTION)(
@@ -288,7 +288,7 @@ private val start = Command(
   )
 )
 
-/** One branch: polls the started run's history for its start. */
+// One branch: polls the started run's history for its start.
 private val awaitStarted = Command(
   "await-started",
   Instruction.readUntil(runOpenedEvidence, workflowService)(
@@ -303,7 +303,7 @@ private val awaitStarted = Command(
   after = Some(After("start-workflow"))
 )
 
-/** The other branch: waits for the started run to close. Neither branch waits for the other. */
+// The other branch: waits for the started run to close. Neither branch waits for the other.
 private val awaitClose = Command(
   "await-close",
   Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
@@ -322,7 +322,7 @@ private val awaitClose = Command(
   after = Some(After("start-workflow"))
 )
 
-/** Reads the history once both branches are done. */
+// Reads the history once both branches are done.
 private val history = Command(
   "history",
   Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
@@ -369,7 +369,7 @@ val learnedRun: Realization = Realization(
 
 // ### A race no Driver holds
 
-/** The dispatch the race holds, as a channel: no Driver holds the deliveries of one. */
+// The dispatch the race holds, as a channel: no Driver holds the deliveries of one.
 val dispatchChannel: Channel[DoorFact] =
   channel[DoorFact](
     capacity = 1,
@@ -377,7 +377,7 @@ val dispatchChannel: Channel[DoorFact] =
     loss = Loss.reliable
   )
 
-/** A door the race pushes while the dispatch is held. */
+// A door the race pushes while the dispatch is held.
 object Race extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
@@ -493,7 +493,7 @@ val pauseRace: Realization = Realization(
 
 // ### Monitors a Query's expected Run names
 
-/** Whether a door was seen open, and whether it was seen to open again after that. */
+// Whether a door was seen open, and whether it was seen to open again after that.
 enum Seen derives Finite:
   case shut, opened, reopened
 
@@ -502,7 +502,7 @@ def seen(s: Seen, before: DoorState, after: DoorStep): Seen =
   else if s == Seen.shut then Seen.opened
   else Seen.reopened
 
-/** The same watch, read only after a step that opens the door. */
+// The same watch, read only after a step that opens the door.
 val opensOnce: Monitor[DoorState, DoorOutcome, DoorFact, Seen] =
   monitor[DoorState, DoorOutcome, DoorFact, Seen](Seen.shut)(seen)(_ == Seen.reopened)
     .readAfter(after => after.facts.contains(DoorFact.doorOpened))
@@ -510,7 +510,7 @@ val opensOnce: Monitor[DoorState, DoorOutcome, DoorFact, Seen] =
 val staysOpen: Monitor[DoorState, DoorOutcome, DoorFact, Seen] =
   monitor[DoorState, DoorOutcome, DoorFact, Seen](Seen.shut)(seen)(_ == Seen.reopened)
 
-/** A door with authored monitors, which no realization above runs. */
+// A door with authored monitors, which no realization above runs.
 object Watched extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
@@ -564,20 +564,20 @@ val heldByName: Query =
 enum ErrandState derives Finite:
   case idle, queued, held, retrying, done, withdrawn
 
-/** How the worker answers one attempt. */
+// How the worker answers one attempt.
 enum ErrandAnswer derives Finite:
   case failed, completed, canceled
 
 enum ErrandOutcome derives Finite:
   case accepted
 
-/** What a listing of the errand shows: that it exists, and that it closed completed or canceled. */
+// What a listing of the errand shows: that it exists, and that it closed completed or canceled.
 enum ErrandFact derives Finite:
   case errandListed, errandClosed, errandWithdrawn
 
 type ErrandStep = Step[ErrandState, ErrandOutcome, ErrandFact]
 
-/** The errand's entity, in an object of its own, as the doors' is. */
+// The errand's entity, in an object of its own, as the doors' is.
 object ErrandEntity:
   val errand: Entity = Entity(key = "errandId")
 
@@ -592,16 +592,14 @@ def requestStep(s: ErrandState): List[ErrandStep] = s match
     List(Step(ErrandOutcome.accepted, ErrandState.queued, List(ErrandFact.errandListed)))
   case _ => Nil
 
-/** The runner is handed the attempt. Nothing a caller reads says so. */
+// The runner is handed the attempt. Nothing a caller reads says so.
 def deliverStep(s: ErrandState): List[ErrandStep] = s match
   case ErrandState.queued | ErrandState.retrying =>
     List(Step(ErrandOutcome.accepted, ErrandState.held))
   case _ => Nil
 
-/**
- * A failed attempt is retried and a caller reads nothing new; a completed one closes the errand, and
- * a canceled one withdraws it.
- */
+// A failed attempt is retried and a caller reads nothing new; a completed one closes the errand, and
+// a canceled one withdraws it.
 def answerStep(s: ErrandState, a: ErrandAnswer): List[ErrandStep] =
   if s != ErrandState.held then Nil
   else
@@ -664,16 +662,14 @@ val errandWithdrawn: Query =
 
 private val errandType = Name("umpire-", fixture = true, suffix = "-errand")
 
-/** Why the first attempt fails. */
+// Why the first attempt fails.
 private val notYet = Proto[ApplicationFailureInfo](
   ProtoField.typed(Field[ApplicationFailureInfo, String](_.`type`), ProtoValue.text("NotYet"))
 )
 
-/**
- * One kind of the errand's evidence: an entry of the namespace's listing, once it reads so. A poll's
- * condition reads the entry alone, so the listing is the run's own only in a namespace that holds no
- * other activity.
- */
+// One kind of the errand's evidence: an entry of the namespace's listing, once it reads so. A poll's
+// condition reads the entry alone, so the listing is the run's own only in a namespace that holds no
+// other activity.
 private def listed(records: String) =
   Evidence.read(
     id = "fixture.realizations.errand.evidence." + records,
@@ -866,7 +862,7 @@ val errandRealization: Realization = Realization(
 
 // ### What no Case carries yet
 
-/** A second door, for a realization of its own: a machine runs under one. */
+// A second door, for a realization of its own: a machine runs under one.
 object Tally extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed
@@ -888,7 +884,7 @@ val tallyOpens: Query =
     search = 16
   ) total 2
 
-/** A realization whose evidence keeps fields and is read from one message. */
+// A realization whose evidence keeps fields and is read from one message.
 private val tallyOpenedEvidence = Evidence.read(
   id = "fixture.realizations.tally.evidence.opened",
   records = "doorOpened",

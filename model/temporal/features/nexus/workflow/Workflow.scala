@@ -1,27 +1,26 @@
-/* The Nexus caller-side Model: one workflow-scheduled Nexus operation, as the caller sees it. The
- * Product machine says what an operation does, the System machine says how the server gets there
- * and refines it, and the functional Queries are one per side effect that settles the operation.
- * No cancellation (fn-79) and no concurrency-limit setup parameter.
- *
- * Update this Model independently of the implementation. When conformance fails, ask a human
- * rather than fitting the Model to the code.
- *
- * The feature has two levels, each in a folder of its own, because different people read them
- * (model/irgen/testdata/layout/lamp is the template):
- *
- *   - this file: the shared types; the signature (the entities, the inputs, the actors with their
- *     actions, the derived observation, the timers and the bounds); and last exports, its IR files;
- *   - product/Product.scala: Product Phase, State and Fact; NexusProduct, the product machine, what
- *     an operation does;
- *   - system/System.scala: System Phase, State, Fact, timer and composition types; NexusSystem, the
- *     System machine that refines it; HandlerWorker, the handler's worker; and NexusCaller, the
- *     System with that worker;
- *   - system/TrustingCaller.scala: TrustingCaller, the forged control a caller must refuse;
- *   - system/ClosePolicy.scala: the close and reset designs.
- *
- * A machine object reads its header (entity, init, end, evidence), then its sections in order:
- * states, refinement, effects, rules, properties and queries. Realization.scala realizes it.
- */
+// The Nexus caller-side Model: one workflow-scheduled Nexus operation, as the caller sees it. The
+// Product machine says what an operation does, the System machine says how the server gets there
+// and refines it, and the functional Queries are one per side effect that settles the operation.
+// No cancellation (fn-79) and no concurrency-limit setup parameter.
+//
+// Update this Model independently of the implementation. When conformance fails, ask a human
+// rather than fitting the Model to the code.
+//
+// The feature has two levels, each in a folder of its own, because different people read them
+// (model/irgen/testdata/layout/lamp is the template):
+//
+//   - this file: the shared types; the signature (the entities, the inputs, the actors with their
+//     actions, the derived observation, the timers and the bounds); and last exports, its IR files;
+//   - product/Product.scala: Product Phase, State and Fact; NexusProduct, the product machine, what
+//     an operation does;
+//   - system/System.scala: System Phase, State, Fact, timer and composition types; NexusSystem, the
+//     System machine that refines it; HandlerWorker, the handler's worker; and NexusCaller, the
+//     System with that worker;
+//   - system/TrustingCaller.scala: TrustingCaller, the forged control a caller must refuse;
+//   - system/ClosePolicy.scala: the close and reset designs.
+//
+// A machine object reads its header (entity, init, end, evidence), then its sections in order:
+// states, refinement, effects, rules, properties and queries. Realization.scala realizes it.
 package temporal
 package features.nexus.workflow
 
@@ -37,23 +36,21 @@ import system.{HandlerWorker, NexusCaller, NexusSystem, TrustingCaller}
 // class per assignment of them: handlerError(retryable) is one constructor and two classes, which
 // is the granularity an example is written at and what mirrors a protobuf oneof.
 
-/** Whether the schedule command sets a deadline. */
+// Whether the schedule command sets a deadline.
 enum Timeout derives Finite:
   case unset, expires
 
-/** The handler's reply to the server's start request. */
+// The handler's reply to the server's start request.
 enum Reply derives Finite:
   case syncSuccess, async, operationFailed, operationCanceled
   case handlerError(retryable: Boolean)
 
-/** How an asynchronous completion settles the operation. */
+// How an asynchronous completion settles the operation.
 enum Resolution derives Finite:
   case succeeded, failed, canceled
 
-/**
- * A step's outcome. The Product and System machines share the two members, and an outcome reads
- * as the refined machine's outcome of the same name.
- */
+// A step's outcome. The Product and System machines share the two members, and an outcome reads
+// as the refined machine's outcome of the same name.
 enum Outcome derives Finite:
   case accepted, notFound
 
@@ -80,7 +77,7 @@ object Inputs:
   val reply = input[Reply]
 val resolution = input[Resolution]
 
-/** The caller workflow, which schedules the operation and inspects it. */
+// The caller workflow, which schedules the operation and inspects it.
 object caller extends Actor:
   val schedule = action(this)
     .input(scheduleToClose)
@@ -89,10 +86,10 @@ object caller extends Actor:
     .creates(operation)
     .schema[ScheduleNexusOperationCommandAttributes]
 
-  /** The caller's inspection of its workflow, which only the forged control (system/) takes. */
+  // The caller's inspection of its workflow, which only the forged control (system/) takes.
   val inspect = action(this).on(operation)
 
-/** The endpoint's handler, which replies to the start and completes the operation. */
+// The endpoint's handler, which replies to the start and completes the operation.
 object handler extends Actor:
   val reply = action(this)
     .on(operation)
@@ -102,14 +99,12 @@ object handler extends Actor:
     .example(Reply.handlerError(false), "BadRequest")
     .example(Reply.handlerError(true), "Internal")
 
-  /**
-   * The Nexus HTTP completion carries no protobuf message, so it declares no schema and its classes
-   * are names the realization interprets. The result text is metadata of the action, not a domain a
-   * state holds.
-   */
+  // The Nexus HTTP completion carries no protobuf message, so it declares no schema and its classes
+  // are names the realization interprets. The result text is metadata of the action, not a domain a
+  // state holds.
   val complete = action(this).on(operation).input(resolution).results("Delivery")
 
-/** The network between the caller and the handler, which can fail a transport. */
+// The network between the caller and the handler, which can fail a transport.
 object network extends Actor:
   val fault = action(this) on operation
 
@@ -125,12 +120,12 @@ val pendingAttempts = Observation(on = operation, read = "attempts")
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-/** One of the operation's deadlines firing, as the product machine sees it, and the backoff. */
+// One of the operation's deadlines firing, as the product machine sees it, and the backoff.
 object timers:
   val timeout = timer
   val backoff = timer
 
-/** The System's three deadlines, each armed by the schedule's input of its name. */
+// The System's three deadlines, each armed by the schedule's input of its name.
 object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer

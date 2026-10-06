@@ -8,13 +8,13 @@ import umpire.*
 enum Result derives Finite:
   case succeeded, failed
 
-/** A union: the second case carries fields the first does not. */
+// A union: the second case carries fields the first does not.
 enum Report derives Finite:
   case unsent
   case sent(result: Result, retried: Boolean)
 
 object bounded:
-  /** A retry count, 0 to 2. */
+  // A retry count, 0 to 2.
   opaque type Retries = Int
 
   object Retries:
@@ -25,7 +25,7 @@ object bounded:
 
 import bounded.Retries
 
-/** `polls` takes the Int range the given below declares; `retries` keeps its own. */
+// `polls` takes the Int range the given below declares; `retries` keeps its own.
 final case class State(report: Report, kept: Option[Result], retries: Retries, polls: Int)
 
 given Finite[State] =
@@ -50,10 +50,8 @@ def sendStep(s: State, r: Result): List[Step[State, Outcome, Nothing]] = s.repor
         Step(Outcome.accepted, s.copy(report = Report.sent(first, true), retries = s.retries.next))
       )
 
-/**
- * Keeps what was sent. The match binds `r` inside a local `val`, and `None` takes its type from the
- * match.
- */
+// Keeps what was sent. The match binds `r` inside a local `val`, and `None` takes its type from the
+// match.
 def keepStep(s: State): List[Step[State, Outcome, Nothing]] =
   val sent = s.report match
     case Report.sent(r, _) => Some(r)

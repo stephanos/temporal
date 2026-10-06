@@ -30,7 +30,7 @@ object PlainLamp extends Machine[LampState, Outcome, Nothing]:
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 
-/** The Query each machine gets from one declaration, named alike for both. */
+// The Query each machine gets from one declaration, named alike for both.
 def litQueries(m: Machine[LampState, Outcome, Nothing]): Vector[Query] = Vector(
   query("anyLit") find (m.property(s"${m.name}.lit") holds (after => after.state.lit)) in m
     .scenario("any")

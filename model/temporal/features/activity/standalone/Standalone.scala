@@ -1,33 +1,32 @@
-/* The standalone activity Model: one activity started directly through StartActivityExecution, with
- * no workflow around it, grounded in chasm/lib/activity/statemachine.go. The product machine says
- * what DescribeActivityExecution reports, the System how the server gets there. No history
- * event is written, so every evidence line names an observation: a status read through
- * DescribeActivityExecution or a result read through PollActivityExecution. Reset is deferred, like
- * cancellation in the Nexus client Model, and the heartbeat timeout is not modeled.
- *
- * Update this Model independently of the implementation. When conformance fails, ask a human
- * rather than fitting the Model to the code.
- *
- * The feature has two levels, each in a folder of its own, because different people read them
- * (model/irgen/testdata/layout/lamp is the template):
- *
- *   - this file: the shared types; the signature (the activity and its inputs; the client and its
- *     actions, the worker's actions on the activity, its timers and deadlines; and the bounds); and
- *     last exports, its IR files;
- *   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
- *     what a client reads;
- *   - system/System.scala: System Phase, State, Fact, timer and composition types; ActivitySystem,
- *     the System machine that refines it; ActivityWorker, the worker of its task queue; and
- *     StandaloneActivity, the System with that worker;
- *   - system/Record.scala: the history record of the activity, and its designs;
- *   - system/WithTaskQueue.scala: the contract's designs composed with the shared task queue.
- *   - system/Realization.scala: the executable System realizations of StandaloneActivity,
- *     HeldDispatch and LostStartAnswer.
- *
- * A machine object reads its header (entity, init, end, evidence), then its sections in order:
- * states, refinement, effects, monitors, rules, properties, implements and queries. A composition
- * reads end, then states, syncs, properties, implements and queries.
- */
+// The standalone activity Model: one activity started directly through StartActivityExecution, with
+// no workflow around it, grounded in chasm/lib/activity/statemachine.go. The product machine says
+// what DescribeActivityExecution reports, the System how the server gets there. No history
+// event is written, so every evidence line names an observation: a status read through
+// DescribeActivityExecution or a result read through PollActivityExecution. Reset is deferred, like
+// cancellation in the Nexus client Model, and the heartbeat timeout is not modeled.
+//
+// Update this Model independently of the implementation. When conformance fails, ask a human
+// rather than fitting the Model to the code.
+//
+// The feature has two levels, each in a folder of its own, because different people read them
+// (model/irgen/testdata/layout/lamp is the template):
+//
+//   - this file: the shared types; the signature (the activity and its inputs; the client and its
+//     actions, the worker's actions on the activity, its timers and deadlines; and the bounds); and
+//     last exports, its IR files;
+//   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
+//     what a client reads;
+//   - system/System.scala: System Phase, State, Fact, timer and composition types; ActivitySystem,
+//     the System machine that refines it; ActivityWorker, the worker of its task queue; and
+//     StandaloneActivity, the System with that worker;
+//   - system/Record.scala: the history record of the activity, and its designs;
+//   - system/WithTaskQueue.scala: the contract's designs composed with the shared task queue.
+//   - system/Realization.scala: the executable System realizations of StandaloneActivity,
+//     HeldDispatch and LostStartAnswer.
+//
+// A machine object reads its header (entity, init, end, evidence), then its sections in order:
+// states, refinement, effects, monitors, rules, properties, implements and queries. A composition
+// reads end, then states, syncs, properties, implements and queries.
 package temporal
 package features.activity.standalone
 
@@ -39,11 +38,11 @@ import system.{ActivityRealization, ActivitySystem, StandaloneActivity}
 
 // ### Types
 
-/** Whether the start request sets a deadline. */
+// Whether the start request sets a deadline.
 enum Timeout derives Finite:
   case unset, expires
 
-/** The worker's answer; failed(retryable) is two classes, like ApplicationFailure's flag. */
+// The worker's answer; failed(retryable) is two classes, like ApplicationFailure's flag.
 enum AttemptResult derives Finite:
   case completed
   case failed(retryable: Boolean)
@@ -52,13 +51,13 @@ enum AttemptResult derives Finite:
 enum Control derives Finite:
   case pause, unpause, requestCancel, terminate
 
-/** A step's outcome, shared by both machines by name. */
+// A step's outcome, shared by both machines by name.
 enum Outcome derives Finite:
   case accepted, notFound
 
 // ### Signature
 
-/** Named by the id the client chose: every read carries it, so no run id or event id is needed. */
+// Named by the id the client chose: every read carries it, so no run id or event id is needed.
 val activity = Entity(key = "activityId")
 
 // The start's inputs, which the deadline timers no longer collide with, and the worker's answer.
@@ -67,14 +66,14 @@ val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
 val result = input[AttemptResult]
 
-/** The control's input, apart because inside `client` its name is the control action. */
+// The control's input, apart because inside `client` its name is the control action.
 object Inputs:
   val control = input[Control]
 
 // Who acts, and on what: each action is declared in the object of who takes it, and named after
 // where it is declared, `temporal.features.activity.standalone.client.start`.
 
-/** The client starts and controls the activity. */
+// The client starts and controls the activity.
 object client extends Client:
   val start = action(this)
     .input(scheduleToClose)
@@ -94,11 +93,9 @@ object client extends Client:
     .schema[TerminateActivityExecutionRequest]
     .results("Delivery")
 
-/**
- * The shared worker's actions on this activity: its poll receives the task for the current attempt,
- * and its answer settles it. The worker's stop is the worker's own action, `process.stop`:
- * nothing it records names the activity, so the activity's machines keep their state.
- */
+// The shared worker's actions on this activity: its poll receives the task for the current attempt,
+// and its answer settles it. The worker's stop is the worker's own action, `process.stop`:
+// nothing it records names the activity, so the activity's machines keep their state.
 object worker:
   val poll = action(process).on(activity).schema[PollActivityTaskQueueResponse]
 
@@ -111,12 +108,12 @@ object worker:
     .example(AttemptResult.failed(false), "ApplicationFailureNonRetryable")
     .example(AttemptResult.failed(true), "ApplicationFailureRetryable")
 
-/** One of the activity's deadlines firing, as the product machine sees it, and the backoff. */
+// One of the activity's deadlines firing, as the product machine sees it, and the backoff.
 object timers:
   val timeout = timer
   val backoff = timer
 
-/** The System's three deadlines, each armed by the start's input of its name. */
+// The System's three deadlines, each armed by the start's input of its name.
 object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer

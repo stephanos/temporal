@@ -4,11 +4,9 @@ import io.temporal.server.api.umpire.v1 as ir
 import io.temporal.server.api.umpire.v1.Expr.Kind as E
 import scalapb.descriptors.{Descriptor, PMessage, PString}
 
-/**
- * The lifting of the framework's sugar (model/umpire/Syntax.scala). The lifter does not inline a
- * framework body, so each sugar form is matched here by its definition and lowered to the IR its core
- * form lifts to; the lifter's tests lift both spellings and require the same IR.
- */
+// The lifting of the framework's sugar (model/umpire/Syntax.scala). The lifter does not inline a
+// framework body, so each sugar form is matched here by its definition and lowered to the IR its core
+// form lifts to; the lifter's tests lift both spellings and require the same IR.
 private[irgen] trait Syntax:
   self: Lifting =>
   import ctx.*
@@ -17,7 +15,7 @@ private[irgen] trait Syntax:
   // Top-level definitions of a file are members of its package object.
   private val sugarOwner = "umpire.Syntax$package$"
 
-  /** The sugar definition a term applies, if it applies one: its name and its argument lists. */
+  // The sugar definition a term applies, if it applies one: its name and its argument lists.
   private def sugarCall(t: Term): Option[(String, List[List[Term]])] = t match
     case Apply(fn, args)  => sugarCall(fn).map((n, as) => (n, as :+ args))
     case TypeApply(fn, _) => sugarCall(fn)
@@ -27,26 +25,22 @@ private[irgen] trait Syntax:
       Some("in" -> Nil)
     case _ => None
 
-  /** The type arguments a sugar call is applied to, innermost first. */
+  // The type arguments a sugar call is applied to, innermost first.
   private def typeArgs(t: Term): List[TypeRepr] = t match
     case Apply(fn, _)        => typeArgs(fn)
     case TypeApply(_, targs) => targs.map(_.tpe)
     case _                   => Nil
 
-  /**
-   * Hook: whether the term applies a sugar form, which `sugar` lifts. Core form: none of its own;
-   * `lift` asks it of every term before `sugar` lowers one, as in `case _ if sugared(t) => sugar(t)`.
-   */
+  // Hook: whether the term applies a sugar form, which `sugar` lifts. Core form: none of its own;
+  // `lift` asks it of every term before `sugar` lowers one, as in `case _ if sugared(t) => sugar(t)`.
   def sugared(t: Term): Boolean = sugarCall(t).nonEmpty
 
-  /**
-   * Hook: a sugar form lifted to the IR of its core form. Core form: `enter(s, f)` lifts as
-   * `List(Step(Outcome.accepted, s, List(f)))`, `stay(s)` as `List(Step(Outcome.accepted, s))`,
-   * `reject(Outcome.notFound, s)` as `List(Step(Outcome.notFound, s))`,
-   * `disabled` as `Nil`, `x.in(a, b)` as `List(a, b).contains(x)`, `a implies b` as `!a || b`,
-   * `after.records(f)` as `after.facts.contains(f)` and a composition's `after.records(_.member, f)`
-   * as `after.facts.contains("member_f")`.
-   */
+  // Hook: a sugar form lifted to the IR of its core form. Core form: `enter(s, f)` lifts as
+  // `List(Step(Outcome.accepted, s, List(f)))`, `stay(s)` as `List(Step(Outcome.accepted, s))`,
+  // `reject(Outcome.notFound, s)` as `List(Step(Outcome.notFound, s))`,
+  // `disabled` as `Nil`, `x.in(a, b)` as `List(a, b).contains(x)`, `a implies b` as `!a || b`,
+  // `after.records(f)` as `after.facts.contains(f)` and a composition's `after.records(_.member, f)`
+  // as `after.facts.contains("member_f")`.
   def sugar(t: Term): ir.Expr = sugarCall(t) match
     case Some(("enter", List(List(state, facts), List(ok)))) =>
       list(Seq(step(outcomeOf(ok, "enter"), lift(state), lift(facts), text("", t), t)), t)
@@ -81,19 +75,15 @@ private[irgen] trait Syntax:
       binary(ir.Binary.Op.OP_CONTAINS, lift(fact), facts, t)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
-  /**
-   * Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:
-   * none of its own; `classOf` asks it before it reads a positional call, as in
-   * `case _ if namedClass(t) => named(t)`.
-   */
+  // Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:
+  // none of its own; `classOf` asks it before it reads a positional call, as in
+  // `case _ if namedClass(t) => named(t)`.
   def namedClass(t: Term): Boolean = sugarCall(t).exists(_._1 == "apply")
 
-  /**
-   * Hook: a class whose inputs are supplied by name, `token := value`, lifted as its positional call:
-   * the values in the order the action declares its input tokens, each input not supplied at its
-   * domain's first value. Core form: `start(scheduleToStart := expires)` lifts as
-   * `start(unset, expires, unset)`.
-   */
+  // Hook: a class whose inputs are supplied by name, `token := value`, lifted as its positional call:
+  // the values in the order the action declares its input tokens, each input not supplied at its
+  // domain's first value. Core form: `start(scheduleToStart := expires)` lifts as
+  // `start(unset, expires, unset)`.
   def named(t: Term): ir.ActionClass = sugarCall(t) match
     case Some(("apply", List(List(ref), List(first, rest)))) =>
       val id = action(ref)
@@ -126,14 +116,12 @@ private[irgen] trait Syntax:
       ir.ActionClass(id, values)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
-  /**
-   * Hook: one line of a request scope written with the Temporal kit's sugar, `field(_.name) :=
-   * operand`, lifted as the assignment record its core form writes, or None for a line that is not
-   * one. The field's request type is the scope's, `root`, which the enclosing `rpc`/`readUntil`
-   * call opened; the selector is read against it. Core form:
-   * `Assignment.typed(Field[Req, V](_.name), operand)` lifts as `{target: "name", value: operand}`.
-   * `Realizations.scoped` asks it of every line before it reads a core one.
-   */
+  // Hook: one line of a request scope written with the Temporal kit's sugar, `field(_.name) :=
+  // operand`, lifted as the assignment record its core form writes, or None for a line that is not
+  // one. The field's request type is the scope's, `root`, which the enclosing `rpc`/`readUntil`
+  // call opened; the selector is read against it. Core form:
+  // `Assignment.typed(Field[Req, V](_.name), operand)` lifts as `{target: "name", value: operand}`.
+  // `Realizations.scoped` asks it of every line before it reads a core one.
   def requestAssignment(line: Bound, root: TypeRepr, into: Descriptor): Option[PMessage] =
     val t = follow(line).term
     sugarCall(t).collect { case (":=", List(List(slot), List(value))) => (slot, value) }.map {
@@ -159,7 +147,7 @@ private[irgen] trait Syntax:
             )
     }
 
-  /** `token := value`, as a call writes it: the token and the value. */
+  // `token := value`, as a call writes it: the token and the value.
   private def assigned(t: Term): (Term, Term) = t match
     case Typed(e, _)        => assigned(e)
     case Inlined(_, Nil, e) => assigned(e)
@@ -175,11 +163,9 @@ private[irgen] trait Syntax:
             s"an input supplied by name is written `token := value` in the call, not $written"
           )
 
-  /**
-   * The composed key of the fact a composition's `after.records(_.member, fact)` reads,
-   * `<field>_<fact>`. The selector is one field of the composed state, and where a lifted
-   * composition of that state exists, a member fills the field and records facts of the fact's type.
-   */
+  // The composed key of the fact a composition's `after.records(_.member, fact)` reads,
+  // `<field>_<fact>`. The selector is one field of the composed state, and where a lifted
+  // composition of that state exists, a member fills the field and records facts of the fact's type.
   private def composedFact(member: Term, fact: Term, at: Term): String =
     val (field, state) = lambda(member)
       .collect { case (List(p), body) => (fieldPath(p, body), p.tpt.tpe) }
@@ -222,10 +208,8 @@ private[irgen] trait Syntax:
   private val finished =
     Map("umpire.Once" -> "keeps", "umpire.Never" -> "from", "umpire.Stays" -> "unless")
 
-  /**
-   * Hook: whether a declaration applies a claim pattern, which `pattern` folds. Core form: none of
-   * its own; `fold` asks it beside `holds`, as in `case _ if patterned(t) => pattern(t, env, named)`.
-   */
+  // Hook: whether a declaration applies a claim pattern, which `pattern` folds. Core form: none of
+  // its own; `fold` asks it beside `holds`, as in `case _ if patterned(t) => pattern(t, env, named)`.
   def patterned(t: Term): Boolean = t match
     case _: Apply =>
       val sym = t.symbol
@@ -233,23 +217,21 @@ private[irgen] trait Syntax:
       finished.get(sym.maybeOwner.fullName).contains(sym.name)
     case _ => false
 
-  /** `builder.word(arg)`, a claim pattern begun: the word, the builder, its state type and `arg`. */
+  // `builder.word(arg)`, a claim pattern begun: the word, the builder, its state type and `arg`.
   private def begun(t: Term): Option[(String, Term, TypeRepr, Term)] = t match
     case Apply(Apply(TypeApply(fn, state :: _), List(builder)), List(arg))
         if fn.symbol.maybeOwner.fullName == sugarOwner && finishers.contains(fn.symbol.name) =>
       Some((fn.symbol.name, builder, state.tpe, arg))
     case _ => None
 
-  /**
-   * Hook: a claim pattern folded to the Property its `holds` or `holdsAcross` lambda declares, its
-   * function synthesized from calls of the author's predicates, each lifted as `holds` lifts one.
-   * Core form: `once(over).keeps(_.x)` folds as
-   * `holdsAcross((before, after) => !over(before) || after.state.x == before.x)`, `never(to)` as
-   * `holds(after => !to(after))`, `never(to).from(b)` as
-   * `holdsAcross((before, after) => !b(before) || !to(after))`, `stays(p)` as
-   * `holdsAcross((before, after) => !p(before) || p(after.state))` and `stays(p).unless(r)` as
-   * `holdsAcross((before, after) => !p(before) || p(after.state) || r(after))`.
-   */
+  // Hook: a claim pattern folded to the Property its `holds` or `holdsAcross` lambda declares, its
+  // function synthesized from calls of the author's predicates, each lifted as `holds` lifts one.
+  // Core form: `once(over).keeps(_.x)` folds as
+  // `holdsAcross((before, after) => !over(before) || after.state.x == before.x)`, `never(to)` as
+  // `holds(after => !to(after))`, `never(to).from(b)` as
+  // `holdsAcross((before, after) => !b(before) || !to(after))`, `stays(p)` as
+  // `holdsAcross((before, after) => !p(before) || p(after.state))` and `stays(p).unless(r)` as
+  // `holdsAcross((before, after) => !p(before) || p(after.state) || r(after))`.
   def pattern(t: Term, env: Map[Symbol, Decl], named: Option[Symbol]): Decl =
     // The word that finishes the pattern and its argument, if one does, and the call it finishes.
     val (start, finish) = t match
@@ -330,13 +312,11 @@ private[irgen] trait Syntax:
     register(properties, (m, name), p, t, s"Property $name of $m")
     Decl.Claim(claim(m, name))
 
-  /**
-   * Hook: a monitor declared with `sticky(p)` or `stickyAcross(p)`, lowered to the monitor its core
-   * form declares, or None for a term that is neither; `monitorOf` gives it the Definition ID `id`,
-   * its name and its position, as it does the core form's. Core form: `sticky(p)` lifts as
-   * `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !p(after))(broken => broken)`
-   * and `stickyAcross(p)` as the same monitor with `!p(before, after)`.
-   */
+  // Hook: a monitor declared with `sticky(p)` or `stickyAcross(p)`, lowered to the monitor its core
+  // form declares, or None for a term that is neither; `monitorOf` gives it the Definition ID `id`,
+  // its name and its position, as it does the core form's. Core form: `sticky(p)` lifts as
+  // `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !p(after))(broken => broken)`
+  // and `stickyAcross(p)` as the same monitor with `!p(before, after)`.
   def stickyMonitor(t: Term, id: String): Option[ir.Monitor] = sugarCall(t) match
     case Some((word @ ("sticky" | "stickyAcross"), List(List(promise)))) =>
       val state = typeArgs(t).head
@@ -383,10 +363,8 @@ private[irgen] trait Syntax:
   // The step a Property's function reads, its parameter `after`.
   private def stepParam = ir.Param("after", Some(named(stepType)))
 
-  /**
-   * The fields a `keeps` projection reads: a lambda's field path, or the one of the def it names,
-   * forwards to or is bound to, whose body is a field path over its one parameter.
-   */
+  // The fields a `keeps` projection reads: a lambda's field path, or the one of the def it names,
+  // forwards to or is bound to, whose body is a field path over its one parameter.
   private def keptPath(x: Term): Option[List[String]] =
     def defPath(sym: Symbol): Option[List[String]] = defs.get(sym) match
       case Some(DefDef(_, List(TermParamClause(List(p))), _, Some(body))) => fieldPath(p, body)
@@ -396,7 +374,7 @@ private[irgen] trait Syntax:
       .flatten
       .orElse(forwardedDef(x).flatMap(defPath))
 
-  /** The outcome a `given Ok[O] = Ok(o)` names: `o`. */
+  // The outcome a `given Ok[O] = Ok(o)` names: `o`.
   private def outcomeOf(ok: Term, form: String): ir.Expr =
     val declared = ok match
       case r: Ref =>

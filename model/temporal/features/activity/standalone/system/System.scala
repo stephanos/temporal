@@ -1,9 +1,8 @@
-/* The standalone activity's System: how the server gets there (fn-126 decision 16). The level's own
- * file holds the System machine, ActivitySystem, whose refinement says what the Product reads of
- * it; ActivityWorker, the worker of its task queue; and StandaloneActivity, the System with that
- * worker. Beside it, one file per subject: Record.scala, history's record of the activity, and
- * WithTaskQueue.scala, that record composed with the shared task queue.
- */
+// The standalone activity's System: how the server gets there (fn-126 decision 16). The level's own
+// file holds the System machine, ActivitySystem, whose refinement says what the Product reads of
+// it; ActivityWorker, the worker of its task queue; and StandaloneActivity, the System with that
+// worker. Beside it, one file per subject: Record.scala, history's record of the activity, and
+// WithTaskQueue.scala, that record composed with the shared task queue.
 package temporal
 package features.activity.standalone
 package system
@@ -18,12 +17,12 @@ import shared.worker.{worker as process, Phase as WorkerPhase, State as WorkerSt
 import product.ActivityProduct
 import Timeout.expires
 
-/** It begins before the activity exists, so unstarted is one phase. */
+// It begins before the activity exists, so unstarted is one phase.
 enum Phase derives Finite:
   case unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested
   case completed, failed, canceled, terminated, timedOut
 
-/** 12 phases, 3 attempt counts and 3 deadline flags: 288 states. */
+// 12 phases, 3 attempt counts and 3 deadline flags: 288 states.
 final case class State(
     phase: Phase,
     attempts: UpTo[2],
@@ -32,18 +31,18 @@ final case class State(
     startToClose: Timeout
 ) derives Finite
 
-/** Which deadline fired. */
+// Which deadline fired.
 enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
 
-/** What the System machine records; `attemptCount` is named after its observation. */
+// What the System machine records; `attemptCount` is named after its observation.
 enum Fact derives Finite:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated
   case statusTimedOut(timeoutType: TimeoutType)
   case attemptCount
 
-/** The System machine and its worker, as the standalone activity composition holds them. */
+// The System machine and its worker, as the standalone activity composition holds them.
 final case class StandaloneActivityState(activity: State, worker: WorkerState)
 
 // ### The System machine adds the retry, the pause request, the timers and the attempt count. It
@@ -52,7 +51,7 @@ final case class StandaloneActivityState(activity: State, worker: WorkerState)
 object ActivitySystem extends Machine[State, Outcome, Fact]:
   import Phase.*
 
-  /** Where every path begins: before the activity exists, with every deadline at its first value. */
+  // Where every path begins: before the activity exists, with every deadline at its first value.
   val init = system.State(
     phase = Phase.unstarted,
     attempts = UpTo(0),
@@ -62,38 +61,36 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
   )
   def end(s: State) = states.terminal(s.phase)
 
-  /** A timeout is confirmed by the one status observation, whichever deadline fired. */
+  // A timeout is confirmed by the one status observation, whichever deadline fired.
   val evidence: PartialFunction[Fact, String] = {
     case Fact.statusTimedOut(_) => "statusTimedOut"
     case Fact.attemptCount      => attemptCount.name
   }
 
-  /** The System's status sets and its attempt count's bound. */
+  // The System's status sets and its attempt count's bound.
   object states:
-    /** Bounds the attempt count, as the type of `State.attempts` does. */
+    // Bounds the attempt count, as the type of `State.attempts` does.
     val attemptBound = 2
 
     def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
 
-    /** Started and not over: the phases a deadline can fire in. */
+    // Started and not over: the phases a deadline can fire in.
     def live(p: Phase) =
       p.in(scheduled, backingOff, started, paused, pauseRequested, cancelRequested)
 
-    /** Where a worker holds the attempt: what start-to-close covers and a worker's answer settles. */
+    // Where a worker holds the attempt: what start-to-close covers and a worker's answer settles.
     def held(p: Phase) = p.in(started, pauseRequested, cancelRequested)
 
-    /** Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers. */
+    // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
     def waiting(p: Phase) = p.in(scheduled, backingOff)
 
     def saturatingSucc(a: UpTo[2]): UpTo[2] = UpTo((a + 1).min(attemptBound))
 
-  /** The System refines the product: what each of its states reads as there. */
+  // The System refines the product: what each of its states reads as there.
   object refinement extends Refinement(ActivityProduct):
-    /**
-     * Unstarted and backing off read as scheduled. A pause request reads as started: the worker
-     * still holds the attempt, its every answer is a product row from started, and the request
-     * stutters.
-     */
+    // Unstarted and backing off read as scheduled. A pause request reads as started: the worker
+    // still holds the attempt, its every answer is a product row from started, and the request
+    // stutters.
     def toProduct(s: State): product.State = s.phase match
       case Phase.unstarted | Phase.scheduled | Phase.backingOff =>
         product.State(product.Phase.scheduled)
@@ -106,13 +103,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
       case Phase.terminated                     => product.State(product.Phase.terminated)
       case Phase.timedOut                       => product.State(product.Phase.timedOut)
 
-    /** The backoff timer records nothing a Run can read. */
+    // The backoff timer records nothing a Run can read.
     val unobservable = List(timers.backoff)
 
   object effects:
     import Fact.*
 
-    /** The start creates the activity, with the deadlines its inputs set. */
+    // The start creates the activity, with the deadlines its inputs set.
     def schedule(
         @unused s: State,
         scheduleToClose: Timeout,
@@ -130,7 +127,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
         statusScheduled
       )
 
-    /** The worker's poll takes the attempt and raises the count the client reads back. */
+    // The worker's poll takes the attempt and raises the count the client reads back.
     def startAttempt(s: State) =
       enter(
         s.copy(phase = started, attempts = states.saturatingSucc(s.attempts)),
@@ -142,29 +139,27 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
 
     def fail(s: State) = enter(s.copy(phase = failed), statusFailed)
 
-    /** A retryable failure backs a started attempt off: read as scheduled again, one attempt higher. */
+    // A retryable failure backs a started attempt off: read as scheduled again, one attempt higher.
     def backOff(s: State) =
       enter(s.copy(phase = backingOff), statusScheduled, Fact.attemptCount)
         .because("a retryable failure backs off; the client reads scheduled again")
 
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
 
-    /** A control on an activity that is over is not found. */
+    // A control on an activity that is over is not found.
     def notFound(s: State) = reject(Outcome.notFound, s)
 
     def pause(s: State) = enter(s.copy(phase = paused), statusPaused)
 
-    /**
-     * A pause of a held attempt is a request the worker learns of on its next heartbeat, so it is its
-     * own phase the client reads as paused.
-     */
+    // A pause of a held attempt is a request the worker learns of on its next heartbeat, so it is its
+    // own phase the client reads as paused.
     def requestPause(s: State) =
       enter(s.copy(phase = pauseRequested), statusPaused)
         .because("the worker learns of the pause on its next heartbeat")
 
     def resume(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
 
-    /** An unpause before the worker yields: it keeps the attempt it holds. */
+    // An unpause before the worker yields: it keeps the attempt it holds.
     def withdrawPause(s: State) = enter(s.copy(phase = started), statusStarted)
 
     def requestCancel(s: State) =
@@ -172,10 +167,10 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
 
     def terminate(s: State) = enter(s.copy(phase = terminated), statusTerminated)
 
-    /** Keeps the state and records nothing; the next step's evidence confirms it, a Known Gap. */
+    // Keeps the state and records nothing; the next step's evidence confirms it, a Known Gap.
     def keep(s: State) = stay(s)
 
-    /** The backoff timer. A retry writes nothing the client can read. */
+    // The backoff timer. A retry writes nothing the client can read.
     def retry(s: State) = enter(s.copy(phase = scheduled))
 
     def timeOut(s: State, t: TimeoutType) =
@@ -234,10 +229,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
         .where(_.startToClose == Timeout.expires) ~> (effects.timeOut(_, TimeoutType.startToClose))
     }
 
-  /**
-   * What the System promises of its own: the settlement claims. The cross-entity claim of the
-   * activity and its worker is the composition's, and the history record's are Record.scala's.
-   */
+  // What the System promises of its own: the settlement claims. The cross-entity claim of the
+  // activity and its worker is the composition's, and the history record's are Record.scala's.
   object properties:
     val completes =
       property when worker.respond(AttemptResult.completed) holds { s =>
@@ -249,7 +242,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
         s.state.phase == Phase.failed && s.records(Fact.statusFailed)
       }
 
-    /** Completed on the second attempt of an activity with no deadline set. */
+    // Completed on the second attempt of an activity with no deadline set.
     val completedOnRetry =
       system.State(
         phase = Phase.completed,
@@ -259,10 +252,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
         startToClose = Timeout.unset
       )
 
-    /**
-     * The attempt count saturates at `states.attemptBound`, so the claim is bounded by it: a completion on
-     * any later attempt than the second reads as this one.
-     */
+    // The attempt count saturates at `states.attemptBound`, so the claim is bounded by it: a completion on
+    // any later attempt than the second reads as this one.
     val retryCompletes =
       property when worker.respond(AttemptResult.completed) holds { s =>
         s.state == completedOnRetry && s.records(Fact.statusCompleted)
@@ -299,16 +290,14 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
       s.records(Fact.statusTimedOut(TimeoutType.startToClose))
     }
 
-  /**
-   * What the System machine is, as the functional laws read it, which a find through its
-   * realization asks: a terminate settles it, a cancel request is recorded, and
-   * DescribeActivityExecution reports its status by `activityStatus`. Each law's find starts the
-   * activity and stops the worker before the control, so no attempt is in flight when it lands, as
-   * `terminatedWhileScheduled` does. A Run explains an unobserved control of an activity that is over
-   * too, which answers notFound and records nothing, so the claim's explanations disagree. It reads
-   * the realization, which reads this machine, so it waits in a section, which initializes on its
-   * first use.
-   */
+  // What the System machine is, as the functional laws read it, which a find through its
+  // realization asks: a terminate settles it, a cancel request is recorded, and
+  // DescribeActivityExecution reports its status by `activityStatus`. Each law's find starts the
+  // activity and stops the worker before the control, so no attempt is in flight when it lands, as
+  // `terminatedWhileScheduled` does. A Run explains an unobserved control of an activity that is over
+  // too, which answers notFound and records nothing, so the claim's explanations disagree. It reads
+  // the realization, which reads this machine, so it waits in a section, which initializes on its
+  // first use.
   object implements
       extends Implements(limits = three)(
         Terminable(
@@ -326,12 +315,10 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
         Describable(status = ActivityRealization.activityStatus)
       )
 
-  /**
-   * The paths, then one functional Query per side effect that settles the activity, and the Queries
-   * that carry the other promises into the lifted Model. Each path starts before the activity exists;
-   * a start that sets no deadline is `start()`, each input at `unset`. A path one Query takes is
-   * written in it.
-   */
+  // The paths, then one functional Query per side effect that settles the activity, and the Queries
+  // that carry the other promises into the lifted Model. Each path starts before the activity exists;
+  // a start that sets no deadline is `start()`, each input at `unset`. A path one Query takes is
+  // written in it.
   object queries:
     val cancelRequestedThenCanceled = scenario.actions(
       client.start(),
@@ -405,7 +392,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
 
     // The Query that carries the other promise into the lifted Model, where Go's are compared.
 
-    /** Asks the one Property no functional Query asks, over the path that takes a cancel request. */
+    // Asks the one Property no functional Query asks, over the path that takes a cancel request.
     val cancelRequest =
       query find properties.cancelRequestedWhileStarted in cancelRequestedThenCanceled limits
         four
@@ -429,19 +416,17 @@ object StandaloneActivity
     sync(_.activity -> worker.poll, _.worker -> process.serve)
 
   object properties:
-    /** The cross-entity claim: no stopped worker starts an attempt. */
+    // The cross-entity claim: no stopped worker starts an attempt.
     val startedByPollingWorker = property
       .whenAction(synced(_.activity -> worker.poll))
       .holds(_.state.worker.phase == WorkerPhase.polling)
 
   object queries:
-    /**
-     * The cross-entity claim, over the path on which a stopped worker never takes the retry: the
-     * first attempt fails retryably and backs off, then the worker stops, so the retry is never
-     * dispatched; the attempt start makes the verification exercise the claim. The start is stated:
-     * a default would take the worker's from shared/worker/Worker.scala; fn-115's golden compares
-     * positions.
-     */
+    // The cross-entity claim, over the path on which a stopped worker never takes the retry: the
+    // first attempt fails retryably and backs off, then the worker stops, so the retry is never
+    // dispatched; the attempt start makes the verification exercise the claim. The start is stated:
+    // a default would take the worker's from shared/worker/Worker.scala; fn-115's golden compares
+    // positions.
     val stoppedBeforeRetry = scenario
       .starts(StandaloneActivityState(ActivitySystem.init, WorkerState(WorkerPhase.polling)))
       .actions(

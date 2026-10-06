@@ -1,14 +1,12 @@
-/* Terminate: what a terminate does to a live entity, wherever the entity is. */
+// Terminate: what a terminate does to a live entity, wherever the entity is.
 package temporal.capabilities
 
 import umpire.*
 
-/**
- * A terminate settles the entity in its own step: that step records `settled`. A functional law,
- * asked by a find from a live state the capability's `reach` gets to rather than verified over every
- * row: a terminate of a closed entity is Closable's to answer, and saying "from a live state" of
- * one action would need a transition Property restricted by `when`, which is not supported.
- */
+// A terminate settles the entity in its own step: that step records `settled`. A functional law,
+// asked by a find from a live state the capability's `reach` gets to rather than verified over every
+// row: a terminate of a closed entity is Closable's to answer, and saying "from a live state" of
+// one action would need a transition Property restricted by `when`, which is not supported.
 object terminateSettles
     extends Law(
       cites = Seq(

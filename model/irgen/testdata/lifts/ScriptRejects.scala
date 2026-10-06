@@ -23,13 +23,13 @@ private def realizing(items: Item*) = temporalRealization(
 
 private val stopWorker = Fault(taskQueue, FaultKind.workerStop)
 
-/** A command no val declares has no name. */
+// A command no val declares has no name.
 val unnamedCommand: Realization = realizing(everyCase(Fault(taskQueue, FaultKind.workerStop)))
 
-/** A `perform` that binds no class lands nowhere. */
+// A `perform` that binds no class lands nowhere.
 val performsNothing: Realization = realizing(perform())
 
-/** An `onPath` that names no class is carried by no Case. */
+// An `onPath` that names no class is carried by no Case.
 val onNoPath: Realization = realizing(onPath()(stopWorker))
 
 private val listed: StatusTable[ActivityExecutionStatus] = statusTable(
@@ -68,19 +68,19 @@ private def awaitStatus(table: StatusTable[ActivityExecutionStatus], fact: Fact)
 
 private val awaitCompleted = awaitStatus(listed, ActivityFact.statusCompleted)
 
-/** A status the table lists no value for. */
+// A status the table lists no value for.
 val unlistedStatus: Realization = realizing(everyCase(awaitCompleted))
 
 private val awaitPaused = awaitStatus(twice, ActivityFact.statusPaused)
 
-/** A table that lists one fact twice. */
+// A table that lists one fact twice.
 val statusTwice: Realization = realizing(everyCase(awaitPaused))
 
 private val inputInScope = rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION) {
   scheduleToStart := Timeout.expires
 }
 
-/** A line of a request scope that assigns no field of the request. */
+// A line of a request scope that assigns no field of the request.
 val notAField: Realization = realizing(perform(client.control(Control.pause) -> inputInScope))
 
 private val inputInPoll = await(described, workflowService)(
@@ -92,10 +92,10 @@ private val inputInPoll = await(described, workflowService)(
   scheduleToStart := Timeout.expires
 }
 
-/** A line of a `readUntil`'s request scope that assigns no field of the request. */
+// A line of a `readUntil`'s request scope that assigns no field of the request.
 val notAPolledField: Realization = realizing(everyCase(inputInPoll))
 
-/** Evidence of a case of another enum than the facts the machine records. */
+// Evidence of a case of another enum than the facts the machine records.
 val foreignFact: Realization = temporalRealization(
   machine = activitySystem,
   operation = activity,

@@ -1,8 +1,7 @@
-/* The standalone activity's Product: what DescribeActivityExecution reports, the level a client
- * reads (fn-126 decision 16). The level's own file holds the product machine, ActivityProduct, which
- * refines nothing; system/System.scala refines it. The two package clauses read the feature's
- * package as well as this one, so its types and signature are in scope.
- */
+// The standalone activity's Product: what DescribeActivityExecution reports, the level a client
+// reads (fn-126 decision 16). The level's own file holds the product machine, ActivityProduct, which
+// refines nothing; system/System.scala refines it. The two package clauses read the feature's
+// package as well as this one, so its types and signature are in scope.
 package temporal
 package features.activity.standalone
 package product
@@ -12,7 +11,7 @@ import temporal.capabilities.{given, *}
 import shared.Bounds.three
 import shared.worker.worker as process
 
-/** What DescribeActivityExecution shows. */
+// What DescribeActivityExecution shows.
 enum Phase derives Finite:
   case scheduled, started, paused, cancelRequested
   case completed, failed, canceled, terminated, timedOut
@@ -26,37 +25,35 @@ enum Fact derives Finite:
 // ### The product machine: what DescribeActivityExecution shows, with no account of how. A retry
 // reads as scheduled again, a pause of a running attempt as started until the worker yields.
 
-/** Every status the product machine records is confirmed by the status observation of its name. */
+// Every status the product machine records is confirmed by the status observation of its name.
 object ActivityProduct extends Machine[State, Outcome, Fact]:
   import Phase.*
 
   val init = product.State(scheduled)
   def end(s: State) = states.over(s)
 
-  /** The product's status sets and the constant its capabilities cite. */
+  // The product's status sets and the constant its capabilities cite.
   object states:
     def phase(s: State) = s.phase
 
     def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
 
-    /** A path ends where the activity is over: `end` reads this named predicate. */
+    // A path ends where the activity is over: `end` reads this named predicate.
     def over(s: State) = terminal(s.phase)
 
-    /** A paused activity, which no worker is given. */
+    // A paused activity, which no worker is given.
     def paused(s: State) = s.phase == Phase.paused
 
     def running(s: State) = s.phase == started
 
-    /** Where a worker holds the attempt, so its answer settles the activity. */
+    // Where a worker holds the attempt, so its answer settles the activity.
     def held(s: State) = s.phase.in(started, cancelRequested)
 
-    /** Where a pause takes effect: before an attempt starts or while one runs. */
+    // Where a pause takes effect: before an attempt starts or while one runs.
     def pausable(s: State) = s.phase.in(scheduled, started)
 
-    /**
-     * The server code that answers a control of an activity that is over NotFound
-     * (activity.go:106). Only the lifter reads a citation.
-     */
+    // The server code that answers a control of an activity that is over NotFound
+    // (activity.go:106). Only the lifter reads a citation.
     val notFoundCode = "chasm/lib/activity/activity.go"
 
   object effects:
@@ -81,10 +78,10 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
 
     def terminate(s: State) = enter(s.copy(phase = terminated), statusTerminated)
 
-    /** One of the activity's deadlines firing. Which deadline is the System's account of how. */
+    // One of the activity's deadlines firing. Which deadline is the System's account of how.
     def timeOut(s: State) = enter(s.copy(phase = timedOut), statusTimedOut)
 
-    /** A control on an activity that is over is not found. */
+    // A control on an activity that is over is not found.
     def notFound(s: State) = reject(Outcome.notFound, s)
 
   object rules extends Rules(_.phase):

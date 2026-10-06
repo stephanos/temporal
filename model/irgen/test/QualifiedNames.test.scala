@@ -7,17 +7,15 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import umpire.check.{Ran, Tools}
 
-/**
- * A symbol-based Definition ID, a type's IR name and a machine's family are where the declaration
- * is declared (fn-126 decision 23): its fully qualified Scala name, the package and every object it
- * sits in, and for a family the package alone. No declaration names its own.
- *
- * The lifted fixtures that declare every symbol-based kind (actions, monitors, assumptions and holes;
- * channels and the actions they derive; realizations) are moved three ways and lifted again: into
- * another file of their package, which changes none of these names; under an object, which adds the
- * object to the name of what moved; and into a subpackage, which adds the package to every one of
- * them. The functions they declare carry the new owner, so the move took.
- */
+// A symbol-based Definition ID, a type's IR name and a machine's family are where the declaration
+// is declared (fn-126 decision 23): its fully qualified Scala name, the package and every object it
+// sits in, and for a family the package alone. No declaration names its own.
+//
+// The lifted fixtures that declare every symbol-based kind (actions, monitors, assumptions and holes;
+// channels and the actions they derive; realizations) are moved three ways and lifted again: into
+// another file of their package, which changes none of these names; under an object, which adds the
+// object to the name of what moved; and into a subpackage, which adds the package to every one of
+// them. The functions they declare carry the new owner, so the move took.
 class QualifiedNames extends munit.FunSuite:
   override val munitTimeout: Duration = 20.minutes
 
@@ -56,12 +54,10 @@ class QualifiedNames extends munit.FunSuite:
   )
   private val kinds = Seq("actions", "monitors", "assumptions", "holes", "channels", "realizations")
 
-  /**
-   * Wraps a file's declarations, after its package clause and imports, in `object Moved`. A machine
-   * or composition object stays at the top level, where its sections must sit (the declaration-order
-   * lint), and so do the objects of the entities it reads while it initializes, which the header
-   * imports; the rest is imported back for it.
-   */
+  // Wraps a file's declarations, after its package clause and imports, in `object Moved`. A machine
+  // or composition object stays at the top level, where its sections must sit (the declaration-order
+  // lint), and so do the objects of the entities it reads while it initializes, which the header
+  // imports; the rest is imported back for it.
   private def underObject(source: String): String =
     val lines = source.linesIterator.toVector
     // The last line of the header: a package clause, an import, or a line of a multi-line import.
@@ -93,7 +89,7 @@ class QualifiedNames extends munit.FunSuite:
       moved.flatten.map(line => if line.isBlank then line else "  " + line) ++ Vector("") ++
       top.flatten).mkString("", "\n", "\n")
 
-  /** Moves a file's declarations into the subpackage `moved`, which still sees its parent's members. */
+  // Moves a file's declarations into the subpackage `moved`, which still sees its parent's members.
   private def underPackage(source: String, pkg: String): String =
     source.replaceFirst(
       s"(?m)^package ${java.util.regex.Pattern.quote(pkg)}$$",
@@ -117,10 +113,8 @@ class QualifiedNames extends munit.FunSuite:
       )
       .toMap
 
-  /**
-   * Lifts every probed fixture moved by `move`, written to the file `file` names, with the roots of
-   * each in the package and owner `ownerOf` names; gives each fixture's name, package and IR.
-   */
+  // Lifts every probed fixture moved by `move`, written to the file `file` names, with the roots of
+  // each in the package and owner `ownerOf` names; gives each fixture's name, package and IR.
   private def moved(
       name: String,
       move: (String, String) => String,

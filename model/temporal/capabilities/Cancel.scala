@@ -1,13 +1,11 @@
-/* Cancel: a cancel is a request, recorded on the entity while its work is in flight. */
+// Cancel: a cancel is a request, recorded on the entity while its work is in flight.
 package temporal.capabilities
 
 import umpire.*
 
-/**
- * A cancel request is recorded in its own step: that step records `requested`. A functional law,
- * asked by a find from a live state the capability's `reach` gets to, for the reason
- * `terminateSettles` gives.
- */
+// A cancel request is recorded in its own step: that step records `requested`. A functional law,
+// asked by a find from a live state the capability's `reach` gets to, for the reason
+// `terminateSettles` gives.
 object cancelIsRequested
     extends Law(
       cites = Seq(

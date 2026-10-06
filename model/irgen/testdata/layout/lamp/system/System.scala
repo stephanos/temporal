@@ -1,8 +1,7 @@
-/* The lamp's System: how the server gets there (fn-126 R20). The level's own file, named after its
- * folder, holds the feature's System machine, `<Feature>System`, whose `object refinement` refines
- * the Product. Zoom-ins on how it keeps its promise sit beside it, one file per subject, as
- * Bulb.scala does.
- */
+// The lamp's System: how the server gets there (fn-126 R20). The level's own file, named after its
+// folder, holds the feature's System machine, `<Feature>System`, whose `object refinement` refines
+// the Product. Zoom-ins on how it keeps its promise sit beside it, one file per subject, as
+// Bulb.scala does.
 package fixture.features.lamp
 package system
 
@@ -17,7 +16,7 @@ final case class State(phase: Phase) derives Finite
 enum Fact derives Finite:
   case circuitClosed, circuitOpened
 
-/** The lamp as the circuit runs it: the switch closes and opens the circuit. */
+// The lamp as the circuit runs it: the switch closes and opens the circuit.
 object LampSystem extends Machine[system.State, Outcome, Fact]:
   val init = system.State(phase = Phase.open)
   def end(s: State) = true

@@ -13,7 +13,7 @@ enum Phase derives Finite:
 enum Active derives Finite:
   case none, one, two
 
-/** The job's state, named apart from the machine object `Job`. */
+// The job's state, named apart from the machine object `Job`.
 final case class JobState(phase: Phase, active: Active) derives Finite
 
 enum Outcome derives Finite:
@@ -46,7 +46,7 @@ object Job extends Machine[JobState, Outcome, Fact]:
 
   object rules extends Bindings(start ~> startStep, pause ~> pauseStep, finish ~> finishStep)
 
-/** The lamp's state, named apart from the machine object `Lamp`. */
+// The lamp's state, named apart from the machine object `Lamp`.
 final case class LampState(lit: Boolean) derives Finite
 
 enum LampFact derives Finite:
@@ -63,10 +63,8 @@ object Lamp extends Machine[LampState, Outcome, LampFact]:
 
   object rules extends Bindings(flip ~> flipStep)
 
-/**
- * The job beside a lamp: a composition whose claims read the job through its member field, its state
- * named apart from the composition object `Pair`.
- */
+// The job beside a lamp: a composition whose claims read the job through its member field, its state
+// named apart from the composition object `Pair`.
 final case class PairState(job: JobState, lamp: LampState) derives Finite
 
 type PairStep = Step[PairState, String, String]

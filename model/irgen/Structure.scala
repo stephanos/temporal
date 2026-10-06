@@ -4,55 +4,53 @@ import java.nio.file.{Files, Path}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
-/**
- * The structure lint (fn-126 R20), a sibling pass of the declaration-order lint (Order.scala), which
- * runs it over the same sources and reports its refusals with its own. It holds a feature's folders
- * and its machine objects' sections to the layout model/irgen/testdata/layout/lamp shows, the
- * template a new feature copies. A feature is a package under `features` or `shared` and its
- * subpackages, `temporal.features.activity.standalone.*`; its root folder holds the files of the
- * package itself. It refuses, each at its line:
- *
- *   - (a) in a feature whose Models include a refinement pair, a machine that refines another of
- *     the feature's: no `product/Product.scala`, no `system/System.scala` or no root feature file
- *     (the source named after the root folder), each at the refinement; a machine, `Derived` or
- *     `Composition` object in the root folder, whose feature file holds shared types, the signature
- *     and `object exports` alone; and one in any folder but `product/` and `system/`, deeper ones
- *     included. A level folder holds one file per subject beside the level's own, which is named
- *     after the folder. In a feature with no refinement pair, each file of any subfolder, at its
- *     first declaration: a single-level feature keeps its Models in its feature file and has
- *     neither level folder nor any other. And, in every feature, a source whose package does not
- *     mirror its folder (`package features.lamp; package system` in `lamp/system/`), at its first
- *     declaration: this lint reads a source's package, the order lint its path, and the two must
- *     agree.
- *   - (c) in a machine or composition object, a nested object whose name is none of the sections',
- *     `states`, `refinement`, `effects`, `monitors`, `rules`, `syncs`, `properties`, `implements`
- *     and `queries`: the name is what makes it a section. The signature's actor objects and the
- *     objects that group its actions, at the top level of a file, are named freely. And an
- *     `object exports` anywhere but the root feature file; under `features`, a root feature file
- *     without one (under `shared`, a feature has at most one).
- *   - (b) is fn-126.8's, after the R18 renames: `product/Product.scala` declares `<P>Product`,
- *     which refines nothing, and `system/System.scala` one `<P>System` whose `object refinement`
- *     refines it. Each level owns its `Phase`, `State` and `Fact` types; the root feature file may
- *     keep only types shared by both levels. It goes in `feature`, beside (a), where the levels'
- *     files are found.
- *
- * A kind under `features` adds only `workflow/` and `standalone/`, each validated as a feature.
- * A form directly under `features` is refused. Its kind's one general file, named after the kind,
- * holds no machine; its optional Product needs no
- * kind System or exports. A form may refine that Product, never one outside its kind. Empty
- * package-only general headers are checked at the configured source root because they emit no
- * TASTy. Kind admission does not change the flat `shared` layout.
- *
- * Every feature of the Temporal Models (model/temporal/) is held to these rules, whatever its
- * folders. The lifter's fixtures, single-file features of their own rules, are held only where they
- * have a `product/` or `system/` folder, as the template and the refusal fixtures do.
- */
+// The structure lint (fn-126 R20), a sibling pass of the declaration-order lint (Order.scala), which
+// runs it over the same sources and reports its refusals with its own. It holds a feature's folders
+// and its machine objects' sections to the layout model/irgen/testdata/layout/lamp shows, the
+// template a new feature copies. A feature is a package under `features` or `shared` and its
+// subpackages, `temporal.features.activity.standalone.*`; its root folder holds the files of the
+// package itself. It refuses, each at its line:
+//
+//   - (a) in a feature whose Models include a refinement pair, a machine that refines another of
+//     the feature's: no `product/Product.scala`, no `system/System.scala` or no root feature file
+//     (the source named after the root folder), each at the refinement; a machine, `Derived` or
+//     `Composition` object in the root folder, whose feature file holds shared types, the signature
+//     and `object exports` alone; and one in any folder but `product/` and `system/`, deeper ones
+//     included. A level folder holds one file per subject beside the level's own, which is named
+//     after the folder. In a feature with no refinement pair, each file of any subfolder, at its
+//     first declaration: a single-level feature keeps its Models in its feature file and has
+//     neither level folder nor any other. And, in every feature, a source whose package does not
+//     mirror its folder (`package features.lamp; package system` in `lamp/system/`), at its first
+//     declaration: this lint reads a source's package, the order lint its path, and the two must
+//     agree.
+//   - (c) in a machine or composition object, a nested object whose name is none of the sections',
+//     `states`, `refinement`, `effects`, `monitors`, `rules`, `syncs`, `properties`, `implements`
+//     and `queries`: the name is what makes it a section. The signature's actor objects and the
+//     objects that group its actions, at the top level of a file, are named freely. And an
+//     `object exports` anywhere but the root feature file; under `features`, a root feature file
+//     without one (under `shared`, a feature has at most one).
+//   - (b) is fn-126.8's, after the R18 renames: `product/Product.scala` declares `<P>Product`,
+//     which refines nothing, and `system/System.scala` one `<P>System` whose `object refinement`
+//     refines it. Each level owns its `Phase`, `State` and `Fact` types; the root feature file may
+//     keep only types shared by both levels. It goes in `feature`, beside (a), where the levels'
+//     files are found.
+//
+// A kind under `features` adds only `workflow/` and `standalone/`, each validated as a feature.
+// A form directly under `features` is refused. Its kind's one general file, named after the kind,
+// holds no machine; its optional Product needs no
+// kind System or exports. A form may refine that Product, never one outside its kind. Empty
+// package-only general headers are checked at the configured source root because they emit no
+// TASTy. Kind admission does not change the flat `shared` layout.
+//
+// Every feature of the Temporal Models (model/temporal/) is held to these rules, whatever its
+// folders. The lifter's fixtures, single-file features of their own rules, are held only where they
+// have a `product/` or `system/` folder, as the template and the refusal fixtures do.
 final private[irgen] class Structure(index: Index):
   import index.quotes.reflect.*
 
   private val refused = mutable.ArrayBuffer.empty[(String, Int, LiftError)]
 
-  /** Every refusal over the sources the order lint checks, all but `exempt`'s, at its file and line. */
+  // Every refusal over the sources the order lint checks, all but `exempt`'s, at its file and line.
   def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1).flatMap(source)
@@ -87,11 +85,9 @@ final private[irgen] class Structure(index: Index):
 
   // ### A feature's sources
 
-  /**
-   * A source of a feature: its path, the feature's package (`temporal.features.activity.standalone`),
-   * the subpackage it sits in under it (`system`, or none in the root folder) and its declarations
-   * at the top level, in order.
-   */
+  // A source of a feature: its path, the feature's package (`temporal.features.activity.standalone`),
+  // the subpackage it sits in under it (`system`, or none in the root folder) and its declarations
+  // at the top level, in order.
   private case class Source(
       path: String,
       feature: String,
@@ -105,7 +101,7 @@ final private[irgen] class Structure(index: Index):
     }
     def level: Boolean = sub.sizeIs == 1 && Structure.levels(sub.head)
 
-    /** Whether its folders end with the feature's and its subpackage's, as its package names them. */
+    // Whether its folders end with the feature's and its subpackage's, as its package names them.
     def mirrors: Boolean =
       folder.split('/').filter(_.nonEmpty).toList.takeRight(sub.size + 1) ==
         feature.split('.').last :: sub
@@ -133,7 +129,7 @@ final private[irgen] class Structure(index: Index):
       .find(o => o.isNoSymbol || o.isPackageDef)
       .filter(_.isPackageDef)
 
-  /** The declarations at the top level of a source: its objects, types and the file's own members. */
+  // The declarations at the top level of a source: its objects, types and the file's own members.
   private def topLevel(trees: List[Tree]): List[Definition] =
     def written(d: Definition) =
       !d.symbol.flags.is(Flags.Synthetic) && !d.symbol.isClassConstructor
@@ -148,7 +144,7 @@ final private[irgen] class Structure(index: Index):
       case _                                            => Nil
     trees.flatMap(in).sortBy(d => scala.util.Try(d.pos.start).getOrElse(0))
 
-  /** Whether a feature is held to the rules: it is a Temporal Model's, or has a level folder. */
+  // Whether a feature is held to the rules: it is a Temporal Model's, or has a level folder.
   private def held(feature: Seq[Source]): Boolean =
     feature.exists(s => s.level || s.path.startsWith("model/temporal/"))
 
@@ -231,18 +227,18 @@ final private[irgen] class Structure(index: Index):
   private val compositionClass = Symbol.requiredClass("umpire.Composition")
   private val refinementClass = Symbol.requiredClass("umpire.Refinement")
 
-  /** Whether an object is a machine, `Derived` or `Composition` object. */
+  // Whether an object is a machine, `Derived` or `Composition` object.
   private def form(c: Symbol): Boolean =
     c.exists && c.isClassDef && c.flags.is(Flags.Module) &&
       (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(compositionClass))
 
-  /** The state, outcome and fact arguments a machine supplies to `Machine`. */
+  // The state, outcome and fact arguments a machine supplies to `Machine`.
   private def machineArguments(c: ClassDef): List[TypeRepr] =
     c.symbol.typeRef.baseType(machineClass).typeArgs
 
   private def plain(name: String) = name.stripSuffix("$")
 
-  /** The objects written in an object's body, each a section or refused as none. */
+  // The objects written in an object's body, each a section or refused as none.
   private def nested(c: ClassDef): List[ClassDef] = c.body.collect {
     case o: ClassDef
         if o.symbol.flags.is(Flags.Module) && !o.symbol.flags.is(Flags.Synthetic) &&
@@ -250,10 +246,8 @@ final private[irgen] class Structure(index: Index):
       o
   }
 
-  /**
-   * The machine object a machine's `object refinement extends Refinement(product)` refines, with
-   * the refinement, where it names one.
-   */
+  // The machine object a machine's `object refinement extends Refinement(product)` refines, with
+  // the refinement, where it names one.
   private def refines(c: ClassDef): Option[(ClassDef, Symbol)] =
     // The refinement's own machine is named too, as the owner of its types; the other is refined.
     nested(c)
@@ -577,14 +571,12 @@ final private[irgen] class Structure(index: Index):
 object Structure:
   val formFolders = Set("workflow", "standalone")
 
-  /** A feature's level folders, by audience (fn-126 decision 16). */
+  // A feature's level folders, by audience (fn-126 decision 16).
   val levels = Set("product", "system")
 
-  /**
-   * The sections of a machine or composition object, in R2's order: its vocabulary, its refinement,
-   * then its declarations by kind; a composition's `syncs` takes the place of `rules`. The order
-   * lint ranks them by this list.
-   */
+  // The sections of a machine or composition object, in R2's order: its vocabulary, its refinement,
+  // then its declarations by kind; a composition's `syncs` takes the place of `rules`. The order
+  // lint ranks them by this list.
   val formSections = Seq(
     "states",
     "refinement",
@@ -596,14 +588,12 @@ object Structure:
     "queries"
   )
 
-  /** Every section name a machine or composition object may hold (R20 (c)): `syncs` with `rules`. */
+  // Every section name a machine or composition object may hold (R20 (c)): `syncs` with `rules`.
   val sections: Seq[String] =
     formSections.flatMap(n => if n == "rules" then Seq(n, "syncs") else Seq(n))
 
-  /**
-   * Whether a source sits in a level folder, `product/` or `system/`, so the order lint reads it
-   * as a feature file of its own, its level's file or a subject's (fn-126 decision 22).
-   */
+  // Whether a source sits in a level folder, `product/` or `system/`, so the order lint reads it
+  // as a feature file of its own, its level's file or a subject's (fn-126 decision 22).
   def levelFile(path: String): Boolean =
     val parts = path.split('/')
     parts.length >= 3 && levels(parts(parts.length - 2))

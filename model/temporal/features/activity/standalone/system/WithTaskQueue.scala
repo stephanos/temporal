@@ -1,18 +1,17 @@
-/* The admission designs composed with the task queue (temporal/shared/taskqueue), over its opaque
- * contract and over the matching, violating and storage-loss providers that replace it. The queue
- * and its providers are the queue's; this file adds how the activity's dispatch, admission and
- * answer synchronize with it, and what the activity promises across both: the record's
- * capabilities, read through the `activity` member's projection, as the laws of
- * model/temporal/capabilities read them.
- *
- * Read top to bottom: the composed states and the claims they are held to; then the members,
- * RecordMember and TrustingRecordMember, derived from the admission designs; then one object per
- * composition, each before the compositions derived from it -- RecordOverQueue and TrustingRecordOverQueue
- * over the opaque queue, RecordOverMatching and TrustingRecordOverMatching over the detailed one, and the
- * corrected design over each violating provider, RecordOverForgetful, RecordOverVolatile and
- * RecordOverLossyMatching. A composition reads end, then its sections in order: states, syncs,
- * properties, implements and queries.
- */
+// The admission designs composed with the task queue (temporal/shared/taskqueue), over its opaque
+// contract and over the matching, violating and storage-loss providers that replace it. The queue
+// and its providers are the queue's; this file adds how the activity's dispatch, admission and
+// answer synchronize with it, and what the activity promises across both: the record's
+// capabilities, read through the `activity` member's projection, as the laws of
+// model/temporal/capabilities read them.
+//
+// Read top to bottom: the composed states and the claims they are held to; then the members,
+// RecordMember and TrustingRecordMember, derived from the admission designs; then one object per
+// composition, each before the compositions derived from it -- RecordOverQueue and TrustingRecordOverQueue
+// over the opaque queue, RecordOverMatching and TrustingRecordOverMatching over the detailed one, and the
+// corrected design over each violating provider, RecordOverForgetful, RecordOverVolatile and
+// RecordOverLossyMatching. A composition reads end, then its sections in order: states, syncs,
+// properties, implements and queries.
 package temporal
 package features.activity.standalone
 package system
@@ -30,11 +29,9 @@ final case class OverQueue(activity: AdmissionState, queue: QueueView)
 
 final case class OverMatching(activity: AdmissionState, queue: QueueDetail)
 
-/**
- * The claims a design over the opaque queue is held to: the laws its capabilities bring, the
- * record's own count of active attempts over its member, and that a failed commit admits nothing and
- * leaves its message queued. `notPaused` is the generated `<design>.pausedIsNotDispatched`.
- */
+// The claims a design over the opaque queue is held to: the laws its capabilities bring, the
+// record's own count of active attempts over its member, and that a failed commit admits nothing and
+// leaves its message queued. `notPaused` is the generated `<design>.pausedIsNotDispatched`.
 final case class OverQueueClaims(
     notPaused: Property[OverQueue],
     oneActive: Property[OverQueue],
@@ -61,19 +58,15 @@ object RecordOverQueue
     extends Composition[OverQueue](_.activity -> RecordMember, _.queue -> TaskQueueProduct):
   def end(s: State) = ActivityRecord.end(s.activity)
 
-  /** What the designs over a queue answer and waive. */
+  // What the designs over a queue answer and waive.
   object states:
-    /**
-     * The composed outcome of the record's answer to a control of a closed activity: Closable's
-     * `rejected`, which only closedIsRejectedUniformly reads, and the designs over a queue waive it.
-     */
+    // The composed outcome of the record's answer to a control of a closed activity: Closable's
+    // `rejected`, which only closedIsRejectedUniformly reads, and the designs over a queue waive it.
     val closedAnswer = "activity_notFound"
 
-    /**
-     * Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
-     * steps after the record closes, so a composed step moves the state; the record's own
-     * declaration (Record.scala) holds the record to the law.
-     */
+    // Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
+    // steps after the record closes, so a composed step moves the state; the record's own
+    // declaration (Record.scala) holds the record to the law.
     val queueStepsOn =
       "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
 
@@ -99,10 +92,8 @@ object RecordOverQueue
       )
 
   object implements:
-    /**
-     * A design over the opaque queue as the laws read it: the record's capabilities, read through
-     * the `activity` member's projection. Its free Queries run within `five`.
-     */
+    // A design over the opaque queue as the laws read it: the record's capabilities, read through
+    // the `activity` member's projection. Its free Queries run within `five`.
     def overQueueCapabilities(c: Composition[State]) = capabilities(c, limits = five)(
       Closable(
         status = through(_.activity, ActivityRecord.states.phase),
@@ -121,7 +112,7 @@ object RecordOverQueue
     ).except(closedIsRejectedUniformly, because = states.queueStepsOn)
 
   object queries:
-    /** Over the opaque queue: every claim and path of the design `c`. */
+    // Over the opaque queue: every claim and path of the design `c`.
     def overQueueQueries(c: Composition[State]) =
       val claims = properties.overQueueClaims(c)
       val staleDeliveryAfterPause = c.scenario.actions(
@@ -187,10 +178,8 @@ object RecordOverMatching
       )
 
   object implements:
-    /**
-     * A design over the detailed queue as the laws read it, through the `activity` member's
-     * projection. Its free Queries run within `twelve`, the detailed provider's depth.
-     */
+    // A design over the detailed queue as the laws read it, through the `activity` member's
+    // projection. Its free Queries run within `twelve`, the detailed provider's depth.
     def overMatchingCapabilities(c: Composition[State]) = capabilities(c, limits = twelve)(
       Closable(
         status = through(_.activity, ActivityRecord.states.phase),
@@ -209,7 +198,7 @@ object RecordOverMatching
     ).except(closedIsRejectedUniformly, because = RecordOverQueue.states.queueStepsOn)
 
   object queries:
-    /** Over the detailed queue: every claim and path of the design `c`. */
+    // Over the detailed queue: every claim and path of the design `c`.
     def overMatchingQueries(c: Composition[State]) =
       val claims = properties.overMatchingClaims(c)
       val staleDeliveryAfterPause = c.scenario.actions(
@@ -279,7 +268,7 @@ object RecordOverVolatile
     extends Composition(RecordOverMatching.withMember(_.queue -> VolatileQueue)),
       NegativeControl
 
-/** The corrected design where storage loss is assumed, over the interface that allows it. */
+// The corrected design where storage loss is assumed, over the interface that allows it.
 object RecordOverLossyMatching
     extends Composition(RecordOverMatching.withMember(_.queue -> LossyMatchingQueue)),
       FailureModel:

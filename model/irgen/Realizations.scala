@@ -21,33 +21,29 @@ private[irgen] trait Realizations:
 
   // ### Realizations: declarations written as data, emitted by name
 
-  /**
-   * The packages of the realization vocabulary: the framework's, which knows no system, and the
-   * Temporal kit's, which extends its open traits with what only Temporal has. The lifter and the
-   * Testpilot IR it writes are Temporal's driver tooling, so the kit's names are matched here by
-   * their fully qualified names (.plans/UMPIRE_MODULES.md).
-   */
+  // The packages of the realization vocabulary: the framework's, which knows no system, and the
+  // Temporal kit's, which extends its open traits with what only Temporal has. The lifter and the
+  // Testpilot IR it writes are Temporal's driver tooling, so the kit's names are matched here by
+  // their fully qualified names (.plans/UMPIRE_MODULES.md).
   private val vocabularyPackages = Seq("umpire.realize.", "temporal.realize.")
 
   private def inVocabulary(sym: Symbol): Boolean =
     vocabularyPackages.exists(sym.fullName.startsWith)
 
-  /**
-   * A member of a class or an object of the vocabulary, such as a case class's `apply` or the kit's
-   * `WorkflowHistory.event`: written by name, never followed into its body. The kit's top-level
-   * helpers, such as `perCase`, are followed like a Model's own defs.
-   */
+  // A member of a class or an object of the vocabulary, such as a case class's `apply` or the kit's
+  // `WorkflowHistory.event`: written by name, never followed into its body. The kit's top-level
+  // helpers, such as `perCase`, are followed like a Model's own defs.
   private def vocabularyMember(sym: Symbol): Boolean =
     inVocabulary(sym) && !sym.maybeOwner.fullName.endsWith("$package$")
 
-  /** A case object of the vocabulary, such as `Activation.Controller`, written as an enum case is. */
+  // A case object of the vocabulary, such as `Activation.Controller`, written as an enum case is.
   private def caseObject(sym: Symbol): Boolean =
     sym.flags.is(Flags.Module) && sym.flags.is(Flags.Case) && inVocabulary(sym)
 
-  /** A term, and what the helper function parameters and local vals it names are bound to. */
+  // A term, and what the helper function parameters and local vals it names are bound to.
   final class Bound(val term: Term, val env: Map[Symbol, Bound])
 
-  /** An IR message being written: its fields by descriptor, as its companion's reader takes them. */
+  // An IR message being written: its fields by descriptor, as its companion's reader takes them.
   final class Message(val descriptor: Descriptor):
     private val values = mutable.Map.empty[FieldDescriptor, PValue]
     // Setting a member of a oneof clears the others.
@@ -60,31 +56,29 @@ private[irgen] trait Realizations:
       case _                      => PRepeated(Vector(v))
     def written: PMessage = PMessage(values.toMap)
 
-  /** The IR message of a companion that a declaration writes. */
+  // The IR message of a companion that a declaration writes.
   def emit[A <: GeneratedMessage](companion: GeneratedMessageCompanion[A], b: Bound): A =
     val m = Message(companion.scalaDescriptor)
     declaration(b, m)
     companion.messageReads.read(m.written)
 
-  /** A value the IR names rather than writes out: a machine, a channel, an action or a class. */
+  // A value the IR names rather than writes out: a machine, a channel, an action or a class.
   def namedByIR(tpe: TypeRepr): Boolean =
     isMachine(tpe) || Set("umpire.Machine", "umpire.Channel", "umpire.Action", "umpire.Class")(
       tpe.widen.dealias.typeSymbol.fullName
     )
 
-  /** A call's function and its arguments, through every argument list. */
+  // A call's function and its arguments, through every argument list.
   def applied(t: Term): Option[(Term, List[Term])] = t match
     case Apply(fn, args) =>
       applied(fn).map((f, as) => (f, as ++ args)).orElse(Some(fn -> args))
     case TypeApply(fn, _) => applied(fn).orElse(Some(fn -> Nil))
     case _                => None
 
-  /**
-   * What a term is once the names it goes through are followed: a helper function of the lifted
-   * sources by its body with its parameters bound, a val by its definition. A declaration followed
-   * reads `umpire.realize.family` as its own package, and a kit's function, of `temporal.realize`,
-   * as the package of the declaration that called it.
-   */
+  // What a term is once the names it goes through are followed: a helper function of the lifted
+  // sources by its body with its parameters bound, a val by its definition. A declaration followed
+  // reads `umpire.realize.family` as its own package, and a kit's function, of `temporal.realize`,
+  // as the package of the declaration that called it.
   def reduce(b: Bound): Bound = b.term match
     case Typed(e, _)                                => reduce(Bound(e, b.env))
     case Inlined(_, Nil, e)                         => reduce(Bound(e, b.env))
@@ -141,14 +135,12 @@ private[irgen] trait Realizations:
             case _ => b
         case _ => b
 
-  /** `umpire.realize.family`, which a realization reads as its own package. */
+  // `umpire.realize.family`, which a realization reads as its own package.
   private lazy val familySymbol: Symbol =
     Symbol.requiredModule("umpire.realize.Realize$package").moduleClass.declaredField("family")
 
-  /**
-   * The family a declaration followed reads: its own package, or for a kit's, the one of the
-   * declaration it is followed from, `from`.
-   */
+  // The family a declaration followed reads: its own package, or for a kit's, the one of the
+  // declaration it is followed from, `from`.
   def familyScope(sym: Symbol, from: Bound): Map[Symbol, Bound] =
     if inVocabulary(sym) then
       from.env.get(familySymbol).fold(Map.empty)(f => Map(familySymbol -> f))
@@ -239,7 +231,7 @@ private[irgen] trait Realizations:
       args.headOption.getOrElse(fail(t, "a typed field needs a selector"))
     selectorPath(root, selector, t, repeated)
 
-  /** The path a field selector of a message of type `root` names, as the IR writes it. */
+  // The path a field selector of a message of type `root` names, as the IR writes it.
   def selectorPath(root: TypeRepr, selector: Term, t: Term, repeated: Boolean = false): String =
     def lambda(term: Term): (Symbol, Term) = term match
       case Block(List(d: DefDef), _: Closure) =>
@@ -552,11 +544,9 @@ private[irgen] trait Realizations:
         )
       case _ => fail(t, s"unsupported typed condition: ${t.show}")
 
-  /**
-   * The declaration a reduced term writes: the name of the class or the case it constructs, and
-   * its arguments by parameter name. An argument its parameter's default supplies is left out, so
-   * the IR leaves that field unset.
-   */
+  // The declaration a reduced term writes: the name of the class or the case it constructs, and
+  // its arguments by parameter name. An argument its parameter's default supplies is left out, so
+  // the IR leaves that field unset.
   def written(b: Bound): (String, List[(String, Bound)]) =
     def vocabulary(sym: Symbol): Unit =
       if !inVocabulary(sym) then fail(b.term, s"not a realization declaration: ${b.term.show}")
@@ -703,12 +693,10 @@ private[irgen] trait Realizations:
             )
           case _ => fail(t, s"not a realization declaration: ${t.show}")
 
-  /**
-   * A string a declaration names: a constant; the IR's name of a machine, a channel or a monitor; the
-   * id of a declaration it refers to by value, a role, script, actuator, learned value, kind of
-   * evidence or command; the name of a fact; or a field of a declaration written out, such as a
-   * family's root.
-   */
+  // A string a declaration names: a constant; the IR's name of a machine, a channel or a monitor; the
+  // id of a declaration it refers to by value, a role, script, actuator, learned value, kind of
+  // evidence or command; the name of a fact; or a field of a declaration written out, such as a
+  // family's root.
   def textOfBound(b0: Bound): String =
     val f = follow(b0)
     f.term match
@@ -717,11 +705,9 @@ private[irgen] trait Realizations:
       case t if isNamed(t.tpe, "umpire.Monitor") => monitorName(t)
       case _                                     => reducedText(b0)
 
-  /**
-   * The name of a monitor written by value, `MonitorExpectation(terminalFinality, …)`: the one the
-   * declaration of its val gives it. A monitor no val declares, or that no lifted machine watches,
-   * names none a Query's expected Run can read; Claims refuses one its Query's machine does not watch.
-   */
+  // The name of a monitor written by value, `MonitorExpectation(terminalFinality, …)`: the one the
+  // declaration of its val gives it. A monitor no val declares, or that no lifted machine watches,
+  // names none a Query's expected Run can read; Claims refuses one its Query's machine does not watch.
   private def monitorName(t: Term): String =
     val sym = t match
       case r: Ref => Some(resolveSymbol(r)).filter(s => s.isValDef && defs.contains(s))
@@ -779,7 +765,7 @@ private[irgen] trait Realizations:
         textOfBound(Bound(l, b.env)) + textOfBound(Bound(r, b.env))
       case other => fail(other, s"expected a string, got ${other.show}")
 
-  /** The items of a sequence a declaration writes out. */
+  // The items of a sequence a declaration writes out.
   def itemsOf(b0: Bound): List[Bound] =
     val b = reduce(b0)
     b.term match
@@ -799,7 +785,7 @@ private[irgen] trait Realizations:
       case other =>
         fail(other, s"expected a sequence written out, got ${other.show}")
 
-  /** One value of a field: a message of the field's type, a class, or a constant. */
+  // One value of a field: a message of the field's type, a class, or a constant.
   def valueOf(f: FieldDescriptor, b0: Bound): PValue =
     f.scalaType match
       case ScalaType.Message(d) if d.name == "Command" => commandValue(b0, d)
@@ -871,7 +857,7 @@ private[irgen] trait Realizations:
           s"the IR field ${f.name} of kind ${kindName(other)} is not written out"
         )
 
-  /** Sets the field a parameter names. An optional argument that is `None` leaves it unset. */
+  // Sets the field a parameter names. An optional argument that is `None` leaves it unset.
   def fieldOf(into: Message, f: FieldDescriptor, b: Bound): Unit =
     if f.isRepeated then itemsOf(b).foreach(i => into.add(f, valueOf(f, i)))
     else
@@ -881,11 +867,9 @@ private[irgen] trait Realizations:
           into.set(f, valueOf(f, Bound(x, reduce(b).env)))
         case _ => into.set(f, valueOf(f, b))
 
-  /**
-   * Emits one declaration into the IR message of its kind. A constructor named after a member of
-   * one of the message's oneofs writes that member; any other writes the fields its parameters
-   * name, and a parameter named after a oneof takes the member its argument writes.
-   */
+  // Emits one declaration into the IR message of its kind. A constructor named after a member of
+  // one of the message's oneofs writes that member; any other writes the fields its parameters
+  // name, and a parameter named after a oneof takes the member its argument writes.
   def declaration(b0: Bound, into: Message): Unit =
     val b = reduce(b0)
     val d = into.descriptor
@@ -995,10 +979,10 @@ private[irgen] trait Realizations:
   private val hintMessages =
     Set(ir.Visibility.scalaDescriptor.fullName, ir.CauseBound.scalaDescriptor.fullName)
 
-  /** The kit's file whose top-level extensions declare a hint, `visibleTo` and `boundedBy`. */
+  // The kit's file whose top-level extensions declare a hint, `visibleTo` and `boundedBy`.
   private val hintHelpers = "temporal.realize.Realize$package$"
 
-  /** A declaration a val names, as the val declares it: the call itself, not a helper's body. */
+  // A declaration a val names, as the val declares it: the call itself, not a helper's body.
   private def declared(b0: Bound): Bound =
     val b = follow(b0)
     b.term match
@@ -1008,17 +992,15 @@ private[irgen] trait Realizations:
           case _                       => b
       case _ => b
 
-  /** "/package.Service/PauseActivityExecution" as a hint's id names it: pauseActivityExecution. */
+  // "/package.Service/PauseActivityExecution" as a hint's id names it: pauseActivityExecution.
   private def idPart(method: String): String =
     val bare = method.substring(method.lastIndexOf('/') + 1)
     bare.head.toLower +: bare.tail
 
-  /**
-   * A hint, `write.visibleTo(read, when)` or `cause.boundedBy(bound)`, at the line it is called on,
-   * with the id it is named by: `visibility.<write>.<read>` or `cause.<kind>`, where a method is
-   * named by its name and a cause by its kind. A method the descriptors do not have, or whose request
-   * or response is not the one they name, is refused here, at its line.
-   */
+  // A hint, `write.visibleTo(read, when)` or `cause.boundedBy(bound)`, at the line it is called on,
+  // with the id it is named by: `visibility.<write>.<read>` or `cause.<kind>`, where a method is
+  // named by its name and a cause by its kind. A method the descriptors do not have, or whose request
+  // or response is not the one they name, is refused here, at its line.
   private def hintValue(b0: Bound, d: Descriptor): PMessage =
     val call = declared(b0)
     val t = call.term
@@ -1073,7 +1055,7 @@ private[irgen] trait Realizations:
       case (_, other) => fail(t, s"a ${d.name} hint is declared `$expected`, not with $other")
     m.written
 
-  /** A realization, named after its val unless it names itself. */
+  // A realization, named after its val unless it names itself.
   def realizationOf(sym: Symbol, at: Tree): ir.Realization =
     val id = definitionId(sym, at)
     realizations.get(id) match
@@ -1098,19 +1080,19 @@ private[irgen] trait Realizations:
 
   private val scriptHelpers = "umpire.realize.Scripts$package$"
 
-  /** The script helper a term applies, by name, with its argument lists in order. */
+  // The script helper a term applies, by name, with its argument lists in order.
   def scriptCall(t: Term): Option[(String, List[Term])] = applied(t).collect {
     case (fn, args) if fn.symbol.maybeOwner.fullName == scriptHelpers => fn.symbol.name -> args
   }
 
-  /** `key -> value`: a class a `perform` binds and its command, or a fact and what it reads as. */
+  // `key -> value`: a class a `perform` binds and its command, or a fact and what it reads as.
   private def performed(t: Term): Option[(Term, Term)] = t match
     case Apply(TypeApply(arrow @ Select(Apply(_, List(step)), "->"), _), List(command))
         if arrow.symbol.owner.name == "ArrowAssoc" =>
       Some(step -> command)
     case _ => None
 
-  /** The record a script helper writes, by the IR name of its message and its fields. */
+  // The record a script helper writes, by the IR name of its message and its fields.
   private def scriptWritten(b: Bound): (String, List[(String, Bound)]) =
     def bound(t: Term) = Bound(t, b.env)
     def atLeastOne(items: Term, helper: String, what: String): Bound =
@@ -1139,7 +1121,7 @@ private[irgen] trait Realizations:
         fail(b.term, s"$other is no script declaration: write it where a script step is")
       case _ => fail(b.term, s"not a script declaration: ${b.term.show}")
 
-  /** A term once its wrappers and the helper parameters it names are followed, but not its vals. */
+  // A term once its wrappers and the helper parameters it names are followed, but not its vals.
   def follow(b: Bound): Bound = b.term match
     case Typed(e, _)                        => follow(Bound(e, b.env))
     case Inlined(_, Nil, e)                 => follow(Bound(e, b.env))
@@ -1150,14 +1132,12 @@ private[irgen] trait Realizations:
   private def declares(tpe: TypeRepr, cls: String): Boolean =
     tpe.widen.dealias.baseClasses.exists(_.fullName == cls)
 
-  /** A command, or an instruction, which stands for the command with no options. */
+  // A command, or an instruction, which stands for the command with no options.
   private def commandLike(tpe: TypeRepr): Boolean =
     declares(tpe, "umpire.realize.Command") || declares(tpe, "umpire.realize.Instruction")
 
-  /**
-   * The declarations other declarations refer to by value, each by its `id`: a role, whichever kit
-   * declares it, a script, an actuator or a learned value.
-   */
+  // The declarations other declarations refer to by value, each by its `id`: a role, whichever kit
+  // declares it, a script, an actuator or a learned value.
   private val identified =
     Set(
       "umpire.realize.Addressee",
@@ -1166,13 +1146,13 @@ private[irgen] trait Realizations:
       "umpire.realize.Learned"
     )
 
-  /** The id of a declaration written out: the argument of its `id` parameter. */
+  // The id of a declaration written out: the argument of its `id` parameter.
   private def idOf(b: Bound): String =
     fieldOfDeclaration(b, "id")
       .map(textOfBound)
       .getOrElse(fail(b.term, s"${b.term.show} names no id"))
 
-  /** The argument a declaration written out gives its parameter `name`, if it has one. */
+  // The argument a declaration written out gives its parameter `name`, if it has one.
   private def fieldOfDeclaration(b0: Bound, name: String): Option[Bound] =
     val b = reduce(b0)
     scriptCall(b.term) match
@@ -1184,10 +1164,8 @@ private[irgen] trait Realizations:
           params.zip(args).collectFirst { case (`name`, a) => Bound(a, b.env) }
         }
 
-  /**
-   * A fact a Model names by value: a case of an enum of the Models, or the companion of one with
-   * fields, which names every value of it.
-   */
+  // A fact a Model names by value: a case of an enum of the Models, or the companion of one with
+  // fields, which names every value of it.
   private def factCase(sym: Symbol): Boolean =
     def ours(s: Symbol) =
       !s.fullName.startsWith("umpire.") && !s.fullName.startsWith("scala.") && !inVocabulary(s)
@@ -1198,11 +1176,9 @@ private[irgen] trait Realizations:
   // is written.
   private val factsNamed = mutable.ArrayBuffer.empty[Ref]
 
-  /**
-   * Refuses evidence that records a fact named by value that is no case of the facts its machine
-   * records: it would confirm a fact no step of the machine records. A status table's keys are
-   * lookups, not facts the evidence records.
-   */
+  // Refuses evidence that records a fact named by value that is no case of the facts its machine
+  // records: it would confirm a fact no step of the machine records. A status table's keys are
+  // lookups, not facts the evidence records.
   private def ownFacts(r: ir.Realization): Unit =
     for m <- machineNamed(r.machine); f <- factsNamed do
       val e = enumOf(f.symbol)
@@ -1214,7 +1190,7 @@ private[irgen] trait Realizations:
             "names the facts its machine records"
         )
 
-  /** The value a status table gives a fact, which it must list once. */
+  // The value a status table gives a fact, which it must list once.
   private def looked(table: Bound, fact: Bound, at: Term): Bound =
     val name = textOfBound(fact)
     val t = reduce(table)
@@ -1238,14 +1214,12 @@ private[irgen] trait Realizations:
   private def kebab(name: String): String =
     name.flatMap(c => if c.isUpper then s"-${c.toLower}" else c.toString)
 
-  /** Whether a command is written out with its id, `Command(id, …)`, rather than named by its val. */
+  // Whether a command is written out with its id, `Command(id, …)`, rather than named by its val.
   private def spelledOut(b: Bound): Boolean =
     isNamed(b.term.tpe, "umpire.realize.Command") && scriptCall(b.term).isEmpty
 
-  /**
-   * The id of a command: the one it is written out with, or the name of the `val` that declares it
-   * in kebab case. A call with fields `withFields` adds keeps the name of the call it extends.
-   */
+  // The id of a command: the one it is written out with, or the name of the `val` that declares it
+  // in kebab case. A call with fields `withFields` adds keeps the name of the call it extends.
   def commandName(b0: Bound): String =
     val b = follow(b0)
     val r0 = reduce(b)
@@ -1268,11 +1242,9 @@ private[irgen] trait Realizations:
                   "refer to it by value"
               )
 
-  /**
-   * A command: one written out, `Command(id, instruction, …)`, under its id; otherwise an instruction
-   * or `command(instruction, …)`, named after its val. Either way an instruction written in the
-   * scope of a call, `rpc`, `readUntil` or `withFields`, is read as the call it is.
-   */
+  // A command: one written out, `Command(id, instruction, …)`, under its id; otherwise an instruction
+  // or `command(instruction, …)`, named after its val. Either way an instruction written in the
+  // scope of a call, `rpc`, `readUntil` or `withFields`, is read as the call it is.
   private def commandValue(b0: Bound, d: Descriptor): PMessage =
     val b = reduce(b0)
     val m = Message(d)
@@ -1305,7 +1277,7 @@ private[irgen] trait Realizations:
     m.set(irField(d, "position", b.term), pos(b.term).toPMessage)
     m.written
 
-  /** A call written with `rpc(role, method) { … }`, and the fields `withFields` adds to it. */
+  // A call written with `rpc(role, method) { … }`, and the fields `withFields` adds to it.
   private def rpcValue(b: Bound, d: Descriptor): PMessage =
     def call(c: Bound): (Bound, Bound, List[PMessage]) = scriptCall(c.term) match
       case Some(("rpc", List(role, method, assign))) =>
@@ -1324,7 +1296,7 @@ private[irgen] trait Realizations:
       )
     )
 
-  /** A read written with `readUntil(evidence, role, until, intervalMs) { … }`. */
+  // A read written with `readUntil(evidence, role, until, intervalMs) { … }`.
   private def pollValue(b: Bound, d: Descriptor): PMessage = scriptCall(b.term) match
     case Some(("readUntil", List(evidence, role, until, interval, assign))) =>
       val assigned = scoped(Bound(assign, b.env), d)
@@ -1347,10 +1319,8 @@ private[irgen] trait Realizations:
     case Block(List(_: DefDef), _: Closure) => true
     case _                                  => false
 
-  /**
-   * The assignments of the scope a call opens, in order: each line `field(_.name) := operand`, the
-   * typed field of the scope's request type, or its core form `Assignment.typed(field, operand)`.
-   */
+  // The assignments of the scope a call opens, in order: each line `field(_.name) := operand`, the
+  // typed field of the scope's request type, or its core form `Assignment.typed(field, operand)`.
   private def scoped(b0: Bound, call: Descriptor): List[PMessage] =
     val assignment = irMessage(irField(call, "assign", b0.term), b0.term)
     val b = follow(b0)

@@ -3,18 +3,16 @@ package temporal.capabilities
 
 import umpire.{CapabilityKind, Catalog, Law}
 
-/**
- * Every law of the catalog has at least two instantiating entities: machines, each with its own
- * state type, that declare the capabilities bringing it. A composition reading a member's capability
- * through its projection, and a machine derived from another, share a counted machine's state type
- * and so do not count again.
- *
- * The declarations counted are the ones the activity and the Nexus operation Models declare, as
- * model/ir/<file>.laws.json lists them for each law; they are written here because a Model test reads
- * no lifted output.
- */
+// Every law of the catalog has at least two instantiating entities: machines, each with its own
+// state type, that declare the capabilities bringing it. A composition reading a member's capability
+// through its projection, and a machine derived from another, share a counted machine's state type
+// and so do not count again.
+//
+// The declarations counted are the ones the activity and the Nexus operation Models declare, as
+// model/ir/<file>.laws.json lists them for each law; they are written here because a Model test reads
+// no lifted output.
 class CatalogTest extends munit.FunSuite:
-  /** A machine that declares capabilities: its name, the state type it owns, what it declares. */
+  // A machine that declares capabilities: its name, the state type it owns, what it declares.
   final case class Declaring(machine: String, state: String, capabilities: Set[CapabilityKind])
 
   val declared: Seq[Declaring] = Seq(
@@ -41,11 +39,11 @@ class CatalogTest extends munit.FunSuite:
     )
   )
 
-  /** The state types of the machines that instantiate a law brought by `by`. */
+  // The state types of the machines that instantiate a law brought by `by`.
   def instantiating(by: Set[CapabilityKind], declared: Seq[Declaring]): Seq[String] =
     declared.filter(d => by.subsetOf(d.capabilities)).map(_.state).distinct
 
-  /** Each law of `catalog` with fewer than two instantiating entities, by name. */
+  // Each law of `catalog` with fewer than two instantiating entities, by name.
   def underInstantiated(catalog: Catalog, declared: Seq[Declaring]): Vector[String] =
     catalog.entries.flatMap { b =>
       val entities = instantiating(b.by, declared)

@@ -12,7 +12,7 @@ import temporal.capabilities.{given, *}
 import fixture.capabilities.{kill, poll, three, Answer, Job, Jobs, JobState, Note, Phase}
 import fixture.capabilities.{pause, resume, Pair, PairState}
 
-/** Answers like the law, with its parameters in another order. */
+// Answers like the law, with its parameters in another order.
 def reordered[S, P](m: Declares[S])(
     terminal: P => Boolean,
     status: S => P,
@@ -76,12 +76,12 @@ val lambdaArgument = terminalStatesAreFinal(Job)((j: JobState) => j.phase, Jobs.
 val lambdaQuery =
   query verify lambdaArgument in Job.scenario("lambdaAny").free limits three total 90
 
-/** A binding whose companion is no capability kind, which no catalog keys a law by. */
+// A binding whose companion is no capability kind, which no catalog keys a law by.
 final case class Unkinded[S](running: S => Boolean) extends CapabilityOf[S, Nothing, Nothing]
 
 val unkinded = capabilities(Job, limits = three)(Unkinded(running = Jobs.running))
 
-/** Another kit's kind that shares Temporal's name, which Temporal's catalog brings no law. */
+// Another kit's kind that shares Temporal's name, which Temporal's catalog brings no law.
 object otherKit:
   final case class Closable[S, P, O](status: S => P, terminal: P => Boolean, rejected: O)
       extends CapabilityOf[S, O, Nothing]
@@ -104,7 +104,7 @@ val computedCitation = capabilities(Job, limits = three)(
   )
 )
 
-/** A law that names among its cited parameters one its apply does not take. */
+// A law that names among its cited parameters one its apply does not take.
 object citesNoParameter
     extends Law(
       cites = Seq("model/irgen/testdata/lifts/CapabilityRejects.scala"),

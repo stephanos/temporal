@@ -30,7 +30,7 @@ def evidenceOf(f: Fact): String = f match
   case Fact.stored => "stored"
   case Fact.staged => "staged"
 
-/** The opaque provider: all its clients may rely on. */
+// The opaque provider: all its clients may rely on.
 object Store extends Machine[StoreState, Outcome, Fact]:
   val init = StoreState(Kept.nothing)
   def end(s: State) = s.kept == Kept.held
@@ -57,12 +57,12 @@ def putStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
   case Stage.empty => List(Step(Outcome.accepted, DiskState(Stage.staged), List(Fact.stored)))
   case Stage.staged | Stage.durable => Nil
 
-/** A stutter of the store: staging becomes durable, and the store sees nothing of it. */
+// A stutter of the store: staging becomes durable, and the store sees nothing of it.
 def flushStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
   case Stage.staged => List(Step(Outcome.deferred, DiskState(Stage.durable), List(Fact.staged)))
   case _            => Nil
 
-/** What a crash does to staged data is left unknown; elsewhere a crash is disabled. */
+// What a crash does to staged data is left unknown; elsewhere a crash is disabled.
 def crashStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] =
   if d.stage == Stage.staged then crashUnmodeled.reached else Nil
 
@@ -89,13 +89,13 @@ val stagedBeforeDurable: Monitor[DiskState, Outcome, Fact, Boolean] =
     seen || after.facts.contains(Fact.staged)
   )(seen => !seen).readAfter(after => after.state.stage == Stage.durable)
 
-/** The detailed provider. */
+// The detailed provider.
 object Disk extends Machine[DiskState, Outcome, Fact], FailureModel:
   val init = DiskState(Stage.empty)
   def end(d: State) = d.stage != Stage.staged
   val evidence: Fact => String = evidenceOf
 
-  /** What the store sees of a disk: whether it holds anything. */
+  // What the store sees of a disk: whether it holds anything.
   object refinement extends Refinement(Store):
     def toProduct(d: DiskState): StoreState =
       if d.stage == Stage.empty then StoreState(Kept.nothing) else StoreState(Kept.held)

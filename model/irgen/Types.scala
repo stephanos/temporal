@@ -11,7 +11,7 @@ private[irgen] trait Types:
 
   def isEnumCase(s: Symbol): Boolean = s.flags.is(Flags.Enum) && s.flags.is(Flags.Case)
 
-  /** The enum a case belongs to: the class whose companion object declares the case. */
+  // The enum a case belongs to: the class whose companion object declares the case.
   def enumOf(caseSym: Symbol): Symbol = caseSym.owner.companionClass
   def fieldTypes(cls: Symbol): List[(String, TypeRepr)] =
     cls.caseFields.map(f => f.name -> cls.typeRef.memberType(f).widen)
@@ -78,7 +78,7 @@ private[irgen] trait Types:
   // The framework's bounded counter, `UpTo[N]`: the values `0..N` of its field.
   val upToType = "umpire.Domain$package$.UpTo"
 
-  /** The bound `N` of an `UpTo[N]`: a constant, at least 0. */
+  // The bound `N` of an `UpTo[N]`: a constant, at least 0.
   def upToBound(tpe: TypeRepr, at: Tree): Long =
     tpe.widen.dealias.typeArgs match
       case List(n) =>
@@ -122,10 +122,8 @@ private[irgen] trait Types:
           )
       types(name) = ir.Type(name = name, position = position, shape = shape)
 
-  /**
-   * An optional value's type: an enum of `None` and `Some(value)`, one per type of value, named
-   * after it, so a value keys as `None` or `Some-<key>` as the framework keys it.
-   */
+  // An optional value's type: an enum of `None` and `Some(value)`, one per type of value, named
+  // after it, so a value keys as `None` or `Some-<key>` as the framework keys it.
   def optionType(arg: TypeRepr, at: Tree): String =
     val value = typeRef(arg, at)
     val argName = value.ref match
@@ -149,10 +147,8 @@ private[irgen] trait Types:
         ir.Type(name = name, position = Some(pos(at)), shape = ir.Type.Shape.Enum(ir.Enum(cases)))
     name
 
-  /**
-   * The value type of an optional value's type: `Option[T]`, or `Some[T]`, also inside a union such
-   * as the `Some[T] | None` of a match with both.
-   */
+  // The value type of an optional value's type: `Option[T]`, or `Some[T]`, also inside a union such
+  // as the `Some[T] | None` of a match with both.
   def optionArg(tpe: TypeRepr, at: Tree): TypeRepr =
     def arg(t: TypeRepr): Option[TypeRepr] = t.widen.dealias match
       case AppliedType(o, List(a))
@@ -187,11 +183,9 @@ private[irgen] trait Types:
           opaqueRanges(finiteOf(tpt).get.typeSymbol.fullName) = (0L, constInt(bound))
         case _ => ()
 
-  /**
-   * The first value of a finite type, in the catalog order the Go reader lists: false, the low end of
-   * a range, an enum's first case that has values with each field at its first value, a record with
-   * each field at its first value. None for a type with no values.
-   */
+  // The first value of a finite type, in the catalog order the Go reader lists: false, the low end of
+  // a range, an enum's first case that has values with each field at its first value, a record with
+  // each field at its first value. None for a type with no values.
   def firstValue(t: ir.TypeRef): Option[ir.Value] = t.ref match
     case ir.TypeRef.Ref.Bool(_)     => Some(ir.Value(ir.Value.Kind.Bool(false)))
     case ir.TypeRef.Ref.IntRange(r) =>

@@ -2,38 +2,32 @@ package umpire.irgen
 
 import io.temporal.server.api.umpire.v1 as ir
 
-/**
- * What a machine is for, as its markers say (umpire.FailureModel, umpire.NegativeControl), held to
- * what one IR file lifts with it (fn-126 decision 20). The markers are transparent: nothing here
- * changes the IR, so a marker is read from the object that declares the machine.
- *
- *   - A negative control is a deliberately wrong design the checks must refuse. Something the run
- *     checks can refute it: a Query of it that is a `verify`, whose answer may be a counterexample,
- *     or whose Run is expected to violate its Property; or a refinement check, of a refinement it
- *     keeps from the design it derives from, or of a composition member that stands in for another
- *     machine. These rules are weak by construction: the IR holds no expected check answer, so they
- *     say a refutation can happen, and the Go tests that pin each answer say it does. No machine
- *     refines it (a composition
- *     puts a provider in place only of a machine it refines), and it declares no refinement of its
- *     own, as a feature's System does: it is no feature's Product or System.
- *   - A failure model is the real design under a fault the environment can cause. It binds a fault,
- *     an action the actor `fault` takes (a composition binds its members'),
- *     and its promise holds: its Queries expect it to, unless one declares otherwise, so not every
- *     Query of it expects its Run violated.
- *   - A machine or composition that binds a fault says what it is for: it is marked one or the
- *     other.
- *
- * A fault an action is bound to is one some state enables: an action `disabled` binds no fault.
- */
-/**
- * A negative control's call on a run's Queries: its name, where its object is, and whether a Query
- * of one lift can refute it.
- */
+// What a machine is for, as its markers say (umpire.FailureModel, umpire.NegativeControl), held to
+// what one IR file lifts with it (fn-126 decision 20). The markers are transparent: nothing here
+// changes the IR, so a marker is read from the object that declares the machine.
+//
+//   - A negative control is a deliberately wrong design the checks must refuse. Something the run
+//     checks can refute it: a Query of it that is a `verify`, whose answer may be a counterexample,
+//     or whose Run is expected to violate its Property; or a refinement check, of a refinement it
+//     keeps from the design it derives from, or of a composition member that stands in for another
+//     machine. These rules are weak by construction: the IR holds no expected check answer, so they
+//     say a refutation can happen, and the Go tests that pin each answer say it does. No machine
+//     refines it (a composition
+//     puts a provider in place only of a machine it refines), and it declares no refinement of its
+//     own, as a feature's System does: it is no feature's Product or System.
+//   - A failure model is the real design under a fault the environment can cause. It binds a fault,
+//     an action the actor `fault` takes (a composition binds its members'),
+//     and its promise holds: its Queries expect it to, unless one declares otherwise, so not every
+//     Query of it expects its Run violated.
+//   - A machine or composition that binds a fault says what it is for: it is marked one or the
+//     other.
+//
+// A fault an action is bound to is one some state enables: an action `disabled` binds no fault.
+// A negative control's call on a run's Queries: its name, where its object is, and whether a Query
+// of one lift can refute it.
 final private[irgen] case class Refutation(control: String, at: String, refuted: Boolean)
 
-/**
- * The refusal of each negative control nothing the run checks can refute, once.
- */
+// The refusal of each negative control nothing the run checks can refute, once.
 private[irgen] def unrefuted(all: Seq[Refutation]): Seq[LiftError] =
   all
     .groupBy(_.control)
@@ -54,13 +48,11 @@ private[irgen] trait Markers:
   import ctx.*
   import ctx.quotes.reflect.*
 
-  /**
-   * Each refusal of the markers of what this lift lifted, at the declaring object's position, and
-   * what each negative control asks of the run's Queries: whether a Query this lift lifted can
-   * refute it. A run holds the whole run's Queries to it (Lift.scala): the gate's, every negative
-   * control any IR file lifts; a lift of roots, the ones its Queries ask about, since a fixture may
-   * lift a control as a composition's member alone.
-   */
+  // Each refusal of the markers of what this lift lifted, at the declaring object's position, and
+  // what each negative control asks of the run's Queries: whether a Query this lift lifted can
+  // refute it. A run holds the whole run's Queries to it (Lift.scala): the gate's, every negative
+  // control any IR file lifts; a lift of roots, the ones its Queries ask about, since a fixture may
+  // lift a control as a composition's member alone.
   def markerRefusals(everyLifted: Boolean): (Seq[LiftError], Seq[Refutation]) =
     val refused = Seq.newBuilder[LiftError]
     val refutations = Seq.newBuilder[Refutation]
@@ -167,6 +159,6 @@ private[irgen] trait Markers:
         )
     (refused.result(), refutations.result())
 
-  /** The Definition IDs of the faults: the actions the actor `fault` takes. */
+  // The Definition IDs of the faults: the actions the actor `fault` takes.
   private def faultActions: Set[String] =
     actions.values.filter(_.actor == "fault").map(_.id).toSet

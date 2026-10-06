@@ -19,7 +19,7 @@ val radio: Channel[Signal] =
 enum Heard derives Finite:
   case nothing, note, signal
 
-/** The relay's state, named apart from the machine object `Relay`. */
+// The relay's state, named apart from the machine object `Relay`.
 final case class RelayState(heard: Heard, wire: Inbox[Note], radio: Inbox[Signal])
 
 given Finite[RelayState] =
@@ -39,7 +39,7 @@ def talkStep(r: RelayState, n: Note): List[Step[RelayState, Outcome, Nothing]] =
 def flashStep(r: RelayState, s: Signal): List[Step[RelayState, Outcome, Nothing]] =
   if r.radio.isEmpty then List(Step(Outcome.accepted, r.copy(radio = r.radio.send(s)))) else Nil
 
-/** Receiving a note: the channel already dropped the delivered message. */
+// Receiving a note: the channel already dropped the delivered message.
 def hear(r: RelayState, n: Note): List[Step[RelayState, Outcome, Nothing]] =
   if n == Note.ping then List(Step(Outcome.accepted, r.copy(heard = Heard.note))) else Nil
 
@@ -63,7 +63,7 @@ object Relay extends Machine[RelayState, Outcome, Nothing]:
         radio.lose ~> fade
       )
 
-/** A channel of bounded integers: the range its declaration names is its catalog of messages. */
+// A channel of bounded integers: the range its declaration names is its catalog of messages.
 val tally: Channel[Int] =
   channel[Int](capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
     Finite.upTo(2)

@@ -27,7 +27,7 @@ object RulesFixture:
   object clock:
     val tick = timer
 
-  /** What initialized, in order, so the tests read when each object is constructed. */
+  // What initialized, in order, so the tests read when each object is constructed.
   object Trace:
     val initialized = mutable.ArrayBuffer.empty[String]
 
@@ -62,10 +62,10 @@ object RulesFixture:
       }
       on(clock.tick)(where(s => s.presses == 2 && s.light != Lit.broken) ~> effects.wear)
 
-  /** The switch whose press is its own effect wherever it fires, and whose tick never fires. */
+  // The switch whose press is its own effect wherever it fires, and whose tick never fires.
   object Stuck extends Derived(Switch.rebind(hand.press ~> Switch.effects.wear))
 
-  /** The switch whose press fires everywhere, under one rule. */
+  // The switch whose press fires everywhere, under one rule.
   object Loose extends Derived(Switch.rebind(on(hand.press)(always ~> Switch.effects.wear)))
 
   object Overlapping extends Machine[Lamp, Said, Nothing]:

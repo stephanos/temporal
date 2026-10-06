@@ -34,7 +34,7 @@ example's Property (`model/temporal/features/nexus/workflow/system/System.scala`
 machine's own:
 
 ```scala
-/** A synchronous reply settles the operation as succeeded, and the completed event records it. */
+// A synchronous reply settles the operation as succeeded, and the completed event records it.
 val syncSucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
   s.state.phase == Phase.succeeded && s.records(Fact.nexusOperationCompleted)
 }

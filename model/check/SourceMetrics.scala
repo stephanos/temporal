@@ -4,17 +4,15 @@ import java.nio.file.{Files, Path}
 import java.security.MessageDigest
 import scala.jdk.CollectionConverters.*
 
-/**
- * The size of a Model's source: its lines and its string literals, each literal classified by the
- * code around it. Comments are no literals, and an interpolated string is one literal. fn-112
- * measures the standalone activity Model with it when it starts and when it closes:
- *
- *   scala-cli run model/check --main-class umpire.check.metrics -- \
- *     model/temporal/features/activity/standalone
- *
- * More directories are measured each on its own and together. Test sources (`*.test.scala`) are not
- * the Model and are left out.
- */
+// The size of a Model's source: its lines and its string literals, each literal classified by the
+// code around it. Comments are no literals, and an interpolated string is one literal. fn-112
+// measures the standalone activity Model with it when it starts and when it closes:
+//
+//   scala-cli run model/check --main-class umpire.check.metrics -- \
+//     model/temporal/features/activity/standalone
+//
+// More directories are measured each on its own and together. Test sources (`*.test.scala`) are not
+// the Model and are left out.
 private[check] object SourceMetrics:
   final case class Literal(file: String, line: Int, category: String, value: String)
 
@@ -81,7 +79,7 @@ private[check] object SourceMetrics:
         .sortBy(_.toString)
     finally stream.close()
 
-  /** Every literal of the files, and each file's lines. */
+  // Every literal of the files, and each file's lines.
   def measure(root: Path, files: Vector[Path]): (Vector[(String, Int)], Vector[Literal]) =
     val texts = files.map(f => root.relativize(f).toString -> Files.readString(f))
     val scanned = texts.map((_, text) => text -> ProtoLiterals.literals(text))
