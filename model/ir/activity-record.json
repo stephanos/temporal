@@ -65,21 +65,6 @@
       } ]
     }
   }, {
-    "name": "temporal.features.standaloneactivity.TimeoutType",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 58
-    },
-    "enum": {
-      "cases": [ {
-        "name": "scheduleToClose"
-      }, {
-        "name": "scheduleToStart"
-      }, {
-        "name": "startToClose"
-      } ]
-    }
-  }, {
     "name": "temporal.features.standaloneactivity.product.Fact",
     "position": {
       "file": "model/temporal/features/standaloneactivity/product/Product.scala",
@@ -180,7 +165,7 @@
         "fields": [ {
           "name": "timeoutType",
           "type": {
-            "named": "temporal.features.standaloneactivity.TimeoutType"
+            "named": "temporal.features.standaloneactivity.system.TimeoutType"
           }
         } ]
       }, {
@@ -257,7 +242,7 @@
     "name": "temporal.features.standaloneactivity.system.Fact",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 36
+      "line": 40
     },
     "enum": {
       "cases": [ {
@@ -281,7 +266,7 @@
         "fields": [ {
           "name": "timeoutType",
           "type": {
-            "named": "temporal.features.standaloneactivity.TimeoutType"
+            "named": "temporal.features.standaloneactivity.system.TimeoutType"
           }
         } ]
       }, {
@@ -408,6 +393,21 @@
         "type": {
           "named": "temporal.features.standaloneactivity.Timeout"
         }
+      } ]
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.TimeoutType",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 36
+    },
+    "enum": {
+      "cases": [ {
+        "name": "scheduleToClose"
+      }, {
+        "name": "scheduleToStart"
+      }, {
+        "name": "startToClose"
       } ]
     }
   }, {
@@ -2818,7 +2818,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
                   "case": "scheduleToClose"
                 }
               }
@@ -2877,7 +2877,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
                   "case": "scheduleToStart"
                 }
               }
@@ -3794,7 +3794,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
                   "case": "scheduleToClose"
                 }
               }
@@ -3893,7 +3893,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
                   "case": "scheduleToStart"
                 }
               }
@@ -3913,7 +3913,7 @@
     "name": "activitySystem.evidence",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 59
+      "line": 66
     },
     "params": [ {
       "name": "fact",
@@ -3924,13 +3924,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 60
+        "line": 67
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 60
+            "line": 67
           },
           "var": "fact"
         },
@@ -3946,7 +3946,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 59
+              "line": 66
             },
             "literal": {
               "text": "statusScheduled"
@@ -3964,7 +3964,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 59
+              "line": 66
             },
             "literal": {
               "text": "statusStarted"
@@ -3982,7 +3982,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 59
+              "line": 66
             },
             "literal": {
               "text": "statusPaused"
@@ -4000,7 +4000,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 59
+              "line": 66
             },
             "literal": {
               "text": "statusCancelRequested"
@@ -4018,7 +4018,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 59
+              "line": 66
             },
             "literal": {
               "text": "statusCompleted"
@@ -4036,7 +4036,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 59
+              "line": 66
             },
             "literal": {
               "text": "statusFailed"
@@ -4054,7 +4054,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 59
+              "line": 66
             },
             "literal": {
               "text": "statusCanceled"
@@ -4072,7 +4072,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 59
+              "line": 66
             },
             "literal": {
               "text": "statusTerminated"
@@ -4091,7 +4091,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 60
+              "line": 67
             },
             "literal": {
               "text": "statusTimedOut"
@@ -4109,7 +4109,7 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 61
+              "line": 68
             },
             "literal": {
               "text": "attemptCount"
@@ -4122,7 +4122,7 @@
     "name": "activitySystem.property.scheduleToCloseFires",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 285
+      "line": 292
     },
     "params": [ {
       "name": "s",
@@ -4133,33 +4133,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 286
+        "line": 293
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 286
+            "line": 293
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 286
+                "line": 293
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 286
+                    "line": 293
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 286
+                        "line": 293
                       },
                       "var": "s"
                     },
@@ -4172,7 +4172,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 286
+                "line": 293
               },
               "literal": {
                 "enum": {
@@ -4186,14 +4186,14 @@
         "right": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 287
+            "line": 294
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 287
+                "line": 294
               },
               "construct": {
                 "type": "temporal.features.standaloneactivity.system.Fact",
@@ -4201,11 +4201,11 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 287
+                    "line": 294
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.TimeoutType",
+                      "type": "temporal.features.standaloneactivity.system.TimeoutType",
                       "case": "scheduleToClose"
                     }
                   }
@@ -4215,13 +4215,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 287
+                "line": 294
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 287
+                    "line": 294
                   },
                   "var": "s"
                 },
@@ -4236,7 +4236,7 @@
     "name": "activitySystem.property.scheduleToStartFires",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 280
+      "line": 287
     },
     "params": [ {
       "name": "s",
@@ -4247,33 +4247,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 281
+        "line": 288
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 281
+            "line": 288
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 281
+                "line": 288
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 281
+                    "line": 288
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 281
+                        "line": 288
                       },
                       "var": "s"
                     },
@@ -4286,7 +4286,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 281
+                "line": 288
               },
               "literal": {
                 "enum": {
@@ -4300,14 +4300,14 @@
         "right": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 282
+            "line": 289
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 282
+                "line": 289
               },
               "construct": {
                 "type": "temporal.features.standaloneactivity.system.Fact",
@@ -4315,11 +4315,11 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 282
+                    "line": 289
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.features.standaloneactivity.TimeoutType",
+                      "type": "temporal.features.standaloneactivity.system.TimeoutType",
                       "case": "scheduleToStart"
                     }
                   }
@@ -4329,13 +4329,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 282
+                "line": 289
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 282
+                    "line": 289
                   },
                   "var": "s"
                 },
@@ -4350,7 +4350,7 @@
     "name": "activitySystem.rules.backoff",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 212
+      "line": 219
     },
     "params": [ {
       "name": "s",
@@ -4361,26 +4361,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 212
+        "line": 219
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 212
+            "line": 219
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 177
+                "line": 184
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 177
+                    "line": 184
                   },
                   "var": "s"
                 },
@@ -4390,13 +4390,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 212
+                "line": 219
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 212
+                    "line": 219
                   },
                   "literal": {
                     "enum": {
@@ -4412,14 +4412,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 212
+            "line": 219
           },
           "call": {
             "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.retry",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 212
+                "line": 219
               },
               "var": "s"
             } ]
@@ -4428,7 +4428,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 212
+            "line": 219
           },
           "list": { }
         }
@@ -4438,7 +4438,7 @@
     "name": "activitySystem.rules.control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 200
+      "line": 207
     },
     "params": [ {
       "name": "s",
@@ -4454,13 +4454,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 200
+        "line": 207
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 200
+            "line": 207
           },
           "var": "control"
         },
@@ -4476,26 +4476,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 200
+              "line": 207
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 200
+                  "line": 207
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 177
+                      "line": 184
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "var": "s"
                       },
@@ -4507,14 +4507,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 200
+                  "line": 207
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 200
+                      "line": 207
                     },
                     "var": "s"
                   } ]
@@ -4523,26 +4523,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 202
+                  "line": 209
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 202
+                      "line": 209
                     },
                     "binary": {
                       "op": "OP_CONTAINS",
                       "left": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 177
+                              "line": 184
                             },
                             "var": "s"
                           },
@@ -4552,13 +4552,13 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 202
+                          "line": 209
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 202
+                              "line": 209
                             },
                             "literal": {
                               "enum": {
@@ -4569,7 +4569,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 202
+                              "line": 209
                             },
                             "literal": {
                               "enum": {
@@ -4585,14 +4585,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 202
+                      "line": 209
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.pause",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 202
+                          "line": 209
                         },
                         "var": "s"
                       } ]
@@ -4601,26 +4601,26 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 203
+                      "line": 210
                     },
                     "if": {
                       "condition": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 203
+                          "line": 210
                         },
                         "binary": {
                           "op": "OP_CONTAINS",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 177
+                              "line": 184
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 177
+                                  "line": 184
                                 },
                                 "var": "s"
                               },
@@ -4630,13 +4630,13 @@
                           "right": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 203
+                              "line": 210
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 203
+                                  "line": 210
                                 },
                                 "literal": {
                                   "enum": {
@@ -4652,14 +4652,14 @@
                       "then": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 203
+                          "line": 210
                         },
                         "call": {
                           "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestPause",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 203
+                              "line": 210
                             },
                             "var": "s"
                           } ]
@@ -4668,7 +4668,7 @@
                       "else": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 200
+                          "line": 207
                         },
                         "list": { }
                       }
@@ -4690,26 +4690,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 200
+              "line": 207
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 200
+                  "line": 207
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 177
+                      "line": 184
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "var": "s"
                       },
@@ -4721,14 +4721,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 200
+                  "line": 207
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 200
+                      "line": 207
                     },
                     "var": "s"
                   } ]
@@ -4737,26 +4737,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 206
+                  "line": 213
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 206
+                      "line": 213
                     },
                     "binary": {
                       "op": "OP_CONTAINS",
                       "left": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 177
+                              "line": 184
                             },
                             "var": "s"
                           },
@@ -4766,13 +4766,13 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 206
+                          "line": 213
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 206
+                              "line": 213
                             },
                             "literal": {
                               "enum": {
@@ -4788,14 +4788,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 206
+                      "line": 213
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.resume",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 206
+                          "line": 213
                         },
                         "var": "s"
                       } ]
@@ -4804,26 +4804,26 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 207
+                      "line": 214
                     },
                     "if": {
                       "condition": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 207
+                          "line": 214
                         },
                         "binary": {
                           "op": "OP_CONTAINS",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 177
+                              "line": 184
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 177
+                                  "line": 184
                                 },
                                 "var": "s"
                               },
@@ -4833,13 +4833,13 @@
                           "right": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 207
+                              "line": 214
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 207
+                                  "line": 214
                                 },
                                 "literal": {
                                   "enum": {
@@ -4855,14 +4855,14 @@
                       "then": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 207
+                          "line": 214
                         },
                         "call": {
                           "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.withdrawPause",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 207
+                              "line": 214
                             },
                             "var": "s"
                           } ]
@@ -4871,7 +4871,7 @@
                       "else": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 200
+                          "line": 207
                         },
                         "list": { }
                       }
@@ -4893,26 +4893,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 200
+              "line": 207
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 200
+                  "line": 207
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 177
+                      "line": 184
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "var": "s"
                       },
@@ -4924,14 +4924,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 200
+                  "line": 207
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 200
+                      "line": 207
                     },
                     "var": "s"
                   } ]
@@ -4940,26 +4940,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 209
+                  "line": 216
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 209
+                      "line": 216
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 177
+                              "line": 184
                             },
                             "var": "s"
                           },
@@ -4971,14 +4971,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 209
+                      "line": 216
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestCancel",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 209
+                          "line": 216
                         },
                         "var": "s"
                       } ]
@@ -4987,7 +4987,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 200
+                      "line": 207
                     },
                     "list": { }
                   }
@@ -5007,26 +5007,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 200
+              "line": 207
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 200
+                  "line": 207
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 177
+                      "line": 184
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "var": "s"
                       },
@@ -5038,14 +5038,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 200
+                  "line": 207
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 200
+                      "line": 207
                     },
                     "var": "s"
                   } ]
@@ -5054,26 +5054,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 210
+                  "line": 217
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 210
+                      "line": 217
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 177
+                              "line": 184
                             },
                             "var": "s"
                           },
@@ -5085,14 +5085,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 210
+                      "line": 217
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.terminate",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 210
+                          "line": 217
                         },
                         "var": "s"
                       } ]
@@ -5101,7 +5101,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 200
+                      "line": 207
                     },
                     "list": { }
                   }
@@ -5116,7 +5116,7 @@
     "name": "activitySystem.rules.poll",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 179
+      "line": 186
     },
     "params": [ {
       "name": "s",
@@ -5127,26 +5127,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 179
+        "line": 186
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 179
+            "line": 186
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 177
+                "line": 184
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 177
+                    "line": 184
                   },
                   "var": "s"
                 },
@@ -5156,13 +5156,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 179
+                "line": 186
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 179
+                    "line": 186
                   },
                   "literal": {
                     "enum": {
@@ -5178,14 +5178,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 179
+            "line": 186
           },
           "call": {
             "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.startAttempt",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 179
+                "line": 186
               },
               "var": "s"
             } ]
@@ -5194,7 +5194,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 179
+            "line": 186
           },
           "list": { }
         }
@@ -5204,7 +5204,7 @@
     "name": "activitySystem.rules.respond",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 184
+      "line": 191
     },
     "params": [ {
       "name": "s",
@@ -5220,13 +5220,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 184
+        "line": 191
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 184
+            "line": 191
           },
           "var": "result"
         },
@@ -5242,26 +5242,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 184
+              "line": 191
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 184
+                  "line": 191
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 177
+                      "line": 184
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "var": "s"
                       },
@@ -5273,14 +5273,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 184
+                  "line": 191
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.complete",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 184
+                      "line": 191
                     },
                     "var": "s"
                   } ]
@@ -5289,7 +5289,7 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 184
+                  "line": 191
                 },
                 "list": { }
               }
@@ -5310,26 +5310,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 185
+              "line": 192
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 185
+                  "line": 192
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 177
+                      "line": 184
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "var": "s"
                       },
@@ -5341,14 +5341,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 185
+                  "line": 192
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.fail",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 185
+                      "line": 192
                     },
                     "var": "s"
                   } ]
@@ -5357,7 +5357,7 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 184
+                  "line": 191
                 },
                 "list": { }
               }
@@ -5378,26 +5378,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 187
+              "line": 194
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 187
+                  "line": 194
                 },
                 "binary": {
                   "op": "OP_CONTAINS",
                   "left": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 177
+                      "line": 184
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "var": "s"
                       },
@@ -5407,13 +5407,13 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 187
+                      "line": 194
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 187
+                          "line": 194
                         },
                         "literal": {
                           "enum": {
@@ -5429,14 +5429,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 187
+                  "line": 194
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.backOff",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 187
+                      "line": 194
                     },
                     "var": "s"
                   } ]
@@ -5445,26 +5445,26 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 188
+                  "line": 195
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 188
+                      "line": 195
                     },
                     "binary": {
                       "op": "OP_CONTAINS",
                       "left": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 177
+                              "line": 184
                             },
                             "var": "s"
                           },
@@ -5474,13 +5474,13 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 188
+                          "line": 195
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 188
+                              "line": 195
                             },
                             "literal": {
                               "enum": {
@@ -5496,14 +5496,14 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 188
+                      "line": 195
                     },
                     "call": {
                       "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.cancel",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 188
+                          "line": 195
                         },
                         "var": "s"
                       } ]
@@ -5512,26 +5512,26 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 189
+                      "line": 196
                     },
                     "if": {
                       "condition": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 189
+                          "line": 196
                         },
                         "binary": {
                           "op": "OP_CONTAINS",
                           "left": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 177
+                              "line": 184
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 177
+                                  "line": 184
                                 },
                                 "var": "s"
                               },
@@ -5541,13 +5541,13 @@
                           "right": {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 189
+                              "line": 196
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                                  "line": 189
+                                  "line": 196
                                 },
                                 "literal": {
                                   "enum": {
@@ -5563,14 +5563,14 @@
                       "then": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 189
+                          "line": 196
                         },
                         "call": {
                           "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.pause",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 189
+                              "line": 196
                             },
                             "var": "s"
                           } ]
@@ -5579,7 +5579,7 @@
                       "else": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 184
+                          "line": 191
                         },
                         "list": { }
                       }
@@ -5601,26 +5601,26 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 191
+              "line": 198
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 191
+                  "line": 198
                 },
                 "binary": {
                   "op": "OP_CONTAINS",
                   "left": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 177
+                      "line": 184
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 177
+                          "line": 184
                         },
                         "var": "s"
                       },
@@ -5630,13 +5630,13 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 191
+                      "line": 198
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 191
+                          "line": 198
                         },
                         "literal": {
                           "enum": {
@@ -5652,14 +5652,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 191
+                  "line": 198
                 },
                 "call": {
                   "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.cancel",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 191
+                      "line": 198
                     },
                     "var": "s"
                   } ]
@@ -5668,7 +5668,7 @@
               "else": {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 184
+                  "line": 191
                 },
                 "list": { }
               }
@@ -5681,7 +5681,7 @@
     "name": "activitySystem.rules.scheduleToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 213
+      "line": 220
     },
     "params": [ {
       "name": "s",
@@ -5692,33 +5692,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 214
+        "line": 221
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 214
+            "line": 221
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 214
+                "line": 221
               },
               "call": {
                 "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 177
+                    "line": 184
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 177
+                        "line": 184
                       },
                       "var": "s"
                     },
@@ -5730,20 +5730,20 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 214
+                "line": 221
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 214
+                    "line": 221
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 214
+                        "line": 221
                       },
                       "var": "s"
                     },
@@ -5753,7 +5753,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 214
+                    "line": 221
                   },
                   "literal": {
                     "enum": {
@@ -5769,24 +5769,24 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 214
+            "line": 221
           },
           "call": {
             "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.timeOut",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 215
+                "line": 222
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 216
+                "line": 223
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
                   "case": "scheduleToClose"
                 }
               }
@@ -5796,7 +5796,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 213
+            "line": 220
           },
           "list": { }
         }
@@ -5806,7 +5806,7 @@
     "name": "activitySystem.rules.scheduleToStart",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 219
+      "line": 226
     },
     "params": [ {
       "name": "s",
@@ -5817,279 +5817,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 220
+        "line": 227
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 220
+            "line": 227
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 220
+                "line": 227
               },
               "call": {
                 "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.waiting",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 177
+                    "line": 184
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 177
-                      },
-                      "var": "s"
-                    },
-                    "field": "phase"
-                  }
-                } ]
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 220
-              },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 220
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 220
-                      },
-                      "var": "s"
-                    },
-                    "field": "scheduleToStart"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 220
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.Timeout",
-                      "case": "expires"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 220
-          },
-          "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.timeOut",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 221
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 222
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
-                  "case": "scheduleToStart"
-                }
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 219
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "activitySystem.rules.start",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 178
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.State"
-      }
-    }, {
-      "name": "scheduleToClose",
-      "type": {
-        "named": "temporal.features.standaloneactivity.Timeout"
-      }
-    }, {
-      "name": "scheduleToStart",
-      "type": {
-        "named": "temporal.features.standaloneactivity.Timeout"
-      }
-    }, {
-      "name": "startToClose",
-      "type": {
-        "named": "temporal.features.standaloneactivity.Timeout"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 178
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 178
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 177
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 177
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 178
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 178
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.system.Phase",
-                      "case": "unstarted"
-                    }
-                  }
-                } ]
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 178
-          },
-          "call": {
-            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.schedule",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 178
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 178
-              },
-              "var": "scheduleToClose"
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 178
-              },
-              "var": "scheduleToStart"
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 178
-              },
-              "var": "startToClose"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 178
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
-    "name": "activitySystem.rules.startToClose",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 225
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 226
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 226
-          },
-          "binary": {
-            "op": "OP_AND",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 226
-              },
-              "call": {
-                "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 177
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 177
+                        "line": 184
                       },
                       "var": "s"
                     },
@@ -6118,7 +5872,7 @@
                       },
                       "var": "s"
                     },
-                    "field": "startToClose"
+                    "field": "scheduleToStart"
                   }
                 },
                 "right": {
@@ -6147,18 +5901,18 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 227
+                "line": 228
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 227
+                "line": 229
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
-                  "case": "startToClose"
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
+                  "case": "scheduleToStart"
                 }
               }
             } ]
@@ -6167,17 +5921,138 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 225
+            "line": 226
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "activitySystem.rules.stop",
+    "name": "activitySystem.rules.start",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 211
+      "line": 185
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.State"
+      }
+    }, {
+      "name": "scheduleToClose",
+      "type": {
+        "named": "temporal.features.standaloneactivity.Timeout"
+      }
+    }, {
+      "name": "scheduleToStart",
+      "type": {
+        "named": "temporal.features.standaloneactivity.Timeout"
+      }
+    }, {
+      "name": "startToClose",
+      "type": {
+        "named": "temporal.features.standaloneactivity.Timeout"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 185
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 185
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 184
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 184
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 185
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 185
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.system.Phase",
+                      "case": "unstarted"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 185
+          },
+          "call": {
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.schedule",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 185
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 185
+              },
+              "var": "scheduleToClose"
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 185
+              },
+              "var": "scheduleToStart"
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 185
+              },
+              "var": "startToClose"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 185
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "activitySystem.rules.startToClose",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 232
     },
     "params": [ {
       "name": "s",
@@ -6188,13 +6063,138 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 211
+        "line": 233
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 211
+            "line": 233
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 233
+              },
+              "call": {
+                "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 184
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                        "line": 184
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 234
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 234
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                        "line": 234
+                      },
+                      "var": "s"
+                    },
+                    "field": "startToClose"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 234
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.Timeout",
+                      "case": "expires"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 234
+          },
+          "call": {
+            "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.timeOut",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 234
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 234
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
+                  "case": "startToClose"
+                }
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 232
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "activitySystem.rules.stop",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 218
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 218
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 218
           },
           "literal": {
             "bool": true
@@ -6203,14 +6203,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 211
+            "line": 218
           },
           "call": {
             "function": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.keep",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 211
+                "line": 218
               },
               "var": "s"
             } ]
@@ -6219,7 +6219,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 211
+            "line": 218
           },
           "list": { }
         }
@@ -9616,7 +9616,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -9713,7 +9713,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -9810,7 +9810,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -9968,7 +9968,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -10065,7 +10065,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -10162,7 +10162,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -10259,7 +10259,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -10356,7 +10356,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -10453,7 +10453,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -10550,7 +10550,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11038,7 +11038,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11112,7 +11112,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11187,7 +11187,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11284,7 +11284,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11408,7 +11408,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11505,7 +11505,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11602,7 +11602,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11699,7 +11699,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -11759,7 +11759,7 @@
     }, {
       "name": "t",
       "type": {
-        "named": "temporal.features.standaloneactivity.TimeoutType"
+        "named": "temporal.features.standaloneactivity.system.TimeoutType"
       }
     } ],
     "body": {
@@ -11778,7 +11778,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -13364,7 +13364,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.backOff",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 139
+      "line": 146
     },
     "params": [ {
       "name": "s",
@@ -13375,20 +13375,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 140
+        "line": 147
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 140
+            "line": 147
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -13399,13 +13399,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 140
+                "line": 147
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 140
+                    "line": 147
                   },
                   "var": "s"
                 },
@@ -13414,7 +13414,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 140
+                      "line": 147
                     },
                     "literal": {
                       "enum": {
@@ -13428,13 +13428,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 140
+                "line": 147
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 140
+                    "line": 147
                   },
                   "literal": {
                     "enum": {
@@ -13445,7 +13445,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 140
+                    "line": 147
                   },
                   "literal": {
                     "enum": {
@@ -13458,7 +13458,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 140
+                "line": 147
               },
               "literal": {
                 "text": "a retryable failure backs off; the client reads scheduled again"
@@ -13470,6 +13470,200 @@
     }
   }, {
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.cancel",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 150
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 150
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 150
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+                "line": 127
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 150
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 150
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 150
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.features.standaloneactivity.system.Phase",
+                        "case": "canceled"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 150
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 150
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.system.Fact",
+                      "case": "statusCanceled"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 150
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.complete",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 141
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 141
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 141
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+                "line": 127
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 141
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 141
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 141
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.features.standaloneactivity.system.Phase",
+                        "case": "completed"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 141
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 141
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.system.Fact",
+                      "case": "statusCompleted"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 141
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.fail",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 143
@@ -13496,7 +13690,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -13527,7 +13721,7 @@
                     "literal": {
                       "enum": {
                         "type": "temporal.features.standaloneactivity.system.Phase",
-                        "case": "canceled"
+                        "case": "failed"
                       }
                     }
                   }
@@ -13547,7 +13741,7 @@
                   "literal": {
                     "enum": {
                       "type": "temporal.features.standaloneactivity.system.Fact",
-                      "case": "statusCanceled"
+                      "case": "statusFailed"
                     }
                   }
                 } ]
@@ -13566,204 +13760,10 @@
       }
     }
   }, {
-    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.complete",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 134
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 134
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 134
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 134
-              },
-              "copy": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 134
-                  },
-                  "var": "s"
-                },
-                "updates": [ {
-                  "name": "phase",
-                  "value": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 134
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "temporal.features.standaloneactivity.system.Phase",
-                        "case": "completed"
-                      }
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 134
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 134
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.system.Fact",
-                      "case": "statusCompleted"
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 134
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.fail",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 136
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 136
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 136
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 136
-              },
-              "copy": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 136
-                  },
-                  "var": "s"
-                },
-                "updates": [ {
-                  "name": "phase",
-                  "value": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 136
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "temporal.features.standaloneactivity.system.Phase",
-                        "case": "failed"
-                      }
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 136
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 136
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.system.Fact",
-                      "case": "statusFailed"
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 136
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.keep",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 169
+      "line": 176
     },
     "params": [ {
       "name": "s",
@@ -13774,20 +13774,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 169
+        "line": 176
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 169
+            "line": 176
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -13798,19 +13798,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 169
+                "line": 176
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 169
+                "line": 176
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 169
+                "line": 176
               },
               "literal": {
                 "text": ""
@@ -13824,7 +13824,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.notFound",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 146
+      "line": 153
     },
     "params": [ {
       "name": "s",
@@ -13835,20 +13835,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 146
+        "line": 153
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 146
+            "line": 153
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 146
+                "line": 153
               },
               "literal": {
                 "enum": {
@@ -13859,19 +13859,19 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 146
+                "line": 153
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 146
+                "line": 153
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 146
+                "line": 153
               },
               "literal": {
                 "text": ""
@@ -13885,201 +13885,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.pause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 148
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 148
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 148
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 148
-              },
-              "copy": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 148
-                  },
-                  "var": "s"
-                },
-                "updates": [ {
-                  "name": "phase",
-                  "value": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 148
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "temporal.features.standaloneactivity.system.Phase",
-                        "case": "paused"
-                      }
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 148
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 148
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.system.Fact",
-                      "case": "statusPaused"
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 148
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestCancel",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 163
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 164
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 164
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 164
-              },
-              "copy": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 164
-                  },
-                  "var": "s"
-                },
-                "updates": [ {
-                  "name": "phase",
-                  "value": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 164
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "temporal.features.standaloneactivity.system.Phase",
-                        "case": "cancelRequested"
-                      }
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 164
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 164
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.system.Fact",
-                      "case": "statusCancelRequested"
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 164
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestPause",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 154
+      "line": 155
     },
     "params": [ {
       "name": "s",
@@ -14103,7 +13909,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -14134,7 +13940,7 @@
                     "literal": {
                       "enum": {
                         "type": "temporal.features.standaloneactivity.system.Phase",
-                        "case": "pauseRequested"
+                        "case": "paused"
                       }
                     }
                   }
@@ -14165,6 +13971,200 @@
                 "line": 155
               },
               "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestCancel",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 170
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 171
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 171
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+                "line": 127
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 171
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 171
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 171
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.features.standaloneactivity.system.Phase",
+                        "case": "cancelRequested"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 171
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 171
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.system.Fact",
+                      "case": "statusCancelRequested"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 171
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.requestPause",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 161
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 162
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 162
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+                "line": 127
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 162
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 162
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 162
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.features.standaloneactivity.system.Phase",
+                        "case": "pauseRequested"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 162
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 162
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.system.Fact",
+                      "case": "statusPaused"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 162
+              },
+              "literal": {
                 "text": "the worker learns of the pause on its next heartbeat"
               }
             } ]
@@ -14176,7 +14176,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.resume",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 158
+      "line": 165
     },
     "params": [ {
       "name": "s",
@@ -14187,20 +14187,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 158
+        "line": 165
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 158
+            "line": 165
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -14211,13 +14211,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 158
+                "line": 165
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 158
+                    "line": 165
                   },
                   "var": "s"
                 },
@@ -14226,7 +14226,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 158
+                      "line": 165
                     },
                     "literal": {
                       "enum": {
@@ -14240,13 +14240,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 158
+                "line": 165
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 158
+                    "line": 165
                   },
                   "literal": {
                     "enum": {
@@ -14259,7 +14259,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 158
+                "line": 165
               },
               "literal": {
                 "text": ""
@@ -14273,7 +14273,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.retry",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 172
+      "line": 179
     },
     "params": [ {
       "name": "s",
@@ -14284,20 +14284,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 172
+        "line": 179
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 172
+            "line": 179
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -14308,13 +14308,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 172
+                "line": 179
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 172
+                    "line": 179
                   },
                   "var": "s"
                 },
@@ -14323,7 +14323,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 172
+                      "line": 179
                     },
                     "literal": {
                       "enum": {
@@ -14337,13 +14337,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 172
+                "line": 179
               },
               "list": { }
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 172
+                "line": 179
               },
               "literal": {
                 "text": ""
@@ -14357,7 +14357,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.schedule",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 109
+      "line": 116
     },
     "params": [ {
       "name": "s",
@@ -14383,20 +14383,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 115
+        "line": 122
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 115
+            "line": 122
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -14407,14 +14407,14 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 116
+                "line": 123
               },
               "construct": {
                 "type": "temporal.features.standaloneactivity.system.State",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 117
+                    "line": 124
                   },
                   "literal": {
                     "enum": {
@@ -14425,7 +14425,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 118
+                    "line": 125
                   },
                   "literal": {
                     "int": "0"
@@ -14433,145 +14433,21 @@
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 119
+                    "line": 126
                   },
                   "var": "scheduleToClose"
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 120
+                    "line": 127
                   },
                   "var": "scheduleToStart"
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 121
+                    "line": 128
                   },
                   "var": "startToClose"
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 123
-              },
-              "list": {
-                "items": [ {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 123
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.features.standaloneactivity.system.Fact",
-                      "case": "statusScheduled"
-                    }
-                  }
-                } ]
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 115
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.startAttempt",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 127
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 128
-      },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 128
-          },
-          "construct": {
-            "type": "umpire.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 129
-              },
-              "copy": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 129
-                  },
-                  "var": "s"
-                },
-                "updates": [ {
-                  "name": "phase",
-                  "value": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 129
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "temporal.features.standaloneactivity.system.Phase",
-                        "case": "started"
-                      }
-                    }
-                  }
-                }, {
-                  "name": "attempts",
-                  "value": {
-                    "position": {
-                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 129
-                    },
-                    "call": {
-                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.saturatingSucc",
-                      "args": [ {
-                        "position": {
-                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                          "line": 129
-                        },
-                        "field": {
-                          "base": {
-                            "position": {
-                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                              "line": 129
-                            },
-                            "var": "s"
-                          },
-                          "field": "attempts"
-                        }
-                      } ]
-                    }
-                  }
                 } ]
               }
             }, {
@@ -14588,13 +14464,137 @@
                   "literal": {
                     "enum": {
                       "type": "temporal.features.standaloneactivity.system.Fact",
+                      "case": "statusScheduled"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 122
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.startAttempt",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 134
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 135
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 135
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
+                "line": 127
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 136
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 136
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 136
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.features.standaloneactivity.system.Phase",
+                        "case": "started"
+                      }
+                    }
+                  }
+                }, {
+                  "name": "attempts",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                      "line": 136
+                    },
+                    "call": {
+                      "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.saturatingSucc",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                          "line": 136
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                              "line": 136
+                            },
+                            "var": "s"
+                          },
+                          "field": "attempts"
+                        }
+                      } ]
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 137
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 137
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.features.standaloneactivity.system.Fact",
                       "case": "statusStarted"
                     }
                   }
                 }, {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 131
+                    "line": 138
                   },
                   "literal": {
                     "enum": {
@@ -14607,7 +14607,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 128
+                "line": 135
               },
               "literal": {
                 "text": ""
@@ -14621,7 +14621,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.terminate",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 166
+      "line": 173
     },
     "params": [ {
       "name": "s",
@@ -14632,20 +14632,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 166
+        "line": 173
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 166
+            "line": 173
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -14656,13 +14656,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 166
+                "line": 173
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 166
+                    "line": 173
                   },
                   "var": "s"
                 },
@@ -14671,7 +14671,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 166
+                      "line": 173
                     },
                     "literal": {
                       "enum": {
@@ -14685,13 +14685,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 166
+                "line": 173
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 166
+                    "line": 173
                   },
                   "literal": {
                     "enum": {
@@ -14704,7 +14704,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 166
+                "line": 173
               },
               "literal": {
                 "text": ""
@@ -14718,7 +14718,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.timeOut",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 174
+      "line": 181
     },
     "params": [ {
       "name": "s",
@@ -14728,26 +14728,26 @@
     }, {
       "name": "t",
       "type": {
-        "named": "temporal.features.standaloneactivity.TimeoutType"
+        "named": "temporal.features.standaloneactivity.system.TimeoutType"
       }
     } ],
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 175
+        "line": 182
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 175
+            "line": 182
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -14758,13 +14758,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 175
+                "line": 182
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 175
+                    "line": 182
                   },
                   "var": "s"
                 },
@@ -14773,7 +14773,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 175
+                      "line": 182
                     },
                     "literal": {
                       "enum": {
@@ -14787,13 +14787,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 175
+                "line": 182
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 175
+                    "line": 182
                   },
                   "construct": {
                     "type": "temporal.features.standaloneactivity.system.Fact",
@@ -14801,7 +14801,7 @@
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                        "line": 175
+                        "line": 182
                       },
                       "var": "t"
                     } ]
@@ -14811,7 +14811,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 175
+                "line": 182
               },
               "literal": {
                 "text": ""
@@ -14825,7 +14825,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.effects$.withdrawPause",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 161
+      "line": 168
     },
     "params": [ {
       "name": "s",
@@ -14836,20 +14836,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 161
+        "line": 168
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 161
+            "line": 168
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-                "line": 133
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -14860,13 +14860,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 161
+                "line": 168
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 161
+                    "line": 168
                   },
                   "var": "s"
                 },
@@ -14875,7 +14875,7 @@
                   "value": {
                     "position": {
                       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                      "line": 161
+                      "line": 168
                     },
                     "literal": {
                       "enum": {
@@ -14889,13 +14889,13 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 161
+                "line": 168
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 161
+                    "line": 168
                   },
                   "literal": {
                     "enum": {
@@ -14908,7 +14908,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 161
+                "line": 168
               },
               "literal": {
                 "text": ""
@@ -14922,7 +14922,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.refinement$.toProduct",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 90
+      "line": 97
     },
     "params": [ {
       "name": "s",
@@ -14933,19 +14933,19 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 90
+        "line": 97
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 90
+            "line": 97
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 90
+                "line": 97
               },
               "var": "s"
             },
@@ -14982,14 +14982,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 92
+              "line": 99
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 92
+                  "line": 99
                 },
                 "literal": {
                   "enum": {
@@ -15023,14 +15023,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 93
+              "line": 100
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 93
+                  "line": 100
                 },
                 "literal": {
                   "enum": {
@@ -15053,14 +15053,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 94
+              "line": 101
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 94
+                  "line": 101
                 },
                 "literal": {
                   "enum": {
@@ -15083,14 +15083,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 95
+              "line": 102
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 95
+                  "line": 102
                 },
                 "literal": {
                   "enum": {
@@ -15113,14 +15113,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 96
+              "line": 103
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 96
+                  "line": 103
                 },
                 "literal": {
                   "enum": {
@@ -15143,14 +15143,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 97
+              "line": 104
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 97
+                  "line": 104
                 },
                 "literal": {
                   "enum": {
@@ -15173,14 +15173,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 98
+              "line": 105
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 98
+                  "line": 105
                 },
                 "literal": {
                   "enum": {
@@ -15203,14 +15203,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 99
+              "line": 106
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 99
+                  "line": 106
                 },
                 "literal": {
                   "enum": {
@@ -15233,14 +15233,14 @@
           "body": {
             "position": {
               "file": "model/temporal/features/standaloneactivity/system/System.scala",
-              "line": 100
+              "line": 107
             },
             "construct": {
               "type": "temporal.features.standaloneactivity.product.State",
               "args": [ {
                 "position": {
                   "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                  "line": 100
+                  "line": 107
                 },
                 "literal": {
                   "enum": {
@@ -15256,6 +15256,278 @@
     }
   }, {
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.held",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 83
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 83
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 83
+          },
+          "var": "p"
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 83
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 83
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "started"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 83
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "pauseRequested"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 83
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "cancelRequested"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 79
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "temporal.features.standaloneactivity.system.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 80
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 80
+          },
+          "var": "p"
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 80
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 80
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 80
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "backingOff"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 80
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "started"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 80
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "paused"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 80
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "pauseRequested"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 80
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.standaloneactivity.system.Phase",
+                  "case": "cancelRequested"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.saturatingSucc",
+    "position": {
+      "file": "model/temporal/features/standaloneactivity/system/System.scala",
+      "line": 88
+    },
+    "params": [ {
+      "name": "a",
+      "type": {
+        "intRange": {
+          "high": "2"
+        }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/standaloneactivity/system/System.scala",
+        "line": 88
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 88
+          },
+          "binary": {
+            "op": "OP_LE",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 88
+              },
+              "binary": {
+                "op": "OP_ADD",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 88
+                  },
+                  "var": "a"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                    "line": 88
+                  },
+                  "literal": {
+                    "int": "1"
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 74
+              },
+              "literal": {
+                "int": "2"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 88
+          },
+          "binary": {
+            "op": "OP_ADD",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 88
+              },
+              "var": "a"
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/standaloneactivity/system/System.scala",
+                "line": 88
+              },
+              "literal": {
+                "int": "1"
+              }
+            }
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/features/standaloneactivity/system/System.scala",
+            "line": 74
+          },
+          "literal": {
+            "int": "2"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
       "line": 76
@@ -15294,285 +15566,13 @@
               "literal": {
                 "enum": {
                   "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "started"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 76
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "pauseRequested"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 76
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "cancelRequested"
-                }
-              }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.live",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 72
-    },
-    "params": [ {
-      "name": "p",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.Phase"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 73
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 73
-          },
-          "var": "p"
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 73
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 73
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "scheduled"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 73
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "backingOff"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 73
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "started"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 73
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "paused"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 73
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "pauseRequested"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 73
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
-                  "case": "cancelRequested"
-                }
-              }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.saturatingSucc",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 81
-    },
-    "params": [ {
-      "name": "a",
-      "type": {
-        "intRange": {
-          "high": "2"
-        }
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 81
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 81
-          },
-          "binary": {
-            "op": "OP_LE",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 81
-              },
-              "binary": {
-                "op": "OP_ADD",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 81
-                  },
-                  "var": "a"
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 81
-                  },
-                  "literal": {
-                    "int": "1"
-                  }
-                }
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 67
-              },
-              "literal": {
-                "int": "2"
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 81
-          },
-          "binary": {
-            "op": "OP_ADD",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 81
-              },
-              "var": "a"
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 81
-              },
-              "literal": {
-                "int": "1"
-              }
-            }
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 67
-          },
-          "literal": {
-            "int": "2"
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
-    "position": {
-      "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 69
-    },
-    "params": [ {
-      "name": "p",
-      "type": {
-        "named": "temporal.features.standaloneactivity.system.Phase"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 69
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 69
-          },
-          "var": "p"
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 69
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 69
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.standaloneactivity.system.Phase",
                   "case": "completed"
                 }
               }
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 69
+                "line": 76
               },
               "literal": {
                 "enum": {
@@ -15583,7 +15583,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 69
+                "line": 76
               },
               "literal": {
                 "enum": {
@@ -15594,7 +15594,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 69
+                "line": 76
               },
               "literal": {
                 "enum": {
@@ -15605,7 +15605,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 69
+                "line": 76
               },
               "literal": {
                 "enum": {
@@ -15622,7 +15622,7 @@
     "name": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.waiting",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 79
+      "line": 86
     },
     "params": [ {
       "name": "p",
@@ -15633,27 +15633,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 79
+        "line": 86
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 79
+            "line": 86
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 79
+            "line": 86
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 79
+                "line": 86
               },
               "literal": {
                 "enum": {
@@ -15664,7 +15664,7 @@
             }, {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 79
+                "line": 86
               },
               "literal": {
                 "enum": {
@@ -19413,7 +19413,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
                   "case": "scheduleToClose"
                 }
               }
@@ -19472,7 +19472,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.features.standaloneactivity.TimeoutType",
+                  "type": "temporal.features.standaloneactivity.system.TimeoutType",
                   "case": "scheduleToStart"
                 }
               }
@@ -20843,7 +20843,7 @@
     "name": "control",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 92
+      "line": 86
     },
     "actor": "client",
     "inputs": [ {
@@ -20860,7 +20860,7 @@
     "name": "start",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 83
+      "line": 77
     },
     "actor": "client",
     "inputs": [ {
@@ -20886,7 +20886,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 125
+      "line": 119
     },
     "actor": "system",
     "timer": true
@@ -20895,7 +20895,7 @@
     "name": "scheduleToStart",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 126
+      "line": 120
     },
     "actor": "system",
     "timer": true
@@ -20904,7 +20904,7 @@
     "name": "startToClose",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 127
+      "line": 121
     },
     "actor": "system",
     "timer": true
@@ -20931,7 +20931,7 @@
     "name": "backoff",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 121
+      "line": 115
     },
     "actor": "system",
     "timer": true
@@ -20940,7 +20940,7 @@
     "name": "timeout",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 120
+      "line": 114
     },
     "actor": "system",
     "timer": true
@@ -20949,7 +20949,7 @@
     "name": "poll",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 107
+      "line": 101
     },
     "actor": "worker",
     "on": "activity",
@@ -20959,7 +20959,7 @@
     "name": "respond",
     "position": {
       "file": "model/temporal/features/standaloneactivity/StandaloneActivity.scala",
-      "line": 109
+      "line": 103
     },
     "actor": "worker",
     "inputs": [ {
@@ -21331,7 +21331,7 @@
     "name": "activitySystem",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 45
+      "line": 52
     },
     "entity": "activity",
     "stateType": "temporal.features.standaloneactivity.system.State",
@@ -21340,14 +21340,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 49
+        "line": 56
       },
       "construct": {
         "type": "temporal.features.standaloneactivity.system.State",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 50
+            "line": 57
           },
           "literal": {
             "enum": {
@@ -21358,7 +21358,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 51
+            "line": 58
           },
           "literal": {
             "int": "0"
@@ -21366,7 +21366,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 52
+            "line": 59
           },
           "literal": {
             "enum": {
@@ -21377,7 +21377,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 53
+            "line": 60
           },
           "literal": {
             "enum": {
@@ -21388,7 +21388,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 54
+            "line": 61
           },
           "literal": {
             "enum": {
@@ -21402,7 +21402,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 56
+        "line": 63
       },
       "lambda": {
         "params": [ {
@@ -21414,20 +21414,20 @@
         "body": {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 56
+            "line": 63
           },
           "call": {
             "function": "temporal.features.standaloneactivity.system.ActivitySystem$.states$.terminal",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                "line": 56
+                "line": 63
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/standaloneactivity/system/System.scala",
-                    "line": 56
+                    "line": 63
                   },
                   "var": "s"
                 },
@@ -21443,63 +21443,63 @@
       "function": "activitySystem.rules.start",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 178
+        "line": 185
       }
     }, {
       "action": "temporal.features.standaloneactivity.worker.poll",
       "function": "activitySystem.rules.poll",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 179
+        "line": 186
       }
     }, {
       "action": "temporal.features.standaloneactivity.worker.respond",
       "function": "activitySystem.rules.respond",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 184
+        "line": 191
       }
     }, {
       "action": "temporal.features.standaloneactivity.client.control",
       "function": "activitySystem.rules.control",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 200
+        "line": 207
       }
     }, {
       "action": "temporal.shared.worker.worker.stop",
       "function": "activitySystem.rules.stop",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 211
+        "line": 218
       }
     }, {
       "action": "temporal.features.standaloneactivity.timers.backoff",
       "function": "activitySystem.rules.backoff",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 212
+        "line": 219
       }
     }, {
       "action": "temporal.features.standaloneactivity.deadline.scheduleToClose",
       "function": "activitySystem.rules.scheduleToClose",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 213
+        "line": 220
       }
     }, {
       "action": "temporal.features.standaloneactivity.deadline.scheduleToStart",
       "function": "activitySystem.rules.scheduleToStart",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 219
+        "line": 226
       }
     }, {
       "action": "temporal.features.standaloneactivity.deadline.startToClose",
       "function": "activitySystem.rules.startToClose",
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 225
+        "line": 232
       }
     } ],
     "evidence": "activitySystem.evidence",
@@ -23476,7 +23476,7 @@
     "name": "scheduleToCloseFires",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 285
+      "line": 292
     },
     "whenClass": {
       "action": "temporal.features.standaloneactivity.deadline.scheduleToClose"
@@ -23487,7 +23487,7 @@
     "name": "scheduleToStartFires",
     "position": {
       "file": "model/temporal/features/standaloneactivity/system/System.scala",
-      "line": 280
+      "line": 287
     },
     "whenClass": {
       "action": "temporal.features.standaloneactivity.deadline.scheduleToStart"
@@ -24387,14 +24387,14 @@
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 49
+        "line": 56
       },
       "construct": {
         "type": "temporal.features.standaloneactivity.system.State",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 50
+            "line": 57
           },
           "literal": {
             "enum": {
@@ -24405,7 +24405,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 51
+            "line": 58
           },
           "literal": {
             "int": "0"
@@ -24413,7 +24413,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 52
+            "line": 59
           },
           "literal": {
             "enum": {
@@ -24424,7 +24424,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 53
+            "line": 60
           },
           "literal": {
             "enum": {
@@ -24435,7 +24435,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 54
+            "line": 61
           },
           "literal": {
             "enum": {
@@ -24477,14 +24477,14 @@
     "start": {
       "position": {
         "file": "model/temporal/features/standaloneactivity/system/System.scala",
-        "line": 49
+        "line": 56
       },
       "construct": {
         "type": "temporal.features.standaloneactivity.system.State",
         "args": [ {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 50
+            "line": 57
           },
           "literal": {
             "enum": {
@@ -24495,7 +24495,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 51
+            "line": 58
           },
           "literal": {
             "int": "0"
@@ -24503,7 +24503,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 52
+            "line": 59
           },
           "literal": {
             "enum": {
@@ -24514,7 +24514,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 53
+            "line": 60
           },
           "literal": {
             "enum": {
@@ -24525,7 +24525,7 @@
         }, {
           "position": {
             "file": "model/temporal/features/standaloneactivity/system/System.scala",
-            "line": 54
+            "line": 61
           },
           "literal": {
             "enum": {

@@ -1908,6 +1908,24 @@ class Fixtures extends munit.FunSuite:
         s"lift: ${at}reservoir/Reservoir.scala:21: SystemFact is System level vocabulary " +
           "declared in reservoir's root feature file: declare it as Fact in " +
           "system/System.scala",
+        s"lift: ${at}reservoir/product/Product.scala:6: ReservoirProduct is reservoir's Product " +
+          "machine, but product/Product.scala declares no Fact: each level owns Phase, State and " +
+          "Fact in its level file",
+        s"lift: ${at}reservoir/product/Product.scala:6: ReservoirProduct is reservoir's Product " +
+          "machine, but product/Product.scala declares no Phase: each level owns Phase, State " +
+          "and Fact in its level file",
+        s"lift: ${at}reservoir/product/Product.scala:6: ReservoirProduct is reservoir's Product " +
+          "machine, but product/Product.scala declares no State: each level owns Phase, State " +
+          "and Fact in its level file",
+        s"lift: ${at}reservoir/system/System.scala:7: ReservoirSystem is reservoir's System " +
+          "machine, but system/System.scala declares no Fact: each level owns Phase, State and " +
+          "Fact in its level file",
+        s"lift: ${at}reservoir/system/System.scala:7: ReservoirSystem is reservoir's System " +
+          "machine, but system/System.scala declares no Phase: each level owns Phase, State and " +
+          "Fact in its level file",
+        s"lift: ${at}reservoir/system/System.scala:7: ReservoirSystem is reservoir's System " +
+          "machine, but system/System.scala declares no State: each level owns Phase, State and " +
+          "Fact in its level file",
         s"lift: ${at}urn/system/System.scala:6: UrnSystem is the System machine in urn's " +
           "system/System.scala but does not refine UrnProduct from product/Product.scala"
       )

@@ -13,8 +13,9 @@
  *     actions, the derived observation, the timers and the bounds); and last exports, its IR files;
  *   - product/Product.scala: Product Phase, State and Fact; NexusProduct, the product machine, what
  *     an operation does;
- *   - system/System.scala: System Phase, State and Fact; NexusSystem, the System machine that
- *     refines it; HandlerWorker, the handler's worker; and NexusCaller, the System with that worker;
+ *   - system/System.scala: System Phase, State, Fact, timer and composition types; NexusSystem, the
+ *     System machine that refines it; HandlerWorker, the handler's worker; and NexusCaller, the
+ *     System with that worker;
  *   - system/TrustingCaller.scala: TrustingCaller, the forged control a caller must refuse;
  *   - system/ClosePolicy.scala: the close and reset designs.
  *
@@ -27,7 +28,6 @@ package features.nexuscaller
 import umpire.*
 import io.temporal.api.command.v1.ScheduleNexusOperationCommandAttributes
 import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
-import shared.worker.State as WorkerState
 import product.NexusProduct
 import system.{HandlerWorker, NexusCaller, NexusSystem, TrustingCaller}
 
@@ -56,15 +56,6 @@ enum Resolution derives Finite:
  */
 enum Outcome derives Finite:
   case accepted, notFound
-
-/**
- * Which timer fired. The history event records it, so a Contract that did not check it would pass a
- * run that timed out on the wrong deadline.
- */
-enum TimeoutType derives Finite:
-  case scheduleToClose, scheduleToStart, startToClose
-
-final case class NexusCallerState(operation: system.State, worker: WorkerState)
 
 // ### Signature
 //

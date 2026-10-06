@@ -30,6 +30,13 @@ final case class State(
     startToClose: Timeout
 )
 
+/**
+ * Which timer fired. The history event records it, so a Contract that did not check it would pass a
+ * run that timed out on the wrong deadline.
+ */
+enum TimeoutType derives Finite:
+  case scheduleToClose, scheduleToStart, startToClose
+
 enum Fact derives Finite:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
@@ -38,6 +45,9 @@ enum Fact derives Finite:
 
   /** The attempt count, read through the observation of that name: no history event records it. */
   case pendingAttempts
+
+/** The System machine and its worker, as the Nexus caller composition holds them. */
+final case class NexusCallerState(operation: State, worker: WorkerState)
 
 /** The finite bound of the System's attempt count. */
 val attemptBound = 2

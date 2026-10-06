@@ -16,9 +16,9 @@
  *     last exports, its IR files;
  *   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
  *     what a client reads;
- *   - system/System.scala: System Phase, State and Fact; ActivitySystem, the System machine that
- *     refines it; ActivityWorker, the worker of its task queue; and StandaloneActivity, the System
- *     with that worker;
+ *   - system/System.scala: System Phase, State, Fact, timer and composition types; ActivitySystem,
+ *     the System machine that refines it; ActivityWorker, the worker of its task queue; and
+ *     StandaloneActivity, the System with that worker;
  *   - system/Record.scala: the history record of the activity, and its designs;
  *   - system/WithTaskQueue.scala: the contract's designs composed with the shared task queue.
  *
@@ -30,7 +30,7 @@ package temporal
 package features.standaloneactivity
 
 import umpire.*
-import shared.worker.{worker as process, State as WorkerState}
+import shared.worker.worker as process
 import io.temporal.api.workflowservice.v1.*
 import product.ActivityProduct
 import system.{ActivitySystem, StandaloneActivity}
@@ -53,12 +53,6 @@ enum Control derives Finite:
 /** A step's outcome, shared by both machines by name. */
 enum Outcome derives Finite:
   case accepted, notFound
-
-/** Which deadline fired. */
-enum TimeoutType derives Finite:
-  case scheduleToClose, scheduleToStart, startToClose
-
-final case class StandaloneActivityState(activity: system.State, worker: WorkerState)
 
 // ### Signature
 

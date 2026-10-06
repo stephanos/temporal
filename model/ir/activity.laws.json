@@ -55,7 +55,7 @@
       "requested": "temporal.features.standaloneactivity.system.Fact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/System.scala:313"
+    "position": "model/temporal/features/standaloneactivity/system/System.scala:320"
   }, {
     "machine": "activitySystem",
     "name": "activitySystem.terminateSettles",
@@ -69,7 +69,7 @@
       "settled": "temporal.features.standaloneactivity.system.Fact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/system/System.scala:307"
+    "position": "model/temporal/features/standaloneactivity/system/System.scala:314"
   } ],
   "waivers": [ ],
   "catalog": [ {

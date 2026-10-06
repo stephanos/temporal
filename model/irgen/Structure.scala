@@ -131,6 +131,10 @@ final private[irgen] class Structure(index: Index):
     c.exists && c.isClassDef && c.flags.is(Flags.Module) &&
       (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(compositionClass))
 
+  /** The state, outcome and fact arguments a machine supplies to `Machine`. */
+  private def machineArguments(c: ClassDef): List[TypeRepr] =
+    c.symbol.typeRef.baseType(machineClass).typeArgs
+
   private def plain(name: String) = name.stripSuffix("$")
 
   /** The objects written in an object's body, each a section or refused as none. */
@@ -322,6 +326,56 @@ final private[irgen] class Structure(index: Index):
           s"$written is level vocabulary declared in $name's root feature file: declare it in " +
             "product/Product.scala or system/System.scala"
         )
+
+      // Distinct Product and System state/fact types make the vocabulary level-owned rather than
+      // genuinely shared. Each canonical level file must then declare the complete local trio.
+      // Taskqueue deliberately keeps its cross-level QueueView/QueueDetail vocabulary in its root;
+      // that named exception does not exempt another two-level feature under `shared`.
+      val levelOwned =
+        pkg != "temporal.shared.taskqueue" && (for
+          product <- productDef
+          system <- systemDef
+        yield
+          val productArguments = machineArguments(product).map(_.dealias.typeSymbol)
+          val systemArguments = machineArguments(system).map(_.dealias.typeSymbol)
+          Seq(0, 2).exists(i => productArguments.lift(i) != systemArguments.lift(i))
+        ).getOrElse(false)
+      if levelOwned then
+        val vocabulary = Seq("Phase", "State", "Fact")
+        for
+          (level, folder, path, machine) <- Seq(
+            ("Product", "product", productPath, productDef),
+            ("System", "system", systemPath, systemDef)
+          )
+          source <- sources.find(_.path == path)
+          owner <- machine
+          owned <- vocabulary
+          if !source.top.exists(d =>
+            d.symbol.isType && !d.symbol.flags.is(Flags.Module) && plain(d.name) == owned
+          )
+        do
+          refuse(
+            owner,
+            s"${plain(owner.name)} is $name's $level machine, but $folder/${source.file} " +
+              s"declares no $owned: each level owns Phase, State and Fact in its level file"
+          )
+        for
+          (level, folder, path) <- Seq(
+            ("Product", "product", productPath),
+            ("System", "system", systemPath)
+          )
+          source <- sources
+          if source.sub == List(folder) && source.path != path
+          d <- source.top
+          if d.symbol.isType && !d.symbol.flags.is(Flags.Module)
+          written = plain(d.name)
+          if vocabulary.contains(written)
+        do
+          refuse(
+            d,
+            s"$written is $level level vocabulary declared in ${source.path}: declare it in " +
+              s"$folder/${path.drop(path.lastIndexOf('/') + 1)}"
+          )
 
     // (c): a machine's sections are named from a closed set, whatever they extend.
     for (_, c) <- forms; o <- nested(c) if !Structure.sections.contains(plain(o.name)) do

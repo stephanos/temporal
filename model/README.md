@@ -638,7 +638,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    fires: `in(…)` of phases or of a named set of them from `states`, `in(states.terminal)`;
    `where(g)` of the state; `in(…).where(g)`, a condition beyond the phase; or `always`. An effect
    that takes arguments beyond the state binds them in place, `~> (effects.timeOut(_,
-   TimeoutType.scheduleToClose))`. Where no case holds the action is disabled, and
+   system.TimeoutType.scheduleToClose))`. Where no case holds the action is disabled, and
    `disabled(process.stop)` binds an action no state enables. The cases of one action class
    hold in no common state: the rules object refuses an overlap as it is constructed, over every
    state and class, naming the machine, the class, both cases and a witness state, and the gate

@@ -32,12 +32,19 @@ final case class State(
     startToClose: Timeout
 ) derives Finite
 
+/** Which deadline fired. */
+enum TimeoutType derives Finite:
+  case scheduleToClose, scheduleToStart, startToClose
+
 /** What the System machine records; `attemptCount` is named after its observation. */
 enum Fact derives Finite:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated
   case statusTimedOut(timeoutType: TimeoutType)
   case attemptCount
+
+/** The System machine and its worker, as the standalone activity composition holds them. */
+final case class StandaloneActivityState(activity: State, worker: WorkerState)
 
 // ### The System machine adds the retry, the pause request, the timers and the attempt count. It
 // begins before the activity exists, so unstarted is a phase and the start sets the deadlines.
