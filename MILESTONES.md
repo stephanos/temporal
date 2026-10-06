@@ -196,6 +196,14 @@ Gate: after the DSL batch closes. Mechanical move: the task queue goes to `found
 | --- | --- | --- |
 | fn-142.1 | ⬜ todo | Move, regenerate, paths-only proof, docs |
 
+### fn-143: Rename `model/umpire` to `model/framework`
+
+Gate: after fn-142. Folder and package both become `framework`; product names (`tools/umpire`, `umpire-*` targets, `umpire.v1`) stay. The IR differs only in paths and positions.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-143.1 | ⬜ todo | Move, rename the package, regenerate, paths-only proof, docs |
+
 ## Deferred
 
 Specs the owner deferred as not needed for the current code deliverable (the DSL and its execution).

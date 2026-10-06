@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-143-rename-modelumpire-to-modelframework",
+  "created_at": "2026-10-06T22:04:14.815437Z",
+  "depends_on_epics": [],
+  "id": "fn-143-rename-modelumpire-to-modelframework",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-143-rename-modelumpire-to-modelframework.md",
+  "status": "open",
+  "title": "Rename model/umpire to model/framework",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-06T22:04:14.818803Z"
+}
