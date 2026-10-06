@@ -700,7 +700,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-132-group-the-nexus-and-activity-models-by.md",
-  "status": "open",
+  "status": "done",
   "title": "Group the Nexus and activity Models by kind: workflow and standalone",
   "tracker": {
     "baseHashFlow": null,
@@ -713,5 +713,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T19:36:44.682698Z"
+  "updated_at": "2026-10-06T19:37:09.171844Z"
 }

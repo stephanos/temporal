@@ -12,7 +12,7 @@
   "priority": 60,
   "spec": "fn-132-group-the-nexus-and-activity-models-by",
   "spec_path": ".flow/tasks/fn-132-group-the-nexus-and-activity-models-by.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "General activity declarations in activity/Activity.scala",
   "updated_at": "2026-10-06T09:30:31.228080Z"
 }

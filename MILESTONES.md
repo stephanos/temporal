@@ -70,7 +70,7 @@ cross-spec gates the conductor holds.
 
 ### DSL batch
 
-After fn-132 closes, the DSL work of fn-133, fn-134, fn-135, fn-136, fn-137 and fn-139 runs as one batch
+fn-132 closed 2026-10-06 (commit 96de1fd92d is its tree). The DSL work of fn-133, fn-134, fn-135, fn-136, fn-137 and fn-139 runs as one batch
 instead of one regeneration per task. Tasks write and commit their Scala in the order below, with no
 `make umpire-gen-model` and no full gates in between. The tree may be red between tasks. The batch then
 regenerates once, checks the diff, and runs the full Go suite, the model gate and reviews once. Batched
@@ -82,7 +82,7 @@ the activity says (fn-128, fn-138, fn-129) is deferred until the batch closes.
   commit, so an unexplained difference can be bisected with `make umpire-gen-model`; prefer leaving the
   tree compiling so bisection can test each commit. No regeneration of any kind runs during the batch,
   so each spec's single-regeneration rule (fn-134.3, fn-135.4) becomes the batch's regeneration.
-- **The diff check.** Baseline: the tree at fn-132's close. The expected IR change is the union of the
+- **The diff check.** Baseline: the tree at fn-132's close, `96de1fd92d`. The expected IR change is the union of the
   deltas the tasks declare: source positions; fn-133.3, .5 and .6 renames and ID map, fn-133.4's listed new
   Cases and fn-133.8's carrier metadata; fn-134's `origin` and the deleted `*.laws.json`; fn-135's `status`;
   fn-136.5's inlined Functions; fn-137.6's removed `states.terminal` Functions and fn-137.7's
@@ -104,21 +104,6 @@ the activity says (fn-128, fn-138, fn-129) is deferred until the batch closes.
   5. Gates: the full Go suite, the model gate and reviews once, then one live run for fn-133.4's new Cases
      and fn-139.8's conformance check. Close fn-133 (task 7), fn-134, fn-135, fn-136, fn-137 and fn-139
      after it.
-
-### fn-132: Group the Nexus and activity Models by kind: workflow and standalone
-
-Gate: starts after fn-126 and fn-124 close; closes before the DSL batch starts, and its close is the batch's baseline. Source grouping first; tasks 1 and 2 never run at the same time. Focused checks per checkpoint, shared full validation after both Part A moves. Tasks 5 and 6 keep their own regeneration and proof.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-132.8 | ✅ done | Kind/form source grouping admitted before either move; unchanged-tree proof |
-| fn-132.1 | ✅ done | `features/nexus/workflow` and `features/nexus/standalone`; all four export stems moved, exact identity proof and focused checks passed; broad Part A gates at task 2 |
-| fn-132.2 | ✅ done | `features/activity/standalone`; three form-owned export stems; exact move proof, closing Part A gates and SHIP; inherited matching worker-stop live exception retained |
-| fn-132.3 | ✅ done | Existing kind classifier retained; three exact-line R4 refusal fixtures, current-tree layout and docs, unchanged-artifact proof and SHIP |
-| fn-132.4 | ✅ done | Proved canonical action bindings, outcome catalogs and visible terminal carriers |
-| fn-132.5 | ✅ done | Shared kind Product/signature and both refinements; complete finite artifact/Case proof, current affected checks and SHIP; remaining Part B/C closing at task 6 |
-| fn-132.6 | ⬜ todo | General activity declarations in `activity/Activity.scala` |
-| fn-132.7 | ⬜ todo | Close |
 
 ### fn-133: Lean, typed realizations
 
@@ -150,7 +135,7 @@ Gate: the DSL batch; closes before fn-131 starts. Source: owner conversation, 20
 
 ### fn-135: `effect { }` and `is { }` blocks for effects and predicates
 
-Gate: the DSL batch (needs fn-132.6's moved activity declarations). Tasks run in order. Task 4's comparison takes the batch baseline. Amended 2026-10-06: `ActivityProduct`'s phase cases declare their status facts (R8–R10). Parked: renaming `Phase` to `Status` across every machine.
+Gate: the DSL batch. Tasks run in order. Task 4's comparison takes the batch baseline. Amended 2026-10-06: `ActivityProduct`'s phase cases declare their status facts (R8–R10). Parked: renaming `Phase` to `Status` across every machine.
 
 | Task | Status | What |
 | --- | --- | --- |

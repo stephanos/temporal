@@ -10,7 +10,7 @@
   "priority": 10,
   "spec": "fn-132-group-the-nexus-and-activity-models-by",
   "spec_path": ".flow/tasks/fn-132-group-the-nexus-and-activity-models-by.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Nexus forms move under features/nexus/: workflow and standalone",
   "updated_at": "2026-10-06T11:44:30.475169Z"
 }
