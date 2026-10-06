@@ -5,7 +5,7 @@ satisfies: [R1]
 
 ## Description
 **Size:** M
-**Touches:** [model/temporal/features/standaloneactivity/**, model/temporal/features/activity/**, model/ir/**, model/cases/**, tools/umpire/**, common/testing/testpilot/**, tools/canary/**, tests/*.go, tests/testcore/testpilot/**, Makefile, model/README.md, .plans/UMPIRE_MODULES.md, .plans/ACTIVITY_MODEL_COMPARISON.md, MILESTONES.md]
+**Touches:** [model/temporal/features/standaloneactivity/**, model/temporal/features/activity/**, model/ir/**, model/cases/**, tools/umpire/**, common/testing/testpilot/**, tools/canary/**, tests/*.go, tests/testcore/testpilot/**, Makefile, model/temporal/IrFiles.test.scala, model/temporal/capabilities/Catalog.test.scala, model/README.md, model/SEMANTICS.md, .plans/UMPIRE_MODULES.md, .plans/ACTIVITY_MODEL_COMPARISON.md, MILESTONES.md]
 
 **Required investigation:** current activity feature/product/system trees; `tools/umpire/ir/layout_test.go:454`; current split-reader projection helper; fn-128/fn-129 via flowctl. Update downstream Flow prose only through flowctl. Preserve local product/system Phase/State/Fact and actual `client`/`activity` identities; no semantic renames beyond the package/file map.
 
@@ -14,7 +14,6 @@ Part A for the activity. Move `features/standaloneactivity` to `features/activit
 Rename the IR files to match (`activity` → `activity-standalone`, and the system-level files likewise); fix the exact names here and record them. Update every reference: Go `tools/umpire`, Makefile targets, Case trees, canary, docs, and the paths in the fn-128 and fn-129 specs and `.plans/ACTIVITY_MODEL_COMPARISON.md`.
 
 Independent of task 1; the two may run in either order but not at the same time (both regenerate `model/ir`).
-
 ## Acceptance
 - [ ] `features/activity/standalone` exists with the spec's layout; `features/standaloneactivity` does not.
 - [ ] A before/after projection with the path and IR-file-name map applied is identical.

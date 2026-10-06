@@ -5,7 +5,7 @@ satisfies: [R1]
 
 ## Description
 **Size:** M
-**Touches:** [model/temporal/features/nexuscaller/**, model/temporal/features/nexusoperation/**, model/temporal/features/nexus/**, model/ir/**, model/cases/**, tools/umpire/**, common/testing/testpilot/**, tools/canary/**, tests/*.go, tests/testcore/testpilot/**, Makefile, model/check/Gate.scala, model/check/test/Gate.test.scala, model/README.md, .plans/UMPIRE_MODULES.md, MILESTONES.md]
+**Touches:** [model/temporal/features/nexuscaller/**, model/temporal/features/nexusoperation/**, model/temporal/features/nexus/**, model/ir/**, model/cases/**, tools/umpire/**, common/testing/testpilot/**, tools/canary/**, tests/*.go, tests/testcore/testpilot/**, Makefile, model/check/Gate.scala, model/check/test/Gate.test.scala, model/temporal/IrFiles.test.scala, model/temporal/capabilities/Catalog.test.scala, model/README.md, .plans/UMPIRE_MODULES.md, MILESTONES.md]
 
 **Required investigation:** current Nexus trees and exports; `model/irgen/Structure.scala`; `tools/umpire/ir/layout_test.go`; `.flow/tmp/fn-126/tools/{run.sh,apply_map.py,compare.py,projtool/main.go}`; the separate Model-packaging commands in `Makefile` and `model/check/Gate.scala`.
 Adapt the ignored proof helper's retired `tools/umpire/model` imports to the current ir/interp/check/realization owners before collecting comparable baselines. Preserve Nexus's root realization files and `system/TrustingCaller.scala`. Use the prerequisite's kind classifier, not a validation bypass.
