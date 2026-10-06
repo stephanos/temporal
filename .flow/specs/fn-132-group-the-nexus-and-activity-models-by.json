@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-132-group-the-nexus-and-activity-models-by",
+  "created_at": "2026-10-06T00:04:45.755969Z",
+  "depends_on_epics": [
+    "fn-126-read-each-feature-top-to-bottom-one",
+    "fn-124-shrink-and-simplify-the-umpire-go"
+  ],
+  "id": "fn-132-group-the-nexus-and-activity-models-by",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-132-group-the-nexus-and-activity-models-by.md",
+  "status": "open",
+  "title": "Group the Nexus and activity Models by kind: workflow and standalone",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-06T09:31:44.795146Z"
+}

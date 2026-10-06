@@ -2,7 +2,9 @@
   "branch_name": "fn-128-close-the-activitys-precision-gaps",
   "created_at": "2026-10-05T20:40:53.951381Z",
   "depends_on_epics": [
-    "fn-126-read-each-feature-top-to-bottom-one"
+    "fn-126-read-each-feature-top-to-bottom-one",
+    "fn-132-group-the-nexus-and-activity-models-by",
+    "fn-133-lean-typed-realizations"
   ],
   "id": "fn-128-close-the-activitys-precision-gaps",
   "next_task": 1,
@@ -22,5 +24,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T20:41:06.666862Z"
+  "updated_at": "2026-10-06T09:30:00.596717Z"
 }

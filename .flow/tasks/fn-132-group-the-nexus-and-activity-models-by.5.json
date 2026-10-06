@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T00:13:39.461445Z",
+  "depends_on": [
+    "fn-132-group-the-nexus-and-activity-models-by.3",
+    "fn-132-group-the-nexus-and-activity-models-by.4"
+  ],
+  "id": "fn-132-group-the-nexus-and-activity-models-by.5",
+  "priority": 50,
+  "spec": "fn-132-group-the-nexus-and-activity-models-by",
+  "spec_path": ".flow/tasks/fn-132-group-the-nexus-and-activity-models-by.5.md",
+  "status": "todo",
+  "title": "One NexusProduct that both Nexus forms refine",
+  "updated_at": "2026-10-06T09:30:30.987610Z"
+}

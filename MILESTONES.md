@@ -72,10 +72,11 @@ cross-spec gates the conductor holds.
 
 ### fn-132: Group the Nexus and activity Models by kind: workflow and standalone
 
-Gate: starts after fn-126 closes; closes before fn-128 starts. Tasks 1 and 2 never run at the same time.
+Gate: starts after fn-126 and fn-124 close; closes before fn-128 starts. Source grouping first; tasks 1 and 2 never run at the same time. Focused checks per checkpoint, shared full validation after both Part A moves.
 
 | Task | Status | What |
 | --- | --- | --- |
+| fn-132.8 | ⬜ todo | Kind/form source grouping admitted before either move; unchanged-tree proof |
 | fn-132.1 | ⬜ todo | `nexuscaller` → `features/nexus/workflow`, `nexusoperation` → `features/nexus/standalone`; IR files renamed |
 | fn-132.2 | ⬜ todo | `standaloneactivity` → `features/activity/standalone`; IR files renamed; fn-128/fn-129 paths |
 | fn-132.3 | ⬜ todo | Structure lint and docs learn the kind level |

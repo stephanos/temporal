@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T00:13:39.461513Z",
+  "depends_on": [
+    "fn-132-group-the-nexus-and-activity-models-by.5",
+    "fn-132-group-the-nexus-and-activity-models-by.6"
+  ],
+  "id": "fn-132-group-the-nexus-and-activity-models-by.7",
+  "priority": 70,
+  "spec": "fn-132-group-the-nexus-and-activity-models-by",
+  "spec_path": ".flow/tasks/fn-132-group-the-nexus-and-activity-models-by.7.md",
+  "status": "todo",
+  "title": "Close: requirement check, MILESTONES, spec",
+  "updated_at": "2026-10-06T09:30:31.469427Z"
+}

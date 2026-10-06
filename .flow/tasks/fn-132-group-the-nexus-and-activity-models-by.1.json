@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T00:13:39.461051Z",
+  "depends_on": [
+    "fn-132-group-the-nexus-and-activity-models-by.8"
+  ],
+  "id": "fn-132-group-the-nexus-and-activity-models-by.1",
+  "priority": 10,
+  "spec": "fn-132-group-the-nexus-and-activity-models-by",
+  "spec_path": ".flow/tasks/fn-132-group-the-nexus-and-activity-models-by.1.md",
+  "status": "todo",
+  "title": "Nexus forms move under features/nexus/: workflow and standalone",
+  "updated_at": "2026-10-06T09:30:30.002923Z"
+}
