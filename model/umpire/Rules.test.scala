@@ -127,6 +127,20 @@ object RulesFixture:
   object Rephased
       extends Derived(PhasedLamp.rebind(hand.press ~> Switch.effects.wear)),
         Phased[Lamp, Lit](_.light)
+  // The lamp on the shared outcomes: a press of a lit lamp is rejected with the server's reason,
+  // and of a broken one as not found.
+  object Guarded extends Machine[Lamp, outcomes.Outcome, Nothing]:
+    import outcomes.Rejection
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object effects:
+      def light(s: Lamp) = enter[Lamp, Outcome, Nothing](s.copy(light = Lit.on))
+    object rules extends Rules(_.light):
+      on(hand.press) {
+        in(Lit.off) ~> effects.light
+        in(Lit.on) ~> rejects(Rejection.failedPrecondition).because("the lamp is lit")
+        in(Lit.broken) ~> rejects(Rejection.notFound)
+      }
 
   final case class Pair(left: Lamp, right: Lamp)
 
@@ -313,6 +327,34 @@ class RulesTest extends munit.FunSuite:
     assertEquals(Odd.members, Vector(Switch, Unfelt, Stuck))
     // Built directly, so the IR files the gate holds model/ir to stay the Models' own.
     IrFile("rules-test", Seq(Odd, Switch)).construct(): Unit
+  }
+
+  test("a rejects row keeps the state and answers rejected, with its reason where one is given") {
+    import outcomes.{Outcome, Rejection}
+    type Answered = Lamp => List[Step[Lamp, Outcome, Nothing]]
+    val pressed =
+      Guarded.bindings.head.function
+        .asInstanceOf[Answered] // scalafix:ok DisableSyntax.asInstanceOf
+    val broken = Lamp(Lit.broken, UpTo(0))
+    assertEquals(
+      pressed(off),
+      List(Step[Lamp, Outcome, Nothing](Outcome.accepted, lit.copy(presses = UpTo(0))))
+    )
+    assertEquals(
+      pressed(lit),
+      List(
+        Step[Lamp, Outcome, Nothing](
+          Outcome.rejected(Rejection.failedPrecondition),
+          lit,
+          Nil,
+          "the lamp is lit"
+        )
+      )
+    )
+    assertEquals(
+      pressed(broken),
+      List(Step[Lamp, Outcome, Nothing](Outcome.rejected(Rejection.notFound), broken))
+    )
   }
 
   test("a rule names its action as written") {

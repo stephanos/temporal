@@ -191,6 +191,10 @@ class Fixtures extends munit.FunSuite:
       "fixture.rules.Switch$.queries$.pressing",
       "fixture.rules.Switch$.queries$.wornOut"
     )),
+    // fn-139.1: machines on the shared outcomes, `rejects` beside its core spelling, a refinement
+    // and a capability's `rejected` (lifts/Rejections.scala).
+    "rejections" -> (Seq("DoorProduct", "DoorSystem$.capabilities", "DoorSystem$.queries")
+      .map("fixture.rejections." + _)),
     "hintsRefused" -> Seq(
       "zeroInterval",
       "nonPositiveBound",
@@ -205,7 +209,7 @@ class Fixtures extends munit.FunSuite:
   private val sidecars: Seq[String] = Seq("capabilities")
   // fn-134.2: the fixtures whose capabilities sections write the waivers they state beside their
   // IR, which the model gate writes into the accepted findings.
-  private val waived: Seq[String] = Seq("capabilitySections")
+  private val waived: Seq[String] = Seq("capabilitySections", "rejections")
   // The refusals of fn-112.4's typed composition selectors, in lifts/Rejects.scala.
   private val selectorRejects: Seq[String] = Seq(
     "MemberNoField",
@@ -602,6 +606,8 @@ class Fixtures extends munit.FunSuite:
         "NamedInput.scala:30:31",
         "NoCatalog.scala:7:98",
         "OneChoice.scala:18:62",
+        "Rejections.scala:17:60",
+        "Rejections.scala:24:33",
         "Rules.scala:16:30",
         "Sections.scala:22:46",
         "Sections.scala:23:51",
@@ -1450,6 +1456,56 @@ class Fixtures extends munit.FunSuite:
     def cases(name: String) =
       model.path("types").elements().asScala.find(_.path("name").asText() == name).get.path("enum")
     assertEquals(cases("fixture.roles.Phase"), cases("fixture.roles.Bare"))
+  // fn-139.1: each step function of `DoorSystem`, whose rules reject with `rejects`, beside
+  // `DoorProduct`'s, whose rules name effects that spell `reject(Outcome.rejected(r), s)`: with each
+  // call of such an effect replaced by its body, and no names or positions, the two are one but for
+  // the explanation `because` gives (lifts/Rejections.scala).
+  test("rejects lifts as the reject of the shared rejected outcome, explained by its because"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val model = mapper.readTree(ir("rejections"))
+    val functions =
+      model.path("functions").elements().asScala.map(f => f.path("name").asText() -> f).toMap
+    val effects = "fixture.rejections.DoorProduct$.effects$."
+    // Each node without positions, and each call of a rejecting effect replaced by its body, whose
+    // parameter reads as the argument the call passes.
+    def spelled(n: JsonNode, vars: Map[String, JsonNode] = Map.empty): JsonNode =
+      val callee = n.path("call").path("function").asText()
+      if Seq("locked", "missing").exists(e => callee == effects + e) then
+        val f = functions(callee)
+        val param = f.path("params").get(0).path("name").asText()
+        spelled(f.path("body"), Map(param -> spelled(n.path("call").path("args").get(0), vars)))
+      else
+        n match
+          case o: ObjectNode if vars.contains(o.path("var").asText()) =>
+            vars(o.path("var").asText())
+          case o: ObjectNode =>
+            val copy = o.deepCopy[ObjectNode]()
+            copy.remove(java.util.List.of("position", "name"))
+            copy
+              .fields()
+              .asScala
+              .toList
+              .foreach(e => copy.set(e.getKey, spelled(e.getValue, vars)): Unit)
+            copy
+          case a: com.fasterxml.jackson.databind.node.ArrayNode =>
+            val copy = mapper.createArrayNode()
+            a.elements().asScala.foreach(e => copy.add(spelled(e, vars)))
+            copy
+          case other => other
+    def step(machine: String, action: String): String =
+      spelled(functions(s"$machine.rules.$action")).toPrettyString
+        .replace("DoorSystem$", "DoorProduct$")
+    val explained = "\"text\" : \"the door is locked\""
+    assert(step("doorSystem", "open").contains(explained), step("doorSystem", "open"))
+    assertEquals(
+      step("doorSystem", "open").replace(explained, "\"text\" : \"\""),
+      step("doorProduct", "open")
+    )
+    for action <- Seq("close", "ring") do
+      assertEquals(step("doorSystem", action), step("doorProduct", action), action)
+    assert(step("doorProduct", "ring").contains("\"case\" : \"rejected\""))
 
   // fn-112.9: the script helpers and the Temporal kit beside the core records they stand for, and
   // the kit's `field(_.name) :=` beside `Assignment.typed` (lifts/Scripts.scala).

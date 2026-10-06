@@ -13,6 +13,14 @@ import scala.util.NotGiven
 // `Outcome.accepted`, written in each `Step`.
 final case class Ok[O](outcome: O)
 
+// The ok outcomes the framework declares itself, in the implicit scope of every `Ok`: a Model's own
+// `given Ok` outranks them, and a machine on the shared outcomes declares none. Core form: the
+// given beside the outcome type, `given Ok[Outcome] = Ok(Outcome.accepted)`.
+object Ok:
+  // `accepted`, the ok outcome of the shared outcomes (`outcomes`). Core form:
+  // `given Ok[Outcome] = Ok(Outcome.accepted)`.
+  given Ok[outcomes.Outcome] = Ok(outcomes.Outcome.accepted)
+
 // One step with the ok outcome into `state`, recording `facts`. Core form:
 // `List(Step(Outcome.accepted, state, List(facts*)))`.
 def enter[S, O, F](state: S, facts: F*)(using ok: Ok[O]): List[Step[S, O, F]] =
@@ -29,6 +37,48 @@ def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(Step(outcom
 
 // No step: the action is disabled here. Core form: `Nil`.
 val disabled: List[Nothing] = Nil
+
+// The outcomes shared by every machine whose steps answer a request, accepted or rejected for a
+// reason, which a machine adopts by name, `import umpire.outcomes.{Outcome, Rejection}`, in place of
+// its own. `import umpire.*` does not open it, so a Model's own `Outcome` stays its own. Core form: a
+// machine's own outcome enum, `enum Outcome derives Finite: case accepted, notFound`.
+object outcomes:
+  // Why a request is rejected, loosely after the gRPC status codes a realization maps it to: the
+  // entity is not there (`notFound`), a create collides with one that is (`alreadyExists`), its
+  // state forbids the request (`failedPrecondition`), or the request is bad in every state
+  // (`invalidArgument`). Core form: a case of a machine's own outcome enum, `case notFound`.
+  enum Rejection derives Finite:
+    case notFound, alreadyExists, failedPrecondition, invalidArgument
+
+  // What a step answers: the request is accepted, or rejected for the reason it names. Core form: a
+  // machine's own outcome enum, `enum Outcome derives Finite: case accepted, notFound`.
+  enum Outcome derives Finite:
+    case accepted
+    case rejected(why: Rejection)
+
+// `when(...) ~> rejects(Rejection.notFound)`, in a rule of a machine on the shared outcomes: the
+// effect that keeps the state, records nothing and answers `rejected(why)`, and
+// `rejects(why).because("...")` the same effect with the server's explanation. Core form:
+// `reject(Outcome.rejected(Rejection.notFound), s)`.
+def rejects[S](why: outcomes.Rejection)(using
+    @implicitNotFound(
+      "rejects answers the shared umpire.outcomes.Outcome, so it is an effect of a rule, in an `on` " +
+        "block, of a machine on the shared outcomes: `import umpire.outcomes.{Outcome, Rejection}`"
+    ) @unused firing: Firing[S, outcomes.Outcome, ?, ?]
+): Rejects[S] = Rejects(why)
+
+// The effect `rejects(why)` writes: a function of the state alone, as every effect a rule names is.
+// Core form: `(s: S) => reject(Outcome.rejected(why), s)`.
+final class Rejects[S] private[umpire] (why: outcomes.Rejection)
+    extends (S => List[Step[S, outcomes.Outcome, Nothing]]):
+  def apply(s: S): List[Step[S, outcomes.Outcome, Nothing]] =
+    List(Step(outcomes.Outcome.rejected(why), s))
+
+  // The same effect, its step explained by `reason`, as the IR row's `because` carries it. It
+  // explains once: what it returns has no `because`. Core form:
+  // `reject(Outcome.rejected(why), s).because(reason)`.
+  def because(reason: String): S => List[Step[S, outcomes.Outcome, Nothing]] =
+    s => List(Step(outcomes.Outcome.rejected(why), s, Nil, reason))
 
 // The state an `is { }` or `effect { }` block reads its fields of, by the accessors its state type
 // declares, each of one shape: `def phase(using v: View[State]): Phase = v.get(_.phase)`.

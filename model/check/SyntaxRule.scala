@@ -46,6 +46,7 @@ private[check] object SyntaxRule:
     ":=",
     "field",
     "reject",
+    "rejects",
     "effect",
     "is",
     "record",

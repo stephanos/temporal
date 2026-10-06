@@ -279,6 +279,33 @@ private[irgen] trait Syntax:
         }
         val facts = recorded.flatten.map(_._2) ++ statuses
         list(Seq(step(outcome, entered, list(facts, at), text("", at), at)), at)
+  // Hook: a rule's effect written `rejects(why)` or `rejects(why).because(reason)`, lowered to the
+  // steps its core form lifts to from the state `state`, or None for any other effect. Core form:
+  // `rejects(why)` lifts as `reject(Outcome.rejected(why), s)` does,
+  // `List(Step(Outcome.rejected(why), s))`, and `rejects(why).because(reason)` gives that step the
+  // explanation `reason`.
+  def rejection(effect: Term, state: ir.Expr): Option[ir.Expr] =
+    val (rejects, reason) = unwrapped(effect) match
+      case Apply(sel @ Select(inner, "because"), List(r))
+          if sel.symbol.maybeOwner.fullName == "umpire.Rejects" =>
+        (unwrapped(inner), constString(r))
+      case other => (other, "")
+    sugarCall(rejects).collect { case ("rejects", List(List(why), _)) => why }.map { why =>
+      val rejected = sharedOutcome.children
+        .find(_.name == "rejected")
+        .getOrElse(fail(effect, "the shared Outcome has no case rejected"))
+      declareType(sharedOutcome, effect)
+      val outcome = expr(effect)(
+        E.Construct(
+          ir.Construct(
+            `type` = irTypeName(sharedOutcome),
+            `case` = rejected.name,
+            args = Seq(lift(why, fieldTypes(rejected).headOption.map(_._2)))
+          )
+        )
+      )
+      list(Seq(step(outcome, state, list(Nil, effect), text(reason, effect), effect)), effect)
+    }
 
   // Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:
   // none of its own; `classOf` asks it before it reads a positional call, as in
@@ -579,8 +606,20 @@ private[irgen] trait Syntax:
       .flatten
       .orElse(forwardedDef(x).flatMap(defPath))
 
-  // The outcome a `given Ok[O] = Ok(o)` names: `o`.
+  // The shared outcomes of the framework (umpire.outcomes), which no lifted source declares.
+  private lazy val sharedOutcome = Symbol.requiredClass("umpire.outcomes.Outcome")
+
+  // The outcome a `given Ok[O] = Ok(o)` names: `o`; for the shared outcomes, the framework's own
+  // given, `Outcome.accepted`.
   private def outcomeOf(ok: Term, form: String): ir.Expr =
+    val shared = ok match
+      case r: Ref
+          if resolveSymbol(r).maybeOwner == Symbol.requiredModule("umpire.Ok").moduleClass =>
+        Some(enumLiteral(sharedOutcome.companionModule.fieldMember("accepted"), ok))
+      case _ => None
+    shared.getOrElse(declaredOutcome(ok, form))
+
+  private def declaredOutcome(ok: Term, form: String): ir.Expr =
     val declared = ok match
       case r: Ref =>
         defs.get(resolveSymbol(r)) match

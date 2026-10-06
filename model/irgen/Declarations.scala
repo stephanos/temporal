@@ -676,7 +676,9 @@ private[irgen] trait Declarations:
       makingIn(true, "an effect")(giving(body.tpe)(lift(body)))
     def chain(rs: Seq[LiftedRule]): ir.Expr =
       rs.foldRight(list(Nil, at))((r, rest) =>
-        expr(r.at)(E.If(ir.If(Some(guard(r)), Some(effect(r)), Some(rest))))
+        val g = guard(r)
+        val arm = rejection(r.effect, stateVar(r.at)).getOrElse(effect(r))
+        expr(r.at)(E.If(ir.If(Some(g), Some(arm), Some(rest))))
       )
     def byInputs(i: Int, fixed: Seq[ir.Value]): ir.Expr =
       if i == a.inputs.size then chain(rules.filter(_.cls.forall(_ == fixed)))
