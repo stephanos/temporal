@@ -88,7 +88,7 @@ Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after 
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reader projection, not the harness); task 8 last, never alongside fn-126.
+Gates: task 9 after fn-126 closes; task 8 last, after task 9, never alongside fn-126.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -99,6 +99,7 @@ Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reade
 | fn-124.5 | ✅ done | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ✅ done | Model assessment as the command-line judge; Evaluation Profile derived or retired |
 | fn-124.7 | ✅ done | Migration harness and frozen snapshots retired |
+| fn-124.9 | ⬜ todo | P export retired (Quint covers its one monitor check first) |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
 ### fn-132: Group the Nexus and activity Models by kind: workflow and standalone

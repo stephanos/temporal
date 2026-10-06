@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-124-shrink-and-simplify-the-umpire-go.2",
     "fn-124-shrink-and-simplify-the-umpire-go.6",
-    "fn-124-shrink-and-simplify-the-umpire-go.7"
+    "fn-124-shrink-and-simplify-the-umpire-go.7",
+    "fn-124-shrink-and-simplify-the-umpire-go.9"
   ],
   "id": "fn-124-shrink-and-simplify-the-umpire-go.8",
   "priority": null,
