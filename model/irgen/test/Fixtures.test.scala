@@ -1878,11 +1878,19 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       refused(result),
       Seq(
+        s"lift: ${at}boiler/product/Product.scala:6: BoilerContract is the Product machine in " +
+          "boiler's product/Product.scala: name it BoilerProduct, after the feature and its " +
+          "Product level",
+        s"lift: ${at}boiler/system/System.scala:7: BoilerImplementation is the System machine in " +
+          "boiler's system/System.scala: name it BoilerSystem, after the feature and its System " +
+          "level",
         s"lift: ${at}kettle/product/Product.scala:6: KettleContract is the Product machine in " +
           "kettle's product/Product.scala: name it KettleProduct, after the feature and its " +
           "Product level",
         s"lift: ${at}pump/system/System.scala:7: PumpProtocol is the System machine in pump's " +
-          "system/System.scala: name it PumpSystem, with the same prefix as PumpProduct"
+          "system/System.scala: name it PumpSystem, with the same prefix as PumpProduct",
+        s"lift: ${at}urn/system/System.scala:6: UrnSystem is the System machine in urn's " +
+          "system/System.scala but does not refine UrnProduct from product/Product.scala"
       )
     )
 

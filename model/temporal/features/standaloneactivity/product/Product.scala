@@ -59,7 +59,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
 
     /**
      * Unlike the Nexus client, a retryable failure reads SCHEDULED again with a higher attempt count
-     * (TransitionRescheduled); the protocol adds the backoff.
+     * (TransitionRescheduled); the System adds the backoff.
      */
     def retry(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
 
@@ -77,7 +77,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
 
     def terminate(s: State) = enter(s.copy(phase = terminated), statusTerminated)
 
-    /** One of the activity's deadlines firing. Which deadline is the protocol's account of how. */
+    /** One of the activity's deadlines firing. Which deadline is the System's account of how. */
     def timeOut(s: State) = enter(s.copy(phase = timedOut), statusTimedOut)
 
   object rules extends Rules(_.phase):
@@ -95,7 +95,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
     on(worker.respond(AttemptResult.canceled))(in(cancelRequested) ~> effects.cancel)
 
     // A control on an activity that is over is not found. A pause of a paused or cancel-requested
-    // activity, or an unpause of one not paused, is FailedPrecondition; the protocol lists them.
+    // activity, or an unpause of one not paused, is FailedPrecondition; the System lists them.
     on(client.control)(in(states.terminal) ~> effects.notFound)
     on(client.control(Control.pause))(where(states.pausable) ~> effects.pause)
     on(client.control(Control.unpause))(where(states.paused) ~> effects.resume)
@@ -115,7 +115,7 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
    * it receives without listing them: it closes, and a control of an activity that is over is not
    * found, by the code `states.notFoundCode` cites; it pauses; and a worker's poll hands out its work. It
    * receives terminalStatesAreFinal, closedIsRejectedUniformly and pausedIsNotDispatched (pause with
-   * poll), each `activityProduct.<law>`, read on the protocol through the map under the bound held
+   * poll), each `activityProduct.<law>`, read on the System through the map under the bound held
    * there.
    */
   object implements

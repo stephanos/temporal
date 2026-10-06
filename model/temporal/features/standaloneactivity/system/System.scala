@@ -1,6 +1,6 @@
 /* The standalone activity's System: how the server gets there (fn-126 decision 16). The level's own
  * file holds the System machine, ActivitySystem, whose refinement says what the Product reads of
- * it; ActivityWorker, the worker of its task queue; and StandaloneActivity, the protocol with that
+ * it; ActivityWorker, the worker of its task queue; and StandaloneActivity, the System with that
  * worker. Beside it, one file per subject: Record.scala, history's record of the activity, and
  * WithTaskQueue.scala, that record composed with the shared task queue.
  */
@@ -40,7 +40,7 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
     case SystemFact.attemptCount      => attemptCount.name
   }
 
-  /** The protocol's status sets and its attempt count's bound. */
+  /** The System's status sets and its attempt count's bound. */
   object states:
     /** Bounds the attempt count, as the type of `SystemState.attempts` does. */
     val attemptBound = 2
@@ -59,7 +59,7 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
 
     def saturatingSucc(a: UpTo[2]): UpTo[2] = UpTo((a + 1).min(attemptBound))
 
-  /** The protocol refines the product: what each of its states reads as there. */
+  /** The System refines the product: what each of its states reads as there. */
   object refinement extends Refinement(ActivityProduct):
     /**
      * Unstarted and backing off read as scheduled. A pause request reads as started: the worker
@@ -207,7 +207,7 @@ object ActivitySystem extends Machine[SystemState, Outcome, SystemFact]:
     }
 
   /**
-   * What the protocol promises of its own: the settlement claims. The cross-entity claim of the
+   * What the System promises of its own: the settlement claims. The cross-entity claim of the
    * activity and its worker is the composition's, and the history record's are Record.scala's.
    */
   object properties:

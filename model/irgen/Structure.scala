@@ -189,6 +189,10 @@ final private[irgen] class Structure(index: Index):
     // (a): a refinement pair makes two levels, each with its folder.
     val pairs = for (_, c) <- forms; (r, product) <- refines(c) if within(product)
     yield (c, r, product)
+    val productPath = root + "product/Product.scala"
+    val systemPath = root + "system/System.scala"
+    val hasLevelFiles =
+      sources.exists(_.path == productPath) && sources.exists(_.path == systemPath)
     pairs.headOption match
       case Some((machine, refinement, product)) =>
         val two = s"${plain(machine.name)} refines ${plain(product.name)}, so $name has two " +
@@ -197,26 +201,10 @@ final private[irgen] class Structure(index: Index):
           "which holds the types, the signature and object exports (model/irgen/testdata/" +
           "layout/lamp is the template)"
         if rootFile.isEmpty then refuse(refinement, s"$two; $root has no root feature file")
-        for
-          level <- Seq("product/Product.scala", "system/System.scala")
-          if !sources.exists(_.path == root + level)
-        do refuse(refinement, s"$two; $root$level is missing")
-        for (s, c) <- forms do
-          if s.sub.isEmpty then
-            refuse(
-              c,
-              s"${plain(c.name)} is a machine object in $name's root folder, $root, whose " +
-                "feature file holds the types, the signature and object exports alone: a " +
-                "feature with two levels declares its machines in product/ and system/"
-            )
-          else if !s.level then
-            refuse(
-              c,
-              s"${plain(c.name)} is a machine object in ${s.folder}, which is no level folder of " +
-                s"$name: a feature with two levels keeps its Models in product/ and system/, one " +
-                "file per subject beside the level's own file, with no folder below them"
-            )
-      case None =>
+        for level <- Seq(productPath, systemPath) if !sources.exists(_.path == level) do
+          refuse(refinement, s"$two; $level is missing")
+      case None if hasLevelFiles => ()
+      case None                  =>
         for s <- sources if s.sub.nonEmpty; first <- s.top.headOption do
           refuse(
             first,
@@ -224,25 +212,59 @@ final private[irgen] class Structure(index: Index):
               s"Models sit in its feature file: it has no ${s.sub.mkString("/")}/ folder"
           )
 
+    if pairs.nonEmpty || hasLevelFiles then
+      for (s, c) <- forms do
+        if s.sub.isEmpty then
+          refuse(
+            c,
+            s"${plain(c.name)} is a machine object in $name's root folder, $root, whose " +
+              "feature file holds the types, the signature and object exports alone: a " +
+              "feature with two levels declares its machines in product/ and system/"
+          )
+        else if !s.level then
+          refuse(
+            c,
+            s"${plain(c.name)} is a machine object in ${s.folder}, which is no level folder of " +
+              s"$name: a feature with two levels keeps its Models in product/ and system/, one " +
+              "file per subject beside the level's own file, with no folder below them"
+          )
+
     // (b): the refinement pair names the Product and System levels alike.
-    val sourceOf = forms.map((source, form) => form.symbol -> source).toMap
-    val levelPairs = pairs.filter((system, _, product) =>
-      sourceOf(system.symbol).path == root + "system/System.scala" &&
-        sourceOf(product).path == root + "product/Product.scala"
+    val productForms = forms.collect { case (source, form) if source.path == productPath => form }
+    val systemForms = forms.collect { case (source, form) if source.path == systemPath => form }
+    val productDef =
+      productForms
+        .find(p => systemForms.exists(s => refines(s).exists(_._2 == p.symbol)))
+        .orElse(productForms.headOption.filter(_ => productForms.sizeIs == 1))
+    val systemDef = productDef.flatMap(p =>
+      systemForms
+        .find(s => refines(s).exists(_._2 == p.symbol))
+        .orElse(systemForms.find(s => plain(s.name).endsWith("System")))
+        .orElse(systemForms.headOption.filter(_ => systemForms.sizeIs == 1))
     )
-    for (system, _, product) <- levelPairs do
-      val productDef = forms.iterator.map(_._2).find(_.symbol == product).get
+    for productDef <- productDef; system <- systemDef do
       val productName = plain(productDef.name)
       val systemName = plain(system.name)
-      if systemName.endsWith("System") then
-        val expected = systemName.stripSuffix("System") + "Product"
-        if productName != expected then
-          refuse(
-            productDef,
-            s"$productName is the Product machine in $name's product/Product.scala: name it " +
-              s"$expected, after the feature and its Product level"
-          )
-      if productName.endsWith("Product") then
+      val featurePrefix = name.head.toUpper + name.tail
+      if !productName.endsWith("Product") then
+        refuse(
+          productDef,
+          s"$productName is the Product machine in $name's product/Product.scala: name it " +
+            s"${featurePrefix}Product, after the feature and its Product level"
+        )
+      if !systemName.endsWith("System") then
+        val expected =
+          if productName.endsWith("Product") then productName.stripSuffix("Product") + "System"
+          else featurePrefix + "System"
+        val reason =
+          if productName.endsWith("Product") then s"with the same prefix as $productName"
+          else "after the feature and its System level"
+        refuse(
+          system,
+          s"$systemName is the System machine in $name's system/System.scala: name it $expected, " +
+            reason
+        )
+      else if productName.endsWith("Product") then
         val expected = productName.stripSuffix("Product") + "System"
         if systemName != expected then
           refuse(
@@ -250,6 +272,12 @@ final private[irgen] class Structure(index: Index):
             s"$systemName is the System machine in $name's system/System.scala: name it " +
               s"$expected, with the same prefix as $productName"
           )
+      if !refines(system).exists(_._2 == productDef.symbol) then
+        refuse(
+          system,
+          s"$systemName is the System machine in $name's system/System.scala but does not refine " +
+            s"$productName from product/Product.scala"
+        )
       if refines(productDef).nonEmpty then
         refuse(
           productDef,

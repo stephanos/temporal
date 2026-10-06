@@ -36,7 +36,7 @@ object TrustingCaller extends Machine[SystemState, Outcome, SystemFact], Negativ
     def inspect(s: State) = stay(s)
 
     /**
-     * The protocol's completion of an operation once scheduled: not found once it is over, and
+     * The System's completion of an operation once scheduled: not found once it is over, and
      * resolved while it runs. One effect rather than two rules, because the forged completion names
      * both alternatives of a failed callback in every such phase, the not-found ones included.
      */

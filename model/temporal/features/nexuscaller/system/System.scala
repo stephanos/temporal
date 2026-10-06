@@ -1,6 +1,6 @@
 /* The Nexus caller's System: how the server gets there (fn-126 decision 16). The level's own file
  * holds the System machine, NexusSystem, whose refinement says what the Product reads of it;
- * HandlerWorker, the handler's worker; and NexusCaller, the protocol with that worker. Beside it,
+ * HandlerWorker, the handler's worker; and NexusCaller, the System with that worker. Beside it,
  * one file per subject: TrustingCaller.scala, the forged control a caller must refuse, and
  * ClosePolicy.scala, the close and reset designs.
  */
@@ -52,7 +52,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
     case SystemFact.pendingAttempts           => pendingAttempts.name
   }
 
-  /** The protocol's phase sets and its attempt count's arithmetic. */
+  /** The System's phase sets and its attempt count's arithmetic. */
   object states:
     def validAttempts(a: Int) = 0 <= a && a <= attemptBound
 
@@ -73,7 +73,7 @@ object NexusSystem extends Machine[SystemState, Outcome, SystemFact]:
     /** Every phase once the operation is scheduled, running or over: what a completion answers. */
     def created(p: Phase) = running(p) || terminalPhase(p)
 
-  /** The protocol refines the product: what each of its states reads as there. */
+  /** The System refines the product: what each of its states reads as there. */
   object refinement extends Refinement(NexusProduct):
     /**
      * A phase of the same name is that phase; backing off is still scheduled, because the product

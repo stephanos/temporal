@@ -712,7 +712,7 @@ not named like a type of its package but for the case, since the two would compi
 whose names differ only in case, which a case-insensitive file system cannot hold: beside the close
 policy's types `Caller` and `Handler`, its objects are `callerSide` and `handlerSide`. The inputs an
 action declares by token sit at the top level, apart from one named like an action of the object
-that takes it, which `object Inputs` holds (`Inputs.control`, since inside `object caller` the name
+that takes it, which `object Inputs` holds (`Inputs.control`, since inside `object client` the name
 `control` is the action).
 
 The Temporal kit declares `trait Client extends Actor`, a caller of Temporal's public API through
@@ -1237,7 +1237,7 @@ Temporal realization (.plans/API_BEHAVIOR_HINTS.md):
 
 ```scala
 METHOD_PAUSE_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce)
-CauseKind.reply.visibleTo(
+CauseKind.handlerReply.visibleTo(
   METHOD_DESCRIBE_WORKFLOW_EXECUTION,
   Visible.eventually(WaitBound(intervalMs = 250, atMostMs = 2000))
 )

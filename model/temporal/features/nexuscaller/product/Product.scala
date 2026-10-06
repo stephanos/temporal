@@ -42,7 +42,7 @@ object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
     def notFound(s: State) = reject(Outcome.notFound, s)
 
     /**
-     * One of the operation's deadlines firing. Which deadline is the protocol's account of how, so
+     * One of the operation's deadlines firing. Which deadline is the System's account of how, so
      * the product machine has one timer.
      */
     def timeOut(s: State) = enter(s.copy(phase = timedOut), nexusOperationTimedOut)
@@ -50,7 +50,7 @@ object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
   object rules extends Rules(_.phase):
     // The handler's reply to the server's start request moves only an operation that has not
     // started yet. A retryable handler error leaves the operation where it is, so no rule fires it:
-    // the product machine does not know about backing off, which is the whole of what the protocol
+    // the product machine does not know about backing off, which is the whole of what the System
     // machine adds.
     on(handler.reply(Reply.syncSuccess))(in(scheduled) ~> effects.succeed)
     on(handler.reply(Reply.async))(in(scheduled) ~> effects.start)
@@ -66,7 +66,7 @@ object NexusProduct extends Machine[ProductState, Outcome, ProductFact]:
 
     // A transport fault is an ordinary action of the network, and the handler's worker stopping is a
     // fault the Run records. The product machine sees neither: whether a delivery was retried is the
-    // protocol's account of how, not what, and a step that kept the state and recorded nothing would
+    // System's account of how, not what, and a step that kept the state and recorded nothing would
     // be indistinguishable from a stutter, which the refinement would read as this step.
     disabled(network.fault, worker.stop)
 

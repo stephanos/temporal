@@ -1,11 +1,88 @@
 {
   "branch_name": "fn-126-read-each-feature-top-to-bottom-one",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-05T02:17:02.948700Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-126-read-each-feature-top-to-bottom-one",
+  "impl_review_rounds": {
+    "fn-126-read-each-feature-top-to-bottom-one.8": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "0db4f7fea424b09c33b9ed1d4ddf9b41344eb18b34f598a973a8345b8312dc54",
+      "backend": "codex",
+      "base_sha": "8bf917bf0b84dc263b9e732a25c498678b3053f4",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b8cfa5bec5d565f5d95663cac6c5d39a",
+            "classification": "introduced",
+            "findingId": "finding-b8cfa5bec5d565f5d95663cac6c5d39a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1bac935f48151db4839f6560104f05b6",
+            "classification": "introduced",
+            "findingId": "finding-1bac935f48151db4839f6560104f05b6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e274b14042f17cc1dee0925ed94aece5",
+            "classification": "introduced",
+            "findingId": "finding-e274b14042f17cc1dee0925ed94aece5",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ebeaa0a62b8254f926e13f32d32c0d1c951c66a6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2893,
+      "output_sha256": "8546a578841104f03baa26fc90187512bc39194de80f2bce2d997b4b1294dc93",
+      "reservation_id": "81249a6170874f54a713572d35bd3687",
+      "round_consumed": true,
+      "scope": "impl:fn-126-read-each-feature-top-to-bottom-one.8",
+      "superseded_by": null,
+      "task": "fn-126-read-each-feature-top-to-bottom-one.8",
+      "timestamp": "2026-10-06T04:39:24.365424Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-126-read-each-feature-top-to-bottom-one.8": 0
+  },
   "spec_path": ".flow/specs/fn-126-read-each-feature-top-to-bottom-one.md",
   "status": "open",
   "title": "Read each feature top to bottom: one module object per machine",
@@ -20,5 +97,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T02:17:02.960157Z"
+  "updated_at": "2026-10-06T04:39:24.369072Z"
 }

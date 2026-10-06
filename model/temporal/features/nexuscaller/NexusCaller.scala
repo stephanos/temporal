@@ -171,7 +171,7 @@ object timers:
   val timeout = timer
   val backoff = timer
 
-/** The protocol's three deadlines, each armed by the schedule's input of its name. */
+/** The System's three deadlines, each armed by the schedule's input of its name. */
 object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
@@ -185,7 +185,7 @@ object deadline:
 val attemptBound = 2
 
 given Finite[SystemState] =
-  // The lifter reads this Int bound; the Go model evaluator uses it to enumerate protocol states.
+  // The lifter reads this Int bound; the Go model evaluator uses it to enumerate System states.
   given Finite[Int] = Finite.upTo(attemptBound)
   Finite.derived
 
@@ -201,7 +201,7 @@ val control = Limits(steps = 8, actions = 8, search = 262144)
 object exports:
   // The functional Queries and the realization that runs them are roots beside the machines: Go
   // lowers each Query's witness through the realization into a Testpilot Case (tools/umpire/lower).
-  // The product claim read on a protocol path and the cross-entity Query, which carries the
+  // The product claim read on a System path and the cross-entity Query, which carries the
   // composition with the handler's worker and its claim, are roots too.
   val nexusCaller = irFile("nexus-caller")(
     NexusProduct,

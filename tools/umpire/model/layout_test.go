@@ -176,7 +176,7 @@ var retiredModelVocabulary = regexp.MustCompile(`\b(?:` + strings.Join([]string{
 
 var retiredVocabularyRoots = []string{
 	"tools/umpire", "tools/canary", "tests/testcore/testpilot", "common/testing/testpilot",
-	"model/README.md", "model/SEMANTICS.md", "AGENTS.md", ".plans/UMPIRE_MODULES.md",
+	"model", "AGENTS.md", ".plans/UMPIRE_MODULES.md",
 	".plans/UMPIRE4_VISION.md", ".plans/DSL_OPERATORS.md", ".plans/DSL_SIMPLIFICATION.md",
 	".plans/QUINT_MODULE_LAYOUT.md",
 }
@@ -219,32 +219,16 @@ func TestRetiredModelVocabularyStaysRetired(t *testing.T) {
 			}
 		}
 	}
-	for _, root := range []string{"model/temporal"} {
-		require.NoError(t, filepath.WalkDir(filepath.Join(repoRoot, root), func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			if d.IsDir() {
-				return nil
-			}
-			rel, err := filepath.Rel(repoRoot, path)
-			if err != nil {
-				return err
-			}
-			content, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			collect(filepath.ToSlash(rel), string(content))
-			return nil
-		}))
-	}
 	for _, root := range retiredVocabularyRoots {
 		require.NoError(t, filepath.WalkDir(filepath.Join(repoRoot, root), func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
 			if d.IsDir() {
+				if root == "model" && path != filepath.Join(repoRoot, root) &&
+					(d.Name() == "build" || strings.HasPrefix(d.Name(), ".")) {
+					return fs.SkipDir
+				}
 				return nil
 			}
 			rel, err := filepath.Rel(repoRoot, path)
@@ -272,6 +256,10 @@ func TestRetiredModelVocabularyMentionsAreFound(t *testing.T) {
 	require.False(t, retiredModelVocabulary.MatchString("LossyMatchingQueue"))
 	require.False(t, retiredModelVocabulary.MatchString("admissionResponseLoss"))
 	require.False(t, retiredModelVocabulary.MatchString("forgedCompletion"))
+}
+
+func TestRetiredVocabularyCoversTheWholeModelTree(t *testing.T) {
+	require.Contains(t, retiredVocabularyRoots, "model")
 }
 
 func retiredModelMentions(path, content string) []string {

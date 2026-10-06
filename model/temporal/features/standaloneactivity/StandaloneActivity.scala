@@ -1,6 +1,6 @@
 /* The standalone activity Model: one activity started directly through StartActivityExecution, with
  * no workflow around it, grounded in chasm/lib/activity/statemachine.go. The product machine says
- * what DescribeActivityExecution reports, the protocol how the server gets there. No history
+ * what DescribeActivityExecution reports, the System how the server gets there. No history
  * event is written, so every evidence line names an observation: a status read through
  * DescribeActivityExecution or a result read through PollActivityExecution. Reset is deferred, like
  * cancellation in the Nexus client Model, and the heartbeat timeout is not modeled.
@@ -153,7 +153,7 @@ object timers:
   val timeout = timer
   val backoff = timer
 
-/** The protocol's three deadlines, each armed by the start's input of its name. */
+/** The System's three deadlines, each armed by the start's input of its name. */
 object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
