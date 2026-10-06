@@ -8,7 +8,7 @@ Close the remaining original R20 and R5 regression-coverage gaps found by the pe
 
 Restore the lost-response regression in StandaloneActivityPins.test.scala. The old repeated-loss-disabled assertion was replaced with end(state), but end does not forbid transitions. For both resulting states, assert through the existing rules/table machinery that another loss is disabled, independently of the end assertion. Do not add a production API only for this test or change Model behavior.
 
-**Touches:** model/irgen/Structure.scala, model/irgen/testdata/**, model/irgen/*.test.scala, model/temporal/features/standaloneactivity/StandaloneActivityPins.test.scala, model/README.md, model/SEMANTICS.md, tools/umpire/model/*_test.go, tools/umpire/model/testdata/**, model/ir/**, model/cases/**, MILESTONES.md
+**Touches:** model/irgen/Structure.scala, model/irgen/testdata/**, model/irgen/*.test.scala, model/irgen/test/**, model/temporal/features/standaloneactivity/StandaloneActivityPins.test.scala, model/README.md, model/SEMANTICS.md, tools/umpire/model/*_test.go, tools/umpire/model/testdata/**, model/ir/**, model/cases/**, MILESTONES.md
 
 Limit fixture, documentation and generated-artifact changes to those directly affected by the checks. Flow lifecycle files remain writable. Add red/green refusals for a types-only missing System, the corresponding Product case, and missing refinement with Product elaborations, plus a passing elaboration case. Model tables, Queries and Cases must remain unchanged.
 

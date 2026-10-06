@@ -1820,7 +1820,7 @@ class Fixtures extends munit.FunSuite:
     assert(!result.failed, result.diagnostics)
     assertEquals(listed(out), Seq("lamp.json"))
     val lifted = Files.readString(out.resolve("lamp.json"))
-    for machine <- Seq("lampProduct", "lampSystem", "bulb") do
+    for machine <- Seq("lampProduct", "onlyOn", "lampSystem", "onlyClosed", "bulb") do
       assert(lifted.contains(s"\"$machine\""), s"lamp.json lifts no machine $machine")
     val parsed = new com.fasterxml.jackson.databind.ObjectMapper().readTree(lifted)
     val realization = Option(parsed.get("realizations")).toSeq.flatMap(_.elements().asScala.toSeq)
@@ -1940,6 +1940,34 @@ class Fixtures extends munit.FunSuite:
           "Fact in its level file",
         s"lift: ${at}urn/system/System.scala:6: UrnSystem is the System machine in urn's " +
           "system/System.scala but does not refine UrnProduct from product/Product.scala"
+      )
+    )
+
+  concurrently("the structure lint requires independent unambiguous primary level machines"):
+    val jar = packaged("layoutRefusals-d", materializeTree("layoutRefusals/d"))
+    val out = scratch.resolve("layoutRefusals-d-out")
+    val at = stored("layoutRefusals/d")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: ${at}brazier/product/Product.scala:6: brazier's product/Product.scala declares " +
+          "multiple primary Product machines: BrazierProduct, SpareProduct",
+        s"lift: ${at}cistern/product/Product.scala:6: CisternContract is the Product machine in " +
+          "cistern's product/Product.scala: name it CisternProduct, after the feature and its " +
+          "Product level",
+        s"lift: ${at}cistern/system/System.scala:6: cistern's system/System.scala declares no " +
+          "primary System machine: declare one <Prefix>System",
+        s"lift: ${at}furnace/system/System.scala:6: furnace's system/System.scala declares " +
+          "multiple primary System machines: FurnaceSystem, SpareSystem",
+        s"lift: ${at}pan/product/Product.scala:6: pan's product/Product.scala declares no " +
+          "primary Product machine: declare one <Prefix>Product",
+        s"lift: ${at}pan/system/System.scala:6: PanImplementation is the System machine in pan's " +
+          "system/System.scala: name it PanSystem, after the feature and its System level",
+        s"lift: ${at}stove/system/System.scala:6: StoveSystem is the System machine in stove's " +
+          "system/System.scala but does not refine StoveProduct from product/Product.scala"
       )
     )
 

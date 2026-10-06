@@ -23,8 +23,8 @@
 package fixture.features.lamp
 
 import umpire.*
-import product.LampProduct
-import system.{Bulb, LampRealization, LampSystem}
+import product.{LampProduct, OnlyOn}
+import system.{Bulb, LampRealization, LampSystem, OnlyClosed}
 
 // ### Types
 // Every type the levels genuinely share sits here. Phase, State and Fact belong to the level files;
@@ -52,4 +52,5 @@ val one = Limits(steps = 1, actions = 1, search = 8)
 // after its file and names its roots, in every level.
 
 object exports:
-  val lamp = irFile("lamp")(LampProduct, LampSystem, Bulb, LampRealization.system)
+  val lamp =
+    irFile("lamp")(LampProduct, OnlyOn, LampSystem, OnlyClosed, Bulb, LampRealization.system)

@@ -42,3 +42,5 @@ object LampProduct extends Machine[product.State, Outcome, Fact]:
     val switchedOn = scenario.actions(user.switchOn)
     // 2 states, a pinned Scenario of 1 slot within one step.
     val lights = query verify properties.switchingOnLights in switchedOn limits one total 2
+
+object OnlyOn extends Derived(LampProduct.restrict(user.switchOn))

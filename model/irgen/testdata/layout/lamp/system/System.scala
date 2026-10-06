@@ -34,3 +34,5 @@ object LampSystem extends Machine[system.State, Outcome, Fact]:
   object rules extends Rules:
     on(user.switchOn)(where(_.phase == Phase.open) ~> effects.close)
     on(user.switchOff)(where(_.phase == Phase.closed) ~> effects.open)
+
+object OnlyClosed extends Derived(LampSystem.restrict(user.switchOn))
