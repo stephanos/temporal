@@ -25,7 +25,7 @@ Implements R4 (spec Part A). A Query binds settings with `under`: `s := v` fixes
 - `tools/umpire/model/` Query expansion and keying (action-class keys by input)
 - `model/SEMANTICS.md` Query totals section
 **Optional:**
-- `model/temporal/features/nexuscaller/Queries.scala` (the first ranged Query, task 7)
+- `model/temporal/features/nexus/workflow/system/System.scala` (`NexusSystem.queries`, the first ranged Query, task 7)
 
 ### Quick commands
 ```bash

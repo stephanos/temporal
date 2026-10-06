@@ -11,8 +11,8 @@ Implements the Model half of R12. Where task 1's runs show the observable differ
 **Cross-spec entry gate:** not concurrent with fn-124.8. Depends on task 7.
 
 **Size:** M
-**Files:** `model/temporal/features/nexuscaller/{Model,Realization,Queries}.scala` (and properties if an answer moves); regenerated `model/ir/**`, `model/cases/**`; plain-Scala step tests with a `given Valuation`.
-**Touches:** [model/temporal/features/nexuscaller/**, model/ir/**, model/cases/**]
+**Files:** `model/temporal/features/nexus/workflow/{Workflow.scala,system/System.scala,Realization.scala}` (and properties if an answer moves); regenerated `model/ir/**`, `model/cases/**`; plain-Scala step tests with a `given Valuation`.
+**Touches:** [model/temporal/features/nexus/workflow/**, model/ir/**, model/cases/**]
 
 ### Approach
 - If modeled: step functions read `implementation.value` where attempt counting differs (e.g. `failAttempt`, the spec's API sketch); the realization's `attempt == 1` poll (`Realization.scala:179-181`) follows the Model, not a constant.
@@ -22,7 +22,7 @@ Implements the Model half of R12. Where task 1's runs show the observable differ
 ### Investigation targets
 **Required:**
 - task 1's and task 7's done summaries (divergences); the owner's Q2 answer in the spec
-- `model/temporal/features/nexuscaller/Model.scala`, `Realization.scala:170-190`
+- `model/temporal/features/nexus/workflow/system/System.scala`, `model/temporal/features/nexus/workflow/Realization.scala`
 - `chasm/lib/nexusoperation/` and `service/history/hsm/nexusoperations/executors.go` attempt handling
 **Optional:**
 - `.plans/DYNAMIC_CONFIG.md` sections 1 and 3

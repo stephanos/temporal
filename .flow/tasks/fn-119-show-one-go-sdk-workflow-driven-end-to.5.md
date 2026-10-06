@@ -7,7 +7,7 @@ satisfies: [R4, R5, R8]
 Show failure and enforce the no-manual-Go claim.
 
 **Size:** M
-**Files:** `model/examples/activityworkflow/` faulty variant (mirror `object Control` in `model/temporal/features/nexuscaller/Model.scala`: a deliberately wrong machine, a `find` Query expecting `contract = violated`, its own IR file); a source-scan test beside `tools/umpire/model/isolation_test.go` (`modelFiles` :216, `TestModelNamesNoRetiredFrontEnd` :245) run by name from the gate (`Gate.scala:296-310`).
+**Files:** `model/examples/activityworkflow/` faulty variant (mirror the control machine `TrustingCaller` (formerly `object Control`) in `model/temporal/features/nexus/workflow/system/TrustingCaller.scala`: a deliberately wrong machine, a `find` Query expecting `contract = violated`, its own IR file); a source-scan test beside `tools/umpire/model/isolation_test.go` (`modelFiles` :216, `TestModelNamesNoRetiredFrontEnd` :245) run by name from the gate (`Gate.scala:296-310`).
 **Touches:** [model/examples/**, model/ir/**, model/cases/**, tools/umpire/model/isolation_test.go, tools/umpire/model/*_test.go, model/check/**]
 
 ### Approach
@@ -17,7 +17,7 @@ Show failure and enforce the no-manual-Go claim.
 
 ### Investigation targets
 **Required:**
-- `object Control` in `model/temporal/features/nexuscaller/Model.scala`, `tests/testpilot_nexus_control_case_test.go:33`
+- `TrustingCaller` (formerly `object Control`) in `model/temporal/features/nexus/workflow/system/TrustingCaller.scala`, `tests/testpilot_nexus_control_case_test.go:33`
 - `tools/umpire/model/isolation_test.go:200-280`
 - `model/check/Gate.scala:290-315`
 

@@ -9,8 +9,8 @@ Implements R8, the rest of R9, and the binding half of R12. The caller declares 
 **Cross-spec entry gate:** fn-118.5 done (the caller realization migrated to derived waits). Not concurrent with fn-124.8. Depends on task 1 (fixed switch and its evidence), task 3 (`under`) and task 6 (required settings with origins, registry lookup).
 
 **Size:** L
-**Files:** `model/temporal/features/nexuscaller/{Model,Queries,Realization}.scala` (setting declared, not yet read; `encode(implementation)(...)`); `model/temporal/realize/**` (`encode`); `model/irgen/**`; `ir.proto` (`Realization.encodings`: `SettingEncoding {setting, repeated ValueEncoding {value, repeated RequiredSetting}}`) and generated Go; Testpilot `CaseProvenance.valuation`; `tools/umpire/lower/**` (one Case per valuation, manifest keyed by Query and valuation); `tests/testcore/testpilot/switch.go` (deleted), `tests/testpilot_generated_test.go`, `tests/testpilot_nexus_caller_case_test.go`, `tests/testpilot_run_case_test.go`; `tests/testcore/testpilot/testdata/generated-case-names.txt` (fn-121's golden, regenerated); `model/cases/**`.
-**Touches:** [model/temporal/features/nexuscaller/**, model/temporal/realize/**, model/irgen/**, model/ir/**, model/cases/**, proto/internal/temporal/server/api/umpire/v1/**, proto/internal/temporal/server/api/testpilot/v1/**, api/umpire/v1/**, api/testpilot/v1/**, tools/umpire/lower/**, tools/umpire/model/**, common/testing/testpilot/**, tests/testcore/testpilot/**, tests/testpilot_*_test.go]
+**Files:** `model/temporal/features/nexus/workflow/{Workflow.scala,system/System.scala,Realization.scala}` (setting declared, not yet read; `encode(implementation)(...)`); `model/temporal/realize/**` (`encode`); `model/irgen/**`; `ir.proto` (`Realization.encodings`: `SettingEncoding {setting, repeated ValueEncoding {value, repeated RequiredSetting}}`) and generated Go; Testpilot `CaseProvenance.valuation`; `tools/umpire/lower/**` (one Case per valuation, manifest keyed by Query and valuation); `tests/testcore/testpilot/switch.go` (deleted), `tests/testpilot_generated_test.go`, `tests/testpilot_nexus_caller_case_test.go`, `tests/testpilot_run_case_test.go`; `tests/testcore/testpilot/testdata/generated-case-names.txt` (fn-121's golden, regenerated); `model/cases/**`.
+**Touches:** [model/temporal/features/nexus/workflow/**, model/temporal/realize/**, model/irgen/**, model/ir/**, model/cases/**, proto/internal/temporal/server/api/umpire/v1/**, proto/internal/temporal/server/api/testpilot/v1/**, api/umpire/v1/**, api/testpilot/v1/**, tools/umpire/lower/**, tools/umpire/model/**, common/testing/testpilot/**, tests/testcore/testpilot/**, tests/testpilot_*_test.go]
 
 ### Approach
 - `enum Implementation derives Finite { hsm, chasm }`; `val implementation = setting[Implementation]` in the caller Model. The Model does not read it yet (task 8 decides, after the owner's Q2); a Query may bind a setting its machine does not read.
@@ -22,7 +22,7 @@ Implements R8, the rest of R9, and the binding half of R12. The caller declares 
 
 ### Investigation targets
 **Required:**
-- `model/temporal/features/nexuscaller/{Model,Queries,Realization}.scala`
+- `model/temporal/features/nexus/workflow/{Workflow.scala,system/System.scala,Realization.scala}`
 - `tools/umpire/lower/lower.go` (Case naming, manifest); `tests/testcore/testpilot/generated_names_test.go`
 - `tests/testcore/testpilot/switch.go` and every caller (`grep -rn NexusImplementationSwitch tests`)
 - task 1's done summary (divergences)

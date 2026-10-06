@@ -9,7 +9,7 @@ Implements R7, the harness half of R9, and the owner's Q1 decision. A typed meth
 **Cross-spec entry gate:** fn-118.2 done (`ApiBehavior` targets). Not concurrent with fn-124.8. Depends on task 5. This task unblocks fn-121.3's green CI evidence (the ShutdownWorker race); tell the conductor when it lands.
 
 **Size:** L
-**Files:** `model/temporal/realize/**` (preconditions on fn-118's `ApiBehavior`); `model/irgen/**`; `ir.proto` (`ApiBehavior` preconditions: target method, cause kind or fault kind plus repeated `RequiredSetting`; reserve `Realization.required_settings = 15`); `proto/internal/temporal/server/api/testpilot/v1/program.proto` (`RequiredSetting` gains `relation = 3`, `origin = 4`, `SourceLocation source = 5`); `tools/umpire/lower/{realization,lower}.go`, `lower/internal/producer/**`; `common/testing/testpilot/internal/execution/prepare.go`; `model/temporal/features/nexusoperation/Realization.scala` (its realization-level setting moves to methods); `tests/testpilot_generated_test.go`; regenerated `model/cases/**`.
+**Files:** `model/temporal/realize/**` (preconditions on fn-118's `ApiBehavior`); `model/irgen/**`; `ir.proto` (`ApiBehavior` preconditions: target method, cause kind or fault kind plus repeated `RequiredSetting`; reserve `Realization.required_settings = 15`); `proto/internal/temporal/server/api/testpilot/v1/program.proto` (`RequiredSetting` gains `relation = 3`, `origin = 4`, `SourceLocation source = 5`); `tools/umpire/lower/{realization,lower}.go`, `lower/internal/producer/**`; `common/testing/testpilot/internal/execution/prepare.go`; `model/temporal/features/nexus/standalone/Realization.scala` (its realization-level setting moves to methods); `tests/testpilot_generated_test.go`; regenerated `model/cases/**`.
 **Touches:** [model/temporal/realize/**, model/temporal/features/**/Realization.scala, model/irgen/**, model/ir/**, model/cases/**, proto/internal/temporal/server/api/umpire/v1/**, proto/internal/temporal/server/api/testpilot/v1/**, api/umpire/v1/**, api/testpilot/v1/**, tools/umpire/lower/**, tools/umpire/model/**, common/testing/testpilot/**, tests/testpilot_generated_test.go, tests/testcore/testpilot/**]
 
 ### Approach
@@ -23,7 +23,7 @@ Implements R7, the harness half of R9, and the owner's Q1 decision. A typed meth
 ### Investigation targets
 **Required:**
 - `tools/umpire/lower/realization.go:100-120`; `common/testing/testpilot/internal/execution/prepare.go:90-120`
-- `model/temporal/features/nexusoperation/Realization.scala` (fn-122.4's `RequiredSetting`); `model/temporal/realize/Realize.scala:31`, `Kit.scala:138,151`
+- `model/temporal/features/nexus/standalone/Realization.scala` (fn-122.4's `RequiredSetting`); `model/temporal/realize/Realize.scala:31`, `Kit.scala:138,151`
 - fn-118.2's `ApiBehavior` IR and Scala surface
 - `tests/testpilot_generated_test.go:160-230`; `MILESTONES.md:90-97`
 **Optional:**
