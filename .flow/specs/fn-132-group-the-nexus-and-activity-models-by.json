@@ -13,9 +13,9 @@
   "id": "fn-132-group-the-nexus-and-activity-models-by",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-06T09:35:51.125784Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-06T09:41:24.373555Z",
   "review_attempts": [
     {
       "artifact_sha256": "d87fbe17c317cc6dc30b89b0c1a80dc735351424b14c33c38b760766e875d90f",
@@ -85,9 +85,80 @@
       "timestamp": "2026-10-06T09:35:51.116246Z",
       "tool_calls": 26,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "eb73e2f891968ce289d18eb4996d52b9ad7411bfdcb1e7ecd15642247c8ea618",
+      "backend": "codex",
+      "base_sha": "35be01d541dbadda658085cdd3846e27ce8279f9",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1f7a4f80547fe583f5061da93c750656",
+            "classification": "introduced",
+            "findingId": "finding-1f7a4f80547fe583f5061da93c750656",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-eda95bd48b889cabe3fcd30e17c95da3",
+            "classification": "introduced",
+            "findingId": "finding-eda95bd48b889cabe3fcd30e17c95da3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a2326e09cf468a1d34c90d6e18d36a8e",
+            "classification": "introduced",
+            "findingId": "finding-a2326e09cf468a1d34c90d6e18d36a8e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8cc36c87457faf441070017170789f71",
+            "classification": "introduced",
+            "findingId": "finding-8cc36c87457faf441070017170789f71",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "71b04ba8a76161874d32fe0d3ba8a98b5825c397",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 846,
+      "output_sha256": "d1c16c10024664294e44fc65ec653c80ad3f2756938fcc0997c3fdf0f6318474",
+      "reservation_id": "ebd81473b42440fcbfa8cf1a61b69db6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-06T09:41:24.369495Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -107,5 +178,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T09:40:27.407548Z"
+  "updated_at": "2026-10-06T09:42:23.748167Z"
 }

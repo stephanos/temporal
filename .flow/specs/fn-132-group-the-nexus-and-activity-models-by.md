@@ -1,5 +1,7 @@
 # Group the Nexus and activity Models by kind: workflow and standalone under one feature
 
+> HTML render lens: local `.flow/artifacts/fn-132-group-the-nexus-and-activity-models-by/spec.html` — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -142,6 +144,14 @@ Follow MILESTONES verification scoping: reuse applicable fn-124 boundary evidenc
 ## Early proof point
 
 Task fn-132-group-the-nexus-and-activity-models-by.8 proves nested admission against exact future shapes while unchanged production Models generate identical IR/Cases. If it fails, resolve the source-grouping/ownership design before moving either form; never bypass structure lint or recapture baselines.
+
+## Planning evidence
+
+SHORT planning researched current source grouping, cross-spec consumers, documentation and targeted project memory, then ran the flow-gap analysis. Source grouping and independent-level validation reuse the existing Structure implementation and fixture harness; no parallel validator or blanket exception is planned. Memory retrieval used BM25 because the judge had no key, then the fast scout refined targeted queries. The paired-level validator regression entry informed preservation of all existing negative guards. Web scouts were skipped by SHORT depth, not by a relevance guess; tracker projection is inactive.
+
+stage: plan-review - ran [2026-10-06T09:32:28Z..2026-10-06T09:41:24Z], SHIP after two rounds (model: gpt-6.1-sol). Receipt: `.flow/tmp/plan-review-receipt-fn-132-group-the-nexus-and-activity-models-by.json`; same-family fresh read-only Codex review, same receipt/session resumed after fixes. All four introduced findings are fixed, with no unaddressed requirements; no runtime test results are claimed by planning.
+
+Tasks: 8 total, seven M and one S. Dependency waves: .8; then .1/.2; then .3/.4; then .5/.6; then .7. These are DAG candidates only: all declared overlapping writers run sequentially in the practical order recorded under Ordering. Tracker sync: n/a (bridge inactive). The HTML lens is ignored/local-only, not a committed artifact or a browser-verified deployment.
 
 ## Parked unknowns
 - Server-assigned identities (an activity in a workflow is named by its `scheduledEventId`) need a general form of what `Learned`/`correlated` do for one case today; `stamp` created a model under an alias and set its real id later (`SetID`). This matters when `activity/workflow/` is written.
