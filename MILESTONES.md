@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-05.
+As of 2026-10-06.
 
 ## Keeping this page current
 
@@ -82,7 +82,7 @@ Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after 
 | fn-126.4 | ✅ done | Machine objects with effects, rules and sections; lifter reshaped; standalone activity converted |
 | fn-126.5 | ✅ done | Remaining Models as machine objects; builder forms retired |
 | fn-126.6 | ✅ done | `product/` and `system/` folders; zoom-ins flattened; structure lint (a)(c); IDs frozen |
-| fn-126.7 | 🔄 in progress | Definition IDs are fully qualified Scala names; pins and families removed |
+| fn-126.7 | ✅ done | Definition IDs are fully qualified Scala names; pins and families removed |
 | fn-126.8 | ⬜ todo | Rename batch (Product and System, history record, actions, designs); level-name lint; docs; close |
 | fn-126.9 | ✅ done | `stuck-state` lint: a reachable non-end state that enables nothing |
 
@@ -116,17 +116,44 @@ Gate: starts after fn-126 closes; closes before fn-128 starts. Tasks 1 and 2 nev
 | fn-132.6 | ⬜ todo | General activity declarations in `activity/Activity.scala` |
 | fn-132.7 | ⬜ todo | Close |
 
+### fn-133: Lean, typed realizations
+
+Gate: starts after fn-126 and fn-132 close; closes before fn-128 starts. Source: review of the realizations, 2026-10-05. Tasks run in order (each regenerates `model/ir`).
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-133.1 | ⬜ todo | `proto[T] { … }` literal scope, response reads in the call scope, literal helpers |
+| fn-133.2 | ⬜ todo | Kit evidence modules: described status, history evidence, request base |
+| fn-133.3 | ⬜ todo | Lower-case instruction forms, no borrowed command names, named evidence arguments, ids from facts |
+| fn-133.4 | ⬜ todo | Coverage report, class-pattern rule, `deadlines(…)` binding, action-level `onPath` |
+| fn-133.5 | ⬜ todo | Name collisions removed; activity realization local fixes |
+| fn-133.6 | ⬜ todo | Typed realization objects; derived operation, roles, server steps; derived realizations |
+| fn-133.7 | ⬜ todo | Line counts, docs; close |
+
 ### fn-128: Close the activity's precision gaps
 
-Gate: starts after fn-126 and fn-132 close. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Tasks not yet planned.
+Gate: starts after fn-126, fn-132 and fn-133 close. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Tasks run in order (each regenerates `model/ir`).
 
-Dispatch as a field (fixes unpause-after-backoff and schedule-to-start in backoff; adds start delay), rejections as rows (FailedPrecondition, InvalidArgument; repeated RequestCancel), a retry policy, checked stutter facts, the Cancel > Reset > Pause precedence Property, attempt counts in every Case.
+| Task | Status | What |
+| --- | --- | --- |
+| fn-128.1 | ⬜ todo | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
+| fn-128.2 | ⬜ todo | Rejections as rows (`failedPrecondition`, `invalidArgument`); repeated RequestCancel; `silent-rejection` acceptances removed |
+| fn-128.3 | ⬜ todo | Retry policy: `maxAttempts` input, `retriesRemaining`, retryable start-to-close timeout |
+| fn-128.4 | ⬜ todo | Stutter facts checked: `visible` on `ActivitySystem`'s refinement |
+| fn-128.5 | ⬜ todo | `cancelIsNotUndone` Property; attempt count in every Case; time-window `because` |
+| fn-128.6 | ⬜ todo | Evidence map, live Cases run once; close |
 
 ### fn-129: Activity coverage
 
-Gate: starts after fn-128 closes. Tasks not yet planned.
+Gate: starts after fn-128 closes. Tasks run in order (each regenerates `model/ir`).
 
-Heartbeat, respond by ID, reset, exploration on the activity's `find` Queries.
+| Task | Status | What |
+| --- | --- | --- |
+| fn-129.1 | ⬜ todo | Heartbeat action and retryable heartbeat timeout; realized |
+| fn-129.2 | ⬜ todo | Respond by ID as a `service` actor; realized |
+| fn-129.3 | ⬜ todo | Reset with `keepPaused` and deferred apply; precedence Property extended; realized |
+| fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
+| fn-129.5 | ⬜ todo | New Cases listed, live run; close |
 
 ## Deferred
 
