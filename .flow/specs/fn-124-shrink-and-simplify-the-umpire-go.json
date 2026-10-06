@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-124-shrink-and-simplify-the-umpire-go",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-06T09:28:17.294714Z",
   "created_at": "2026-10-04T20:02:28.102041Z",
   "default_impl": null,
   "default_review": null,
@@ -303,24 +303,62 @@
       "task": "fn-124-shrink-and-simplify-the-umpire-go.8",
       "timestamp": "2026-10-06T09:20:34.261780Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4edf07e77df645381aa8022ed99f9d153f8e3cce46b65384b389bf8984cb5af1",
+      "backend": "codex",
+      "base_sha": "a912c3a89b85ccd2ce2faa671ee82c168a3f4fef",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "78bb6b2effad1b8a35eeed1ee8bcf3b694088e05",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 814631,
+      "output_sha256": "d35aa6b2d48d37567e3b92ad1bcd79ab4e063f628783389c6f04024690519966",
+      "reservation_id": "b3307168ef1e482c9f0ed5b81b815fb3",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-06T09:28:17.278839Z",
+      "tool_calls": 34,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-124-shrink-and-simplify-the-umpire-go.1": 2,
     "impl:fn-124-shrink-and-simplify-the-umpire-go.2": 1,
     "impl:fn-124-shrink-and-simplify-the-umpire-go.8": 1,
-    "impl:fn-124-shrink-and-simplify-the-umpire-go.9": 1
+    "impl:fn-124-shrink-and-simplify-the-umpire-go.9": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-124-shrink-and-simplify-the-umpire-go.1": 0,
     "impl:fn-124-shrink-and-simplify-the-umpire-go.2": 0,
     "impl:fn-124-shrink-and-simplify-the-umpire-go.8": 0,
     "impl:fn-124-shrink-and-simplify-the-umpire-go.9": 0
   },
   "spec_path": ".flow/specs/fn-124-shrink-and-simplify-the-umpire-go.md",
-  "status": "open",
+  "status": "done",
   "title": "Shrink and simplify the Umpire Go tooling",
   "tracker": {
     "baseHashFlow": null,
@@ -333,5 +371,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T09:20:34.266376Z"
+  "updated_at": "2026-10-06T09:29:25.976698Z"
 }

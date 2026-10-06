@@ -70,22 +70,6 @@ cross-spec gates the conductor holds.
 
 
 
-### fn-124: Shrink and simplify the Umpire Go tooling
-
-Gates: task 9 after fn-126 closes; task 8 last, after task 9, never alongside fn-126.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-124.1 | ✅ done | `tools/umpire0`, `model0` and the empty command deleted |
-| fn-124.2 | ✅ done | Duplicate refinement and test-only APIs removed |
-| fn-124.3 | ✅ done | Temporal facts the judge hard-codes declared in the realization |
-| fn-124.4 | ✅ done | Verdict aggregation defined once; judge rules documented |
-| fn-124.5 | ✅ done | Generated-Case outcomes compared by declared ids |
-| fn-124.6 | ✅ done | Model assessment as the command-line judge; Evaluation Profile derived or retired |
-| fn-124.7 | ✅ done | Migration harness and frozen snapshots retired |
-| fn-124.9 | ✅ done | P export retired (Quint covers its one monitor check first) |
-| fn-124.8 | ✅ done | Reader split into `tools/umpire/{ir,interp,check,realization}` |
-
 ### fn-132: Group the Nexus and activity Models by kind: workflow and standalone
 
 Gate: starts after fn-126 closes; closes before fn-128 starts. Tasks 1 and 2 never run at the same time.
