@@ -24,9 +24,9 @@ func TestActivityDisabledBehaviorIsTheBaselines(t *testing.T) {
 		{"scheduled", "stop"},
 		{"completed", "timeout"},
 	} {
-		require.True(t, product.Disabled(pair[0], pair[1]), pair)
+		require.True(t, disabled(product, pair[0], pair[1]), pair)
 	}
-	require.False(t, product.Disabled("completed", "control-terminate"), "a control of an activity that is over is answered notFound, not disabled")
+	require.False(t, disabled(product, "completed", "control-terminate"), "a control of an activity that is over is answered notFound, not disabled")
 	require.Equal(t, []Result{{Outcome: "notFound", State: "completed", Facts: []string{}}},
 		sideOf(product.Table).Rows[rowIndex(t, product.Table, "completed-control-terminate")].Results)
 }
@@ -181,7 +181,7 @@ func TestActivityTablesAccountForEveryPair(t *testing.T) {
 		// The interpreter's own account of a disabled pair agrees with the rows.
 		for _, state := range mm.Table.States {
 			for _, class := range mm.Classes {
-				require.Equal(t, !hasRow(mm, state+"-"+class.Key), mm.Disabled(state, class.Key), "%s-%s", state, class.Key)
+				require.Equal(t, !hasRow(mm, state+"-"+class.Key), disabled(mm, state, class.Key), "%s-%s", state, class.Key)
 			}
 		}
 		require.Equal(t, got.StatesTimesClass, got.DisabledPairs+len(got.Rows))

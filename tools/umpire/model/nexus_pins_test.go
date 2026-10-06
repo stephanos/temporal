@@ -72,7 +72,7 @@ func TestNexusProductTable(t *testing.T) {
 	// Six replies, three resolutions, the two faults it cannot see, and the one timer.
 	require.Len(t, tb.Actions, 12)
 	// A retryable handler error is invisible here: it is the protocol machine that backs off.
-	require.True(t, product.Disabled("scheduled", "reply-handlerError-true"))
+	require.True(t, disabled(product, "scheduled", "reply-handlerError-true"))
 	require.Equal(t, []string{"scheduled", "canceled", "failed", "succeeded", "started", "timedOut"}, tb.Reachable)
 	require.Empty(t, stuck(tb))
 }
@@ -105,15 +105,15 @@ func TestNexusProtocolTable(t *testing.T) {
 	require.Equal(t, []Result{{Outcome: "notFound", State: "timedOut-0-unset-unset-unset", Facts: []string{}}},
 		results("timedOut-0-unset-unset-unset-complete-succeeded"))
 	// A timer fires only when the schedule command set it, and each covers its own span.
-	require.True(t, protocol.Disabled("scheduled-0-unset-unset-expires", "startToClose"))
+	require.True(t, disabled(protocol, "scheduled-0-unset-unset-expires", "startToClose"))
 	require.Equal(t, "timedOut-0-unset-unset-expires", results("started-0-unset-unset-expires-startToClose")[0].State)
-	require.True(t, protocol.Disabled("started-0-unset-unset-unset", "scheduleToClose"))
+	require.True(t, disabled(protocol, "started-0-unset-unset-unset", "scheduleToClose"))
 	// Which timer fired is recorded.
 	require.Equal(t, []string{"nexusOperationTimedOut-scheduleToStart"}, results("scheduled-0-unset-expires-unset-scheduleToStart")[0].Facts)
 	// The worker stopping keeps the state and records nothing; the product machine does not see it.
 	require.Equal(t, []Result{{Outcome: "accepted", State: "scheduled-0-unset-expires-unset", Facts: []string{}}},
 		results("scheduled-0-unset-expires-unset-stop"))
-	require.True(t, nexus["nexusProduct"].Disabled("scheduled", "stop"))
+	require.True(t, disabled(nexus["nexusProduct"], "scheduled", "stop"))
 
 	require.Empty(t, stuck(tb))
 	// Not every state is reachable. The Behavior Fingerprint reads the table, so these numbers are part

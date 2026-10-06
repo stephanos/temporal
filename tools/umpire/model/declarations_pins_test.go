@@ -25,7 +25,7 @@ func memberKeys(t *testing.T, m *umpirespb.Model, ref *umpirespb.TypeRef) []stri
 
 func TestAnOptionalValueIsNoneThenSomeOfEachMember(t *testing.T) {
 	require.Equal(t, []string{"None", "Some-succeeded", "Some-failed"},
-		memberKeys(t, lifted(t, "presence"), &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: "scala.Option[fixture.presence.Result]"}}))
+		memberKeys(t, readLifted(t, "presence"), &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: "scala.Option[fixture.presence.Result]"}}))
 }
 
 // inbox is a channel of the channels fixture as it holds the messages sent to it in this order. It
@@ -46,7 +46,7 @@ func inbox(channel string, op umpirespb.Inbox_Op, messages ...*umpirespb.Value) 
 }
 
 func TestAFIFOChannelHoldsEverySequenceUpToItsCapacityInSendOrder(t *testing.T) {
-	m := lifted(t, "channels")
+	m := readLifted(t, "channels")
 	wire := memberKeys(t, m, &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Channel{Channel: "fixture.channels.wire"}})
 	// Capacity two, two notes, each held once or redelivered once: 1 + 4 + 4².
 	require.Len(t, wire, 1+4+16)
@@ -59,7 +59,7 @@ func TestAFIFOChannelHoldsEverySequenceUpToItsCapacityInSendOrder(t *testing.T) 
 }
 
 func TestAnUnorderedChannelHoldsEachMultisetOnce(t *testing.T) {
-	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "channels")).(*umpirespb.Model)
 	for _, c := range m.GetChannels() {
 		if c.GetName() == "radio" {
 			c.Capacity = 2

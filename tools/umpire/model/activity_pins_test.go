@@ -17,7 +17,7 @@ func TestActivityProductTable(t *testing.T) {
 	require.Equal(t, []int{9, 5}, []int{len(tb.States), len(tb.Ends)})
 	state := func(key string) string { return row(t, product, key).Results[0].State }
 	// A canceled answer settles only an activity whose cancellation was requested.
-	require.True(t, product.Disabled("started", "respond-canceled"))
+	require.True(t, disabled(product, "started", "respond-canceled"))
 	require.Equal(t, "canceled", state("cancelRequested-respond-canceled"))
 	// Unlike the Nexus product, a retry is visible: the client reads scheduled again.
 	require.Equal(t, "scheduled", state("started-respond-failed-true"))
@@ -63,7 +63,7 @@ func TestActivityProtocolTable(t *testing.T) {
 	require.Equal(t, []Result{{Outcome: "notFound", State: "completed-1-unset-unset-unset", Facts: []string{}}},
 		results("completed-1-unset-unset-unset-control-terminate"))
 	// Each deadline covers its own span.
-	require.True(t, protocol.Disabled("scheduled-0-unset-unset-expires", "startToClose"))
+	require.True(t, disabled(protocol, "scheduled-0-unset-unset-expires", "startToClose"))
 	require.Equal(t, "timedOut", phase("pauseRequested-1-unset-unset-expires-startToClose"))
 	require.Equal(t, []string{"statusTimedOut-scheduleToStart"}, results("backingOff-1-unset-expires-unset-scheduleToStart")[0].Facts)
 	require.Empty(t, stuck(tb))

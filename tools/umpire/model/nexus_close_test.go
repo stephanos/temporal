@@ -392,9 +392,9 @@ func TestNexusCloseCancellationAcrossReset(t *testing.T) {
 	requested := closeQuery(t, c, "retainAndRoute", "intentWithoutReceipt")
 	require.Equal(t, "open-requested-callerWorkflow-running-none-none-none", last(t, requested.Witness).State.Value)
 	require.Equal(t, []string{"cancelRequested-callerWorkflow"}, factsOf(last(t, requested.Witness)))
-	require.True(t, table.Disabled("open-requested-callerWorkflow-running-none-none-none", "finish-canceled"))
-	require.True(t, table.Disabled(closeOpened, "finish-canceled"))
-	require.True(t, table.Disabled(closeOpened, "deliverCancel"))
+	require.True(t, disabled(table, "open-requested-callerWorkflow-running-none-none-none", "finish-canceled"))
+	require.True(t, disabled(table, closeOpened, "finish-canceled"))
+	require.True(t, disabled(table, closeOpened, "deliverCancel"))
 	// A handler that received the request may still succeed.
 	received := closeQuery(t, c, "retainAndRoute", "receiptWithoutEffect")
 	require.Equal(t, []string{"requestCancel-callerWorkflow", "deliverCancel", "finish-succeeded"}, taken(received.Witness))
@@ -411,7 +411,7 @@ func TestNexusCloseCancellationAcrossReset(t *testing.T) {
 	// One cancellation, and none once the caller closed or the handler finished.
 	for _, state := range []string{"open-requested-callerWorkflow-running-none-none-none", "closed-none-running-none-none-none",
 		"open-none-done-succeeded-inFlight-succeeded-none-none"} {
-		require.True(t, table.Disabled(state, "requestCancel-callerWorkflow"), state)
+		require.True(t, disabled(table, state, "requestCancel-callerWorkflow"), state)
 	}
 }
 
@@ -488,7 +488,7 @@ func TestNexusCloseDuplicateCompletion(t *testing.T) {
 	}
 	// The channel carries the handler's one result: no other completion is deliverable.
 	for _, class := range []string{"complete-failed", "complete-canceled"} {
-		require.True(t, c.built["retainAndRoute"].Disabled("open-none-done-succeeded-inFlight-succeeded-none-none", class), class)
+		require.True(t, disabled(c.built["retainAndRoute"], "open-none-done-succeeded-inFlight-succeeded-none-none", class), class)
 	}
 	// No run records two outcomes on anything the corrected design reaches.
 	require.Contains(t, closeQuery(t, c, "retainAndRoute", "any.knowledgeIsFinal").Monitors,
@@ -583,7 +583,7 @@ func TestNexusCloseTimeoutResolvesTheLostOutcome(t *testing.T) {
 		require.Equal(t, "rejectedPermanent", last(t, late.Witness).Outcome.Value, design)
 		require.Equal(t, "open-none-done-succeeded-none-none-expired", last(t, late.Witness).State.Value, design)
 		// A closed run's history is frozen, so no deadline fires in it.
-		require.True(t, c.built[design].Disabled("closed-none-done-succeeded-none-none-none", "scheduleToClose"), design)
+		require.True(t, disabled(c.built[design], "closed-none-done-succeeded-none-none-none", "scheduleToClose"), design)
 	}
 	require.True(t, closeQuery(t, c, "retainAndRouteWithDeadline", "any.noUnnecessaryWait").Exercised)
 	// No design without the deadline has the step.

@@ -44,7 +44,7 @@ func hasRow(mm *Machine, key string) bool {
 const again = "the channel delivers the message again"
 
 func TestChoiceKeepsEveryResultInOrder(t *testing.T) {
-	mm := built(t, lifted(t, "admission"))["activityRecord"]
+	mm := built(t, readLifted(t, "admission"))["activityRecord"]
 	facts := []string{"statusStarted", "attemptAdmitted"}
 	require.Equal(t, Row{Key: "scheduled-queued-none-poll", Source: "scheduled-queued-none", Action: "poll",
 		Results: []Result{
@@ -56,7 +56,7 @@ func TestChoiceKeepsEveryResultInOrder(t *testing.T) {
 // Transitions are the table's rows as values, in the same order, so a check can evaluate a monitor or
 // a Property over the very steps the table keys.
 func TestTransitionsAreTheRowsAsValues(t *testing.T) {
-	mm := built(t, lifted(t, "admission"))["activityRecord"]
+	mm := built(t, readLifted(t, "admission"))["activityRecord"]
 	require.Len(t, mm.Transitions, len(mm.Table.Rows))
 	for i, tr := range mm.Transitions {
 		r := mm.Table.Rows[i]
@@ -94,7 +94,7 @@ func TestARejectedRefinementStaysWithItsMachine(t *testing.T) {
 }
 
 func TestPresenceIsAnOrdinaryEnum(t *testing.T) {
-	mm := built(t, lifted(t, "presence"))["presence"]
+	mm := built(t, readLifted(t, "presence"))["presence"]
 	// Report: unsent, sent × 2 × 2; kept: None, Some × 2; retries 0..2; polls 0..1.
 	require.Len(t, mm.Table.States, 5*3*3*2)
 	require.Equal(t, []string{"unsent-None-0-0"}, mm.Table.Starts)
@@ -106,11 +106,11 @@ func TestPresenceIsAnOrdinaryEnum(t *testing.T) {
 	require.Equal(t, []Result{{Outcome: "accepted", State: "unsent-None-0-0", Facts: []string{}}},
 		row(t, mm, "unsent-Some-succeeded-0-0-forget").Results)
 	require.False(t, hasRow(mm, "sent-failed-true-None-0-0-send-failed"), "a retried send is disabled")
-	require.True(t, mm.Disabled("sent-failed-true-None-0-0", "send-failed"))
+	require.True(t, disabled(mm, "sent-failed-true-None-0-0", "send-failed"))
 }
 
 func TestChannelCatalogs(t *testing.T) {
-	mm := built(t, lifted(t, "channels"))["relay"]
+	mm := built(t, readLifted(t, "channels"))["relay"]
 	// heard 3 × wire (1 + 4 + 4², its entries ping-0, ping-1, pong-0, pong-1) × radio (1 + 2).
 	require.Len(t, mm.Table.States, 3*21*3)
 	require.Equal(t, []string{"nothing-[]-[]", "nothing-[]-[up-0]", "nothing-[]-[down-0]", "nothing-[ping-0]-[]",
@@ -119,7 +119,7 @@ func TestChannelCatalogs(t *testing.T) {
 	require.Equal(t, []string{"flash-down", "flash-up", "radioDelivery-down", "radioDelivery-up", "radioLoss-down",
 		"radioLoss-up", "talk-ping", "talk-pong", "wireDelivery-ping", "wireDelivery-pong"}, mm.Table.Actions)
 
-	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "channels")).(*umpirespb.Model)
 	for _, c := range m.GetChannels() {
 		if c.GetName() == "radio" {
 			c.Capacity = 2
@@ -136,13 +136,13 @@ func TestChannelCatalogs(t *testing.T) {
 }
 
 func TestChannelSendAndDelivery(t *testing.T) {
-	machines := built(t, lifted(t, "channels"))
+	machines := built(t, readLifted(t, "channels"))
 	relay := machines["relay"]
 	require.Equal(t, []Result{{Outcome: "accepted", State: "nothing-[ping-0]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[]-[]-talk-ping").Results)
 	require.Equal(t, []Result{{Outcome: "accepted", State: "nothing-[ping-0,pong-0]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[ping-0]-[]-talk-pong").Results, "a FIFO send appends")
-	require.True(t, relay.Disabled("nothing-[ping-0,pong-0]-[]", "talk-ping"), "the step refuses a full channel")
+	require.True(t, disabled(relay, "nothing-[ping-0,pong-0]-[]", "talk-ping"), "the step refuses a full channel")
 
 	// The receiver's step, and again with the message put back first, its acknowledgment lost.
 	require.Equal(t, []Result{
@@ -155,16 +155,16 @@ func TestChannelSendAndDelivery(t *testing.T) {
 	}, row(t, relay, "nothing-[ping-0,pong-0]-[]-wireDelivery-ping").Results)
 	require.Equal(t, []Result{{Outcome: "accepted", State: "note-[]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[ping-1]-[]-wireDelivery-ping").Results, "a message delivered its duplicates times is not again")
-	require.True(t, relay.Disabled("nothing-[pong-0,ping-0]-[]", "wireDelivery-ping"), "a FIFO channel delivers its first message only")
-	require.True(t, relay.Disabled("nothing-[pong-0]-[]", "wireDelivery-pong"), "the receiver does not take pong")
-	require.True(t, relay.Disabled("nothing-[]-[]", "wireDelivery-ping"), "an empty channel delivers nothing")
+	require.True(t, disabled(relay, "nothing-[pong-0,ping-0]-[]", "wireDelivery-ping"), "a FIFO channel delivers its first message only")
+	require.True(t, disabled(relay, "nothing-[pong-0]-[]", "wireDelivery-pong"), "the receiver does not take pong")
+	require.True(t, disabled(relay, "nothing-[]-[]", "wireDelivery-ping"), "an empty channel delivers nothing")
 
 	require.Equal(t, []Result{{Outcome: "accepted", State: "signal-[]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[]-[up-0]-radioDelivery-up").Results)
-	require.True(t, relay.Disabled("nothing-[]-[up-0]", "radioDelivery-down"))
+	require.True(t, disabled(relay, "nothing-[]-[up-0]", "radioDelivery-down"))
 	require.Equal(t, []Result{{Outcome: "dropped", State: "nothing-[]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[]-[up-0]-radioLoss-up").Results)
-	require.True(t, relay.Disabled("nothing-[]-[up-0]", "radioLoss-down"))
+	require.True(t, disabled(relay, "nothing-[]-[up-0]", "radioLoss-down"))
 
 	tallying := machines["tallying"]
 	require.Equal(t, []string{"nothing-[]", "nothing-[0-0]", "nothing-[1-0]", "nothing-[2-0]"}, tallying.Table.States[:4])
@@ -175,7 +175,7 @@ func TestChannelSendAndDelivery(t *testing.T) {
 }
 
 func TestUnorderedSendKeepsCatalogOrder(t *testing.T) {
-	m := lifted(t, "channels")
+	m := readLifted(t, "channels")
 	at := &umpirespb.Position{File: "generic", Line: 1}
 	signal := func(c string) *umpirespb.Value {
 		return &umpirespb.Value{Kind: &umpirespb.Value_Enum{Enum: &umpirespb.EnumValue{Type: "fixture.channels.Signal", Case: c}}}
@@ -202,7 +202,7 @@ func TestUnorderedSendKeepsCatalogOrder(t *testing.T) {
 
 // A send the step does not guard lands outside the channel's catalog, and so outside the state domain.
 func TestASendToAFullChannelLeavesTheDomain(t *testing.T) {
-	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "channels")).(*umpirespb.Model)
 	talk := function(m, "Channels$package$.talkStep")
 	talk.Body = talk.GetBody().GetIf().GetElse()
 	_, err := Build(m)
@@ -211,7 +211,7 @@ func TestASendToAFullChannelLeavesTheDomain(t *testing.T) {
 }
 
 func TestADeclaredHoleIsNeitherARowNorDisabled(t *testing.T) {
-	disk := built(t, lifted(t, "declarations"))["disk"]
+	disk := built(t, readLifted(t, "declarations"))["disk"]
 	require.Equal(t, []string{"crash", "flush", "put"}, disk.Table.Actions)
 	var keys []string
 	for _, r := range disk.Table.Rows {
@@ -223,16 +223,16 @@ func TestADeclaredHoleIsNeitherARowNorDisabled(t *testing.T) {
 	require.Equal(t, []string{"staged-crash", "staged", "crash", "fixture.declarations.crashUnmodeled"},
 		[]string{h.Row, h.Source, h.Class, h.Hole.ID})
 	require.Equal(t, disk.Holes, disk.ReachableHoles())
-	require.False(t, disk.Disabled("staged", "crash"), "a hole row is not disabled")
-	require.True(t, disk.Disabled("empty", "crash"))
-	require.True(t, disk.Disabled("durable", "crash"))
-	require.False(t, disk.Disabled("empty", "put"), "a row is not disabled")
-	require.False(t, disk.Disabled("empty", "nothing"), "no such class")
+	require.False(t, disabled(disk, "staged", "crash"), "a hole row is not disabled")
+	require.True(t, disabled(disk, "empty", "crash"))
+	require.True(t, disabled(disk, "durable", "crash"))
+	require.False(t, disabled(disk, "empty", "put"), "a row is not disabled")
+	require.False(t, disabled(disk, "empty", "nothing"), "no such class")
 }
 
 // flushStep without its wildcard case: the stages it no longer matches are undeclared holes.
 func TestAnUnmatchedValueIsAnUndeclaredHole(t *testing.T) {
-	m := proto.Clone(lifted(t, "declarations")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "declarations")).(*umpirespb.Model)
 	flush := function(m, "Declarations$package$.flushStep")
 	cases := flush.GetBody().GetMatch().GetCases()
 	flush.GetBody().GetMatch().Cases = cases[:len(cases)-1]
@@ -256,7 +256,7 @@ func TestAnUnmatchedValueIsAnUndeclaredHole(t *testing.T) {
 }
 
 func TestReachableHolesAreOnlyThoseAPathReaches(t *testing.T) {
-	m := proto.Clone(lifted(t, "declarations")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "declarations")).(*umpirespb.Model)
 	// Without put, nothing leaves empty: the staged crash hole is unreachable.
 	for _, mm := range m.GetMachines() {
 		if mm.GetName() == "disk" {
@@ -305,7 +305,7 @@ func TestVisibleProjectionOfARefinement(t *testing.T) {
 }
 
 func TestMonitorsAndAssumptionsAreNamedNotApplied(t *testing.T) {
-	m := lifted(t, "declarations")
+	m := readLifted(t, "declarations")
 	machines := built(t, m)
 	disk := machines["disk"]
 	var monitors []string
@@ -334,7 +334,7 @@ func TestMonitorsAndAssumptionsAreNamedNotApplied(t *testing.T) {
 
 // Retries widened tenfold, 0..2 to 0..29: presence's states grow from 90 to 900.
 func TestTenfoldInputWithinAndBeyondCeilings(t *testing.T) {
-	m := proto.Clone(lifted(t, "presence")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "presence")).(*umpirespb.Model)
 	for _, ty := range m.GetTypes() {
 		for _, f := range ty.GetRecord().GetFields() {
 			if f.GetName() == "retries" {
@@ -359,7 +359,7 @@ func TestTenfoldInputWithinAndBeyondCeilings(t *testing.T) {
 
 // A catalog too large to list is refused from its size alone, before any of it is allocated.
 func TestACatalogIsCountedBeforeItIsListed(t *testing.T) {
-	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "channels")).(*umpirespb.Model)
 	for _, c := range m.GetChannels() {
 		if c.GetName() == "wire" {
 			c.Capacity = 40
@@ -375,7 +375,7 @@ func TestACatalogIsCountedBeforeItIsListed(t *testing.T) {
 
 // A delivery without its one message input is refused where it is bound, not read past its inputs.
 func TestADeliveryMovesOneMessage(t *testing.T) {
-	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "channels")).(*umpirespb.Model)
 	for _, a := range m.GetActions() {
 		if a.GetName() == "wireDelivery" {
 			a.Inputs = nil
@@ -442,7 +442,7 @@ func TestAStepResultMustBeStepRecords(t *testing.T) {
 		}, "Declarations.scala:110: disk: row empty-put records held, which is no fixture.declarations.Fact"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m := proto.Clone(lifted(t, c.fixture)).(*umpirespb.Model)
+			m := proto.Clone(readLifted(t, c.fixture)).(*umpirespb.Model)
 			c.mutate(m)
 			_, err := Build(m)
 			require.ErrorContains(t, err, c.want)
@@ -451,7 +451,7 @@ func TestAStepResultMustBeStepRecords(t *testing.T) {
 }
 
 func TestATransferIsADeliveryOrALossNotBoth(t *testing.T) {
-	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "channels")).(*umpirespb.Model)
 	for _, a := range m.GetActions() {
 		if a.GetName() == "radioLoss" {
 			a.Delivers = a.GetLoses()
@@ -464,7 +464,7 @@ func TestATransferIsADeliveryOrALossNotBoth(t *testing.T) {
 // keep and forget given an input of 0..59 each: no binding lists more than 60 classes, and together
 // with send's two and poll's one they are 123, counted before any is listed.
 func TestTheClassesOfAllBindingsAreCountedTogether(t *testing.T) {
-	m := proto.Clone(lifted(t, "presence")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "presence")).(*umpirespb.Model)
 	for _, a := range m.GetActions() {
 		if a.GetName() == "keep" || a.GetName() == "forget" {
 			a.Inputs = []*umpirespb.Param{{Name: "n", Type: &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_IntRange{
@@ -479,7 +479,7 @@ func TestTheClassesOfAllBindingsAreCountedTogether(t *testing.T) {
 
 // A count past what an int64 holds overflows every int64 ceiling, the largest included.
 func TestACountPastInt64IsRefusedUnderAnyCeiling(t *testing.T) {
-	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "channels")).(*umpirespb.Model)
 	for _, c := range m.GetChannels() {
 		if c.GetName() == "wire" {
 			c.Capacity = 40
@@ -494,7 +494,7 @@ func TestACountPastInt64IsRefusedUnderAnyCeiling(t *testing.T) {
 // RelayState's heard field typed as RelayState itself, built without admission: refused, not recursed into.
 func TestACatalogThatContainsItselfIsRefused(t *testing.T) {
 	defer debug.SetMaxStack(debug.SetMaxStack(64 << 20))
-	m := proto.Clone(lifted(t, "channels")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "channels")).(*umpirespb.Model)
 	for _, ty := range m.GetTypes() {
 		if ty.GetName() == "fixture.channels.RelayState" {
 			ty.GetRecord().GetFields()[0].Type = Named("fixture.channels.RelayState")
@@ -505,7 +505,7 @@ func TestACatalogThatContainsItselfIsRefused(t *testing.T) {
 }
 
 func TestARangeEndingAtMaxInt64(t *testing.T) {
-	in := NewInterpreter(lifted(t, "presence"))
+	in := NewInterpreter(readLifted(t, "presence"))
 	for _, c := range []struct {
 		low, high int64
 		want      []int64
@@ -536,7 +536,7 @@ func TestCountsCarryOverflow(t *testing.T) {
 
 // Members refuses a catalog past its ceiling by itself, as a caller outside Build reads it.
 func TestMembersIsBoundedOnItsOwn(t *testing.T) {
-	_, err := NewInterpreter(lifted(t, "presence")).Members(&umpirespb.TypeRef{Ref: &umpirespb.TypeRef_IntRange{
+	_, err := NewInterpreter(readLifted(t, "presence")).Members(&umpirespb.TypeRef{Ref: &umpirespb.TypeRef_IntRange{
 		IntRange: &umpirespb.IntRange{High: 1 << 16}}})
 	var limit *LimitError
 	require.ErrorAs(t, err, &limit)
@@ -545,7 +545,7 @@ func TestMembersIsBoundedOnItsOwn(t *testing.T) {
 
 // pollStep's update written as the string "1": its key is a state's, and its value is none.
 func TestAStateOfTheRightKeyButAnotherTypeIsOutsideTheDomain(t *testing.T) {
-	m := proto.Clone(lifted(t, "presence")).(*umpirespb.Model)
+	m := proto.Clone(readLifted(t, "presence")).(*umpirespb.Model)
 	f := function(m, "Presence$package$.pollStep")
 	polls := f.GetBody().GetIf().GetThen().GetList().GetItems()[0].GetConstruct().GetArgs()[1].GetCopy().GetUpdates()[0]
 	polls.Value = admLiteral(polls.GetValue(), &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: "1"}})

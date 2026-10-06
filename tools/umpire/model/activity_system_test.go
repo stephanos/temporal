@@ -369,8 +369,8 @@ func TestActivityCompetingTimers(t *testing.T) {
 		// Once one has fired the activity is over and the other is disabled.
 		for _, timer := range []string{"scheduleToStart", "scheduleToClose"} {
 			require.True(t, strings.HasPrefix(over[timer], "timedOut-"), over[timer])
-			require.True(t, mm.Disabled(over[timer], "scheduleToStart"))
-			require.True(t, mm.Disabled(over[timer], "scheduleToClose"))
+			require.True(t, disabled(mm, over[timer], "scheduleToStart"))
+			require.True(t, disabled(mm, over[timer], "scheduleToClose"))
 		}
 	}
 }
@@ -426,7 +426,7 @@ func TestActivityCrashCuts(t *testing.T) {
 		require.Contains(t, taken(found.Witness), "crash", cut)
 		require.Equal(t, state, last(t, found.Witness).State.Value, cut)
 	}
-	require.True(t, c.built["taskQueueSystem"].Disabled("persisted-false-twice", "deliver"))
+	require.True(t, disabled(c.built["taskQueueSystem"], "persisted-false-twice", "deliver"))
 	// After the acknowledgment nothing is outstanding, and a crash changes nothing.
 	require.Equal(t, []Result{{Outcome: "internal", State: "nowhere-false-never", Facts: []string{"crashed"}}},
 		plainResults(t, c.built["taskQueueSystem"].Table, "nowhere-false-never-crash"))
@@ -586,7 +586,7 @@ func TestActivitySystemExclusionsAreDisabled(t *testing.T) {
 		for _, state := range mm.Table.States {
 			for _, class := range []string{"control-unpause", "control-requestCancel", "control-terminate",
 				"respond-failed-false", "respond-failed-true", "respond-canceled"} {
-				require.True(t, mm.Disabled(state, class), "%s: %s-%s", design, state, class)
+				require.True(t, disabled(mm, state, class), "%s: %s-%s", design, state, class)
 			}
 		}
 	}

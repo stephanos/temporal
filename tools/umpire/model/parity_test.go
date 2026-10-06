@@ -13,9 +13,7 @@ const irPath = "../../../model/ir/nexus-caller.json"
 
 func machines(t *testing.T) map[string]*Machine {
 	t.Helper()
-	m, err := Load(irPath)
-	require.NoError(t, err)
-	built, err := Build(m)
+	built, err := Build(readIR(t, irPath))
 	require.NoError(t, err)
 	return built
 }

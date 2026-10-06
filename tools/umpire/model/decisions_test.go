@@ -18,7 +18,7 @@ func whyIn(t *testing.T, m *umpirespb.Model, machine, state, class string) *Why 
 }
 
 func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
-	m := activityModel(t)
+	m := readIR(t, activityIR)
 
 	// A pause of a paused activity fires no rule: the control's rules are matched on the input first,
 	// then each rule of the class is tried on the state, and the last one tried disabled the pair.
@@ -56,7 +56,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 }
 
 func TestWhyTellsAnInputDecisionFromAStateDecision(t *testing.T) {
-	m := activityModel(t)
+	m := readIR(t, activityIR)
 	// A non-retryable failure decides on the input, then on the phase its rule names (`held`).
 	w := whyIn(t, m, "activitySystem", "started-1-unset-unset-unset", "respond-failed-false")
 	require.Len(t, w.Steps, 1)
@@ -70,7 +70,7 @@ func TestWhyTellsAnInputDecisionFromAStateDecision(t *testing.T) {
 }
 
 func TestWhyMarksAWildcardArm(t *testing.T) {
-	m := proto.Clone(activityModel(t)).(*umpirespb.Model)
+	m := proto.Clone(readIR(t, activityIR)).(*umpirespb.Model)
 	// Rewrite the control's rules for a pause as a default arm that fires none, as `case _ => Nil`
 	// lifts.
 	var rewritten bool
@@ -95,7 +95,7 @@ func TestWhyMarksAWildcardArm(t *testing.T) {
 }
 
 func TestWhyRefusesAnUnknownStateOrClass(t *testing.T) {
-	m := activityModel(t)
+	m := readIR(t, activityIR)
 	machines, err := Build(m)
 	require.NoError(t, err)
 	in := NewInterpreter(m)
@@ -106,7 +106,7 @@ func TestWhyRefusesAnUnknownStateOrClass(t *testing.T) {
 }
 
 func TestReadsSaysWhetherAClaimReadsItsStep(t *testing.T) {
-	m := activityModel(t)
+	m := readIR(t, activityIR)
 	machines, err := Build(m)
 	require.NoError(t, err)
 	product := machines["activityProduct"]

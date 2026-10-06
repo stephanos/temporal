@@ -66,10 +66,10 @@ func BuildWithin(m *umpirespb.Model, c Ceilings) (map[string]*Machine, error) {
 	return in.Build(m)
 }
 
-// Disabled is whether a state and class of the machine are a disabled pair: an empty list of steps,
+// disabled is whether a state and class of the machine are a disabled pair: an empty list of steps,
 // neither a row nor a hole row.
-func (m *Machine) Disabled(state, class string) bool {
-	if _, ok := m.states[state]; !ok || !slices.ContainsFunc(m.Classes, func(c Class) bool { return c.Key == class }) {
+func disabled(m *Machine, state, class string) bool {
+	if _, ok := m.State(state); !ok || !slices.ContainsFunc(m.Classes, func(c Class) bool { return c.Key == class }) {
 		return false
 	}
 	key := state + "-" + class

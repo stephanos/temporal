@@ -19,12 +19,11 @@ import (
 // job's override and the fixture catalog's keeps-law hold, and the pair keeps the pair's law.
 func TestCapabilitiesGeneratedClaims(t *testing.T) {
 	m := lifted(t, "capabilities")
-	for _, q := range m.GetQueries() {
-		total, err := queryTotal(m, q)
-		require.NoError(t, err, q.GetName())
-		n, ok := total.N()
-		require.True(t, ok, q.GetName())
-		require.Equal(t, n, q.GetTotal().GetValue(), "%s: %s", q.GetName(), total)
+	recounted, err := WithTotals(m)
+	require.NoError(t, err)
+	for i, q := range m.GetQueries() {
+		require.NotNil(t, q.GetTotal(), q.GetName())
+		require.Equal(t, recounted.GetQueries()[i].GetTotal().GetValue(), q.GetTotal().GetValue(), q.GetName())
 	}
 	c, err := checkedOnce(m)
 	require.NoError(t, err)

@@ -205,7 +205,7 @@ func withoutKeptRuntimeVocabulary(line string) string {
 }
 
 func TestRetiredModelVocabularyStaysRetired(t *testing.T) {
-	self := filepath.ToSlash(filepath.Join("tools", "umpire", "model", "layout_test.go"))
+	self := filepath.ToSlash(filepath.Join("tools", "umpire", "ir", "layout_test.go"))
 	var mentions []string
 	collect := func(rel, content string) {
 		if rel == self || retiredVocabularyArchives[rel] || strings.HasSuffix(rel, ".semanticdb") {
@@ -284,7 +284,7 @@ func retiredModelMentions(path, content string) []string {
 
 // liveLayoutFiles visits every file under liveLayoutRoots but this one.
 func liveLayoutFiles(visit func(rel, content string)) error {
-	self := filepath.ToSlash(filepath.Join("tools", "umpire", "model", "layout_test.go"))
+	self := filepath.ToSlash(filepath.Join("tools", "umpire", "ir", "layout_test.go"))
 	for _, root := range liveLayoutRoots {
 		err := filepath.WalkDir(filepath.Join(repoRoot, root), func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
