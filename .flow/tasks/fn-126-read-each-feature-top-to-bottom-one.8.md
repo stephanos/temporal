@@ -4,6 +4,8 @@ satisfies: [R9, R10, R11, R18, R19, R20]
 # fn-126-read-each-feature-top-to-bottom-one.8 Rename batch, level-name lint, Product and System docs; close
 
 ## Description
+Also decision 29: add the kit's `trait Client extends Actor` and rename the standalone activity's and standalone Nexus operation's `caller` to `object client extends Client` (the Nexus caller feature keeps `caller`/`handler`).
+
 Also: rename the Nexus caller's `ForgedCompletion` object and its machine to `TrustingCaller`/`trustingCaller` (decision 17, moved here from task 5).
 
 Also decision 28's task-8 items: Scenario names from their `val`, and the intent note in each feature header and `AGENTS.md`.
