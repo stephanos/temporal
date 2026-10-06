@@ -33,6 +33,24 @@ class DerivedIds extends munit.FunSuite:
       )
     )
 
+  test("one shared def's Query of one name over two machines of a package is refused"):
+    val plainLamp = lamp.withName("plainLamp").withPosition(ir.Position("Lamp.scala", 4))
+    val over = (m: String) => queryAt("Lamp.scala", 9).withScenario(ir.ClaimRef(m, "any"))
+    val refused = derivedIdTwins(
+      Seq(
+        "a" -> ir.Model(machines = Seq(lamp, plainLamp), queries = Seq(over("lamp"))),
+        "b" -> ir.Model(machines = Seq(lamp, plainLamp), queries = Seq(over("plainLamp")))
+      )
+    )
+    assertEquals(
+      refused.map(_.getMessage),
+      Seq(
+        "Lamp.scala:9: this declaration over plainLamp and the one over lamp derive the ID " +
+          "fixture.lamp.query.lit: name them apart, since an ID derived from a name is unique in " +
+          "its package"
+      )
+    )
+
   test("two machines of one name in one package are refused, and in two packages are not"):
     val twin = lamp.withPosition(ir.Position("Twin.scala", 5))
     val apart = twin.withFamily("fixture.other")

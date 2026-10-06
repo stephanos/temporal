@@ -36,7 +36,14 @@ final private[irgen] class Lifting(val ctx: Context)
       for q <- statements(objectBody(moduleClassOf(sym), d)) do
         q match
           case v: ValDef if claimRoot(v.tpt.tpe) => liftRoot(v.symbol.fullName)
-          case _                                 => ()
+          case v: ValDef if readAtRunTime(v)     =>
+            fail(
+              v,
+              s"${v.name} is a ${v.tpt.tpe.widen.dealias.show}, which the IR file reads at run " +
+                "time but the IR does not: a `queries` section declares a Query, a List or Vector " +
+                "of Queries, or a progress claim"
+            )
+          case _ => ()
     else if isNamed(d.tpt.tpe, "umpire.Machine") then machineOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.Composition") then compositionOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.realize.Realization") then realizationOf(sym, d)
@@ -60,6 +67,17 @@ final private[irgen] class Lifting(val ctx: Context)
   private def queriesSection(sym: Symbol): Boolean =
     val cls = moduleClassOf(sym)
     !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" && objectForm(cls.maybeOwner)
+
+  /**
+   * Whether the IR file reads a val of a `queries` section at run time (`IrFile.queriesOf`): a
+   * public one that is a Query or a sequence. One the lifter does not root is refused, so the IR and
+   * the run never disagree on a section's Queries.
+   */
+  private def readAtRunTime(v: ValDef): Boolean =
+    val kind = v.tpt.tpe.widen.dealias
+    !v.symbol.flags.is(Flags.Private) && !v.symbol.flags.is(Flags.Protected) &&
+    (kind.baseClasses.exists(_.fullName == "umpire.Query") ||
+      kind.baseClasses.exists(_.fullName == "scala.collection.Seq"))
 
   /** Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim. */
   private def claimRoot(t: TypeRepr): Boolean =

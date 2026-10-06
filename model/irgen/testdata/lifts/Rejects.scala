@@ -1210,3 +1210,18 @@ object UnobservedRefiner extends Machine[Lamp, Outcome, Nothing]:
   object refinement extends Refinement(OneStart):
     def toProduct(s: Lamp) = s
   object rules extends Bindings(flip ~> lampStep)
+
+/**
+ * A `queries` section that declares its Queries as an IndexedSeq, which the IR file reads at run
+ * time but the lifter does not: refused, not dropped from the IR.
+ */
+object IndexedQueries extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(flip ~> lampStep)
+  object queries:
+    val indexed: IndexedSeq[Query] = IndexedSeq(
+      query("indexedLit") find (property("lit") holds (_.state.lit)) in scenario("flipped").actions(
+        flip
+      ) limits one
+    )

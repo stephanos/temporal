@@ -424,7 +424,8 @@ class Fixtures extends munit.FunSuite:
     "RebindOneClass",
     "valMachine",
     "valComposition",
-    "UnobservedRefiner"
+    "UnobservedRefiner",
+    "IndexedQueries$.queries"
   ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ hintRejects ++
     markerRejects
 
@@ -784,6 +785,26 @@ class Fixtures extends munit.FunSuite:
         s"lift: $at:17: an IR file is named by a nonempty string literal without a `/`",
         s"lift: $at:22: splatted names its roots one by one, each a val that declares one",
         s"lift: $at:9: twice is declared twice, at $at:6 and here: an IR file is declared once"
+      )
+    )
+
+  // fn-126 decision 23: an ID derived from a name is unique in its package across the run, even
+  // when one shared def declares both records at one position.
+  concurrently(
+    "the lifter refuses one shared def's Query of one name over two machines of a package"
+  ):
+    val jar = packaged("derivedTwins", materialize("derivedTwins"))
+    val out = scratch.resolve("derivedTwins-out")
+    val at = stored("derivedTwins") + "DerivedTwins.scala"
+    val result = liftIr(out, s"$jar=${stored("derivedTwins")},$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: $at:35: this declaration over plainLamp and the one over lamp derive the ID " +
+          "fixture.derivedtwins.query.anyLit: name them apart, since an ID derived from a name is " +
+          "unique in its package"
       )
     )
 

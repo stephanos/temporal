@@ -109,11 +109,11 @@ abstract class Implements[S, O, F](using declaring: Declaring[S, O, F])(limits: 
   def claim(law: Law): Property[S] = capabilities.claim(law)
 
   /** Lifts no Property and no Query for `law`, for the reason `because` gives. */
-  def except(law: Law, because: String): Unit = waivers :+= Waiver.Except(law, because)
+  protected def except(law: Law, because: String): Unit = waivers :+= Waiver.Except(law, because)
 
   /**
    * Lifts `replaced`'s def, which takes the law's parameters, under the law's name, for the reason
    * `because` gives: `overriding(closedIsRejectedUniformly -> ownDef, because = "…")`.
    */
-  def overriding(replaced: (Law, AnyRef), because: String): Unit =
+  protected def overriding(replaced: (Law, AnyRef), because: String): Unit =
     waivers :+= Waiver.Overriding(replaced._1, replaced._2, because)

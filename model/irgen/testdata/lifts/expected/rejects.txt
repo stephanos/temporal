@@ -48,6 +48,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:1112: extendedBare extends ruled,
 lift: model/irgen/testdata/lifts/Rejects.scala:361: two holes are named gap: fixture.rejects.GapA.gap and fixture.rejects.GapB.gap, and the IR names them by name
 lift: model/irgen/testdata/lifts/Rejects.scala:209: channel guessed's loss is umpire.Loss.valueOf("reliable"), not a case of Loss: a channel names its loss as Loss.lossy or Loss.reliable
 lift: model/irgen/testdata/lifts/Rejects.scala:18: fixture.rejects.Unbounded.notes is a list, which has no bound: a state holds messages in a channel's Inbox
+lift: model/irgen/testdata/lifts/Rejects.scala:1223: indexed is a scala.collection.immutable.IndexedSeq[umpire.Query], which the IR file reads at run time but the IR does not: a `queries` section declares a Query, a List or Vector of Queries, or a progress claim
 lift: model/irgen/testdata/lifts/Rejects.scala:1018: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
 lift: model/irgen/testdata/lifts/Rejects.scala:957: lampStep(...) makes a step in a function that gives Boolean: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step
 lift: model/irgen/testdata/lifts/Rejects.scala:965: lampStep(...) makes a step in a function that gives String: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step

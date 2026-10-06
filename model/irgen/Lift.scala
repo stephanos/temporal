@@ -140,17 +140,21 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
  * two machines or compositions of one name (`<family>.target.<name>`), or two Queries of one name
  * (`<family>.query.<name>`), the family the package their machine is declared in. Scala names no
  * two declarations alike, but these IDs are derived from names, so two files of one package may
- * declare `completion` twice. One declaration lifted into several files is one.
+ * declare `completion` twice, and one shared `def` may build `query("completion")` over two
+ * machines of one package. One declaration lifted into several files is one: the same position
+ * over the same machine.
  */
 private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftError] =
   def at(p: Option[ir.Position]) = p.fold("")(p => s"${p.file}:${p.line}")
+  // Each derived ID with the declaration that derives it: its position and what it is over.
   val declared = models.flatMap { (_, m) =>
     val family = (m.machines.map(x => x.name -> x.family) ++
       m.compositions.map(x => x.name -> x.family)).toMap
-    m.machines.map(x => (s"${x.family}.target.${x.name}", at(x.position))) ++
-      m.compositions.map(x => (s"${x.family}.target.${x.name}", at(x.position))) ++
+    m.machines.map(x => (s"${x.family}.target.${x.name}", (at(x.position), x.name))) ++
+      m.compositions.map(x => (s"${x.family}.target.${x.name}", (at(x.position), x.name))) ++
       m.queries.flatMap(q =>
-        family.get(q.getScenario.machine).map(f => (s"$f.query.${q.name}", at(q.position)))
+        val over = q.getScenario.machine
+        family.get(over).map(f => (s"$f.query.${q.name}", (at(q.position), over)))
       )
   }
   declared
@@ -159,12 +163,15 @@ private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftErro
     .sortBy(_._1)
     .flatMap { (id, ats) =>
       ats.map(_._2).distinct.sorted match
-        case first +: again if again.nonEmpty =>
-          again.map(where =>
+        case (first, firstOver) +: again if again.nonEmpty =>
+          again.map((where, over) =>
+            val which =
+              if where == first then s"this declaration over $over and the one over $firstOver"
+              else s"this declaration and the one at $first"
             LiftError(
               where,
-              s"this declaration and the one at $first derive the ID $id: name them apart, since " +
-                "an ID derived from a name is unique in its package"
+              s"$which derive the ID $id: name them apart, since an ID derived from a name is " +
+                "unique in its package"
             )
           )
         case _ => Nil
