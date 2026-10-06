@@ -81,7 +81,7 @@ Gate: starts after fn-126 and fn-124 close; closes before fn-128 starts. Source 
 | fn-132.2 | ✅ done | `features/activity/standalone`; three form-owned export stems; exact move proof, closing Part A gates and SHIP; inherited matching worker-stop live exception retained |
 | fn-132.3 | ✅ done | Existing kind classifier retained; three exact-line R4 refusal fixtures, current-tree layout and docs, unchanged-artifact proof and SHIP |
 | fn-132.4 | ✅ done | Proved canonical action bindings, outcome catalogs and visible terminal carriers |
-| fn-132.5 | ⬜ todo | One `NexusProduct` in `features/nexus/` that both Nexus forms refine |
+| fn-132.5 | ✅ done | Shared kind Product/signature and both refinements; complete finite artifact/Case proof, current affected checks and SHIP; remaining Part B/C closing at task 6 |
 | fn-132.6 | ⬜ todo | General activity declarations in `activity/Activity.scala` |
 | fn-132.7 | ⬜ todo | Close |
 
