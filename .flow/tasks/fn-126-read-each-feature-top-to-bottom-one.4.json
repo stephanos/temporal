@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Make the machine object the machine, with effects, rules and sections, on the standalone activity",
   "updated_at": "2026-10-05T02:58:31.426411Z"
 }

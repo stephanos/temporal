@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Require both level machines and preserve loss-budget regression coverage",
   "updated_at": "2026-10-06T07:28:12.264169Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Cover composition stuck states and construct only needed witnesses",
   "updated_at": "2026-10-06T07:04:05.702767Z"
 }

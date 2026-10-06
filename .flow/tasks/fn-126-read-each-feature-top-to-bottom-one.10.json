@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Let each Product and System file own Phase, State, and Fact",
   "updated_at": "2026-10-06T05:16:36.727080Z"
 }

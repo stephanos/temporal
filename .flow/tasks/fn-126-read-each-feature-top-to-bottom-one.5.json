@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Write the remaining Models as machine objects and retire the builder forms",
   "updated_at": "2026-10-05T02:58:31.702193Z"
 }

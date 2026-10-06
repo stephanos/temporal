@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename batch, level-name lint, Product and System docs; close",
   "updated_at": "2026-10-05T17:40:08.803719Z"
 }

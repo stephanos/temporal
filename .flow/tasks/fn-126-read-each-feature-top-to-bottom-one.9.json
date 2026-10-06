@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lint a reachable state that is no end and enables nothing (stuck-state)",
   "updated_at": "2026-10-05T20:22:37.968094Z"
 }

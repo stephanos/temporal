@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Group actions by actor in transparent section objects",
   "updated_at": "2026-10-05T02:58:31.137093Z"
 }

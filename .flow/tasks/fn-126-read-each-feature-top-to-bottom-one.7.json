@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Definition IDs are fully qualified Scala names; pins and families removed",
   "updated_at": "2026-10-05T17:40:07.885201Z"
 }

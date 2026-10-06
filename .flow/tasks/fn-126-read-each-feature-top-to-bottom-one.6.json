@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Product and system folders, zoom-ins flattened, structure lint (a)(c)",
   "updated_at": "2026-10-05T17:40:21.214101Z"
 }

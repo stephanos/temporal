@@ -595,3 +595,23 @@ Regenerate with the gate's `--update`, then `make umpire-gen-cases umpire-gen-fi
 The audit at `dffbfb76b1018c4714930fcf6d4c30a33b5e010d` found uncovered original requirements. Task .9's machine-only implementation did not amend R21. Task .12 covers composition stuck states and computes shortest witnesses only for findings. Task .13 requires both primary level machines independently of refinement discovery and restores the explicit repeated-loss-disabled assertions. These tasks preserve Model behavior. They run sequentially, with focused checks in .12 and full validation once at the .12/.13 batch boundary. The conductor resolves the audit decisions and runs completion review before closing the spec.
 
 The conductor deferred the suggested rule-parser file split because the audit identifies no missing behavior or coverage from the current declaration grouping. The verbatim axis reports and separate finding counts are retained in `.flow/tmp/fn-126/quality-audit-round1.md`.
+
+
+## Completion
+
+All thirteen tasks are done. The completion reviewer checked all 21 R-IDs and the recorded owner decisions against the current code and retained evidence, with no gaps.
+
+stage: completion-review - ran [2026-10-06 07:57:59 UTC..2026-10-06 08:03:18 UTC], SHIP (model: gpt-6.1-sol at high). Same-family Codex review. Receipt `.flow/tmp/completion-review-receipt-fn-126-read-each-feature-top-to-bottom-one.json`; session `01a11038-313a-7642-bdec-d10f0065feaa`. The reviewer independently checked retained projections and snapshot alignment. Its focused Go rerun could not start in the read-only sandbox; the writer's executed full gates remain the test evidence.
+
+The four accepted periodic-audit findings are resolved by .12 and .13. Composition stuck states now have shortest witnesses, passing states do not construct witnesses, canonical level machines are independently required, and the repeated-loss assertion fails when its budget guard is removed. The parser-file split stays deferred for the reason recorded above. The two verbatim axis reports remain in `.flow/tmp/fn-126/quality-audit-round1.md`.
+
+Gates: full .12/.13 batch green at `32fe892a19`, as recorded in task .13. Model, Scala lint, batch-base read-only Go lint, full Go and Case/fixture/canary checks all exited 0. The Go run passed 17 packages and 2,866 tests/subtests in 108 wall seconds, with ten skips and no failures.
+Gates: model evidence reused from `32fe892a19` after verifying unchanged source and generated artifacts.
+Gates: full Go evidence reused from `32fe892a19` after verifying unchanged source and generated artifacts.
+Gates: smoke evidence reused from `32fe892a19` after verifying unchanged source and generated artifacts.
+
+The automatic ancestor-receipt probe did not honor the model receipt because the milestone status file changed. The conductor followed the owner's evidence-reuse instruction after inspecting every intervening commit and confirming only Flow records and the milestone status changed. No replacement full-gate receipt was minted and no additional full suite was run.
+
+Tracker sync: n/a (bridge inactive).
+Shipped: 0 (no PR or push; work is committed locally).
+Next: fn-124.9, then fn-124.8, as MILESTONES.md specifies.

@@ -70,26 +70,6 @@ cross-spec gates the conductor holds.
 
 
 
-### fn-126: Read each feature top to bottom: one object per machine
-
-Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after fn-124.7.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-126.1 | ✅ done | Standalone activity as one feature file per folder; `record/`, `withTaskQueue/`; declaration-order lint |
-| fn-126.2 | ✅ done | Nexus folders and shared Models as feature files; shared bounds; per-kind file names retired |
-| fn-126.3 | ✅ done | Actions grouped by actor in section objects that keep Definition IDs |
-| fn-126.4 | ✅ done | Machine objects with effects, rules and sections; lifter reshaped; standalone activity converted |
-| fn-126.5 | ✅ done | Remaining Models as machine objects; builder forms retired |
-| fn-126.6 | ✅ done | `product/` and `system/` folders; zoom-ins flattened; structure lint (a)(c); IDs frozen |
-| fn-126.7 | ✅ done | Definition IDs are fully qualified Scala names; pins and families removed |
-| fn-126.8 | ✅ done | Rename batch (Product and System, history record, actions, designs); level-name lint; docs |
-| fn-126.9 | ✅ done | `stuck-state` lint: a reachable non-end state that enables nothing |
-| fn-126.10 | ✅ done | Product and System files own their level `Phase`, `State` and `Fact` types |
-| fn-126.11 | ✅ done | Standalone activity realization moved into its System level; .10/.11 batch verified |
-| fn-126.12 | ✅ done | Composition stuck-state coverage; build shortest witnesses only for findings |
-| fn-126.13 | ✅ done | Require both primary level machines; restore repeated-loss-disabled regression; final gate and close |
-
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
 Gates: task 9 after fn-126 closes; task 8 last, after task 9, never alongside fn-126.

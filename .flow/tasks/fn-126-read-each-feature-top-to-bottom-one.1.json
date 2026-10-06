@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-126-read-each-feature-top-to-bottom-one",
   "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Write the standalone activity as one feature file per folder, rename record/ and withTaskQueue/, and lint declaration order",
   "updated_at": "2026-10-05T02:58:30.538517Z"
 }
