@@ -11,8 +11,8 @@ class IrFilesTest extends munit.FunSuite:
   /** Each feature's `object exports`, which declares its IR files as it initializes. */
   val declaring: Seq[AnyRef] = Seq(
     features.standaloneactivity.exports,
-    features.nexuscaller.exports,
-    features.nexusoperation.exports
+    features.nexus.workflow.exports,
+    features.nexus.standalone.exports
   )
 
   /** The checked-in IR files, by name: model/ir/<name>.json, beside no sidecar. */
@@ -52,7 +52,7 @@ class IrFilesTest extends munit.FunSuite:
 
   test("standalone public API callers share the Temporal Client actor") {
     val standaloneClient: Client = features.standaloneactivity.client
-    val operationClient: Client = features.nexusoperation.client
+    val operationClient: Client = features.nexus.standalone.client
     assertEquals(standaloneClient.name, "client")
     assertEquals(operationClient.name, "client")
   }

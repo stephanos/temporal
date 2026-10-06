@@ -41,7 +41,7 @@ func TestBindPreparesThePinnedCase(t *testing.T) {
 
 	bound, err := Bind(canary, testEnvironment)
 	require.NoError(t, err)
-	require.Equal(t, "temporal.case.scala.nexus-caller.syncCompletion", bound.Source.GetCaseId())
+	require.Equal(t, "temporal.case.scala.nexus-workflow.syncCompletion", bound.Source.GetCaseId())
 	prepared := bound.Prepared.Identity()
 	require.Equal(t, canary.CaseProfile, prepared.Profile, "the Profile name is the policy's, whatever the environment names")
 	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()

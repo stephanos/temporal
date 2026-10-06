@@ -1,6 +1,6 @@
 package check
 
-// The Nexus caller Model, as model/ir/nexus-caller.json carries it: the sizes, rows and answers its
+// The Nexus caller Model, as model/ir/nexus-workflow.json carries it: the sizes, rows and answers its
 // Scala pins asserted, read off the tables and receipts Go derives from the IR.
 
 import (
@@ -26,20 +26,20 @@ const productClaimProbes = `{
       "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
       "body": {"binary": {"op": "OP_EQ",
         "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
-        "right": {"literal": {"enum": {"type": "temporal.features.nexuscaller.product.Phase", "case": "timedOut"}}}}}}],
+        "right": {"literal": {"enum": {"type": "temporal.features.nexus.workflow.product.Phase", "case": "timedOut"}}}}}}],
   "properties": [
     {"machine": "nexusProduct", "name": "timesOut", "holds": "nexusProduct.property.timesOut",
-      "whenClass": {"action": "temporal.features.nexuscaller.timers.timeout"},
+      "whenClass": {"action": "temporal.features.nexus.workflow.timers.timeout"},
       "position": {"file": "tools/umpire/check/nexus_pins_test.go"}}],
   "scenarios": [
     {"machine": "nexusSystem", "name": "everywhere", "free": true,
       "position": {"file": "tools/umpire/check/nexus_pins_test.go"},
-      "start": {"construct": {"type": "temporal.features.nexuscaller.system.State", "args": [
-        {"literal": {"enum": {"type": "temporal.features.nexuscaller.system.Phase", "case": "unscheduled"}}},
+      "start": {"construct": {"type": "temporal.features.nexus.workflow.system.State", "args": [
+        {"literal": {"enum": {"type": "temporal.features.nexus.workflow.system.Phase", "case": "unscheduled"}}},
         {"literal": {"int": "0"}},
-        {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}},
-        {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}},
-        {"literal": {"enum": {"type": "temporal.features.nexuscaller.Timeout", "case": "unset"}}}]}}}],
+        {"literal": {"enum": {"type": "temporal.features.nexus.workflow.Timeout", "case": "unset"}}},
+        {"literal": {"enum": {"type": "temporal.features.nexus.workflow.Timeout", "case": "unset"}}},
+        {"literal": {"enum": {"type": "temporal.features.nexus.workflow.Timeout", "case": "unset"}}}]}}}],
   "queries": [
     {"name": "terminalHoldsEverywhere", "form": "FORM_VERIFY", "through": true,
       "position": {"file": "tools/umpire/check/nexus_pins_test.go"},
@@ -196,7 +196,7 @@ func TestNexusQueries(t *testing.T) {
 	terminal := receiptOf(t, r, "query nexusSystem terminalHolds")
 	require.Equal(t, Verified, terminal.Kind)
 	require.True(t, terminal.Exercised)
-	require.Equal(t, ClaimKey{Family: "temporal.features.nexuscaller.product", Owner: "nexusProduct", Name: "terminalIsFinal"}, terminal.Property)
+	require.Equal(t, ClaimKey{Family: "temporal.features.nexus.workflow.product", Owner: "nexusProduct", Name: "terminalIsFinal"}, terminal.Property)
 }
 
 // The search keeps one fired bit per Property and visits 111 product states. The count is a search

@@ -374,7 +374,7 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 	require.ElementsMatch(t, []string{
 		"wire/supplement.binpb",
 		"wire/ir/activity.binpb", "wire/ir/activity-race.binpb", "wire/ir/activity-system.binpb",
-		"wire/ir/nexus-caller.binpb", "wire/ir/nexus-close.binpb", "wire/ir/nexus-control.binpb",
+		"wire/ir/nexus-workflow.binpb", "wire/ir/nexus-workflow-close.binpb", "wire/ir/nexus-workflow-control.binpb",
 		lifts + "admission.binpb", lifts + "channels.binpb", lifts + "closereset.binpb",
 		lifts + "declarations.binpb", lifts + "presence.binpb", lifts + "realizations.binpb",
 	}, slices.Collect(maps.Keys(captured)))

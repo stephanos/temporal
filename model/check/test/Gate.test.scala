@@ -371,7 +371,7 @@ class GateSuite extends munit.FunSuite:
       repository.ran.filter(_.startsWith("scala-cli ")).takeRight(2),
       Seq(
         "scala-cli compile model/project.scala model/umpire --suppress-outdated-dependency-warning",
-        "scala-cli test model/project.scala model/umpire model/temporal --suppress-outdated-dependency-warning"
+        "scala-cli test --server=false model/project.scala model/umpire model/temporal --suppress-outdated-dependency-warning"
       )
     )
 
@@ -390,12 +390,12 @@ class GateSuite extends munit.FunSuite:
 
   // The IR files the stand-in lifter writes, as the Models declare them with `irFile`.
   private val irFiles = Seq(
-    "nexus-caller.json",
-    "nexus-control.json",
+    "nexus-workflow.json",
+    "nexus-workflow-control.json",
     "activity.json",
     "activity-system.json",
     "activity-race.json",
-    "nexus-close.json"
+    "nexus-workflow-close.json"
   )
 
   // As the lifter's one run (`lift --ir <jars> <classpath> <directory>`), scala-cli writes every IR
@@ -492,6 +492,12 @@ class GateSuite extends munit.FunSuite:
         |    case " $* " in *" --server=false "*) ;; *) echo '[error] No input files provided'; exit 0;; esac
         |  ;; esac
         |;; esac
+        |case " $* " in *" test model/project.scala model/umpire model/temporal "*)
+        |  case " $* " in *" --server=false "*) ;; *) echo '[error] No class, trait or object is defined in the compilation unit.'; exit 0;; esac
+        |;; esac
+        |case " $* " in *" compile --print-class-path model/project.scala model/umpire model/temporal "*)
+        |  case " $* " in *" --server=false "*) ;; *) echo '[error] No class, trait or object is defined in the compilation unit.'; exit 0;; esac
+        |;; esac
         |""".stripMargin
     val repository = Repository(scalaCli = headerCompiler + lifting)
     val ir = Files.createDirectories(repository.root.resolve("model/ir"))
@@ -500,7 +506,13 @@ class GateSuite extends munit.FunSuite:
     assertEquals(answer.status, 0, answer.err)
     val packaged = repository.ran.find(_.contains("model-scala.jar")).get
     assert(packaged.contains(" --server=false "), packaged)
-
+    assert(
+      repository.ran
+        .find(line => line.contains(" test ") && line.contains("model/temporal"))
+        .get
+        .contains(" --server=false ")
+    )
+    assert(repository.ran.find(_.contains(" --print-class-path ")).get.contains(" --server=false "))
 
   test("the gate stops at a mention the vocabulary check finds, and shows where"):
     val found = "model/umpire/Table.scala:7\\n--- FAIL: TestModelNamesNoRetiredFrontEnd (0.05s)"
@@ -541,7 +553,7 @@ class GateSuite extends munit.FunSuite:
   test("the one lift reports every IR file that failed, each by name, and nothing is rewritten"):
     val repository = staleRepository()
     val failing =
-      repository.tools.withEnvironment("FAILING_LIFTS" -> "activity.json nexus-close.json")
+      repository.tools.withEnvironment("FAILING_LIFTS" -> "activity.json nexus-workflow-close.json")
     val answer = gate(failing, "--update", "--skip-go-checks")
     assertEquals(answer.status, 1)
     assert(
@@ -551,8 +563,11 @@ class GateSuite extends munit.FunSuite:
       ),
       answer.err
     )
-    assert(answer.err.contains("lift: the roots of nexus-close.json did not lift:"), answer.err)
-    assert(!answer.err.contains("nexus-caller.json"), answer.err)
+    assert(
+      answer.err.contains("lift: the roots of nexus-workflow-close.json did not lift:"),
+      answer.err
+    )
+    assert(!answer.err.contains("nexus-workflow.json"), answer.err)
     // The gate names no root: the lifter finds the IR files the Models declare.
     val lifts = repository.ran.filter(_.contains("--main-class umpire.irgen.lift"))
     assertEquals(lifts.size, 1, lifts.mkString("\n"))

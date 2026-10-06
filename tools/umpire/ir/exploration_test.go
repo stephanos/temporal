@@ -30,7 +30,7 @@ func TestExplorationRejectsInvalidDomains(t *testing.T) {
 		{"finite ceiling", func(e *umpirespb.Exploration) { e.Variations[0].Choices = make([]*umpirespb.Alternative, 4097) }, "4096 combinations"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			m, err := Load("../../../model/ir/nexus-caller.json")
+			m, err := Load("../../../model/ir/nexus-workflow.json")
 			require.NoError(t, err)
 			for _, q := range m.Queries {
 				if q.Name == "syncCompletion" {

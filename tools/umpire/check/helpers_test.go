@@ -250,7 +250,7 @@ func positions(m proto.Message) []*umpirespb.Position {
 	return out
 }
 
-const irPath = "../../../model/ir/nexus-caller.json"
+const irPath = "../../../model/ir/nexus-workflow.json"
 
 func machines(t *testing.T) map[string]*interp.Machine {
 	t.Helper()
@@ -269,4 +269,4 @@ func readIR(t *testing.T, path string) *umpirespb.Model {
 	return m
 }
 
-const admRealizationAt = "model/temporal/features/nexuscaller/Realization.scala:"
+const admRealizationAt = "model/temporal/features/nexus/workflow/Realization.scala:"

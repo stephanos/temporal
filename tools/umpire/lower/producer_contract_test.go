@@ -14,7 +14,7 @@ import (
 // the lowerer has checked it: the Query, its identity, the realization and the source.
 func producerContractFixture(t *testing.T, name string) (*check.Query, Identity, *cp.Realization, cp.Source) {
 	t.Helper()
-	p, err := NewProducer(loaded(t, "nexus-caller"))
+	p, err := NewProducer(loaded(t, "nexus-workflow"))
 	require.NoError(t, err)
 	a, standing, err := p.ask(name)
 	require.NoError(t, err)

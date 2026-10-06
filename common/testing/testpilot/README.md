@@ -417,7 +417,7 @@ it, and only the renamer and the context probe tables named it.
    added.
 3. **The Producer.** A realization asks for it as `Fault(role, FaultKind.workerStop)`
    (`model/umpire/realize/Realize.scala`); the Nexus caller's realization stops the handler's worker
-   that way (`model/temporal/features/nexuscaller/Realization.scala`). It lifts to the IR's
+   that way (`model/temporal/features/nexus/workflow/Realization.scala`). It lifts to the IR's
    `Fault.Kind.KIND_WORKER_STOP`, and the lowering's `faultKinds`
    (`tools/umpire/lower/realization.go`) maps that to the protocol's kind.
 4. **Go interpreter and evaluator.** `admission.bindFault` (`internal/execution/dataflow.go`) admits
@@ -441,7 +441,7 @@ it, and only the renamer and the context probe tables named it.
    (`temporal/worker/outage_test.go`), and live `TestTestpilotWorkerOutageCase`. No conformance class
    covers faults.
 8. **Retired vocabulary.** Nothing to retire for an added kind.
-9. **Fixtures.** `model/cases/nexus-caller-scheduleToStartTimeout-case.json` and three standalone
+9. **Fixtures.** `model/cases/nexus-workflow-scheduleToStartTimeout-case.json` and three standalone
    activity Cases carry the kind, written by `make umpire-gen-model`.
    `workerOutageTests-survived-case.json` under `tests/testcore/testpilot/testdata` carries it too
    and is a retained fixture.

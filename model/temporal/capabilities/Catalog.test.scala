@@ -33,7 +33,7 @@ class CatalogTest extends munit.FunSuite:
       "temporal.features.standaloneactivity.system.State",
       Set(Terminable, Cancelable, Describable)
     ),
-    // The standalone Nexus operation (model/temporal/features/nexusoperation).
+    // The standalone Nexus operation (model/temporal/features/nexus/standalone).
     Declaring(
       "nexusOperation",
       "OperationState",

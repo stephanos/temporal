@@ -1872,9 +1872,9 @@ class Fixtures extends munit.FunSuite:
     val result = liftIr(
       out,
       s"$jar=$tree/,$modelJar=model/",
-      "activity-standalone",
-      "nexus-standalone",
-      "nexus-workflow",
+      "fixture-activity-standalone",
+      "fixture-nexus-standalone",
+      "fixture-nexus-workflow",
       "relay-standalone",
       "relay-workflow"
     )
@@ -1883,9 +1883,9 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       listed(out),
       Seq(
-        "activity-standalone.json",
-        "nexus-standalone.json",
-        "nexus-workflow.json",
+        "fixture-activity-standalone.json",
+        "fixture-nexus-standalone.json",
+        "fixture-nexus-workflow.json",
         "relay-standalone.json",
         "relay-workflow.json"
       )
@@ -2011,7 +2011,7 @@ class Fixtures extends munit.FunSuite:
     finally stream.close()
     val jar = packaged("shared-forms", tree, Seq("--server=false"))
     val out = scratch.resolve("shared-forms-out")
-    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "nexus-workflow")
+    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "fixture-nexus-workflow")
     assertNotEquals(result.exit, 0)
     assertEquals(listed(out), Nil)
     assert(
@@ -2029,7 +2029,7 @@ class Fixtures extends munit.FunSuite:
     )
     val jar = packaged("wrong-parent-kind", tree, Seq("--server=false"))
     val out = scratch.resolve("wrong-parent-kind-out")
-    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "nexus-workflow")
+    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "fixture-nexus-workflow")
     assertNotEquals(result.exit, 0)
     assertEquals(listed(out), Nil)
     assert(

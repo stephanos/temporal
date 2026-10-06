@@ -90,15 +90,15 @@ var derivedWaits = map[string]map[string]map[string]wait{
 		"heldDispatch.staleDelivery": {"controller/await-paused": readOnce},
 		"lostStartAnswer.committed":  {},
 	},
-	"nexus-caller": {
+	"nexus-workflow": {
 		"syncCompletion": scheduled, "asyncCompletion": scheduled, "asyncFailure": scheduled, "handlerError": scheduled,
 		"scheduleToStartTimeout": scheduled, "startToCloseTimeout": scheduled,
 		"retry": {"controller/await-scheduled": scheduled["controller/await-scheduled"],
 			"controller/pending-attempts": {interval: 250, hints: []string{"cause.handlerReply=5000",
 				"visibility.handlerReply.describeWorkflowExecution=2000"}}},
 	},
-	"nexus-control":   {"forgedCompletion": scheduled},
-	"nexus-operation": {"nexusOperation.terminateSettles": {"controller/await-terminated": readOnce}, "nexusOperation.cancelIsRequested": {}},
+	"nexus-workflow-control": {"forgedCompletion": scheduled},
+	"nexus-standalone":       {"nexusOperation.terminateSettles": {"controller/await-terminated": readOnce}, "nexusOperation.cancelIsRequested": {}},
 }
 
 // waitsOf is how each read of a Case waits.
@@ -315,26 +315,26 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 		{"activity", "visibility.activityAnswer.describeActivityExecution", "completion",
 			[]string{"command controller/await-completed reads " + describeActivity + " after command activity/complete-attempt",
 				"which is an activity answer, " + unseen("an activity answer", describeActivity)}},
-		{"nexus-operation", "visibility.startNexusOperationExecution.describeNexusOperationExecution", "nexusOperation.terminateSettles",
+		{"nexus-standalone", "visibility.startNexusOperationExecution.describeNexusOperationExecution", "nexusOperation.terminateSettles",
 			[]string{"command controller/await-terminated reads " + describeOperation, unseen(workflowService+"StartNexusOperationExecution", describeOperation)}},
-		{"nexus-operation", "visibility.terminateNexusOperationExecution.describeNexusOperationExecution", "nexusOperation.terminateSettles",
+		{"nexus-standalone", "visibility.terminateNexusOperationExecution.describeNexusOperationExecution", "nexusOperation.terminateSettles",
 			[]string{"command controller/await-terminated reads " + describeOperation, unseen(workflowService+"TerminateNexusOperationExecution", describeOperation)}},
-		{"nexus-caller", "visibility.startWorkflowExecution.getWorkflowExecutionHistory", "syncCompletion",
+		{"nexus-workflow", "visibility.startWorkflowExecution.getWorkflowExecutionHistory", "syncCompletion",
 			[]string{"command controller/await-scheduled reads " + history + " after command controller/start-workflow",
 				unseen(workflowService+"StartWorkflowExecution", history)}},
-		{"nexus-caller", "visibility.workflowTask.getWorkflowExecutionHistory", "syncCompletion",
+		{"nexus-workflow", "visibility.workflowTask.getWorkflowExecutionHistory", "syncCompletion",
 			[]string{"command controller/await-scheduled reads " + history + " after command workflow/start-nexus-operation",
 				unseen("a workflow task", history)}},
-		{"nexus-caller", "visibility.handlerReply.describeWorkflowExecution", "retry",
+		{"nexus-workflow", "visibility.handlerReply.describeWorkflowExecution", "retry",
 			[]string{"command controller/pending-attempts reads " + describeWorkflow + " after command handler/respond-error-retryable",
 				unseen("a handler reply", describeWorkflow)}},
 		{"activity", "cause.activityAnswer", "completion",
 			[]string{"command controller/await-completed waits for command activity/complete-attempt",
 				"which is an activity answer, and the realization declares no bound of an activity answer"}},
-		{"nexus-caller", "cause.workflowTask", "syncCompletion",
+		{"nexus-workflow", "cause.workflowTask", "syncCompletion",
 			[]string{"command controller/await-scheduled waits for command workflow/start-nexus-operation",
 				"which is a workflow task, and the realization declares no bound of a workflow task"}},
-		{"nexus-caller", "cause.handlerReply", "retry",
+		{"nexus-workflow", "cause.handlerReply", "retry",
 			[]string{"command controller/pending-attempts waits for command handler/respond-error-retryable",
 				"which is a handler reply, and the realization declares no bound of a handler reply"}},
 		{"activity", "cause.delivery", "completion", []string{"server step poll is a delivery, and the realization bounds no delivery"}},
@@ -479,11 +479,11 @@ func TestACallThatReadsIsCheckedAndNeverWaits(t *testing.T) {
 			}
 		}
 	}
-	_, err := lowerDerived(t, derivedModel(t, "nexus-control", reading, without("visibility.handlerReply.describeWorkflowExecution")), "forgedCompletion")
+	_, err := lowerDerived(t, derivedModel(t, "nexus-workflow-control", reading, without("visibility.handlerReply.describeWorkflowExecution")), "forgedCompletion")
 	require.ErrorContains(t, err, "command controller/inspect-workflow-2 reads "+describeWorkflow+" after command handler/respond-async")
 	require.ErrorContains(t, err, "which is a handler reply, and the realization declares no visibility of a handler reply to "+describeWorkflow)
 
-	_, err = lowerDerived(t, derivedModel(t, "nexus-control", reading), "forgedCompletion")
+	_, err = lowerDerived(t, derivedModel(t, "nexus-workflow-control", reading), "forgedCompletion")
 	require.ErrorContains(t, err, "command controller/inspect-workflow-2 reads "+describeWorkflow+" once, after command handler/respond-async")
 	require.ErrorContains(t, err, "which is visible to it only eventually (visibility.handlerReply.describeWorkflowExecution): a read that waits is a poll")
 }
@@ -524,7 +524,7 @@ func TestNoBehaviorDerivesNoWait(t *testing.T) {
 
 	// The forged control's second inspection, made to read, would be refused under the kit's behavior
 	// (TestACallThatReadsIsCheckedAndNeverWaits); with none declared it lowers as written.
-	unhinted := derivedModel(t, "nexus-control", func(m *umpirespb.Model) {
+	unhinted := derivedModel(t, "nexus-workflow-control", func(m *umpirespb.Model) {
 		for _, r := range m.GetRealizations() {
 			r.Behavior, r.ServerSteps = nil, nil
 			r.Observations = append(r.Observations, &umpirespb.Observed{Id: "described", Position: r.GetPosition(),
@@ -546,7 +546,7 @@ func TestNoBehaviorDerivesNoWait(t *testing.T) {
 // A closing poll left to derive its wait reads once: the realization declares it is made after its
 // sources report nothing more, so it waits for nothing and checks no write.
 func TestAClosingPollReadsOnce(t *testing.T) {
-	m := derivedModel(t, "nexus-caller", func(m *umpirespb.Model) {
+	m := derivedModel(t, "nexus-workflow", func(m *umpirespb.Model) {
 		for _, c := range commandsOfModel(m) {
 			if c.GetId() == "await-scheduled" {
 				c.Closes = []string{c.GetPoll().GetEvidence()}

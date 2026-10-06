@@ -40,9 +40,9 @@ func built(t *testing.T, m *umpirespb.Model) map[string]*interp.Machine {
 	return out
 }
 
-const nexusCloseIR = "../../../model/ir/nexus-close.json"
+const nexusCloseIR = "../../../model/ir/nexus-workflow-close.json"
 
-const irPath = "../../../model/ir/nexus-caller.json"
+const irPath = "../../../model/ir/nexus-workflow.json"
 
 // BuildWithin is Build within explicit ceilings.
 func BuildWithin(m *umpirespb.Model, c interp.Ceilings) (map[string]*interp.Machine, error) {

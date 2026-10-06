@@ -1109,14 +1109,14 @@
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-standalone.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusSystem",
-        "Name": "asyncCompletion"
+        "Family": "temporal.features.nexus.standalone",
+        "Owner": "nexusOperation",
+        "Name": "nexusOperation.cancelIsRequested"
       },
       "standing": "lowered",
-      "file": "nexus-caller-asyncCompletion-case.json",
+      "file": "nexus-standalone-nexusOperation.cancelIsRequested-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -1124,7 +1124,7 @@
         "conformance": "conformant",
         "properties": [
           {
-            "id": "completionSucceeds",
+            "id": "nexusOperation.cancelIsRequested",
             "status": "inconclusive",
             "reason": "explanations_disagree"
           }
@@ -1132,138 +1132,32 @@
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-standalone.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusSystem",
-        "Name": "asyncFailure"
-      },
-      "standing": "lowered",
-      "file": "nexus-caller-asyncFailure-case.json",
-      "expected": {
-        "contract": "satisfied",
-        "disposition": "completed",
-        "cleanup": "succeeded",
-        "conformance": "conformant",
-        "properties": [
-          {
-            "id": "completionFails",
-            "status": "inconclusive",
-            "reason": "explanations_disagree"
-          }
-        ]
-      }
-    },
-    {
-      "model": "nexus-caller.json",
-      "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusSystem",
-        "Name": "handlerError"
-      },
-      "standing": "lowered",
-      "file": "nexus-caller-handlerError-case.json",
-      "expected": {
-        "contract": "satisfied",
-        "disposition": "completed",
-        "cleanup": "succeeded",
-        "conformance": "conformant",
-        "properties": [
-          {
-            "id": "handlerErrorFails",
-            "status": "inconclusive",
-            "reason": "never_evaluated"
-          }
-        ]
-      }
-    },
-    {
-      "model": "nexus-caller.json",
-      "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusSystem",
-        "Name": "retry"
-      },
-      "standing": "lowered",
-      "file": "nexus-caller-retry-case.json",
-      "expected": {
-        "contract": "satisfied",
-        "disposition": "completed",
-        "cleanup": "succeeded",
-        "conformance": "conformant",
-        "properties": [
-          {
-            "id": "retrySucceeds",
-            "status": "inconclusive",
-            "reason": "explanations_disagree"
-          }
-        ]
-      }
-    },
-    {
-      "model": "nexus-caller.json",
-      "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusSystem",
-        "Name": "scheduleToStartTimeout"
-      },
-      "standing": "lowered",
-      "file": "nexus-caller-scheduleToStartTimeout-case.json",
-      "expected": {
-        "contract": "satisfied",
-        "disposition": "completed",
-        "cleanup": "succeeded",
-        "conformance": "conformant",
-        "properties": [
-          {
-            "id": "scheduleToStartFires",
-            "status": "inconclusive",
-            "reason": "never_evaluated"
-          }
-        ]
-      }
-    },
-    {
-      "model": "nexus-caller.json",
-      "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusSystem",
-        "Name": "startToCloseTimeout"
-      },
-      "standing": "lowered",
-      "file": "nexus-caller-startToCloseTimeout-case.json",
-      "expected": {
-        "contract": "satisfied",
-        "disposition": "completed",
-        "cleanup": "succeeded",
-        "conformance": "conformant",
-        "properties": [
-          {
-            "id": "startToCloseFires",
-            "status": "inconclusive",
-            "reason": "never_evaluated"
-          }
-        ]
-      }
-    },
-    {
-      "model": "nexus-caller.json",
-      "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusCaller",
-        "Name": "stoppedWorkerRepliesNothing"
+        "Family": "temporal.features.nexus.standalone",
+        "Owner": "nexusOperation",
+        "Name": "nexusOperation.closedIsRejectedUniformly"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-standalone.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusSystem",
-        "Name": "syncCompletion"
+        "Family": "temporal.features.nexus.standalone",
+        "Owner": "nexusOperation",
+        "Name": "nexusOperation.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-standalone.json",
+      "query": {
+        "Family": "temporal.features.nexus.standalone",
+        "Owner": "nexusOperation",
+        "Name": "nexusOperation.terminateSettles"
       },
       "standing": "lowered",
-      "file": "nexus-caller-syncCompletion-case.json",
+      "file": "nexus-standalone-nexusOperation.terminateSettles-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -1271,1434 +1165,1426 @@
         "conformance": "conformant",
         "properties": [
           {
-            "id": "syncSucceeds",
-            "status": "satisfied"
+            "id": "nexusOperation.terminateSettles",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
           }
         ]
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "nexusSystem",
-        "Name": "terminalHolds"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "nexus-close.json",
-      "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.ackedThenReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.any.closedHistoryIsFrozen"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.any.handlerEffectIsIrreversible"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.any.knowledgeIsFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.any.knownIsTheHandlersOutcome"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.asyncCompletion"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.asyncFailure"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.canceledAcrossReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.canceledIsKnown"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.detachedWorkProceeds"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.duplicateCompletion"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.effectWithoutKnowledge"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.intentWithoutReceipt"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.lostAfterReset"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.permanentRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.receiptWithoutEffect"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.resetAfterRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.resetBeforeRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.resetBetweenCommitAndAcknowledgment"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.resetThenDelivered.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginal",
         "Name": "ackByOriginal.transientRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.any.noUnnecessaryWait"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.expiredAfterClosedLoss"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.expiredAfterResetLoss"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.expiredWhileReported"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.lateCompletionIsDropped"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "ackByOriginalWithDeadline",
         "Name": "ackByOriginalWithDeadline.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.ackedThenReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.any.closedHistoryIsFrozen"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.any.handlerEffectIsIrreversible"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.any.knowledgeIsFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.any.knownIsTheHandlersOutcome"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.asyncCompletion"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.asyncFailure"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.canceledAcrossReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.canceledIsKnown"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.detachedWorkProceeds"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.duplicateCompletion"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.effectWithoutKnowledge"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.intentWithoutReceipt"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.lostAfterReset"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.permanentRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.receiptWithoutEffect"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.resetAfterRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.resetBeforeRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.resetBetweenCommitAndAcknowledgment"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.resetThenDelivered.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "forgetsCancelOnReset",
         "Name": "forgetsCancelOnReset.transientRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.ackedThenReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.any.closedHistoryIsFrozen"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.any.handlerEffectIsIrreversible"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.any.knowledgeIsFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.any.knownIsTheHandlersOutcome"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.asyncCompletion"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.asyncFailure"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.canceledAcrossReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.canceledIsKnown"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.detachedWorkProceeds"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.duplicateCompletion"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.effectWithoutKnowledge"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.intentWithoutReceipt"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.lostAfterReset"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.permanentRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.receiptWithoutEffect"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.resetAfterRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.resetBeforeRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.resetBetweenCommitAndAcknowledgment"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.resetThenDelivered.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterClose",
         "Name": "rejectAfterClose.transientRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.any.noUnnecessaryWait"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.expiredAfterClosedLoss"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.expiredAfterResetLoss"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.expiredWhileReported"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.lateCompletionIsDropped"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "rejectAfterCloseWithDeadline",
         "Name": "rejectAfterCloseWithDeadline.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.ackedThenReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.any.closedHistoryIsFrozen"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.any.handlerEffectIsIrreversible"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.any.knowledgeIsFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.any.knownIsTheHandlersOutcome"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.asyncCompletion"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.asyncFailure"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.canceledAcrossReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.canceledIsKnown"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.detachedWorkProceeds"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.duplicateCompletion"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.effectWithoutKnowledge"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.intentWithoutReceipt"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.lostAfterReset"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.permanentRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.receiptWithoutEffect"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.resetAfterRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.resetBeforeRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.resetBetweenCommitAndAcknowledgment"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.resetThenDelivered.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRoute",
         "Name": "retainAndRoute.transientRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteBoundedRetry",
         "Name": "retainAndRouteBoundedRetry.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteBoundedRetry",
         "Name": "retainAndRouteBoundedRetry.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteBoundedRetry",
         "Name": "retainAndRouteBoundedRetry.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteBoundedRetry",
         "Name": "retainAndRouteBoundedRetry.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.any.noUnnecessaryWait"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.expiredAfterClosedLoss"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.expiredAfterResetLoss"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.expiredWhileReported"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.lateCompletionIsDropped"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "retainAndRouteWithDeadline",
         "Name": "retainAndRouteWithDeadline.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.ackedThenReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.any.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.any.closedHistoryIsFrozen"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.any.handlerEffectIsIrreversible"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.any.knowledgeIsFinal"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.any.knownIsTheHandlersOutcome"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.any.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.asyncCompletion"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.asyncFailure"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.canceledAcrossReset"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.canceledIsKnown"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.closedThenFinished"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.detachedWorkProceeds"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.duplicateCompletion"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.effectWithoutKnowledge"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.intentWithoutReceipt"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.lostAfterReset"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.permanentRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.receiptWithoutEffect"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.resetAfterRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.resetBeforeRetention"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.resetBetweenCommitAndAcknowledgment"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.resetThenDelivered.ackOnlyWhenKept"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.resetThenDelivered.outcomePreserved"
       },
       "standing": "nothing-to-realize"
     },
     {
-      "model": "nexus-close.json",
+      "model": "nexus-workflow-close.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "truncatesOnReset",
         "Name": "truncatesOnReset.transientRejectionAfterClose"
       },
       "standing": "no-realization"
     },
     {
-      "model": "nexus-control.json",
+      "model": "nexus-workflow-control.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "trustingCaller",
         "Name": "forgedCompletion"
       },
       "standing": "lowered",
-      "file": "nexus-control-forgedCompletion-case.json",
+      "file": "nexus-workflow-control-forgedCompletion-case.json",
       "expected": {
         "contract": "violated",
         "disposition": "stopped_by_monitor",
@@ -2715,14 +2601,14 @@
       }
     },
     {
-      "model": "nexus-operation.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexusoperation",
-        "Owner": "nexusOperation",
-        "Name": "nexusOperation.cancelIsRequested"
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "asyncCompletion"
       },
       "standing": "lowered",
-      "file": "nexus-operation-nexusOperation.cancelIsRequested-case.json",
+      "file": "nexus-workflow-asyncCompletion-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -2730,7 +2616,7 @@
         "conformance": "conformant",
         "properties": [
           {
-            "id": "nexusOperation.cancelIsRequested",
+            "id": "completionSucceeds",
             "status": "inconclusive",
             "reason": "explanations_disagree"
           }
@@ -2738,32 +2624,14 @@
       }
     },
     {
-      "model": "nexus-operation.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexusoperation",
-        "Owner": "nexusOperation",
-        "Name": "nexusOperation.closedIsRejectedUniformly"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "nexus-operation.json",
-      "query": {
-        "Family": "temporal.features.nexusoperation",
-        "Owner": "nexusOperation",
-        "Name": "nexusOperation.terminalStatesAreFinal"
-      },
-      "standing": "nothing-to-realize"
-    },
-    {
-      "model": "nexus-operation.json",
-      "query": {
-        "Family": "temporal.features.nexusoperation",
-        "Owner": "nexusOperation",
-        "Name": "nexusOperation.terminateSettles"
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "asyncFailure"
       },
       "standing": "lowered",
-      "file": "nexus-operation-nexusOperation.terminateSettles-case.json",
+      "file": "nexus-workflow-asyncFailure-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -2771,12 +2639,144 @@
         "conformance": "conformant",
         "properties": [
           {
-            "id": "nexusOperation.terminateSettles",
+            "id": "completionFails",
             "status": "inconclusive",
             "reason": "explanations_disagree"
           }
         ]
       }
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "handlerError"
+      },
+      "standing": "lowered",
+      "file": "nexus-workflow-handlerError-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "handlerErrorFails",
+            "status": "inconclusive",
+            "reason": "never_evaluated"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "retry"
+      },
+      "standing": "lowered",
+      "file": "nexus-workflow-retry-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "retrySucceeds",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "scheduleToStartTimeout"
+      },
+      "standing": "lowered",
+      "file": "nexus-workflow-scheduleToStartTimeout-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "scheduleToStartFires",
+            "status": "inconclusive",
+            "reason": "never_evaluated"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "startToCloseTimeout"
+      },
+      "standing": "lowered",
+      "file": "nexus-workflow-startToCloseTimeout-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "startToCloseFires",
+            "status": "inconclusive",
+            "reason": "never_evaluated"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusCaller",
+        "Name": "stoppedWorkerRepliesNothing"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "syncCompletion"
+      },
+      "standing": "lowered",
+      "file": "nexus-workflow-syncCompletion-case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "syncSucceeds",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "nexusSystem",
+        "Name": "terminalHolds"
+      },
+      "standing": "nothing-to-realize"
     }
   ]
 }

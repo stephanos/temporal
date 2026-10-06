@@ -1,7 +1,7 @@
 package check
 
 // The Nexus caller close and reset designs, lifted from
-// features/nexuscaller/system/ClosePolicy.scala into ir/nexus-close.json and checked here through
+// features/nexus/workflow/system/ClosePolicy.scala into ir/nexus-workflow-close.json and checked here through
 // Check alone. What each test expects is the trace oracle of model/specimens/nexus.md it names, in
 // the keys of the lifted Model. A state key spells caller, cancel intent, handler, channel,
 // retained, known: the specimen's six fields, with the cancel intent carrying its principal and the
@@ -30,7 +30,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const nexusCloseIR = "../../../model/ir/nexus-close.json"
+const nexusCloseIR = "../../../model/ir/nexus-workflow-close.json"
 
 var nexusClose = sync.OnceValues(func() (*checkedModel, error) {
 	m, err := ir.Load(nexusCloseIR)

@@ -56,7 +56,7 @@ func TestEveryPinnedTreeIsCheckedInAsTheModelTreesSelection(t *testing.T) {
 	}
 	require.Equal(t, 2, pinned)
 
-	shared := "nexus-caller-syncCompletion-case.json"
+	shared := "nexus-workflow-syncCompletion-case.json"
 	functional, err := os.ReadFile(filepath.Join(repository, kinds["functional"].directory, shared))
 	require.NoError(t, err)
 	canary, err := os.ReadFile(filepath.Join(repository, kinds["canary"].directory, shared))
@@ -92,7 +92,7 @@ func TestAPinnedTreeIsPublishedWholeAndThenChecksClean(t *testing.T) {
 	require.Equal(t, published, republished)
 
 	unknown := selected
-	unknown.pinned = []lower.Selected{{Model: "nexus-caller.json", Query: "absent"}}
+	unknown.pinned = []lower.Selected{{Model: "nexus-workflow.json", Query: "absent"}}
 	require.ErrorContains(t, sync(root, complete, unknown, true), "no Model declares the selected Query")
 	require.NoError(t, sync(root, complete, selected, false), "a refused selection publishes nothing")
 }
@@ -102,7 +102,7 @@ func TestAPinnedTreeIsPublishedWholeAndThenChecksClean(t *testing.T) {
 func TestEveryQueryWithoutATotalIsRefused(t *testing.T) {
 	directory := t.TempDir()
 	queries := 0
-	for _, name := range []string{"nexus-caller.json", "nexus-control.json"} {
+	for _, name := range []string{"nexus-workflow.json", "nexus-workflow-control.json"} {
 		m, err := ir.Load(filepath.Join(repository, "model/ir", name))
 		require.NoError(t, err)
 		m = ir.WithoutTotals(m)
@@ -112,13 +112,13 @@ func TestEveryQueryWithoutATotalIsRefused(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(directory, name), encoded, 0o644))
 	}
 	err := requireTotals(directory)
-	require.ErrorContains(t, err, "nexus-caller.json")
-	require.ErrorContains(t, err, "nexus-control.json")
+	require.ErrorContains(t, err, "nexus-workflow.json")
+	require.ErrorContains(t, err, "nexus-workflow-control.json")
 	require.ErrorContains(t, err, "query forgedCompletion declares no total: its static combination count is ")
 	require.Len(t, err.(interface{ Unwrap() []error }).Unwrap(), 2, "one refusal per IR file")
 	require.Equal(t, queries, strings.Count(err.Error(), "declares no total"), "every Query is reported")
 
-	for _, name := range []string{"nexus-caller.json", "nexus-control.json"} {
+	for _, name := range []string{"nexus-workflow.json", "nexus-workflow-control.json"} {
 		path := filepath.Join(directory, name)
 		m, err := ir.Load(path)
 		require.NoError(t, err)

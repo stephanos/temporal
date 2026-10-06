@@ -21,8 +21,8 @@ func TestModelCasesLowerForExistingConsumers(t *testing.T) {
 		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "completion"},
 		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "retry"},
 		{"activity", "temporal.features.standaloneactivity.system", "activitySystem", "standaloneActivityTests", "pauseResume"},
-		{"nexus-caller", "temporal.features.nexuscaller.system", "nexusSystem", "nexusCallerTests", "syncCompletion"},
-		{"nexus-caller", "temporal.features.nexuscaller.system", "nexusSystem", "nexusCallerTests", "asyncCompletion"},
+		{"nexus-workflow", "temporal.features.nexus.workflow.system", "nexusSystem", "nexusCallerTests", "syncCompletion"},
+		{"nexus-workflow", "temporal.features.nexus.workflow.system", "nexusSystem", "nexusCallerTests", "asyncCompletion"},
 	} {
 		t.Run(item.query, func(t *testing.T) {
 			path := filepath.Join("..", "..", "..", "model", "ir", item.model+".json")
@@ -58,7 +58,7 @@ func TestGeneratedNexusOperationCasesRequireTheStandaloneFlag(t *testing.T) {
 	require.NoError(t, err)
 	checked := 0
 	for _, entry := range entries {
-		if entry.Model != "nexus-operation.json" || entry.Standing != lower.Lowered {
+		if entry.Model != "nexus-standalone.json" || entry.Standing != lower.Lowered {
 			continue
 		}
 		checked++

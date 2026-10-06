@@ -117,7 +117,7 @@ func TestSchedulesWorkflowNexusOperationSelectsTheSwitchedCases(t *testing.T) {
 			switched = append(switched, name)
 			continue
 		}
-		if strings.HasPrefix(name, "nexus-operation-") {
+		if strings.HasPrefix(name, "nexus-standalone-") {
 			standaloneNexus = append(standaloneNexus, name)
 			settings, err := CaseSettings(source, StandaloneSettings())
 			require.NoError(t, err, name)
@@ -125,7 +125,7 @@ func TestSchedulesWorkflowNexusOperationSelectsTheSwitchedCases(t *testing.T) {
 		}
 	}
 	for _, name := range switched {
-		require.True(t, strings.HasPrefix(name, "nexus-caller-") || strings.HasPrefix(name, "nexus-control-"), name)
+		require.True(t, strings.HasPrefix(name, "nexus-workflow-") || strings.HasPrefix(name, "nexus-workflow-control-"), name)
 	}
 	require.NotEmpty(t, switched)
 	require.NotEmpty(t, standaloneNexus)

@@ -31,7 +31,7 @@ func TestIRBridgeProtocol(t *testing.T) {
 	build.Dir = root
 	output, err := build.CombinedOutput()
 	require.NoError(t, err, "%s", output)
-	m, err := ir.Load(filepath.Join(root, "model", "ir", "nexus-caller.json"))
+	m, err := ir.Load(filepath.Join(root, "model", "ir", "nexus-workflow.json"))
 	require.NoError(t, err)
 	var query *umpirespb.Query
 	for _, q := range m.Queries {

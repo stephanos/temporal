@@ -307,15 +307,15 @@ func TestLeanNexusCallerCasePreparesWithCheckedProvenance(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	prepareUnchanged(t, source, asyncNexusProfile(catalog))
-	require.Equal(t, "temporal.features.nexuscaller.testpilot", source.GetProvenance().GetProducerId())
+	require.Equal(t, "temporal.features.nexus.workflow.testpilot", source.GetProvenance().GetProducerId())
 	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
 
 	provenance := source.GetProvenance()
 	require.Equal(t, []string{
-		"temporal.features.nexuscaller.system.target.nexusSystem",
-		"temporal.features.nexuscaller.system.behavior.asyncThenSucceeded",
-		"temporal.features.nexuscaller.system.query.asyncCompletion",
-		"temporal.features.nexuscaller.system.property.completionSucceeds",
+		"temporal.features.nexus.workflow.system.target.nexusSystem",
+		"temporal.features.nexus.workflow.system.behavior.asyncThenSucceeded",
+		"temporal.features.nexus.workflow.system.query.asyncCompletion",
+		"temporal.features.nexus.workflow.system.property.completionSucceeds",
 	}, definitionIDs(provenance.GetDefinitions()))
 	require.Equal(t, []testpilotspb.DefinitionKind{
 		testpilotspb.DEFINITION_KIND_TARGET,
@@ -551,7 +551,7 @@ func (h *artifactDriver) Identity(context.Context) (testpilot.DriverIdentity, er
 func (h *artifactDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
 
 func (h *artifactDriver) Open(_ context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	if program.Snapshot().GetProgramId() != "temporal.case.scala.nexus-caller.asyncCompletion.program" {
+	if program.Snapshot().GetProgramId() != "temporal.case.scala.nexus-workflow.asyncCompletion.program" {
 		return nil, temporal.ErrInvalid
 	}
 	ordinal := h.opens.Add(1)

@@ -24,12 +24,12 @@ workflow history records its completion. The example runs through the whole page
 A **Model** is the description of one feature: its state machines and everything declared about
 them. A **machine** is a finite state machine: its states, the actions that can happen, and a step
 function per action that says what the next state is and which facts the step records. The Nexus
-caller Model is in `model/temporal/features/nexuscaller`, and its machine `nexusSystem` is declared in
+caller Model is in `model/temporal/features/nexus/workflow`, and its machine `nexusSystem` is declared in
 its System level's file, `system/System.scala`, as the object `NexusSystem`, which is the machine:
 its rules say when each action fires and its effects what it does.
 
 A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/features/nexuscaller/system/System.scala`, line 224, in
+example's Property (`model/temporal/features/nexus/workflow/system/System.scala`, line 224, in
 `NexusSystem.properties`), named after its `val`; inside the machine's object, `property` is the
 machine's own:
 
@@ -74,7 +74,7 @@ satisfied; see [Following the example to a Verdict](#following-the-example-to-a-
 
 A **realization** says how to act a path out on a real server: which API calls perform each
 action, and which recorded events are evidence of each fact. The Nexus caller's realization is
-`model/temporal/features/nexuscaller/Realization.scala`.
+`model/temporal/features/nexus/workflow/Realization.scala`.
 
 The remaining terms name what the tools produce:
 
@@ -198,8 +198,8 @@ file's `object exports`: its name and its roots, named by value, in a `val` name
 
 ```scala
 object exports:
-  val nexusControl =
-    irFile("nexus-control")(TrustingCaller.queries.forgedCompletion, NexusRealization.forgedCompletion)
+  val nexusWorkflowControl =
+    irFile("nexus-workflow-control")(TrustingCaller.queries.forgedCompletion, NexusRealization.forgedCompletion)
 ```
 
 A root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization;
@@ -225,14 +225,14 @@ Go side alone from the checked-in IR and needs no JVM.
 
 ## Following the example to a Verdict
 
-**Lifted.** `make umpire-gen-model` lifts the Query into `model/ir/nexus-caller.json`. This is its
+**Lifted.** `make umpire-gen-model` lifts the Query into `model/ir/nexus-workflow.json`. This is its
 entry there, without the `exploration` field:
 
 ```json
 {
   "name": "syncCompletion",
   "position": {
-    "file": "model/temporal/features/nexuscaller/system/System.scala",
+    "file": "model/temporal/features/nexus/workflow/system/System.scala",
     "line": 288
   },
   "form": "FORM_FIND",
@@ -269,8 +269,8 @@ it finds the two-step path and confirms that `syncSucceeds` holds on its last st
 the witness.
 
 **Lowered.** `tools/umpire/lower` turns the witness into the Case
-`model/cases/nexus-caller-syncCompletion-case.json`, with the Case ID
-`temporal.case.scala.nexus-caller.syncCompletion`. Its Program has three parts: a workflow that
+`model/cases/nexus-workflow-syncCompletion-case.json`, with the Case ID
+`temporal.case.scala.nexus-workflow.syncCompletion`. Its Program has three parts: a workflow that
 schedules a Nexus operation, a handler that replies synchronously, and a controller that starts
 the workflow and reads its history. Its Contract holds one rule. This is the rule, with the two
 comparisons left out:
@@ -289,7 +289,7 @@ a step whose fact is `nexusOperationCompleted`. In words: once the Run shows the
 scheduled, the completed fact must follow within one more transition of that operation.
 `model/cases/manifest.json` lists the Query as `lowered` and repeats what `.expect(...)` declared.
 
-**Run.** `tools/canary/assessment/testdata/nexus-caller-syncCompletion-run.json` is a recorded Run
+**Run.** `tools/canary/assessment/testdata/nexus-workflow-syncCompletion-run.json` is a recorded Run
 of exactly this Case against the in-process test server. It holds 27 events and ends with this
 Verdict:
 
@@ -354,7 +354,7 @@ by id.
 | Path | What it holds |
 | --- | --- |
 | `model/umpire` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `umpire/realize` |
-| `model/temporal` | The Models: `features`, one folder per feature (`nexuscaller`, `nexusoperation`, `standaloneactivity`); `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, the laws stated once for every entity; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
+| `model/temporal` | The Models: `features`, grouped by entity (`nexus/workflow`, `nexus/standalone`, `standaloneactivity`); `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, the laws stated once for every entity; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -565,18 +565,20 @@ features/
       Record.scala             the record and its designs: ActivityRecord, TrustingActivityRecord, HeldDispatch, LostStartAnswer
       WithTaskQueue.scala      the designs over the task queue: RecordMember, TrustingRecordMember, RecordOverQueue, …
       Realization.scala        the System realizations: standalone, heldDelivery, lostAdmissionResponse
-  nexuscaller/
-    NexusCaller.scala          shared types and signature; exports, the close and reset designs' among them
-    Realization.scala
-    product/
-      Product.scala            Product Phase, State and Fact; NexusProduct
-    system/
-      System.scala             System Phase, State and Fact; NexusSystem, HandlerWorker, NexusCaller
-      TrustingCaller.scala     TrustingCaller, the forged control
-      ClosePolicy.scala        RejectAfterClose and the eight designs derived from it
-  nexusoperation/
-    NexusOperation.scala       NexusOperation; exports
-    Realization.scala
+  nexus/
+    Nexus.scala                package header only; the forms own their exports
+    workflow/
+      Workflow.scala           shared types and signature; workflow, control and close exports
+      Realization.scala
+      product/
+        Product.scala          Product Phase, State and Fact; NexusProduct
+      system/
+        System.scala           System Phase, State and Fact; NexusSystem, HandlerWorker, NexusCaller
+        TrustingCaller.scala   TrustingCaller, the forged control
+        ClosePolicy.scala      RejectAfterClose and the eight designs derived from it
+    standalone/
+      Standalone.scala         NexusOperation; standalone export
+      Realization.scala
 shared/
   Bounds.scala                 the bounds more than one folder's Queries run under
   taskqueue/
@@ -1053,7 +1055,7 @@ find has a realization, so they lower to the Cases `activity-activitySystem.term
 table. The functional laws sit on the System because a find lowers only through a realization,
 which is the System's. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
 activity's own files any more; the admission designs and both composition families declare the same
-three capabilities on their record, and the Nexus operation (`features/nexusoperation`) declares
+three capabilities on their record, and the Nexus operation (`features/nexus/standalone`) declares
 Closable, Terminable, Cancelable and Describable.
 
 **How a law is lifted.** Each law is the law's `apply` (or the def an
@@ -1379,7 +1381,7 @@ Runs reproduce the same failure again. An incomplete or unreproduced failure pro
 `TestTestpilotNexusControlReplaysThroughTheCommand` run both against an in-process server; set
 `UMPIRE_EXPLORATION_DIR` to keep their Cases, Runs, reports and HTML traces.
 
-The control machine `TrustingCaller` (`forgedCompletion`, `model/temporal/features/nexuscaller/system/TrustingCaller.scala`)
+The control machine `TrustingCaller` (`forgedCompletion`, `model/temporal/features/nexus/workflow/system/TrustingCaller.scala`)
 deliberately admits a forged success beside the real failed callback. It is a negative control,
 marked `NegativeControl`, that shows a violated Verdict being found and replayed, not a server
 defect.

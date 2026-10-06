@@ -30,17 +30,17 @@ type kind struct {
 var kinds = map[string]kind{
 	"model": {directory: "model/cases", target: "umpire-gen-model"},
 	"functional": {directory: "tests/testcore/testpilot/testdata/generated", target: "umpire-gen-fixtures", pinned: []lower.Selected{
-		{Model: "nexus-caller.json", Query: "asyncCompletion"},
-		{Model: "nexus-caller.json", Query: "asyncFailure"},
-		{Model: "nexus-caller.json", Query: "handlerError"},
-		{Model: "nexus-caller.json", Query: "retry"},
-		{Model: "nexus-caller.json", Query: "scheduleToStartTimeout"},
-		{Model: "nexus-caller.json", Query: "startToCloseTimeout"},
-		{Model: "nexus-caller.json", Query: "syncCompletion"},
-		{Model: "nexus-control.json", Query: "forgedCompletion"},
+		{Model: "nexus-workflow.json", Query: "asyncCompletion"},
+		{Model: "nexus-workflow.json", Query: "asyncFailure"},
+		{Model: "nexus-workflow.json", Query: "handlerError"},
+		{Model: "nexus-workflow.json", Query: "retry"},
+		{Model: "nexus-workflow.json", Query: "scheduleToStartTimeout"},
+		{Model: "nexus-workflow.json", Query: "startToCloseTimeout"},
+		{Model: "nexus-workflow.json", Query: "syncCompletion"},
+		{Model: "nexus-workflow-control.json", Query: "forgedCompletion"},
 	}},
 	"canary": {directory: "tools/canary/casebinding/testdata", target: "canary-gen-case", pinned: []lower.Selected{
-		{Model: "nexus-caller.json", Query: "syncCompletion"},
+		{Model: "nexus-workflow.json", Query: "syncCompletion"},
 	}},
 }
 

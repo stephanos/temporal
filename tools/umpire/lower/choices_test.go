@@ -91,7 +91,7 @@ func loweredAll(t *testing.T, m *umpirespb.Model) (out []string, cases int) {
 func TestNamedChoicesLowerTheSameCases(t *testing.T) {
 	branches := map[string]bool{"model/ir/activity-race.json": true}
 	for _, path := range []string{
-		"model/ir/activity.json", "model/ir/activity-race.json", "model/ir/nexus-caller.json", "model/ir/nexus-control.json",
+		"model/ir/activity.json", "model/ir/activity-race.json", "model/ir/nexus-workflow.json", "model/ir/nexus-workflow-control.json",
 		"model/irgen/testdata/lifts/expected/realizations.json",
 	} {
 		t.Run(filepath.Base(path), func(t *testing.T) {

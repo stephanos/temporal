@@ -1,7 +1,7 @@
 package check
 
 // What the close and reset designs share with the Nexus caller Model, the baseline here, and what they
-// do not. The baseline (model/ir/nexus-caller.json, the Scala port of the Go Model the tests are named
+// do not. The baseline (model/ir/nexus-workflow.json, the Scala port of the Go Model the tests are named
 // after) models one run and neither a close nor a reset, so the one behavior both have is an open
 // caller accepting an asynchronous completion: the baseline's `complete` rows of a started operation.
 // That is compared here, row by row and Query by Query. Everything else the designs claim is an
@@ -193,7 +193,7 @@ var closeDefaultQuery = regexp.MustCompile(`query\s+(?:verify|find)\s+claims\.(\
 // closeSource is every name the Scala sources of the designs declare, as "<kind> <name>".
 func closeSource(t *testing.T) []string {
 	t.Helper()
-	files, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "temporal", "features", "nexuscaller", "system", "ClosePolicy.scala"))
+	files, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "temporal", "features", "nexus", "workflow", "system", "ClosePolicy.scala"))
 	require.NoError(t, err)
 	require.NotEmpty(t, files)
 	found := map[string]bool{}
@@ -340,8 +340,8 @@ func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	m := closeModel(t).model
 	// An action is named after where it is declared, the object that groups it included (fn-126
 	// decision 23); a Function takes the compiler's name, with the object and section that hold it.
-	const model = "temporal.features.nexuscaller.system.callerSide."
-	const functions, properties = "temporal.features.nexuscaller.system.RejectAfterClose$.states$.", "temporal.features.nexuscaller.system.RejectAfterClose$.properties$."
+	const model = "temporal.features.nexus.workflow.system.callerSide."
+	const functions, properties = "temporal.features.nexus.workflow.system.RejectAfterClose$.states$.", "temporal.features.nexus.workflow.system.RejectAfterClose$.properties$."
 	names := map[string]string{}
 	fair := map[string][]string{}
 	for _, a := range m.GetAssumptions() {
@@ -352,7 +352,7 @@ func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 		"currentOwnerEventuallyRecoversAndReappliesRetainedOutcome"
 	require.Equal(t, map[string][]string{
 		reporting:                              nil,
-		delivery:                               {"temporal.features.nexuscaller.handler.complete"},
+		delivery:                               {"temporal.features.nexus.workflow.handler.complete"},
 		recovery:                               {model + "reset"},
 		"transientRejectionEventuallyAccepted": nil,
 		"retentionSurvivesCrash":               nil,

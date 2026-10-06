@@ -30,4 +30,4 @@ object NexusOperation extends Machine[standalone.State, Outcome, Fact]:
     on(user.complete)(always ~> effects.complete)
 
 object exports:
-  val nexusStandalone = irFile("nexus-standalone")(NexusOperation)
+  val nexusStandalone = irFile("fixture-nexus-standalone")(NexusOperation)

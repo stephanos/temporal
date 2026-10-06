@@ -1,6 +1,6 @@
 package interp
 
-// The Nexus caller Model, lifted from model/temporal into model/ir/nexus-caller.json and interpreted
+// The Nexus caller Model, lifted from model/temporal into model/ir/nexus-workflow.json and interpreted
 // here. The IR carries the Model whole: nothing of the Scala code is run to get these tables.
 
 import (
@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const irPath = "../../../model/ir/nexus-caller.json"
+const irPath = "../../../model/ir/nexus-workflow.json"
 
 func machines(t *testing.T) map[string]*Machine {
 	t.Helper()

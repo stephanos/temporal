@@ -27,14 +27,14 @@ import (
 )
 
 const (
-	nexusFamily   = "temporal.features.nexuscaller.system"
+	nexusFamily   = "temporal.features.nexus.workflow.system"
 	nexusMachine  = "nexusSystem"
-	nexusEvidence = "temporal.features.nexuscaller.evidence."
+	nexusEvidence = "temporal.features.nexus.workflow.evidence."
 )
 
 func nexusModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "nexus-caller.json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "nexus-workflow.json"))
 	require.NoError(t, err)
 	return m
 }
@@ -149,7 +149,7 @@ type nexusWitness struct {
 	why             reason
 }
 
-// Each expectation is read off model/temporal/features/nexuscaller/system/System.scala (the protocol
+// Each expectation is read off model/temporal/features/nexus/workflow/system/System.scala (the protocol
 // machine's effects, rules and properties), which the comment beside it cites.
 var nexusWitnesses = []nexusWitness{
 	// A completed event is also what a completion of an operation the handler never answered

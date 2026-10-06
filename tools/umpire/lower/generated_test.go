@@ -132,16 +132,16 @@ func expecting(change func(*ExpectedRun)) func(*Manifest) {
 // A Query whose expected Run pairs a Contract verdict with a disposition the judge's aggregation never
 // leaves a Run in is refused at the Query's line, before any Case is written for it.
 func TestGeneratingRefusesAnExpectationTheJudgeCannotConclude(t *testing.T) {
-	m := loaded(t, "nexus-control")
+	m := loaded(t, "nexus-workflow-control")
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	at := slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "forgedCompletion" })
 	require.GreaterOrEqual(t, at, 0)
 	query := m.GetQueries()[at]
-	_, _, err = generateCase(p, "nexus-control.json", query)
+	_, _, err = generateCase(p, "nexus-workflow-control.json", query)
 	require.NoError(t, err)
 	query.GetExpectedRun().Disposition = umpirespb.RunExpectation_DISPOSITION_COMPLETED
-	_, _, err = generateCase(p, "nexus-control.json", query)
+	_, _, err = generateCase(p, "nexus-workflow-control.json", query)
 	require.EqualError(t, err, fmt.Sprintf("%s:%d: Query forgedCompletion expects a violated Contract on a Run completed, which no Run's rules conclude",
 		query.GetPosition().GetFile(), query.GetPosition().GetLine()))
 }
@@ -149,17 +149,17 @@ func TestGeneratingRefusesAnExpectationTheJudgeCannotConclude(t *testing.T) {
 // A Query's declared conformance reason reaches its manifest entry as ExpectationID spells it, and
 // generating refuses an expectation short of conformant that declares none.
 func TestGeneratingCarriesADeclaredConformanceReason(t *testing.T) {
-	m := loaded(t, "nexus-control")
+	m := loaded(t, "nexus-workflow-control")
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	at := slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "forgedCompletion" })
 	require.GreaterOrEqual(t, at, 0)
 	query := m.GetQueries()[at]
-	entry, _, err := generateCase(p, "nexus-control.json", query)
+	entry, _, err := generateCase(p, "nexus-workflow-control.json", query)
 	require.NoError(t, err)
 	require.Equal(t, "incomplete", entry.Expected.ConformanceReason)
 	query.GetExpectedRun().ConformanceReason = umpirespb.RunExpectation_REASON_UNSPECIFIED
-	_, _, err = generateCase(p, "nexus-control.json", query)
+	_, _, err = generateCase(p, "nexus-workflow-control.json", query)
 	require.ErrorContains(t, err, "invalid expected conformance reason")
 }
 
@@ -299,13 +299,13 @@ func TestSelectedCasesAreTheCompleteTreesBytes(t *testing.T) {
 	files, again := generatedFiles(t), generatedFiles(t)
 
 	selected, err := SelectCases(files, []Selected{
-		{Model: "nexus-control.json", Query: "forgedCompletion"},
-		{Model: "nexus-caller.json", Query: "syncCompletion"},
+		{Model: "nexus-workflow-control.json", Query: "forgedCompletion"},
+		{Model: "nexus-workflow.json", Query: "syncCompletion"},
 	})
 	require.NoError(t, err)
 	reordered, err := SelectCases(again, []Selected{
-		{Model: "nexus-caller.json", Query: "syncCompletion"},
-		{Model: "nexus-control.json", Query: "forgedCompletion"},
+		{Model: "nexus-workflow.json", Query: "syncCompletion"},
+		{Model: "nexus-workflow-control.json", Query: "forgedCompletion"},
 	})
 	require.NoError(t, err)
 	require.Equal(t, selected, reordered)
@@ -317,7 +317,7 @@ func TestSelectedCasesAreTheCompleteTreesBytes(t *testing.T) {
 	expected := map[string][]byte{"manifest.json": selected["manifest.json"]}
 	var entries []GeneratedCase
 	for _, entry := range complete.Queries {
-		if entry.File == "nexus-caller-syncCompletion-case.json" || entry.File == "nexus-control-forgedCompletion-case.json" {
+		if entry.File == "nexus-workflow-syncCompletion-case.json" || entry.File == "nexus-workflow-control-forgedCompletion-case.json" {
 			expected[entry.File] = files[entry.File]
 			entries = append(entries, entry)
 		}
@@ -345,24 +345,24 @@ func TestSelectingRefusesAQueryWithNoCase(t *testing.T) {
 		}
 	}
 	require.NotEmpty(t, unlowered.Query, "the model tree accounts for a Query that does not lower")
-	pinned := Selected{Model: "nexus-caller.json", Query: "syncCompletion"}
+	pinned := Selected{Model: "nexus-workflow.json", Query: "syncCompletion"}
 	for name, test := range map[string]struct {
 		selected []Selected
 		detail   string
 	}{
 		"nothing":           {nil, "no Query selected"},
-		"an undeclared one": {[]Selected{pinned, {Model: "nexus-caller.json", Query: "absent"}}, "no Model declares the selected Query nexus-caller.json/absent"},
-		"another Model's":   {[]Selected{{Model: "nexus-control.json", Query: "syncCompletion"}}, "no Model declares the selected Query nexus-control.json/syncCompletion"},
+		"an undeclared one": {[]Selected{pinned, {Model: "nexus-workflow.json", Query: "absent"}}, "no Model declares the selected Query nexus-workflow.json/absent"},
+		"another Model's":   {[]Selected{{Model: "nexus-workflow-control.json", Query: "syncCompletion"}}, "no Model declares the selected Query nexus-workflow-control.json/syncCompletion"},
 		"one named twice":   {[]Selected{pinned, pinned}, "named twice"},
 		"one with no Case":  {[]Selected{pinned, unlowered}, "has no Case: " + string(manifestStanding(manifest, unlowered))},
-		"a missing Case":    {[]Selected{{Model: "nexus-control.json", Query: "forgedCompletion"}}, "generated Case nexus-control-forgedCompletion-case.json is missing"},
+		"a missing Case":    {[]Selected{{Model: "nexus-workflow-control.json", Query: "forgedCompletion"}}, "generated Case nexus-workflow-control-forgedCompletion-case.json is missing"},
 		"a broken manifest": {[]Selected{pinned}, "manifest"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			input := maps.Clone(files)
 			switch name {
 			case "a missing Case":
-				delete(input, "nexus-control-forgedCompletion-case.json")
+				delete(input, "nexus-workflow-control-forgedCompletion-case.json")
 			case "a broken manifest":
 				input["manifest.json"] = []byte(`{"version":2,"queries":[]}`)
 			default:
@@ -395,15 +395,15 @@ func TestFindGeneratedCaseFindsALoweredCaseByItsFingerprint(t *testing.T) {
 		require.NoError(t, err)
 		return source
 	}
-	source := read(filepath.Join(directory, "nexus-control-forgedCompletion-case.json"))
+	source := read(filepath.Join(directory, "nexus-workflow-control-forgedCompletion-case.json"))
 	entry, err := FindGeneratedCase(directory, source)
 	require.NoError(t, err)
-	require.Equal(t, "nexus-control.json", entry.Model)
+	require.Equal(t, "nexus-workflow-control.json", entry.Model)
 	require.Equal(t, "forgedCompletion", entry.Query.Name)
-	require.Equal(t, "nexus-control-forgedCompletion-case.json", entry.File)
+	require.Equal(t, "nexus-workflow-control-forgedCompletion-case.json", entry.File)
 	require.Equal(t, "inconclusive", entry.Expected.Conformance)
 
-	regenerated := read(filepath.Join(directory, "nexus-control-forgedCompletion-case.json"))
+	regenerated := read(filepath.Join(directory, "nexus-workflow-control-forgedCompletion-case.json"))
 	regenerated.Provenance.ProducerVersion += "+1"
 	for name, other := range map[string]*testpilotspb.Case{
 		"a hand-written Case":      read(filepath.Join("..", "..", "..", "tests", "testcore", "testpilot", "testdata", "nexusPairTests-bothComplete-case.json")),

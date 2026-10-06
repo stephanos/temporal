@@ -25,8 +25,8 @@ Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownershi
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite
 Driver and its implementation-focused tests live in `common/testing/testpilot/temporal`.
 
-The caller Model (`model/temporal/features/nexuscaller`) lowers one fixture per Query,
-`generated/nexus-caller-<query>-case.json`: sync success, async reply then succeeded
+The caller Model (`model/temporal/features/nexus/workflow`) lowers one fixture per Query,
+`generated/nexus-workflow-<query>-case.json`: sync success, async reply then succeeded
 callback, async reply then failed callback, a non-retryable handler error, a retryable handler error
 then success after one backoff, a schedule-to-start timeout with the handler's worker stopped, and a
 start-to-close timeout after an asynchronous reply. Each is one canonical Case 1.0 artifact with

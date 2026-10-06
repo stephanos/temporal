@@ -38,7 +38,7 @@ func TestTestpilotExplorationDiscoversUnpinnedExecution(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	modelRoot, err := filepath.Abs(filepath.Join("..", "model"))
 	require.NoError(t, err)
-	model, err := ir.Load(filepath.Join(modelRoot, "ir", "nexus-caller.json"))
+	model, err := ir.Load(filepath.Join(modelRoot, "ir", "nexus-workflow.json"))
 	require.NoError(t, err)
 	plan, err := explore.New(model, "nexusDeadlines")
 	require.NoError(t, err)

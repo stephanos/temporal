@@ -10,12 +10,9 @@ import (
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 )
 
-// The negative control's Case under testdata is the one its recorded Run beside it names: one live
-// Run of it against the test cluster, captured by
-// `TestTestpilotNexusControlForgedCompletionIsViolated` with UMPIRE_CONTROL_RECORD naming the file.
-// The record names the Case's canonical bytes, and the live test now runs the control lowered from
-// the Scala model, so recording it again live (`make umpire-rerecord-pinned-runs`) makes it a Run of
-// that Case, which then replaces the one kept here together with the recorded Profile name.
+// This historical negative-control pair retains the Case, Profile and Run captured by the
+// original scoped test-cluster recording. Current generated control recordings are maintained
+// separately by `make umpire-rerecord-pinned-runs` and the Model-assessment probe.
 const (
 	controlCasePath = "testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "testdata/nexusCallerControl-forgedCompletion-run.json"
@@ -35,8 +32,7 @@ func controlPreparer(t testing.TB) Preparer {
 
 // The recorded control Run pins the correlated key: it admits under its recorded identity, replays
 // offline to its recorded Verdict, and its key names the control's violated rule, the
-// correlated terminal state and the failed event's evidence, all in Definition IDs. When the
-// control's fixture or the runtime changes the record, re-record it through the live test.
+// correlated terminal state and the failed event's evidence, all in historical Definition IDs.
 func TestControlRecordPinsTheCorrelatedKey(t *testing.T) {
 	caseBytes, err := os.ReadFile(filepath.Clean(controlCasePath))
 	require.NoError(t, err)

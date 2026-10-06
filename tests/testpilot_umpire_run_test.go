@@ -35,17 +35,17 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 		testcore.WithDynamicConfig(dynamicconfig.TransferProcessorUpdateAckInterval, 1*time.Second),
 		testcore.WithDynamicConfig(dynamicconfig.VisibilityProcessorUpdateAckInterval, 1*time.Second),
 	)
-	namespaceName := "umpire-run-nexus-caller"
-	endpointName := "umpire-run-nexus-caller-endpoint"
+	namespaceName := "umpire-run-nexus-workflow"
+	endpointName := "umpire-run-nexus-workflow-endpoint"
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
 	arguments := []string{
-		"--case", filepath.Join("..", "model", "cases", "nexus-caller-asyncCompletion-case.json"),
+		"--case", filepath.Join("..", "model", "cases", "nexus-workflow-asyncCompletion-case.json"),
 		"--grpc", env.FrontendGRPCAddress(),
 		"--http", env.HttpAPIAddress(),
 		"--namespace", namespaceName,
-		"--task-queue", "umpire-run-nexus-caller-queue",
+		"--task-queue", "umpire-run-nexus-workflow-queue",
 		"--nexus-endpoint", endpointName,
 		"--create",
 		"--timeout", "2m",

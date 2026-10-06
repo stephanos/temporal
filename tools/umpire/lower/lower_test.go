@@ -21,9 +21,9 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-const realizationAt = "model/temporal/features/nexuscaller/Realization.scala:"
+const realizationAt = "model/temporal/features/nexus/workflow/Realization.scala:"
 
-// functionalQueries is the functional set of model/temporal/features/nexuscaller/system/System.scala,
+// functionalQueries is the functional set of model/temporal/features/nexus/workflow/system/System.scala,
 // in its declaration order.
 var functionalQueries = []string{"syncCompletion", "asyncCompletion", "asyncFailure", "handlerError", "retry",
 	"scheduleToStartTimeout", "startToCloseTimeout"}
@@ -53,7 +53,7 @@ func lowered(t *testing.T, p *Producer, query string) *testpilotspb.Case {
 // test over this list leaves none out.
 func TestTheFunctionalSetIsEveryFindQueryOfTheNexusCallerModel(t *testing.T) {
 	var declared []string
-	for _, q := range loaded(t, "nexus-caller").GetQueries() {
+	for _, q := range loaded(t, "nexus-workflow").GetQueries() {
 		if q.GetForm() == umpirespb.Query_FORM_FIND {
 			declared = append(declared, q.GetName())
 		}
@@ -67,7 +67,7 @@ func TestTheFunctionalSetIsEveryFindQueryOfTheNexusCallerModel(t *testing.T) {
 func TestLoweredCasesPrepareUnderTheirDerivedProfile(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	p, err := NewProducer(loaded(t, "nexus-caller"))
+	p, err := NewProducer(loaded(t, "nexus-workflow"))
 	require.NoError(t, err)
 	for _, query := range functionalQueries {
 		t.Run(query, func(t *testing.T) {
@@ -89,7 +89,7 @@ func TestLoweredCasesPrepareUnderTheirDerivedProfile(t *testing.T) {
 // Identical generation inputs give identical bytes: the Model read twice, lowered by two producers.
 func TestLoweringIsDeterministic(t *testing.T) {
 	bytesOf := func(t *testing.T, query string) []byte {
-		p, err := NewProducer(loaded(t, "nexus-caller"))
+		p, err := NewProducer(loaded(t, "nexus-workflow"))
 		require.NoError(t, err)
 		encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(lowered(t, p, query))
 		require.NoError(t, err)
@@ -133,7 +133,7 @@ func instruction(t *testing.T, c *testpilotspb.Case, entrypoint, id string) *tes
 // each Scenario of Claims.scala pins placed in them, and the clauses each Property fixes, bounded by
 // where the Scenario places the Property's action.
 func TestALoweredCaseCarriesWhatTheScalaDeclares(t *testing.T) {
-	const property = "temporal.features.nexuscaller.system.property."
+	const property = "temporal.features.nexus.workflow.system.property."
 	workflow := []string{"start-nexus-operation", "await-nexus-operation", "finish-workflow"}
 	controller := func(between ...string) []string {
 		return append(append([]string{"start-workflow", "await-scheduled"}, between...), "await-close", "history")
@@ -161,7 +161,7 @@ func TestALoweredCaseCarriesWhatTheScalaDeclares(t *testing.T) {
 		{"startToCloseTimeout", controller(), []string{"respond-async"},
 			[]rule{{"startToCloseFires.fact-nexusOperationTimedOut-startToClose", 2}}},
 	}
-	p, err := NewProducer(loaded(t, "nexus-caller"))
+	p, err := NewProducer(loaded(t, "nexus-workflow"))
 	require.NoError(t, err)
 	for _, c := range cases {
 		t.Run(c.query, func(t *testing.T) {
@@ -192,7 +192,7 @@ func TestALoweredCaseCarriesWhatTheScalaDeclares(t *testing.T) {
 			started := instruction(t, lowered, "controller", "start-workflow").GetInstruction().GetInvokeRpc().GetRequestAssignments()
 			require.Equal(t, "workflow_type.name", started[2].GetTarget())
 			require.Equal(t, workflowType, started[2].GetValue().GetLiteral().GetTextValue())
-			require.Equal(t, "temporal.features.nexuscaller.testpilot", lowered.GetProvenance().GetProducerId())
+			require.Equal(t, "temporal.features.nexus.workflow.testpilot", lowered.GetProvenance().GetProducerId())
 		})
 	}
 }
@@ -200,7 +200,7 @@ func TestALoweredCaseCarriesWhatTheScalaDeclares(t *testing.T) {
 // A field the Scala does not set stays unset in the Case: a deadline is present exactly where the
 // class the Scenario pins sets it.
 func TestAWrittenMessageKeepsItsPresence(t *testing.T) {
-	p, err := NewProducer(loaded(t, "nexus-caller"))
+	p, err := NewProducer(loaded(t, "nexus-workflow"))
 	require.NoError(t, err)
 	schedule := func(query string) *commandpb.ScheduleNexusOperationCommandAttributes {
 		node := instruction(t, lowered(t, p, query), "workflow", "start-nexus-operation")
@@ -221,7 +221,7 @@ func TestAWrittenMessageKeepsItsPresence(t *testing.T) {
 // The handle an asynchronous reply binds is one learned value: the handler binds it, the controller
 // waits for it and the completion reads it.
 func TestALearnedHandleIsBoundOnceAndReadByItsDependents(t *testing.T) {
-	p, err := NewProducer(loaded(t, "nexus-caller"))
+	p, err := NewProducer(loaded(t, "nexus-workflow"))
 	require.NoError(t, err)
 	c := lowered(t, p, "asyncCompletion")
 	require.Len(t, c.GetProgram().GetSlots(), 1)
@@ -262,7 +262,7 @@ var offPathKinds = map[string][]string{
 // declared, lifted by the history read and given no meaning in the Contract.
 func TestALoweredCaseDeclaresTheHistoryKindsOffItsPath(t *testing.T) {
 	history := []string{"started", "completed", "failed", "canceled", "timedOut"}
-	p, err := NewProducer(loaded(t, "nexus-caller"))
+	p, err := NewProducer(loaded(t, "nexus-workflow"))
 	require.NoError(t, err)
 	for _, query := range functionalQueries {
 		t.Run(query, func(t *testing.T) {
@@ -271,7 +271,7 @@ func TestALoweredCaseDeclaresTheHistoryKindsOffItsPath(t *testing.T) {
 			kinds := map[testpilotspb.CorrelatedEvidenceMeaning][]string{}
 			for _, rule := range c.GetContract().GetCorrelated().GetProjectionRules() {
 				kinds[rule.GetMeaning()] = append(kinds[rule.GetMeaning()],
-					strings.TrimPrefix(defined(names, rule.GetKind()), "temporal.features.nexuscaller.evidence."))
+					strings.TrimPrefix(defined(names, rule.GetKind()), "temporal.features.nexus.workflow.evidence."))
 			}
 			require.Len(t, kinds, 2)
 			confirmed, off := kinds[testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED], kinds[testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT]
@@ -342,13 +342,13 @@ func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) 
 		}, "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes.schedule_to_close_timeout is of kind message, and a role is written into it"},
 		{"a history event kind the event does not have", func(r *umpirespb.Realization) {
 			r.Evidence[2].From = &umpirespb.Evidence_History{History: "nexus_operation_finished_event_attributes"}
-		}, "evidence temporal.features.nexuscaller.evidence.completed: a history event has no attributes nexus_operation_finished_event_attributes"},
+		}, "evidence temporal.features.nexus.workflow.evidence.completed: a history event has no attributes nexus_operation_finished_event_attributes"},
 		{"an operation key the recorded message does not have", func(r *umpirespb.Realization) { r.Evidence[0].Operation = "event_number" },
 			"temporal.api.history.v1.HistoryEvent has no field event_number"},
 		{"an operation key that is a message", func(r *umpirespb.Realization) { r.Evidence[0].Operation = "event_time" },
-			"evidence temporal.features.nexuscaller.evidence.scheduled keys its operation by event_time, which is no single scalar of temporal.api.history.v1.HistoryEvent"},
+			"evidence temporal.features.nexus.workflow.evidence.scheduled keys its operation by event_time, which is no single scalar of temporal.api.history.v1.HistoryEvent"},
 		{"evidence read from one value", func(r *umpirespb.Realization) { r.Evidence[0].GetRead().Path = "history" },
-			"evidence temporal.features.nexuscaller.evidence.scheduled is read from history, which is no repeated message"},
+			"evidence temporal.features.nexus.workflow.evidence.scheduled is read from history, which is no repeated message"},
 		{"a method the service does not have", func(r *umpirespb.Realization) {
 			command(r, "controller", "start-workflow").GetRpc().Method = "/temporal.api.workflowservice.v1.WorkflowService/BeginWorkflowExecution"
 		}, "temporal.api.workflowservice.v1.WorkflowService has no method BeginWorkflowExecution"},
@@ -373,7 +373,7 @@ func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) 
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			m := loaded(t, "nexus-caller")
+			m := loaded(t, "nexus-workflow")
 			c.mutate(m.GetRealizations()[0])
 			p, err := NewProducer(m)
 			require.NoError(t, err)
@@ -399,7 +399,7 @@ func TestEveryQueryHasAStanding(t *testing.T) {
 		// The capabilities' generated verifies replace each design's and composition's two `any` ones,
 		// and add the product's three laws; the designs waive closed rejection.
 		{"activity-record", 64, 23},
-		{"nexus-close", 84, 72},
+		{"nexus-workflow-close", 84, 72},
 	}
 	for _, c := range cases {
 		t.Run(c.model, func(t *testing.T) {
@@ -421,12 +421,12 @@ func TestEveryQueryHasAStanding(t *testing.T) {
 			require.Equal(t, map[Standing]int{NothingToRealize: c.verify, NoRealization: c.unrealized}, counts)
 		})
 	}
-	p, err := NewProducer(loaded(t, "nexus-caller"))
+	p, err := NewProducer(loaded(t, "nexus-workflow"))
 	require.NoError(t, err)
 	_, err = p.Lower("nope", nexusIdentity("nope"))
 	var located *interp.Error
 	require.ErrorAs(t, err, &located)
-	require.Equal(t, interp.Error{Position: loaded(t, "nexus-caller").GetSource(), Message: "no Query nope"}, *located)
+	require.Equal(t, interp.Error{Position: loaded(t, "nexus-workflow").GetSource(), Message: "no Query nope"}, *located)
 }
 
 // A read lifts the history kinds a path's rules confirm. A path that records no history kind lifts
@@ -455,7 +455,7 @@ func TestALiftCarriesTheHistoryKindsOfThePathOrIsLeftOut(t *testing.T) {
 // and a command that each name what the descriptors do not have are all reported, each where it was
 // written.
 func TestEveryDescriptorARealizationCrossesIsReported(t *testing.T) {
-	m := loaded(t, "nexus-caller")
+	m := loaded(t, "nexus-workflow")
 	r := m.GetRealizations()[0]
 	r.Observations[1].Message = "temporal.server.api.testpilot.v1.Nope"
 	r.Evidence[2].From = &umpirespb.Evidence_History{History: "nexus_operation_begun_event_attributes"}

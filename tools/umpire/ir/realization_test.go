@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const admRealizationAt = "model/temporal/features/nexuscaller/Realization.scala:"
+const admRealizationAt = "model/temporal/features/nexus/workflow/Realization.scala:"
 
 // admKitAt is where the shared Temporal kit (model/temporal/realize) writes the declarations of the
 // realizations it builds: their roles and correlation, the evidence of the Run's own record, and the
@@ -207,14 +207,14 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 			admCommand(t, admScript(t, r, "controller"), "start-workflow").Id = ""
 		}, "realization asyncNexus: a command of script controller has no id"},
 		{"evidence that names no recorded kind", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) { r.Evidence[1].Records = "" },
-			"evidence temporal.features.nexuscaller.evidence.started names no recorded kind"},
+			"evidence temporal.features.nexus.workflow.evidence.started names no recorded kind"},
 		{"evidence with no operation key", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) { r.Evidence[1].Operation = "" },
-			"evidence temporal.features.nexuscaller.evidence.started names no field that keys its operation"},
+			"evidence temporal.features.nexus.workflow.evidence.started names no field that keys its operation"},
 		{"evidence read from nowhere", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) { r.Evidence[1].From = nil },
-			"evidence temporal.features.nexuscaller.evidence.started is recorded nowhere"},
+			"evidence temporal.features.nexus.workflow.evidence.started is recorded nowhere"},
 		{"evidence of no commitment", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Commitment = umpirespb.Evidence_COMMITMENT_UNSPECIFIED
-		}, "evidence temporal.features.nexuscaller.evidence.started is of no known commitment"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started is of no known commitment"},
 		{"a role of no kind", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) { r.Roles[0].Kind = 0 },
 			"role temporal.workflow-service is of no known kind"},
 		{"a command with no instruction", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
@@ -240,31 +240,31 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, "two kinds of evidence recording nexusOperationStarted of realization asyncNexus"},
 		{"evidence that confirms a step counted from below one", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r)}}
-		}, "evidence temporal.features.nexuscaller.evidence.started confirms step 0 of class reply-async; the steps of a class on a path are counted from one"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started confirms step 0 of class reply-async; the steps of a class on a path are counted from one"},
 		{"evidence that confirms one step twice", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 2}, {Step: admClass(t, r), Occurrence: 2}}
-		}, "evidence temporal.features.nexuscaller.evidence.started confirms step 2 of class reply-async twice"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started confirms step 2 of class reply-async twice"},
 		{"two kinds of evidence that confirm one step", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}
 			r.Evidence[2].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}
-		}, "evidence temporal.features.nexuscaller.evidence.started and temporal.features.nexuscaller.evidence.completed both confirm step 1 of class reply-async; one kind confirms a step"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started and temporal.features.nexus.workflow.evidence.completed both confirm step 1 of class reply-async; one kind confirms a step"},
 		{"evidence that confirms a step of no class", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Occurrence: 1}}
-		}, "evidence temporal.features.nexuscaller.evidence.started confirms a step of no class"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started confirms a step of no class"},
 		{"evidence that confirms a class written with too few inputs", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: &umpirespb.ActionClass{Action: admClass(t, r).GetAction()}, Occurrence: 1}}
-		}, "realization asyncNexus: evidence temporal.features.nexuscaller.evidence.started: temporal.features.nexuscaller.handler.reply takes 1 inputs, not 0"},
+		}, "realization asyncNexus: evidence temporal.features.nexus.workflow.evidence.started: temporal.features.nexus.workflow.handler.reply takes 1 inputs, not 0"},
 		{"two kinds of evidence for one recorded kind, one of which names its steps", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[2].Records, r.Evidence[3].Records = r.Evidence[1].GetRecords(), r.Evidence[1].GetRecords()
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}
 		}, "two kinds of evidence recording nexusOperationStarted of realization asyncNexus"},
 		{"an exhaustive kind that names the steps it confirms", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[1].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}
-		}, "evidence temporal.features.nexuscaller.evidence.started is exhaustive and names the steps it confirms; an exhaustive kind reports every step that records its fact"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started is exhaustive and names the steps it confirms; an exhaustive kind reports every step that records its fact"},
 		{"a fact an exhaustive kind records, recorded by a second kind that names its steps", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Records = r.Evidence[1].GetRecords()
 			r.Evidence[6].Confirms = []*umpirespb.Taking{{Step: admClass(t, r), Occurrence: 1}}
-		}, "evidence temporal.features.nexuscaller.evidence.pendingAttempts records nexusOperationStarted, every occurrence of which the exhaustive temporal.features.nexuscaller.evidence.started reports"},
+		}, "evidence temporal.features.nexus.workflow.evidence.pendingAttempts records nexusOperationStarted, every occurrence of which the exhaustive temporal.features.nexus.workflow.evidence.started reports"},
 		{"a learned value bound twice", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			admCommand(t, admScript(t, r, "handler"), "respond-sync").GetNexusReply().Binds = "completion-authority"
 		}, "learned value completion-authority is bound by respond-async of script handler and by respond-sync of script handler; a learned value is bound once"},
@@ -300,8 +300,8 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 			rpc.Assign[1].Value = &umpirespb.Operand{Kind: &umpirespb.Operand_LearnedValue{LearnedValue: "completion-authority"}}
 		}, "command await-close of script controller: learned value completion-authority is a handle, not a text"},
 		{"a poll of evidence that is no read", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
-			admCommand(t, admScript(t, r, "controller"), "await-scheduled").GetPoll().Evidence = "temporal.features.nexuscaller.evidence.started"
-		}, "command await-scheduled of script controller: evidence temporal.features.nexuscaller.evidence.started is a history event, which a poll does not read"},
+			admCommand(t, admScript(t, r, "controller"), "await-scheduled").GetPoll().Evidence = "temporal.features.nexus.workflow.evidence.started"
+		}, "command await-scheduled of script controller: evidence temporal.features.nexus.workflow.evidence.started is a history event, which a poll does not read"},
 		{"a read into an undeclared observation", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			targets := admCommand(t, admScript(t, r, "controller"), "history").GetRpc().GetReads()[0].GetTargets()
 			targets[0].Target = &umpirespb.Target_Observe{Observe: "unseen"}
@@ -335,7 +335,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		// Crossed correlations.
 		{"runs and operations keyed by one field", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Correlation.Operation = r.GetCorrelation().GetRun()
-		}, "the correlation keys its runs and its operations by one field, temporal.features.nexuscaller.scope.run"},
+		}, "the correlation keys its runs and its operations by one field, temporal.features.nexus.workflow.scope.run"},
 		{"evidence lifted into an observation the correlation does not read", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			targets := admCommand(t, admScript(t, r, "controller"), "history").GetRpc().GetReads()[0].GetTargets()
 			targets[1].Target = &umpirespb.Target_Lift{Lift: "history-event"}
@@ -385,59 +385,59 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		// Evidence fields and the identities they name.
 		{"an evidence field with no id", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Fields = []*umpirespb.EvidenceField{{Path: "attempt"}}
-		}, "evidence temporal.features.nexuscaller.evidence.pendingAttempts has a field with no id"},
+		}, "evidence temporal.features.nexus.workflow.evidence.pendingAttempts has a field with no id"},
 		{"an evidence field declared twice", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Fields = []*umpirespb.EvidenceField{{Id: "attempt", Path: "attempt"}, {Id: "attempt", Path: "attempt"}}
-		}, "evidence temporal.features.nexuscaller.evidence.pendingAttempts declares field attempt twice"},
+		}, "evidence temporal.features.nexus.workflow.evidence.pendingAttempts declares field attempt twice"},
 		{"an evidence field read from nowhere", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Fields = []*umpirespb.EvidenceField{{Id: "attempt"}}
-		}, "evidence temporal.features.nexuscaller.evidence.pendingAttempts: field attempt names no path"},
+		}, "evidence temporal.features.nexus.workflow.evidence.pendingAttempts: field attempt names no path"},
 		{"an evidence field of no known role", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Fields = []*umpirespb.EvidenceField{{Id: "attempt", Path: "attempt", Role: 9}}
-		}, "evidence temporal.features.nexuscaller.evidence.pendingAttempts: field attempt names an identity of no known role"},
+		}, "evidence temporal.features.nexus.workflow.evidence.pendingAttempts: field attempt names an identity of no known role"},
 		{"a role on a field the kind does not retain", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Fields = []*umpirespb.EvidenceField{{Id: "attempt", Path: "attempt", Role: umpirespb.EvidenceField_ROLE_ATTEMPT, Redacted: true}}
-		}, "evidence temporal.features.nexuscaller.evidence.pendingAttempts: field attempt names the attempt and is redacted; an identity is read from a field the evidence retains"},
+		}, "evidence temporal.features.nexus.workflow.evidence.pendingAttempts: field attempt names the attempt and is redacted; an identity is read from a field the evidence retains"},
 		{"two fields of one role", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Fields = []*umpirespb.EvidenceField{{Id: "attempt", Path: "attempt", Role: umpirespb.EvidenceField_ROLE_ATTEMPT},
 				{Id: "again", Path: "attempt", Role: umpirespb.EvidenceField_ROLE_ATTEMPT}}
-		}, "evidence temporal.features.nexuscaller.evidence.pendingAttempts: fields attempt and again both name the attempt; one field of a kind names an identity"},
+		}, "evidence temporal.features.nexus.workflow.evidence.pendingAttempts: fields attempt and again both name the attempt; one field of a kind names an identity"},
 		{"evidence read from one message at no path", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].From = &umpirespb.Evidence_Single{Single: &umpirespb.ReadSource{Method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution"}}
-		}, "evidence temporal.features.nexuscaller.evidence.pendingAttempts reads no method or no path"},
+		}, "evidence temporal.features.nexus.workflow.evidence.pendingAttempts reads no method or no path"},
 
 		// Exhaustive kinds and their closing reads.
 		{"an exhaustive kind no command closes", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			unclosed(r)
 			r.Evidence[1].Exhaustive = true
-		}, "evidence temporal.features.nexuscaller.evidence.started is exhaustive and no command closes it"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started is exhaustive and no command closes it"},
 		{"a closing read of an undeclared kind", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			admCommand(t, admScript(t, r, "controller"), "history").Closes = []string{"nothing"}
 		}, "command history of script controller closes evidence nothing, which is not declared"},
 		{"a closing read of a kind that is not exhaustive", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			unclosed(r)
-			admCommand(t, admScript(t, r, "controller"), "history").Closes = []string{"temporal.features.nexuscaller.evidence.started"}
-		}, "command history of script controller closes evidence temporal.features.nexuscaller.evidence.started, which is not exhaustive"},
+			admCommand(t, admScript(t, r, "controller"), "history").Closes = []string{"temporal.features.nexus.workflow.evidence.started"}
+		}, "command history of script controller closes evidence temporal.features.nexus.workflow.evidence.started, which is not exhaustive"},
 		{"a kind closed by a command that does not read it", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			unclosed(r)
 			r.Evidence[1].Exhaustive = true
-			admCommand(t, admScript(t, r, "controller"), "await-close").Closes = []string{"temporal.features.nexuscaller.evidence.started"}
-		}, "command await-close of script controller closes evidence temporal.features.nexuscaller.evidence.started and does not read it: a history kind is closed by the read that lifts it, the Run's own record of a command by that command, and any other by a poll of it"},
+			admCommand(t, admScript(t, r, "controller"), "await-close").Closes = []string{"temporal.features.nexus.workflow.evidence.started"}
+		}, "command await-close of script controller closes evidence temporal.features.nexus.workflow.evidence.started and does not read it: a history kind is closed by the read that lifts it, the Run's own record of a command by that command, and any other by a poll of it"},
 		{"a polled kind closed by a history read", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			unclosed(r)
 			r.Evidence[6].Exhaustive = true
-			admCommand(t, admScript(t, r, "controller"), "history").Closes = []string{"temporal.features.nexuscaller.evidence.pendingAttempts"}
-		}, "command history of script controller closes evidence temporal.features.nexuscaller.evidence.pendingAttempts and does not read it"},
+			admCommand(t, admScript(t, r, "controller"), "history").Closes = []string{"temporal.features.nexus.workflow.evidence.pendingAttempts"}
+		}, "command history of script controller closes evidence temporal.features.nexus.workflow.evidence.pendingAttempts and does not read it"},
 		{"a kind closed twice", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			unclosed(r)
 			r.Evidence[1].Exhaustive = true
-			admCommand(t, admScript(t, r, "controller"), "history").Closes = []string{"temporal.features.nexuscaller.evidence.started", "temporal.features.nexuscaller.evidence.started"}
-		}, "evidence temporal.features.nexuscaller.evidence.started is closed by history of script controller and by history of script controller; an exhaustive kind has one closing read"},
+			admCommand(t, admScript(t, r, "controller"), "history").Closes = []string{"temporal.features.nexus.workflow.evidence.started", "temporal.features.nexus.workflow.evidence.started"}
+		}, "evidence temporal.features.nexus.workflow.evidence.started is closed by history of script controller and by history of script controller; an exhaustive kind has one closing read"},
 		{"a closing read only some Cases carry", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			unclosed(r)
 			r.Evidence[6].Exhaustive = true
-			admCommand(t, admScript(t, r, "controller"), "pending-attempts").Closes = []string{"temporal.features.nexuscaller.evidence.pendingAttempts"}
-		}, "command pending-attempts of script controller closes evidence temporal.features.nexuscaller.evidence.pendingAttempts and is not a command every Case carries"},
+			admCommand(t, admScript(t, r, "controller"), "pending-attempts").Closes = []string{"temporal.features.nexus.workflow.evidence.pendingAttempts"}
+		}, "command pending-attempts of script controller closes evidence temporal.features.nexus.workflow.evidence.pendingAttempts and is not a command every Case carries"},
 
 		// An activity's attempts.
 		{"an attempt failure outside an activity", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
@@ -500,39 +500,39 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, "command pending-attempts of script controller polls until a number, and a poll's condition is a condition"},
 		{"a Run Event whose guard is a number", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) { e.Guard = admWritten(&umpirespb.ProtoValue_Number{Number: 1}) })
-		}, "evidence temporal.features.nexuscaller.evidence.started: its guard is a number, and a guard is a condition"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard is a number, and a guard is a condition"},
 		{"a Run Event whose guard orders a text", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				e.Guard = admGreater(admPayload("activity_attempt.sdk_attempt"), admWritten(&umpirespb.ProtoValue_Text{Text: "0"}))
 			})
-		}, "evidence temporal.features.nexuscaller.evidence.started: its guard orders a text, and only numbers are ordered"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard orders a text, and only numbers are ordered"},
 		{"a Run Event whose guard orders a text under a negation", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				e.Guard = admNot(admGreater(admWritten(&umpirespb.ProtoValue_Text{Text: "0"}), admPayload("activity_attempt.sdk_attempt")))
 			})
-		}, "evidence temporal.features.nexuscaller.evidence.started: its guard orders a text, and only numbers are ordered"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard orders a text, and only numbers are ordered"},
 		{"a Run Event whose guard compares two names it writes out", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				name := &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_EnumName{EnumName: "A"}}}}
 				e.Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_Equal{Equal: &umpirespb.Equal{Left: name, Right: name}}}
 			})
-		}, "evidence temporal.features.nexuscaller.evidence.started: its guard compares two enum values it writes out"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard compares two enum values it writes out"},
 		{"a Run Event whose guard writes out a name a Case binds", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				named := &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Named{Named: &umpirespb.Name{Prefix: "run-", Fixture: true}}}}}
 				e.Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_Equal{Equal: &umpirespb.Equal{Left: admPayload("detail"), Right: named}}}
 			})
-		}, "evidence temporal.features.nexuscaller.evidence.started: its guard writes out a name a Case binds; a Run Event's guard reads the event's payload alone"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard writes out a name a Case binds; a Run Event's guard reads the event's payload alone"},
 		{"a Run Event whose guard reads a path it writes no field of", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				e.Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: admPayload("activity_attempt[*]")}}}
 			})
-		}, `evidence temporal.features.nexuscaller.evidence.started: its guard reads "activity_attempt[*]" of the path activity_attempt[*], and a guard reads a field or oneof<member>`},
+		}, `evidence temporal.features.nexus.workflow.evidence.started: its guard reads "activity_attempt[*]" of the path activity_attempt[*], and a guard reads a field or oneof<member>`},
 		{"a Run Event whose guard negates the payload", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				e.Guard = admNot(&umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}})
 			})
-		}, "evidence temporal.features.nexuscaller.evidence.started: its guard negates a message, and only a condition is negated"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard negates a message, and only a condition is negated"},
 
 		{"a canceled answer outside an activity", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			admCommand(t, admScript(t, r, "handler"), "respond-sync").Instruction = &umpirespb.Command_AttemptCanceled{AttemptCanceled: &umpirespb.Empty{}}
@@ -541,45 +541,45 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		// Evidence the Run itself records.
 		{"a Run Event of no known kind", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) { e.Kind = 0 })
-		}, "evidence temporal.features.nexuscaller.evidence.started is a Run Event of no known kind"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started is a Run Event of no known kind"},
 		{"a Run Event of an undeclared script", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) { e.Script = "nobody" })
-		}, "evidence temporal.features.nexuscaller.evidence.started: no script nobody"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: no script nobody"},
 		{"a Run Event of a command its script does not have", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) { e.Command = "finish-workflow" })
-		}, "evidence temporal.features.nexuscaller.evidence.started: no command finish-workflow of script controller"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: no command finish-workflow of script controller"},
 		{"a Run Event with no key", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) { e.Key = nil })
-		}, "evidence temporal.features.nexuscaller.evidence.started: a Run Event's key is the run's id or a path of its payload"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: a Run Event's key is the run's id or a path of its payload"},
 		{"a Run Event keyed by an environment binding", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				e.Key = &umpirespb.Operand{Kind: &umpirespb.Operand_Environment{Environment: "temporal.worker.namespace"}}
 			})
-		}, "evidence temporal.features.nexuscaller.evidence.started: a Run Event's key is the run's id or a path of its payload"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: a Run Event's key is the run's id or a path of its payload"},
 		{"a Run Event keyed by a path of something other than its payload", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				e.Key = &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "activity_attempt.activity_run_id",
 					Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Environment{Environment: "temporal.worker.namespace"}}}}}
 			})
-		}, "evidence temporal.features.nexuscaller.evidence.started: a Run Event's key is the run's id or a path of its payload"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: a Run Event's key is the run's id or a path of its payload"},
 		{"a Run Event whose guard reads the run", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) {
 				e.Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{
 					Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}}
 			})
-		}, "evidence temporal.features.nexuscaller.evidence.started: its guard reads the run's id; a Run Event's guard reads the event's payload alone"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard reads the run's id; a Run Event's guard reads the event's payload alone"},
 		{"a Run Event whose guard is of no kind", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(e *umpirespb.RunEventSource) { e.Guard = &umpirespb.Operand{} })
-		}, "evidence temporal.features.nexuscaller.evidence.started: its guard has an operand of no known kind"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started: its guard has an operand of no known kind"},
 		{"a Run Event with an operation path of its own", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			runEvent(r, func(*umpirespb.RunEventSource) {})
 			r.Evidence[1].Operation = "detail"
-		}, "evidence temporal.features.nexuscaller.evidence.started names a field that keys its operation, and a Run Event's key is its source's"},
+		}, "evidence temporal.features.nexus.workflow.evidence.started names a field that keys its operation, and a Run Event's key is its source's"},
 		{"a poll of a Run Event", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			r.Evidence[6].Operation = ""
 			r.Evidence[6].From = &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED,
 				Script: "controller", Command: "start-workflow", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}
-		}, "command pending-attempts of script controller: evidence temporal.features.nexuscaller.evidence.pendingAttempts is a Run Event, which a poll does not read"},
+		}, "command pending-attempts of script controller: evidence temporal.features.nexus.workflow.evidence.pendingAttempts is a Run Event, which a poll does not read"},
 
 		// A required setting names its key and its value, and no key twice, whatever its case.
 		{"a required setting with no value", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {

@@ -18,7 +18,7 @@ func TestARealizationIsNamedByItsIdAndItsName(t *testing.T) {
 	again.Name = "another"
 	m.Realizations = append(m.Realizations, again)
 	err := ir.Validate(m)
-	require.ErrorContains(t, err, "two realizations with id temporal.features.nexuscaller.NexusRealization.asyncNexus")
+	require.ErrorContains(t, err, "two realizations with id temporal.features.nexus.workflow.NexusRealization.asyncNexus")
 	require.ErrorContains(t, err, admRealizationAt)
 
 	m = proto.Clone(load(t)).(*umpirespb.Model)
@@ -71,13 +71,13 @@ func TestTheRealizersTableIsTheCheckTableWithFieldsAndClaims(t *testing.T) {
 	nexus := realizer.b
 	table, err := nexus.claimed(nexus.machines["nexusSystem"])
 	require.NoError(t, err)
-	const field = "temporal.features.nexuscaller.system.state-field.nexusSystem."
+	const field = "temporal.features.nexus.workflow.system.state-field.nexusSystem."
 	require.Equal(t, []interp.Atom{{ID: field + "phase", Value: "succeeded"}, {ID: field + "attempts", Value: "1"},
 		{ID: field + "scheduleToClose", Value: "unset"}, {ID: field + "scheduleToStart", Value: "unset"},
 		{ID: field + "startToClose", Value: "unset"}, {ID: field + "nexusProduct", Value: "succeeded"}},
 		table.FieldValues("succeeded-1-unset-unset-unset"))
-	require.Contains(t, table.Claims(), interp.Claim{Member: "temporal.features.nexuscaller.system.action.nexusSystem.reply-handlerError-false",
-		Action: "temporal.features.nexuscaller.system.action.reply", Field: "reply", ClassName: "handlerError (retryable := false)", Example: "BadRequest"})
+	require.Contains(t, table.Claims(), interp.Claim{Member: "temporal.features.nexus.workflow.system.action.nexusSystem.reply-handlerError-false",
+		Action: "temporal.features.nexus.workflow.system.action.reply", Field: "reply", ClassName: "handlerError (retryable := false)", Example: "BadRequest"})
 }
 
 // A Realizer reads the Behavior Fingerprint of each table it binds once, and it is the table's own.
@@ -136,7 +136,7 @@ func TestARealizerGivesOnlyTheQueriesOfAnAdmittedModel(t *testing.T) {
 	require.Equal(t, len(m.GetQueries()), answered)
 
 	// A declared Query copied under another name is no Query of the Model: no key names it.
-	key := ClaimKey{Family: "temporal.features.nexuscaller.system", Owner: "nexusSystem", Name: "syncCompletion"}
+	key := ClaimKey{Family: "temporal.features.nexus.workflow.system", Owner: "nexusSystem", Name: "syncCompletion"}
 	_, err = realizer.Find(key)
 	require.NoError(t, err)
 	for _, c := range []struct {
@@ -147,11 +147,11 @@ func TestARealizerGivesOnlyTheQueriesOfAnAdmittedModel(t *testing.T) {
 	}{
 		{"another name", ClaimKey{Family: key.Family, Owner: key.Owner, Name: "syncCompletionAgain"}, "no Query syncCompletionAgain", m.GetSource()},
 		{"another machine", ClaimKey{Family: key.Family, Owner: "nexusProduct", Name: key.Name},
-			"query syncCompletion runs on nexusSystem of temporal.features.nexuscaller.system, not on nexusProduct of temporal.features.nexuscaller.system",
-			"model/temporal/features/nexuscaller/system/System.scala:"},
+			"query syncCompletion runs on nexusSystem of temporal.features.nexus.workflow.system, not on nexusProduct of temporal.features.nexus.workflow.system",
+			"model/temporal/features/nexus/workflow/system/System.scala:"},
 		{"another family", ClaimKey{Family: "temporal.shared.worker", Owner: key.Owner, Name: key.Name},
-			"query syncCompletion runs on nexusSystem of temporal.features.nexuscaller.system, not on nexusSystem of temporal.shared.worker",
-			"model/temporal/features/nexuscaller/system/System.scala:"},
+			"query syncCompletion runs on nexusSystem of temporal.features.nexus.workflow.system, not on nexusSystem of temporal.shared.worker",
+			"model/temporal/features/nexus/workflow/system/System.scala:"},
 		{"no name", ClaimKey{Family: key.Family, Owner: key.Owner}, "no Query ", m.GetSource()},
 	} {
 		t.Run(c.name, func(t *testing.T) {

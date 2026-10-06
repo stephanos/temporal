@@ -169,7 +169,7 @@ func answered(t *testing.T, seed uint64, iteration int, done []string, run func(
 }
 
 func randomModels(t *testing.T) map[string]*umpirespb.Model {
-	return map[string]*umpirespb.Model{"nexus-caller": loaded(t, "nexus-caller"), "realizations": liftedRealizations(t),
+	return map[string]*umpirespb.Model{"nexus-workflow": loaded(t, "nexus-workflow"), "realizations": liftedRealizations(t),
 		"activity": loaded(t, "activity")}
 }
 

@@ -48,12 +48,12 @@ func namedSteps(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
 	return out
 }
 
-// TestNamedChoicesExploreTheSameCandidates explores nexus-caller's declared deadline variations with
+// TestNamedChoicesExploreTheSameCandidates explores nexus-workflow's declared deadline variations with
 // every step record named. The candidates, their digests, Case identities and Case bytes, and the
 // proposal re-answered from the named Model are the unnamed Model's, though the named Model's own
 // bytes differ: its candidates are digested without the names.
 func TestNamedChoicesExploreTheSameCandidates(t *testing.T) {
-	plain, err := ir.Load("../../../model/ir/nexus-caller.json")
+	plain, err := ir.Load("../../../model/ir/nexus-workflow.json")
 	require.NoError(t, err)
 	named := namedSteps(t, plain)
 	require.False(t, proto.Equal(plain, named))

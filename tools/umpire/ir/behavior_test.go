@@ -22,7 +22,7 @@ func behaviorAt(line int32) *umpirespb.Position {
 }
 
 func admTimeout(name string) *umpirespb.ActionClass {
-	return &umpirespb.ActionClass{Action: "temporal.features.nexuscaller.deadline." + name}
+	return &umpirespb.ActionClass{Action: "temporal.features.nexus.workflow.deadline." + name}
 }
 
 // admBehave gives the Nexus caller realization the hints its Cases would need: a workflow task's

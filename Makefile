@@ -573,17 +573,14 @@ umpire-check-live-tests:
 # The recorded Runs the offline tests pin, each as live-test:variable:record:package:probe -- the
 # live test that records it into the file the variable names, and the offline test that admits
 # it. A Testpilot protocol change moves the Driver catalog, and a Case change the Case identity;
-# either leaves the record stale or crossed until it is recorded again live. The control record is
-# of the Case kept beside it, not of the generated fixture the live test runs: recording it again
-# makes it a Run of the generated Case, and the Case beside it and the Profile name its probe
-# expects must follow in the same change.
+# either leaves the record stale or crossed until it is recorded again live. The current control
+# probe reads its Case from model/cases; the legacy replay pair and receipt goldens remain history.
 UMPIRE_PINNED_RUNS := \
-	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json:./common/testing/testpilot/replay:TestControlRecordPinsTheCorrelatedKey \
-	TestTestpilotCanaryLifecycle:UMPIRE_CANARY_RECORD:tools/canary/assessment/testdata/nexus-caller-syncCompletion-run.json:./tools/canary/assessment:TestAdmitRecordsAClosedRunAndAdmitsIt
+	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:common/testing/testpilot/replay/testdata/nexus-workflow-control-forgedCompletion-run.json:./tools/umpire/cmd/umpire-assess:TestAssessWithAModelReproducesTheLiveAssessment \
+	TestTestpilotCanaryLifecycle:UMPIRE_CANARY_RECORD:tools/canary/assessment/testdata/nexus-workflow-syncCompletion-run.json:./tools/canary/assessment:TestAdmitRecordsAClosedRunAndAdmitsIt
 
-# Re-records every pinned Run its probe rejects as stale or crossed, leaves a current one alone, and
-# renders the receipt goldens from the control record again, so an unchanged protocol changes
-# nothing. A probe failing for any other reason stops the target: re-recording would hide it.
+# Re-records every current pinned Run its probe rejects as stale or crossed and leaves a current
+# one alone. A probe failing for any other reason stops the target: re-recording would hide it.
 umpire-rerecord-pinned-runs:
 	@printf $(COLOR) "Re-record stale pinned Testpilot Runs..."
 	@set -eu; \
@@ -619,9 +616,7 @@ umpire-rerecord-pinned-runs:
 			mv -f "$$temporary/run.json" "$$record"; \
 			rm -rf "$$temporary"; \
 			temporary=; \
-		done; \
-		UMPIRE_RECEIPT_GOLDENS=write TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -tags test_dep \
-			./common/testing/testpilot/evaluation -run '^TestReceiptGoldens$$' > "$$log" 2>&1 || { cat "$$log"; exit 1; }
+		done
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep \
 			./common/testing/testpilot/replay ./common/testing/testpilot/evaluation ./tools/umpire/cmd/umpire-assess ./tools/canary/...
@@ -733,7 +728,7 @@ lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 
 lint-model-models:
 	@printf $(COLOR) "Linting model files..."
-	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES)
+	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES)
 
 lint-model-irgen:
 	@printf $(COLOR) "Linting the IR generator..."

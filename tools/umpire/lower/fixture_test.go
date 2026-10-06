@@ -176,7 +176,7 @@ func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 // A path with a step an actor takes and no command performs is refused: the Case would wait for a
 // step nothing drives.
 func TestAStepNoScriptPerformsIsRefused(t *testing.T) {
-	m := loaded(t, "nexus-caller")
+	m := loaded(t, "nexus-workflow")
 	for _, s := range m.GetRealizations()[0].GetScripts() {
 		if s.GetId() == "handler" {
 			performs := s.GetItems()[0].GetPerforms()
@@ -187,14 +187,14 @@ func TestAStepNoScriptPerformsIsRefused(t *testing.T) {
 	require.NoError(t, err)
 	_, err = p.Lower("syncCompletion", nexusIdentity("syncCompletion"))
 	require.ErrorContains(t, err, "scenario syncReplied takes reply-syncSuccess, a step of handler, and no script of realization asyncNexus performs it")
-	require.ErrorContains(t, err, "model/temporal/features/nexuscaller/system/System.scala:")
+	require.ErrorContains(t, err, "model/temporal/features/nexus/workflow/system/System.scala:")
 	_, err = p.Lower("asyncCompletion", nexusIdentity("asyncCompletion"))
 	require.NoError(t, err, "a path that takes only performed steps still lowers")
 }
 
 // A find Query the search found no witness for is no Case: there is no path to realize.
 func TestAQueryWithNoWitnessIsRefused(t *testing.T) {
-	m := loaded(t, "nexus-caller")
+	m := loaded(t, "nexus-workflow")
 	for _, q := range m.GetQueries() {
 		if q.GetName() == "syncCompletion" {
 			q.Property = &umpirespb.ClaimRef{Machine: "nexusSystem", Name: "completionFails"}
@@ -310,7 +310,7 @@ func TestAStandingIsAnErrorThenAGapThenWhatTheQueryIs(t *testing.T) {
 // no Case, and both what the search could not establish and the predicate that could not be read are
 // reported.
 func TestAPropertyThatReachesAHoleIsNotLowered(t *testing.T) {
-	m := loaded(t, "nexus-caller")
+	m := loaded(t, "nexus-workflow")
 	m.Holes = append(m.Holes, &umpirespb.Hole{Id: "fixture.unknown", Name: "unknown"})
 	var holds string
 	for _, p := range m.GetProperties() {

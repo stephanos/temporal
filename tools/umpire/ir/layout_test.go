@@ -31,7 +31,8 @@ var retiredModelDirectories = []string{
 	"model/temporal/standaloneactivity", "model/temporal/nexuscaller", "model/temporal/nexusoperation",
 	"model/temporal/taskqueue", "model/temporal/worker",
 	"model/temporal/features/standaloneactivity/record", "model/temporal/features/standaloneactivity/withTaskQueue",
-	"model/temporal/features/nexuscaller/closepolicy",
+	"model/temporal/features/nexus/workflow/closepolicy",
+	"model/temporal/features/nexuscaller", "model/temporal/features/nexusoperation",
 }
 
 func TestNexusFormsLayout(t *testing.T) {
@@ -42,7 +43,7 @@ func TestNexusFormsLayout(t *testing.T) {
 		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features/nexus", name))
 		require.NoError(t, err, name)
 	}
-	for _, name := range []string{"nexuscaller", "nexusoperation"} {
+	for _, name := range []string{"nexuscaller/NexusCaller.scala", "nexusoperation/NexusOperation.scala"} {
 		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features", name))
 		require.ErrorIs(t, err, os.ErrNotExist, name)
 	}
@@ -58,8 +59,9 @@ var retiredModelNames = regexp.MustCompile(strings.Join([]string{
 	`"tools", "umpire", "model"`,
 	`model/(?:lifter|gate|metrics|gen)\b`,
 	`model/temporal/(?:standaloneactivity|nexuscaller|nexusoperation|taskqueue|worker)\b`,
-	`model/temporal/features/(?:standaloneactivity/(?:record|withTaskQueue)|nexuscaller/closepolicy)\b`,
-	`\bfeatures\.(?:standaloneactivity\.(?:record|withTaskQueue)|nexuscaller\.closepolicy)\b`,
+	`model/temporal/features/(?:nexuscaller|nexusoperation)\b`,
+	`model/temporal/features/(?:standaloneactivity/(?:record|withTaskQueue)|(?:nexuscaller|nexus/workflow)/closepolicy)\b`,
+	`\bfeatures\.(?:standaloneactivity\.(?:record|withTaskQueue)|(?:nexuscaller|nexus\.workflow)\.closepolicy)\b`,
 	`\bumpire\.(?:lift|gate)\b`,
 	`\blint-model-(?:lifter|lifts|gate|metrics)\b`,
 	// The same paths joined from their parts, as a Go test reads a file.
@@ -80,7 +82,7 @@ var retiredZoomInFolders = regexp.MustCompile(`(?:^|[^\w/.-])(?:record|withTaskQ
 // retiredZoomInMarked matches a flattened zoom-in folder that no prose names by accident: in
 // backticks (`record/`) or under its feature's folder (standaloneactivity/record).
 var retiredZoomInMarked = regexp.MustCompile(
-	"`(?:record|withTaskQueue|closepolicy)/|\\b(?:standaloneactivity/(?:record|withTaskQueue)|nexuscaller/closepolicy)\\b")
+	"`(?:record|withTaskQueue|closepolicy)/|\\b(?:standaloneactivity/(?:record|withTaskQueue)|(?:nexuscaller|nexus/workflow)/closepolicy)\\b")
 
 // zoomInProse are the live files outside model/ that describe the Models' layout in prose.
 var zoomInProse = []string{"AGENTS.md", ".plans/UMPIRE_MODULES.md", ".plans/UMPIRE4_VISION.md"}
@@ -282,6 +284,14 @@ func TestRetiredVocabularyCoversTheWholeModelTree(t *testing.T) {
 }
 
 func retiredModelMentions(path, content string) []string {
+	// These immutable historical artifacts retain the Model source positions they were recorded with.
+	if slices.Contains([]string{
+		"common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-case.json",
+		"common/testing/testpilot/evaluation/testdata/receipts/assessed.json",
+		"tools/canary/assessment/testdata/nexus-caller-syncCompletion-historical-case.json",
+	}, path) {
+		return nil
+	}
 	var found []string
 	scala, inModel := strings.HasSuffix(path, ".scala"), strings.HasPrefix(path, modelRoot+"/")
 	zoomIn := retiredZoomInMarked
@@ -389,6 +399,9 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"the metrics project":                   {"scala-cli run model/metrics --", true},
 		"the old build cache":                   {"model/gen/ir-scalapb.jar", true},
 		"a moved feature":                       {"model/temporal/nexuscaller/Model.scala:12", true},
+		"the retired Nexus workflow root":       {"model/temporal/features/nexuscaller/Realization.scala", true},
+		"the retired standalone Nexus root":     {"model/temporal/features/nexusoperation/NexusOperation.scala", true},
+		"the live server component":             {"chasm/lib/nexusoperation/operation.go nexusoperation.enableStandalone start-nexus-operation", false},
 		"a moved shared part":                   {"(temporal/taskqueue)", true},
 		"a tool package":                        {"import umpire.lift.Syntax", true},
 		"the check's old package":               {"package umpire.gate", true},
@@ -396,7 +409,7 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"an import of a moved package":          {"import temporal.worker.*", true},
 		"a retired target":                      {"make lint-model-lifts", true},
 		"a path joined from its parts":          {`filepath.Join("..", "model", "temporal", "worker")`, true},
-		"the new folders":                       {"model/irgen, model/check, model/build, model/temporal/features/nexuscaller", false},
+		"the new folders":                       {"model/irgen, model/check, model/build, model/temporal/features/nexus/workflow", false},
 		"a shared part's new folder":            {"model/temporal/shared/taskqueue", false},
 		"the new packages":                      {"package umpire.irgen\nimport temporal.features.standaloneactivity.*", false},
 		"a pinned Definition ID":                {`DefinitionScope("temporal.standaloneactivity.System$package$")`, false},
@@ -404,29 +417,31 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 		"a word that starts like a stem":        {"model/generated, model/gates, lint-model-irgen-lifts", false},
 		"the IR generator's lifted files":       {"umpire.lifted", false},
 		"a relative import of a moved package":  {"import worker.Phase as WorkerPhase", true},
-		"a retired Model.scala":                 {"model/temporal/features/nexuscaller/Model.scala:424", true},
+		"a retired Model.scala":                 {"model/temporal/features/nexus/workflow/Model.scala:424", true},
 		"a retired Properties.scala":            {"see `nexuscaller/Properties.scala`, line 22", true},
 		"a retired Queries.scala":               {"model/temporal/shared/taskqueue/Queries.scala", true},
-		"a retired Capabilities.scala":          {"its folder's features/nexusoperation/Capabilities.scala", true},
+		"a retired Capabilities.scala":          {"its folder's features/nexus/standalone/Capabilities.scala", true},
 		"a retired IrFiles.scala":               {"closepolicy/IrFiles.scala", true},
 		"a retired file from its folder":        {"from worker/Model.scala", true},
 		"a retired file joined from its parts":  {`filepath.Join("model", "temporal", "features", "nexuscaller", "Queries.scala")`, true},
-		"a retired file of a level folder":      {"model/temporal/features/nexuscaller/system/Model.scala", true},
+		"a retired file of a level folder":      {"model/temporal/features/nexus/workflow/system/Model.scala", true},
 		"a retired file of a product folder":    {"the queue's product/Properties.scala", true},
 		"a flattened record folder":             {"model/temporal/features/standaloneactivity/record/Record.scala", true},
 		"a flattened composition folder":        {"its withTaskQueue/ composes the record", true},
-		"a flattened close policy folder":       {"model/temporal/features/nexuscaller/closepolicy", true},
+		"a flattened close policy folder":       {"model/temporal/features/nexus/workflow/closepolicy", true},
 		"a zoom-in folder named bare":           {"read off record/ (heldDispatch)", true},
 		"a zoom-in folder joined from parts":    {`filepath.Join("model", "temporal", "features", "nexuscaller", "closepolicy", "*.scala")`, true},
 		"a flattened package clause":            {"package closepolicy", true},
 		"an import of a flattened package":      {"import record.*", true},
-		"a qualified flattened package":         {"features.nexuscaller.closepolicy.exports", true},
+		"a qualified flattened package":         {"features.nexus.workflow.closepolicy.exports", true},
+		"the former flattened package":          {"features.nexuscaller.closepolicy.exports", true},
+		"the former flattened folder":           {"model/temporal/features/nexuscaller/closepolicy", true},
 		"a function of a flattened package":     {"temporal.features.standaloneactivity.withTaskQueue.RecordOverQueue$.queries$.all", true},
 		"the level folders' files":              {"model/temporal/features/standaloneactivity/system/Record.scala, product/Product.scala", false},
-		"a level package":                       {"package system\nimport temporal.features.nexuscaller.system.ClosePolicyFamily", false},
+		"a level package":                       {"package system\nimport temporal.features.nexus.workflow.system.ClosePolicyFamily", false},
 		"a pinned former owner":                 {`DefinitionScope("temporal.nexuscaller.closepolicy.Model$package$")`, false},
 		"a longer path ending in a folder name": {"common/testing/testpilot/record/run.go, x.record/y", false},
-		"a feature file":                        {"model/temporal/features/nexuscaller/NexusCaller.scala:424", false},
+		"a feature file":                        {"model/temporal/features/nexus/workflow/Workflow.scala:424", false},
 		"the activity's former realization":     {"model/temporal/features/standaloneactivity/Realization.scala:33", true},
 		"the activity's relative realization":   {"standaloneactivity/Realization.scala", true},
 		"the former realization joined":         {`filepath.Join("standaloneactivity", "Realization.scala")`, true},
@@ -478,8 +493,8 @@ func TestRetiredFeatureFilesAreFound(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
 			files := []string{
-				"model/temporal/features/nexuscaller/NexusCaller.scala",
-				"model/temporal/features/nexuscaller/system/" + name,
+				"model/temporal/features/nexus/workflow/Workflow.scala",
+				"model/temporal/features/nexus/workflow/system/" + name,
 				"model/temporal/capabilities/" + name,
 				"model/irgen/testdata/lifts/" + name,
 			}
@@ -489,7 +504,7 @@ func TestRetiredFeatureFilesAreFound(t *testing.T) {
 			}
 			found, err := retiredFeatureFiles(root)
 			require.NoError(t, err)
-			require.Equal(t, []string{"model/temporal/features/nexuscaller/system/" + name}, found)
+			require.Equal(t, []string{"model/temporal/features/nexus/workflow/system/" + name}, found)
 		})
 	}
 	found, err := retiredFeatureFiles(t.TempDir())

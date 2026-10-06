@@ -19,7 +19,7 @@ import (
 // cluster's Run is the only one ever written.
 func recorded(t *testing.T) recordedrun.Decoded {
 	t.Helper()
-	return recordedIn(t, "nexus-caller-syncCompletion-run.json")
+	return recordedIn(t, "nexus-workflow-syncCompletion-run.json")
 }
 
 func recordedIn(t *testing.T, name string) recordedrun.Decoded {
@@ -110,6 +110,28 @@ func TestTheRunOfThePriorPinnedCaseKeepsItsDecision(t *testing.T) {
 		})
 	}
 	require.True(t, proto.Equal(before, fixture.Run), "admission never changes the Run")
+}
+
+func TestThePriorNexusWorkflowRecordRetainsItsCaseAndVerdict(t *testing.T) {
+	prior, err := os.ReadFile(filepath.Join("testdata", "nexus-caller-syncCompletion-historical-case.json"))
+	require.NoError(t, err)
+	fixture := recordedIn(t, "nexus-caller-syncCompletion-historical-run.json")
+	identity, err := recordedrun.CaseIdentity(prior)
+	require.NoError(t, err)
+	require.Equal(t, identity, fixture.Case)
+	canary := committed(t)
+	require.NotEqual(t, canary.CaseIdentity, fixture.Case)
+	encoded, err := recordedrun.Encode(fixture.Case, fixture.Driver, fixture.Run)
+	require.NoError(t, err)
+	subject, err := evaluation.Admit(prior, encoded, fixture.Driver.Catalog)
+	require.NoError(t, err)
+	profile, err := LoadProfile(canary.EvaluationProfile)
+	require.NoError(t, err)
+	require.Equal(t, evaluation.DecisionAccepted, evaluation.Assess(subject, *profile, nil).Outcome)
+	_, err = Admit(canary, fixture.Driver, fixture.Run)
+	rejection, ok := evaluation.IsRejection(err)
+	require.True(t, ok, "not a rejection: %v", err)
+	require.Equal(t, evaluation.ReasonCrossed, rejection.Reason, rejection.Detail)
 }
 
 // Every iteration that is not a closed Run of the pinned Case under the canary's Profile and the

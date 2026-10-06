@@ -56,7 +56,7 @@ type nexusCallerQuery struct {
 	stopsWorker bool
 }
 
-func (q nexusCallerQuery) fixture() string { return "nexus-caller-" + q.name }
+func (q nexusCallerQuery) fixture() string { return "nexus-workflow-" + q.name }
 
 // Every admitted semantic step of the operation supports the clause: the scheduled event, read as
 // soon as it exists, confirms the schedule command; then each event the path's side effects record,

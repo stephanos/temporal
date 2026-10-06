@@ -18,7 +18,7 @@ const (
 
 // NexusCallerAsyncCompletionFixture is the caller Model's Query 2 fixture, the async reply then
 // succeeded callback, which the hand-written Profile below is the derivation oracle for.
-const NexusCallerAsyncCompletionFixture = "nexus-caller-asyncCompletion"
+const NexusCallerAsyncCompletionFixture = "nexus-workflow-asyncCompletion"
 
 // generatedFixtures is the tree under testdata that `make umpire-gen-fixtures` publishes: the Cases
 // lowered from the Scala model that the functional tests pin, each byte for byte the model tree's.

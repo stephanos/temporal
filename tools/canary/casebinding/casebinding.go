@@ -24,7 +24,7 @@ import (
 // The pinned canary Case, `make canary-gen-case` writes it and `make canary-check-case` diffs a
 // fresh render against it.
 //
-//go:embed testdata/nexus-caller-syncCompletion-case.json
+//go:embed testdata/nexus-workflow-syncCompletion-case.json
 var pinned []byte
 
 // The workflow-service methods the Case's endpoint role invokes: the public ones that start its

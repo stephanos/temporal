@@ -460,7 +460,7 @@ func TestTheFieldsAndTheSingleReadOfEvidenceAreCheckedAgainstTheirDescriptors(t 
 // history kinds are closed by the history read (Realization.scala); the scheduled event, read by a
 // poll that stops at the first one, is not exhaustive and names none.
 func TestAnExhaustiveKindIsCarriedWithItsClosingRead(t *testing.T) {
-	p, err := NewProducer(loaded(t, "nexus-caller"))
+	p, err := NewProducer(loaded(t, "nexus-workflow"))
 	require.NoError(t, err)
 	l, err := p.Lower("syncCompletion", nexusIdentity("syncCompletion"))
 	require.NoError(t, err)
@@ -472,12 +472,12 @@ func TestAnExhaustiveKindIsCarriedWithItsClosingRead(t *testing.T) {
 	for _, n := range l.Case.GetProvenance().GetLocalNames() {
 		local[n.GetDefinitionId()] = n.GetLocalName()
 	}
-	const completed, scheduled = "temporal.features.nexuscaller.evidence.completed", "temporal.features.nexuscaller.evidence.scheduled"
+	const completed, scheduled = "temporal.features.nexus.workflow.evidence.completed", "temporal.features.nexus.workflow.evidence.scheduled"
 	require.Equal(t, []string{"program.evidence[" + local[completed] + "]", "contract.correlated.sources",
 		"program.entrypoints[controller].instructions[history]"}, as["evidence "+completed])
 	require.Equal(t, []string{"program.evidence[" + local[scheduled] + "]", "contract.correlated.sources"}, as["evidence "+scheduled])
 	// The started event is exhaustive too, so the Case carries it though no step of the path records it.
-	const started = "temporal.features.nexuscaller.evidence.started"
+	const started = "temporal.features.nexus.workflow.evidence.started"
 	require.Equal(t, []string{"program.evidence[" + local[started] + "]", "contract.correlated.sources",
 		"program.entrypoints[controller].instructions[history]"}, as["evidence "+started])
 }

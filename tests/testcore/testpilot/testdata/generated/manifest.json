@@ -2,14 +2,38 @@
   "version": 1,
   "queries": [
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow-control.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
+        "Owner": "trustingCaller",
+        "Name": "forgedCompletion"
+      },
+      "standing": "lowered",
+      "file": "nexus-workflow-control-forgedCompletion-case.json",
+      "expected": {
+        "contract": "violated",
+        "disposition": "stopped_by_monitor",
+        "cleanup": "succeeded",
+        "conformance": "inconclusive",
+        "conformanceReason": "incomplete",
+        "properties": [
+          {
+            "id": "forgedSuccess",
+            "status": "violated",
+            "reason": "every_explanation_violates"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-workflow.json",
+      "query": {
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "nexusSystem",
         "Name": "asyncCompletion"
       },
       "standing": "lowered",
-      "file": "nexus-caller-asyncCompletion-case.json",
+      "file": "nexus-workflow-asyncCompletion-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -25,14 +49,14 @@
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "nexusSystem",
         "Name": "asyncFailure"
       },
       "standing": "lowered",
-      "file": "nexus-caller-asyncFailure-case.json",
+      "file": "nexus-workflow-asyncFailure-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -48,14 +72,14 @@
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "nexusSystem",
         "Name": "handlerError"
       },
       "standing": "lowered",
-      "file": "nexus-caller-handlerError-case.json",
+      "file": "nexus-workflow-handlerError-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -71,14 +95,14 @@
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "nexusSystem",
         "Name": "retry"
       },
       "standing": "lowered",
-      "file": "nexus-caller-retry-case.json",
+      "file": "nexus-workflow-retry-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -94,14 +118,14 @@
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "nexusSystem",
         "Name": "scheduleToStartTimeout"
       },
       "standing": "lowered",
-      "file": "nexus-caller-scheduleToStartTimeout-case.json",
+      "file": "nexus-workflow-scheduleToStartTimeout-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -117,14 +141,14 @@
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "nexusSystem",
         "Name": "startToCloseTimeout"
       },
       "standing": "lowered",
-      "file": "nexus-caller-startToCloseTimeout-case.json",
+      "file": "nexus-workflow-startToCloseTimeout-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -140,14 +164,14 @@
       }
     },
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "nexusSystem",
         "Name": "syncCompletion"
       },
       "standing": "lowered",
-      "file": "nexus-caller-syncCompletion-case.json",
+      "file": "nexus-workflow-syncCompletion-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",
@@ -157,30 +181,6 @@
           {
             "id": "syncSucceeds",
             "status": "satisfied"
-          }
-        ]
-      }
-    },
-    {
-      "model": "nexus-control.json",
-      "query": {
-        "Family": "temporal.features.nexuscaller.system",
-        "Owner": "trustingCaller",
-        "Name": "forgedCompletion"
-      },
-      "standing": "lowered",
-      "file": "nexus-control-forgedCompletion-case.json",
-      "expected": {
-        "contract": "violated",
-        "disposition": "stopped_by_monitor",
-        "cleanup": "succeeded",
-        "conformance": "inconclusive",
-        "conformanceReason": "incomplete",
-        "properties": [
-          {
-            "id": "forgedSuccess",
-            "status": "violated",
-            "reason": "every_explanation_violates"
           }
         ]
       }

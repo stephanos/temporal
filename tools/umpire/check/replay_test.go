@@ -18,10 +18,10 @@ func TestEveryReportedWitnessReplaysUnderItsDefinitionIDs(t *testing.T) {
 	var queries []*Query
 	expected := map[string][]string{
 		// The two finds the protocol's capabilities generate lead, by their machine's prefix.
-		"activity":     {"activitySystem.cancelIsRequested", "activitySystem.terminateSettles", "cancel", "cancelRequest", "completion", "nonRetryableFailure", "pauseResume", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "terminate"},
-		"nexus-caller": {"asyncCompletion", "asyncFailure", "handlerError", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "syncCompletion"},
+		"activity":       {"activitySystem.cancelIsRequested", "activitySystem.terminateSettles", "cancel", "cancelRequest", "completion", "nonRetryableFailure", "pauseResume", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "terminate"},
+		"nexus-workflow": {"asyncCompletion", "asyncFailure", "handlerError", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "syncCompletion"},
 	}
-	for _, name := range []string{"activity", "nexus-caller"} {
+	for _, name := range []string{"activity", "nexus-workflow"} {
 		model, err := ir.Load(filepath.Join(root, "model", "ir", name+".json"))
 		require.NoError(t, err)
 		realizer, err := NewRealizer(model, DefaultScope)

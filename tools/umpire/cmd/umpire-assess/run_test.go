@@ -367,17 +367,20 @@ func TestAssessNamesTheSelfCheckAndPublicationFailures(t *testing.T) {
 
 const modelRoot = "../../../../model"
 
+const currentControlCasePath = modelRoot + "/cases/nexus-workflow-control-forgedCompletion-case.json"
+const currentControlRunPath = "../../../../common/testing/testpilot/replay/testdata/nexus-workflow-control-forgedCompletion-run.json"
+
 // generatedControl is the generated Case of the control's Query: the pinned control Run is a Run of
 // it, which the live test assessed as its Query expects.
 func generatedControl(t *testing.T) (*testpilotspb.Case, *lower.GeneratedCase) {
 	t.Helper()
-	encoded, err := os.ReadFile(controlCasePath)
+	encoded, err := os.ReadFile(currentControlCasePath)
 	require.NoError(t, err)
 	source, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
 	entry, err := lower.FindGeneratedCase(filepath.Join(modelRoot, "cases"), source)
 	require.NoError(t, err)
-	require.Equal(t, "nexus-control-forgedCompletion-case.json", entry.File)
+	require.Equal(t, "nexus-workflow-control-forgedCompletion-case.json", entry.File)
 	return source, entry
 }
 
@@ -387,21 +390,27 @@ func generatedControl(t *testing.T) (*testpilotspb.Case, *lower.GeneratedCase) {
 // Verdict.
 func TestAssessWithAModelReproducesTheLiveAssessment(t *testing.T) {
 	_, entry := generatedControl(t)
-	caseBytes, err := os.ReadFile(controlCasePath)
+	caseBytes, err := os.ReadFile(currentControlCasePath)
 	require.NoError(t, err)
-	runBytes, err := os.ReadFile(controlRunPath)
+	runBytes, err := os.ReadFile(currentControlRunPath)
 	require.NoError(t, err)
-	assessed, status, err := assessRecorded(modelRoot, caseBytes, runBytes)
-	require.NoError(t, err, status)
 	decoded, err := recordedrun.Decode(runBytes)
 	require.NoError(t, err)
+	identity, err := recordedrun.CaseIdentity(caseBytes)
+	require.NoError(t, err)
+	require.Equal(t, identity, decoded.Case, "crossed: the recorded Run is not of the current generated control Case")
+	catalog, err := treeCatalog()
+	require.NoError(t, err)
+	require.Equal(t, catalog, decoded.Driver.Catalog, "stale: the recorded Run is not of the current Driver catalog")
+	assessed, status, err := assessRecorded(modelRoot, caseBytes, runBytes)
+	require.NoError(t, err, status)
 	require.NoError(t, entry.Expected.Check(decoded.Run, decoded.Run.GetVerdict(), assessed))
 	again, _, err := assessRecorded(modelRoot, caseBytes, runBytes)
 	require.NoError(t, err)
 	require.Equal(t, assessed, again, "the offline assessment is a function of the recorded Run")
 
 	root := resolvedTemp(t)
-	code, result, stderr := run(t, append(flags(controlCasePath, controlRunPath, root), "--model", modelRoot), environment{})
+	code, result, stderr := run(t, append(flags(currentControlCasePath, currentControlRunPath, root), "--model", modelRoot), environment{Catalog: treeCatalog})
 	require.Equal(t, exitRejected, code, stderr)
 	require.Equal(t, []string{"verdict-violated", "known-gap-blocking", "property-violated", "assessment-inconclusive"}, result.Reasons)
 	published, err := os.ReadFile(result.Path)
@@ -422,7 +431,7 @@ func TestAssessWithAModelReproducesTheLiveAssessment(t *testing.T) {
 	require.Nil(t, receipt.Assessment.Failure)
 
 	// Without --model the same subject is decided on its Verdict alone, and its receipt is another.
-	code, plain, _ := run(t, flags(controlCasePath, controlRunPath, root), environment{})
+	code, plain, _ := run(t, flags(currentControlCasePath, currentControlRunPath, root), environment{Catalog: treeCatalog})
 	require.Equal(t, exitRejected, code)
 	require.Equal(t, []string{"verdict-violated", "known-gap-blocking"}, plain.Reasons)
 	require.NotEqual(t, result.Receipt, plain.Receipt)
@@ -434,9 +443,9 @@ func TestAssessWithAModelReproducesTheLiveAssessment(t *testing.T) {
 func TestAssessWithAModelRefusesWhatItCannotAssess(t *testing.T) {
 	notGenerated, notGeneratedRun := subjectFiles(t, nil, satisfy)
 	unreproducible := func() (string, string) {
-		caseBytes, err := os.ReadFile(controlCasePath)
+		caseBytes, err := os.ReadFile(currentControlCasePath)
 		require.NoError(t, err)
-		recorded, err := os.ReadFile(controlRunPath)
+		recorded, err := os.ReadFile(currentControlRunPath)
 		require.NoError(t, err)
 		decoded, err := recordedrun.Decode(recorded)
 		require.NoError(t, err)
@@ -448,7 +457,7 @@ func TestAssessWithAModelRefusesWhatItCannotAssess(t *testing.T) {
 		require.NoError(t, err)
 		runPath := filepath.Join(t.TempDir(), "run.json")
 		require.NoError(t, os.WriteFile(runPath, encoded, 0o644))
-		return controlCasePath, runPath
+		return currentControlCasePath, runPath
 	}
 	lyingCase, lyingRun := unreproducible()
 	for name, probe := range map[string]struct {

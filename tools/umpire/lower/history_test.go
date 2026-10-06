@@ -11,7 +11,7 @@ import (
 // history evidence read: no history event is assumed. Without such a read a history kind is refused
 // where it is declared, and every read that lifts history must read the same message.
 func TestAHistoryKindIsReadAsWhatItsLiftingReadReads(t *testing.T) {
-	m := loaded(t, "nexus-caller")
+	m := loaded(t, "nexus-workflow")
 	r := m.GetRealizations()[0]
 	var history *umpirespb.Evidence
 	for _, e := range r.GetEvidence() {

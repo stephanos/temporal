@@ -147,7 +147,7 @@ func indexOf(t *testing.T, names []string, name string) int {
 func TestQuintVerifyDoesNotTakeTheNexusModule(t *testing.T) {
 	found := needs(t, VerifyTool)
 	t.Cleanup(StopVerifier)
-	s := openNamed(t, "nexus-close")
+	s := openNamed(t, "nexus-workflow-close")
 	c := checkOf(t, s, "rejectAfterClose")
 	k := indexOf(t, c.Monitors, "retainedOutcome")
 	_, err := RunQuintVerify(t.Context(), found, c, k, workDir(t))

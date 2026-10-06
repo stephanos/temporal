@@ -54,7 +54,7 @@ func requireRecounted(t *testing.T, plan *Plan, c *Candidate) int64 {
 // A variation of another schedule length and a prefix drop each change the source Query's count; the
 // candidate asserts its own recount and lowers, while the source Query keeps the author's assertion.
 func TestScheduleChangingCandidatesAssertTheirOwnRecountedTotal(t *testing.T) {
-	loaded, err := ir.Load("../../../model/ir/nexus-control.json")
+	loaded, err := ir.Load("../../../model/ir/nexus-workflow-control.json")
 	require.NoError(t, err)
 	m := withSourceTotals(t, loaded)
 	source := proto.CloneOf(m)
@@ -90,8 +90,8 @@ func TestScheduleChangingCandidatesAssertTheirOwnRecountedTotal(t *testing.T) {
 // promotion source, so correcting a source total renames nothing.
 func TestASourceTotalCorrectionChangesNoExplorationIdentity(t *testing.T) {
 	for _, explored := range []struct{ file, name string }{
-		{"../../../model/ir/nexus-control.json", "nexusControl"},
-		{"../../../model/ir/nexus-caller.json", "nexusDeadlines"},
+		{"../../../model/ir/nexus-workflow-control.json", "nexusControl"},
+		{"../../../model/ir/nexus-workflow.json", "nexusDeadlines"},
 	} {
 		t.Run(explored.name, func(t *testing.T) {
 			loaded, err := ir.Load(explored.file)

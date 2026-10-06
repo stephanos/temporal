@@ -10,7 +10,7 @@ import (
 )
 
 func TestFiniteVariationsArePrioritizedAndRelowered(t *testing.T) {
-	m, err := ir.Load("../../../model/ir/nexus-caller.json")
+	m, err := ir.Load("../../../model/ir/nexus-workflow.json")
 	require.NoError(t, err)
 	var q *umpirespb.Query
 	for _, declared := range m.Queries {
@@ -45,7 +45,7 @@ func TestFiniteVariationsArePrioritizedAndRelowered(t *testing.T) {
 }
 
 func TestAlternativeNamesCannotAliasAnotherTuple(t *testing.T) {
-	m, err := ir.Load("../../../model/ir/nexus-caller.json")
+	m, err := ir.Load("../../../model/ir/nexus-workflow.json")
 	require.NoError(t, err)
 	for _, q := range m.Queries {
 		if q.Name == "syncCompletion" {

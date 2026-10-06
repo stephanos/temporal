@@ -11,7 +11,7 @@ coverage model/ir/activity.json activitySystem
 coverage model/ir/activity.json standaloneActivity
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/ir/nexus-control.json trustingCaller
+coverage model/ir/nexus-workflow-control.json trustingCaller
   properties           1 declared, 1 named by a Query
   non-system actions   6, 5 performed by a realization
   facts                7, 7 with evidence

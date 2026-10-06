@@ -77,7 +77,7 @@ Gate: starts after fn-126 and fn-124 close; closes before fn-128 starts. Source 
 | Task | Status | What |
 | --- | --- | --- |
 | fn-132.8 | ✅ done | Kind/form source grouping admitted before either move; unchanged-tree proof |
-| fn-132.1 | ⬜ todo | `nexuscaller` → `features/nexus/workflow`, `nexusoperation` → `features/nexus/standalone`; IR files renamed |
+| fn-132.1 | 🔄 in progress | `features/nexus/workflow` and `features/nexus/standalone`; four export stems moved, exact identity proof and focused verification underway |
 | fn-132.2 | ⬜ todo | `standaloneactivity` → `features/activity/standalone`; IR files renamed; fn-128/fn-129 paths |
 | fn-132.3 | ⬜ todo | Structure lint and docs learn the kind level |
 | fn-132.4 | ⬜ todo | Spike: one action shared by two forms' entities; outcomes; `terminated` |

@@ -38,8 +38,8 @@ The table and product counts describe the Quint comparisons alone.
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `activity` | 4 | 1 | 15,817 | 0 | 0 |
 | `activity-record` | 12 | 5 of 7 | 13,839 | 2 | 1 (`trustingActivityRecord`: both monitors) |
-| `nexus-caller` | 4 | 0 | 3,716 | 0 | 0 |
-| `nexus-close` | 9 | 0 | 9,134 | 9 | 6 |
+| `nexus-workflow` | 4 | 0 | 3,716 | 0 | 0 |
+| `nexus-workflow-close` | 9 | 0 | 9,134 | 9 | 6 |
 
 The six compositions hold 886 of those states and 17,701 of those pairs, and all 18 Properties the
 slices declare on compositions (6,953 readings): `standaloneActivity`, and the current and stale

@@ -50,7 +50,7 @@ func TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone(t *testing.T) {
 	fixtures := map[string]string{"outage": testpilotcore.WorkerOutageFixture, "plain": nexusCallerQueries[1].fixture()}
 	outage := bindCase(t, env, loadTestpilotCase(t, fixtures["outage"]), workerOutageBinding())
 	plain := bindCase(t, env, loadTestpilotCase(t, fixtures["plain"]), CaseBinding{
-		Identity: "nexus-caller-profile", Namespace: "umpire-worker-outage-peer",
+		Identity: "nexus-workflow-profile", Namespace: "umpire-worker-outage-peer",
 		TaskQueue: "umpire-worker-outage-peer-queue", NexusEndpoint: "umpire-worker-outage-peer-endpoint",
 		CreateEndpoint: true,
 	})

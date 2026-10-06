@@ -2,14 +2,14 @@
   "version": 1,
   "queries": [
     {
-      "model": "nexus-caller.json",
+      "model": "nexus-workflow.json",
       "query": {
-        "Family": "temporal.features.nexuscaller.system",
+        "Family": "temporal.features.nexus.workflow.system",
         "Owner": "nexusSystem",
         "Name": "syncCompletion"
       },
       "standing": "lowered",
-      "file": "nexus-caller-syncCompletion-case.json",
+      "file": "nexus-workflow-syncCompletion-case.json",
       "expected": {
         "contract": "satisfied",
         "disposition": "completed",

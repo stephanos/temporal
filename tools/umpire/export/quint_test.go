@@ -20,7 +20,7 @@ import (
 )
 
 // slices of the lifted IR the backends are gated on, by file.
-var irFiles = []string{"activity", "activity-record", "nexus-caller", "nexus-close"}
+var irFiles = []string{"activity", "activity-record", "nexus-workflow", "nexus-workflow-close"}
 
 func loadModel(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
@@ -345,7 +345,7 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 	// Seven machine refinements, three replacements, two rejected compositions and the Queries; the
 	// activity system declares no progress claim.
 	require.Len(t, x.Unsupported, 7+3+2+1)
-	progress := kinds(exported(t, openNamed(t, "nexus-close")).Unsupported)
+	progress := kinds(exported(t, openNamed(t, "nexus-workflow-close")).Unsupported)
 	require.Equal(t, Unsupported, progress["progress-agreement retainAndRoute.outcomeReachesOwner"])
 	require.Len(t, progress, 10+1)
 	for _, r := range x.Unsupported {
@@ -361,7 +361,7 @@ func TestGoMonitorVerdictsAreTheSpecimens(t *testing.T) {
 			"activityRecord":         nil,
 			"trustingActivityRecord": {"atMostOneActiveAttempt", "terminalFinality"},
 		},
-		"nexus-close": {
+		"nexus-workflow-close": {
 			"retainAndRoute":             nil,
 			"retainAndRouteBoundedRetry": nil,
 			"retainAndRouteWithDeadline": nil,
@@ -572,9 +572,9 @@ func exportedAsWritten(t *testing.T, reference *Slice, written *umpirespb.Model)
 // value no case matches, is an error of the run and never a result to compare.
 func TestQuintStopsWhereTheModelHasNoValue(t *testing.T) {
 	found := needs(t, QuintTool)
-	reference := openNamed(t, "nexus-caller")
+	reference := openNamed(t, "nexus-workflow")
 	mutant := proto.Clone(reference.Model).(*umpirespb.Model)
-	function(mutant, "temporal.features.nexuscaller.system.NexusSystem$.states$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
+	function(mutant, "temporal.features.nexus.workflow.system.NexusSystem$.states$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
 	_, err := RunQuint(t.Context(), found, exportedAsWritten(t, reference, mutant), workDir(t))
 	require.ErrorContains(t, err, "Runtime error")
 }
@@ -718,10 +718,10 @@ func TestQuintReadsPropertiesAboutAnAction(t *testing.T) {
 // replacement the reader rejects, with their 19 Properties but those two's none.
 func TestCompositionsAreExported(t *testing.T) {
 	exportedOf := map[string][]string{
-		"activity":        {"standaloneActivity"},
-		"activity-record": {"recordOverLossyMatching", "recordOverMatching", "recordOverQueue", "trustingRecordOverMatching", "trustingRecordOverQueue"},
-		"nexus-caller":    {"nexusCaller"},
-		"nexus-close":     nil,
+		"activity":             {"standaloneActivity"},
+		"activity-record":      {"recordOverLossyMatching", "recordOverMatching", "recordOverQueue", "trustingRecordOverMatching", "trustingRecordOverQueue"},
+		"nexus-workflow":       {"nexusCaller"},
+		"nexus-workflow-close": nil,
 	}
 	properties := 0
 	for name, want := range exportedOf {

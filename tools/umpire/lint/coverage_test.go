@@ -16,7 +16,7 @@ var updateCoverage = flag.Bool("update-coverage", false, "rewrite testdata/cover
 // checked-in IR files light enough to read in a unit test.
 var coverageFixtures = []string{
 	"model/ir/activity.json",
-	"model/ir/nexus-control.json",
+	"model/ir/nexus-workflow-control.json",
 	"model/irgen/testdata/lifts/expected/admission.json",
 	"model/irgen/testdata/lifts/expected/capabilities.json",
 	"model/irgen/testdata/lifts/expected/captured.json",

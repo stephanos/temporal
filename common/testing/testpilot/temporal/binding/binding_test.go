@@ -17,7 +17,7 @@ const fixtureRoot = "../../../../../tests/testcore/testpilot/testdata"
 
 func nexusCallerCase(t *testing.T) *testpilotspb.Case {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join(fixtureRoot, "generated", "nexus-caller-asyncCompletion-case.json"))
+	encoded, err := os.ReadFile(filepath.Join(fixtureRoot, "generated", "nexus-workflow-asyncCompletion-case.json"))
 	require.NoError(t, err)
 	source, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)

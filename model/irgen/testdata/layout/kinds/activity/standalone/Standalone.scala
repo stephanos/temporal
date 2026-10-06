@@ -13,4 +13,4 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 
 object exports:
   val activityStandalone =
-    irFile("activity-standalone")(product.ActivityProduct, system.ActivitySystem)
+    irFile("fixture-activity-standalone")(product.ActivityProduct, system.ActivitySystem)

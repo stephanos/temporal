@@ -25,7 +25,7 @@ import (
 
 const (
 	fixtureRoot            = "../../../../tests/testcore/testpilot/testdata"
-	asyncCompletionFixture = "generated/nexus-caller-asyncCompletion-case.json"
+	asyncCompletionFixture = "generated/nexus-workflow-asyncCompletion-case.json"
 )
 
 func fixturePath(t *testing.T, name string) string {
@@ -100,7 +100,7 @@ func TestRunRecordsTheClosedRunWhenAsked(t *testing.T) {
 			run: func(context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 				verdict := &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED}
 				return &testpilotspb.Run{
-					RunId: "run-1", CaseId: "temporal.case.scala.nexus-caller.asyncCompletion", Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
+					RunId: "run-1", CaseId: "temporal.case.scala.nexus-workflow.asyncCompletion", Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
 					Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}, Verdict: verdict,
 				}, verdict, nil
 			},
@@ -237,7 +237,7 @@ func TestRunExitsThreeWithOneStderrLineWhenTheRunFails(t *testing.T) {
 	require.Equal(t, exitFailed, code)
 	require.Empty(t, stdout.String())
 	require.Equal(t, []string{
-		`run Case "temporal.case.scala.nexus-caller.asyncCompletion": frontend refused the connection`,
+		`run Case "temporal.case.scala.nexus-workflow.asyncCompletion": frontend refused the connection`,
 	}, strings.Split(strings.TrimSpace(stderr.String()), "\n"))
 }
 

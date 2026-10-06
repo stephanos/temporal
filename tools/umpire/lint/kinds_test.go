@@ -15,7 +15,7 @@ import (
 // The checked-in IR the kinds are read over, each loaded once and cloned before any mutation.
 var (
 	activityIR     = loaded("../../../model/ir/activity.json")
-	nexusControlIR = loaded("../../../model/ir/nexus-control.json")
+	nexusControlIR = loaded("../../../model/ir/nexus-workflow-control.json")
 	capturedIR     = loaded("../../../model/irgen/testdata/lifts/expected/captured.json")
 	declarationsIR = loaded("../../../model/irgen/testdata/lifts/expected/declarations.json")
 )
@@ -159,7 +159,7 @@ func TestUntakenChoices(t *testing.T) {
 	// reachable state takes it.
 	r = run(t, read(t, nexusControlIR, func(ir *umpirespb.Model) {
 		for _, f := range ir.GetFunctions() {
-			if f.GetName() != "temporal.features.nexuscaller.system.TrustingCaller$.effects$.forgedComplete" {
+			if f.GetName() != "temporal.features.nexus.workflow.system.TrustingCaller$.effects$.forgedComplete" {
 				continue
 			}
 			join := f.GetBody().GetIf().GetThen().GetBinary()

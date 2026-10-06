@@ -31,7 +31,7 @@ import (
 // the evidence core omits the Run's scaffolding events, named by instruction id, and neither the
 // Run nor the Verdict is changed by reading it.
 func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
-	name := "nexus-control-forgedCompletion"
+	name := "nexus-workflow-control-forgedCompletion"
 	caseBytes, err := os.ReadFile(testpilotFixturePath(name))
 	require.NoError(t, err)
 	caseSource := loadTestpilotCase(t, name)
@@ -55,8 +55,8 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 		return prepared.Case, nil
 	}
 
-	// The first Run's record is the replay package's pin of the correlated key when
-	// UMPIRE_CONTROL_RECORD names the file to write; the pin's test says where it lives.
+	// UMPIRE_CONTROL_RECORD writes the first Run for the current generated control Case's
+	// offline Model-assessment probe; the two Runs still share the replay's correlated key.
 	dir := t.TempDir()
 	paths := map[string]string{"first": os.Getenv("UMPIRE_CONTROL_RECORD")}
 	var keys []replay.ViolationKey
@@ -112,7 +112,7 @@ func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
 	runBinary := buildUmpireRun(t)
 	replayBinary := buildUmpireCommand(t, "umpire-replay")
 
-	model, err := ir.Load(filepath.Join(modelRoot, "ir", "nexus-control.json"))
+	model, err := ir.Load(filepath.Join(modelRoot, "ir", "nexus-workflow-control.json"))
 	require.NoError(t, err)
 	plan, err := explore.New(model, "nexusControl")
 	require.NoError(t, err)
@@ -167,7 +167,7 @@ func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
 	require.NoError(t, json.Unmarshal(stdout.Bytes(), &report), stdout.String())
 	require.Equal(t, replay.StatusAdmitted, report.Admission.Status)
 	require.Equal(t, replay.StatusReproduced, report.SemanticReplay.Status)
-	require.Contains(t, report.Key, "temporal.features.nexuscaller.system.property.forgedSuccess")
+	require.Contains(t, report.Key, "temporal.features.nexus.workflow.system.property.forgedSuccess")
 	require.Len(t, report.Identity, 64)
 	require.Equal(t, replay.ClassReproduced, report.Reproduction.Class, "reruns: %+v", report.Reproduction.Reruns)
 	require.Equal(t, "minimized", report.Reduction.Status)
