@@ -185,7 +185,7 @@ Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06.
 | fn-139.3 | ✅ done | Lifter reads `from`/`when`/multi-action `on`; block-form rule in the model gate |
 | fn-139.4 | ✅ done | Standalone activity: one action per RPC with a `Failure` enum; every consumer on the new actions |
 | fn-139.5 | ✅ done | Activity product and System rules in `from` blocks, grouped by meaning; activity on the shared `Outcome` |
-| fn-139.6 | ⬜ todo | Nexus and the shared worker on the shared `Outcome`; `alreadyCompleted` becomes `rejected(failedPrecondition)` |
+| fn-139.6 | ✅ done | Nexus and the shared worker on the shared `Outcome`; `alreadyCompleted` becomes `rejected(failedPrecondition)` |
 | fn-139.7 | ⬜ todo | `in` → `when` and block form across every Model and fixture; rule-case `in` retired; block-form lint on; docs |
 | fn-139.8 | ⬜ todo | Rejection-to-RPC-code table and conformance check |
 
