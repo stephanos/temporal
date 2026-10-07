@@ -29,7 +29,7 @@ enum Fact derives Finite:
   case nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled,
     nexusOperationTerminated
 
-object NexusSystem extends Machine[State, Outcome, Fact]:
+object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   import Phase.*
 
   val init = system.State(phase = unstarted, cancelRequested = false)
@@ -100,7 +100,7 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
     // A control that repeats a request the operation took is the same request, answered OK.
     def repeated(s: State) = stay(s)
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(client.start)(in(unstarted) ~> effects.start)
     on(handler.reply(Reply.syncSuccess))(in(scheduled) ~> effects.syncSuccess)
     on(handler.reply(Reply.operationFailed))(in(scheduled) ~> effects.syncFailure)

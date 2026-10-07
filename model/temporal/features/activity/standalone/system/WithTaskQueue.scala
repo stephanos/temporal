@@ -94,9 +94,9 @@ object TrustingRecordMember extends Derived(TrustingActivityRecord.unmonitored)
 // are three points a fault can fall between.
 
 object RecordOverQueue
-    extends Composition[OverQueue](_.activity -> RecordMember, _.queue -> TaskQueueProduct):
+    extends Composition[OverQueue](_.activity -> RecordMember, _.queue -> TaskQueueProduct),
+      Phased[OverQueue, AdmissionPhase](_.activity.phase):
   def end(s: State) = ActivityRecord.end(s.activity)
-
   // What the designs over a queue answer and waive.
   object states:
     // The composed outcome of the record's answer to a control of a closed activity: Closable's
@@ -182,9 +182,9 @@ object TrustingRecordOverQueue
 
 object RecordOverMatching
     extends Composition[OverMatching](_.activity -> RecordMember, _.queue -> TaskQueueSystem),
+      Phased[OverMatching, AdmissionPhase](_.activity.phase),
       FailureModel:
   def end(s: State) = ActivityRecord.end(s.activity)
-
   object syncs extends Syncs:
     sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
     sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)

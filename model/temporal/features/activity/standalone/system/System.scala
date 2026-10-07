@@ -55,7 +55,7 @@ final case class StandaloneActivityState(activity: State, worker: WorkerState)
 // ### The System machine adds the retry, the pause request, the timers and the attempt count. It
 // begins before the activity exists, so unstarted is a phase and the start sets the deadlines.
 
-object ActivitySystem extends Machine[State, Outcome, Fact]:
+object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   import Phase.*
 
   // Where every path begins: before the activity exists, with every deadline at its first value.
@@ -182,7 +182,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
     def timeOut(s: State, t: TimeoutType) =
       enter(s.copy(phase = timedOut), statusTimedOut(t))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(client.start)(in(Phase.unstarted) ~> effects.schedule)
     on(worker.poll)(in(scheduled) ~> effects.startAttempt)
 
@@ -414,9 +414,9 @@ object StandaloneActivity
     extends Composition[StandaloneActivityState](
       _.activity -> ActivitySystem,
       _.worker -> ActivityWorker
-    ):
+    ),
+      Phased[StandaloneActivityState, Phase](_.activity.phase):
   def end(s: State) = ActivitySystem.states.terminal(s.activity.phase)
-
   object syncs extends Syncs:
     sync(_.activity -> process.stop, _.worker -> process.stop)
     sync(_.activity -> worker.poll, _.worker -> process.serve)

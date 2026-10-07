@@ -56,3 +56,33 @@ class IrFilesTest extends munit.FunSuite:
     assertEquals(standaloneClient.name, "client")
     assertEquals(operationClient.name, "client")
   }
+
+  test("every model that names phases declares Phased") {
+    import features.activity.standalone.{product as activityProduct, system as activitySystem}
+    import features.nexus.product as nexusProduct
+    import features.nexus.standalone.system as nexusStandalone
+    import features.nexus.workflow.system as nexusWorkflow
+
+    val projected: Seq[AnyRef] = Seq(
+      activityProduct.ActivityProduct,
+      activitySystem.ActivitySystem,
+      activitySystem.ActivityRecord,
+      activitySystem.HeldDispatch,
+      activitySystem.StandaloneActivity,
+      activitySystem.RecordOverQueue,
+      activitySystem.RecordOverMatching,
+      nexusProduct.NexusProduct,
+      nexusStandalone.NexusSystem,
+      nexusWorkflow.NexusSystem,
+      nexusWorkflow.TrustingCaller,
+      nexusWorkflow.RejectAfterClose,
+      nexusWorkflow.NexusCaller,
+      shared.worker.Polling,
+      shared.taskqueue.product.TaskQueueProduct,
+      shared.taskqueue.system.TaskQueueSystem
+    )
+    for model <- projected do
+      model match
+        case _: umpire.Phased[?, ?] => ()
+        case _                      => fail(model.getClass.getName)
+  }

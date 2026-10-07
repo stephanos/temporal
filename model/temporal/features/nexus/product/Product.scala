@@ -31,7 +31,7 @@ enum Fact derives Finite:
 // What an operation does, with no account of how. Every Property written against it is carried to
 // the System machine by the refinement declared there.
 
-object NexusProduct extends Machine[State, Outcome, Fact]:
+object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   import Phase.*
 
   val init = product.State(scheduled)
@@ -73,7 +73,7 @@ object NexusProduct extends Machine[State, Outcome, Fact]:
     // the product machine has one timer.
     def timeOut(s: State) = enter(s.copy(phase = timedOut), nexusOperationTimedOut)
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     // The handler's reply to the server's start request moves only an operation that has not
     // started yet. A retryable handler error leaves the operation where it is, so no rule fires it:
     // the product machine does not know about backing off, which is the whole of what the System

@@ -74,7 +74,7 @@ given Finite[State] =
 // Not here, for reasons recorded rather than silent: the cancel field and its rows (fn-79), and the
 // concurrency-limit rejection, which names no operation and is not modeled until a Query needs it.
 
-object NexusSystem extends Machine[State, Outcome, Fact]:
+object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   import Phase.*
 
   // Where every path begins: before the operation exists, with every deadline at its first value.
@@ -217,7 +217,7 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
     def timeOut(s: State, t: TimeoutType) =
       enter(s.copy(phase = timedOut), nexusOperationTimedOut(t))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(caller.schedule)(in(unscheduled) ~> effects.schedule)
     on(handler.reply)(in(scheduled) ~> effects.reply)
 
@@ -434,9 +434,9 @@ object NexusCaller
     extends Composition[NexusCallerState](
       _.operation -> NexusSystem,
       _.worker -> HandlerWorker
-    ):
+    ),
+      Phased[NexusCallerState, Phase](_.operation.phase):
   def end(s: State) = NexusSystem.states.terminalPhase(s.operation.phase)
-
   object syncs extends Syncs:
     sync(_.operation -> worker.stop, _.worker -> worker.stop)
     sync(_.operation -> handler.reply, _.worker -> worker.serve)

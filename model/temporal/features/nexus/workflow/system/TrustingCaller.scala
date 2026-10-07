@@ -23,7 +23,10 @@ val sent = choice
 
 // ### The control
 
-object TrustingCaller extends Machine[system.State, Outcome, system.Fact], NegativeControl:
+object TrustingCaller
+    extends Machine[system.State, Outcome, system.Fact],
+      Phased[system.State, Phase](_.phase),
+      NegativeControl:
   val init = NexusSystem.init
   def end(s: State) = NexusSystem.states.terminalPhase(s.phase)
   val evidence: PartialFunction[Fact, String] = {
@@ -31,17 +34,14 @@ object TrustingCaller extends Machine[system.State, Outcome, system.Fact], Negat
     case Fact.pendingAttempts           => pendingAttempts.name
   }
   val unobservable = List(timers.backoff)
-
   object effects:
     def inspect(s: State) = stay(s)
-
     // The System's completion of an operation once scheduled: not found once it is over, and
     // resolved while it runs. One effect rather than two rules, because the forged completion names
     // both alternatives of a failed callback in every such phase, the not-found ones included.
     def settle(s: State, resolution: Resolution) =
       if NexusSystem.states.terminalPhase(s.phase) then NexusSystem.effects.notFound(s)
       else NexusSystem.effects.complete(s, resolution)
-
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.
     def forgedComplete(s: State, resolution: Resolution) =
@@ -50,7 +50,7 @@ object TrustingCaller extends Machine[system.State, Outcome, system.Fact], Negat
       else settle(s, resolution)
 
   // The System machine's rules, its completion forged and the inspection added.
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(caller.schedule)(in(Phase.unscheduled) ~> NexusSystem.effects.schedule)
     on(handler.reply)(in(Phase.scheduled) ~> NexusSystem.effects.reply)
     on(handler.complete)(in(NexusSystem.states.created) ~> effects.forgedComplete)

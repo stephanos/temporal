@@ -263,7 +263,10 @@ val recovery = assume("currentOwnerEventuallyRecoversAndReappliesRetainedOutcome
 
 // The faulty policy: a closed run rejects a completion permanently. A deliberately wrong design, kept
 // so that the checks that must refute it are seen to.
-object RejectAfterClose extends Machine[CloseResetState, Answer, CloseFact], NegativeControl:
+object RejectAfterClose
+    extends Machine[CloseResetState, Answer, CloseFact],
+      Phased[CloseResetState, Caller](_.caller),
+      NegativeControl:
   val entity = nexusRequest
   val init = CloseResetState(
     caller = Caller.open,
@@ -278,17 +281,14 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, CloseFact], Neg
     case CloseFact.cancelRequested(_) => "nexusOperationCancelRequested"
     case CloseFact.handlerFinished(_) => "handlerFinished"
   }
-
   // What the designs read of a state: the handler's work, the channel, the owner and the promises.
   object states:
     def working(h: Handler) = h.in(Handler.running, Handler.cancelReceived)
-
     // A cancel request may be made once, while the handler has neither finished nor been asked, by a
     // run still open.
     def cancellable(s: State) =
       s.intent == Intent.none && s.caller.in(Caller.open, Caller.resetOpen) &&
         s.handler == Handler.running
-
     // A cancel request is in flight to a handler still working. A closed run's request is still
     // delivered.
     def cancelInFlight(s: State) = s.intent != Intent.none && s.handler == Handler.running
@@ -556,7 +556,7 @@ object RejectAfterClose extends Machine[CloseResetState, Answer, CloseFact], Neg
         states.askedAfter(asked, after.state.intent)
       )(asked => asked == Asked.lost)
 
-  object rules extends Rules(_.caller):
+  object rules extends Rules:
     on(callerSide.close)(in(Caller.open) ~> effects.close)
     on(callerSide.reset)(in(Caller.open, Caller.closed) ~> (effects.reset(Reset.reapplies, _)))
     on(callerSide.requestCancel)(where(states.cancellable) ~> effects.requestCancel)

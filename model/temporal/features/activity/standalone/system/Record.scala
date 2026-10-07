@@ -113,16 +113,16 @@ val failedThenLost = choice
 // it holds over every queue, and what fails of it is confirmed over a queue (WithTaskQueue.scala).
 
 // The corrected design, whose status sets a composition reads through `activity`.
-object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
+object ActivityRecord
+    extends Machine[AdmissionState, Outcome, AdmissionFact],
+      Phased[AdmissionState, AdmissionPhase](_.phase):
   import AdmissionFact.*
-
   val init =
     AdmissionState(phase = AdmissionPhase.scheduled, active = Active.none, answer = Answer.settled)
   def end(s: State) = states.stopped(s)
   val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
     "statusTimedOut"
   }
-
   // The record's status sets, which a composition reads through `activity`, and its counts.
   object states:
     // Paused before any attempt was admitted: the pause a delivery must not get past.
@@ -229,7 +229,7 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
         states.finality(f, after)
       )(_ == Finality.reopened)
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     import AdmissionPhase.*
 
     on(history.dispatch)(in(scheduled) ~> effects.sendDispatch)
@@ -380,18 +380,18 @@ object TrustingActivityRecord
 // reaches admission before the release, and after the pause the corrected design rejects it. The
 // stale design's violation is shown by its own verify Query, never by a Run.
 
-object HeldDispatch extends Machine[AdmissionState, Outcome, AdmissionFact]:
+object HeldDispatch
+    extends Machine[AdmissionState, Outcome, AdmissionFact],
+      Phased[AdmissionState, AdmissionPhase](_.phase):
   val init = ActivityRecord.init
   def end(s: State) = ActivityRecord.end(s)
   val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
     "statusTimedOut"
   }
-
   // It refines the product as the corrected design does.
   object refinement extends Refinement(ActivityProduct):
     def toProduct(s: State): product.State = ActivityRecord.refinement.toProduct(s)
     def visible(f: AdmissionFact) = ActivityRecord.refinement.visible(f)
-
   object effects:
     // Admission as the corrected design decides it, with no failure of its durable update.
     def admitCommitted(s: State) =
@@ -406,7 +406,7 @@ object HeldDispatch extends Machine[AdmissionState, Outcome, AdmissionFact]:
     val atMostOneActiveAttempt = ActivityRecord.monitors.atMostOneActiveAttempt
     val terminalFinality = ActivityRecord.monitors.terminalFinality
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     import AdmissionPhase.*
 
     on(history.dispatch)(in(scheduled) ~> ActivityRecord.effects.sendDispatch)

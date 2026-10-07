@@ -16,16 +16,16 @@ import QueueOutcome.given
 // are negative controls a feature may compose its own design with: the replacement is what must fail.
 
 // The detailed provider, under ordinary crashes and lost answers to the poller.
-object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], FailureModel:
+object TaskQueueSystem
+    extends Machine[QueueDetail, QueueOutcome, QueueFact],
+      Phased[QueueDetail, Custody](_.custody),
+      FailureModel:
   val init = states.idleQueue
   def end(d: State) = states.queueEnds(d)
-
   object states:
     val idleQueue =
       QueueDetail(custody = Custody.nowhere, polled = false, delivered = Delivered.never)
-
     def queueEnds(d: State) = d.custody == Custody.nowhere
-
     def oneMoreDelivery(d: Delivered) = d match
       case Delivered.never => Delivered.once
       case _               => Delivered.twice
@@ -140,7 +140,7 @@ object TaskQueueSystem extends Machine[QueueDetail, QueueOutcome, QueueFact], Fa
 
   // Each step of the route takes the message from the custodian before it; a poll takes a task
   // matching holds, and the consumer's answer completes it. A crash may fall anywhere.
-  object rules extends Rules(_.custody):
+  object rules extends Rules:
     import Custody.*
 
     on(queue.enqueue)(in(nowhere) ~> effects.enqueueDetail)

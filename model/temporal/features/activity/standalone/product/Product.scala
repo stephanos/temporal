@@ -40,7 +40,7 @@ def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(ph
 // reads as scheduled again, a pause of a running attempt as started until the worker yields.
 
 // Every status the product machine records is confirmed by the status observation of its name.
-object ActivityProduct extends Machine[State, Outcome, Fact]:
+object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   import Phase.*
 
   val init = product.State(scheduled)
@@ -68,7 +68,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
     val timeOut = effect { phase = timedOut }
     val notFound = effect(reject(Outcome.notFound))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(worker.poll)(in(scheduled) ~> effects.startAttempt)
 
     // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
