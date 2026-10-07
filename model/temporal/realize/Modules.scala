@@ -6,6 +6,7 @@
 package temporal.realize
 
 import io.grpc.MethodDescriptor
+import scala.annotation.unused
 import scalapb.{GeneratedEnum, GeneratedMessage}
 import io.temporal.api.history.v1.HistoryEvent
 import umpire.{Action, Input, Machine}
@@ -37,7 +38,7 @@ final class DescribedStatus[
     Info <: GeneratedMessage,
     V <: GeneratedEnum
 ](
-    machine: Machine[?, ?, F],
+    @unused machine: Machine[?, ?, F],
     calls: RequestBase,
     method: MethodDescriptor[Req, Rsp],
     info: Field[Rsp, Info],
@@ -120,8 +121,8 @@ extension (input: Input[?])
 // are of: its request, or the protobuf a worker command carries.
 object deadlines:
   def apply[M](
-      action: Action[?],
-      call: Command | Instruction,
-      value: TypedProto[com.google.protobuf.duration.Duration],
-      unset: Option[(Input[?], Command | Instruction)] = None
-  )(fields: DeadlineField[M]*): Item = Item()
+      @unused action: Action[?],
+      @unused call: Command | Instruction,
+      @unused value: TypedProto[com.google.protobuf.duration.Duration],
+      @unused unset: Option[(Input[?], Command | Instruction)] = None
+  )(@unused fields: DeadlineField[M]*): Item = Item()

@@ -1074,6 +1074,11 @@ private[irgen] trait Realizations:
           .orElse(moduleOf(module, historyClass).map(m => marked(historyKinds(m), m)))
       case _ => None
 
+  // A protobuf value the lifter wrote as a message, read back as one.
+  private def message(value: Any, at: Tree): PMessage = value match
+    case m: PMessage => m
+    case other       => fail(at, s"expected a written protobuf message, not $other")
+
   // The evidence one entry of a module declares, or `described(fact)` declares, written out as
   // the IR Evidence its core form writes, or None for a term that is neither.
   private def entryEvidence(b0: Bound): Option[PMessage] =
@@ -1424,7 +1429,7 @@ private[irgen] trait Realizations:
         c.value.get(workflow) match
           case Some(w: PMessage) =>
             val commandF = irField(ir.WorkflowCommand.scalaDescriptor, "command", at)
-            val inner = w.value(commandF).asInstanceOf[PMessage]
+            val inner = message(w.value(commandF), at)
             PMessage(
               c.value + (workflow -> PMessage(
                 w.value + (commandF -> protoSet(
@@ -1464,8 +1469,8 @@ private[irgen] trait Realizations:
         if i < 0 then
           fail(at, s"the workflow command's protobuf sets no $head to set a deadline in")
         val f = fields(i)
-        val v = f.value(irField(fieldD, "value", at)).asInstanceOf[PMessage]
-        val nested = v.value(irField(valueD, "message", at)).asInstanceOf[PMessage]
+        val v = message(f.value(irField(fieldD, "value", at)), at)
+        val nested = message(v.value(irField(valueD, "message", at)), at)
         fields.updated(
           i,
           PMessage(
@@ -1687,7 +1692,9 @@ private[irgen] trait Realizations:
     val cls = moduleClassOf(sym)
     val c = objectBody(cls, at)
     if cls.typeRef.derivesFrom(derivesClass) then
-      val List(base, machine) = parentArguments(c).flatten.take(2): @unchecked
+      val (base, machine) = parentArguments(c).flatten.take(2) match
+        case List(base, machine) => (base, machine)
+        case _ => fail(c, "a derived realization names its base realization object and its machine")
       val baseSym = base match
         case r: Ref if realizationObject(r.symbol) => r.symbol
         case other                                 =>
@@ -1776,7 +1783,10 @@ private[irgen] trait Realizations:
     realizations.getOrElse(
       id, {
         val d = declared(sym, at)
-        val machineName = machineOf(resolveSymbol(d.machine.asInstanceOf[Ref]), d.machine).name
+        val machineRef = d.machine match
+          case r: Ref => r
+          case other  => fail(other, s"a realization names its machine by value, not ${other.show}")
+        val machineName = machineOf(resolveSymbol(machineRef), d.machine).name
         val machine = machineNamed(machineName).get
         val any = Inferred(defn.AnyClass.typeRef)
         def listed(terms: List[Term]) = Repeated(terms, any)
@@ -1813,8 +1823,7 @@ private[irgen] trait Realizations:
           .getOrElse(Nil)
           .map(b =>
             b -> ir.ServerStep.messageReads.read(
-              valueOf(irField(ir.Realization.scalaDescriptor, "server_steps", at), b)
-                .asInstanceOf[PMessage]
+              message(valueOf(irField(ir.Realization.scalaDescriptor, "server_steps", at), b), at)
             )
           )
         val r = emitted

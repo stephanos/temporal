@@ -14,6 +14,7 @@
 package umpire.realize
 
 import io.grpc.MethodDescriptor
+import scala.annotation.unused
 import scalapb.GeneratedMessage
 import umpire.{Action, ClassRef}
 
@@ -39,7 +40,8 @@ def perform(bindings: (ClassRef, Command | Instruction)*): Item =
 def onPath(classes: (ClassRef | Action[?])*)(command: Command | Instruction): Item =
   Item(
     command = Some(commanded(command)),
-    when = classes.toVector.map(_.asInstanceOf[ClassRef])
+    // An action stands for its classes; the lifter reads them off the source, not this value.
+    when = classes.toVector.map(_.asInstanceOf[ClassRef]) // scalafix:ok DisableSyntax.asInstanceOf
   )
 
 // A command every Case carries. IR: an Item of `command`.
@@ -61,7 +63,7 @@ def command(
 // one way two commands share a name; the lifter refuses two commands of one realization with one
 // name otherwise. A call `withFields` extends keeps its call's name without an alias. IR: Command,
 // named as `target` is.
-def aliasOf(target: Command | Instruction)(instruction: Instruction): Command =
+def aliasOf(@unused target: Command | Instruction)(instruction: Instruction): Command =
   Command("", instruction)
 
 private def commanded(c: Command | Instruction): Command = c match
