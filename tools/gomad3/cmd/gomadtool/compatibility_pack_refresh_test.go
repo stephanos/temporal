@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"syscall"
 	"testing"
 
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
@@ -89,7 +90,7 @@ func runGit(t *testing.T, directory string, arguments ...string) {
 // Git baseline, approves the printed digest, and reruns. Refresh judges the
 // packs of --compatibility-root whatever GOMAD3_COMPATIBILITY_PACKS names.
 func TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes(t *testing.T) {
-	for _, environment := range []string{"unset", "root packs", "elsewhere", "saved module report", "saved file report"} {
+	for _, environment := range []string{"unset", "root packs", "elsewhere", "saved module report", "saved file report", "current output", "unselected output", "not evaluable output"} {
 		t.Run(environment, func(t *testing.T) {
 			testRunCompatibilityPackRefresh(t, environment)
 		})
@@ -140,6 +141,12 @@ func testRunCompatibilityPackRefresh(t *testing.T, environment string) {
 	}
 	writeRefreshModule(t, moduleDirectory, "v1.0.0")
 	platform := runtime.GOOS + "/" + runtime.GOARCH
+	if environment == "not evaluable output" {
+		platform = "darwin/arm64"
+		if platform == runtime.GOOS+"/"+runtime.GOARCH {
+			platform = "linux/amd64"
+		}
+	}
 	reviewed := map[string]string{}
 	reviewer := fakeRefreshReviewer(reviewed)
 	draft := authoring.Request{
@@ -188,11 +195,63 @@ func testRunCompatibilityPackRefresh(t *testing.T, environment string) {
 		t.Fatal(err)
 	}
 	writeRefreshModule(t, moduleDirectory, "v1.1.0")
+	switch environment {
+	case "current output":
+		writeRefreshModule(t, moduleDirectory, "v1.0.0")
+		contents := fmt.Sprintf("%s v1.0.0 %s\n", refreshDependency, refreshSum("changed sum"))
+		if err := os.WriteFile(filepath.Join(moduleDirectory, "go.sum"), []byte(contents), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	case "unselected output":
+		if err := os.WriteFile(filepath.Join(moduleDirectory, "go.mod"), []byte("module example.test/refreshtarget\n\ngo 1.27.0\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(moduleDirectory, "go.sum"), nil, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	previous := compatibilityPackReviewer
 	compatibilityPackReviewer = func(string) authoring.Reviewer { return reviewer }
 	t.Cleanup(func() { compatibilityPackReviewer = previous })
 	refresh := []string{"compatibility-pack", "refresh", "--root=" + root, "--compatibility-root=" + packRoot, "--go=" + goCommand}
+	if strings.HasSuffix(environment, " output") {
+		wantStatus, prefix := 1, "unselected refresh-pack: "
+		switch environment {
+		case "current output":
+			wantStatus, prefix = 0, "current refresh-pack\n"
+		case "not evaluable output":
+			prefix = "not-evaluable refresh-pack: "
+		}
+		before := map[string][]byte{}
+		for _, relative := range []string{"requests/refresh-pack.json", "reports/refresh-pack.md", "packs/refresh-pack.json", "generation.json"} {
+			contents, err := os.ReadFile(filepath.Join(packRoot, relative))
+			if err != nil {
+				t.Fatal(err)
+			}
+			before[relative] = contents
+		}
+		var stdout, stderr bytes.Buffer
+		if status := run(refresh, &stdout, &stderr); status != wantStatus || stderr.Len() != 0 || !strings.Contains(stdout.String(), "\n"+prefix) {
+			t.Fatalf("refresh status = %d, stdout = %q, stderr = %q", status, &stdout, &stderr)
+		}
+		output := newRefreshOutput(t, 1)
+		status := run(refresh, output, &stderr)
+		if !errors.Is(output.err, syscall.EBADF) {
+			t.Fatalf("stdout write error = %v, want EBADF", output.err)
+		}
+		t.Logf("stdout write observed EBADF after 1 successful write")
+		if status != 3 || stderr.Len() != 0 || output.String() != strings.SplitAfter(stdout.String(), "\n")[0] {
+			t.Fatalf("stdout failure status = %d, stdout = %q, stderr = %q", status, output.String(), &stderr)
+		}
+		for relative, want := range before {
+			contents, err := os.ReadFile(filepath.Join(packRoot, relative))
+			if err != nil || !bytes.Equal(contents, want) {
+				t.Fatalf("refresh changed %s: %v", relative, err)
+			}
+		}
+		return
+	}
 	if strings.HasPrefix(environment, "saved ") {
 		candidateMod, err := os.ReadFile(filepath.Join(moduleDirectory, "go.mod"))
 		if err != nil {
@@ -256,6 +315,43 @@ func testRunCompatibilityPackRefresh(t *testing.T, environment string) {
 	refreshed, err := authoring.DecodeRequest(contents)
 	if err != nil || refreshed.ApprovalSHA256 != "" || refreshed.Activation[0].Evidence.Version != "v1.1.0" {
 		t.Fatalf("refreshed request = %+v, %v", refreshed, err)
+	}
+	if environment == "unset" {
+		published := map[string][]byte{"requests/refresh-pack.json": contents}
+		for _, relative := range []string{"reports/refresh-pack.md", "generation.json", "packs_generated_test.go"} {
+			contents, err := os.ReadFile(filepath.Join(packRoot, relative))
+			if err != nil {
+				t.Fatal(err)
+			}
+			published[relative] = contents
+		}
+		for successfulWrites := 0; successfulWrites < 3; successfulWrites++ {
+			t.Run(fmt.Sprintf("output after %d writes", successfulWrites), func(t *testing.T) {
+				if err := authoring.Generate(packRoot, discovered, digest); err != nil {
+					t.Fatal(err)
+				}
+				output := newRefreshOutput(t, successfulWrites)
+				var stderr bytes.Buffer
+				status := run(refresh, output, &stderr)
+				if !errors.Is(output.err, syscall.EBADF) {
+					t.Fatalf("stdout write error = %v, want EBADF", output.err)
+				}
+				t.Logf("stdout write observed EBADF after %d successful writes", successfulWrites)
+				for relative, want := range published {
+					contents, err := os.ReadFile(filepath.Join(packRoot, relative))
+					if err != nil || !bytes.Equal(contents, want) {
+						t.Fatalf("published %s differs after stdout failure: %v", relative, err)
+					}
+				}
+				if _, err := os.Stat(filepath.Join(packRoot, "packs", "refresh-pack.json")); !errors.Is(err, os.ErrNotExist) {
+					t.Fatalf("unapproved pack remains after stdout failure: %v", err)
+				}
+				wantPrefix := strings.Join(strings.SplitAfter(stdout.String(), "\n")[:successfulWrites], "")
+				if status != 3 || stderr.Len() != 0 || output.String() != wantPrefix {
+					t.Fatalf("stdout failure status = %d, stdout = %q, stderr = %q", status, output.String(), &stderr)
+				}
+			})
+		}
 	}
 
 	stdout.Reset()

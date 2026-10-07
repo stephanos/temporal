@@ -1,0 +1,15 @@
+{
+  "baseline_findings": 138,
+  "final_findings": 132,
+  "removed_findings": 6,
+  "removed_site_lines": [
+    125,
+    129,
+    132,
+    133,
+    135,
+    143
+  ],
+  "remaining_normalized_blocks_identical": true,
+  "normalization": "Only diagnostic header line and column numbers are normalized; full messages and source/caret bytes are compared."
+}

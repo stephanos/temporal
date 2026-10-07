@@ -1,0 +1,55 @@
+{
+  "scope": "Conductor source-progress verification for fn-113.3 refresh output failures only",
+  "base_commit": "1a7cd2bf7d7627fee75fb6be54058ccea0acf310",
+  "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestRunCompatibilityPackRefreshOutputFailure|TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes|TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree)$' ./cmd/gomadtool",
+  "exit": 0,
+  "wall_time_seconds": 0.870754542,
+  "terminal_leaf_pass_records": 13,
+  "all_pass_records": 16,
+  "real_EBADF_observations": 7,
+  "skips": 0,
+  "log": "conductor-green.log",
+  "mandatory_fast_lint": {
+    "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=1a7cd2bf7d GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "exit": 0,
+    "wall_time_seconds": 1.596601251,
+    "host_packages": 55,
+    "configured_residual_before_changed_line_filter": 302,
+    "changed_line_findings": 0
+  },
+  "source_sha256": {
+    "compatibility_pack_refresh.go": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+    "compatibility_pack_refresh_test.go": "01eabb611c9b45519a8c04bf679448205ab5f208620427bf94e5a8913ece79e1",
+    "compatibility_pack_refresh_output_test.go": "28c2a40a347ae58c747ee5d10154e8acb12a9d47f945e9ea82b99bcd5abea0ec"
+  },
+  "original_acceptance": "Dependencies1/2 and original R4 reconciliation, native Darwin/full/default/functional/affected-consumer/formal acceptance remain open. No formal SHIP or task completion.",
+  "intermediate_observations": [
+    {
+      "source": "Writer progress message before final frozen proof",
+      "observation": "Two introduced QF1003 test if-chain findings caused an initial scoped/fast lint failure. The initial configured fast-lint residual count was 304, comprising inherited 308 minus six owned findings plus two introduced findings. Tagged switches removed both before the final-test RED/GREEN and final lint.",
+      "initial_exit_code": null,
+      "initial_raw_receipt": "Not retained separately; final lint log names were reused. This observation is preserved from the writer message and is not a passing gate."
+    },
+    {
+      "source": "Writer baseline progress message",
+      "observation": "The tool ignored workdir for initial nested-tool setup. Explicit cd corrected subsequent invocation; no production source had changed.",
+      "initial_exit_code": null,
+      "initial_raw_receipt": "Setup details remain in the tool transcript. No successful verification claim uses the failed invocation."
+    }
+  ],
+  "durable_portable_receipts": {
+    "projection": "Exact raw JSON lines with Action pass, fail or skip, preserving every named parent/leaf result and package result. The profile skip output is retained separately.",
+    "test_pass_records_including_parents": 498,
+    "test_skip_records": 1,
+    "test_fail_records": 0,
+    "package_pass_records": 4,
+    "sha256": {
+      "portable-statuses.jsonl": "39a134cca3ebf6ad0f57d43f48fdf093b50bda5fc8d2f792406ff61c282626bf",
+      "pinimpact-statuses.jsonl": "5910e7dab43842c28f3bde62b0a39d0b56a03b4a333d439250de49b9fa58ba9b",
+      "profile-skip.jsonl": "8a9fe2e04e28b24ec338c201eb29e99fa3a70827ed2fb7d121ac9052a05c0237",
+      "vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "linux": "Deferred and unverified under fn128"
+}

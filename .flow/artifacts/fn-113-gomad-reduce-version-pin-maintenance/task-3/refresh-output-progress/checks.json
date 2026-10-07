@@ -1,0 +1,184 @@
+{
+  "base_commit": "1a7cd2bf7d7627fee75fb6be54058ccea0acf310",
+  "host": "linux/arm64, developmental stock Go verification",
+  "environment": {
+    "PATH_prefix": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOWORK": "off",
+    "GOENV": "off",
+    "login": false
+  },
+  "go_version": "go version go1.27.1 linux/arm64",
+  "source_and_evidence_sha256": {
+    "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go": "203a3394f71fe358cd846ba1784235915adbe8e17394bdc7dc07dca85978be33",
+    "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_test.go": "01eabb611c9b45519a8c04bf679448205ab5f208620427bf94e5a8913ece79e1",
+    "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_output_test.go": "28c2a40a347ae58c747ee5d10154e8acb12a9d47f945e9ea82b99bcd5abea0ec",
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/red-before-production.log": "db6227cc9f3361cdd70a5af24d563e75cf62c159bfb71a0b7ba21575c093ddad",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/red-final-tests.log": "a5f23ad0deb9b6c8f874b9d6be79ccd07cb6df54ad752ce0f3efcba773b5f013",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/green.log": "521c26651353ef6e051f135139128a5a3f3f187f1c1fd898c5415daaf6371ac5",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/scoped-baseline.log": "7d90b86a0fad7429831b5cb83a99c88087752f26c44d04a99fc99aa214a753ac",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/scoped-final.log": "6c16e91ae0431e5df6f80914593bfbbf20db6c0238d3610bcabde5be3021f6a3",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/fast-lint.log": "61483651f2529847a0ef13d3a5dc5ef7a7b617948e5a67b23bd48ac2ce170559",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/validate.log": "14f0f6898d1f2f53f9554d007882d37feccca09025cfa71566ed9c8e482d019e",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/architecture.log": "2ee2b912c07fdefd252fde83c793e4fb4e38e2a998564393c67faa8dcbead3f4",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/portable-test-counts.json": "0d9ee04c7df243563a882c682ca05a19b175b5ee23c1e81284e891fd46a9fe27",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/refresh-output-progress/scoped-lint-comparison.json": "7579dd52e0d53d891f40475fd81f97c7e41319cd56a008eedc3e6116069b4bb1",
+    ".flow/tmp/refresh-output/portable-final.jsonl": "c41f4d398eb3a648390890769f2b69d29cb242b49200aaef72865797963fd883",
+    ".flow/tmp/refresh-output/pinimpact-portable.jsonl": "9c7bfead5bdc828020c546e2feda14f7ffa53adbf3b3db2775feccaa37ce0e0f",
+    ".flow/tmp/refresh-output/vet.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/refresh-output/errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    ".flow/tmp/refresh-output/base-overlay.json": "1bd2604ebf884f1dbf1cea048981849b18b794215b3706c9ed070a1a3c2ac177",
+    ".flow/tmp/refresh-output/base-refresh.go": "629d265734b20c9ffa5d80c4c9ec4ababc5258d6eeeb724a3e21c32f2e92f3cc",
+    ".flow/tmp/publication-cleanup/fast-lint.log": "38adb87e2c7bcf7dd552655c6d5a9a87b2be9763e5cdafaf28c46f5d49cc20aa",
+    "tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md": "a83095bc7ffb68d1c79b6eb17260c08171003827d80e47789fa0e9be4cbf666e"
+  },
+  "checks": [
+    {
+      "name": "Unchanged-source RED before production edit",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./cmd/gomadtool -run '^TestRunCompatibilityPackRefresh(OutputFailure|StopsAtApprovalAndResumes)$'",
+      "exit": 1,
+      "elapsed_seconds": 1,
+      "log": "red-before-production.log",
+      "production_sha256": "629d265734b20c9ffa5d80c4c9ec4ababc5258d6eeeb724a3e21c32f2e92f3cc",
+      "fixture_test_sha256": "f8720ed9ef00b07dd0dedcc225efe705145f6d5c67d4262eceea93679e9dd432",
+      "output_test_sha256": "14000460893f57cd8b7217c3b26bc29d719ae0bf789c38936d591a76ec85ef01",
+      "observations": "Seven real EBADF assertions executed. Original status 0 or 1 remains and causes failure. Pre-output precedence subtests were initially after the first failing assertion and were reordered for the final tests."
+    },
+    {
+      "name": "Final tests against exact base production source",
+      "command": "go -C tools/gomad3 test -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/refresh-output/base-overlay.json -tags test_dep -count=1 -v ./cmd/gomadtool -run '^TestRunCompatibilityPackRefresh(OutputFailure|StopsAtApprovalAndResumes)$'",
+      "exit": 1,
+      "elapsed_seconds": 2,
+      "log": "red-final-tests.log",
+      "observations": "Exact base-source stock-Go overlay, with the final frozen tests. Both precedence controls pass. Seven real EBADF observations precede seven status failures."
+    },
+    {
+      "name": "Final focused GREEN",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./cmd/gomadtool -run '^TestRunCompatibilityPackRefresh(OutputFailure|StopsAtApprovalAndResumes)$'",
+      "exit": 0,
+      "elapsed_seconds": 0,
+      "log": "green.log",
+      "observations": "15 parent-inclusive terminal records, 12 terminal leaves, 7 real EBADF invocations covering 6 call sites. One EBADF invocation lives in the parent of the two precedence subtests."
+    },
+    {
+      "name": "Final portable CLI and compatibility pack/authoring",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool ./internal/compatibilitypack/... -run '^Test(RunCompatibilityPack|CompatibilityPack|CompatibilityPath|SavedReport|Refresh|CheckedInWorkingDirectories|CheckWorkingDirectories|Generate|Regenerate|Discover|RenderReview|Approval|Decode|Validate|RequestAdmission|Governance|HostPacks|StaleProfile|PackAdmission|Select|Verify|External|LoadPack|Evaluate|RunAdapterRegenerateInputStatuses|RunBuildKey|RunRejects|RunPatch|RunScript|RunToolchainBuildRejects|RunTestRejects|Bootstrap|SoakRejects|DiagnosticDiff|GitFile)'",
+      "exit": 0,
+      "elapsed_seconds": 1,
+      "log": ".flow/tmp/refresh-output/portable-final.jsonl",
+      "counts": "portable-test-counts.json"
+    },
+    {
+      "name": "Portable pin-impact controls",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./upgrade/pinimpact -skip '^Test(FixtureBumpMatchesBuildRejections|SameVersionWithChangedSum|ReplacedModules)$'",
+      "exit": 0,
+      "elapsed_seconds": 0,
+      "log": ".flow/tmp/refresh-output/pinimpact-portable.jsonl",
+      "counts": "portable-test-counts.json"
+    },
+    {
+      "name": "Scoped baseline lint",
+      "command": "cd tools/gomad3; /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --fix=false --path-mode=abs --build-tags test_dep --max-issues-per-linter=0 --max-same-issues=0 ./cmd/gomadtool ./internal/compatibilitypack/...",
+      "exit": 1,
+      "elapsed_seconds": 1,
+      "log": "scoped-baseline.log",
+      "findings": 138
+    },
+    {
+      "name": "Scoped final lint",
+      "command": "cd tools/gomad3; /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --fix=false --path-mode=abs --build-tags test_dep --max-issues-per-linter=0 --max-same-issues=0 ./cmd/gomadtool ./internal/compatibilitypack/...",
+      "exit": 1,
+      "elapsed_seconds": 1,
+      "log": "scoped-final.log",
+      "findings": 132,
+      "comparison": "scoped-lint-comparison.json"
+    },
+    {
+      "name": "Mandatory fast lint",
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=1a7cd2bf7d GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "exit": 0,
+      "elapsed_seconds": 2,
+      "log": "fast-lint.log",
+      "host_packages": 55,
+      "configured_residual_before_diff": 302,
+      "configured_residual_baseline": 308,
+      "baseline_receipt": ".flow/tmp/publication-cleanup/fast-lint.log",
+      "observations": "Diff filtering reports zero issues. Integrated errortype is reached and succeeds. Count comparison does not establish full unfiltered diagnostic-byte equality."
+    },
+    {
+      "name": "Scoped vet",
+      "command": "go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade/pinimpact",
+      "exit": 0,
+      "elapsed_seconds": 0,
+      "log": ".flow/tmp/refresh-output/vet.log"
+    },
+    {
+      "name": "Scoped errortype",
+      "command": "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade/pinimpact",
+      "exit": 0,
+      "elapsed_seconds": 0,
+      "log": ".flow/tmp/refresh-output/errortype.log"
+    },
+    {
+      "name": "Check-only generator validation",
+      "command": "make -C tools/gomad3 validate",
+      "exit": 0,
+      "elapsed_seconds": 2,
+      "log": "validate.log",
+      "observations": "TestHostPacksBindCurrentProfile remains skipped on this host."
+    },
+    {
+      "name": "Four architecture checks",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v . -run '^Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases)$'",
+      "exit": 0,
+      "elapsed_seconds": 25,
+      "log": "architecture.log"
+    },
+    {
+      "name": "Formatting",
+      "command": "gofmt -l tools/gomad3/cmd/gomadtool/compatibility_pack_refresh{,_test,_output_test}.go",
+      "exit": 0,
+      "observations": "No output; all three owned Go files formatted."
+    },
+    {
+      "name": "Whitespace",
+      "command": "git diff --check",
+      "exit": 0,
+      "observations": "No output."
+    },
+    {
+      "name": "Pins, approvals, reports, policy, runtime, generator and Makefile preservation",
+      "command": "git diff --exit-code 1a7cd2bf7d7627fee75fb6be54058ccea0acf310 -- tools/gomad3/internal/compatibilitypack tools/gomad3/toolchain tools/gomad3/deterministicio tools/gomad3/Makefile tools/gomad3/go.mod tools/gomad3/go.sum",
+      "exit": 0,
+      "observations": "No output. Historical v041 report SHA-256 equals the Git-base bytes."
+    }
+  ],
+  "test_limits": {
+    "runtime_skip": "TestHostPacksBindCurrentProfile skips with 'no deterministic profile for linux/arm64'; its native guard is unchanged.",
+    "excluded_native_comparators": [
+      "TestFixtureBumpMatchesBuildRejections",
+      "TestSameVersionWithChangedSum",
+      "TestReplacedModules"
+    ],
+    "excluded_driver_fixtures": [
+      "TestRunCheckedRunWritesCompatibilityResult",
+      "TestRunCheckedRunDistinguishesExit124FromTimeout"
+    ],
+    "omitted_pinimpact_cli": [
+      "TestRunPinImpactReportsInvalidatedPinsWithoutTouchingTheModule",
+      "TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins",
+      "TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins",
+      "TestRunPinImpactReadsTheBaselineFromGit",
+      "TestRunPinImpactStatuses",
+      "TestRunPinImpactFileFlagsKeepTheV1Report"
+    ],
+    "native": "Patched .toolchain/bin/go absent. No native, full/default/functional, affected-consumer, determinism, workload qualification, formal SHIP or task completion claim. Original acceptance and task .1/.2 dependencies remain open; Linux native qualification remains deferred under fn-128."
+  }
+}

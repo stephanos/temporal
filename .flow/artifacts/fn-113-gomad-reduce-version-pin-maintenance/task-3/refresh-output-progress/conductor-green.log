@@ -1,0 +1,42 @@
+=== RUN   TestRunCompatibilityPackRefreshOutputFailure
+=== RUN   TestRunCompatibilityPackRefreshOutputFailure/invalid_input
+=== RUN   TestRunCompatibilityPackRefreshOutputFailure/missing_go
+=== NAME  TestRunCompatibilityPackRefreshOutputFailure
+    compatibility_pack_refresh_output_test.go:99: stdout write observed EBADF after 0 successful writes
+--- PASS: TestRunCompatibilityPackRefreshOutputFailure (0.00s)
+    --- PASS: TestRunCompatibilityPackRefreshOutputFailure/invalid_input (0.00s)
+    --- PASS: TestRunCompatibilityPackRefreshOutputFailure/missing_go (0.00s)
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_0_writes
+    compatibility_pack_refresh_test.go:339: stdout write observed EBADF after 0 successful writes
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_1_writes
+    compatibility_pack_refresh_test.go:339: stdout write observed EBADF after 1 successful writes
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_2_writes
+    compatibility_pack_refresh_test.go:339: stdout write observed EBADF after 2 successful writes
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/current_output
+    compatibility_pack_refresh_test.go:243: stdout write observed EBADF after 1 successful write
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unselected_output
+    compatibility_pack_refresh_test.go:243: stdout write observed EBADF after 1 successful write
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/not_evaluable_output
+    compatibility_pack_refresh_test.go:243: stdout write observed EBADF after 1 successful write
+--- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes (0.61s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset (0.20s)
+        --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_0_writes (0.05s)
+        --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_1_writes (0.03s)
+        --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_2_writes (0.02s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs (0.08s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere (0.08s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report (0.06s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report (0.06s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/current_output (0.04s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unselected_output (0.04s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/not_evaluable_output (0.05s)
+=== RUN   TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree
+--- PASS: TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.614s

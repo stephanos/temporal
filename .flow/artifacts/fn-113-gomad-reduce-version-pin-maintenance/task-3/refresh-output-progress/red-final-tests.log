@@ -1,0 +1,48 @@
+=== RUN   TestRunCompatibilityPackRefreshOutputFailure
+=== RUN   TestRunCompatibilityPackRefreshOutputFailure/invalid_input
+=== RUN   TestRunCompatibilityPackRefreshOutputFailure/missing_go
+=== NAME  TestRunCompatibilityPackRefreshOutputFailure
+    compatibility_pack_refresh_output_test.go:99: stdout write observed EBADF after 0 successful writes
+    compatibility_pack_refresh_output_test.go:101: stdout failure status = 0, stderr = ""
+--- FAIL: TestRunCompatibilityPackRefreshOutputFailure (0.00s)
+    --- PASS: TestRunCompatibilityPackRefreshOutputFailure/invalid_input (0.00s)
+    --- PASS: TestRunCompatibilityPackRefreshOutputFailure/missing_go (0.00s)
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_0_writes
+    compatibility_pack_refresh_test.go:339: stdout write observed EBADF after 0 successful writes
+    compatibility_pack_refresh_test.go:351: stdout failure status = 1, stdout = "", stderr = ""
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_1_writes
+    compatibility_pack_refresh_test.go:339: stdout write observed EBADF after 1 successful writes
+    compatibility_pack_refresh_test.go:351: stdout failure status = 1, stdout = "gomad3 compatibility-pack refresh on linux/arm64: 1 requests selected\n", stderr = ""
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_2_writes
+    compatibility_pack_refresh_test.go:339: stdout write observed EBADF after 2 successful writes
+    compatibility_pack_refresh_test.go:351: stdout failure status = 1, stdout = "gomad3 compatibility-pack refresh on linux/arm64: 1 requests selected\nawaiting-approval refresh-pack sha256:a1e9e3b56e149d8da2d11e78ffe05598fb88d2155091638f19e5db8d22e58957 (invalidated example.test/refreshdependency/runtime: candidate requires example.test/refreshdependency@v1.1.0; pinned v1.0.0)\n", stderr = ""
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/current_output
+    compatibility_pack_refresh_test.go:243: stdout write observed EBADF after 1 successful write
+    compatibility_pack_refresh_test.go:245: stdout failure status = 0, stdout = "gomad3 compatibility-pack refresh on linux/arm64: 1 requests selected\n", stderr = ""
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unselected_output
+    compatibility_pack_refresh_test.go:243: stdout write observed EBADF after 1 successful write
+    compatibility_pack_refresh_test.go:245: stdout failure status = 1, stdout = "gomad3 compatibility-pack refresh on linux/arm64: 0 requests selected\n", stderr = ""
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/not_evaluable_output
+    compatibility_pack_refresh_test.go:243: stdout write observed EBADF after 1 successful write
+    compatibility_pack_refresh_test.go:245: stdout failure status = 1, stdout = "gomad3 compatibility-pack refresh on linux/arm64: 1 requests selected\n", stderr = ""
+--- FAIL: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes (0.52s)
+    --- FAIL: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset (0.20s)
+        --- FAIL: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_0_writes (0.08s)
+        --- FAIL: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_1_writes (0.02s)
+        --- FAIL: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset/output_after_2_writes (0.02s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs (0.05s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere (0.04s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report (0.07s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report (0.06s)
+    --- FAIL: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/current_output (0.03s)
+    --- FAIL: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unselected_output (0.03s)
+    --- FAIL: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/not_evaluable_output (0.04s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.531s
+FAIL

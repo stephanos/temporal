@@ -122,17 +122,27 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 		rootFlag += " --compatibility-root=" + compatibilityRoot
 	}
 	status := 0
-	fmt.Fprintf(stdout, "gomad3 compatibility-pack refresh on %s: %d requests selected\n", platform, len(results))
+	if _, err := fmt.Fprintf(stdout, "gomad3 compatibility-pack refresh on %s: %d requests selected\n", platform, len(results)); err != nil {
+		return 3
+	}
 	for _, result := range results {
 		switch result.Status {
 		case authoring.RefreshCurrent:
-			fmt.Fprintf(stdout, "current %s\n", result.ID)
+			if _, err := fmt.Fprintf(stdout, "current %s\n", result.ID); err != nil {
+				return 3
+			}
 			continue
 		case authoring.RefreshAwaitingApproval:
-			fmt.Fprintf(stdout, "awaiting-approval %s %s (%s)\n", result.ID, result.ReviewSHA256, result.Reason)
-			fmt.Fprintf(stdout, "  review %sreports/%s.md, then approve with:\n  gomadtool compatibility-pack generate %s --request=%srequests/%s.json --approve-review=%s\n", base, result.ID, rootFlag, base, result.ID, result.ReviewSHA256)
+			if _, err := fmt.Fprintf(stdout, "awaiting-approval %s %s (%s)\n", result.ID, result.ReviewSHA256, result.Reason); err != nil {
+				return 3
+			}
+			if _, err := fmt.Fprintf(stdout, "  review %sreports/%s.md, then approve with:\n  gomadtool compatibility-pack generate %s --request=%srequests/%s.json --approve-review=%s\n", base, result.ID, rootFlag, base, result.ID, result.ReviewSHA256); err != nil {
+				return 3
+			}
 		default:
-			fmt.Fprintf(stdout, "%s %s: %s\n", result.Status, result.ID, result.Reason)
+			if _, err := fmt.Fprintf(stdout, "%s %s: %s\n", result.Status, result.ID, result.Reason); err != nil {
+				return 3
+			}
 		}
 		status = 1
 	}
@@ -140,7 +150,9 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 		if slices.ContainsFunc(results, func(result authoring.RefreshResult) bool { return result.ID == id }) {
 			continue
 		}
-		fmt.Fprintf(stdout, "unselected %s: its working directory no longer requires the pack's modules; remove the pack, request, report, and working-directory entry once nothing selects it\n", id)
+		if _, err := fmt.Fprintf(stdout, "unselected %s: its working directory no longer requires the pack's modules; remove the pack, request, report, and working-directory entry once nothing selects it\n", id); err != nil {
+			return 3
+		}
 		status = 1
 	}
 	return status
