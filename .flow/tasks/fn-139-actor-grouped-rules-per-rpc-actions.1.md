@@ -41,9 +41,37 @@ Adds the shared `Outcome` and `Rejection` types and the `rejects(r)` / `.because
 - [ ] Refusal fixtures, one message each: `rejects` in a machine whose outcome is not the shared `Outcome` (compile error recorded in the test), and `.because` applied twice. `make lint-model` passes (SyntaxRule accepts where the types and the given are defined).
 - [ ] Rules.test.scala: a `rejects` row keeps the state and answers `rejected(r)`. `scala-cli test model/umpire` and the irgen fixture suite pass.
 ## Done summary
-TBD
+Added the shared outcomes to the framework (`umpire.outcomes.{Outcome, Rejection}`, `Outcome = accepted | rejected(why: Rejection)`), the accepted-outcome given in `Ok`'s companion, and the rule effect `rejects(why)` / `rejects(why).because(reason)`, with the lifter lowering it to exactly the step `reject(Outcome.rejected(why), s)` gives. The early proof point holds: a product and a refining System both on the shared Outcome lift, pass `tools/umpire/ir` admission, interpret with outcomes keyed `accepted`, `rejected-notFound`, ..., verify the refinement and a capability Property comparing `after.outcome == rejected`, and umpire-lint reads them. No layer refused the parameterized case.
 
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+Tier: claude-opus-5-5 at high (lane D)
+
+### What changed
+- model/umpire/Syntax.scala: `object outcomes` (enums `Rejection` notFound/alreadyExists/failedPrecondition/invalidArgument, `Outcome`), `object Ok { given Ok[outcomes.Outcome] }`, `def rejects[S](why)(using Firing[S, outcomes.Outcome, ?, ?]): Rejects[S]`, `final class Rejects[S]` (a function `S => List[Step[S, Outcome, Nothing]]` with member `because(reason)` returning a plain function, so a second `.because` does not compile). `rejects` outside a machine on the shared Outcome is a compile error with a custom message.
+- model/irgen/Syntax.scala: `outcomeOf` recognizes the framework given (owner `umpire.Ok` companion) and lifts `Outcome.accepted`; new hook `rejection(effect, state)` lowers `rejects`/`.because`. model/irgen/Declarations.scala `lowered.chain`: tries `rejection` before `effect(r)` (two-line change).
+- model/check/SyntaxRule.scala: sugar name `rejects`.
+- Fixtures: lifts/Rejections.scala + expected/rejections.json + rejections.waivers.json (new); crossed/Rejections.scala (two compile refusals); Fixtures.test.scala (fixture roots, `waived`, crossed positions, a test comparing DoorSystem's step functions with DoorProduct's after inlining the rejecting effects); Rules.test.scala (rejects row keeps the state, answers rejected(r), carries because); tools/umpire/ir/fixtures_test.go (admission + `TestSharedOutcomesKeyEachRejection`).
+
+### Decisions (owner unavailable)
+- The accepted given lives in `Ok`'s companion, not `Outcome`'s: effects written `enter(d.copy(...))` without a result type search `Ok[?O]`, whose implicit scope holds only `Ok`'s companion. A Model's own lexical `given Ok` still outranks it, so existing Models are unchanged.
+- `.because` twice is a compile error (type-level), recorded as a crossed position rather than a lifter message.
+- The capability argument uses a fixture-own kind in a capabilities section (not temporal.capabilities.Closable with the old function form), so fn-134.3/.4 removing the law catalog does not break this fixture.
+
+### Expected IR delta (batch regeneration)
+None in model/ir: no Model adopts the shared types yet. Only the new lift fixture's expected files (committed here).
+
+### For later tasks
+- Adopt with `import umpire.outcomes.{Outcome, Rejection}`. Inside a machine object, `Outcome` resolves to the machine's inherited `type Outcome` member, so a machine-local import of `Outcome` is reported unused (-Wunused under lint-model-models); import `Rejection` only there.
+- `rejects` needs the block's `Firing`, so it works in rules and derivation `on` blocks only, never in an `effects` def.
+- Lint: on a shared Outcome every Rejection the machine never produces is an `unproduced` umpire-lint finding (`outcome rejected-invalidArgument is produced by no reachable state`). fn-139.5/.6 will see such findings for activity/Nexus/worker and need acceptances in `<file>.lint.json` or a lint change.
+- The shared types' IR positions read `umpire/Syntax.scala:<line>` (no `model/` prefix): the lifter maps prefixes only for lifted (non-framework) TASTy. Harmless for admission; the batch regeneration will show it for Models that adopt.
+- The outcome type is named `umpire.outcomes.Outcome` in IR; values key as `accepted`, `rejected-<rejection>`.
+
+### Follow-ups (not built)
+- None required.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f04b73fff6
+- Tests: mise exec -- scala-cli test --suppress-outdated-dependency-warning model/project.scala model/umpire (20 passed), UMPIRE_LIFTER_UPDATE=1 mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen (own fixture expectations only: rejections.json, rejections.waivers.json), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen (rc=0), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check (rc=0), mise exec -- go test -tags test_dep -count=1 ./tools/umpire/ir/ -run 'TestLiftedModelsAreAdmitted|TestSharedOutcomesKeyEachRejection|TestRulesLowerToTheCoreTables' (ok), temporary (not committed) tools/umpire/check test: refinementOf(doorSystem) ok; Check verified doorSystem refines doorProduct and doorSystem.overIsRejected, go run ./tools/umpire/cmd/umpire-lint --tables on a copy of rejections.json: reads the shared outcomes (fixture findings only), make lint-model-models lint-model-irgen lint-model-irgen-lifts lint-model-check lint-model-syntax (each rc=0, one by one); scala-cli fmt --check (rc=0), GATE_SKIPPED:umpire-check-model:batch - DSL batch rule: the model gate runs at the batch's single regeneration
 - PRs:

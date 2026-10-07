@@ -45,9 +45,35 @@ Adds the role vocabulary to the framework and teaches the lifter to lower role t
 - [ ] `make MODEL_GATE_ARGS=--skip-go-checks umpire-check-model` and `make lint-model` pass; no file under `model/ir` other than lifter fixtures changes.
 
 ## Done summary
-TBD
+Adds the eleven phase role traits to the framework (`model/umpire/Roles.scala`). The lifter now lowers `p.isInstanceOf[R]` to an `in(...)` of the role's cases, and lowers `case _: R` / `case q: R` to the alternatives of those case literals (one case gives the bare literal), both in declaration order. It also refuses role-carrying enums whose roles conflict. All of this sits behind one role-closure module, `model/irgen/Roles.scala`, which has its own unit tests.
 
+stage: impl-review - skipped(config: REVIEW_MODE=none - DSL batch: reviews run once at the batch's end)
+Tier: lane B, IMPLEMENTER claude-opus-5-5 at high
+
+### What changed
+- `model/umpire/Roles.scala`: `Live`; `Waiting`, `Held`, `Suspended` extend `Live`; `Retrying` extends `Waiting`; `Closed`; `Succeeded`, `Failed`, `Canceled`, `Terminated`, `TimedOut` extend `Closed`. None of them names a Temporal kind.
+- `model/irgen/Roles.scala`: the pure `Roles.closure` (class names in, role-to-cases map and conflicts out) and the `PhaseRoles` lifter trait (`checkRoles`, `roleTest`, `rolePattern`), mixed into `Lifting`.
+- `Types.declareType` runs `checkRoles` on every enum it declares (R4).
+- `Expressions.lift` handles `isInstanceOf`. `Expressions.pattern` handles `TypedOrTest(Wildcard | Bind(_, Wildcard), tpt)`. A compiler-inserted `TypedOrTest` around an `Unapply` still lifts as before.
+- Refusals, each pinned in `rejects.txt` from `lifts/RoleRejects.scala`: a role test on a value of no enum, a role no case has, a non-role type pattern on an enum (was a silent wildcard), a stand-alone trait, the three conflict kinds, and one guard not in the ACs: a role carried by a case with fields. Such a case is no single value, so `OP_CONTAINS` over its bare literal would be wrong IR.
+- Fixtures: `lifts/Roles.scala` (`Roled` with role tests, `Listed` with the hand-written cases). The test requires identical machines and functions, but for names and positions, and requires the IR type of the role-carrying `Phase` to equal the role-less `Bare`. `Retrying` together with an explicit `Waiting` is accepted.
+- `model/umpire/Roles.test.scala`: role mixins leave `Finite` values and their order unchanged; each case tests as its declared and implied roles.
+
+### Outside the declared Touches (necessary)
+- `model/umpire/Syntax.scala`: `PhasesOf` now accepts `Q <: P` (was `P =:= Q`). A case that takes a role has the type `Phase & Role`, so a rule `in(Phase.done)` on such a case did not compile (verified). Without this change R2 does not hold. The no-projection refusal is unchanged, since `P` is `Nothing` there.
+- `model/umpire/Roles.test.scala`: a new framework test for the `Finite` acceptance criterion.
+
+### Expected IR delta at the batch regeneration
+None. A lift of every Model before and after this commit is byte-identical (`diff -r` empty). Only lifter fixtures changed.
+
+### For later tasks
+- **fn-136.2/.3 (models):** the lint `DisableSyntax.noIsInstanceOf` refuses `p.isInstanceOf[Closed]` in Models (`make lint-model-models`). A Model's role test must use fn-136.4's short spelling or a type pattern (`p match { case _: Closed => true; case _ => false }`, which does not lower to `OP_CONTAINS`, so it is not byte-equal to an `in(...)`), or carry `// scalafix:ok DisableSyntax.isInstanceOf`. The fixtures use `scalafix:off/on`. For R7 byte-equality, use fn-136.4's spelling.
+- A role-carrying case has the type `Enum & Role`. Anything that infers a type from a single case (`val x = Phase.done`, a `List(Phase.done)`) gets that intersection type. `PhasesOf` now handles this for `Rules.in`; other inference sites may need an ascription.
+- Lowering puts every role literal at the test's position. The hand-written `in(a, b)` had per-member positions. That is a position-only diff.
+- A role on a case with fields is refused at its test.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 954c96d536
+- Tests: baseline: green (mise exec -- scala-cli test model/irgen at 0f25754d6, after building model/build/model-scala.jar and model-scala.classpath in the clone), UMPIRE_LIFTER_UPDATE=1 mise exec -- scala-cli test model/irgen (writes expected/roles.json and the RoleRejects lines of expected/rejects.txt), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen (suite_rc=0, 99 passed), mise exec -- scala-cli test model/project.scala model/umpire --test-only umpire.RolesSuite (green), Models lift into a scratch dir before and after the change: diff -r /tmp/laneB-ir-base /tmp/laneB-ir-1 is empty (no model/ir change), scala-cli fmt --check model/umpire model/irgen model/check model/temporal: clean, make lint-model-irgen, lint-model-irgen-lifts, lint-model-models, lint-model-syntax: rc=0 each (run one by one; lint-model-check untouched), GATE_SKIPPED:umpire-check-model:batch - DSL batch rule: no model gate per task (worker-notes.md)
 - PRs:

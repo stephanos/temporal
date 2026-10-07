@@ -37,9 +37,43 @@ Framework half of the new rule forms, added beside the old ones so every Model s
 
 
 ## Done summary
-TBD
+Added the framework half of the new rule forms beside the old ones: `from(declarer) { import declarer.*; on(...) { ... } }`, the `when(...)`, `when(set)` and `when(...).where(g)` cases, and `on(a, b)`, `on(a, b, c)` and `on(a, b, c, d)` over actions or classes. The "written twice" one-block refusal is gone, and the existing overlap check (Machine.scala `overlap`, unchanged) now guards repeats across blocks. All existing Models compile unchanged.
 
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+Tier: claude-opus-5-5 at high (lane D)
+
+### What changed (model/umpire/Syntax.scala, `Rules`)
+- `def from(declarer: AnyRef)(body: => Unit)` is plain, with no `inline`. It sets a `within` marker (declarer name plus declared `ActionDecl`s) with a `finally` reset. The declared set comes from Java reflection over the object's zero-argument public methods that return an `Action`.
+- `block` refuses an action the enclosing `from`'s declarer does not declare. The `blocks` field and the one-block refusal are removed.
+- Multi-target `on` takes fixed arities of `inline a: Action[?] | Class`, with cases `Firing[S, O, F, EmptyTuple] ?=> Unit`, so effects read the state alone. `each(...)` refuses duplicates before running any block, then runs the cases once per target through `block`, which applies the disabled check to each target.
+- `when[Q](first, rest*)(using PhasesOf[P, Q])` and `inline when(inline set)` mirror `in` exactly, with heading text `when(...)`. `phases(set, code, word = "in")` gained the heading word. The `PhasesOf` message now says "in and when". No `when[R]` form is added: fn-136.4 can add `when[R](using TypeTest[P, R])` as a third overload, as its probe showed for `in`.
+- model/check/SyntaxRule.scala: sugar name `when` (`from` was already listed).
+- Rules.test.scala: the grouped-vs-plain table equivalence, one action in several blocks, and each refusal with its message.
+
+### Messages (task .3's lifter must match these exactly)
+- `on(<action>) sits in on(<open>): a block holds cases alone` (existing)
+- `from(<d>) sits in on(<open>): a block holds cases alone`
+- `from(<d>) sits in from(<outer>): a from holds on blocks alone`
+- `on(<action>) sits in from(<d>), and <d> declares no <action>: a from holds the blocks of the actions its declarer declares`
+- `<action> is named twice in one on: name each action, or class of it, once`
+- `<action> is disabled and fired by a rule` (existing, applied to each target)
+At runtime each message is prefixed `requirement failed: ` because these are `require` checks.
+- Overlap across blocks: the existing message, e.g. `acrossBlocks fires turn-down by two rules in Lamp(off,0): rule 1, when(off), and rule 3, when(...).where: ...`.
+
+### Expected IR delta (batch regeneration)
+None: rule headings are not written to model/ir, and no Model uses the new forms yet.
+
+### For later tasks
+- `<d>` in messages is `Actor.name` for an Actor, else the object's name with its first letter lowered (`objectName`).
+- `import d.*` inside `from(hand) { ... }` also imports Actor members such as `name`; `-Wunused:imports` is satisfied once any action is used.
+- A `when(set)` heading shows `codeOf(set)`, which for a def renders as an eta-expanded lambda, as `in(set)` always did.
+- `rejects(...)` (fn-139.1) works inside multi-target `on`, since its Firing is `Firing[S, Outcome, ?, ?]`.
+
+### Follow-ups (not built)
+- None.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a2af47e109
+- Tests: /tmp/laneD-build.sh: make model/build/model-scala.jar (every Model compiles against the new framework), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/project.scala model/umpire (25 passed), make lint-model-models lint-model-check lint-model-syntax (each rc=0); scala-cli fmt --check (rc=0), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check: INCONCLUSIVE, GateSuite 'a check lints the settled IR before the Go checks' timed out at its 30s munit limit under host load ~130-300 (it runs the gate four times with stand-in tools; this task touches only the SyntaxRule sugar list); every other test passed; rerun on the lane tree after fn-139.3 (which carries this SyntaxRule change unchanged): model/check rc=0, GateSuite passed, model/irgen fixture suite: rc=0 on the lane tree after fn-139.3 (the lifter is unchanged in .2), GATE_SKIPPED:umpire-check-model:batch - DSL batch rule
 - PRs:
