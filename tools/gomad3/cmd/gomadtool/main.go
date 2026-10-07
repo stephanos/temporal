@@ -175,7 +175,9 @@ func runPatchValidate(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintln(stdout, "gomad3 patch and overlay inputs are valid")
+	if _, err := fmt.Fprintln(stdout, "gomad3 patch and overlay inputs are valid"); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -190,7 +192,9 @@ func runScriptValidate(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintln(stdout, "gomad3 script ownership is valid")
+	if _, err := fmt.Fprintln(stdout, "gomad3 script ownership is valid"); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -203,7 +207,9 @@ func runPatchMaterialize(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintln(stdout, "gomad3 patch materialized")
+	if _, err := fmt.Fprintln(stdout, "gomad3 patch materialized"); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -234,7 +240,9 @@ func runPatchRegenerate(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintln(stdout, "gomad3 patch regenerated")
+	if _, err := fmt.Fprintln(stdout, "gomad3 patch regenerated"); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -315,7 +323,9 @@ func runBuildKey(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-	fmt.Fprintln(stdout, key)
+	if _, err := fmt.Fprintln(stdout, key); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -357,7 +367,9 @@ func runTest(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 2
 	}
-	fmt.Fprintln(stdout, mode.Success)
+	if _, err := fmt.Fprintln(stdout, mode.Success); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -402,9 +414,15 @@ func runToolchainBuild(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 1
 	}
+	var outputErr error
 	if result.Waited {
-		fmt.Fprintf(stdout, "waiting for gomad3 build key %s\n", result.BuildKey)
+		_, outputErr = fmt.Fprintf(stdout, "waiting for gomad3 build key %s\n", result.BuildKey)
 	}
-	fmt.Fprintf(stdout, "gomad3 toolchain is ready (%s/%s, key %s)\n", result.HostOS, result.HostArch, result.BuildKey)
+	if _, err := fmt.Fprintf(stdout, "gomad3 toolchain is ready (%s/%s, key %s)\n", result.HostOS, result.HostArch, result.BuildKey); outputErr == nil {
+		outputErr = err
+	}
+	if outputErr != nil {
+		return 3
+	}
 	return 0
 }

@@ -92,7 +92,9 @@ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) 
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintln(stdout, digest)
+	if _, err := fmt.Fprintln(stdout, digest); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -125,7 +127,9 @@ func runCompatibilityPackReview(arguments []string, stdout, stderr io.Writer) in
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintln(stdout, digest)
+	if _, err := fmt.Fprintln(stdout, digest); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -154,7 +158,9 @@ func runCompatibilityPackGenerate(arguments []string, stdout, stderr io.Writer) 
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
-		fmt.Fprintln(stdout, "generated compatibility packs")
+		if _, err := fmt.Fprintln(stdout, "generated compatibility packs"); err != nil {
+			return 3
+		}
 		return 0
 	}
 	if *requestPath == "" || *approval == "" {
@@ -173,7 +179,9 @@ func runCompatibilityPackGenerate(arguments []string, stdout, stderr io.Writer) 
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintf(stdout, "generated compatibility pack %s\n", request.ID)
+	if _, err := fmt.Fprintf(stdout, "generated compatibility pack %s\n", request.ID); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -212,7 +220,9 @@ func runCompatibilityPackCheck(arguments []string, stdout, stderr io.Writer) int
 			return 1
 		}
 	}
-	fmt.Fprintln(stdout, "compatibility packs are current")
+	if _, err := fmt.Fprintln(stdout, "compatibility packs are current"); err != nil {
+		return 3
+	}
 	return 0
 }
 
@@ -241,7 +251,14 @@ func runCompatibilityPackQualify(arguments []string, stdout, stderr io.Writer) i
 		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
 		return 2
 	}
-	return qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, *workingDirectory, stdout, stderr)
+	status, outputErr := qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, *workingDirectory, stdout, stderr)
+	if status != 0 {
+		return status
+	}
+	if outputErr != nil {
+		return 3
+	}
+	return 0
 }
 
 // qualifyAllCompatibilityPacks qualifies, in table order, every request that
@@ -265,6 +282,7 @@ func qualifyAllCompatibilityPacks(root, override string, stdout, stderr io.Write
 	}
 	platform := runtime.GOOS + "/" + runtime.GOARCH
 	qualified := 0
+	var outputErr error
 	for _, id := range requestIDs(directories) {
 		path := filepath.Join(compatibilityRoot, "requests", id+".json")
 		request, status := readReviewedCompatibilityPackRequest(path, stderr)
@@ -274,8 +292,12 @@ func qualifyAllCompatibilityPacks(root, override string, stdout, stderr io.Write
 		if !slices.Contains(request.Platforms, platform) {
 			continue
 		}
-		if status := qualifyCompatibilityPackRequest(resolvedRoot, path, directories[id], stdout, stderr); status != 0 {
+		status, reportErr := qualifyCompatibilityPackRequest(resolvedRoot, path, directories[id], stdout, stderr)
+		if status != 0 {
 			return status
+		}
+		if outputErr == nil {
+			outputErr = reportErr
 		}
 		qualified++
 	}
@@ -283,14 +305,19 @@ func qualifyAllCompatibilityPacks(root, override string, stdout, stderr io.Write
 		fmt.Fprintf(stderr, "no compatibility-pack request names %s\n", platform)
 		return 1
 	}
-	fmt.Fprintf(stdout, "qualified %d compatibility-pack requests for %s\n", qualified, platform)
+	if _, err := fmt.Fprintf(stdout, "qualified %d compatibility-pack requests for %s\n", qualified, platform); outputErr == nil {
+		outputErr = err
+	}
+	if outputErr != nil {
+		return 3
+	}
 	return 0
 }
 
-func qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, workingDirectory string, stdout, stderr io.Writer) int {
+func qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, workingDirectory string, stdout, stderr io.Writer) (status int, outputErr error) {
 	request, status := readReviewedCompatibilityPackRequest(resolvedRequest, stderr)
 	if status != 0 {
-		return status
+		return status, nil
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), compatibilityPackTimeout)
 	defer cancel()
@@ -300,16 +327,16 @@ func qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, workingDirec
 	)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
-		return 1
+		return 1, nil
 	}
 	err = authoring.Qualify(request, prepared.Review)
 	err = errors.Join(err, prepared.Close())
 	if err != nil {
 		fmt.Fprintln(stderr, err)
-		return 1
+		return 1, nil
 	}
-	fmt.Fprintf(stdout, "qualified compatibility-pack request %s\n", request.ID)
-	return 0
+	_, outputErr = fmt.Fprintf(stdout, "qualified compatibility-pack request %s\n", request.ID)
+	return 0, outputErr
 }
 
 func resolveCompatibilityPackPaths(root, override, request string) (string, string, string, error) {

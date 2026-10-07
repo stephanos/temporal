@@ -1,0 +1,69 @@
+{
+  "verdict": "source-progress-acceptable",
+  "scope": "independent source/evidence progress review only",
+  "base": "a6a28720af58fe65cb6fd3bc618ef8102765b50b",
+  "reviewer": "gpt-6.1-sol at high",
+  "writer_reviewer_family": "same Codex family",
+  "tier": "session (jev-unavailable(no_key)); explicit project reviewer route",
+  "introduced_findings": [],
+  "host": "linux/arm64 uid 1000, stock Go 1.27.1; no native qualification",
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "checks": [
+    {
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool -run '^TestRunMaintainerOutput'",
+      "exit_code": 0,
+      "real_seconds": 1.83,
+      "top_level_tests": 5,
+      "passing_records": 28,
+      "failures": 0,
+      "skips": 0,
+      "log": ".flow/tmp/stdout-contract-review-a6/focused.jsonl",
+      "log_sha256": "4fb293fa322fe262b3d8c5910f0a0214318f529a5c028ce0115bdffcf5a872c5",
+      "timing_log": ".flow/tmp/stdout-contract-review-a6/focused.time",
+      "timing_sha256": "ae349a9541bee064e64c8890e4ca06b2ff357a7d698b4ce5bf5a3a2eed42f60e"
+    },
+    {
+      "command": "go -C tools/gomad3 test -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/base-overlay.json -tags test_dep -count=1 -json ./cmd/gomadtool -run '^TestRunMaintainerOutput'",
+      "overlay_provenance": "all four Replace values byte-match exact BASE git show blobs",
+      "exit_code": 1,
+      "real_seconds": 1.78,
+      "actual_ebadf_routes": 10,
+      "wrong_status_routes": 10,
+      "skips": 0,
+      "log": ".flow/tmp/stdout-contract-review-a6/base-red.jsonl",
+      "log_sha256": "2b1e39197d27a2c3a3ffe6783cb5dce3a1c5285d55caae8b49f858c36e75d9bd",
+      "timing_log": ".flow/tmp/stdout-contract-review-a6/base-red.time",
+      "timing_sha256": "b0d8b408eec2c7f817463e5885961611ebdb219f0d04d5a0835a0442dc51f5e8"
+    }
+  ],
+  "independently_verified_retained_evidence": {
+    "frozen_file_hashes": 8,
+    "worker_and_conductor_check_log_hashes": "all match",
+    "stdout_call_bytes_and_comment_lines": "all 17 stdout calls and all existing comment lines match BASE",
+    "full_lint": {"base": 302, "final": 285, "removed_stdout": 17, "added": 0, "identical_residual_blocks": 285, "exit_code": 2, "integrated_errortype_reached": false},
+    "scoped_lint": {"base": 129, "final": 112, "removed_stdout": 17, "added": 0, "identical_residual_blocks": 112, "exit_code": 1},
+    "normalization": "diagnostic header line/column only; complete source/caret blocks retained",
+    "portable_original": {"top_level_passes": 84, "passing_records": 480, "failures": 0},
+    "portable_final": {"top_level_passes": 89, "passing_records": 508, "failures": 0},
+    "portable_skip_each": "TestHostPacksBindCurrentProfile",
+    "fast_lint": "exit 0, actual 55-package selection, integrated errortype reached; changed-line result only",
+    "architecture_validate_vet_errortype": "retained current-source passing logs and hashes verified; no broad rerun"
+  },
+  "flow_preservation": {
+    "task21_acceptance_through_eof_byte_equal_to_base": true,
+    "task21_acceptance_through_eof_sha256": "244837d75f8cb29005d38e463af06b58d33d63c5211b51cca5c1250c16fa8330",
+    "task21_old_dependencies_preserved": true,
+    "task21_only_added_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.46",
+    "effective_task21_status": "blocked",
+    "effective_task45_status": "blocked",
+    "task46_predecessor": "fn-109-gomad-deepen-modules-and-tool-interfaces.45",
+    "task45_reviewed_commit_ancestor_of_base": "ae196e9ac0",
+    "admission": "source-only under reviewed integrated predecessor, all original acceptance retained"
+  },
+  "unexecuted": "conformance success, both completed-build reports, capability discovery, per-request and aggregate qualification, dossier success; build and multi-request output/operation sequence executions",
+  "original_acceptance": "Native Darwin, full/default/functional/affected-consumer, matched-first-baseline, bounded 10/100, formal review and predecessor gates remain open wherever unproved. Linux deferred and unverified under fn-128.",
+  "grants": {"ship": false, "qualification": false, "task_completion": false},
+  "commands_terminal": true,
+  "go_lane_released": true,
+  "reviewer_mutations": "only source-review.md, review-observations.json and ignored local review logs; no source/test/task/index/HEAD changes"
+}

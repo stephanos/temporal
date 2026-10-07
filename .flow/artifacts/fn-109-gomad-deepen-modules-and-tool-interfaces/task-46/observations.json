@@ -1,0 +1,285 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.46",
+  "status": "in_progress",
+  "scope": "source progress only",
+  "base_commit": "a6a28720af58fe65cb6fd3bc618ef8102765b50b",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool -run 'TestRunMaintainerOutput|TestRunBuildKey|TestRunPatchValidate|TestRunScriptValidate|TestRunCompatibilityPackRefresh|TestCompatibilityPackPaths'",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v ./cmd/gomadtool -run '^TestRunMaintainerOutput'",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v ./cmd/gomadtool -run 'TestRunMaintainerOutput|TestRunBuildKey|TestRunPatchValidate|TestRunScriptValidate|TestRunCompatibilityPackRefresh|TestCompatibilityPackPaths'",
+    "go -C tools/gomad3 test -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/base-overlay.json -tags test_dep -count=1 -v ./cmd/gomadtool -run '^TestRunMaintainerOutput'",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^Test(RunMaintainerOutput|RunPinImpact|RunCompatibilityPack|CompatibilityPack|CompatibilityPath|SavedReport|Refresh|CheckedInWorkingDirectories|CheckWorkingDirectories|Generate|Regenerate|Discover|RenderReview|Approval|Decode|Validate|RequestAdmission|Governance|HostPacks|StaleProfile|PackAdmission|Select|Verify|External|LoadPack|Evaluate|RunAdapterRegenerateInputStatuses|RunBuildKey|RunRejects|RunPatch|RunScript|RunToolchainBuildRejects|RunTestRejects|Bootstrap|SoakRejects|DiagnosticDiff|GitFile)' ./cmd/gomadtool ./internal/compatibilitypack/...",
+    "go -C tools/gomad3 test -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/base-overlay.json -tags test_dep -count=1 -json -run '^Test(RunPinImpact|RunCompatibilityPack|CompatibilityPack|CompatibilityPath|SavedReport|Refresh|CheckedInWorkingDirectories|CheckWorkingDirectories|Generate|Regenerate|Discover|RenderReview|Approval|Decode|Validate|RequestAdmission|Governance|HostPacks|StaleProfile|PackAdmission|Select|Verify|External|LoadPack|Evaluate|RunAdapterRegenerateInputStatuses|RunBuildKey|RunRejects|RunPatch|RunScript|RunToolchainBuildRejects|RunTestRejects|Bootstrap|SoakRejects|DiagnosticDiff|GitFile)' ./cmd/gomadtool ./internal/compatibilitypack/...",
+    "go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool",
+    "GOFLAGS=-tags=test_dep /tmp/fn109-lint-tools.ZdNe1t50/errortype -test=true ./cmd/gomadtool",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomadtool"
+  ],
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "checks": [
+    {
+      "name": "focused-baseline",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool -run 'TestRunMaintainerOutput|TestRunBuildKey|TestRunPatchValidate|TestRunScriptValidate|TestRunCompatibilityPackRefresh|TestCompatibilityPackPaths'",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "real_seconds": 5.1,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/focused-baseline.log",
+      "log_sha256": "901f8ed62ff5e45c9e993f88eb0b8f56e63a7dc2168cc38769111787afae7d8d"
+    },
+    {
+      "name": "red-final-publications",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./cmd/gomadtool -run '^TestRunMaintainerOutput'",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 1,
+      "real_seconds": 2.18,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/red-publications.log",
+      "log_sha256": "6f9de8988213d791f250a10c5d866089c193f4aa8ee68856e7a4b18660d0b2f7"
+    },
+    {
+      "name": "green-focused",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./cmd/gomadtool -run 'TestRunMaintainerOutput|TestRunBuildKey|TestRunPatchValidate|TestRunScriptValidate|TestRunCompatibilityPackRefresh|TestCompatibilityPackPaths'",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "real_seconds": 2.31,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/focused-green.log",
+      "log_sha256": "4eadfc7083f3a0e5b2cb27d2f0be459ab6c3471d07f9f42004a04f7bf1e585f3"
+    },
+    {
+      "name": "base-overlay-red",
+      "command": "go -C tools/gomad3 test -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/base-overlay.json -tags test_dep -count=1 -v ./cmd/gomadtool -run '^TestRunMaintainerOutput'",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 1,
+      "real_seconds": 1.73,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/overlay-red.log",
+      "log_sha256": "7c91f5833fb5333d104fcd45f0ffd85db4fe130430e4c2f1bf953a39ed2066af"
+    },
+    {
+      "name": "portable-green",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^Test(RunMaintainerOutput|RunPinImpact|RunCompatibilityPack|CompatibilityPack|CompatibilityPath|SavedReport|Refresh|CheckedInWorkingDirectories|CheckWorkingDirectories|Generate|Regenerate|Discover|RenderReview|Approval|Decode|Validate|RequestAdmission|Governance|HostPacks|StaleProfile|PackAdmission|Select|Verify|External|LoadPack|Evaluate|RunAdapterRegenerateInputStatuses|RunBuildKey|RunRejects|RunPatch|RunScript|RunToolchainBuildRejects|RunTestRejects|Bootstrap|SoakRejects|DiagnosticDiff|GitFile)' ./cmd/gomadtool ./internal/compatibilitypack/...",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "real_seconds": 2.57,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/portable-green.jsonl",
+      "log_sha256": "3a2da7f4af193ca50646063cf583e0c6e14d79a888f134281ab7860086b9debf"
+    },
+    {
+      "name": "portable-original-base-overlay",
+      "command": "go -C tools/gomad3 test -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/base-overlay.json -tags test_dep -count=1 -json -run '^Test(RunPinImpact|RunCompatibilityPack|CompatibilityPack|CompatibilityPath|SavedReport|Refresh|CheckedInWorkingDirectories|CheckWorkingDirectories|Generate|Regenerate|Discover|RenderReview|Approval|Decode|Validate|RequestAdmission|Governance|HostPacks|StaleProfile|PackAdmission|Select|Verify|External|LoadPack|Evaluate|RunAdapterRegenerateInputStatuses|RunBuildKey|RunRejects|RunPatch|RunScript|RunToolchainBuildRejects|RunTestRejects|Bootstrap|SoakRejects|DiagnosticDiff|GitFile)' ./cmd/gomadtool ./internal/compatibilitypack/...",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "real_seconds": 0.92,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/portable-base-overlay.jsonl",
+      "log_sha256": "e12b8c9b2cdae97ba8dd76fcdc4a50d86f62e76362f7b31f7769a44deb11536f"
+    },
+    {
+      "name": "vet",
+      "command": "go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "real_seconds": 0.13,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/vet.log",
+      "log_sha256": "888a212ab9393b354aa4e2eff8f98d520954f0c4598dd525c9fa6159016373fd"
+    },
+    {
+      "name": "errortype",
+      "command": "GOFLAGS=-tags=test_dep /tmp/fn109-lint-tools.ZdNe1t50/errortype -test=true ./cmd/gomadtool",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "real_seconds": 0.52,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/errortype.log",
+      "log_sha256": "8560e2998e073867f819152f6cec3f629dd42a05fe163e8a79d48221db86985b"
+    },
+    {
+      "name": "scoped-lint",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomadtool",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 1,
+      "real_seconds": 1.06,
+      "log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/scoped-lint-final.log",
+      "log_sha256": "6fe4e347dee25914025bb5194808b1cbffa79edabdb45519d06cd3a4049d1a0b"
+    }
+  ],
+  "source_sha256": [
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "sha256": "c4383d94e0b1e67cb0dffd3051bccdacb795e94a8cc3b3b7bd4b26b1b9d0cc1d"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/boundary.go",
+      "sha256": "a83b4ff7b2c4fea0d45f0a772f115bedf6234b32b99f80683e2eff0476777b15"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "sha256": "3788db5501c162625613a1011bdd653214e1f82b1eaacbb9af91978f732743a4"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/maintainer_output_test.go",
+      "sha256": "c8e776ef0b50c48fe79bab162decb99c348aecdb82c24c03b570cdb612fa1027"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/maintainer_output_patch_test.go",
+      "sha256": "d2d0e49ca8eb598d2939a03008bb46187863ec6002793591463fd2afd86ff283"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/testdata/maintainer-output/boundary-linux-arm64-go1.27.1.txt",
+      "sha256": "5535ae1d7b1e0e7421c479f3da02fbffbd35ec3998fdf025afe4bfb095cbc046"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/testdata/maintainer-output/request.json",
+      "sha256": "66f4e05e744b464704708026ffdc7bc2d314476bd5514545716d522a8f27fa15"
+    },
+    {
+      "path": "tools/gomad3/go.mod",
+      "sha256": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f"
+    },
+    {
+      "path": "tools/gomad3/go.sum",
+      "sha256": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/version.json",
+      "sha256": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/boundary/manifest.json",
+      "sha256": "ed31376341a80158276b89925f7f7289a86a8276198ee1427e42ffd738127e75"
+    }
+  ],
+  "baseline": {
+    "focused": "green before any edit",
+    "full": "red before edits; conductor source admission preserves this blocker",
+    "full_exit_code": 2,
+    "full_findings": 302,
+    "full_packages": 55,
+    "full_log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/lint-gate-a6a28720af/full-lint.log",
+    "full_log_sha256": "2391ed2c21e151396d6762fb97e7defacc88933ffc1c3ec9496c47411e936251",
+    "scoped_findings": 129,
+    "scoped_exit_code": 1,
+    "scoped_log": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/stdout-contract-a6a28720af/scoped-lint-base.log",
+    "scoped_log_sha256": "471c310dcb639c5248756211b4f59cf97d8f067570fc7208a4b8adb6b5c3d6f9"
+  },
+  "regression": {
+    "meaningful_red_routes": 10,
+    "green_routes": 10,
+    "writer": "existing newRefreshOutput real os.Open read-only file; errors.Is(err, syscall.EBADF) precedes status assertion",
+    "red_excerpt": "stdout write observed EBADF; status = 0, want 3",
+    "green_excerpt": "stdout write observed EBADF; all TestRunMaintainerOutput families PASS",
+    "tests_unchanged_between_final_red_green_overlay": true,
+    "primary_failures": {
+      "invalid_status_2": 10,
+      "operational_status_1": 3,
+      "stdout_attempts": 0,
+      "stderr_error": "EBADF"
+    },
+    "publication": "Authoring healthy/failing commands use separate identically seeded roots; compare all requests, reports, packs, approvals, generation.json and generated consumer tests. Check verifies before/after identical. Materialize compares full source tree to literal expected source plus unchanged inputs. Regenerate compares complete literal patch, candidate and inputs."
+  },
+  "portable_counts": {
+    "base_original": {
+      "passing_records": 480,
+      "top_level_passes": 84,
+      "failures": 0
+    },
+    "final": {
+      "passing_records": 508,
+      "top_level_passes": 89,
+      "failures": 0
+    },
+    "packages": 3,
+    "each_runtime_skips": [
+      "TestHostPacksBindCurrentProfile (linux/arm64 has no deterministic profile)"
+    ],
+    "selection": "explicit retained family regex; not full CLI or native/full package qualification"
+  },
+  "scoped_lint": {
+    "baseline_findings": 129,
+    "final_findings": 112,
+    "removed_stdout_findings": 17,
+    "unchanged_residual_blocks": 112,
+    "new_or_changed_residual_blocks": 0,
+    "comparison": "multiset of complete diagnostic blocks (header, source, caret) after header line/column normalization only; unfiltered original/final logs retained",
+    "removed_sites": [
+      "fmt.Fprintln(stdout, candidate)",
+      "fmt.Fprintln(stdout, digest)",
+      "fmt.Fprintln(stdout, digest)",
+      "fmt.Fprintln(stdout, \"generated compatibility packs\")",
+      "fmt.Fprintf(stdout, \"generated compatibility pack %s\\n\", request.ID)",
+      "fmt.Fprintln(stdout, \"compatibility packs are current\")",
+      "fmt.Fprintf(stdout, \"qualified %d compatibility-pack requests for %s\\n\", qualified, platform)",
+      "fmt.Fprintf(stdout, \"qualified compatibility-pack request %s\\n\", request.ID)",
+      "fmt.Fprintln(stdout, \"gomad3 patch and overlay inputs are valid\")",
+      "fmt.Fprintln(stdout, \"gomad3 script ownership is valid\")",
+      "fmt.Fprintln(stdout, \"gomad3 patch materialized\")",
+      "fmt.Fprintln(stdout, \"gomad3 patch regenerated\")",
+      "fmt.Fprintln(stdout, key)",
+      "fmt.Fprintln(stdout, mode.Success)",
+      "fmt.Fprintf(stdout, \"waiting for gomad3 build key %s\\n\", result.BuildKey)",
+      "fmt.Fprintf(stdout, \"gomad3 toolchain is ready (%s/%s, key %s)\\n\", result.HostOS, result.HostArch, result.BuildKey)",
+      "fmt.Fprintf(stdout, \"gomad3 upgrade qualification dossier: %s\\n\", outputPath)"
+    ]
+  },
+  "boundary_control": {
+    "platform": "linux/arm64",
+    "toolchain": "go1.27.1 stock",
+    "candidate_lines": 217,
+    "fixture": "tools/gomad3/cmd/gomadtool/testdata/maintainer-output/boundary-linux-arm64-go1.27.1.txt",
+    "captured_from_base": true,
+    "go_version_file_sha256": "25eb74b09036e1ad894fb63b86cb0f0ee53342df8d2e2e860da4ff5079607758",
+    "inventory_command": "rg --files /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/{crypto/rand,net,os,runtime} | sort | xargs sha256sum | sha256sum",
+    "inventory_sha256": "9c28259d23c2a47d4241458100636f4f27940c4e1809a3c11f9cb25c69aa122d",
+    "control_other_hosts": "only literal subtest skips when fixture unavailable; actual EBADF/status regression still runs"
+  },
+  "unexecuted": [
+    "conformance success stdout",
+    "completed toolchain build waiting stdout",
+    "completed toolchain build ready stdout",
+    "capability discovery digest stdout",
+    "per-request qualification stdout",
+    "aggregate qualification stdout",
+    "final upgrade dossier stdout",
+    "native successful build first-write-fails/ready-still-attempted ordering",
+    "qualify --all early output error followed by later success",
+    "qualify --all aggregate-only output error",
+    "qualify --all later operational status 1/2 outranking earlier output error"
+  ],
+  "open_acceptance": [
+    "fresh independent review and source progress commit (conductor)",
+    "original full lint remains red",
+    "native Darwin full/host/default/integration/functional/affected consumers",
+    "matched first baseline obligations and original R18/R19 qualification",
+    "10/100-job measurements",
+    "formal implementation review",
+    "predecessor original acceptance",
+    "Linux deferred and unverified under fn-128"
+  ],
+  "root_owns_remaining_checks": [
+    "focused JSON regression",
+    "six architecture/purity controls",
+    "make -C tools/gomad3 validate",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=a6a28720af58fe65cb6fd3bc618ef8102765b50b GOLANGCI_LINT_FIX=false",
+    "original full lint trace"
+  ],
+  "setup_notes": [
+    "Initial authoring approval placeholder was replaced only before production edits by the literal base public review digest 365c49f6...; initial fixture mismatch is not RED evidence.",
+    "Tiny regeneration archive initially lacked directory headers; copied genuine fixture directory entries before production edits.",
+    "Regenerated patch expectation was anchored to base healthy Git diff index/hunk bytes before production edits.",
+    "Large JSON tool-output parsing was truncated; counts were read directly from full local JSONL logs with jq, without rerunning tests."
+  ],
+  "defect_route": {
+    "prior_fixes": "history contains a45ebab979 refresh-output correction; 17 admitted sites remain unchecked. Memory reporting entry read. GitHub PR/issues unchecked because gh auth status reports invalid GH_TOKEN.",
+    "diagnosis": "Observed healthy success then real EBADF and status 0 on 10 routes. Missing fmt write checks confirmed. Operational inputs and publication succeed independently.",
+    "introduced_by": "not bisected; no known-good revision was supplied",
+    "base": "meaningful ten-route RED on actual base; unchanged tests re-RED on exact base production Go overlay",
+    "head": "ten-route GREEN on frozen current sources",
+    "live": "library-style public run tests; native CLI operation success inputs remain unexecuted"
+  },
+  "stages": [
+    "stage: impl-review - skipped(policy: host-deferred source-progress-only; conductor owns independent review and required full lint remains red)"
+  ],
+  "command_ownership": "all worker commands exited; Go lane released before handover; no worker commit or Flow mutation"
+}

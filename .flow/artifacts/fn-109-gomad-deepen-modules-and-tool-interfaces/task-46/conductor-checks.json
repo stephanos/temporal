@@ -1,0 +1,194 @@
+{
+  "base": "a6a28720af58fe65cb6fd3bc618ef8102765b50b",
+  "scope": "Source progress for fn10946; no completed native/full/formal qualification.",
+  "host": "linux/arm64 uid1000, stock Go1.27.1; patched .toolchain/bin absent",
+  "frozen_files": [
+    {
+      "path": "tools/gomad3/cmd/gomadtool/main.go",
+      "sha256": "c4383d94e0b1e67cb0dffd3051bccdacb795e94a8cc3b3b7bd4b26b1b9d0cc1d"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "sha256": "9815d6c25052725620113fb374e329b543e300aeb72ac8fc6e5d65f2e0ef55d4"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/boundary.go",
+      "sha256": "a83b4ff7b2c4fea0d45f0a772f115bedf6234b32b99f80683e2eff0476777b15"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "sha256": "3788db5501c162625613a1011bdd653214e1f82b1eaacbb9af91978f732743a4"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/maintainer_output_test.go",
+      "sha256": "c8e776ef0b50c48fe79bab162decb99c348aecdb82c24c03b570cdb612fa1027"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/maintainer_output_patch_test.go",
+      "sha256": "d2d0e49ca8eb598d2939a03008bb46187863ec6002793591463fd2afd86ff283"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/testdata/maintainer-output/boundary-linux-arm64-go1.27.1.txt",
+      "sha256": "5535ae1d7b1e0e7421c479f3da02fbffbd35ec3998fdf025afe4bfb095cbc046"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomadtool/testdata/maintainer-output/request.json",
+      "sha256": "66f4e05e744b464704708026ffdc7bc2d314476bd5514545716d522a8f27fa15"
+    }
+  ],
+  "checks": [
+    {
+      "name": "focused-public",
+      "command": "env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool -run '^TestRunMaintainerOutput'",
+      "log": ".flow/tmp/stdout-contract-a6a28720af/root-focused-public.log",
+      "exit_code": 0,
+      "shell_real_seconds": 1.76,
+      "log_sha256": "c10de65cf83ecf94dc6d963eeac656888febc9fdcbffbb0cf892f3f9d913f226",
+      "top_level_tests": 5,
+      "passing_records": 28,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "name": "architecture",
+      "command": "env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off go -C tools/gomad3 test -tags test_dep -count=1 -json -run 'Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases|DomainModulesDoNotExportWireFraming|RunnerExecutionInjectionIsPrivate)$' .",
+      "log": ".flow/tmp/stdout-contract-a6a28720af/root-architecture.log",
+      "exit_code": 0,
+      "shell_real_seconds": 24.25,
+      "log_sha256": "b5b612ed9ea4cb26a237aa66395d0de2c0dfa0bfddd53e480f18e81f9f23ab1b",
+      "top_level_tests": 6,
+      "passing_records": 6,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "name": "validate",
+      "command": "env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off make -C tools/gomad3 validate",
+      "log": ".flow/tmp/stdout-contract-a6a28720af/root-validate.log",
+      "exit_code": 0,
+      "shell_real_seconds": 2.36,
+      "log_sha256": "a26b7ad7be7171a2b50f6b2f0e03c9fea5d75b9f80d0a8fc18c54ce54e7e7711"
+    },
+    {
+      "name": "fast-lint",
+      "command": "env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off make --trace lint-code-fast GOLANGCI_LINT_BASE_REV=a6a28720af58fe65cb6fd3bc618ef8102765b50b GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "log": ".flow/tmp/stdout-contract-a6a28720af/root-fast-lint.log",
+      "exit_code": 0,
+      "shell_real_seconds": 1.74,
+      "log_sha256": "d62ca3f4c9e9c1a92226e3ab984f132a4896a643d969b9282ab05be127bc6fac"
+    },
+    {
+      "name": "full-lint",
+      "command": "env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "log": ".flow/tmp/stdout-contract-a6a28720af/root-full-lint.log",
+      "exit_code": 2,
+      "shell_real_seconds": 1.39,
+      "log_sha256": "df4682b4025dd95cdf2e230c589c924b869d684082649ee88c0a46434bc5fa06"
+    }
+  ],
+  "full_lint": {
+    "original_base": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "base_log": ".flow/tmp/lint-gate-a6a28720af/full-lint.log",
+    "base_log_sha256": "2391ed2c21e151396d6762fb97e7defacc88933ffc1c3ec9496c47411e936251",
+    "base_findings": 302,
+    "final_findings": 285,
+    "removed": [
+      "tools/gomad3/cmd/gomadtool/boundary.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\t\tfmt.Fprintln(stdout, candidate)",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, digest)",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, digest)",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\t\tfmt.Fprintln(stdout, \"generated compatibility packs\")",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go:LINE:COL: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\tfmt.Fprintf(stdout, \"generated compatibility pack %s\\n\", request.ID)",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, \"compatibility packs are current\")",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go:LINE:COL: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\tfmt.Fprintf(stdout, \"qualified %d compatibility-pack requests for %s\\n\", qualified, platform)",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go:LINE:COL: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\tfmt.Fprintf(stdout, \"qualified compatibility-pack request %s\\n\", request.ID)",
+      "tools/gomad3/cmd/gomadtool/main.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, \"gomad3 patch and overlay inputs are valid\")",
+      "tools/gomad3/cmd/gomadtool/main.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, \"gomad3 script ownership is valid\")",
+      "tools/gomad3/cmd/gomadtool/main.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, \"gomad3 patch materialized\")",
+      "tools/gomad3/cmd/gomadtool/main.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, \"gomad3 patch regenerated\")",
+      "tools/gomad3/cmd/gomadtool/main.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, key)",
+      "tools/gomad3/cmd/gomadtool/main.go:LINE:COL: Error return value of `fmt.Fprintln` is not checked (errcheck)\n\tfmt.Fprintln(stdout, mode.Success)",
+      "tools/gomad3/cmd/gomadtool/main.go:LINE:COL: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\t\tfmt.Fprintf(stdout, \"waiting for gomad3 build key %s\\n\", result.BuildKey)",
+      "tools/gomad3/cmd/gomadtool/main.go:LINE:COL: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\tfmt.Fprintf(stdout, \"gomad3 toolchain is ready (%s/%s, key %s)\\n\", result.HostOS, result.HostArch, result.BuildKey)",
+      "tools/gomad3/cmd/gomadtool/upgrade.go:LINE:COL: Error return value of `fmt.Fprintf` is not checked (errcheck)\n\tfmt.Fprintf(stdout, \"gomad3 upgrade qualification dossier: %s\\n\", outputPath)"
+    ],
+    "unexpected_blocks": [],
+    "comparison": "Header positions normalized only; all285 residual diagnostic blocks byte-identical.",
+    "final_classes": {
+      "errcheck": 227,
+      "exhaustive": 2,
+      "forbidigo": 11,
+      "staticcheck": 45
+    },
+    "errortype_stage_reached": false
+  },
+  "fast_lint": {
+    "new_from_revision": "a6a28720af58fe65cb6fd3bc618ef8102765b50b",
+    "findings": 0,
+    "errortype_stage_reached": true,
+    "limit": "Changed-line reporting does not establish full-lint success."
+  },
+  "preservation": [
+    {
+      "file": "main.go",
+      "stdout_calls": 8,
+      "call_bytes_unchanged": true,
+      "comment_lines_unchanged": true
+    },
+    {
+      "file": "compatibility_pack.go",
+      "stdout_calls": 7,
+      "call_bytes_unchanged": true,
+      "comment_lines_unchanged": true
+    },
+    {
+      "file": "boundary.go",
+      "stdout_calls": 1,
+      "call_bytes_unchanged": true,
+      "comment_lines_unchanged": true
+    },
+    {
+      "file": "upgrade.go",
+      "stdout_calls": 1,
+      "call_bytes_unchanged": true,
+      "comment_lines_unchanged": true
+    }
+  ],
+  "flow": {
+    "task46": "in_progress before final progress block",
+    "task21": "blocked",
+    "original_acceptance_through_EOF_byte_equal": true,
+    "old_dependencies_preserved": true,
+    "added_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.46",
+    "predecessor45_acceptance": "blocked and unchanged",
+    "tracker_bridge_active": false,
+    "final_task46_status": "blocked",
+    "task46_description_acceptance_quick_and_evidence_exact": true,
+    "progress_summary_stage_lines": {
+      "impl_review": 1,
+      "plan_sync": 1
+    }
+  },
+  "unexecuted_success_reports": [
+    "conformance test success",
+    "completed toolchain-build waiting line",
+    "completed toolchain-build ready line",
+    "compatibility-pack capability discovery",
+    "single-request qualification",
+    "all-request qualification summary and output/operation precedence sequences",
+    "upgrade-dossier success path"
+  ],
+  "pending": "Original Darwin/full/default/functional/affected-consumer/matched-first-baseline/formal/bounded10-and100 and predecessor requirements stay open where unproved. Linux stays deferred and unverified under fn128.",
+  "setup_notes": [
+    "An initial scoped-lint log redirect failed before Go because the tool did not honor workdir; corrected with explicit cd. Only corrected exit1/129-issue baseline is evidence.",
+    "Earlier flowctl task set-deps --help failed without mutation; the supported dep add API was read and used.",
+    "Task21 draft carried an extra trailing blank line; removed before implementation. Exact original Acceptance-through-EOF bytes now match.",
+    "Optional tier judge unavailable(no_key); project explicit thinking/implementer models used. Source progress admission preserves blocked predecessor dependency and original gates.",
+    "A second block call correcting summary spacing appended a duplicate owned progress payload. Replaced the full task46 body through task set-spec, retaining its original Description/Acceptance/Quick/Evidence exactly and one current blocked summary/stage line each. Runtime blocked state remains verified.",
+    "A same-path delete/add patch for this JSON was rejected before any mutation or staging; corrected with a single update patch."
+  ],
+  "review": {
+    "scope": "source-progress-acceptable; no introduced P0-P3 findings; not formal SHIP",
+    "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-46/source-review.md",
+    "original_acceptance": "unchanged and incomplete"
+  }
+}

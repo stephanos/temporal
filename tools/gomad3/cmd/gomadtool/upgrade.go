@@ -64,7 +64,9 @@ func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	fmt.Fprintf(stdout, "gomad3 upgrade qualification dossier: %s\n", outputPath)
+	if _, err := fmt.Fprintf(stdout, "gomad3 upgrade qualification dossier: %s\n", outputPath); err != nil {
+		return 3
+	}
 	return 0
 }
 

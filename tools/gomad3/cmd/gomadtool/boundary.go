@@ -24,6 +24,7 @@ func runBoundaryGenerate(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	var err error
+	var outputErr error
 	if *compilerTestOverlay != "" {
 		if *goroot == "" {
 			err = errors.New("-goroot is required with -compiler-test-overlay")
@@ -36,7 +37,9 @@ func runBoundaryGenerate(arguments []string, stdout, stderr io.Writer) int {
 		var candidates []string
 		candidates, err = boundary.DiscoverCandidates()
 		for _, candidate := range candidates {
-			fmt.Fprintln(stdout, candidate)
+			if _, err := fmt.Fprintln(stdout, candidate); outputErr == nil {
+				outputErr = err
+			}
 		}
 	} else if *refresh {
 		err = boundary.RefreshFingerprints(*root)
@@ -51,6 +54,9 @@ func runBoundaryGenerate(arguments []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
+	}
+	if outputErr != nil {
+		return 3
 	}
 	return 0
 }
