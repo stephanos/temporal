@@ -143,7 +143,7 @@ Gate: the DSL batch. Tasks run in order. Task 4's comparison takes the batch bas
 | fn-135.2 | ✅ done | Lifter resolves `val` section members and lifts `is { }`; `def` paths unchanged (proof point) |
 | fn-135.3 | ✅ done | Lifter lifts `effect { }` with its statement refusals |
 | fn-135.5 | 🔄 in progress | Status facts declared on phase cases: derived in `effect { }` at run time and in lifted IR, with refusals and a fixture machine |
-| fn-135.4 | ⬜ todo | `ActivityProduct` converted, projection renamed `status`; IR equal but for positions and that name; docs |
+| fn-135.4 | 🔄 in progress | `ActivityProduct` converted, projection renamed `status`; IR equal but for positions and that name; docs |
 
 ### fn-136: Phase roles on lifecycle enums
 
@@ -152,8 +152,8 @@ Gate: the DSL batch. Tasks run in the batch order. R7 (positions only, for tasks
 | Task | Status | What |
 | --- | --- | --- |
 | fn-136.1 | 🔄 in progress | Role traits; lifter lowers role tests (`isInstanceOf`, type patterns) to case-set membership and refuses conflicting roles |
-| fn-136.2 | ⬜ todo | Activity product, system and record carry roles; `states` bodies become role tests; refinement closedness check |
-| fn-136.3 | ⬜ todo | Nexus workflow, standalone and product carry roles; docs |
+| fn-136.2 | 🔄 in progress | Activity product, system and record carry roles; `states` bodies become role tests; refinement closedness check |
+| fn-136.3 | 🔄 in progress | Nexus workflow, standalone and product carry roles; docs |
 | fn-136.4 | 🔄 in progress | `in[R]` and `p.is[R]` role-test spellings; lifter lowers them like `in(...)` and `isInstanceOf` |
 | fn-136.5 | ⬜ todo | Role-set `states` predicates retire, callers read roles directly; bounded IR change (R9); docs; close |
 

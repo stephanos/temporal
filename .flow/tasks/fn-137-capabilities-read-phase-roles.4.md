@@ -18,7 +18,9 @@ Removes the old form now that no Model uses it. The `Rules` constructor paramete
 - Fixtures.test.scala:505-524 asserts line:col positions (e.g. `Rules.scala:16:30`). Recompute them, don't loosen them.
 - Docs: README item 6 (:662) and the reading order (add `Phased` to the header item), :509, :891; SEMANTICS.md:171, :179; .plans/DSL_OPERATORS.md:55, :210, :230. Leave .plans/MODEL_VISUALIZATION.md:183 as is, since it is a historical design note. Keep existing comments; comments are `//` only.
 
-### Acceptance
+#- Merge the two "the projection's phase type is not `Nothing`" evidences that coexist after the batch's integration, fn-136.4's `ProjectsPhases[P]` and fn-137.1's `PhasesOf[P, Q]`, into one (conductor, 2026-10-06).
+
+## Acceptance
 - [ ] `grep -rn 'extends Rules(' model/` finds nothing.
 - [ ] The lifter's "not Phased" refusal fixture passes with recomputed positions.
 - [ ] README, SEMANTICS and the DSL vocabulary describe `Phased` plus argument-less `Rules` only.
