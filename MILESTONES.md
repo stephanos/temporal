@@ -188,13 +188,19 @@ Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06.
 | fn-139.7 | ⬜ todo | `in` → `when` and block form across every Model and fixture; rule-case `in` retired; block-form lint on; docs |
 | fn-139.8 | ⬜ todo | Rejection-to-RPC-code table and conformance check |
 
+### fn-140: One-sentence witness Queries with explicit live expectations
+
+Gate: after the DSL batch closes. It depends on fn-134 and rewrites the `properties` and `queries` sections of the Model files the batch edits, and its R5 renames Definition IDs, which the batch's diff check does not list. Captured 2026-10-06 and marked ready; not yet planned, so the spec has no tasks.
+
+`witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
+
 ### fn-142: Split `model/temporal/shared` into `foundations` and `actors`
 
 Gate: after the DSL batch closes. Mechanical move: the task queue goes to `foundations/taskqueue`, the worker to `actors/worker`, `Client.scala` to `actors/client/`, and `Bounds.scala` to `model/temporal/`; the IR differs only in paths and positions.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-142.1 | ⬜ todo | Move, regenerate, paths-only proof, docs |
+| fn-142.1 | ⬜ todo | Move, regenerate, prove the diff is the shared.→foundations/actors ID mapping, docs |
 
 ### fn-143: Rename `model/umpire` to `model/framework`
 
@@ -202,7 +208,7 @@ Gate: after fn-142. Folder and package both become `framework`; product names (`
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-143.1 | ⬜ todo | Move, rename the package, regenerate, paths-only proof, docs |
+| fn-143.1 | ⬜ todo | Move, rename the package, regenerate, prove the diff is the umpire.→framework. mapping, docs |
 
 ## Deferred
 
@@ -261,7 +267,20 @@ Deferred 2026-10-04.
 
 ### fn-123: Declare faults as the environment's actions
 
-Deferred 2026-10-04 before task planning; the spec has no tasks yet.
+Deferred 2026-10-04; tasks planned 2026-10-06 so it can be revived as planned. When revived, starts after the DSL batch and fn-140 close and is written against the names they leave (`when` blocks, `.live`, the shared `Outcome`, fn-133's fault instruction and typed `perform`). Order against fn-141 is the owner's: fn-141 keeps the IR schema unchanged, and fn-123 adds to it. Tasks run in order; 6 and 7 need only 5. Task 3 is the proof: Go derives crash rows equal to `crashDetail`'s from a durability classification, or the work stops for the owner. Planning took defaults for six owner questions, listed in the spec's Open Questions.
+
+A fault is declared once with its kind, budget and whether it can be realized; a machine classifies its fields as durable or in-memory, and Go derives the crash. The explorer half of R7 and the P clause of R8 were dropped, since neither tool exists.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-123.1 | ⏸️ deferred | Fault kinds and `modelOnly` on the `fault` actor's actions; IR `Fault` record; spellings settled |
+| fn-123.2 | ⏸️ deferred | Durability classification and `crashes(…)` in the DSL and lifter, on fixtures |
+| fn-123.3 | ⏸️ deferred | Go derives the crash row; `SEMANTICS.md` Faults section (proof) |
+| fn-123.4 | ⏸️ deferred | Task-queue providers converted; `fault-overridden` lint; derived storage-loss assumption |
+| fn-123.5 | ⏸️ deferred | Budgets: `budgetedBy`, four table rules in Go, `LostStartAnswer` bound to `lossAvailable` |
+| fn-123.6 | ⏸️ deferred | Choice-level fault performance; lowering refuses model-only faults and unperformed choices |
+| fn-123.7 | ⏸️ deferred | Trace output and Quint export of derived crashes and budgets |
+| fn-123.8 | ⏸️ deferred | `umpire-faults` report, docs; close |
 
 ### fn-125: Represent dynamic configuration in the Models
 
@@ -287,6 +306,29 @@ Deferred 2026-10-05 before task planning; the spec has no tasks yet. When revive
 
 Rendered views per Model (signature, phase diagram, refinement, compositions, derived-design diff, witness paths), checked in as `.d2` plus `.svg` under `model/views/` and gated; D2 as a Go library with ELK; no DSL declaration.
 
+### fn-141: Shrink the IR generator: one description of each DSL construct
+
+Deferred 2026-10-06. When revived, starts after the DSL batch and fn-140 close, since they rewrite the same framework and lifter files; the tasks were planned against the tree before that batch, so each re-reads its files and recounts first. Tasks run in order; 1 and 2 depend on nothing, and 6 and 7 need only them. Task 5 is the proof for the export part and task 8 its size proof; either can stop tasks 9 to 13, and tasks 1 to 4 stand without them. Source: a full read of `model/irgen` on 2026-10-06 (8,242 lines, of which about 10% lifts function bodies and types and 1,479 are lints that emit no IR).
+
+Each DSL construct is described once. Four parts, in this order: the declaration-order lint, the structure lint and the marker checks leave `model/irgen` for their own gate step; spellings no Model or kit uses are retired; a sugar's definition becomes its only lowering, so the lifter knows core constructs and types alone; and declarations are exported from the constructed Models, one kind at a time with realizations first, so the lifter lifts function bodies and types only. Declaration-level Scala becomes free and function bodies stay in the liftable subset, so the IR schema, the Go consumers and the Quint export do not change, and every step leaves `model/ir` and `model/cases` byte-identical. It revises `.plans/DSL_OPERATORS.md` rule 5 and fn-113 R15: the framework uses `inline` and macros at its capture points only. Proof point: the realization step stops the work unless it removes at least half of the realization lifter's lines net of what it adds.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-141.1 | ⏸️ deferred | Order lint, structure lint and marker checks out of `model/irgen` into their own gate step |
+| fn-141.2 | ⏸️ deferred | Spellings no Model or kit uses retired, after a recount the owner confirms |
+| fn-141.3 | ⏸️ deferred | Generic sugar expansion; `enter`, `stay`, `reject`, `disabled`, `in`, `implies`, `records` lifted from their definitions (proof for the sugar part) |
+| fn-141.4 | ⏸️ deferred | Claim patterns and sticky monitors by definition; lifter's sugar file gone; syntax lint holds the lifter to core |
+| fn-141.5 | ⏸️ deferred | Capture points (name, ID, position; function span and captured values) and lifting a function by span (proof for the export part) |
+| fn-141.6 | ⏸️ deferred | Refusal ledger: one outcome per refusal kind (deleted, kept and where, left to Go) |
+| fn-141.7 | ⏸️ deferred | Realization factories keep everything they are given |
+| fn-141.8 | ⏸️ deferred | Exporter; realizations exported; two-run determinism; init-order refusal; size proof with stop |
+| fn-141.9 | ⏸️ deferred | Signature exported: actions, inputs, channels, assumptions, holes, Limits; `codeOf` gone |
+| fn-141.10 | ⏸️ deferred | Machines exported: header, rules, monitors, refinement, derivations |
+| fn-141.11 | ⏸️ deferred | Compositions and syncs exported; `sync` and `replaces` record what they pair |
+| fn-141.12 | ⏸️ deferred | Properties, Scenarios, Queries and progress exported; the lifter's fold deleted; comprehension fixture |
+| fn-141.13 | ⏸️ deferred | Capability expansions exported, in the shape fn-134 leaves |
+| fn-141.14 | ⏸️ deferred | Dead lifter code, rules of record, docs, backends check, size report; close |
+
 ### Other deferred items
 
 - fn-122.7 (Pausable on fn-119's example) waits for fn-119; fn-122 itself is closed.
@@ -301,7 +343,8 @@ Rendered views per Model (signature, phase diagram, refinement, compositions, de
   (fn-125.6) is deferred with fn-125, so these Cases stay INCONCLUSIVE until the server is fixed or fn-125 resumes.
 - 691 lint findings accepted with reasons in `model/ir/*.lint.json` (fn-120.3); review the H2 reasons first.
 - Behavior-freeze follow-ups from fn-112: the witness-only Properties `terminated` and
-  `cancelRequestedWhileStarted`, and seven pause/unpause rows the server rejects.
+  `cancelRequestedWhileStarted`, and seven pause/unpause rows the server rejects. fn-140 deletes
+  `terminated` with its Query (R6) and turns `cancelRequestedWhileStarted` into a witness (R5).
 - Whether HSM and CHASM may count Nexus `attempt` differently; no current Query shows a difference (fn-125, deferred).
 - Whether upstream's Go conformance harness (`tests/activity_driver.go`) should run our IR through the Go interpreter instead of its hand-written model, making one Model drive both (`.plans/ACTIVITY_MODEL_COMPARISON.md` P3-12); needs the owning team. A workflow-scheduled activity realization (P3-11) overlaps the deferred fn-119.
 - The canary policy's `workflowPath` names the deleted production-canary workflow, so production dispatch

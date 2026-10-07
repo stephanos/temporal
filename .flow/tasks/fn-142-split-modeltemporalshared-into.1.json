@@ -12,6 +12,6 @@
   "spec_path": ".flow/tasks/fn-142-split-modeltemporalshared-into.1.md",
   "status": "todo",
   "sync": null,
-  "title": "Move shared/ to foundations/ and Bounds.scala to the root; regenerate; paths-only proof; docs",
-  "updated_at": "2026-10-06T20:41:20.169282Z"
+  "title": "Move shared/ to foundations/ and actors/, Bounds.scala to the root; regenerate; ID-mapping proof; docs",
+  "updated_at": "2026-10-06T22:31:32.970001Z"
 }

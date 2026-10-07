@@ -4,6 +4,8 @@ satisfies: [R7, R9]
 # fn-125-represent-dynamic-configuration-in-the.6 Declare API preconditions, derive each Case's required settings with origin, and build clusters from them
 
 ## Description
+**Partly absorbed by fn-144** (2026-10-06): the required-settings part of this task (required settings with relation and origin, the union of origins, and the refusal of conflicting origins) is delivered by fn-144 R17. The API preconditions, the harness and Q1 stay here.
+
 Implements R7, the harness half of R9, and the owner's Q1 decision. A typed method, a performed command kind or a Testpilot fault kind declares its preconditions in the kit, beside fn-118's behavior hints; lowering derives each Case's `Program.required_settings` from what its Program uses, with origin and source; the live harness builds each cluster from exactly those settings.
 
 **Cross-spec entry gate:** fn-118.2 done (`ApiBehavior` targets). Not concurrent with fn-124.8. Depends on task 5. This task unblocks fn-121.3's green CI evidence (the ShutdownWorker race); tell the conductor when it lands.
@@ -40,7 +42,6 @@ go test -count=1 -tags 'test_dep integration' ./tests -run TestTestpilotGenerate
 ### Execution constraints
 - Case-byte changes are only the recorded required-settings delta; Programs, expectations and Contracts are otherwise unchanged.
 - Workflow-Nexus Cases keep the (fixed) switch until task 7.
-
 ## Acceptance
 - [ ] Methods, performed command kinds and fault kinds declare preconditions in the kit: standalone activity, Pause/Unpause operator commands, standalone Nexus (`history.enableChasm`, `nexusoperation.enableStandalone`), and on `workerStop` both `enableCancelWorkerPollsOnShutdown=true` and `enableMatchingFanOutForPollCancellation=false` with a reason citing upstream #9424.
 - [ ] Lowering derives each Case's required settings from its Program's uses, with relation, origin and source; two origins requiring one key differently are refused naming both; an undeclared key is refused at its line.

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T19:17:45.418611Z",
+  "depends_on": [
+    "fn-141-shrink-the-ir-generator-one-description.2"
+  ],
+  "id": "fn-141-shrink-the-ir-generator-one-description.7",
+  "priority": null,
+  "spec": "fn-141-shrink-the-ir-generator-one-description",
+  "spec_path": ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.7.md",
+  "status": "todo",
+  "title": "Realization factories build complete values",
+  "updated_at": "2026-10-06T19:17:45.418611Z"
+}

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T19:17:45.418348Z",
+  "depends_on": [],
+  "id": "fn-141-shrink-the-ir-generator-one-description.2",
+  "priority": null,
+  "spec": "fn-141-shrink-the-ir-generator-one-description",
+  "spec_path": ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.2.md",
+  "status": "todo",
+  "title": "Retire the spellings no Model and no kit file uses",
+  "updated_at": "2026-10-06T19:17:45.418348Z"
+}

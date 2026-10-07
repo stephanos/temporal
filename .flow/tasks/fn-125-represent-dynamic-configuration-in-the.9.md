@@ -4,6 +4,8 @@ satisfies: [R10]
 # fn-125-represent-dynamic-configuration-in-the.9 Declare bound assumptions on server durations and check them at preparation
 
 ## Description
+**Partly absorbed by fn-144** (2026-10-06): the relation and preparation-check part of this task, for relations that Tag bounds use (`atMost`/`atLeast` checked against the Profile, fail closed), is delivered by fn-144 R17. The bound assumptions on server durations, the harness's declared values and the scale-factor check stay here.
+
 Implements R10 (spec Part D). A wait bound or kit deadline that rests on a server duration declares an `atMost` / `atLeast` assumption beside fn-118's bound; lowering adds it to the Case's required settings with its relation and origin; preparation checks the relation against the Profile; the functional harness runs the key at its declared value. The Model holds no duration.
 
 **Cross-spec entry gate:** fn-118.4 done (bounds derived in the lowering). Coordinate with fn-124.3, which moves timeouts and activity attempts into the realization: whichever lands second rebases, and the assumption sits on the declaration fn-124.3 leaves. Not concurrent with fn-124.8. Depends on task 6.
@@ -36,7 +38,6 @@ go test -count=1 -tags test_dep -p 2 ./tools/umpire/... ./common/testing/testpil
 
 ### Execution constraints
 - No Model duration; timers stay actions. Case bytes change only by the recorded assumption entries.
-
 ## Acceptance
 - [ ] The timer slack and the Nexus attempt poll declare their server-duration assumptions; each relation in `DYNAMIC_CONFIG.md` section 4 is declared or listed with the Case that would need it.
 - [ ] Preparation checks `atMost`/`atLeast` against the Profile; an unmet or unstated relation (any Profile, fail closed per Q3) is `PreparationUnavailable` naming key, relation, value and origin position.

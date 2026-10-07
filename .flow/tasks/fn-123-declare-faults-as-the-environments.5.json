@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T19:54:34.043846Z",
+  "depends_on": [
+    "fn-123-declare-faults-as-the-environments.4"
+  ],
+  "id": "fn-123-declare-faults-as-the-environments.5",
+  "priority": null,
+  "spec": "fn-123-declare-faults-as-the-environments",
+  "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.5.md",
+  "status": "todo",
+  "title": "Budgets: budgetedBy, the four table rules in Go, LostStartAnswer bound to lossAvailable",
+  "updated_at": "2026-10-06T19:54:34.043846Z"
+}

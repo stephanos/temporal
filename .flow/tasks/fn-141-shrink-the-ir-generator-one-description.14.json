@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T19:17:45.418925Z",
+  "depends_on": [
+    "fn-141-shrink-the-ir-generator-one-description.4",
+    "fn-141-shrink-the-ir-generator-one-description.11",
+    "fn-141-shrink-the-ir-generator-one-description.13"
+  ],
+  "id": "fn-141-shrink-the-ir-generator-one-description.14",
+  "priority": null,
+  "spec": "fn-141-shrink-the-ir-generator-one-description",
+  "spec_path": ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.14.md",
+  "status": "todo",
+  "title": "Close: remaining lifter code, rules of record, docs and counts",
+  "updated_at": "2026-10-06T19:17:45.418925Z"
+}

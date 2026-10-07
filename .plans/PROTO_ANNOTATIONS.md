@@ -1,602 +1,1226 @@
-# Proto annotations: semantic types and validation in the Umpire IR
+# Proto tags: Domains, Tags and validation in the Umpire IR
 
-Research note, 2026-10-06. The question: how do we annotate any protobuf message and its fields
-with metadata (semantic annotations such as `namespace`, plus the validation rules they bring),
-carry that metadata in the Umpire IR rather than in a separate IR, and keep it tightly connected
-to the Model? Planned use: generate valid, boundary and invalid inputs for Cases and Exploration.
-Visionary use, kept open but not scoped: generate Go validation code.
+Research note, 2026-10-06. Revised the same day with the owner's decisions:
+
+- the words Domain and Tag;
+- no links to server code;
+- input classes derived from Domains;
+- generic Tags with data, interpreted by consumers;
+- cross-field Conditions;
+- exhaustive tagging;
+- message templates;
+- run-time bounds through fn-125.
+
+The owner's answers to the open questions are in section 11, "Decisions (2026-10-06)". The design
+below is written to them.
+
+The question: how do we tag any protobuf message and its fields with metadata (a meaning such as
+`namespace`, plus the validation it brings), carry that metadata in the Umpire IR rather than in a
+separate IR, and keep it tightly connected to the Model? Planned use: generate valid, boundary and
+violating inputs for Cases and Exploration. Visionary use, kept open but not scoped: generate Go
+validation code.
+
+The words are fixed in section 7:
+
+- A **Tag** is a name plus data. It attaches to a message, a field path or a tagged Domain.
+- A **Tag Definition** declares a Tag's name, data schema, targets, whether it rejects, and its
+  message template.
+- A **Domain** is a set of values: the framework's existing concept, an input's domain, now in
+  two forms. A *finite* Domain lists Model values (`Finite[T]`, today's input domains). A *tagged*
+  Domain describes protobuf field values by Tags, and its derived classes are what make it finite
+  for the Model.
+- `unconstrained` is the no-op Tag that exhaustive tagging uses for fields with nothing to say.
 
 Grounded in `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_VISION.md`, `.plans/UMPIRE_MODULES.md`,
 `model/README.md`, `model/SEMANTICS.md`, the working-tree `ir.proto`, `model/umpire`,
-`model/temporal`, `tools/umpire`, and the server's validators. Line numbers are from the working
-tree on 2026-10-06. External claims link to primary sources. **[unverified]** marks a claim that
-could not be confirmed.
+`model/temporal`, `tools/umpire`, `.flow/specs/fn-125-*`, `.plans/DYNAMIC_CONFIG.md`, and the
+server's validators. Line numbers are from the working tree on 2026-10-06. External claims link to
+primary sources. **[unverified]** marks a claim that could not be confirmed.
+
+Server citations appear only in the research sections (1, 4). The design links to no server code.
 
 ## Answer
 
-**Declare semantic types in the Scala Temporal kit, built from a closed constraint vocabulary that
-the Temporal-agnostic framework provides. Attach them to protobuf fields with the typed field
-selectors realizations already use. Lift them into a new section of the existing IR. A new
-Temporal-agnostic Go module checks and generates values from them.** Do not use proto custom
-options as the source of truth, and do not use a sidecar overlay file.
+**The IR gains a generic, Temporal- and validation-agnostic tag mechanism.**
+
+- A Tag carries data as named `Operand`s. `Operand` is the IR's existing protobuf-literal and
+  condition language.
+- Tag Definitions declare each Tag's schema, targets, whether it rejects, and its default
+  message template, so the lifter and Go admission check every use's shape.
+- A tagged Domain is a set of protobuf values described by Tags. It is the same concept as an
+  input's finite domain, not a new one.
+- Every request message of an RPC a realization uses has one exhaustive Tag Set, checked at lift
+  against its descriptor and recursing into every message it reaches. A Tag Set is the tagged
+  Domain of its message.
+- Source location follows ownership.
+  - An RPC's request Tag Set lives in the package of the feature that owns the RPC.
+  - Shared Domains, shared message Tag Sets, the kit's Tag Definitions and its settings live in
+    `model/temporal/foundations/`, the renamed `shared/`, beside the task queue. fn-142 performs
+    the rename and moves the worker and the client to `model/temporal/actors/` and `Bounds.scala`
+    to `model/temporal/`.
+  - IR files follow source: each feature's IR file carries its own Tags, and a foundations IR file
+    carries the shared ones and is referenced by the others.
+  - Every RPC a realization uses has exactly one owning package and an exhaustive Tag Set. Every
+    message type it reaches has exactly one owning Tag Set. Unused RPCs need nothing, and a gate
+    check enforces the rest.
+
+**Meaning lives in consumers, not in the IR.**
+
+- The framework ships the first Tag library: validation (`required`, `length`, `pattern`,
+  `range`, `requires`, …, plus `unconstrained`). Its names stay close to protovalidate, and its
+  meanings are normative in `model/SEMANTICS.md`.
+- The kit (in `foundations/`) adds Temporal markers (`namespace`, `workflowId`, …), shared Domains, and the
+  dynamic-config keys bounds refer to.
+- A new Temporal-agnostic Go module, `tools/umpire/values`, interprets the validation library: it
+  checks values and generates valid, boundary and violating members. Every Tag a consumer does not
+  interpret is reported. A rejecting one becomes a Known Gap.
+- Run-time limits resolve through fn-125.5 and a slice of fn-125.6, pulled forward. Lowering
+  records each key a generated value rests on in the Case's required settings, as an
+  `atMost`/`atLeast` relation, and remote Profiles fail closed.
 
 Why this design:
 
 - **Proto options cannot be the source today.**
   - The public request messages come from the external `go.temporal.io/api` module as compiled
     `.pb.go` files (`go.mod:75`). The module cache holds no `.proto` sources.
-  - `proto/api.binpb` is rebuilt from the linked Go registry (`Makefile:335-338`). This repo has
-    nothing it could annotate.
+  - `proto/api.binpb` is rebuilt from the linked Go registry (`Makefile:335-338`).
   - Protobuf has no way to attach options to another file's messages. protovalidate has no overlay
     either ([protovalidate](https://github.com/bufbuild/protovalidate); absence searched,
     **[unverified]**).
   - ScalaPB's auxiliary options do apply to other files, but they carry only ScalaPB's own options
     ([ScalaPB customizations](https://scalapb.github.io/docs/customizations/)).
   - The server uses neither protovalidate nor PGV.
-  - The public API does not even carry `google.api.field_behavior`. Its comments say the
-    annotation is "not available in our gogo fork" (module cache,
-    `workflowservice/v1/request_response.pb.go:6618-6620`).
-- **The kit is where the vision says Temporal knowledge lives.**
-  - "The Models are the only smart component", and "Temporal stays at the edges"
-    (`.plans/UMPIRE4_VISION.md:93-100`).
-  - A field's validation decides whether a request is rejected. That is behavior, so it belongs
-    to a Model Definition with an ID and a fingerprint (`.plans/UMPIRE4_SPEC.md:47-53`, AUT-04
-    `:263`). It is not Generated Data, which "describes what information exists, not how it
-    affects behavior" (`:49-50`).
-  - The framework supplies the generic vocabulary (length, pattern, range, presence, size). The
-    kit supplies the Temporal names (`namespace`, `taskQueueName`, `limit.maxIDLength`). The IR
-    and Go carry only declared names, as the vision requires (`:55-60`).
-- **Tight connection to the Model is the point.**
-  - An action input class can be declared as a partition of a semantic type (valid, too long,
-    missing).
-  - The class's Abstraction Claim then gets a defined member set, which is exactly what the spec
-    says Exploration samples (`.plans/UMPIRE4_SPEC.md:247-250`, `:453-459`).
-  - An invalid class's row is `rejects(invalidArgument)`, using fn-139's shared `Rejection`
-    (`.flow/specs/fn-139-actor-grouped-rules-per-rpc-actions.md:55`). fn-139.8's code table
-    checks the observed code (`:61`).
-- **The annotations become tested claims, not documentation.**
-  - The server has no single declarative source to stay in sync with. Its rules are spread over
-    an interceptor, the frontend, CHASM validators and history (inventory below).
-  - So drift is caught the Umpire way: an invalid-boundary Case whose Verdict turns violated.
-
-The constraint vocabulary is closed and typed, with constraint IDs and parameterized bounds. That
-keeps Go codegen open: it is the same shape Kubernetes' `validation-gen` compiles to native Go
-([KEP-5073](https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/5073-declarative-validation-with-validation-gen)).
-An export to protovalidate predefined rules is a later Generated View, not a source.
+  - The public API does not carry `google.api.field_behavior`. Its comments say the annotation is
+    "not available in our gogo fork" (module cache, `workflowservice/v1/request_response.pb.go:6618-6620`).
+- **This is Smithy's model.** In Smithy, validation traits are ordinary traits whose shape is
+  declared ([defining traits](https://smithy.io/2.0/spec/model.html#defining-traits)).
+  - The IR knows only "a Tag of a declared shape". So it stays as the vision wants: Temporal
+    appears "only as declared names and payload types" (`.plans/UMPIRE4_VISION.md:55-60`).
+  - Validation is one Tag library among future ones (documentation, Driver hints, response
+    checks), and none of them costs an IR change.
+- **Tight connection to the Model.**
+  - An action takes one input over its request's Tag Set. That input's domain is the
+    **single-fault** classes: `valid`, plus one class per (field path, rejecting Tag), with every
+    other field valid. That is 1 + Σ rejecting Tags, linear, not a cross product.
+  - The input is an ordinary finite input: the checker, the IR and the Quint export see an enum, as
+    they do today.
+  - Each class's Abstraction Claim gets a defined member set, which is what the spec says
+    Exploration samples (`.plans/UMPIRE4_SPEC.md:247-250`, `:453-459`).
+  - A violating class's row is `rejects(invalidArgument)`, using fn-139's shared `Rejection`
+    (`.flow/specs/fn-139-actor-grouped-rules-per-rpc-actions.md:55`).
+  - A kit-level `Validated` capability law holds every violating class to that status code and to
+    no state change. fn-139.8's code table checks the observed code (`:61`), and Conformance
+    compares status codes only.
+- **Tags are tested claims, not documentation.** The server has no single declarative source: its
+  rules are spread over an interceptor, the frontend, CHASM validators and history (section 4).
+  Drift shows up as a violating-boundary Case whose Verdict turns violated.
+- **Exhaustiveness is a forcing function.** When `go.temporal.io/api` gains a field, `make
+  umpire-check-model` fails, naming it, until someone tags it.
 
 ## 1. Current state in the repo
 
 ### How requests and inputs are represented
 
 - **Model inputs are finite abstract classes, never concrete request values.**
-  - An action has `inputs` (finite `TypeRef`s), `schemas` (message full names) and `examples`
-    (`ir.proto:322-343`). An `Example` is an Abstraction Claim: a class value plus a free-text
-    `example` (`ir.proto:345-349`; `model/umpire/Action.scala:29-31`, `:120-124`).
-  - Admission checks only that an example belongs to a class of a one-input action
-    (`model/SEMANTICS.md:705-706`). The string is opaque.
+  - An action has `inputs` (finite `TypeRef`s), `schemas` and `examples` (`ir.proto:322-343`).
+  - An `Example` is an Abstraction Claim: a class value plus a free-text `example`
+    (`ir.proto:345-349`; `model/umpire/Action.scala:29-31`, `:120-124`). Admission checks only
+    that its class exists (`model/SEMANTICS.md:705-706`).
   - Lowering copies the claims on a Case's path into provenance (`tools/umpire/check/claims.go:236-250`,
     `tools/umpire/lower/internal/producer/producer.go:442-447`, `case.proto:35-38`). Nothing reads
     them for values.
-- **Concrete request values are realization constants.** For example `field(_.namespace) :=
+- **Concrete request values are realization constants**, for example `field(_.namespace) :=
   workerNamespace` (`model/README.md:1324-1345`).
-  - An `Assignment` is a field path plus an `Operand` (`ir.proto:1152-1156`). An operand is a
-    literal `ProtoValue`, an environment binding, the run id, a learned value, or a small boolean
-    language over paths (`ir.proto:1236-1255`, `:1302-1317`).
-  - The kit binds namespace and task queue to Profile-owned environment values (ART-13,
-    `.plans/UMPIRE4_SPEC.md:347-354`; `model/temporal/realize/Kit.scala:59-62`). IDs come from the
-    run id (`:65`), and type names come from `perCase` (`:68`).
-- **Descriptors are already the authority on field shape, on both sides.**
-  - Scala: the Models compile against ScalaPB classes for the linked API (`.plans/UMPIRE_MODULES.md:85-90`).
-    The lifter resolves typed `Field[Root, V]` selectors (`model/umpire/realize/Typed.scala:4`)
-    through ScalaPB descriptors (`model/irgen/Realizations.scala:163-168`).
-  - Go: lowering re-checks every message, path and value kind against
-    `protoregistry.GlobalFiles` (`tools/umpire/lower/descriptor.go:37-48`;
-    `model/SEMANTICS.md:781-786`).
-- **Exploration enumerates authored Scenario alternatives only.** Admission caps it at 4096
-  combinations (`model/SEMANTICS.md:899-907`; `model/README.md:1394-1398`).
-  - The spec's "class-member target" is defined (`.plans/UMPIRE4_SPEC.md:453-459`), but
-    `tools/umpire/explore` has no implementation of it.
-  - No Model has an invalid-input class today.
-- **A Case's Contract does not check ID spellings or payload equality** (`model/README.md:1387-1390`).
+  - An `Assignment` is a path plus an `Operand` (`ir.proto:1152-1156`). An `Operand` is a literal
+    `ProtoValue`, an environment binding, the run id, a learned value, or the conditions `Present`,
+    `Equal`, `All`, `Greater` and `Not` (`ir.proto:1236-1290`, `:1302-1317`).
+  - Namespace and task queue are Profile-owned bindings (ART-13, `.plans/UMPIRE4_SPEC.md:347-354`;
+    `model/temporal/realize/Kit.scala:59-62`). IDs are the run id (`:65`), and type names come from
+    `perCase` (`:68`).
+- **The lifter already reads ScalaPB descriptors.**
+  - `messageDescriptor` loads a message's companion and takes `companion.scalaDescriptor`
+    (`model/irgen/Realizations.scala:163-172`).
+  - `selectorPath` walks a typed `Field[Root, V]` selector's lambda through that descriptor,
+    including oneof members, to an IR path (`:235-315`).
+  - `Action.schema` records `companion.scalaDescriptor.fullName` (`model/umpire/Action.scala:70-72`).
+- **Typed realization conditions already exist, and they are a deep embedding.**
+  - `Condition[Root]` builds data: a selector, an optional value, children
+    (`model/umpire/realize/Typed.scala:73-105`).
+  - The lifter turns it into `Operand` by reading the call tree by method name (`present`,
+    `equal`/`greater`, `not`, `all`: `model/irgen/Realizations.scala:501-545`).
+  - `equal` and `greater` build identical values (`Typed.scala:84-96`). fn-141.7 already tracks
+    this: "`Condition.equal`, `greater`, `not` and `all` keep their operator; today two pairs build
+    identical values" (`.flow/tasks/fn-141-shrink-the-ir-generator-one-description.7.md:16`).
+- **Go re-checks paths and kinds against `protoregistry.GlobalFiles`**
+  (`tools/umpire/lower/descriptor.go:37-48`; `model/SEMANTICS.md:781-786`).
+- **Testpilot's expression language already has `AnyExpression`** (`proto/internal/temporal/server/api/testpilot/v1/expression.proto:22`, `:57`),
+  but the IR `Operand` has no `Any`.
+- **Exploration enumerates authored Scenario alternatives only, at most 4096**
+  (`model/SEMANTICS.md:899-907`). The spec's class-member target (`.plans/UMPIRE4_SPEC.md:453-459`)
+  is not implemented. No Model has an invalid-input class.
 
-### Where validation knowledge already hides, unchecked
+### Where validation knowledge already hides
 
-- **The activity realization restates a server rule in a comment.** "The server refuses a start
-  that sets neither a start-to-close nor a schedule-to-close deadline", so it writes a 300 s
-  deadline (`model/temporal/features/activity/standalone/system/Realization.scala:72-84`;
-  `model/temporal/realize/Kit.scala:75-86`).
-  - The rule is `chasm/lib/activity/validator.go:171-194`.
-  - Nothing checks that the realization obeys it.
-- **ID lengths, blob sizes and similar limits are deliberately unmodeled.** fn-125 says they
-  "stay unmodeled until a Query needs one" (`.flow/specs/fn-125-represent-dynamic-configuration-in-the.md:134`).
-  - fn-125 Part B already plans one typed kit declaration per dynamic-config key, with a Go test
-    that pins each declaration to the server registry (`:31`).
-  - fn-125 also says a value a request field can state is set in the request and visible in Case
-    bytes (`:27`).
-- **The internal protos carry custom options, but not on the public messages.** Their options
-  name request field paths by string, for example `option (routing).workflow_id =
-  "start_request.workflow_id"` (`proto/internal/temporal/server/api/historyservice/v1/request_response.proto:39-67`).
-  This is a precedent for field-path metadata.
+- **The activity realization restates the deadline rule in a comment.** "The server refuses a
+  start that sets neither a start-to-close nor a schedule-to-close deadline"
+  (`model/temporal/features/activity/standalone/system/Realization.scala:72-84`). The rule is in
+  `chasm/lib/activity/validator.go:171-194`, and nothing checks it.
+- **Realizations write 13 RPC requests** (`grep METHOD_ model/temporal`):
+  - StartActivityExecution, Pause, Unpause, RequestCancel, Terminate and Describe for activities;
+  - Start, RequestCancel, Terminate and Describe for Nexus operations;
+  - StartWorkflowExecution, DescribeWorkflowExecution and GetWorkflowExecutionHistory.
+
+  They also write ten `Proto[...]` messages, such as `Failure`, `ApiCommand` and
+  `StartOperationResponse`. `StartActivityExecutionRequest` alone has 22 fields.
+- **fn-125 deliberately leaves limits unmodeled.** It defers ID lengths and blob sizes "until a
+  Query needs one" (`.flow/specs/fn-125-represent-dynamic-configuration-in-the.md:134`). The spec
+  is deferred after task 1 (`:193-195`; `MILESTONES.md` fn-125).
 
 ### Constraints the design must respect
 
 | Source | Constraint |
 | --- | --- |
-| `.plans/UMPIRE4_VISION.md:93-105` | Knowledge only in Models; others mechanical; Temporal at the edges; one meaning, one source; fail closed; artifacts are the interfaces |
-| `.plans/UMPIRE_MODULES.md:31` | The DSL (`model/umpire`) names no Temporal concept; `TestFrameworkNamesNoTemporal` holds it to that, and "namespace" and "task queue" are on its word list (`:92-100`) |
+| `.plans/UMPIRE4_VISION.md:93-105` | Knowledge only in Models; others mechanical; Temporal at the edges; one meaning, one source; fail closed |
+| `.plans/UMPIRE_MODULES.md:31`, `:92-100` | The DSL names no Temporal concept (`TestFrameworkNamesNoTemporal`). So the validation Tag library may live in the framework, and `namespace` may not |
 | `.plans/UMPIRE_MODULES.md:30`, `:52` | IR depends only on protobuf support; Testpilot imports nothing from `tools/umpire` or `model` |
-| AUT-04/05 (`.plans/UMPIRE4_SPEC.md:263-268`) | Stable Definition IDs; cross-language data, no callbacks, so a constraint cannot be a Scala lambda |
-| PLN-02, ART-11 (`:304`, `:340-342`) | Same inputs and seed give the same Cases, byte for byte; generated values must be seeded |
-| SEM-19 (`:149-153`) | One word per concept. "Rule" is taken by Contract Rules and the machines' `rules` section; "Type" is the IR's finite types (`ir.proto:51-61`) |
-| `.plans/DSL_SIMPLIFICATION.md:65`, `:178`, `:192` | Lifter reads `val`/`def`; Scala annotations (`@binds`) rejected because the runtime cannot see them. So no `@namespace` Scala annotations; use vals |
-| AGENTS.md | No new third-party libraries unless asked. `rapid` and `protovalidate-go` are not in `go.mod`; only Go's stdlib `regexp/syntax` is free |
-| `.plans/UMPIRE_CEL_SPIKE.md:3-39` | The IR keeps its own expressions; CEL is an export target. `Operand` "already fits CEL", so it is the natural cross-field language |
+| AUT-04/05 (`.plans/UMPIRE4_SPEC.md:263-268`) | Stable IDs; cross-language data, no callbacks. A condition is data, never a Scala lambda |
+| PLN-02, ART-11 (`:304`, `:340-342`) | Same inputs and seed give the same Cases, byte for byte |
+| SEM-19 (`:149-153`) | One word per concept (section 7) |
+| `.plans/DSL_SIMPLIFICATION.md:65`, `:192` | No Scala annotations; the lifter reads `val`/`def` and constructed values |
+| AGENTS.md | No new third-party libraries; only Go's stdlib `regexp/syntax` |
+| `.plans/UMPIRE_CEL_SPIKE.md:3-39` | The IR keeps its own expressions; `Operand` "already fits CEL" |
+| fn-125 "Declared, not defaulted" (`:91`), decision 3 (`:157`) | No component assumes a server default; a remote Profile that cannot state a required key fails closed |
+| Owner, 2026-10-06 | The Model links to no server code: no `because`, citation or source path in the DSL, the IR or a Tag |
 
 ## 2. Prior art
 
-| System | Named reusable constraint | Composition | Runtime parameters | Overlay for protos you don't own | Input generation | Go code |
+| System | Named reusable constraint | Composition | Runtime parameters | Overlay | Input generation | Go code |
 | --- | --- | --- | --- | --- | --- | --- |
-| protovalidate | **Predefined rules**: an extension of `buf.validate.StringRules` with `(buf.validate.predefined).cel`, whose value is bound as `rule` ([docs](https://protovalidate.com/schemas/predefined-rules/)) | AND of all rules on a field ([standard rules](https://protovalidate.com/schemas/standard-rules/)) | Value fixed in the schema; none at runtime **[unverified absence]** | None | None from Buf; `example` field only ([validate.proto](https://raw.githubusercontent.com/bufbuild/protovalidate/main/proto/protovalidate/buf/validate/validate.proto)); third-party FauxRPC uses lengths, patterns and formats, not CEL ([FauxRPC](https://fauxrpc.com/docs/protovalidate/)) | Runtime evaluation; standard rules are native Go since v1.3.0, CEL is the fallback, and conformance runs twice to prove they agree ([blog](https://buf.build/blog/faster-protovalidate), [pkg](https://pkg.go.dev/buf.build/go/protovalidate)) |
-| protoc-gen-validate | None **[unverified]** | AND | None | None | None | Generated `Validate()` / `ValidateAll()`; in maintenance mode ([repo](https://github.com/bufbuild/protoc-gen-validate)) |
-| Google AIPs | `field_info.format` (UUID4, IPV4, …) ([field_info.proto](https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/field_info.proto)); `resource_reference` ([AIP-123](https://google.aip.dev/123)) | n/a | n/a | n/a | n/a | Descriptive only: `field_behavior` "does not itself add any validation" ([AIP-203](https://google.aip.dev/203)) |
-| Smithy | Constrained named shape: `@length(min:1,max:255) string NamespaceName` ([constraint traits](https://smithy.io/2.0/spec/constraint-traits.html)) | **Member traits supersede** the target's ([model](https://smithy.io/2.0/spec/model.html)) | None | **`apply`**: lists concatenate, equal values dedupe, other conflicts are errors (same page) | Hand-written malformed-request tests ([compliance tests](https://smithy.io/2.0/additional-specs/http-protocol-compliance-tests.html)) | smithy-rs: constrained newtypes plus a violation enum per trait ([RFC-0025](https://smithy-lang.github.io/smithy-rs/design/rfcs/rfc0025_constraint_traits.html)) |
-| JSON Schema / OpenAPI 3.1 | `$ref` reusable schemas; `format` is only an annotation unless the assertion vocabulary is on ([validation](https://json-schema.org/draft/2020-12/json-schema-validation)) | `$ref` with sibling keywords ANDs, so it only tightens ([core](https://json-schema.org/draft/2020-12/json-schema-core)) | None | **Overlay 1.0**: JSONPath `target` with `update`/`remove` ([spec](https://spec.openapis.org/overlay/v1.0.0.html)) | Schemathesis: positive and negative modes; boundary lengths 1, 2, 3, 9, 10, 11 for min 2 / max 10 ([docs](https://schemathesis.readthedocs.io/en/stable/explanations/data-generation/)); hypothesis-jsonschema builds by construction, not filter ([repo](https://github.com/python-jsonschema/hypothesis-jsonschema)) | n/a |
-| Scala iron / refined | `type Username = String :| (Alphanumeric & MinLength[5])` ([iron](https://iltotore.github.io/iron/docs/reference/constraint.html)) | `&`, `|`, `DescribedAs`; refined `And`/`Not` ([refined](https://github.com/fthomas/refined)) | Type-level literals only | n/a | iron-scalacheck: a generator per known constraint, filtering otherwise ([module](https://iltotore.github.io/iron/docs/modules/scalacheck.html)) | n/a |
-| Kubernetes | `+k8s:format=dns-label`, with formats scoped to a type; formats declarable in YAML ([validation-gen](https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io/code-generator/cmd/validation-gen/validators)) | Tags AND; CEL for exceptions | ValidatingAdmissionPolicy `paramRef`, read as `params.x` ([VAP](https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/)); `+k8s:ifEnabled` | Tags in Go source | n/a | **validation-gen** emits native Go; shadow mode counts mismatches against hand-written validation ([KEP-5073](https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/5073-declarative-validation-with-validation-gen)) |
-| Hypothesis / rapid | `register_type_strategy`, `from_regex(fullmatch=True)` ([strategies](https://hypothesis.readthedocs.io/en/latest/reference/strategies.html)); rapid `StringMatching` (Go `syntax.Perl`) ([pkg](https://pkg.go.dev/pgregory.net/rapid)) | n/a | n/a | n/a | By construction, plus filter, plus hand-written generators | n/a |
-| CEL | n/a | n/a | n/a | n/a | Partial evaluation leaves a residual predicate ([cel-go](https://github.com/google/cel-go)); cel-java's Z3 verifier yields counterexamples ([verifier](https://github.com/cel-expr/cel-java/tree/main/verifier)), but its use as an input generator is **[unverified]** | Cost estimation: `EstimateCost`, `CostLimit` ([pkg](https://pkg.go.dev/github.com/google/cel-go/cel)) |
+| protovalidate | **Predefined rules**: an extension of `buf.validate.StringRules` with `(buf.validate.predefined).cel`, its value bound as `rule` ([docs](https://protovalidate.com/schemas/predefined-rules/)) | AND ([standard rules](https://protovalidate.com/schemas/standard-rules/)) | Fixed in the schema **[unverified absence]** | None | `example` field only ([validate.proto](https://raw.githubusercontent.com/bufbuild/protovalidate/main/proto/protovalidate/buf/validate/validate.proto)); FauxRPC, third party ([docs](https://fauxrpc.com/docs/protovalidate/)) | Runtime, with native Go plus a CEL fallback checked by a double conformance run ([blog](https://buf.build/blog/faster-protovalidate)) |
+| protoc-gen-validate | None **[unverified]** | AND | None | None | None | Generated `Validate()`; in maintenance ([repo](https://github.com/bufbuild/protoc-gen-validate)) |
+| XML Schema 1.1 | Simple types restricted by constraining facets: `length`, `minLength`, `maxLength`, `pattern`, `enumeration`, the inclusive and exclusive bounds, … ([Part 2 §4.3](https://www.w3.org/TR/xmlschema11-2/#rf-facets)) | Restriction only narrows the value space (same page) | None | n/a | n/a | n/a |
+| Google AIPs | `field_info.format` ([proto](https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/field_info.proto)), `resource_reference` ([AIP-123](https://google.aip.dev/123)) | n/a | n/a | n/a | n/a | Descriptive only ([AIP-203](https://google.aip.dev/203)) |
+| Smithy | Constrained named shapes; **traits are shapes**: `@trait` with a selector, the trait's value checked against its declared shape ([model](https://smithy.io/2.0/spec/model.html)) | Member traits supersede the target's | None | **`apply`** (same page) | Hand-written compliance tests ([spec](https://smithy.io/2.0/additional-specs/http-protocol-compliance-tests.html)) | smithy-rs newtypes plus violation enums ([RFC-0025](https://smithy-lang.github.io/smithy-rs/design/rfcs/rfc0025_constraint_traits.html)) |
+| JSON Schema / OpenAPI 3.1 | `$ref`; `format` is an annotation unless asserted ([validation](https://json-schema.org/draft/2020-12/json-schema-validation)) | `$ref` siblings AND ([core](https://json-schema.org/draft/2020-12/json-schema-core)) | None | Overlay 1.0 ([spec](https://spec.openapis.org/overlay/v1.0.0.html)) | Schemathesis positive and negative modes; boundaries 1, 2, 3, 9, 10, 11 for min 2 / max 10 ([docs](https://schemathesis.readthedocs.io/en/stable/explanations/data-generation/)) | n/a |
+| Kubernetes | Type-scoped formats, declarable in YAML ([validation-gen](https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io/code-generator/cmd/validation-gen/validators)) | AND; CEL for exceptions | VAP `params` ([docs](https://kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/)) | Tags in source | n/a | validation-gen emits native Go behind a shadow mode ([KEP-5073](https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/5073-declarative-validation-with-validation-gen)) |
+| Hypothesis / rapid | `register_type_strategy`, `from_regex` ([docs](https://hypothesis.readthedocs.io/en/latest/reference/strategies.html)); rapid `StringMatching` ([pkg](https://pkg.go.dev/pgregory.net/rapid)) | n/a | n/a | n/a | Construction, plus filter, plus hand-written | n/a |
+| CEL | n/a | n/a | n/a | n/a | Partial evaluation ([cel-go](https://github.com/google/cel-go)); a Z3 verifier yields counterexamples, untested as a generator ([verifier](https://github.com/cel-expr/cel-java/tree/main/verifier)) **[unverified]** | `EstimateCost` ([pkg](https://pkg.go.dev/github.com/google/cel-go/cel)) |
 
 What transfers:
 
-1. **A named semantic type is a bundle of constraints, referenced by name.** The models are
-   Smithy's constrained shape, protovalidate's predefined rule and validation-gen's type-scoped
-   format. Generators and later codegen key off the name.
-2. **Use tighten-only AND by default (JSON Schema `$ref`, protovalidate).** Smithy-style override
-   is allowed only explicitly, with a reason, like capabilities' `except`/`overriding`
-   (`.plans/SEMANTIC_PROTOCOLS.md:147-150`). Then a field can never accept what its semantic type
-   rejects unless a reviewer approved it.
-3. **Keep the vocabulary closed, with an escape hatch.** Length, range, pattern, enum membership,
-   presence and size can each be generated by construction and compiled to native Go. Any other
-   predicate is generate-and-filter or a hand-written generator (validation-gen, hypothesis-jsonschema,
-   iron-scalacheck).
-4. **Parameters are symbolic and resolved per run** (VAP `params`). protovalidate's `rule` is
-   parameterized but fixed in the schema, which cannot express `limit.maxIDLength`.
-5. **Invalid inputs violate exactly one constraint, at its boundary** (Schemathesis coverage and
-   negative modes). Each generated value is tagged with the constraint it targets (smithy-rs's
-   per-trait violation enum).
-6. **Pin the regex dialect, the anchoring and the length unit.** Smithy and JSON Schema use
-   unanchored ECMA-262. protovalidate uses RE2. The server measures lengths with Go `len`, which
-   counts bytes.
-7. **Overlays work when they are keyed by fully qualified field and merged strictly** (Smithy
-   `apply`, OpenAPI Overlay). Our typed `Field` selector is a type-checked version of the same
-   idea.
-8. **Prove a codegen'd validator against the reference evaluator on the same generated corpus**
-   (protovalidate's double conformance run, K8s shadow mode). The generated inputs double as the
-   conformance suite.
+1. **Tags whose shape is declared, as in Smithy.** Meaning is attached by libraries and consumers.
+   The IR checks the shape.
+2. **A tagged Domain is a named bundle, as Smithy shapes, protovalidate predefined rules and XSD restricted
+   types are.** Composition is tighten-only AND; loosening must be explicit.
+3. **A closed, interpretable core library.** Length, range, pattern, enumeration, presence and
+   size are generated by construction and compile to native Go. Anything else is
+   generate-and-filter or hand-written.
+4. **Symbolic parameters resolved per run** (VAP). protovalidate's `rule` cannot express
+   `limit.maxIDLength`.
+5. **Violate exactly one Tag at its boundary** (Schemathesis). Name the Tag violated (smithy-rs).
+6. **Pin the regex dialect, the anchoring and the length unit.** The server's lengths are Go `len`
+   bytes.
+7. **Prove a generated validator on the generated corpus** (protovalidate's double run, K8s shadow
+   mode).
 
-## 3. Temporal validation inventory
+## 3. Existing Scala libraries
 
-### Rules
+None of these can be the core.
+
+| Library | What it is | Why not the core |
+| --- | --- | --- |
+| **iron** | `String :| (Alphanumeric & MinLength[5])`. "Constraint parameters are held by the dummy type as type parameters, not constructor parameters"; `test` is `inline`; `RuntimeConstraint` avoids the inline summoning ([reference](https://iltotore.github.io/iron/docs/reference/constraint.html)) | The lifter reads values and `val`/`def` trees (`.plans/DSL_SIMPLIFICATION.md:178`). A constraint that exists only as a type gives it nothing to read. A dynamic-config bound cannot be a literal type |
+| **iron-scalacheck** | `Arbitrary` per supported constraint, filtering otherwise ([module](https://iltotore.github.io/iron/docs/modules/scalacheck.html)) | Inherits the type-level form, and generates in Scala while Cases are produced in Go (`.plans/UMPIRE_MODULES.md:46`) |
+| **refined** | Type-level predicates (`Int Refined Positive`), checked at compile time; `refineV` at runtime; `refined-scalacheck` ([repo](https://github.com/fthomas/refined)) | Same as iron |
+| **scalapb-validate** | A generator that "uses the same validation rules provided by protoc-gen-validate", `[(validate.rules).string.email = true]` ([docs](https://scalapb.github.io/docs/validation/)); its docs do not mention protovalidate | Needs PGV annotations in `.proto` sources, which this repo does not have |
+| **smithy4s** | Trait values reflected at runtime as schema hints, e.g. `.addHints(smithy.api.Length(Some(1), None))` ([schemas](https://disneystreaming.github.io/smithy4s/docs/design/schemas/)); constraint traits reified into refinements ([v0.19.13](https://github.com/disneystreaming/smithy4s/releases/tag/v0.19.13)) | The right model, value-level, but it brings a second schema system next to the descriptors and the IR (`.plans/UMPIRE4_VISION.md:101-102`) |
+| **ScalaCheck** | `Gen`, `Arbitrary` | Relevant only if generation moved from Go to Scala. Go is the single evaluator (`model/README.md:93-94`) |
+
+**Conclusion:** write a small tag mechanism and a validation Tag library ourselves, as values the
+lifter reads. Borrow the library's names and meanings from protovalidate's standard rules
+(`min_len`, `max_len`, `pattern`, `in`, `not_in`, `required` and its presence semantics) and from
+XSD's constraining facets (`length`, `minLength`, `maxLength`, `pattern`, `enumeration`, the bounds,
+and the rule that restriction only narrows).
+
+## 4. Temporal validation inventory
 
 `DC` = `common/dynamicconfig/constants.go`. `IA` = `InvalidArgument`. `MaxIDLength` =
-`limit.maxIDLength`: global, default 1000, shared by namespace, task queue, workflow/activity/timer
-IDs and types, signal name, identity and request ID (`DC:527-532`).
+`limit.maxIDLength`: global, default 1000, shared by namespace, task queue, IDs, types, signal name,
+identity and request ID (`DC:527-532`).
 
 | Concept | Rule | Static / dynamic | Enforced at | Error |
 | --- | --- | --- | --- | --- |
 | namespace | required | static | `common/rpc/interceptor/namespace_validator.go:376-380` | IA "Namespace not set on request." (`:40`) |
-| namespace | `len ≤ MaxIDLength`; **no charset rule, regex or reserved names** ("currently only a max length check") | `limit.maxIDLength` | `namespace_validator.go:183`, `:191-195` (interceptor, before lookup); again `service/frontend/workflow_handler.go:6970-6976`, `service/history/api/create_workflow_util.go:302-304` | IA "Namespace length exceeds limit." |
-| namespace (Register) | retention a valid duration ≥ min; bad binaries ≤ N; duplicate | `system.namespaceMinRetention{Global,Local}` (`DC:241`, `:246`), `frontend.maxBadBinaries` (`DC:915`) | `service/frontend/namespace_handler.go:1291-1306`, `:512-519`, `:128-132` | IA; AlreadyExists |
+| namespace | `len ≤ MaxIDLength`; **no charset, regex or reserved names** | `limit.maxIDLength` | `namespace_validator.go:183`, `:191-195` (interceptor, before lookup); again `service/frontend/workflow_handler.go:6970-6976`, `service/history/api/create_workflow_util.go:302-304` | IA "Namespace length exceeds limit."; history: "Namespace exceeds length limit." |
+| namespace (Register) | retention ≥ min; bad binaries ≤ N; duplicate | `system.namespaceMinRetention*` (`DC:241`, `:246`), `frontend.maxBadBinaries` (`DC:915`) | `service/frontend/namespace_handler.go:1291-1306`, `:512-519`, `:128-132` | IA; AlreadyExists |
 | workflow id | required; `len ≤ MaxIDLength` | dynamic | `chasm/lib/workflow/validator.go:51-61`; `service/frontend/validators.go:15-28` | IA |
-| run id | optional; if set, `uuid.Validate` (accepts hyphenless, braced and urn forms) | static | `service/frontend/validators.go:22-26` | IA "Invalid RunId." |
+| run id | optional; `uuid.Validate` if set | static | `service/frontend/validators.go:22-26` | IA "Invalid RunId." |
 | workflow / activity type | required; `len ≤ MaxIDLength` | dynamic | `workflow_handler.go:654-660`; `chasm/lib/activity/validator.go:102-117` | IA |
-| activity id | required; `len ≤ MaxIDLength` | dynamic | `chasm/lib/activity/validator.go:102`, `:113` | IA |
-| task queue | set; empty name → default or IA; `len ≤ MaxIDLength`; no `/_sys/` prefix on a root partition; no `temporal-sys-per-ns-*` from users; UTF-8 and whitespace checks promised in doc comments, **not implemented** | dynamic | `common/tqid/task_queue_validator.go:93-146`; `common/primitives/task_queues.go:46-72` | IA |
-| signal / update / query name | required; `len ≤ MaxIDLength` (query: required only) | dynamic | `workflow_handler.go:2315-2321`, `:5547`, `:3315` | IA |
-| request id | empty is **auto-filled with a UUID**; `len ≤ MaxIDLength` | dynamic | `workflow_handler.go:6948-6963`; `chasm/lib/activity/validator.go:374-376` | IA |
-| identity | `len ≤ MaxIDLength` (worker APIs, standalone activity start) | dynamic | `workflow_handler.go:1094`; `chasm/lib/activity/validator.go:381` | IA |
-| duration | nil OK; seconds and nanos same sign; ≥ 0; above 100 y **silently capped** | static | `common/primitives/timestamp/duration.go:12`, `:67-88` | IA |
-| activity timeouts (cross-field) | start-to-close or schedule-to-close > 0; missing ones filled in; heartbeat ≤ start-to-close | static | `chasm/lib/activity/validator.go:151-214` | IA "a valid StartToCloseTimeout or ScheduleToCloseTimeout must be set…" (`:194`) |
-| retry policy | `maximum_attempts == 1` skips the rest; coefficient ≥ 1; max interval ≥ initial; attempts ≥ 0; timeout-type names valid | static, with DC defaults | `common/retrypolicy/retry_policy.go:103-140` | IA |
-| cron | parses with `robfig/cron.ParseStandard` and has a reachable next time; not combined with start delay | static | `common/backoff/cron.go:15-29`; `chasm/lib/workflow/validator.go:97-110` | IA |
-| ID reuse / conflict policies (cross-field) | TERMINATE_IF_RUNNING with a conflict policy, REJECT_DUPLICATE with TERMINATE_EXISTING, SignalWithStart with FAIL all rejected | static | `chasm/lib/workflow/validator.go:111-124`, `:204-206` | IA |
-| on-conflict options (cross-field) | attach callbacks ⇒ attach request id | static | `workflow_handler.go:6644-6651` | IA |
-| priority | key ≥ 0; fairness key ≤ 64 bytes (**hard-coded**); weight ≥ 0 | static | `common/priorities/priority_util.go:11`, `:51-62` | IA |
-| search attributes | key count; defined; not system; type decodes; value size; total size | `frontend.searchAttributes{NumberOfKeys,SizeOfValue,TotalSize}Limit` (`DC:940-950`), **plus server state** (definitions) | `common/searchattribute/validator.go:79-232` | IA; Unavailable when metadata cannot load (`:98`) |
-| memo | size ≤ N | `limit.memoSize.*` (`DC:430-435`) | `create_workflow_util.go:256-268` | IA |
-| payloads (input, signal, query args) | rejected only when size > warn **and** > error | `limit.blobSize.{warn,error}` 512 KiB / 2 MiB, namespace (`DC:420-425`) | `common/util.go:604-633` | IA "Blob data size exceeds limit." |
-| payloads (heartbeat, activity result, WFT failure) | oversize **converts to a failure** or truncates; RPC accepted | same | `workflow_handler.go:1478-1500`, `:1678-1700`, `:1303-1317` | none on the RPC |
-| header | not enforced; only a metric is recorded | none | `create_workflow_util.go:239`; `workflow_handler.go:3327` | none |
-| links | count; size; required fields per variant; unknown variant rejected | `frontend.maxlinksPerRequest`, `frontend.linkMaxSize` (`DC:1149-1154`) | `common/links/validator.go:29-131` | IA |
-| callbacks | count; kind enabled; URL length and rules; header size | `system.maxCallbacksPerWorkflow`, `frontend.callback*` (`DC:1129-1139`) | `common/callbacks/validator.go:94-204` | IA / Unimplemented (`:130`) |
-| user metadata | summary ≤ 400, details ≤ 20000 (standalone activity and Nexus only) | `limit.userMetadata*Size` (`DC:3752-3757`) | `chasm/lib/activity/validator.go:416-432` | IA |
-| versioning / deployment | structure; name has no `.` or `:`; no leading `__`; build-id length | `limit.maxIDLength`, `limit.workerBuildIdSize` (`DC:533`) | `common/worker_versioning/worker_versioning.go:610-638`, `:750-826` | IA |
-| long-poll deadline | set; ≥ 2 s | static | `common/util.go:124-126`, `:638-676` | IA / **FailedPrecondition** |
+| activity id | required; `len ≤ MaxIDLength` | dynamic | `chasm/lib/activity/validator.go:102`, `:113` | IA "activityId exceeds length limit. Length=%d Limit=%d" |
+| task queue | set; `len ≤ MaxIDLength`; no `/_sys/` on a root partition; no user `temporal-sys-per-ns-*`; promised UTF-8 and whitespace checks **not implemented** | dynamic | `common/tqid/task_queue_validator.go:93-146`; `common/primitives/task_queues.go:46-72` | IA |
+| signal / update / query name | required; `len ≤ MaxIDLength` | dynamic | `workflow_handler.go:2315-2321`, `:5547`, `:3315` | IA |
+| request id | empty is **auto-filled**; `len ≤ MaxIDLength` | dynamic | `workflow_handler.go:6948-6963`; `chasm/lib/activity/validator.go:374-376` | IA |
+| identity | `len ≤ MaxIDLength` | dynamic | `workflow_handler.go:1094`; `chasm/lib/activity/validator.go:381` | IA |
+| duration | same sign; ≥ 0; capped at 100 y | static | `common/primitives/timestamp/duration.go:12`, `:67-88` | IA |
+| activity timeouts (cross-field) | start-to-close or schedule-to-close > 0; others filled in | static | `chasm/lib/activity/validator.go:151-214` | IA (`:194`) |
+| retry policy | coefficient ≥ 1; max ≥ initial; attempts ≥ 0 | static | `common/retrypolicy/retry_policy.go:103-140` | IA |
+| cron | parses; not combined with start delay | static | `common/backoff/cron.go:15-29` | IA |
+| ID policies (cross-field) | forbidden combinations | static | `chasm/lib/workflow/validator.go:111-124`, `:204-206` | IA |
+| priority | fairness key ≤ 64 bytes (**hard-coded**) | static | `common/priorities/priority_util.go:11`, `:51-62` | IA |
+| search attributes | count, defined, type, sizes | `frontend.searchAttributes*` (`DC:940-950`), **plus server state** | `common/searchattribute/validator.go:79-232` | IA; Unavailable |
+| memo | size | `limit.memoSize.*`, namespace (`DC:430-435`) | `create_workflow_util.go:256-268` | IA |
+| payloads | rejected when size > warn **and** > error | `limit.blobSize.{warn,error}`, namespace (`DC:420-425`) | `common/util.go:604-633` | IA |
+| payloads (worker answers) | oversize **converts to a failure** | same | `workflow_handler.go:1478-1500`, `:1678-1700` | none on the RPC |
+| header | not enforced | none | `create_workflow_util.go:239` | none |
+| links, callbacks | count, size, fields | `frontend.maxlinksPerRequest`, `frontend.linkMaxSize`, `system.maxCallbacksPerWorkflow`, `frontend.callback*` | `common/links/validator.go:29-131`; `common/callbacks/validator.go:94-204` | IA / Unimplemented |
+| user metadata | sizes (CHASM only) | `limit.userMetadata*Size`, namespace (`DC:3752-3757`) | `chasm/lib/activity/validator.go:416-432` | IA |
+| long-poll deadline | set; ≥ 2 s | static | `common/util.go:124-126`, `:638-676` | IA / FailedPrecondition |
 
-### What the inventory means for the design
+Implications:
 
-- **Most limits are dynamic, and nearly all of them hang off one key.** Bounds must be parameters
-  that name a kit-declared setting with its default (fn-125 Part B). A literal would be wrong
-  under any server that overrides `limit.maxIDLength`.
-- **Validation happens in layers.** The interceptor runs before the handler, and history
-  re-validates with other messages (`create_workflow_util.go:273-328`).
-  - Conformance must compare status codes, never message text. fn-139 already decided this
-    (`.flow/specs/fn-139-actor-grouped-rules-per-rpc-actions.md:172`).
-  - An invalid input must violate exactly one constraint, so the order of checks does not matter.
-- **Not every rule rejects.** Some rules repair the request (auto-filled request ID, capped
-  durations, filled-in timeouts). Others convert the problem into a failure (oversized activity
-  result). A constraint needs an **effect**: reject, normalize or convert. Only "reject" yields
-  invalid-input Cases with an expected code.
-- **Some rules depend on server state, not just the request.** Search-attribute definitions,
-  enabled callback kinds and an existing namespace are examples. They are not request constraints.
-  They belong to Model state or the environment (QLF-01).
-- **Some rules exist only in doc comments or as hard-coded constants.** The task queue's promised
-  UTF-8 and whitespace checks and the 64-byte fairness key are examples. An annotation records
-  what the server actually enforces, and a Case is what proves it.
+- **Nearly every limit is dynamic, and most hang off one global key.** A few keys are
+  namespace-scoped (blob, memo, metadata, search attributes) (section 8).
+- **Validation runs in layers, with different messages per layer.** Conformance compares status
+  codes only (fn-139, `:172`; decision 11).
+- **Some rules repair the request or convert the problem instead of rejecting** (auto-fill,
+  capping, conversion to a failure). Only a rejecting Tag derives a class.
+- **Some rules depend on server state.** For now each is a rejecting Tag that no consumer
+  interprets, recorded as a Known Gap (decision 13).
 
-## 4. Generating inputs from constraints
+## 5. Generating inputs from the validation library
 
-Per constraint: how to construct a valid value, which boundaries to try, and how to violate it
-exactly once.
-
-| Constraint | Valid by construction | Boundary members | Invalid (violates only this) | Tractable? |
+| Library Tag | Valid by construction | Boundary members | Violating (breaks only this Tag) | Tractable? |
 | --- | --- | --- | --- | --- |
-| presence (`required`, `notDefault`) | any member of the other constraints | n/a | unset; zero value (protovalidate's distinction between the two, [standard rules](https://protovalidate.com/schemas/standard-rules/)) | yes |
-| length `[min, max]` with a unit | ASCII filler of length n | min, min+1, max−1, max; multibyte runes so byte length ≠ rune length | min−1, max+1 | yes, once the parameter is resolved for the Case |
-| pattern (RE2, anchored) | walk `regexp/syntax` (Go stdlib) | shortest and longest matches under the length bounds | mutate one character outside the class, then check that the compiled regexp rejects it; the complement of a regex is not constructible in general | yes, with check-after-mutate |
-| forbidden prefix / `notIn` | avoid it | the prefix minus one character | the prefix plus a valid suffix; a listed literal | yes |
-| integer / duration range | interval members | edges; for durations, seconds and nanos of the same sign | edges ± 1; mixed signs | yes |
-| serialized size of a message or payload | filler sized with `proto.Size` | N − 1, N | N + 1 | yes, but 2 MiB values do not belong in checked-in Case bytes (open question 5) |
-| format (uuid; cron) | uuid by construction; cron needs a hand-written generator registered under the format's name | hyphenless uuid, braced uuid | malformed text | uuid yes; cron by hand |
-| cross-field `requires` (an `Operand` over presence and equality) | enumerate truth assignments of its few atoms; pick one that satisfies it | n/a | an assignment that falsifies only this constraint | yes for presence and equality atoms (a few atoms, brute force) |
-| opaque (escape hatch, cited) | none | none | none | no: a Known Gap on every Case that touches the field |
+| `required`, `notDefault` | any member of the other Tags | n/a | unset; zero value | yes |
+| `length(min, max, unit)` | ASCII filler | min, min+1, max−1, max; multibyte runes | min−1, max+1 | yes, once the bound resolves (section 8) |
+| `pattern(re2)` | walk `regexp/syntax` | shortest and longest matches | mutate, then check the compiled regexp rejects it | yes |
+| `notPrefix`, `in`, `notIn` | avoid or pick | the prefix minus one character | the prefix plus a valid suffix; a listed literal | yes |
+| `range`, duration Tags | interval members | edges | edges ± 1; mixed signs | yes |
+| `maxBytes` (serialized size) | filler measured with `proto.Size` | N − 1, N | N + 1 | yes; large N is answered by section 8 |
+| `format(name)` | a generator registered by name (uuid built in) | per generator | per generator | uuid yes; cron by hand |
+| `requires(condition)` | enumerate satisfying assignments of its atoms | n/a | an assignment that falsifies only this condition, other Tags kept valid | yes for presence, equality and comparison with literals; otherwise a Known Gap |
+| `unconstrained` | any value of the field's protobuf type, or unset | n/a | none (not rejecting) | yes |
+| any Tag `values` does not interpret | — | — | — | reported; a Known Gap if the Tag rejects |
 
-Rules for all generation:
+Rules:
 
-- **Seeded and deterministic.** The seed comes from the Case or exploration candidate identity, as
-  PLN-02 and ART-11 require. A generated value is a literal in the Case, so Testpilot does not
-  change (EVD-01).
-- **Each value is tagged with its target constraint ID.** Lowering records which constraint a
-  member satisfies or violates in Case provenance, as an extension of `AbstractionClaim`
-  (`case.proto:35-38`).
-- **Fields the Profile owns are environment-bound.** Namespace and task queue are ART-13 bindings.
-  - A *valid* member cannot be invented without provisioning a resource, because a valid but
-    unregistered namespace is `NotFound`, not accepted.
-  - An *invalid* member works, because the interceptor checks the name's length before lookup
-    (`namespace_validator.go:183`).
-  - So generation varies only invalid members of bound fields until the Driver can provision
-    resources (open question 4).
-- **What a hand-written generator is needed for:** cron, arbitrary CEL, server-state-dependent
-  rules (search attributes), and any constraint over more than presence and equality.
-  - A semantic type may name a generator. The Go module registers it by that name, like
-    Hypothesis's `register_type_strategy`.
-  - An unregistered generator is refused at admission, never silently skipped.
+- **Seeded and deterministic** (PLN-02, ART-11). Generated values are literals in the Case, so
+  Testpilot does not change.
+- **Each member names the class it realizes** (`valid`, or the Tag it violates) in Case provenance,
+  as an extension of `AbstractionClaim` (`case.proto:35-38`).
+- **Profile-owned fields** (namespace, task queue; ART-13) keep the Profile's value in the `valid`
+  class and in every class that violates another field. Only their own violating classes vary
+  them (decision 3).
+  - A valid but unregistered namespace is `NotFound`.
+  - A too-long one is rejected before lookup (`namespace_validator.go:183`).
 
-## 5. Where annotations live, and how they reach the IR
+## 6. Where tags live, and how they reach the IR
 
-| Option | Source of truth | Path to the IR | Pros | Cons |
-| --- | --- | --- | --- | --- |
-| **A. Upstream proto options** (protovalidate standard plus predefined rules, e.g. `temporal.api.validate.namespace`, in `temporalio/api`) | API protos | Go and ScalaPB descriptors carry the options; the lifter, or Go, reads them into the IR | One source shared with SDKs; standard tooling; a runtime evaluator already exists | Owned by another repo and released with the `go.temporal.io/api` pin; that repo cannot even use `field_behavior` today; `rule` is static, so no `limit.maxIDLength`; no link to Model classes, rejections or IDs; makes descriptor data the smart component, against vision `:93` |
-| **B. Sidecar overlay** (textproto or YAML keyed by FQN, Smithy-`apply` style) | Overlay file | The lifter or gate reads it | No upstream dependency; easy to edit | A third authoring language; untyped field names (the DSL forbids proto-name strings, `.plans/UMPIRE_MODULES.md:86-90`); disconnected from the Model; duplicates the DSL |
-| **C. Kit declarations in Scala** | `model/temporal` | The lifter lifts vals into a new IR section; Go admits them against descriptors | Typed selectors; Definition IDs and fingerprints; parameters bound to fn-125 settings; input classes and `rejects` connect directly; fits the module map | Restates rules that live in Go (true of every option except server codegen); Scala-only authoring |
-| **D. C, plus a later import of upstream options and an export to them** | `model/temporal` | As C; if upstream ever adopts protovalidate, the lifter reads those options too and refuses disagreement with the kit | Keeps A's interoperability without its ownership problems | More machinery, built only once needed |
+| Option | Source | Pros | Cons |
+| --- | --- | --- | --- |
+| A. Upstream proto options in `temporalio/api` | API protos | Shared with SDKs; standard tooling | Another repo's release cycle; static values only; no link to classes or Rejections |
+| B. Sidecar overlay (textproto or YAML keyed by FQN) | Overlay file | No upstream dependency | Untyped names (the DSL forbids proto-name strings, `.plans/UMPIRE_MODULES.md:86-90`); disconnected from the Model |
+| **C. Scala: framework mechanism and library, kit markers and Domains** | `model/` | Typed selectors; IDs; fn-125 keys; derived classes; exhaustiveness against descriptors | Restates rules that live in Go |
+| D. C, plus a later import of or export to upstream options | `model/` | Interoperability without ownership | More machinery, built only when needed |
 
-**Recommendation: C now, shaped so that D stays possible.** The vocabulary maps one to one onto
-protovalidate's standard rules plus predefined rules, so export and import are mechanical.
+**Recommendation: C.** Upstream options are out for now (decision 2). The validation library keeps
+protovalidate's names and meanings, so a later import or export stays mechanical.
 
-Options A and B also fail "one meaning, one source" (`.plans/UMPIRE4_VISION.md:101-102`) unless
-they become the *only* source. Neither can carry the connection to classes and `Rejection`s that
-the Model needs.
+## 7. Recommended design (sketches)
 
-## 6. Recommended design (sketches)
+### Words (SEM-19)
 
-### Words (SEM-19, needs approval)
+| Word | Meaning |
+| --- | --- |
+| **Tag** | A name plus data, attached to a message, a field path (or its elements, map keys or map values) or a tagged Domain |
+| **Tag Definition** | A Tag's declared name, data schema, targets, whether it rejects, and its default message template |
+| **Domain** | A set of values. Finite Domains list Model values (`Finite[T]`). Tagged Domains describe protobuf values by Tags and are finite through their classes. Restricting a base tagged Domain ANDs its Tags |
+| **Tag Set** | The tagged Domain of one message type: Tags on every field, recursing into every message it reaches, plus message-level Tags |
+| **`unconstrained`** | The framework's no-op Tag |
 
-| Word | Meaning | Why not the obvious word |
+Why `unconstrained` over the other candidates:
+
+- `untagged` contradicts being a Tag.
+- `free` already means "any action at every step" for a Scenario (`model/SEMANTICS.md:394-395`).
+- `unconstrained` says what consumers do with the field: any value of its protobuf type, or unset.
+
+Each Tag Definition name is itself a word under SEM-19. The lifter refuses two definitions of one
+name. Synonyms (`length` beside `maxLength`) are a review matter.
+
+### One Domain: finite and tagged
+
+The owner resolved SEM-19 by unification, not renaming. The framework already has domains:
+
+- an action's inputs "are finite domains; each assignment of them is one class"
+  (`model/umpire/Action.scala:34`);
+- `ActionDecl.domains` holds one `Finite[?]` per input (`:45`, `:82`);
+- a token carries its domain (`:94`, `Input.domain` at `:149`);
+- `model/umpire/Domain.scala` is the file of `Finite`.
+
+A tagged Domain is the same concept with different members:
+
+| | Finite Domain | Tagged Domain |
 | --- | --- | --- |
-| **Semantic Type** | A named bundle of constraints over one protobuf value kind | Bare "Type" is the IR's finite type |
-| **Constraint** | One checkable condition with an ID, an effect and a citation | "Rule" is a Contract Rule and the `rules` section |
-| **Annotation** | Attaching Semantic Types and Constraints to one field path, or to one message for cross-field constraints | — |
+| Values | Model values (enum cases, records, `UpTo[n]`) | Protobuf values: one field's (a field Domain such as `id`) or one message's (a Tag Set) |
+| Given by | Listing (`Finite[T]`, derived through `Mirror`) | Tags (`required`, `length(max = maxIdLength)`, …) |
+| Finite for the Model as | Its values | A Tag Set's single-fault classes: `valid` plus one per (field path, rejecting Tag) |
+| One class stands for | One value | Every message whose only fault is the class's, or every valid message (an Abstraction Claim) |
 
-### Framework (Temporal-agnostic, `model/umpire/Constraints.scala`, sketch)
+**Inputs come from Tag Sets, not field Domains.** A field Domain (`id`, `namespaceName`) is a named
+bundle a Tag Set reuses. It derives no input of its own. `input(startActivity)` is an ordinary
+`Input[startActivity.Class]` whose `domain` is `startActivity.classes: Finite[startActivity.Class]`:
+
+- `ActionDecl.domains` gets that `Finite`, as for any input.
+- The checker builds action classes from it by the existing rule (`model/SEMANTICS.md:136-138`),
+  for example `start-valid` and `start-activityId_length`.
+- Step functions compare against its cases.
+- The Quint export sees one more enum.
+- What is new is a reference from the derived enum to the Tag Set, which only lowering,
+  exploration and `values` read (IR below).
+
+**Changes in `model/umpire`:**
+
+- `Domain.scala` gains `sealed trait Domain[T]`. `Finite[T]` extends it, unchanged in name and
+  use, so no Model changes.
+- New `abstract class Tagged[V](tags: Tag*) extends Domain[V]`, for field Domains.
+- `TagSet[M]` is the message form, with `type Class` and `classes: Finite[Class]`, derived when
+  it is constructed.
+- `ActionDecl` gains `tagged: List[Option[TagSet[?]]]` beside `tokens`.
+- `isValid` and `violates` are sugar over the derived cases.
+- `domains`, `Input.domain` and `Finite` keep their names, which now mean what the unified word
+  says.
+
+**The five spec sites, read with the one meaning.** Decision 16 adopts these rewordings; this note
+does not edit those files.
+
+| Site | Text | Fits? |
+| --- | --- | --- |
+| `.plans/UMPIRE4_SPEC.md:59` | "a connector joins two domains explicitly" (Capability) | **No.** Here "domain" means a subject area. Reword: "joins two components explicitly" |
+| `:61` | "A hole in a mapping's source domain is an unmapped source" (Known Gap) | Yes: the set of values a mapping is defined over |
+| `:189` | "their finite domains -- states, Actions, Model Outcomes, and Facts" (Model) | Yes: finite Domains |
+| `:217` | "Each member of an input domain is a class" (Action) | Yes. Extend: "…; a Tag Set's members are its single-fault classes, each standing for the protobuf messages whose only fault, if any, is the class's" |
+| `:224` | "The Fact domain is a Model's own type" (Fact) | Yes: a finite Domain |
+
+`model/README.md:753` ("the domain roles `caller` and `handler`") uses the subject-area sense and
+is reworded like `:59`. `model/SEMANTICS.md:286` and `:904-907` fit.
+
+**fn-141 (decision 15: land after fn-141.9).** fn-141 exports declarations from constructed values
+and lifts only function bodies (`.flow/specs/fn-141-shrink-the-ir-generator-one-description.md:49-57`,
+R6 `:92`).
+
+- Tag Sets, field Domains and their classes are declaration-level values, derived by running
+  Scala. R3: declaration-level sugar "resolves by running" (`:89`). The exporter emits them with
+  no lifter matcher.
+- A class reference such as `startActivity.violation(_.activityId, lengthTag)` is a
+  declaration-level value. A guard that reads it closes over it, and R8 binds a captured value of a
+  finite Model type as the IR value it is (`:94`).
+- `isValid` and `violates` inside a step function are function-level sugar, expanded generically
+  (R4, `:90`).
+- fn-141.9 exports "actions, inputs" (`MILESTONES.md` fn-141 table).
+- `Condition`'s operator loss is fn-141.7's (section 1).
+
+### Single-fault classes
+
+**What a Tag Set derives.** A Tag Set's classes are:
+
+- `valid`: every Tag on every reachable field holds;
+- one class per (field path, rejecting Tag): that Tag fails at that path, and every other field is
+  valid.
+
+So a request has **1 + Σ rejecting Tags** classes: linear, never a cross product.
+
+Paths and names:
+
+- Paths reach through nested Tag Sets (`task_queue.name`), repeated elements (`links[*]…`, the
+  fault in one element) and map keys or values.
+- A recursive type (`Failure.cause`, reachable from `StartWorkflowExecutionRequest`) is entered at
+  most once per path. Deeper positions are the same class, and the generator places the fault at
+  the shallowest one.
+- A message-level Tag (`requires`) has no path.
+- Class names are the Scala selector path and the Tag's name joined by `_` (`activityId_length`,
+  `taskQueue_name_notPrefix`, `requires`). These are identifiers in Scala, Quint and TLA+. The IR
+  carries the structured path beside the name.
+
+**Count for the sketch below.** `StartActivityExecutionRequest` derives 26 classes: `valid`, plus 25
+rejecting Tags.
+
+| Fields | Rejecting Tags | Count |
+| --- | --- | --- |
+| `namespace` | `required`, `length` | 2 |
+| `identity` | `length` | 1 |
+| `request_id` | `length` (its `required` only normalizes) | 1 |
+| `activity_id` | `required`, `length` | 2 |
+| `activity_type`, `activity_type.name` | `required`; `required`, `length` | 3 |
+| `task_queue`, `task_queue.name` | `required`; `required`, `length`, `notPrefix` | 4 |
+| five durations | `sameSign`, `nonNegative` each | 10 |
+| `input` | `maxBytes` | 1 |
+| message | `requires` | 1 |
+
+**`grouped` is dropped.**
+
+- Its only purpose was size, which single-fault removes.
+- A Model that does not tell faults apart writes `!req.isValid` in one rule. Every violating class
+  keeps its own Case, which is the coverage the classes exist for.
+- An action that should only ever send a valid request declares no Tag Set input. Lowering still
+  checks its literals against the Tag Set.
+
+**Interaction with the action's other inputs.**
+
+- A request input multiplies with the action's own finite inputs. For example, the activity's three
+  `Timeout` inputs give 26 × 8 action classes.
+- That is the existing catalog rule, and Query totals show it.
+- A Model whose violating rows ignore the other inputs keeps them in one rule, `when(!req.isValid)`.
+
+### Why generic Tags, and what that costs
+
+**Gained:**
+
+- The IR stays validation- and Temporal-agnostic.
+- Semantic markers (`namespace`), documentation Tags, Driver hints or response checks arrive as
+  Tag libraries without a schema change.
+- The IR knows Temporal "only as declared names and payload types" (`.plans/UMPIRE4_VISION.md:55-60`).
+
+**Lost:** the IR schema no longer fixes what `length` means, so two consumers could disagree.
+
+**Settled (decision 10):**
+
+1. **The core validation Tags' meanings are normative in `model/SEMANTICS.md`.** A "Tag library"
+   section sits beside the IR's evaluation rules, so "one meaning, one source" holds
+   (`.plans/UMPIRE4_VISION.md:101-102`).
+2. **One Go interpretation.** `tools/umpire/values` owns the interpreters, and lowering,
+   exploration and conformance use them.
+3. **Fail closed.**
+   - Every consumer lists the Tags it does not interpret.
+   - An uninterpreted *rejecting* Tag on a field a Case writes is a Known Gap in that Case.
+     Server-state rules are exactly this, for now (decision 13).
+   - Any other uninterpreted Tag shows in `umpire-lint` and the inventory.
+
+**Module map:**
+
+- The IR row is unchanged.
+- The DSL gains the mechanism and the validation library, with no Temporal words.
+- `model/temporal/foundations` gains markers, shared field Domains, shared Tag Sets and keys; each feature gains its request Tag Sets and `owns`; `model/temporal/capabilities` gains `Validated`.
+- The values module interprets only framework Tags.
+
+**Class derivation reads `rejects`.**
+
+- Only a Tag whose definition rejects derives a class. A marker, a normalizing Tag (decision 6:
+  marked only) or `unconstrained` derives none.
+- A rejecting Tag no consumer generates for still derives its class. Lowering reports that class's
+  Cases `unsupported`, with a located reason.
+
+### Framework (Temporal-agnostic, `model/umpire/Tags.scala`, `model/umpire/tags/Validation.scala`, sketch)
 
 ```scala
-// A value a constraint bounds by: a literal, or a parameter the environment supplies. A system's kit
-// extends Parameter, as it extends realize's Setting.
-trait Parameter:
-  def default: Long
-enum Bound:
-  case literal(n: Long)
-  case parameter(p: Parameter)
-given Conversion[Long, Bound] = Bound.literal(_)
-given Conversion[Parameter, Bound] = Bound.parameter(_)
+// The kind of one data field of a Tag Definition.
+enum DataKind:
+  case text, number, flag, enumName // a ProtoValue literal of that kind
+  case condition // a Condition over the tagged message's fields
+  case quantity // a number literal, or a Setting resolved per Case (section 8)
+// Where a Tag may stand.
+enum Target:
+  case message, text, number, duration, bytes, messageField, each, key, value, domain
 
-enum Unit:
-  case bytes, runes
-enum Effect:
-  case rejects, normalizes, converts
+// A Tag Definition, named after its `val`. `rejects` makes a violated value one the system rejects
+// with that Rejection (fn-139); only such Tags derive classes. `message` is the default template.
+final class TagDefinition private[umpire] (/* fields, targets, rejects, message */):
+  def apply(data: (String, Any)*): Tag
+def definition(on: Target*)(fields: (String, DataKind)*): TagDefinition
+extension (d: TagDefinition)
+  def rejects(r: Rejection): TagDefinition
+  def message(template: String): TagDefinition // placeholders checked at lift
 
-// One constraint on a value of type V; `because` cites the implementation it restates.
-final class Constraint[V] private[umpire] (/* kind, effect, because */)
+// One use; `.message` overrides the template; `.normalizes` marks a repaired, accepted value.
+final class Tag private[umpire] (/* definition, data, template, normalizes */):
+  def message(template: String): Tag
+  def normalizes: Tag
 
-object text:
-  def required: Constraint[String]
-  def length(min: Bound = 0L, max: Bound, unit: Unit = Unit.bytes): Constraint[String]
-  def pattern(re2: String): Constraint[String] // fully anchored
-  def notPrefix(p: String): Constraint[String]
-  def format(name: String): Constraint[String] // generated by a registered generator
-object span: // google.protobuf.Duration-shaped values
-  def nonNegative: Constraint[Duration]
-  def sameSign: Constraint[Duration]
-  def positive: Constraint[Duration]
-object sized:
-  def bytes(max: Bound): Constraint[Any] // serialized size
+// model/umpire/Domain.scala: one concept, two forms. Finite[T] is today's trait, now a Domain.
+sealed trait Domain[T]
+trait Finite[T] extends Domain[T]:
+  def values: IndexedSeq[T] // unchanged
 
-// A named bundle, named after its `val`; `extend` ANDs another type's constraints.
-final case class SemanticType[V](constraints: Vector[Constraint[V]], extend: Vector[SemanticType[V]] = Vector.empty)
-def semantic[V](cs: Constraint[V]*): SemanticType[V]
+// A field Domain: protobuf values of kind V, described by its Tags in order; given a base, the
+// base's Tags first, ANDed.
+abstract class Tagged[V](tags: Tag*)(using base: Option[Tagged[V]] = None) extends Domain[V]:
+  def message(of: TagDefinition, template: String): Tagged[V] // overrides one rejecting Tag's template
 
-// Annotations of one message's fields. `field` is realize's typed selector, so a path or a value
-// kind the descriptors lack does not compile, or is refused at lift.
-def annotate[M <: GeneratedMessage](lines: AnnotationLine[M]*): Annotations[M]
+// A Tag Set: the tagged Domain of message M, exhaustive and recursive, with single-fault classes.
+final class TagSet[M <: GeneratedMessage] private[umpire] (/* field tags, message tags */)
+    extends Domain[M]:
+  type Class
+  def classes: Finite[Class] // valid, then one per (path, rejecting Tag); derived on construction
+  def valid: Class
+  def violation[V](at: M => V, t: TagDefinition): Class // refused on construction if absent
+  def violation(t: TagDefinition): Class // a message-level Tag
+def tag[M <: GeneratedMessage](lines: TagLine[M]*): TagSet[M] // `field`, `each`, `keys`, `values`
+
+// An input over a Tag Set is an ordinary input over its classes.
+def input[M <: GeneratedMessage](s: TagSet[M]): Input[s.Class]
+extension [M <: GeneratedMessage](s: TagSet[M])
+  def isValid(x: s.Class): Boolean // sugar: x == s.valid
+  def violates[V](x: s.Class, at: M => V, t: TagDefinition): Boolean // sugar: x == s.violation(at, t)
+
+// The validation library: names and meanings from protovalidate and XSD, normative in SEMANTICS.md.
+val unconstrained = definition(Target.text, Target.number, Target.duration, Target.bytes,
+  Target.messageField, Target.each, Target.key, Target.value)()
+val requiredTag = definition(Target.text, Target.messageField)()
+  .rejects(Rejection.invalidArgument).message("{field} is not set.")
+val lengthTag = definition(Target.text)("min" -> DataKind.quantity, "max" -> DataKind.quantity,
+  "unit" -> DataKind.enumName)
+  .rejects(Rejection.invalidArgument).message("{field} length exceeds limit of {max}.")
+val requiresTag = definition(Target.message)("condition" -> DataKind.condition)
+  .rejects(Rejection.invalidArgument).message("{message} violates a required combination.")
+def required: Tag = requiredTag()
+def length(min: Quantity = 0L, max: Quantity, unit: Unit = Unit.bytes): Tag =
+  lengthTag("min" -> min, "max" -> max, "unit" -> unit)
+def requires(c: Condition[?]): Tag = requiresTag("condition" -> c)
+// … pattern, notPrefix, in, notIn, range, count, maxBytes, format, sameSign, nonNegative
+
+// Conditions: realize's typed Condition, plus `any` and `exactlyOne`.
+def any[R](first: Condition[R], rest: Condition[R]*): Condition[R] // lifts to Operand.any
+def exactlyOne[R](cs: Condition[R]*): Condition[R] = // sugar
+  any(cs.indices.map(i => all(cs(i), cs.patch(i, Nil, 1).map(not)*))*)
 ```
 
-### Kit (Temporal, e.g. `model/temporal/semantics/Semantics.scala`, sketch)
+**Conditions are a deep embedding.**
+
+- A `Condition` is data the lifter reads, not a closure.
+- `r => r.startToCloseTimeout.nonEmpty || r.scheduleToCloseTimeout.nonEmpty` has type `Req =>
+  Boolean`, not `Condition[Req]`, so it does not compile where a Tag expects a condition.
+- Field selectors are restricted lambdas that the lifter reads through descriptors
+  (`model/irgen/Realizations.scala:235-315`).
+
+**Why `Operand` and not the Model's `Expr`:**
+
+- Tags speak about protobuf field paths. `Operand` already types its paths and literals against
+  descriptors at lowering (`model/SEMANTICS.md:781-786`).
+- `Expr` speaks about the Model's finite types, and its values enter state keys and fingerprints.
+- Evaluating `Expr` over protobuf messages would need the value conversion the CEL spike measured
+  at about a third of evaluation time (`.plans/UMPIRE_CEL_SPIKE.md:20-22`).
+
+**`Any` is a first-class `Operand` node, not sugar for `not(all(not …))`.**
+
+- Testpilot already has `AnyExpression`, so lowering maps one to one.
+- Diagnostics and templates read a disjunction.
+- Every `Operand` consumer gains one case: `tools/umpire/realization/operand.go`, `payload.go`,
+  `validate_realization.go`, `tools/umpire/lower/realization.go`, `tools/umpire/conformance/guard.go`,
+  `tools/umpire/lint/api.go`.
+- `exactlyOne` stays sugar.
+
+### Foundations and a feature (Temporal, sketch)
 
 ```scala
-// fn-125 Part B's typed key, pinned to common/dynamicconfig by a Go test.
-val maxIdLength = DynamicSetting.int("limit.maxIDLength", default = 1000, scope = global)
+// Layout after fn-142: foundations/ (taskqueue, plus tags and common below), actors/ (worker,
+// client), model/temporal/Bounds.scala.
+// ---- model/temporal/foundations/tags/Tags.scala (kit Tag Definitions, settings, shared Domains)
+// fn-125.5's typed keys, pulled forward (section 8).
+val maxIdLength = DynamicSetting.int("limit.maxIDLength", scope = Scope.global)
+val blobSizeError = DynamicSetting.bytes("limit.blobSize.error", scope = Scope.namespace)
 
-val identifier = semantic[String](
-  text.required.because("chasm/lib/workflow/validator.go:51-61"),
-  text.length(max = maxIdLength).because("common/dynamicconfig/constants.go:527-532")
-)
-val namespaceName = semantic[String](
-  text.required.because("common/rpc/interceptor/namespace_validator.go:376-380"),
-  text.length(max = maxIdLength).because("namespace_validator.go:191-195")
-)
-val taskQueueName = semantic[String](
-  text.notPrefix("/_sys/").because("common/tqid/task_queue_validator.go:144-146")
-).extend(identifier)
-val requestId = semantic[String](
-  text.length(max = maxIdLength),
-  text.required.normalizes.because("workflow_handler.go:6948-6963: empty is filled with a UUID")
-)
-val timeout = semantic[Duration](span.sameSign, span.nonNegative)
-  .because("common/primitives/timestamp/duration.go:67-88")
+// Markers: no data, not rejecting. Consumers that care read them; `values` lists them as ignored.
+val namespace = definition(Target.text)()
+val identifier = definition(Target.text)()
 
-val startActivity = annotate[StartActivityExecutionRequest](
+// Field Domains: named bundles that Tag Sets reuse.
+object id extends Tagged[String](identifier(), required, length(max = maxIdLength))
+object namespaceName extends Tagged[String](namespace(), required, length(max = maxIdLength))
+object taskQueueName extends Tagged[String](notPrefix("/_sys/"))(using Some(id))
+object requestId extends Tagged[String](length(max = maxIdLength), required.normalizes)
+object timeout extends Tagged[Duration](sameSign, nonNegative)
+
+// ---- model/temporal/foundations/taskqueue/TaskQueue.scala (beside the task-queue entity)
+val taskQueue = tag[TaskQueue](
+  field(_.name) is taskQueueName,
+  field(_.kind) is unconstrained,
+  field(_.normalName) is unconstrained
+)
+// ---- model/temporal/foundations/common/Common.scala: messages more than one feature reaches.
+// Tag Sets recurse: every message a request reaches has its own, field by field.
+val activityType = tag[ActivityType](field(_.name) is id)
+val payloads = tag[Payloads](each(_.payloads) is unconstrained)
+val payload = tag[Payload](
+  keys(_.metadata) is unconstrained,
+  values(_.metadata) is unconstrained,
+  field(_.data) is unconstrained,
+  each(_.externalPayloads) is unconstrained
+)
+val externalPayload = tag[Payload.ExternalPayloadDetails](field(_.sizeBytes) is unconstrained)
+val header = tag[Header](keys(_.fields) is unconstrained, values(_.fields) is unconstrained)
+// … RetryPolicy, SearchAttributes, Memo, UserMetadata, Priority, Callback and its variants, Link
+// and its variants, OnConflictOptions: each tagged field by field.
+
+// ---- model/temporal/features/activity/standalone/Standalone.scala (the feature owns the RPC)
+object exports:
+  val ir = irFile("activity-standalone")
+  val rpcs = owns(
+    METHOD_START_ACTIVITY_EXECUTION, METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+    METHOD_PAUSE_ACTIVITY_EXECUTION, METHOD_UNPAUSE_ACTIVITY_EXECUTION,
+    METHOD_REQUEST_CANCEL_ACTIVITY_EXECUTION, METHOD_TERMINATE_ACTIVITY_EXECUTION /* , … */
+  )
+
+// Every field of StartActivityExecutionRequest (22), or the lift fails naming the missing ones.
+val startActivity = tag[StartActivityExecutionRequest](
   field(_.namespace) is namespaceName,
-  field(_.activityId) is identifier,
-  field(_.getActivityType.name) is identifier,
-  field(_.getTaskQueue.name) is taskQueueName,
+  field(_.identity) is length(max = maxIdLength),
   field(_.requestId) is requestId,
-  field(_.identity) is text.length(max = maxIdLength), // a field-local constraint
-  field(_.getStartToCloseTimeout) is timeout,
-  requires(present(_.getStartToCloseTimeout) or present(_.getScheduleToCloseTimeout))
-    .because("chasm/lib/activity/validator.go:171-194")
+  field(_.activityId) is id.message(lengthTag, "ActivityId exceeds length limit of {max}."),
+  field(_.activityType) is required, // inside: ActivityType's Tag Set
+  field(_.taskQueue) is required, // inside: TaskQueue's Tag Set
+  field(_.scheduleToCloseTimeout) is timeout,
+  field(_.scheduleToStartTimeout) is timeout,
+  field(_.startToCloseTimeout) is timeout,
+  field(_.heartbeatTimeout) is timeout,
+  field(_.startDelay) is timeout,
+  field(_.retryPolicy) is unconstrained, // inside: RetryPolicy's Tag Set
+  field(_.input) is maxBytes(blobSizeError), // inside: Payloads' Tag Set
+  field(_.idReusePolicy) is unconstrained,
+  field(_.idConflictPolicy) is unconstrained,
+  field(_.searchAttributes) is unconstrained,
+  field(_.header) is unconstrained,
+  field(_.userMetadata) is unconstrained,
+  field(_.priority) is unconstrained,
+  each(_.completionCallbacks) is unconstrained,
+  each(_.links) is unconstrained,
+  field(_.onConflictOptions) is unconstrained,
+  requires(any(present(_.startToCloseTimeout), present(_.scheduleToCloseTimeout)))
 )
+
+// ---- model/temporal/capabilities/Validate.scala, beside the other laws
+// The kit's law (decision 7): a violating class is rejected with its Tag's Rejection and changes
+// no state. A machine declaring Validated on an action with a Tag Set input gets it, as Closable
+// brings closedIsRejectedUniformly.
+val Validated = CapabilityKind(/* the action and its Tag Set input */)
 ```
 
-### Connecting annotations to the Model (sketch)
+### Exhaustive tagging (decision 9)
+
+**Checked at lift, not by a macro.**
+
+- For each `tag[M]`, the lifter loads `companion.scalaDescriptor` the way `messageDescriptor`
+  does (`model/irgen/Realizations.scala:163-172`), and compares its fields with the Tag Set's
+  selectors (`selectorPath`, `:235-315`).
+- It fails with `StartActivityExecutionRequest is not tagged exhaustively: retry_policy, links[*]
+  (tag each, or mark it unconstrained)`.
+- It then recurses. Every message type reachable through any field needs its own Tag Set, or it
+  fails with `TaskQueue, reached from StartActivityExecutionRequest.task_queue, has no Tag Set`.
+- The check runs in `make umpire-check-model`. A second `tag[M]` for one `M` is refused.
+
+**Recursion everywhere; no whole-value Tag Sets.**
+
+- `Payloads`, `Payload`, `Header`, `Memo` and `SearchAttributes` are tagged field by field like any
+  message, with `unconstrained` where there is nothing to say.
+- A Tag on a message-typed field speaks about the field: presence, or serialized size with
+  `maxBytes`. Its type's Tag Set speaks about the inside. Both always apply, ANDed.
+- `unconstrained` on a message-typed field means the field itself is arbitrary or unset. It never
+  excuses the type from having a Tag Set.
+
+**Size of the obligation.** The 13 requests realizations write reach **62 message types with 281
+fields**, excluding `google.protobuf` types. That is a descriptor walk over the linked
+`go.temporal.io/api` registry on 2026-10-06. Each type is tagged once and reused.
+
+**Edge cases:**
+
+| Case | Rule |
+| --- | --- |
+| oneof | Each member is a field and is tagged. Protobuf enforces at most one; `requires(exactlyOne(...))` states "exactly one" |
+| repeated | `field(_.xs)` tags the collection (`count`). `each(_.xs)` tags the element, and a message element's type has its own Tag Set |
+| map | `keys(_.m)` and `values(_.m)`; a message value's type has its own Tag Set |
+| deprecated | Tagged like any field, since it is still on the wire. `values` leaves it unset by default, reading the descriptor's `deprecated` option |
+| well-known types | `Duration`, `Timestamp`, the wrappers and `Empty` are leaves, tagged as values (`sameSign`, `nonNegative`) |
+| recursive types | Tagged once. Classes enter a type at most once per path (single-fault classes, above) |
+
+**Scope:** every request message of an RPC a realization uses, recursively (section 7, Ownership). The ten `Proto[...]`
+messages and responses are later.
+
+**Upstream:** when `go.temporal.io/api` adds a field to any reachable message, the gate fails until
+someone tags it. That forcing function is intended.
+
+### Ownership: source, IR files and used RPCs (decisions 18-20)
+
+**Source location follows ownership.**
+
+| What | Where |
+| --- | --- |
+| A used RPC's request Tag Set (later its response's) | The package that owns the RPC, e.g. `model/temporal/features/activity/standalone/` for `StartActivityExecution` |
+| A message type only one package's Tag Sets reach | That package |
+| Shared field Domains (`namespaceName`, `id`, `taskQueueName`), shared message Tag Sets (`TaskQueue`, `Payloads`, `Header`, …), the kit's Tag Definitions and markers, the settings | `model/temporal/foundations/`, in subfolders by subject (`foundations/taskqueue`, `foundations/common`, `foundations/tags`) |
+| The framework's Tag Definitions (the validation library, `unconstrained`) | `model/umpire` |
+| The `Validated` capability law | `model/temporal/capabilities`, beside the other laws (`.plans/UMPIRE_MODULES.md:36`) |
+
+**`model/temporal/shared/` is renamed `model/temporal/foundations/`** (decision 21). fn-142
+performs it, with its own layout:
+
+- `foundations/` holds the task queue (`foundations/taskqueue`), plus the shared Domains, Tag Sets,
+  markers and settings keys that this design adds.
+- `actors/` holds the worker (`actors/worker`) and the client (`actors/client/Client.scala`).
+- `Bounds.scala` sits in `model/temporal/`.
+
+Notes on the move:
+
+- Today `shared/` holds what features share: the task-queue and worker entities and `Bounds.scala`
+  (`.plans/UMPIRE_MODULES.md:32`, `:37`).
+- Two homes for shared Tag content would make "where does a shared thing go" a judgment call per
+  change. With one home, the `TaskQueue` Tag Set sits beside the task-queue entity in
+  `foundations/taskqueue`.
+- **Cost:** Definition IDs are fully qualified Scala names, and `Machine.family` is the declaring
+  package (`model/irgen/Context.scala:318-326`, `ir.proto:355-357`). The move therefore changes IDs
+  exactly by the package mapping: `temporal.shared.taskqueue` → `temporal.foundations.taskqueue`,
+  `temporal.shared.worker` → `temporal.actors.worker`. IR files, Cases, fixtures and the canary Case
+  change with them, in one regeneration batch, as fn-126's renames did. That batch is accepted and
+  is its own phasing step.
+- The module map's Models row (`.plans/UMPIRE_MODULES.md:32`), the task-queue row (`:37`) and the
+  IR generator's structure lint follow the new paths.
+
+**IR files follow source.**
+
+- `model/ir/foundations.json` carries the shared Tags.
+- Each feature's IR file carries its own Tags and lists `foundations` in `uses`.
+- A feature whose realization uses an RPC another package owns adds that owner's IR file to `uses`.
+  Example: the Nexus caller uses `StartWorkflowExecution`, which the workflow package owns. That is
+  a data reference, not a Scala import, so the module map's rule against features importing features
+  holds.
+
+**Obligations apply to used RPCs only.**
+
+- An RPC is **used** when a realization writes it as a request (`rpc`, `readUntil`, `await`) or
+  reads its response (`Recorded.read`, `Recorded.single`).
+- Each used RPC needs:
+  - exactly one owning package, declared by `owns(METHOD_…, …)` in that package's `object exports`
+    beside its `irFile`, with the generated gRPC method constants Models already import
+    (`.plans/UMPIRE_MODULES.md:85-90`);
+  - an exhaustive, recursive Tag Set for its request, and later for its response.
+- An unused RPC needs nothing.
+- For context only: WorkflowService has 123 RPCs, OperatorService 12 (from the linked
+  `go.temporal.io/api` service descriptors, 2026-10-06), and AdminService 46
+  (`proto/internal/temporal/server/api/adminservice/v1/service.proto`, internal). Coverage is
+  whatever realizations use.
+
+**Gate checks**, in the gate's lint step (fn-141.1 moves the lints there):
+
+- **Every used RPC is owned exactly once and tagged.** The check walks each realization's commands
+  and evidence for the methods they name, and resolves each method through the service descriptors
+  as the lifter already does (`generated.scalaDescriptor.services`, `model/irgen/Realizations.scala:206`).
+  It fails naming the realization, the RPC and what is missing, for example:
+  `ActivityRealization uses WorkflowService.StartActivityExecution, whose request is not tagged
+  exhaustively: retry_policy, links[*]`, or `NexusCallerRealization uses
+  WorkflowService.StartWorkflowExecution, which no package owns`.
+- **Every message type reachable from a used RPC has exactly one owning Tag Set.**
+  - A second `tag[M]` anywhere is refused.
+  - A package's Tag Sets may reach only its own types and foundations types.
+  - A type two packages reach must move to foundations.
+- **New fields are forcing functions.** When `go.temporal.io/api` adds a field to a message a used
+  RPC reaches, the gate fails until someone tags it. Starting to use a new RPC likewise requires its
+  owner and Tag Set first.
+
+**Packages that own today's used RPCs.** The 13 used RPCs leave three owning packages, one of them
+new:
+
+| Package | Used RPCs | Used by |
+| --- | --- | --- |
+| `features/activity/standalone` | `StartActivityExecution`, `DescribeActivityExecution`, `PauseActivityExecution`, `UnpauseActivityExecution`, `RequestCancelActivityExecution`, `TerminateActivityExecution` | its own realization |
+| `features/nexus/standalone` | `StartNexusOperationExecution`, `DescribeNexusOperationExecution`, `RequestCancelNexusOperationExecution`, `TerminateNexusOperationExecution` | its own realization |
+| `features/workflow` (created now, ownership-only: a feature file holding only `exports` and the request Tag Sets; decision 22) | `StartWorkflowExecution`, `DescribeWorkflowExecution`, `GetWorkflowExecutionHistory` | the Nexus caller (`features/nexus/workflow/Realization.scala`) |
+
+Worker-side answers (`Failure`, workflow commands, Nexus replies) travel through the SDK worker,
+not as realization RPCs. Their messages are the "ten written `Proto[...]` messages", which come
+later.
+
+A future mapping to CODEOWNERS is possible; out of scope.
+
+### Message templates
+
+**Where they come from.**
+
+- A Tag Definition gives the default template (`lengthTag.message("{field} length exceeds limit of
+  {max}.")`).
+- A use overrides it, and so does a field Domain for one of its rejecting Tags
+  (`id.message(lengthTag, "...")`).
+
+**Placeholders are closed and checked at lift.** They are the definition's data fields (`{max}`,
+`{pattern}`), `{field}`, `{message}` and `{value}`. An unknown placeholder fails the lift. A
+quantity placeholder interpolates the value the Profile states for its Setting (section 8).
+
+**The IR holds a parsed template**, a list of literal and placeholder parts. Go never parses text,
+and the placeholder check happens once, at lift.
+
+**Consumers (decision 11):** the values checker's diagnostics and a future codegen. Conformance
+compares status codes only, never messages.
+
+**fn-139 (decision 12).** fn-139's `rejects(r).because(text)` is renamed `.message(template)`, with
+this template form (`.flow/specs/fn-139-actor-grouped-rules-per-rpc-actions.md:55`). The Tag
+Definition's `rejects(r)` picks the `Rejection`, which fixes the status code through fn-139.8's
+table. The template is the message within it.
+
+**Templates restate expected behavior and link to no code**, consistent with the no-`because` rule.
+
+### Connecting Tag Sets to the Model (sketch)
 
 ```scala
-// An input whose classes partition a semantic type: `valid` holds every constraint; each other class
-// violates exactly the constraint it names. The lifter checks each class names a constraint of the
-// type that rejects.
-enum IdClass derives Finite:
-  case valid, missing, tooLong
-val activityId = input[IdClass].partitions(identifier, missing -> text.required, tooLong -> text.length)
-
+val req = input(startActivity) // Input[startActivity.Class]: valid and 25 violating classes
+val start = action(client).input(req)
 on(client.start) {
-  when(activityId == IdClass.valid) ~> effects.schedule
-  when(activityId != IdClass.valid) ~> rejects(Rejection.invalidArgument) // fn-139
+  when(startActivity.isValid(req)) ~> effects.schedule
+  when(!startActivity.isValid(req)) ~> rejects(Rejection.invalidArgument) // fn-139
 }
+
+// A Model that tells one fault apart names its class, a declaration-level value:
+val tooLongId = startActivity.violation(_.activityId, lengthTag) // class `activityId_length`
+// … when(req == tooLongId) ~> …, or the sugar startActivity.violates(req, _.activityId, lengthTag)
 ```
 
-The realization then writes `field(_.activityId) := member(activityId)`. Lowering asks the Go value
-module for the class's canonical member, for example the `max` boundary for `valid` and `max + 1`
-for `tooLong`. That value is the Abstraction Claim's example. Exploration's class-member targets
-draw the class's other members, so a divergent member is the counterexample that splits the class
-(`.plans/UMPIRE4_SPEC.md:247-250`).
+**Derivation and naming.**
 
-The same law can be stated once for every entity as a capability, `Validated`: every
-rejecting-constraint class of an annotated action is rejected with its `Rejection` and changes no
-state. The kit then states it once rather than in every Model (`.plans/SEMANTIC_PROTOCOLS.md:95-150`).
+- The classes are `valid`, then one per (path, rejecting Tag) in field order, depth first, with
+  message-level Tags last. They are computed when the Tag Set is constructed.
+- Action class keys follow the existing rule (`start-valid`, `start-activityId_length`).
+- The Model writes no class names and no mapping.
+- The realization writes the request once, `member(req)`, and lowering fills every tagged field
+  from the class.
 
-The first increment needs no Model change. Lowering checks every **literal** operand a realization
-writes against the field's annotations, and refuses a Case that writes a value its annotation
-rejects. For example, it would refuse a start with neither deadline, with the constraint's
-citation in the error.
+**Trade-off.** Class names come from the Tag Set, so tagging a new field or renaming a selector
+renames or adds classes, Query totals and IDs in every Model with that input. The count stays
+linear in rejecting Tags.
+
+**Abstraction Claims.**
+
+- Each class is a claim whose members its Tags define, with the Model writing no example.
+- Lowering takes the canonical member from `values`: for `valid`, every field at a valid value;
+  for `activityId_length`, an ID of length `max + 1` with every other field valid. It records that
+  member as the example.
+- Exploration's class-member targets draw boundaries, then seeded samples, within the class.
+- A divergent member splits the class (`.plans/UMPIRE4_SPEC.md:247-250`, `:453-459`).
+- Profile-owned fields stay the Profile's except in their own violating classes (decision 3).
+
+**`Validated` (decision 7).** The kit's capability law says every violating class's row rejects
+with its Tag's `Rejection` and keeps the state, for every machine that declares the capability
+(`.plans/SEMANTIC_PROTOCOLS.md:95-150`).
+
+- The checker proves it over the table.
+- A Run is checked on the status code through fn-139.8, and on no state change through the
+  evidence the Model's Facts already name.
+
+**First increment, with no Model change.** Lowering checks every literal operand against the Tag
+Sets and refuses a violating one, naming the Tag. For example, a start with neither deadline is
+refused with `startActivity.requires`.
 
 ### IR additions (sketch, `ir.proto`)
+
+**Placement (decision 1, refined by decision 18).** IR files follow source.
+
+- A foundations IR file, `model/ir/foundations.json`, holds the kit's Tag Definitions, the shared
+  field Domains, the shared message Tag Sets and the settings. It is the kit-level file.
+- Each feature's IR file holds its own Tag Sets, the requests of the RPCs it owns, and names
+  `foundations` in `uses`.
+- A feature file keeps the derived class enum in its own `types`, so the interpreter, the checker
+  and the Quint export still read a self-contained file.
+- Lowering, exploration and `values` load the files a feature `uses`. They check that each derived
+  enum matches its Tag Set's derivation and its recorded fingerprint.
 
 ```proto
 message Model {
   // ... fields 1-16 unchanged
-  // The Semantic Types this file's annotations and inputs reference, closed under `extends`.
-  repeated SemanticType semantic_types = 17;
-  repeated Annotation annotations = 18;
+  repeated TagDefinition tag_definitions = 17; // foundations: the kit's; the framework's are lifted there too
+  repeated Domain domains = 18; // field Domains: shared ones in foundations, a feature's own here
+  repeated TagSet tag_sets = 19; // shared message types in foundations; a feature's requests here
+  repeated SettingDeclaration settings = 20; // fn-125.5's keys; foundations only
+  repeated string uses = 21; // the IR files this one references, by IR file name (`foundations`)
 }
 
-// A named bundle of constraints over one protobuf value kind. A Model Definition:
-// `<family>.semantic.<name>`, with a fingerprint over its constraints and none over its citations.
-message SemanticType {
-  string name = 1; // fully qualified, e.g. `temporal.semantics.namespaceName`
+// A Tag's declared shape. The IR gives it no meaning; model/SEMANTICS.md's Tag library section
+// gives the framework Tags theirs.
+message TagDefinition {
+  string name = 1; // e.g. `umpire.tags.length`, `temporal.tags.namespace`
   Position position = 2;
-  ValueKind kind = 3; // text, integer, duration, message, bytes
-  repeated string extends = 4; // ANDed
-  repeated Constraint constraints = 5;
-  string generator = 6; // a registered generator's name, or empty
+  repeated DataField fields = 3;
+  repeated TagTarget targets = 4;
+  Value rejects = 5; // set: rejected with this Rejection (fn-139), and it derives a class
+  Template message = 6; // the default
+}
+message DataField {
+  string name = 1;
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_TEXT = 1;
+    KIND_NUMBER = 2;
+    KIND_FLAG = 3;
+    KIND_ENUM_NAME = 4;
+    KIND_CONDITION = 5; // a condition Operand over the tagged message's paths
+    KIND_QUANTITY = 6; // a number literal, or a `setting` Operand
+  }
+  Kind kind = 2;
+  bool repeated = 3;
+  bool optional = 4;
+}
+enum TagTarget {
+  TAG_TARGET_UNSPECIFIED = 0;
+  TAG_TARGET_MESSAGE = 1;
+  TAG_TARGET_FIELD = 2;
+  TAG_TARGET_ELEMENT = 3;
+  TAG_TARGET_MAP_KEY = 4;
+  TAG_TARGET_MAP_VALUE = 5;
+  TAG_TARGET_DOMAIN = 6;
 }
 
-message Constraint {
-  string id = 1; // `<semantic type or annotation>.<n>`, stable
-  Position position = 2;
-  string because = 3; // the implementation it restates; not fingerprinted
-  enum Effect {
-    EFFECT_UNSPECIFIED = 0;
-    EFFECT_REJECTS = 1;
-    EFFECT_NORMALIZES = 2;
-    EFFECT_CONVERTS = 3;
-  }
-  Effect effect = 4;
-  Value rejection = 5; // the Model's Rejection value, when it rejects
-  oneof kind {
-    Empty required = 6;
-    Empty not_default = 7;
-    Length length = 8;
-    string pattern = 9; // RE2, fully anchored
-    string not_prefix = 10;
-    Literals in = 11;
-    Literals not_in = 12;
-    Range range = 13;
-    Bound max_serialized_bytes = 14;
-    Range count = 15; // items of a repeated or map field
-    string format = 16; // a registered format
-    Operand requires = 17; // a cross-field condition over the message's paths
-    string opaque = 18; // a rule Umpire neither generates nor checks; always a Known Gap
-  }
-}
-
-message Bound {
-  oneof kind {
-    int64 literal = 1;
-    // A value the environment supplies: its key, as the kit declares it, and the default a Case
-    // requires when no Profile states one.
-    Parameter parameter = 2;
-  }
-}
-message Parameter { string key = 1; int64 default = 2; }
-message Length { Bound min = 1; Bound max = 2; Unit unit = 3; }
-enum Unit { UNIT_UNSPECIFIED = 0; UNIT_BYTES = 1; UNIT_RUNES = 2; }
-message Range { Bound low = 1; Bound high = 2; }
-message Literals { repeated ProtoValue values = 1; }
-
-// Semantic Types and Constraints attached to one field of one message, or, with no path, to the
-// message itself.
-message Annotation {
-  string message = 1; // full name
-  string path = 2; // the IR's field-path selectors
+// One use: a definition and its data, each field one Operand the definition's schema types.
+message Tag {
+  string definition = 1;
+  string name = 2; // stable ID
   Position position = 3;
-  repeated string types = 4;
-  repeated Constraint constraints = 5; // tighten only
-  repeated Override overrides = 6; // loosening, each with a reason
+  repeated DataValue data = 4;
+  Template message = 5; // an override, or unset
+  bool normalizes = 6; // marked only (decision 6): accepted and repaired, derives no class
 }
-message Override { string constraint = 1; string because = 2; Constraint replacement = 3; }
+message DataValue {
+  string field = 1;
+  Operand value = 2;
+}
 
-// ...and on Action, for an input whose classes partition a Semantic Type:
-message Partition {
-  string input = 1;
-  string semantic_type = 2;
-  repeated ClassConstraint classes = 3;
+// A field Domain: a named bundle of Tags over one protobuf value kind.
+message Domain {
+  string name = 1;
+  Position position = 2;
+  repeated string bases = 3;
+  repeated Tag tags = 4;
 }
-message ClassConstraint { Value class = 1; string violates = 2; } // empty `violates`: the valid class
+
+// A Tag Set: the tagged Domain of one message type, exhaustive; inner message types have their own.
+message TagSet {
+  string name = 1; // e.g. `temporal.tags.startActivity`
+  string message = 2;
+  Position position = 3;
+  repeated Tag message_tags = 4;
+  repeated FieldTags fields = 5;
+}
+message FieldTags {
+  string path = 1;
+  TagTarget target = 2; // FIELD, ELEMENT, MAP_KEY or MAP_VALUE
+  repeated string domains = 3;
+  repeated Tag tags = 4;
+}
+
+// A parsed message template.
+message Template {
+  repeated TemplatePart parts = 1;
+}
+message TemplatePart {
+  oneof part {
+    string text = 1;
+    string data = 2; // a data field of the Tag's definition
+    Builtin builtin = 3;
+  }
+  enum Builtin {
+    BUILTIN_UNSPECIFIED = 0;
+    BUILTIN_FIELD = 1;
+    BUILTIN_MESSAGE = 2;
+    BUILTIN_VALUE = 3;
+  }
+}
+
+// Operand gains two members (fields 13 and 14 of its oneof):
+//   Any any = 13;          // holds when some operand does, read left to right
+//   string setting = 14;   // a SettingDeclaration's key: the value the Case's settings give it
+message Any {
+  repeated Operand operands = 1;
+}
+
+// The derived classes are an ordinary enum in the feature file (`ir.proto:63-70`), linked to the
+// feature's request Tag Set (decision 17):
+message Enum {
+  repeated Case cases = 1;
+  string domain = 2; // new: the Tag Set these cases are classes of; empty for a finite Domain
+  string domain_fingerprint = 3; // new: that Tag Set's fingerprint, covering the foundations Tag Sets it reaches
+}
+message Case {
+  string name = 1; // `valid`, `activityId_length`, `requires`
+  repeated Field fields = 2;
+  Violation violates = 3; // new: unset for `valid`
+}
+message Violation {
+  string path = 1; // the IR field path, e.g. `task_queue.name`; empty for a message-level Tag
+  string tag = 2; // the Tag's stable ID
+}
+// Action.inputs stay `repeated Param` (ir.proto:331): a Tag Set input is a Param whose TypeRef names
+// the derived enum. There is no IR `Input` message, and none is added.
 ```
 
-Admission rules the Go reader adds (`tools/umpire/ir`, sketch):
+**Why `Operand` for the data**, rather than bare `ProtoValue` or the Model's `Value`:
 
-- An annotation names a message, path and value kind that the linked descriptors have.
-- A constraint fits its field's kind. For example, `length` on a string and `max_serialized_bytes`
-  on a message.
-- The regex compiles as RE2.
-- The annotation's constraints, ANDed with its types', admit at least one value. An empty valid
-  set is refused, like an Unsatisfiable Scenario (PLN-05).
-- A partition's classes name rejecting constraints of their type.
-- A parameter key is one the kit declares.
-- Every `format` and `generator` is registered.
+- `Operand` already unifies a `ProtoValue` literal with the condition nodes, and gains `setting`.
+  The schema says which kind is allowed where.
+- A bare `ProtoValue` would need a parallel oneof.
+- `Value` is the Model's finite form: `TypeRef` has no text type, and its values enter keys and
+  fingerprints.
+- A repeated data field is several `DataValue`s of one name.
 
-Fingerprints:
+**Admission adds these checks (sketch):**
 
-- A Semantic Type's fingerprint enters the fingerprint of the input that partitions it. So
-  changing `namespaceName` changes the Queries whose classes it defines, and nothing else.
-- Annotations used only for the literal-operand check fingerprint nothing, like `ApiBehavior`
+- every Tag names a definition, and its data matches the schema;
+- targets, paths, kinds and literals fit the descriptors;
+- templates name only declared placeholders;
+- Tag Sets are exhaustive, recursive, and unique per message;
+- a feature file's `uses` resolve;
+- an enum with a `domain` has exactly the cases the Tag Set derives, in order, with no fields, its
+  `violates` and its fingerprint matching;
+- an input of such a type carries no hand-written example;
+- `setting` Operands name declared settings, and only in quantity fields;
+- conditions stay within presence, equality and comparison.
+
+**Fingerprints.**
+
+- A Tag Set's fingerprint covers its Tags, its definitions and the Tag Sets it reaches.
+- Through `domain_fingerprint`, it enters the derived enum's fingerprint and so every input, step
+  and Query over it.
+- The interpreter, checker and Quint export ignore `domain`, `domain_fingerprint` and `violates`,
+  and read an ordinary enum.
+- Tag Sets used only for the literal check fingerprint nothing, as with `ApiBehavior`
   (`ir.proto:738-744`).
+- Templates are not behavior (decision 11).
 
 ### Go module (`.plans/UMPIRE_MODULES.md` row, sketch)
 
-| Module | One job | Public interface | Permitted domain dependencies |
+| Module | One job | Public interface | Permitted dependencies |
 | --- | --- | --- | --- |
-| Values, `tools/umpire/values` | Check and generate protobuf field values against declared Constraints. | `Admit(model)`, `Check(annotation, value) []Violation`, `Members(type, class, bounds, seed)` (canonical member first, then boundaries, then sampled members), `Register(format, generator)` | Umpire IR, `protoreflect`, stdlib `regexp/syntax`; interp for `Operand` evaluation if needed; no Testpilot, no Temporal names |
+| Values, `tools/umpire/values` | Interpret the framework's Tag library: check messages against Tag Sets and generate class members. | `Admit(kit, model)`; `Check(tagSet, message, settings) []Violation` (by path and Tag, with the interpolated message); `Members(tagSet, class, settings, seed)` (a whole request); `Ignored(kit) []TagUse`; `Register(format, generator)` | Umpire IR, `protoreflect`, stdlib `regexp/syntax`, interp for `Operand`; no Testpilot, no Temporal names |
 
 Consumers:
 
-- `lower` resolves members, checks literal operands, and binds parameters through the Case's
-  required settings. This follows fn-125's "bound assumption" relation, or the Profile states the
-  value.
-- `explore` uses class-member targets.
-- Testpilot is untouched: a Case still carries literals.
+- `lower`: members, the literal check, Known Gaps for ignored rejecting Tags, required settings;
+- `explore`: class-member targets;
+- `lint`: ignored Tags.
 
-This is a deep module behind a small interface, testable on fixtures without a cluster (MOD-08).
+Testpilot is untouched. It is a deep module behind a small interface, testable on fixtures (MOD-08).
 
-## 7. Keeping Go validation codegen open
+## 8. Run-time bounds and dynamic configuration (fn-125)
 
-The IR has everything a native Go validator generator needs:
+### Bounds reference fn-125's keys (decision 4)
 
-- a closed vocabulary;
-- constraint IDs to name violations by;
-- effects and rejections, which give the status code through fn-139.8's table;
-- parameters, compiled to dynamic-config lookups by key.
+A quantity in a Tag's data is a literal or a `setting` Operand naming a kit `DynamicSetting`. That
+is fn-125 Part B's typed declaration: key, codec, scope, and a Go test pinning it to
+`common/dynamicconfig/registry.go` (`.flow/specs/fn-125-represent-dynamic-configuration-in-the.md:31`).
+It lives in foundations and its IR file. One declaration, no second registry.
 
-This mirrors validation-gen (tags → IR → native Go). Before enforcing anything, it would run in
-K8s's shadow mode, comparing against the hand-written validators and counting mismatches. The
-generated inputs (§4) are its conformance corpus.
+**Pulled forward:**
 
-A generated validator would be a Generated View bound to the IR checksum (ART-07). An export to
-protovalidate predefined rules is the same: a view, not a source.
+- **fn-125.5, whole:** typed keys with scope, and the registry pin test.
+- **From fn-125.6:** required settings with an origin, and Part C's union and conflict rule
+  (`:33`).
+- **The `atMost`/`atLeast` relations** that R10 defines (`:124`), carried in required settings.
 
-Two things block it, and both are decisions, not mechanics:
+Everything else in fn-125 stays deferred: Model settings, `under`, the Nexus encoding, and the
+preparation checks of fn-125.9 beyond what relations need.
 
-- **Precedence inverts.** The Model would drive server validation. SEM-01 makes the Model
-  authoritative for the behavior it covers (`.plans/UMPIRE4_SPEC.md:133-135`), but no rule yet
-  lets Umpire output be server code.
-- **Normalizing effects** (auto-fill, capping) need value-producing semantics that the closed
-  vocabulary only marks today.
+### Resolution: lowering records relations in the Case (decision 5)
 
-Avoid now what would close the door:
+- **Lowering resolves each bound to a relation, not an exact value.** A valid member of length
+  *n* requires `maxIDLength atLeast n`; a violating member of length *n* requires `maxIDLength
+  atMost n − 1`. These enter `Program.required_settings` with origin "a Tag bound a generated value
+  rests on", a fourth origin beside Part C's three.
+- **Remote Profiles must state the value** or the Case is `PreparationUnavailable` (decision 3 of
+  fn-125, `:157`), never vacuous. That fits "Declared, not defaulted" (`:91`), SEM-16 and EVD-01:
+  the Case stays literal, and Testpilot does not change.
+- **QLF-01** (`.plans/UMPIRE4_SPEC.md:523-524`): a limit that decides whether `max + 1` is rejected
+  changes behavior, so the Case records it rather than leaving it to the Profile.
+- **The alternative was rejected.** A symbolic value resolved by Testpilot at preparation (`setting
+  ± offset` plus a filler) would grow Testpilot and the Case format.
 
-- Scala lambdas as constraints (AUT-05).
-- Free-form CEL as the main form.
-- Literal limits where the server reads dynamic config.
-- Message text as the identity of a violation.
+**Member size (a design choice, not a decision).**
 
-## 8. Phasing (if adopted)
+- `values` picks boundaries from the key's registry default, so most Cases run on unconfigured
+  servers.
+- For `maxBytes` it picks a small *n*, which requires `limit.blobSize.error atMost n − 1`. Blob
+  Cases then run where the Profile states such a limit, locally through R9's harness (`:123`), and
+  are `PreparationUnavailable` elsewhere.
+- That keeps 2 MiB values out of checked-in Cases.
 
-1. **Framework vocabulary, lifter, IR section and Go admission** against descriptors. No Case
-   changes.
-2. **Kit Semantic Types** for every field today's realizations write: namespace, activity ID and
-   type, task queue, request ID, identity, the three deadlines plus the cross-field deadline
-   rule. Depends on fn-125 Part B's typed keys, or a minimal `Parameter` until then.
-3. **Lowering's literal-operand check.** It catches realization drift and leaves Case bytes
-   unchanged.
-4. **Partitions, the `Validated` capability, invalid classes with `rejects(invalidArgument)`, and
-   generated members in `lower` and `explore`.** Depends on fn-139 (`Rejection`, code table).
-5. **Visionary:** protovalidate export, then Go codegen behind shadow mode.
+### Scope
 
-## Open questions for the human
+| Scope | Example keys | How a Case's requirement resolves |
+| --- | --- | --- |
+| global | `limit.maxIDLength` | One value for the cluster |
+| namespace | `limit.blobSize.error`, `limit.memoSize.error`, `limit.userMetadata*Size` | For the namespace the Case's namespace role binds to. The requirement names the symbolic binding (`temporal.worker.namespace`, `model/temporal/realize/Kit.scala:27`), and preparation resolves it to the physical namespace from the Profile (ART-13) |
+| task queue | (none in the inventory) | Likewise, through the task-queue role |
 
-1. **Words (SEM-19):** "Semantic Type", "Constraint", "Annotation", given that "Type" and "Rule"
-   are taken?
-2. **Where Semantic Types live in the IR:** as a per-file closure (each IR file self-contained,
-   the same type repeated with the same fingerprint), or in one kit-level IR file that the others
-   reference? Both are "the Umpire IR". The closure keeps each file independently admissible.
-3. **Upstream:** should we propose protovalidate (or at least `field_behavior`) to `temporalio/api`
-   so that option D's import has a source? That depends on the gogo fork constraint those
-   comments cite.
-4. **Environment-bound fields:** may the Driver provision per-Case namespaces and task queues so
-   that *valid* members of those types can vary, or do they stay Profile-fixed with only invalid
-   members generated?
-5. **Large values:** boundary members of `limit.blobSize.error` (2 MiB) and memo limits would bloat
-   checked-in Cases. Should Testpilot gain a deterministic filler operand (`bytes(n, seed)`), which
-   is a Case-format change, or do size boundaries stay out of checked-in Cases?
-6. **Normalizing rules** (auto-filled request ID, capped durations, filled-in timeouts): record
-   them only as non-rejecting (`normalizes`), or model the resulting value so Conformance can check
-   it?
-7. **Expectation for invalid classes:** is it only the status code (fn-139's decision), or also
-   "no state change", stated by the `Validated` law and checked by a follow-up read?
-8. **Response annotations:** should annotations also type *response* fields (for example, `run_id`
-   is a UUID), so Conformance can check observed values? That is out of the stated scope.
-9. **Server-state-dependent rules** (search attributes defined, callback kinds enabled): Model
-   state, environment, or an `opaque` constraint with a Known Gap?
-10. **Codegen precedence:** if Go validation is ever generated from the IR, does that need a new
-    spec rule (GOV-02) letting a Generated View become server code?
+Testpilot's `RequiredSetting` is only `key` and `value` today
+(`proto/internal/temporal/server/api/testpilot/v1/program.proto:36-39`). Relations and scoped keys
+add a relation and a binding reference to it.
+
+### Everything that reads the resolved value
+
+- **Message templates:** `{max}` interpolates the value the Profile states, in diagnostics.
+- **The Go checker:** `Check` takes the settings as an argument, never a default.
+- **Exploration members:** each member records the relation it rests on.
+
+### Conflicts
+
+Lowering takes the union of every origin, as Part C requires (`:33`): Tags, API preconditions,
+bound assumptions and a Query's valuation. Requirements that cannot all hold refuse the Case,
+naming both origins. For example, under single-fault a violating ID of length 1001 (`atMost 1000`)
+beside another field's valid member of length 1001 (`atLeast 1001`) on the same key. Nothing is
+resolved by "last wins".
+
+## 9. Go validation codegen
+
+Not planned (decision 14). The IR keeps it possible:
+
+- Tag Definitions, normative library meanings, `rejects`, parsed templates and `setting`
+  quantities;
+- the values module's interpreters to reuse;
+- K8s-style shadow mode to prove it.
+
+Any spec rule letting a Generated View become server code is deferred with it.
+
+## 10. Phasing
+
+Starts after fn-141.9 (decision 15).
+
+1. Tag mechanism in the framework and IR: definitions, Tags, field Domains, Tag Sets with
+   single-fault classes, templates, `Any`, `setting`, `uses`. Exporter and Go admission. Recursive
+   exhaustiveness on. The Tag library section in `model/SEMANTICS.md`.
+2. Rename `model/temporal/shared/` to `model/temporal/foundations/` (decision 21), performed by
+   fn-142: the task queue moves to `foundations/taskqueue`, the worker and the client to `actors/`,
+   and `Bounds.scala` to `model/temporal/`. One regeneration batch: Definition IDs change exactly by
+   the package mapping, and IR files, Cases, fixtures and the canary Case change with them, plus the
+   module-map and structure-lint updates. No other change rides along.
+3. Ownership:
+   - `features/workflow` created as an ownership-only package (decision 22);
+   - `owns` for the 13 used RPCs, in three packages;
+   - the used-RPC and message-ownership gate checks.
+4. fn-125.5 and the required-settings slice of fn-125.6, pulled forward. Foundations markers,
+   Domains and shared Tag Sets; feature Tag Sets for the 13 requests realizations write and the 62
+   types they reach.
+5. `tools/umpire/values` check, and lowering's literal check. Case bytes unchanged.
+6. Tag Set inputs, the `Validated` law, violating classes with `rejects`, generated members and
+   relations in required settings. Depends on fn-139, including its `.message(template)` rename.
+7. Later: the ten written `Proto[...]` messages, then responses, each in its owner's package.
+
+## 11. Decisions (2026-10-06)
+
+| # | Question | Decision | Where it lands |
+| --- | --- | --- | --- |
+| 1 | Placement of Tag Definitions, Domains and settings | One kit-level IR file, referenced by the feature IR files. Refined by 18: foundations is that file, and features add their own | §7 IR (`uses`, derived enums stay in feature files) |
+| 2 | Upstream protovalidate / `field_behavior` | Not now; keep the vocabulary close to protovalidate | §6, §3 |
+| 3 | Provisioning namespaces and task queues | Deferred. The valid class uses the Profile's values; only their violating classes vary | §5, §7 Abstraction Claims |
+| 4 | fn-125 | Pull forward only fn-125.5 and the required-settings slice of fn-125.6 | §8 |
+| 5 | Limits | Relations (`atMost`/`atLeast`), not exact values | §8 |
+| 6 | Normalizing Tags | Marked only (`Tag.normalizes`); no class, no modeled value | §7 |
+| 7 | Violating classes | Status code plus no state change, through a kit-level `Validated` capability law | §7 |
+| 8 | Class shape | Single-fault: `valid` plus one class per (field path, rejecting Tag), 1 + Σ, through one action-level input over the request's Tag Set. `grouped` dropped; the class-count question dropped | §7 Single-fault classes |
+| 9 | Exhaustiveness | Requests now, recursing into every reachable message. No whole-value Tag Sets | §7 Exhaustive tagging |
+| 10 | Tag meanings | Core validation Tags normative in `model/SEMANTICS.md` | §7 |
+| 11 | Messages | Conformance compares status codes only. Templates serve diagnostics and future codegen. No pattern match, no redaction policy | §7 Message templates |
+| 12 | fn-139 | Rename `rejects(r).because(text)` to `.message(template)`, with the same template form | §7 Message templates; fn-139 to update |
+| 13 | Server-state-dependent rules | A rejecting Tag left uninterpreted, recorded as a Known Gap, for now | §4, §7 |
+| 14 | Codegen spec rule | Deferred; codegen not planned | §9 |
+| 15 | Sequencing | After fn-141.9 | §7, §10 |
+| 16 | Spec wording | Reword `.plans/UMPIRE4_SPEC.md:59` and `model/README.md:753`, extend `:217`, as listed in §7 (not edited here) | §7 One Domain |
+| 17 | IR link | On the enum type: `Enum.domain` (plus `domain_fingerprint`) and `Case.violates`, which names the field path and the Tag | §7 IR |
+| 18 | Source location (user, 2026-10-06) | Follows ownership. A used RPC's request Tag Set lives in the owning package. Shared Domains, shared message Tag Sets, kit Tag Definitions and settings live in `model/temporal/foundations/`. Framework Tag Definitions stay in `model/umpire`. IR files follow source | §7 Ownership |
+| 19 | RPC ownership (user; scope corrected) | Only RPCs a realization uses carry obligations: exactly one owning package and an exhaustive Tag Set (request now, response later). An unused RPC needs nothing. Every message type reachable from a used RPC has exactly one owning Tag Set; a type two packages reach belongs to foundations. The gate fails on a used RPC with no owner or no exhaustive Tag Set, naming the realization, the RPC and the missing fields | §7 Ownership |
+| 20 | CODEOWNERS (user; scope corrected) | Skipped. Ownership is package ownership, enforced by the gate, with no mapping to teams. A future mapping to CODEOWNERS is possible; out of scope | §7 Ownership |
+| 21 | `shared/` and `foundations/` | Rename `model/temporal/shared/` to `model/temporal/foundations/`, accepting one regeneration batch of Definition IDs and Cases, as its own phasing step. fn-142 performs it, with its layout: `foundations/` holds the task queue and this design's shared Tag content, `actors/` the worker and the client, and `Bounds.scala` sits in `model/temporal/` | §7 Ownership; §10 step 2 |
+| 22 | `features/workflow` | Create it now, as an ownership-only package owning `StartWorkflowExecution`, `DescribeWorkflowExecution` and `GetWorkflowExecutionHistory` | §7 Ownership; §10 step 3 |
+
+Decision 21 is performed by fn-142 ("Split model/temporal/shared into foundations and actors"), which this design adopts: `foundations/` (the task queue plus this design's shared Domains, Tag Sets, markers and settings keys), `actors/` (the worker and the client) and `model/temporal/Bounds.scala`.
+
+No open questions remain.

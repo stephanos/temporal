@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T19:54:34.043787Z",
+  "depends_on": [
+    "fn-123-declare-faults-as-the-environments.2"
+  ],
+  "id": "fn-123-declare-faults-as-the-environments.3",
+  "priority": null,
+  "spec": "fn-123-declare-faults-as-the-environments",
+  "spec_path": ".flow/tasks/fn-123-declare-faults-as-the-environments.3.md",
+  "status": "todo",
+  "title": "Go derives the crash row from durability; SEMANTICS Faults section (early proof)",
+  "updated_at": "2026-10-06T19:54:34.043787Z"
+}
