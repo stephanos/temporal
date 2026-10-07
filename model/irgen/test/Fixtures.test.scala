@@ -1392,14 +1392,6 @@ class Fixtures extends munit.FunSuite:
     import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val model = mapper.readTree(ir("statusFacts"))
-  // fn-136.1: each role test of `Roled` beside the cases `Listed` names by hand
-  // (lifts/Roles.scala). Every declaration of one machine, with the other's name in its place and no
-  // positions, is the other's, and an enum's roles leave its IR type as it is without them.
-  test("a role test lifts as the in(...) or the alternatives of the cases that have the role"):
-    import com.fasterxml.jackson.databind.JsonNode
-    import com.fasterxml.jackson.databind.node.ObjectNode
-    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-    val model = mapper.readTree(ir("roles"))
     def strip(n: JsonNode): Unit =
       n match
         case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
@@ -1408,10 +1400,6 @@ class Fixtures extends munit.FunSuite:
     def declarations(machine: String): Map[String, String] =
       Seq("machines", "functions").flatMap { kind =>
         model
-    def declarations(machine: String): Map[String, Map[String, String]] =
-      val named = (s: String) => s.replace(machine, "Listed").replace(machine.toLowerCase, "listed")
-      Seq("machines", "functions").map { kind =>
-        kind -> model
           .path(kind)
           .elements()
           .asScala
@@ -1444,6 +1432,29 @@ class Fixtures extends munit.FunSuite:
       """{"cases":[{"name":"idle"},{"name":"running"},{"name":"paused"}]}""",
       "a phase that declares statuses lifts as the enum it is without them"
     )
+
+  // fn-136.1: each role test of `Roled` beside the cases `Listed` names by hand
+  // (lifts/Roles.scala). Every declaration of one machine, with the other's name in its place and no
+  // positions, is the other's, and an enum's roles leave its IR type as it is without them.
+  test("a role test lifts as the in(...) or the alternatives of the cases that have the role"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val model = mapper.readTree(ir("roles"))
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    def declarations(machine: String): Map[String, Map[String, String]] =
+      val named = (s: String) => s.replace(machine, "Listed").replace(machine.toLowerCase, "listed")
+      Seq("machines", "functions").map { kind =>
+        kind -> model
+          .path(kind)
+          .elements()
+          .asScala
+          .filter(_.toString.toLowerCase.contains(machine.toLowerCase))
+          .map { d =>
             val copy = mapper.readTree(named(d.toString))
             strip(copy)
             copy.path("name").asText() -> copy.toPrettyString
@@ -1461,6 +1472,7 @@ class Fixtures extends munit.FunSuite:
     def cases(name: String) =
       model.path("types").elements().asScala.find(_.path("name").asText() == name).get.path("enum")
     assertEquals(cases("fixture.roles.Phase"), cases("fixture.roles.Bare"))
+
   // fn-139.1: each step function of `DoorSystem`, whose rules reject with `rejects`, beside
   // `DoorProduct`'s, whose rules name effects that spell `reject(Outcome.rejected(r), s)`: with each
   // call of such an effect replaced by its body, and no names or positions, the two are one but for
