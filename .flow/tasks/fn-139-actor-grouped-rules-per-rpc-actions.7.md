@@ -33,9 +33,10 @@ Makes `when` the only rule-case form and the brace block the only `on` form acro
 - [ ] model/README.md, model/SEMANTICS.md and .plans/DSL_OPERATORS.md describe `from`, `when`, multi-action `on`, `rejects`/`because`, the overlap rule across blocks, and the block form.
 - [ ] `scala-cli test model/umpire`, `scala-cli test model/irgen` and `scala-cli test model/check` pass.
 ## Done summary
-TBD
+Retired rule-case in in favor of when across Models, framework, lifter fixtures, syntax gates, and author documentation while retaining membership in. Enforced canonical brace-form on blocks and relocated the unchanged Nexus outcome pin beside its product refinement peer. Checked IR, Cases, and expected JSON are unchanged.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c2c9bf6162
+- Tests: model package exit 0, model framework and Temporal suite exit 0 with 70 tests, DefaultEndsSuite exit 0 with 5 tests, PhaseCapabilitiesSuite exit 0 with 2 tests, full IR generator suite has exactly five inherited fn134.4 failures, BlockFormRuleSuite exit 0 with 3 tests, lint-model-syntax exit 0, scoped model irgen check Scalafix exit 0, Scala format check exit 0, git diff check clean, no checked IR Cases or expected JSON delta
 - PRs:
