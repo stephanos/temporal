@@ -72,3 +72,11 @@ func TestRejectionCodesAreReadAndAdmittedAsAUniqueCompleteTable(t *testing.T) {
 		})
 	}
 }
+
+func TestRejectionCodesMayBeAbsentFromAGenericRealization(t *testing.T) {
+	r := validRejectionRealization()
+	r.RejectionCodes = nil
+	a := &rejectionAdmitter{}
+	(&realizing{d: a, r: r}).rejectionCodes()
+	require.Empty(t, a.problems)
+}

@@ -6,8 +6,9 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
-// RejectionCodes returns the rejection-to-gRPC-code table declared by a realization. Admit checks
-// that this projection is a complete function over the generated Rejection enum.
+// RejectionCodes returns the rejection-to-gRPC-code table declared by a realization. When a
+// realization declares this optional projection, Admit checks that it is a complete function over
+// the generated Rejection enum.
 func RejectionCodes(r *umpirespb.Realization) map[umpirespb.RejectionCode_Rejection]string {
 	codes := make(map[umpirespb.RejectionCode_Rejection]string, len(r.GetRejectionCodes()))
 	for _, entry := range r.GetRejectionCodes() {
@@ -29,6 +30,12 @@ func knownRejections() []umpirespb.RejectionCode_Rejection {
 }
 
 func (a *realizing) rejectionCodes() {
+	// The framework also lifts generic, non-Temporal realizations whose outcome vocabulary has no
+	// shared rejection variants. Temporal's realization kit always supplies the table; an explicit
+	// partial table is invalid below.
+	if len(a.r.GetRejectionCodes()) == 0 {
+		return
+	}
 	declared := make(map[umpirespb.RejectionCode_Rejection]bool, len(a.r.GetRejectionCodes()))
 	for _, entry := range a.r.GetRejectionCodes() {
 		rejection := entry.GetRejection()
