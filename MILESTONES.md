@@ -65,8 +65,8 @@ The planned work below continues that direction: the Scala layer first, then the
 
 ## Specs
 
-Listed in delivery order. Flow records dependencies only within a spec, so each spec names the
-cross-spec gates the conductor holds.
+Listed in delivery order. Flow records spec and task dependencies; the conductor also holds
+batch-close gates and serializes work that shares a regeneration baseline.
 
 ### DSL batch
 
@@ -209,6 +209,82 @@ Gate: after fn-142. Folder and package both become `framework`; product names (`
 | Task | Status | What |
 | --- | --- | --- |
 | fn-143.1 | ⬜ todo | Move, rename the package, regenerate, prove the diff is the umpire.→framework. mapping, docs |
+
+### IR schema research: fn-145 → fn-146 → fn-147 → fn-148
+
+Planned 2026-10-06 from [Umpire IR schema research](.plans/UMPIRE_IR_SCHEMA_RESEARCH.md) and
+[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Gate: the DSL batch and fn-142/fn-143
+close before fn-145; each following spec waits for its predecessor. These are separate migrations,
+each with its own baseline, regeneration and full gates, not another DSL batch. Serialize fn-140,
+fn-131 and any revived fn-141/fn-144 or Model batch against these migrations; re-anchor their tasks
+to the schema and vocabulary left by completed work. Deferred specs do not block this chain.
+
+Owner decision: breaking IR changes are allowed. Producers, consumers, generated artifacts and
+recorded Case/Run companions migrate together. No compatibility decoders, legacy evaluators or
+parallel old field spellings are required; retired formats reject explicitly. The declaration-only
+split still proves semantic and artifact equivalence, not a historical compatibility promise.
+
+### fn-145: Modularize the Umpire IR schema
+
+Nine files, one existing protobuf package and an acyclic import graph. This owns fn-131's realization
+extraction slice; fn-131 retains metadata, canonicalization, level checks and producer provenance.
+No declaration is removed merely because generated production Models omit it. Shared settings and
+disposition/cleanup leaves receive a maintenance evaluation, not an assumed shared schema.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-145.1 | ⬜ todo | Full schema closure in generation, stamps, stale checks and descriptor ledger; proof |
+| fn-145.2 | ⬜ todo | Extract the nine responsibility files without changing declarations or Model meaning |
+| fn-145.3 | ⬜ todo | Local empty marker → `google.protobuf.Empty`; preserve oneof meanings |
+| fn-145.4 | ⬜ todo | Equivalence gates, shared-leaf evaluation, schema ownership docs; close |
+
+### fn-146: Adopt CEL for runtime predicates and values
+
+Gate: after fn-145. Testpilot owns the restricted CEL environment and descriptor-aware value adapter;
+Umpire lowers symbolic realization operands into it. Finite Model expressions, `ModelValue` and
+descriptor-exact `ValueType` remain separate. Formats and identities move together, without legacy
+runtime paths. Tasks 2 and 3 are parallel candidates; the rest run in dependency order.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-146.1 | ⬜ todo | Breaking format, deterministic canonical identity and companion migration contract |
+| fn-146.2 | ⬜ todo | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
+| fn-146.3 | ⬜ todo | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
+| fn-146.4 | ⬜ todo | Native execution bindings; descriptor/capture and online/offline proof |
+| fn-146.5 | ⬜ todo | Contract and correlated verification, rule expansion and reference walkers |
+| fn-146.6 | ⬜ todo | Umpire operand lowering, Run Event guards and conformance agreement |
+| fn-146.7 | ⬜ todo | Retire custom machinery, regenerate companions, full gates and docs; close |
+
+### fn-147: Migrate elapsed-time fields to protobuf Duration
+
+Gate: after fn-146. Seven Testpilot elapsed-time fields and corresponding Umpire hints/defaults
+migrate through checked whole-millisecond conversions. Absent polling interval means one read;
+present positive interval means polling. Counts, logical bounds, percentages and timestamps stay.
+Scalar-only singleton-oneof presence cleanup belongs here. Tasks run in order.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-147.1 | ⬜ todo | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
+| fn-147.2 | ⬜ todo | Replace schemas and migrate Scala authoring, lifting and Umpire producers |
+| fn-147.3 | ⬜ todo | Runtime consumers, polling policy and scalar presence |
+| fn-147.4 | ⬜ todo | Regenerate artifacts and Run companions, categorize identities, full gates and docs; close |
+
+### fn-148: Consolidate Testpilot evidence and correlated state schemas
+
+Gate: after fn-147. One generalized evidence declaration replaces inline extraction. Response lifts
+keep ordered first-match behavior; Run Event overlaps still fail. Contract evidence policies remain
+independent. Complete states include both atom and fields; results are separate from authorized
+prior-state transitions, and projection result order stays explicit. Tasks run in order.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-148.1 | ⬜ todo | Generalized evidence declarations in a leaf schema; full lift-shape proof |
+| fn-148.2 | ⬜ todo | One binder and lowering path; source selection and independent Contract policies |
+| fn-148.3 | ⬜ todo | Complete-state and result tables in schema/lowering; compact-size measurement |
+| fn-148.4 | ⬜ todo | Normalized admission/verification, causal authorization and expanded-work ceilings |
+| fn-148.5 | ⬜ todo | Derived Contract kind, fixed correlated clock and explicit support Boolean |
+| fn-148.6 | ⬜ todo | Local instruction references, response cardinality and surviving Empty markers |
+| fn-148.7 | ⬜ todo | Artifact/companion migration, measurements, full gates and ownership docs; close |
 
 ## Deferred
 

@@ -1,0 +1,102 @@
+{
+  "branch_name": "fn-146-adopt-cel-for-runtime-predicates-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-07T04:14:43.420242Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-145-modularize-the-umpire-ir-schema"
+  ],
+  "id": "fn-146-adopt-cel-for-runtime-predicates-and",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-07T04:20:03.780196Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "539c0a9b4978b8198290a15fb9b7feb3a1aa06f2a30911fbba823fa07b7363f2",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2ec73f6e99e096bdf37ccf94bc647ec8",
+            "classification": "introduced",
+            "findingId": "finding-2ec73f6e99e096bdf37ccf94bc647ec8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2c43efbefc6a00bf3823951a98e56da8",
+            "classification": "introduced",
+            "findingId": "finding-2c43efbefc6a00bf3823951a98e56da8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ca0e3db91a9bd2ed5cf336550a206817",
+            "classification": "introduced",
+            "findingId": "finding-ca0e3db91a9bd2ed5cf336550a206817",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bb4d9c10195c493827bbc6dc8f50e83f5e0f5f67",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1015821,
+      "output_sha256": "bd573e54808a4206682778e3d9fbc26791c8faefae1de0b1933c3686f7da0088",
+      "reservation_id": "39565c2c583b4f17bafab6cb430670fc",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-07T04:20:03.766613Z",
+      "tool_calls": 26,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-146-adopt-cel-for-runtime-predicates-and.md",
+  "status": "open",
+  "title": "Adopt CEL for runtime predicates and values",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-07T04:20:03.787091Z"
+}

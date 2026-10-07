@@ -1,0 +1,110 @@
+{
+  "branch_name": "fn-148-consolidate-testpilot-evidence-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-07T04:14:44.529912Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-147-migrate-elapsed-time-fields-to-protobuf"
+  ],
+  "id": "fn-148-consolidate-testpilot-evidence-and",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-07T04:19:15.104330Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "620f494c19e10f14fc74b78f17b4bf83f8fabee9f7527c392cbe17ad1e7d8350",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9272da1832fc52b137d5dc0190c3f586",
+            "classification": "introduced",
+            "findingId": "finding-9272da1832fc52b137d5dc0190c3f586",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-59a4a57fa45e39296428687565961aa7",
+            "classification": "introduced",
+            "findingId": "finding-59a4a57fa45e39296428687565961aa7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-73df09d27dea6ef946d69b68d10eb14b",
+            "classification": "introduced",
+            "findingId": "finding-73df09d27dea6ef946d69b68d10eb14b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ffbff4321729678e264c175d13a14a95",
+            "classification": "introduced",
+            "findingId": "finding-ffbff4321729678e264c175d13a14a95",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bb4d9c10195c493827bbc6dc8f50e83f5e0f5f67",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 521675,
+      "output_sha256": "1bf0fd9c0e6b3ea9227abc16f4442c635095576e10cff535a3fb095a4ec4c3be",
+      "reservation_id": "b1ff84cdaf7e49d89548c0a767c232d3",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-07T04:19:15.095205Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-148-consolidate-testpilot-evidence-and.md",
+  "status": "open",
+  "title": "Consolidate Testpilot evidence and correlated state schemas",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-07T04:19:15.107281Z"
+}

@@ -1,0 +1,165 @@
+{
+  "branch_name": "fn-147-migrate-elapsed-time-fields-to-protobuf",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-07T04:14:43.983656Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-146-adopt-cel-for-runtime-predicates-and"
+  ],
+  "id": "fn-147-migrate-elapsed-time-fields-to-protobuf",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-07T04:20:17.785534Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "a0a6c431e60d5d9a144ad99e1b291958cc70e96e8e95be5a0775c962ebcffbbd",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0a881eb50f99fbb2f7f770a4724a038e",
+            "classification": "introduced",
+            "findingId": "finding-0a881eb50f99fbb2f7f770a4724a038e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-605fff31a3ba994cb65f0f82c86f997c",
+            "classification": "introduced",
+            "findingId": "finding-605fff31a3ba994cb65f0f82c86f997c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-42970ebad301b0d15d560f4664b11242",
+            "classification": "introduced",
+            "findingId": "finding-42970ebad301b0d15d560f4664b11242",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bb4d9c10195c493827bbc6dc8f50e83f5e0f5f67",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 298368,
+      "output_sha256": "b8514d160911e6c45474eaf24f285113832712b91eedd3f24d391e329f81ee4f",
+      "reservation_id": "1070157f308748d5a515470cc5245022",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-07T04:18:27.211619Z",
+      "tool_calls": 18,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7851538c0e1de846ac952fb7f75e34ea158d4cb9cfbe36ea01f37c368d920fe7",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0a881eb50f99fbb2f7f770a4724a038e",
+            "classification": "introduced",
+            "findingId": "finding-0a881eb50f99fbb2f7f770a4724a038e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-605fff31a3ba994cb65f0f82c86f997c",
+            "classification": "introduced",
+            "findingId": "finding-605fff31a3ba994cb65f0f82c86f997c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-42970ebad301b0d15d560f4664b11242",
+            "classification": "introduced",
+            "findingId": "finding-42970ebad301b0d15d560f4664b11242",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bb4d9c10195c493827bbc6dc8f50e83f5e0f5f67",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 746,
+      "output_sha256": "dd5312c8a4e3cb91e294a8a20adf03e69eb663d530da7eb6806abafb6fe22d18",
+      "reservation_id": "c69c45330cac40268f527bf824be27b5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-07T04:20:17.779807Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-147-migrate-elapsed-time-fields-to-protobuf.md",
+  "status": "open",
+  "title": "Migrate elapsed-time fields to protobuf Duration",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-07T04:20:17.786260Z"
+}

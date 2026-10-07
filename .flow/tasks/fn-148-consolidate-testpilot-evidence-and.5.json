@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-07T04:14:53.977830Z",
+  "depends_on": [
+    "fn-148-consolidate-testpilot-evidence-and.4"
+  ],
+  "id": "fn-148-consolidate-testpilot-evidence-and.5",
+  "priority": null,
+  "spec": "fn-148-consolidate-testpilot-evidence-and",
+  "spec_path": ".flow/tasks/fn-148-consolidate-testpilot-evidence-and.5.md",
+  "status": "todo",
+  "title": "Remove derived Contract fields and preserve support presence",
+  "updated_at": "2026-10-07T04:14:53.977830Z"
+}
