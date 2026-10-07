@@ -19,7 +19,14 @@ import Timeout.expires
 
 // It begins before the operation exists, so unscheduled is one phase.
 enum Phase derives Finite:
-  case unscheduled, scheduled, backingOff, started, succeeded, failed, canceled, timedOut
+  case unscheduled
+  case scheduled extends Phase, Waiting
+  case backingOff extends Phase, Retrying
+  case started extends Phase, Held
+  case succeeded extends Phase, Succeeded
+  case failed extends Phase, Failed
+  case canceled extends Phase, Canceled
+  case timedOut extends Phase, TimedOut
 
 // The attempt count is `0..attemptBound`.
 final case class State(
@@ -97,13 +104,13 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
       if a < attemptBound then a + 1 else a
 
     // The four phases the design ends on. A completion that arrives after one of them is not found.
-    def terminalPhase(p: Phase) = p.in(succeeded, failed, canceled, timedOut)
+    def terminalPhase(p: Phase) = p.in[Closed]
 
     // Scheduled and not yet over: the phases a completion resolves and a timer can fire in.
-    def running(p: Phase) = p.in(scheduled, backingOff, started)
+    def running(p: Phase) = p.in[Live]
 
     // Waiting for the handler to accept: what the schedule-to-start deadline covers.
-    def waiting(p: Phase) = p.in(scheduled, backingOff)
+    def waiting(p: Phase) = p.in[Waiting]
 
     // Every phase once the operation is scheduled, running or over: what a completion answers.
     def created(p: Phase) = running(p) || terminalPhase(p)

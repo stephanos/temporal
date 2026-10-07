@@ -12,7 +12,13 @@ import temporal.shared.Bounds.three
 
 // The statuses DescribeNexusOperationExecution reports: scheduled and started read RUNNING.
 enum Phase derives Finite:
-  case unstarted, scheduled, started, succeeded, failed, canceled, terminated
+  case unstarted
+  case scheduled extends Phase, Waiting
+  case started extends Phase, Held
+  case succeeded extends Phase, Succeeded
+  case failed extends Phase, Failed
+  case canceled extends Phase, Canceled
+  case terminated extends Phase, Terminated
 
 // 7 phases and whether a cancel was requested: 14 states.
 final case class State(phase: Phase, cancelRequested: Boolean) derives Finite
@@ -33,13 +39,13 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
   object states:
     def phase(s: State): Phase = s.phase
 
-    def terminal(p: Phase): Boolean = p.in(succeeded, failed, canceled, terminated)
+    def terminal(p: Phase): Boolean = p.in[Closed]
 
     // A path ends where the operation is over: `end` reads this named predicate.
     def over(s: State): Boolean = terminal(s.phase)
 
     // Started and not over: the phases a control settles or records a request in.
-    def live(p: Phase): Boolean = p.in(scheduled, started)
+    def live(p: Phase): Boolean = p.in[Live]
 
     // Every phase after the start, live or over: the phases a control is answered in.
     def created(p: Phase): Boolean = live(p) || terminal(p)

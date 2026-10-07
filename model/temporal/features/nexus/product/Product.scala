@@ -11,7 +11,13 @@ import temporal.shared.worker.worker
 
 // What an operation does.
 enum Phase derives Finite:
-  case scheduled, started, succeeded, failed, canceled, timedOut, terminated
+  case scheduled extends Phase, Waiting
+  case started extends Phase, Held
+  case succeeded extends Phase, Succeeded
+  case failed extends Phase, Failed
+  case canceled extends Phase, Canceled
+  case timedOut extends Phase, TimedOut
+  case terminated extends Phase, Terminated
 
 final case class State(phase: Phase) derives Finite
 
@@ -34,7 +40,7 @@ object NexusProduct extends Machine[State, Outcome, Fact]:
   // The product's phase sets.
   object states:
     // The five phases the product machine ends on.
-    def productTerminal(s: State) = s.phase.in(succeeded, failed, canceled, timedOut, terminated)
+    def productTerminal(s: State) = s.phase.in[Closed]
 
   // Both forms record these facts through their history or Describe evidence.
   object effects:
