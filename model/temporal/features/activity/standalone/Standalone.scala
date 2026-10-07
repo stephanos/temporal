@@ -26,8 +26,8 @@
 //     HeldDispatch and LostStartAnswer.
 //
 // A machine object reads its header (entity, init, end, evidence), then its sections in order:
-// states, refinement, effects, monitors, rules, properties, implements and queries. A composition
-// reads end, then states, syncs, properties, implements and queries.
+// states, refinement, effects, monitors, rules, properties, capabilities and queries. A composition
+// reads end, then states, syncs, properties, capabilities and queries.
 package temporal
 package features.activity
 package standalone

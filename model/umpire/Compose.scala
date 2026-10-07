@@ -96,12 +96,12 @@ abstract class Composition[S <: Product] private (
   // capability cannot bind an outcome of another machine or hand-write the composed encoding.
   def composedOutcome[MS, O, F](member: Machine[MS, O, F], outcome: O): String =
     val fields = mirror.fromProduct(Composition.Empty).productElementNames.toVector
-    val matching = fields.zip(members).collect { case (field, m) if m eq member => field }
+    val candidates = fields.zip(members).collect { case (field, m) if m eq member => field }
     require(
-      matching.size == 1,
+      candidates.size == 1,
       s"${member.name} is not one unique member of $name"
     )
-    s"${matching.head}_${valueKey(outcome)}"
+    s"${candidates.head}_${valueKey(outcome)}"
 
 // A composition derivation retaining its source's typed phase and stopping point, like Derived.
 abstract class DerivedComposition[S <: Product, P](derivation: Composition[S])(using

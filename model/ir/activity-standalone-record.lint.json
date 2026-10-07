@@ -484,7 +484,7 @@
       "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
-      "kind": "waived-law",
+      "kind": "capability-waiver",
       "owner": "activityRecord",
       "subjects": [
         "activityRecord.closedIsRejectedUniformly"
@@ -492,7 +492,7 @@
       "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
     },
     {
-      "kind": "waived-law",
+      "kind": "capability-waiver",
       "owner": "recordOverLossyMatching",
       "subjects": [
         "recordOverLossyMatching.closedIsRejectedUniformly"
@@ -500,7 +500,7 @@
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     },
     {
-      "kind": "waived-law",
+      "kind": "capability-waiver",
       "owner": "recordOverMatching",
       "subjects": [
         "recordOverMatching.closedIsRejectedUniformly"
@@ -508,7 +508,7 @@
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     },
     {
-      "kind": "waived-law",
+      "kind": "capability-waiver",
       "owner": "recordOverQueue",
       "subjects": [
         "recordOverQueue.closedIsRejectedUniformly"
@@ -516,7 +516,7 @@
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     },
     {
-      "kind": "waived-law",
+      "kind": "capability-waiver",
       "owner": "trustingActivityRecord",
       "subjects": [
         "trustingActivityRecord.closedIsRejectedUniformly"
@@ -524,7 +524,7 @@
       "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
     },
     {
-      "kind": "waived-law",
+      "kind": "capability-waiver",
       "owner": "trustingRecordOverMatching",
       "subjects": [
         "trustingRecordOverMatching.closedIsRejectedUniformly"
@@ -532,7 +532,7 @@
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
     },
     {
-      "kind": "waived-law",
+      "kind": "capability-waiver",
       "owner": "trustingRecordOverQueue",
       "subjects": [
         "trustingRecordOverQueue.closedIsRejectedUniformly"
@@ -598,6 +598,14 @@
         "outcome rejected-invalidArgument"
       ],
       "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "capability-waiver",
+      "owner": "activityProduct",
+      "subjects": [
+        "activityProduct.pausedIsNotDispatched"
+      ],
+      "because": "cancelRequested does not reveal whether a worker still holds an attempt"
     }
   ]
 }

@@ -168,7 +168,7 @@
   }, {
     "name": "umpire.outcomes.Outcome",
     "position": {
-      "file": "umpire/Syntax.scala",
+      "file": "model/umpire/Syntax.scala",
       "line": 60
     },
     "enum": {
@@ -187,7 +187,7 @@
   }, {
     "name": "umpire.outcomes.Rejection",
     "position": {
-      "file": "umpire/Syntax.scala",
+      "file": "model/umpire/Syntax.scala",
       "line": 55
     },
     "enum": {
@@ -7569,7 +7569,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 131
+        "line": 136
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -7577,7 +7577,7 @@
       "id": "temporal.features.nexus.standalone.evidence.statusScheduled",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 210
+        "line": 215
       },
       "records": "statusScheduled",
       "source": "temporal.features.nexus.standalone.source.record",
@@ -7588,26 +7588,26 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 218
+            "line": 223
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 201
+            "line": 206
           },
           "equal": {
             "left": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 201
+                "line": 206
               },
               "path": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 201
+                    "line": 206
                   },
                   "projected": { }
                 },
@@ -7617,7 +7617,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 203
+                "line": 208
               },
               "literal": {
                 "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
@@ -7631,7 +7631,7 @@
       "id": "temporal.features.nexus.standalone.evidence.statusCancelRequested",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 210
+        "line": 215
       },
       "records": "statusCancelRequested",
       "source": "temporal.features.nexus.standalone.source.record",
@@ -7642,26 +7642,26 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 218
+            "line": 223
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 201
+            "line": 206
           },
           "equal": {
             "left": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 201
+                "line": 206
               },
               "path": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 201
+                    "line": 206
                   },
                   "projected": { }
                 },
@@ -7671,7 +7671,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 203
+                "line": 208
               },
               "literal": {
                 "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
@@ -7699,7 +7699,7 @@
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 136
+        "line": 141
       },
       "projection": "temporal.features.nexus.standalone.projection",
       "run": "temporal.features.nexus.standalone.scope.run",
@@ -7716,7 +7716,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 189
+        "line": 194
       },
       "controller": { },
       "items": [ {
@@ -7764,7 +7764,7 @@
                 "value": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 291
+                    "line": 296
                   },
                   "environment": "temporal.nexus-endpoint.resource"
                 }

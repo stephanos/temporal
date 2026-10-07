@@ -17,7 +17,7 @@ func whyIn(t *testing.T, m *umpirespb.Model, machine, state, class string) *Why 
 	return w
 }
 
-func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
+func TestWhyExplainsTheDecisionThatDisabledAPair(t *testing.T) {
 	m := readIR(t, activityIR)
 
 	// A pause of a paused activity fires no rule: each rule of the input-free action is tried on the
@@ -45,11 +45,12 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	require.False(t, last.Then)
 	require.True(t, last.State)
 
-	// A terminal phase's notFound row decides through the named predicate its rule's guard calls.
+	// A terminal phase's notFound row decides through its role-expanded phase guard. Role expansion
+	// leaves no helper call: the decision itself still records the source guard and its result.
 	w = whyIn(t, m, "activitySystem", "completed-1-unset-unset-unset", "pause")
 	require.Len(t, w.Steps, 1)
 	guard := w.Decisions[0]
-	require.Equal(t, []string{"temporal.features.activity.standalone.system.ActivitySystem$.states$.terminal"}, guard.Calls)
+	require.Empty(t, guard.Calls)
 	require.True(t, guard.Then)
 	require.True(t, guard.State)
 	require.False(t, guard.Nested)
@@ -113,7 +114,7 @@ func TestReadsSaysWhetherAClaimReadsItsStep(t *testing.T) {
 	require.NoError(t, err)
 	product := machines["activityProduct"]
 	in := NewInterpreter(m)
-	law := "activityProduct.property.activityProduct.pausedIsNotDispatched"
+	property := "activityProduct.property.activityProduct.pausedIsNotDispatched"
 	step := func(state string) Value {
 		for _, tr := range product.Transitions {
 			if tr.Source.Key() == state {
@@ -123,15 +124,15 @@ func TestReadsSaysWhetherAClaimReadsItsStep(t *testing.T) {
 		t.Fatalf("no row from %s", state)
 		return Value{}
 	}
-	// Away from paused the law is decided by the state before alone.
+	// Away from paused the Property is decided by the state before alone.
 	scheduled, _ := product.State("scheduled")
-	v, read, err := in.Reads(law, []Value{scheduled, step("scheduled")}, nil)
+	v, read, err := in.Reads(property, []Value{scheduled, step("scheduled")}, nil)
 	require.NoError(t, err)
 	require.True(t, v.Bool)
 	require.Equal(t, []bool{true, false}, read)
 	// From paused it reads where the step goes.
 	paused, _ := product.State("paused")
-	_, read, err = in.Reads(law, []Value{paused, step("paused")}, nil)
+	_, read, err = in.Reads(property, []Value{paused, step("paused")}, nil)
 	require.NoError(t, err)
 	require.Equal(t, []bool{true, true}, read)
 }

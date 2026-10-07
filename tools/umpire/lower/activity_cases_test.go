@@ -70,15 +70,17 @@ var activityCases = map[string]activityCase{
 	"terminate": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
 		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "terminate"}}, []string{"stop"}},
 	// pausedThenCompleted: start, pause, unpause, poll, respondCompleted.
-	// The release schedules the activity again, which its own answer confirms. The path pauses an
-	// activity no worker has taken, so the Case keeps its worker from polling until the release.
-	"pauseResume": {[]string{"stop-worker-until-released", "start-activity", "pause-activity", "await-paused", "unpause-activity", "resume-worker",
+	// Starting arms the in-server delivery hold before it sends the request; the following hold waits
+	// until that dispatch is intercepted. The release schedules the activity again, which its own
+	// answer confirms, without letting the worker poll while the activity is paused.
+	"pauseResume": {[]string{"start-activity", "hold-dispatch-before-pause", "pause-activity", "await-paused", "unpause-activity", "release-dispatch-after-pause",
 		"await-completed"}, []string{"complete-attempt"},
 		begun(map[string][]string{"statusPaused": {"pause"}, "statusScheduledAgain": {"unpause"}, "statusCompleted": {answerDone}}), nil},
-	// scheduleToStartExpires: start(unset, expires, unset), stop, scheduleToStart.
-	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "await-timed-out"}, []string{},
+	// scheduleToStartExpires: start(unset, expires, unset), stop, scheduleToStart. The in-server
+	// hold closes the worker-stop race and is canceled by cleanup after the timer fires.
+	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "hold-dispatch-before-timeout", "await-timed-out"}, []string{},
 		map[string][]string{"statusScheduled": {"start-unset-expires-unset"}, "statusTimedOut": {"stop", "scheduleToStart"}}, []string{"stop"}},
-	// The finds the protocol's capabilities generate, each over the Scenario its law's
+	// The finds the protocol's capabilities generate, each over the Scenario its Property's
 	// `reach` writes before the control: start, stop, then the control. Terminable's takes
 	// terminatedWhileScheduled's path and the same instructions as terminate's Case, but is a Case of
 	// its own (its Property and fingerprints differ), so `terminated` and `terminate` stay authored.
@@ -104,7 +106,7 @@ var activityLimits = map[string]struct {
 	gap     Unsupported
 	written string
 }{
-	"startToCloseTimeout": {Unsupported{Construct: "attempt that gives no answer", ID: "activity", Owner: "none: a recorded limit of the prototype"},
+	"startToCloseTimeout": {Unsupported{Construct: "attempt that gives no answer", ID: "attempts", Owner: "none: a recorded limit of the prototype"},
 		"attempts = script("},
 	"cancel": {Unsupported{Construct: "attempt record that follows later evidence", ID: activityEvidence + "statusStarted",
 		Owner: "none: a recorded limit of the prototype"}, "Evidence.runEvent("},
@@ -159,7 +161,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			require.Empty(t, l.Unsupported)
 			require.Empty(t, l.OffPath)
 			c := l.Case
-			require.Equal(t, map[string][]string{"controller": want.controller, "activity": want.activity}, instructionIDs(c))
+			require.Equal(t, map[string][]string{"controller": want.controller, "attempts": want.activity}, instructionIDs(c))
 
 			// The inventory accounts for everything the realization declares, as its message tree lists it.
 			var inventory [][2]string
@@ -192,7 +194,9 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			source, err := testpilot.DecodeCaseProtoJSON(encoded)
 			require.NoError(t, err)
 			profile, err := temporal.DeriveProfile(source, catalog, temporal.Environment{Identity: query + "-profile", Namespace: "namespace",
-				TaskQueue: "task-queue"})
+				TaskQueue: "task-queue", DeliveryControl: slices.ContainsFunc(want.controller, func(id string) bool {
+					return strings.HasPrefix(id, "hold-dispatch-before-")
+				})})
 			require.NoError(t, err)
 			prepared, err := testpilot.Prepare(source, profile)
 			require.NoError(t, err)
@@ -244,9 +248,9 @@ func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *t
 	protorequire.ProtoEqual(t, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptFailure{
 		ActivityAttemptFailure: &testpilotspb.ActivityAttemptFailure{Failure: &failurepb.Failure{Message: "attempt failed",
 			FailureInfo: &failurepb.Failure_ApplicationFailureInfo{ApplicationFailureInfo: &failurepb.ApplicationFailureInfo{Type: "AttemptFailed"}}}}}},
-		instruction(t, c, "activity", "fail-attempt").GetInstruction())
+		instruction(t, c, "attempts", "fail-attempt").GetInstruction())
 	protorequire.ProtoEqual(t, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{
-		Finish: &testpilotspb.Finish{Result: cp.Literal(cp.Text("done"))}}}, instruction(t, c, "activity", "complete-attempt").GetInstruction())
+		Finish: &testpilotspb.Finish{Result: cp.Literal(cp.Text("done"))}}}, instruction(t, c, "attempts", "complete-attempt").GetInstruction())
 
 	names := definitions(c)
 	declared := map[string]*testpilotspb.EvidenceDeclaration{}
@@ -549,11 +553,11 @@ func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *
 	}
 
 	l, err := changed(func(source *umpirespb.RunEventSource) {
-		source.Script, source.Command = "activity", "complete-attempt"
+		source.Script, source.Command = "attempts", "complete-attempt"
 	}).
 		Lower("completion", activityIdentity("completion"))
 	require.Nil(t, l)
-	require.ErrorContains(t, err, "evidence "+scheduled+" is the Run's record of a command of script activity, which no controller runs")
+	require.ErrorContains(t, err, "evidence "+scheduled+" is the Run's record of a command of script attempts, which no controller runs")
 	require.ErrorContains(t, err, kitAt)
 
 	l, err = changed(func(source *umpirespb.RunEventSource) {
@@ -599,12 +603,11 @@ func TestARecordWhoseInstructionTheCaseDoesNotCarryDoesNotClose(t *testing.T) {
 	require.ErrorContains(t, err, kitAt)
 }
 
-// A pause is read back only of an activity no worker has taken. With a running worker the first
-// attempt is delivered, and may be answered, before the pause lands, and the pause of a held attempt is
-// a request whose release schedules nothing. So the Case of a path that pauses stops its worker's
-// polling before the start and resumes it after the release, on the task queue its activity runs on;
-// a path that does not pause does neither.
-func TestAPathThatPausesKeepsItsWorkerFromPollingUntilTheRelease(t *testing.T) {
+// A pause is read back only of an activity no worker has taken, and a schedule-to-start timer fires
+// only while no worker has taken it. Both Cases arm an in-server hold with the start and wait for the
+// held dispatch next. The pause path releases it after the unpause; the timeout path leaves cleanup
+// to cancel it after the timer fires.
+func TestPathsThatKeepTheActivityUnstartedHoldItsDispatch(t *testing.T) {
 	p, err := NewProducer(loaded(t, "activity-standalone"))
 	require.NoError(t, err)
 	l, err := p.Lower("pauseResume", activityIdentity("pauseResume"))
@@ -615,13 +618,18 @@ func TestAPathThatPausesKeepsItsWorkerFromPollingUntilTheRelease(t *testing.T) {
 	fault := func(id string) *testpilotspb.InjectFault {
 		return instruction(t, l.Case, "controller", id).GetInstruction().GetInjectFault()
 	}
-	protorequire.ProtoEqual(t, &testpilotspb.InjectFault{RoleId: queue, Kind: testpilotspb.FAULT_KIND_WORKER_STOP}, fault("stop-worker-until-released"))
-	protorequire.ProtoEqual(t, &testpilotspb.InjectFault{RoleId: queue, Kind: testpilotspb.FAULT_KIND_WORKER_RESUME}, fault("resume-worker"))
+	protorequire.ProtoEqual(t, &testpilotspb.InjectFault{RoleId: queue, Kind: testpilotspb.FAULT_KIND_DELIVERY_HOLD}, fault("hold-dispatch-before-pause"))
+	protorequire.ProtoEqual(t, &testpilotspb.InjectFault{RoleId: queue, Kind: testpilotspb.FAULT_KIND_DELIVERY_RELEASE}, fault("release-dispatch-after-pause"))
+	timed, err := p.Lower("scheduleToStartTimeout", activityIdentity("scheduleToStartTimeout"))
+	require.NoError(t, err)
+	require.Equal(t, Lowered, timed.Standing, "%v", timed.Unsupported)
+	protorequire.ProtoEqual(t, &testpilotspb.InjectFault{RoleId: queue, Kind: testpilotspb.FAULT_KIND_DELIVERY_HOLD},
+		instruction(t, timed.Case, "controller", "hold-dispatch-before-timeout").GetInstruction().GetInjectFault())
 
 	for _, query := range []string{"completion", "retry", "terminate"} {
 		other, err := p.Lower(query, activityIdentity(query))
 		require.NoError(t, err)
-		require.NotContains(t, instructionIDs(other.Case)["controller"], "stop-worker-until-released", query)
-		require.NotContains(t, instructionIDs(other.Case)["controller"], "resume-worker", query)
+		require.NotContains(t, instructionIDs(other.Case)["controller"], "hold-dispatch-before-pause", query)
+		require.NotContains(t, instructionIDs(other.Case)["controller"], "release-dispatch-after-pause", query)
 	}
 }

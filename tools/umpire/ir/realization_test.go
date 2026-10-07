@@ -670,7 +670,7 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 	source := func(t *testing.T, m *umpirespb.Model) *umpirespb.RunEventSource {
 		for _, e := range m.GetRealizations()[0].GetEvidence() {
 			if e.GetId() == started {
-				e.GetRunEvent().Attempt = &umpirespb.AttemptOf{Script: "activity", Number: 1}
+				e.GetRunEvent().Attempt = &umpirespb.AttemptOf{Script: "attempts", Number: 1}
 				return e.GetRunEvent()
 			}
 		}
@@ -689,14 +689,14 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 		"an attempt of the controller's script": {func(_ *umpirespb.Model, s *umpirespb.RunEventSource) { s.GetAttempt().Script = "controller" },
 			"evidence " + started + " is the record of an attempt of script controller, which no activity activates"},
 		"an attempt counted from below one": {func(_ *umpirespb.Model, s *umpirespb.RunEventSource) { s.GetAttempt().Number = 0 },
-			"evidence " + started + " is the record of attempt 0 of script activity; the attempts of an activity are counted from one"},
+			"evidence " + started + " is the record of attempt 0 of script attempts; the attempts of an activity are counted from one"},
 		"an attempt of a script that starts with no delivery": {func(m *umpirespb.Model, _ *umpirespb.RunEventSource) {
 			for _, s := range m.GetRealizations()[0].GetScripts() {
 				if s.GetActivity() != nil {
 					s.GetActivity().Starts = nil
 				}
 			}
-		}, "evidence " + started + " is the record of an attempt of script activity, which starts with no delivery: no step of a path is an attempt of it"},
+		}, "evidence " + started + " is the record of an attempt of script attempts, which starts with no delivery: no step of a path is an attempt of it"},
 		"an attempt recorded as the completion of a call": {func(_ *umpirespb.Model, s *umpirespb.RunEventSource) {
 			s.Kind = umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED
 		}, "evidence " + started + " is the record of an attempt and of no diagnostic: a Run records an attempt as what a worker reports of an activation"},

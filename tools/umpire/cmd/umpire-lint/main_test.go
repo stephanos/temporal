@@ -179,12 +179,12 @@ func TestAnUnknownFlagIsBadUsage(t *testing.T) {
 func TestCapabilityWaiverAcceptancesAreIgnoredByLint(t *testing.T) {
 	path := copied(t)
 	waiver := lint.Acceptance{
-		Kind: lint.Kind("waived-law"), Owner: "task", Subjects: []string{"task.closedIsRejectedUniformly"}, Because: "the capability section states it",
+		Kind: lint.Kind("capability-waiver"), Owner: "task", Subjects: []string{"task.closedIsRejectedUniformly"}, Because: "the capability section states it",
 	}
 	writeAccepted(t, lint.AcceptedPath(path), accepting(findings(t, path), "the fixture declares it so", waiver))
 
 	a := lintRun(path)
 	require.Equal(t, 0, a.status, a.errors)
 	require.Empty(t, a.errors)
-	require.NotContains(t, a.out, "waived-law")
+	require.NotContains(t, a.out, "capability-waiver")
 }

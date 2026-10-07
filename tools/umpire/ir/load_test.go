@@ -41,6 +41,16 @@ func TestLoadRefusesAFileItCannotRead(t *testing.T) {
 	require.Nil(t, m)
 }
 
+func TestIRPathsSkipsOnlyCurrentMetadataSidecars(t *testing.T) {
+	dir := t.TempDir()
+	for _, name := range []string{"model.json", "model.lint.json", "model.waivers.json", "model.laws.json"} {
+		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte("{}"), 0o600))
+	}
+	paths, err := IRPaths(dir)
+	require.NoError(t, err)
+	require.Equal(t, []string{filepath.Join(dir, "model.json"), filepath.Join(dir, "model.laws.json")}, paths)
+}
+
 // What is no ProtoJSON of the schema is refused at the file: it has no position inside a Model.
 func TestLoadRefusesWhatTheSchemaDoesNotHave(t *testing.T) {
 	for name, test := range map[string]struct{ encoded, says string }{

@@ -108,9 +108,9 @@ func TestUnfiredVerifies(t *testing.T) {
 
 func TestUnperformedActions(t *testing.T) {
 	r := run(t, read(t, activityIR), unperformedActions)
-	// start, poll, respond, control and stop; the timers are the system's. No
-	// performance binds poll: the activity script starts with it.
-	require.Equal(t, map[string]int{"activitySystem": 5}, r.population)
+	// The worker answers and client controls are one action per RPC; the timers are the system's.
+	// No performance binds poll: the activity script starts with it.
+	require.Equal(t, map[string]int{"activitySystem": 10}, r.population)
 	require.Empty(t, r.subjects)
 
 	unperformed := read(t, activityIR, func(ir *umpirespb.Model) {
@@ -124,7 +124,7 @@ func TestUnperformedActions(t *testing.T) {
 	})
 	r = run(t, unperformed, unperformedActions)
 	require.Equal(t, map[string][]string{"activitySystem": {"stop"}}, r.subjects)
-	require.Equal(t, 5, r.population["activitySystem"])
+	require.Equal(t, 10, r.population["activitySystem"])
 }
 
 func TestUnevidencedFacts(t *testing.T) {
@@ -425,8 +425,13 @@ func TestStuckStateWithRefinementMapHole(t *testing.T) {
 
 func TestUnproduced(t *testing.T) {
 	r := run(t, read(t, activityIR), unproduced)
-	require.Equal(t, map[string]int{"activityProduct": 11, "activitySystem": 14, "activityWorker": 1, "polling": 1}, r.population)
-	require.Empty(t, r.subjects)
+	require.Equal(t, map[string]int{"activityProduct": 14, "activitySystem": 17, "activityWorker": 5, "polling": 5}, r.population)
+	require.Equal(t, map[string][]string{
+		"activityProduct": {"outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"},
+		"activitySystem":  {"outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"},
+		"activityWorker":  {"outcome rejected-notFound", "outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"},
+		"polling":         {"outcome rejected-notFound", "outcome rejected-alreadyExists", "outcome rejected-failedPrecondition", "outcome rejected-invalidArgument"},
+	}, r.subjects)
 
 	r = run(t, read(t, capturedIR), unproduced)
 	require.Equal(t, map[string][]string{

@@ -267,7 +267,7 @@
   }, {
     "name": "umpire.outcomes.Outcome",
     "position": {
-      "file": "umpire/Syntax.scala",
+      "file": "model/umpire/Syntax.scala",
       "line": 60
     },
     "enum": {
@@ -286,7 +286,7 @@
   }, {
     "name": "umpire.outcomes.Rejection",
     "position": {
-      "file": "umpire/Syntax.scala",
+      "file": "model/umpire/Syntax.scala",
       "line": 55
     },
     "enum": {
@@ -10126,7 +10126,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 131
+        "line": 136
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -10222,7 +10222,7 @@
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 136
+        "line": 141
       },
       "projection": "temporal.features.nexus.workflow.projection",
       "run": "temporal.features.nexus.workflow.scope.run",
@@ -10239,7 +10239,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 189
+        "line": 194
       },
       "controller": { },
       "items": [ {
@@ -10259,7 +10259,7 @@
             "id": "stop-handler-worker",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 358
+              "line": 363
             },
             "fault": {
               "role": "temporal.handler-task-queue",
@@ -10344,7 +10344,7 @@
           "id": "await-scheduled",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 198
+            "line": 203
           },
           "poll": {
             "evidence": "temporal.features.nexus.workflow.evidence.scheduled",
@@ -10403,7 +10403,7 @@
           "id": "pending-attempts",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 198
+            "line": 203
           },
           "poll": {
             "evidence": "temporal.features.nexus.workflow.evidence.pendingAttempts",
@@ -10483,7 +10483,7 @@
           "id": "await-completion-authority",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 367
+            "line": 372
           },
           "awaitLearned": "completion-authority"
         },
@@ -10527,14 +10527,14 @@
             "id": "complete-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 392
+              "line": 397
             },
             "nexusCompletion": {
               "handle": "completion-authority",
               "result": {
                 "position": {
                   "file": "model/temporal/realize/Kit.scala",
-                  "line": 323
+                  "line": 328
                 },
                 "message": "temporal.api.common.v1.Payload",
                 "fields": [ {
@@ -10576,14 +10576,14 @@
             "id": "fail-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 392
+              "line": 397
             },
             "nexusCompletion": {
               "handle": "completion-authority",
               "result": {
                 "position": {
                   "file": "model/temporal/realize/Kit.scala",
-                  "line": 338
+                  "line": 343
                 },
                 "message": "temporal.api.failure.v1.Failure",
                 "fields": [ {
@@ -10597,7 +10597,7 @@
                     "message": {
                       "position": {
                         "file": "model/temporal/realize/Kit.scala",
-                        "line": 343
+                        "line": 348
                       },
                       "message": "temporal.api.failure.v1.ApplicationFailureInfo",
                       "fields": [ {
@@ -10802,7 +10802,7 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 382
+              "line": 387
             },
             "workflowCommand": {
               "command": {
@@ -10846,7 +10846,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 323
+                              "line": 328
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [ {
@@ -10904,7 +10904,7 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 382
+              "line": 387
             },
             "workflowCommand": {
               "command": {
@@ -10948,7 +10948,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 323
+                              "line": 328
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [ {
@@ -10977,7 +10977,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 317
+                              "line": 322
                             },
                             "message": "google.protobuf.Duration",
                             "fields": [ {
@@ -11023,7 +11023,7 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 382
+              "line": 387
             },
             "workflowCommand": {
               "command": {
@@ -11067,7 +11067,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 323
+                              "line": 328
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [ {
@@ -11096,7 +11096,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 317
+                              "line": 322
                             },
                             "message": "google.protobuf.Duration",
                             "fields": [ {
@@ -11142,7 +11142,7 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 382
+              "line": 387
             },
             "workflowCommand": {
               "command": {
@@ -11186,7 +11186,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 323
+                              "line": 328
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [ {
@@ -11215,7 +11215,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 317
+                              "line": 322
                             },
                             "message": "google.protobuf.Duration",
                             "fields": [ {
@@ -11232,7 +11232,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 317
+                              "line": 322
                             },
                             "message": "google.protobuf.Duration",
                             "fields": [ {
@@ -11354,7 +11354,7 @@
             "result": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 353
+                "line": 358
               },
               "literal": {
                 "text": "done"
@@ -11398,7 +11398,7 @@
             "id": "respond-async",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 392
             },
             "nexusReply": {
               "reply": {
@@ -11441,7 +11441,7 @@
             "id": "respond-sync",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 392
             },
             "nexusReply": {
               "reply": {
@@ -11465,7 +11465,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 323
+                              "line": 328
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [ {
@@ -11513,7 +11513,7 @@
             "id": "respond-failed",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 392
             },
             "nexusReply": {
               "reply": {
@@ -11528,7 +11528,7 @@
                     "message": {
                       "position": {
                         "file": "model/temporal/realize/Kit.scala",
-                        "line": 338
+                        "line": 343
                       },
                       "message": "temporal.api.failure.v1.Failure",
                       "fields": [ {
@@ -11542,7 +11542,7 @@
                           "message": {
                             "position": {
                               "file": "model/temporal/realize/Kit.scala",
-                              "line": 343
+                              "line": 348
                             },
                             "message": "temporal.api.failure.v1.ApplicationFailureInfo",
                             "fields": [ {
@@ -11586,7 +11586,7 @@
             "id": "respond-error-retryable",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 392
             },
             "nexusReply": {
               "reply": {
@@ -11647,7 +11647,7 @@
             "id": "respond-error",
             "position": {
               "file": "model/temporal/realize/Kit.scala",
-              "line": 387
+              "line": 392
             },
             "nexusReply": {
               "reply": {

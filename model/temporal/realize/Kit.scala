@@ -71,18 +71,23 @@ val run = Operand.run()
 // (chasm/lib/nexusoperation/operation.go:52-55; chasm/lib/scheduler/scheduler.go:111-113), and
 // malformed activity/Nexus requests (chasm/lib/activity/validator.go:102;
 // chasm/lib/nexusoperation/validator.go:133).
+private val notFoundCode = "NOT_FOUND"
+private val alreadyExistsCode = "ALREADY_EXISTS"
+private val failedPreconditionCode = "FAILED_PRECONDITION"
+private val invalidArgumentCode = "INVALID_ARGUMENT"
+
 private def grpcCode(rejection: Rejection): String = rejection match
-  case Rejection.notFound           => "NOT_FOUND"
-  case Rejection.alreadyExists      => "ALREADY_EXISTS"
-  case Rejection.failedPrecondition => "FAILED_PRECONDITION"
-  case Rejection.invalidArgument    => "INVALID_ARGUMENT"
+  case Rejection.notFound           => notFoundCode
+  case Rejection.alreadyExists      => alreadyExistsCode
+  case Rejection.failedPrecondition => failedPreconditionCode
+  case Rejection.invalidArgument    => invalidArgumentCode
 
 val rejectionCodes: Vector[RejectionCode[Rejection]] =
   Vector(
-    RejectionCode(Rejection.notFound, "NOT_FOUND"),
-    RejectionCode(Rejection.alreadyExists, "ALREADY_EXISTS"),
-    RejectionCode(Rejection.failedPrecondition, "FAILED_PRECONDITION"),
-    RejectionCode(Rejection.invalidArgument, "INVALID_ARGUMENT")
+    RejectionCode(Rejection.notFound, notFoundCode),
+    RejectionCode(Rejection.alreadyExists, alreadyExistsCode),
+    RejectionCode(Rejection.failedPrecondition, failedPreconditionCode),
+    RejectionCode(Rejection.invalidArgument, invalidArgumentCode)
   )
 
 // A name each Case gets its own copy of, such as the activity or workflow type it runs.

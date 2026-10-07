@@ -208,6 +208,14 @@
         "outcome rejected-notFound"
       ],
       "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "capability-waiver",
+      "owner": "activityProduct",
+      "subjects": [
+        "activityProduct.pausedIsNotDispatched"
+      ],
+      "because": "cancelRequested does not reveal whether a worker still holds an attempt"
     }
   ]
 }

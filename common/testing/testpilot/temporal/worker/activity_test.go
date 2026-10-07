@@ -682,12 +682,12 @@ func TestActivityProgramRegistersItsActivityTypes(t *testing.T) {
 	}{
 		"an activity alone": {
 			shape: standaloneActivity,
-			want:  queueRegistration{queue: "task-queue", workflows: []string{}, activities: []string{"activity-type"}, nexus: []nexusRegistration{}},
+			want:  queueRegistration{namespace: "namespace", queue: "task-queue", workflows: []string{}, activities: []string{"activity-type"}, nexus: []nexusRegistration{}},
 			calls: []string{"dynamic workflow", "dynamic activity"},
 		},
 		"beside a workflow and its handler": {
 			shape: besideWorkflow,
-			want:  queueRegistration{queue: "task-queue", workflows: []string{"workflow-type"}, activities: []string{"activity-type"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}},
+			want:  queueRegistration{namespace: "namespace", queue: "task-queue", workflows: []string{"workflow-type"}, activities: []string{"activity-type"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}},
 			calls: []string{"dynamic workflow", "dynamic activity", "nexus service service operation"},
 		},
 	} {

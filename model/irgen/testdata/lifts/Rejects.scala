@@ -892,11 +892,11 @@ object ChoiceKept extends Machine[Lamp, Outcome, Nothing]:
 // A case class one field of which is no claim: it bundles none, so building it declares nothing.
 final case class Mixed(flipped: Property[Flag], count: Int)
 
-def mixedLaws(m: Machine[Flag, Outcome, Nothing]): Mixed =
+def mixedClaims(m: Machine[Flag, Outcome, Nothing]): Mixed =
   Mixed(m.property("mixedFlips") holds (after => after.outcome == Outcome.accepted), 1)
 def mixedQueries(m: Machine[Flag, Outcome, Nothing]): Vector[Query] =
-  val laws = mixedLaws(m)
-  Vector(query(s"${m.name}.mixedFlips") verify laws.flipped in secondFlips limits one total 2)
+  val claims = mixedClaims(m)
+  Vector(query(s"${m.name}.mixedFlips") verify claims.flipped in secondFlips limits one total 2)
 val mixedBundle: Vector[Query] = mixedQueries(Second)
 
 // ### Functions a choose calls, and unnamed branching (fn-120.2)

@@ -621,7 +621,7 @@ final case class Acceptance(kind: String, owner: String, subjects: Vector[String
 // `capabilities` section into.
 object Accepted:
   // The kind an acceptance of a waiver's reason has, keyed `<machine>.<property>`.
-  val waived = "waived-law"
+  val waived = "capability-waiver"
 
   // `accepted`, holding the waivers `waivers`, `(machine, <machine>.<property>, reason)`, that the
   // `capabilities` sections of `machines` state: an acceptance of one keeps its place with its

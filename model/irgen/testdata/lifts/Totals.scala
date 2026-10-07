@@ -88,25 +88,25 @@ val plainLampCounted: Vector[Query] = countedQueries(PlainLamp)
 
 // ### Two claims a shared def declares together, as a bundle read back by field
 
-// The claims every lamp is held to, declared together by `lampLaws`.
-final case class LampLaws(lit: Property[LampState], unlit: Property[LampState])
+// The claims every lamp is held to, declared together by `lampClaims`.
+final case class LampClaims(lit: Property[LampState], unlit: Property[LampState])
 
-def lampLaws(m: Machine[LampState, Outcome, Nothing]): LampLaws = LampLaws(
+def lampClaims(m: Machine[LampState, Outcome, Nothing]): LampClaims = LampClaims(
   m.property("bundledLit") holds (after => after.state.lit),
   m.property("bundledUnlit") holds (after => !after.state.lit)
 )
 
-// The laws of `m`, each read from the bundle by field. Free, so 12 on `lamp` and 4 on `plainLamp`.
-def bundledLawQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
-  val laws = lampLaws(m)
+// The claims of `m`, each read from the bundle by field. Free, so 12 on `lamp` and 4 on `plainLamp`.
+def bundledClaimQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
+  val claims = lampClaims(m)
   val any = m.scenario("bundledAny").free
   Vector(
-    query(s"${m.name}.bundledLit") find laws.lit in any limits two total total,
-    query(s"${m.name}.bundledUnlit") find laws.unlit in any limits two total total
+    query(s"${m.name}.bundledLit") find claims.lit in any limits two total total,
+    query(s"${m.name}.bundledUnlit") find claims.unlit in any limits two total total
   )
 
 // The same claims declared directly.
-def directLawQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
+def directClaimQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
   val any = m.scenario("directAny").free
   Vector(
     query(s"${m.name}.directLit") find (m.property("directLit") holds (after =>
@@ -117,7 +117,7 @@ def directLawQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vecto
     )) in any limits two total total
   )
 
-val bundledLamp: Vector[Query] = bundledLawQueries(Lamp, 12)
-val bundledPlainLamp: Vector[Query] = bundledLawQueries(PlainLamp, 4)
-val directLamp: Vector[Query] = directLawQueries(Lamp, 12)
-val directPlainLamp: Vector[Query] = directLawQueries(PlainLamp, 4)
+val bundledLamp: Vector[Query] = bundledClaimQueries(Lamp, 12)
+val bundledPlainLamp: Vector[Query] = bundledClaimQueries(PlainLamp, 4)
+val directLamp: Vector[Query] = directClaimQueries(Lamp, 12)
+val directPlainLamp: Vector[Query] = directClaimQueries(PlainLamp, 4)

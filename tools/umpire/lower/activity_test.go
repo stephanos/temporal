@@ -542,7 +542,7 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	}
 	delivered := func(attempt int64) *umpirespb.RunEventSource {
 		return &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_DIAGNOSTIC, Script: "controller", Command: "start-activity", Key: run,
-			Attempt: &umpirespb.AttemptOf{Script: "activity", Number: attempt},
+			Attempt: &umpirespb.AttemptOf{Script: "attempts", Number: attempt},
 			Guard: &umpirespb.Operand{Kind: &umpirespb.Operand_All{All: &umpirespb.All{Operands: []*umpirespb.Operand{
 				present("activity_attempt"),
 				{Kind: &umpirespb.Operand_Not{Not: &umpirespb.Not{Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Equal{Equal: &umpirespb.Equal{

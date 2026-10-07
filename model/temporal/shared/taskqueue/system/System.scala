@@ -170,10 +170,10 @@ object TaskQueueSystem
 
   // What a provider promises.
   object properties:
-    // The laws of the provider `m`: a delivery hands the message out, and a message a custodian holds
+    // The claims of the provider `m`: a delivery hands the message out, and a message a custodian holds
     // stays held until it is acknowledged. Each takes its name explicitly, so every provider's
     // instance keeps the name its checks read.
-    def queueLaws(m: Machine[State, QueueOutcome, QueueFact]) = QueueLaws(
+    def queueClaims(m: Machine[State, QueueOutcome, QueueFact]) = QueueClaims(
       m.property("delivers") when queue.deliver holds (after => after.records(QueueFact.delivered)),
       m.property("committedStays")
         .stays(_.custody != Custody.nowhere)
@@ -185,7 +185,7 @@ object TaskQueueSystem
     // One crash after the invocation, after the sync match, after persistence and after a delivery,
     // declared on the provider `m`. After the acknowledgment nothing is left to deliver.
     def providerQueries(m: Machine[State, QueueOutcome, QueueFact]) =
-      val laws = properties.queueLaws(m)
+      val claims = properties.queueClaims(m)
       val crashAfterInvocation = m.scenario.actions(
         queue.enqueue,
         queue.addActivityTask,
@@ -228,17 +228,17 @@ object TaskQueueSystem
       )
       val any = m.scenario.free
       Vector(
-        query(s"${m.name}.crashAfterInvocation") find laws.delivers in
+        query(s"${m.name}.crashAfterInvocation") find claims.delivers in
           crashAfterInvocation limits seven,
-        query(s"${m.name}.crashAfterSyncMatch") find laws.delivers in
+        query(s"${m.name}.crashAfterSyncMatch") find claims.delivers in
           crashAfterSyncMatch limits seven,
-        query(s"${m.name}.crashAfterPersistence") find laws.delivers in
+        query(s"${m.name}.crashAfterPersistence") find claims.delivers in
           crashAfterPersistence limits seven,
-        query(s"${m.name}.crashAfterDelivery") find laws.delivers in
+        query(s"${m.name}.crashAfterDelivery") find claims.delivers in
           crashAfterDelivery limits seven,
-        query(s"${m.name}.crashAfterAcknowledgment") verify laws.committedStays in
+        query(s"${m.name}.crashAfterAcknowledgment") verify claims.committedStays in
           crashAfterAcknowledgment limits seven,
-        query verify laws.committedStays in any limits twelve
+        query verify claims.committedStays in any limits twelve
       )
 
     val matchingQueueQueries = providerQueries(TaskQueueSystem)
@@ -257,7 +257,7 @@ object LossyMatchingQueue
       FailureModel:
   object properties:
     // Storage loss drops a committed message, and the queue records that it did. Only the lossy
-    // provider binds the loss, so this is its own Property, not a law of every provider.
+    // provider binds the loss, so this is its own Property, not a claim of every provider.
     val storageLossDrops =
       property when fault.storageLoss holds { after =>
         after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost)

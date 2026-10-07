@@ -397,7 +397,7 @@ func TestEveryQueryHasAStanding(t *testing.T) {
 		verify, unrealized int
 	}{
 		// The capabilities' generated verifies replace each design's and composition's two `any` ones,
-		// and add the product's three laws; the designs waive closed rejection.
+		// and add the product's three capability Properties; the designs waive closed rejection.
 		{"activity-standalone-record", 64, 23},
 		{"nexus-workflow-close", 84, 72},
 	}

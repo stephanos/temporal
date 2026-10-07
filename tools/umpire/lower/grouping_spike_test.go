@@ -1,102 +1,16 @@
 package lower
 
 import (
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/ir"
-	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func groupingFixture(t *testing.T, form string) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "check", "testdata", "grouping-"+form+".json"))
-	require.NoError(t, err)
-	require.NoError(t, ir.Validate(m))
-	return m
-}
-
-// The source-derived extraction retains the executable programs, not only the shared handler IDs.
-// The standalone fact-name ledger changes Definition identity, not RPCs, recorded keys or waits.
-func TestGroupingBindingsKeepExecutablePrograms(t *testing.T) {
-	forms := []struct {
-		name    string
-		queries []string
-	}{
-		{"nexus-workflow", functionalQueries},
-		{"nexus-standalone", []string{"nexusSystem.terminateSettles", "nexusSystem.cancelIsRequested"}},
-		{"activity-standalone", []string{"completion", "nonRetryableFailure", "pauseResume", "scheduleToStartTimeout", "terminate", "activitySystem.terminateSettles", "activitySystem.cancelIsRequested", "retry"}},
-	}
-	for _, form := range forms {
-		t.Run(form.name, func(t *testing.T) {
-			original, err := NewProducer(loaded(t, form.name))
-			require.NoError(t, err)
-			bound, err := NewProducer(groupingFixture(t, form.name))
-			require.NoError(t, err)
-			for _, query := range form.queries {
-				t.Run(query, func(t *testing.T) {
-					identity := cp.IdentityFor("temporal.case", "groupingSpike", query)
-					before, err := original.Lower(query, identity)
-					require.NoError(t, err)
-					require.Equal(t, Lowered, before.Standing)
-					after, err := bound.Lower(query, identity)
-					require.NoError(t, err)
-					require.Equal(t, Lowered, after.Standing, "%v", after.Unsupported)
-					preparedAsIs(t, after.Case)
-					// The archived fixture predates the committed comment conversion. These exact
-					// wait-source coordinates also include the Activity fixture's added import.
-					for _, entry := range before.Case.GetProgram().GetEntrypoints() {
-						for _, node := range entry.GetInstructions() {
-							for _, hint := range node.GetWaitHints() {
-								switch hint.GetSource().GetPath() {
-								case "model/temporal/realize/Behavior.scala":
-									line, ok := map[int32]int32{74: 75, 82: 83, 86: 87, 89: 90, 94: 95, 99: 100}[hint.Source.Line]
-									require.True(t, ok, "undeclared shared wait-source coordinate %d", hint.Source.Line)
-									hint.Source.Line = line
-								case "model/temporal/features/activity/standalone/system/Realization.scala":
-									line, ok := map[int32]int32{227: 230, 228: 231}[hint.Source.Line]
-									require.True(t, ok, "undeclared Activity wait-source coordinate %d", hint.Source.Line)
-									hint.Source.Path = "model/irgen/testdata/grouping/activity/standalone/system/Realization.scala"
-									hint.Source.Line = line
-								default:
-									require.FailNowf(t, "undeclared wait-source path", "%s", hint.GetSource().GetPath())
-								}
-							}
-						}
-					}
-					want, err := protojson.Marshal(before.Case.GetProgram())
-					require.NoError(t, err)
-					got, err := protojson.Marshal(after.Case.GetProgram())
-					require.NoError(t, err)
-					ledger := strings.NewReplacer("temporal.features.", "fixture.features.")
-					require.JSONEq(t, ledger.Replace(string(want)), string(got), "the finite source identity ledger leaves the entire executable program unchanged")
-					oldContract, newContract := before.Case.GetContract().GetCorrelated(), after.Case.GetContract().GetCorrelated()
-					require.Equal(t, oldContract.GetProjectionId(), newContract.GetProjectionId())
-					require.Equal(t, oldContract.GetEvidenceObservationId(), newContract.GetEvidenceObservationId())
-					require.Equal(t, oldContract.GetScopeFields(), newContract.GetScopeFields())
-					require.Equal(t, oldContract.GetOperationField(), newContract.GetOperationField())
-					var sourceNames []string
-					for _, source := range oldContract.GetSources() {
-						sourceNames = append(sourceNames, ledger.Replace(source))
-					}
-					require.ElementsMatch(t, sourceNames, newContract.GetSources(), "the same named evidence sources under the finite fact ledger; canonical identity sorting may reorder the set")
-					require.NotEmpty(t, newContract.GetProjectionFingerprint())
-					require.NotEqual(t, oldContract.GetProjectionFingerprint(), newContract.GetProjectionFingerprint(), "declared identity/catalog augmentation derives another projection; no fingerprint is stripped")
-					if form.name == "nexus-standalone" {
-						fields := map[string]string{}
-						for _, field := range newContract.GetInitialStateFields() {
-							fields[field.GetDefinitionId()] = field.GetValue()
-						}
-						require.Equal(t, map[string]string{"phase": "unstarted", "cancelRequested": "false", "nexusProduct": "scheduled"}, fields)
-					}
-				})
-			}
-		})
-	}
+	return loaded(t, form)
 }
 
 // Operation identity is read from each form's actual protocol message, independently of Entity.name.
@@ -138,9 +52,18 @@ func TestGroupingRetainsAllFormEntityBindings(t *testing.T) {
 		form, entity string
 		on, creates  []string
 	}{
-		{"nexus-workflow", "operation", []string{"fixture.features.nexus.handler.reply", "fixture.features.nexus.handler.complete", "fixture.features.nexus.network.fault", "fixture.features.nexus.client.terminate"}, []string{"fixture.features.nexus.workflow.caller.schedule"}},
-		{"nexus-standalone", "operation", []string{"fixture.features.nexus.handler.reply", "fixture.features.nexus.handler.complete", "fixture.features.nexus.network.fault", "fixture.features.nexus.client.terminate", "fixture.features.nexus.standalone.client.requestCancel"}, []string{"fixture.features.nexus.standalone.client.start"}},
-		{"activity-standalone", "activity", []string{"fixture.features.activity.worker.poll", "fixture.features.activity.worker.respond", "fixture.features.activity.standalone.client.control"}, []string{"fixture.features.activity.standalone.client.start"}},
+		{"nexus-workflow", "operation", []string{"temporal.features.nexus.handler.reply", "temporal.features.nexus.handler.complete", "temporal.features.nexus.network.fault", "temporal.features.nexus.client.terminate"}, []string{"temporal.features.nexus.workflow.caller.schedule"}},
+		{"nexus-standalone", "operation", []string{"temporal.features.nexus.handler.reply", "temporal.features.nexus.handler.complete", "temporal.features.nexus.network.fault", "temporal.features.nexus.client.terminate", "temporal.features.nexus.standalone.client.requestCancel"}, []string{"temporal.features.nexus.standalone.client.start"}},
+		{"activity-standalone", "activity", []string{
+			"temporal.features.activity.worker.poll",
+			"temporal.features.activity.worker.respondCanceled",
+			"temporal.features.activity.worker.respondCompleted",
+			"temporal.features.activity.worker.respondFailed",
+			"temporal.features.activity.standalone.client.pause",
+			"temporal.features.activity.standalone.client.requestCancel",
+			"temporal.features.activity.standalone.client.terminate",
+			"temporal.features.activity.standalone.client.unpause",
+		}, []string{"temporal.features.activity.standalone.client.start"}},
 	} {
 		t.Run(tc.form, func(t *testing.T) {
 			m := groupingFixture(t, tc.form)

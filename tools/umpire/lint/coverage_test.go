@@ -104,7 +104,7 @@ func TestAcceptedFindingsAreJudgedBothWays(t *testing.T) {
 // them as accepted-file metadata, but does not report or judge them as lint findings.
 func TestCapabilityWaiverAcceptancesAreOwnedByTheModelGate(t *testing.T) {
 	waiver := Acceptance{
-		Kind: Kind("waived-law"), Owner: "task", Subjects: []string{"task.closedIsRejectedUniformly"}, Because: "declared by the capability section",
+		Kind: Kind("capability-waiver"), Owner: "task", Subjects: []string{"task.closedIsRejectedUniformly"}, Because: "declared by the capability section",
 	}
 	require.NotContains(t, Kinds(), waiver.Kind)
 

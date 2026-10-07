@@ -150,7 +150,10 @@ func runNexusCallerQueryUnderEachSwitchValue(t *testing.T, query nexusCallerQuer
 			require.True(t, proto.Equal(lives[0].prepared.Snapshot(), lives[1].prepared.Snapshot()))
 			require.NotEqual(t, lives[0].prepared.Identity().Bindings, lives[1].prepared.Identity().Bindings)
 
-			requireRepeatedRuns(t, env, query.fixture(), caseSource, lives, 2, true,
+			// Concurrent repeats of an outage Case put two physical workers on each queue. Stopping
+			// one Run's dedicated worker would leave its peer able to accept the supposedly unavailable
+			// handler task. Ordinary Queries still exercise concurrent repeated Runs.
+			requireRepeatedRuns(t, env, query.fixture(), caseSource, lives, 2, !query.stopsWorker,
 				func(index int, run *testpilotpb.Run, verdict *testpilotpb.Verdict) {
 					requireNexusCallerVerdict(t, query, run, verdict, bindings[index].NexusEndpoint)
 					runs = append(runs, switchRun{value: value, binding: bindings[index], live: lives[index], run: run, verdict: verdict})

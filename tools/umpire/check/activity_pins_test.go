@@ -101,15 +101,15 @@ func TestActivityQueries(t *testing.T) {
 	r := checked(t, activityModel(t))
 	for _, name := range []string{"completion", "nonRetryableFailure", "retry", "cancel", "terminate", "pauseResume",
 		"scheduleToStartTimeout", "startToCloseTimeout",
-		// The finds the protocol's capabilities generate, one per functional law.
+		// The finds the protocol's capabilities generate, one per same-step Property.
 		"activitySystem.terminateSettles", "activitySystem.cancelIsRequested"} {
 		require.Equal(t, Found, receiptOf(t, r, "query activitySystem "+name).Kind, name)
 	}
-	// The product's laws, which its capabilities generate as verifications over a free search of the
+	// The product's Properties, which its capabilities generate as verifications over a free search of the
 	// product (they retire terminalHolds and pauseHolds, which verified them through the protocol's
 	// paths), and the uniform rejection of a closed activity, which no hand-written Query asked.
-	for _, law := range []string{"terminalStatesAreFinal", "pausedIsNotDispatched", "closedIsRejectedUniformly"} {
-		require.Equal(t, Verified, receiptOf(t, r, "query activityProduct activityProduct."+law).Kind, law)
+	for _, property := range []string{"terminalStatesAreFinal", "pausedIsNotDispatched", "closedIsRejectedUniformly"} {
+		require.Equal(t, Verified, receiptOf(t, r, "query activityProduct activityProduct."+property).Kind, property)
 	}
 	// Not vacuous: the scenario performs an attempt start while the worker polls, so the claim is
 	// exercised, not merely never contradicted.

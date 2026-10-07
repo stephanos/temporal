@@ -313,7 +313,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 			[]string{"command controller/await-canceled reads " + describeActivity + " after command controller/request-cancel-activity",
 				unseen(workflowService+"RequestCancelActivityExecution", describeActivity)}},
 		{"activity-standalone", "visibility.activityAnswer.describeActivityExecution", "completion",
-			[]string{"command controller/await-completed reads " + describeActivity + " after command activity/complete-attempt",
+			[]string{"command controller/await-completed reads " + describeActivity + " after command attempts/complete-attempt",
 				"which is an activity answer, " + unseen("an activity answer", describeActivity)}},
 		{"nexus-standalone", "visibility.startNexusOperationExecution.describeNexusOperationExecution", "nexusSystem.terminateSettles",
 			[]string{"command controller/await-terminated reads " + describeOperation, unseen(workflowService+"StartNexusOperationExecution", describeOperation)}},
@@ -329,7 +329,7 @@ func TestEachAdoptedHintIsNeededByTheCaseItsRemovalRefuses(t *testing.T) {
 			[]string{"command controller/pending-attempts reads " + describeWorkflow + " after command handler/respond-error-retryable",
 				unseen("a handler reply", describeWorkflow)}},
 		{"activity-standalone", "cause.activityAnswer", "completion",
-			[]string{"command controller/await-completed waits for command activity/complete-attempt",
+			[]string{"command controller/await-completed waits for command attempts/complete-attempt",
 				"which is an activity answer, and the realization declares no bound of an activity answer"}},
 		{"nexus-workflow", "cause.workflowTask", "syncCompletion",
 			[]string{"command controller/await-scheduled waits for command workflow/start-nexus-operation",
@@ -412,7 +412,7 @@ func TestTheInventoryAccountsForTheHintsAWaitReads(t *testing.T) {
 	require.Equal(t, []string{string(Unread)}, got["scheduleToStart"])
 	// The behavior that shapes no wait is carried by the Program as declared, whatever the waits.
 	carried := map[string][]string{
-		"attemptNumbering":    {string(InCase), "program.entrypoints[activity]"},
+		"attemptNumbering":    {string(InCase), "program.entrypoints[attempts]"},
 		"instructionDefaults": {string(InCase), "program.instruction_defaults.timeout_milliseconds", "program.instruction_defaults.max_attempts"},
 		"runOrderIsCausal":    {string(InCase), "program.run_order_is_causal"},
 	}

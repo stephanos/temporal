@@ -106,12 +106,33 @@ func requireGeneratedAssessment(t *testing.T, fixture *testpilotcore.ModelCase, 
 func runGeneratedCases(t *testing.T, env *testcore.TestEnv, fixture *testpilotcore.ModelCase, lives []testpilotLiveCase) []generatedRun {
 	t.Helper()
 	results := make([]generatedRun, len(lives))
+	// A worker outage asks matching to unload and cancel polls across the task queue's partitions.
+	// Two such outages at once on this shared in-memory cluster race that maintenance with the peer
+	// Case's API calls, testing matching's partition lifecycle instead of the lives' Driver isolation.
+	// Run outage lives one after another; ordinary Cases remain concurrent below.
+	if caseStopsWorker(fixture.Source) {
+		for i := range lives {
+			results[i] = runGeneratedCase(t, env, fixture, lives[i])
+		}
+		return results
+	}
 	var pending sync.WaitGroup
 	for i := range lives {
 		pending.Go(func() { results[i] = runGeneratedCase(t, env, fixture, lives[i]) })
 	}
 	pending.Wait()
 	return results
+}
+
+func caseStopsWorker(source *testpilotspb.Case) bool {
+	for _, entrypoint := range source.GetProgram().GetEntrypoints() {
+		for _, node := range entrypoint.GetInstructions() {
+			if node.GetInstruction().GetInjectFault().GetKind() == testpilotspb.FAULT_KIND_WORKER_STOP {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // TestTestpilotGeneratedCases runs every lowered Case as its own depth-2 subtest, the unit the

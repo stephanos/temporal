@@ -2,7 +2,7 @@
 // contract and over the matching, violating and storage-loss providers that replace it. The queue
 // and its providers are the queue's; this file adds how the activity's dispatch, admission and
 // answer synchronize with it, and what the activity promises across both: the record's
-// capabilities, read through the `activity` member's projection, as the laws of
+// capability Properties, read through the `activity` member's projection, as the definitions in
 // model/temporal/capabilities read them.
 //
 // Read top to bottom: the composed states and the claims they are held to; then the members,
@@ -31,7 +31,7 @@ final case class OverQueue(activity: AdmissionState, queue: QueueView)
 
 final case class OverMatching(activity: AdmissionState, queue: QueueDetail)
 
-// The claims a design over the opaque queue is held to: the laws its capabilities bring, the
+// The claims a design over the opaque queue is held to: the Properties its capabilities bring, the
 // record's own count of active attempts over its member, and that a failed commit admits nothing and
 // leaves its message queued. `notPaused` is the generated `<design>.pausedIsNotDispatched`.
 final case class OverQueueClaims(
@@ -96,7 +96,7 @@ object RecordOverQueue
   object states:
     // Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
     // steps after the record closes, so a composed step moves the state; the record's own
-    // declaration (Record.scala) holds the record to the law.
+    // declaration (Record.scala) holds the record to that Property.
     val queueStepsOn =
       "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
 

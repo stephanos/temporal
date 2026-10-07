@@ -24,24 +24,19 @@ enum Outcome derives Finite:
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-// Only a pause and a completion are in scope. The other controls and answers are classes no step
-// takes, kept because a free Scenario's total counts every class.
-enum Control derives Finite:
-  case pause, unpause, requestCancel, terminate
-
-enum AttemptResult derives Finite:
-  case completed
-  case failed(retries: Boolean)
-  case canceled
-
-// Apart, because the control action takes its input's name.
-object Inputs:
-  val result = input[AttemptResult]
-  val control = input[Control]
+// Only a pause and a completion are in scope. The other RPCs stay in the signature, but no step of
+// the admission designs binds them.
+enum Failure derives Finite:
+  case fatal, retryable
 
 val poll = action(worker).on(activity)
-val respond = action(worker).on(activity).input(Inputs.result)
-val control = action(caller).on(activity).input(Inputs.control)
+val respondCompleted = action(worker).on(activity)
+val respondFailed = action(worker).on(activity).input[Failure]("failure")
+val respondCanceled = action(worker).on(activity)
+val pause = action(caller).on(activity)
+val unpause = action(caller).on(activity)
+val requestCancel = action(caller).on(activity)
+val terminate = action(caller).on(activity)
 
 enum ProductPhase derives Finite:
   case scheduled, started, paused, completed
@@ -58,16 +53,21 @@ object Product:
   def poll(s: ProductState) =
     if s.phase == scheduled then enter(ProductState(started), statusStarted) else disabled
 
-  def respond(s: ProductState, r: AttemptResult) =
-    if s.phase == started && r == AttemptResult.completed then
-      enter(ProductState(completed), statusCompleted)
-    else disabled
+  def respondCompleted(s: ProductState) =
+    if s.phase == started then enter(ProductState(completed), statusCompleted) else disabled
+
+  def respondFailed(s: ProductState, failure: Failure) = disabled
+
+  def respondCanceled(s: ProductState) = disabled
 
   // A pause holds before an attempt starts or while one runs; a completed activity is not found.
-  def control(s: ProductState, c: Control) =
+  def pause(s: ProductState) =
     if s.phase == completed then List(Step(Outcome.notFound, s))
-    else if c == Control.pause && s.phase != paused then enter(ProductState(paused), statusPaused)
+    else if s.phase != paused then enter(ProductState(paused), statusPaused)
     else disabled
+
+  def otherControl(s: ProductState) =
+    if s.phase == completed then List(Step(Outcome.notFound, s)) else disabled
 
 // No unpause is in scope, so a path may end paused, as the designs' paths may.
 object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
@@ -78,8 +78,13 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
   object rules
       extends Bindings(
         poll ~> Product.poll,
-        respond ~> Product.respond,
-        control ~> Product.control
+        respondCompleted ~> Product.respondCompleted,
+        respondFailed ~> Product.respondFailed,
+        respondCanceled ~> Product.respondCanceled,
+        pause ~> Product.pause,
+        unpause ~> Product.otherControl,
+        requestCancel ~> Product.otherControl,
+        terminate ~> Product.otherControl
       )
 
 // The product's promise the designs are read against: no step from paused lands in started.
@@ -134,27 +139,25 @@ def dispatchStep(s: AdmissionState): List[AdmissionStep] =
     )
 
 // Only pause is in scope; no unpause intervenes. A pause keeps the message in flight.
-def pauseStep(s: AdmissionState, c: Control): List[AdmissionStep] = c match
-  case Control.pause =>
-    s.phase match
-      case AdmissionPhase.scheduled =>
-        List(
-          Step(
-            Outcome.accepted,
-            s.copy(phase = AdmissionPhase.paused),
-            List(AdmissionFact.statusPaused)
-          )
+def pauseStep(s: AdmissionState): List[AdmissionStep] =
+  s.phase match
+    case AdmissionPhase.scheduled =>
+      List(
+        Step(
+          Outcome.accepted,
+          s.copy(phase = AdmissionPhase.paused),
+          List(AdmissionFact.statusPaused)
         )
-      case AdmissionPhase.started =>
-        List(
-          Step(
-            Outcome.accepted,
-            s.copy(phase = AdmissionPhase.pausedWhileHeld),
-            List(AdmissionFact.statusPaused)
-          )
+      )
+    case AdmissionPhase.started =>
+      List(
+        Step(
+          Outcome.accepted,
+          s.copy(phase = AdmissionPhase.pausedWhileHeld),
+          List(AdmissionFact.statusPaused)
         )
-      case _ => Nil
-  case Control.unpause | Control.requestCancel | Control.terminate => Nil
+      )
+    case _ => Nil
 
 def oneMore(a: Active): Active = a match
   case Active.none => Active.one
@@ -214,18 +217,16 @@ def admitStale(s: AdmissionState): List[AdmissionStep] = s.message match
   case Message.empty                       => Nil
   case Message.queued | Message.redelivery => admitted(s)
 
-def resultStep(s: AdmissionState, r: AttemptResult): List[AdmissionStep] = r match
-  case AttemptResult.completed =>
-    if s.phase != AdmissionPhase.started then Nil
-    else
-      List(
-        Step(
-          Outcome.accepted,
-          s.copy(phase = AdmissionPhase.completed, active = oneLess(s.active)),
-          List(AdmissionFact.statusCompleted)
-        )
+def completionStep(s: AdmissionState): List[AdmissionStep] =
+  if s.phase != AdmissionPhase.started then Nil
+  else
+    List(
+      Step(
+        Outcome.accepted,
+        s.copy(phase = AdmissionPhase.completed, active = oneLess(s.active)),
+        List(AdmissionFact.statusCompleted)
       )
-  case AttemptResult.failed(_) | AttemptResult.canceled => Nil
+    )
 
 // Both pauses read as the product's one paused status; every other phase as its namesake.
 def productOfAdmission(s: AdmissionState): ProductState =
@@ -295,9 +296,9 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
   object rules
       extends Bindings(
         dispatch ~> dispatchStep,
-        control ~> pauseStep,
+        pause ~> pauseStep,
         poll ~> admitCurrent,
-        respond ~> resultStep
+        respondCompleted ~> completionStep
       )
 
 object TrustingActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
@@ -316,9 +317,9 @@ object TrustingActivityRecord extends Machine[AdmissionState, Outcome, Admission
   object rules
       extends Bindings(
         dispatch ~> dispatchStep,
-        control ~> pauseStep,
+        pause ~> pauseStep,
         poll ~> admitStale,
-        respond ~> resultStep
+        respondCompleted ~> completionStep
       )
 
 // ### Promises, written once and declared on each design
@@ -342,11 +343,11 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
   val stale = m
     .scenario("staleDeliveryAfterPause")
     .starts(scheduledEmpty)
-    .actions(dispatch, control(Control.pause), poll)
+    .actions(dispatch, pause, poll)
   val prePause = m
     .scenario("admittedBeforePause")
     .starts(scheduledEmpty)
-    .actions(dispatch, poll, control(Control.pause))
+    .actions(dispatch, poll, pause)
   val duplicate = m
     .scenario("duplicateDelivery")
     .starts(scheduledEmpty)
@@ -356,9 +357,9 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
     query(s"${m.name}.staleDelivery") verify notPaused in stale limits three total 135,
     query(s"${m.name}.admittedBeforePause") verify notPaused in prePause limits three total 135,
     query(s"${m.name}.duplicateDelivery") verify oneActive in duplicate limits three total 135,
-    query(s"${m.name}.any.notAdmittedWhilePaused") verify notPaused in any limits five total 2250,
-    query(s"${m.name}.any.atMostOneActive") verify oneActive in any limits five total 2250,
-    query(s"${m.name}.any.terminalStays") verify terminal in any limits five total 2250,
+    query(s"${m.name}.any.notAdmittedWhilePaused") verify notPaused in any limits five total 900,
+    query(s"${m.name}.any.atMostOneActive") verify oneActive in any limits five total 900,
+    query(s"${m.name}.any.terminalStays") verify terminal in any limits five total 900,
     // The product's own Property, read through the design's declared refinement.
     query(s"${m.name}.product.pausedIsNotDispatched")
       .verify(pausedIsNotDispatched)

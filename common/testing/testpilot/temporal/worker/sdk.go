@@ -8,9 +8,11 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
 	commonpb "go.temporal.io/api/common/v1"
+	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
@@ -27,14 +29,83 @@ type sdkManagedWorker struct{ sdkworker.Worker }
 
 func (h *Driver) newSDKWorker(key, queue string, registration queueRegistration) (managedWorker, error) {
 	options := h.options.workerOptions
+	stopTimeout := sdkComponentStopTimeout(options.WorkerStopTimeout, registration)
+	options.WorkerStopTimeout = stopTimeout
 	options.Interceptors = append([]interceptor.WorkerInterceptor(nil), options.Interceptors...)
 	options.Interceptors = append(options.Interceptors, &sdkWorkerInterceptor{host: h, queue: queue, registration: registration})
+	options.Plugins = append([]sdkworker.Plugin(nil), options.Plugins...)
+	options.Plugins = append(options.Plugins, &sdkStopBoundary{timeout: stopTimeout, shutdown: func(ctx context.Context, workerInstanceKey string) error {
+		_, err := h.options.client.WorkflowService().ShutdownWorker(ctx, sdkShutdownRequest(registration, workerInstanceKey))
+		return err
+	}})
 	options.OnFatalError = func(err error) { h.registry.fail(key, err) }
 	worker := sdkworker.New(h.options.client, queue, options)
 	if err := h.register(worker, queue, registration); err != nil {
 		return nil, err
 	}
 	return &sdkManagedWorker{Worker: worker}, nil
+}
+
+// sdkComponentStopTimeout turns the Driver's total physical-stop budget into the timeout for each
+// SDK stop phase. The SDK stops its always-present workflow and local-activity workers, optional
+// activity worker, and optional Nexus worker sequentially, applying WorkerStopTimeout to every
+// phase. One extra share remains for the post-stop ShutdownWorker RPC and surrounding orchestration.
+// The short cap makes the outage boundary deterministic rather than allowing any one SDK component
+// to consume the Run's whole physical-stop budget.
+func sdkComponentStopTimeout(total time.Duration, registration queueRegistration) time.Duration {
+	if total <= 0 {
+		return total
+	}
+	components := 2
+	if len(registration.activities) > 0 {
+		components++
+	}
+	if len(registration.nexus) > 0 {
+		components++
+	}
+	return min(total/time.Duration(components+1), cancellationPoll)
+}
+
+// sdkStopBoundary repeats the server-side cancellation after the SDK has stopped every local
+// poller. The SDK sends its own ShutdownWorker RPC before stopping those pollers, so a poll that is
+// still registering during an immediate start/stop can miss that first cancellation and retain the
+// next task. Once next returns no later local poll can appear, and this bounded second RPC closes
+// the physical outage boundary for this exact worker instance.
+type sdkStopBoundary struct {
+	sdkworker.PluginBase
+	timeout  time.Duration
+	shutdown func(context.Context, string) error
+}
+
+func (*sdkStopBoundary) Name() string { return "testpilot-stop-boundary" }
+
+func (p *sdkStopBoundary) StopWorker(ctx context.Context, options sdkworker.PluginStopWorkerOptions, next func(context.Context, sdkworker.PluginStopWorkerOptions)) {
+	next(ctx, options)
+	if p.shutdown == nil {
+		return
+	}
+	boundaryCtx := context.WithoutCancel(ctx)
+	if p.timeout <= 0 {
+		_ = p.shutdown(boundaryCtx, options.WorkerInstanceKey)
+		return
+	}
+	boundaryCtx, cancel := context.WithTimeout(boundaryCtx, p.timeout)
+	defer cancel()
+	_ = p.shutdown(boundaryCtx, options.WorkerInstanceKey)
+}
+
+func sdkShutdownRequest(registration queueRegistration, workerInstanceKey string) *workflowservice.ShutdownWorkerRequest {
+	types := []enumspb.TaskQueueType{enumspb.TASK_QUEUE_TYPE_WORKFLOW}
+	if len(registration.activities) > 0 {
+		types = append(types, enumspb.TASK_QUEUE_TYPE_ACTIVITY)
+	}
+	if len(registration.nexus) > 0 {
+		types = append(types, enumspb.TASK_QUEUE_TYPE_NEXUS)
+	}
+	return &workflowservice.ShutdownWorkerRequest{
+		Namespace: registration.namespace, TaskQueue: registration.queue, WorkerInstanceKey: workerInstanceKey,
+		TaskQueueTypes: types, Reason: "testpilot worker outage boundary",
+	}
 }
 
 // sdkRegistrar is the part of an SDK worker a queue's registration is written to.

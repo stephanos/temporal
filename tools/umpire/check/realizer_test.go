@@ -18,7 +18,7 @@ func TestARealizationIsNamedByItsIdAndItsName(t *testing.T) {
 	again.Name = "another"
 	m.Realizations = append(m.Realizations, again)
 	err := ir.Validate(m)
-	require.ErrorContains(t, err, "two realizations with id temporal.features.nexus.workflow.NexusRealization.asyncNexus")
+	require.ErrorContains(t, err, "two realizations with id temporal.features.nexus.workflow.AsyncNexus")
 	require.ErrorContains(t, err, admRealizationAt)
 
 	m = proto.Clone(load(t)).(*umpirespb.Model)

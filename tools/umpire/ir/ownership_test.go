@@ -149,6 +149,9 @@ func modelImportProblem(file string, external bool, imported string) string {
 			}
 		}
 		if test {
+			if owner == "realization" {
+				allowed[owner] = append(allowed[owner], "ir")
+			}
 			if owner == "lower" && external && !strings.Contains(part, "/internal/") {
 				allowed[owner] = append(allowed[owner], "explore", "conformance")
 			}

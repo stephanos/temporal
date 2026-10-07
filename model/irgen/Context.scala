@@ -263,7 +263,8 @@ final private[irgen] class Context(val index: Index):
 
   // TASTy records a source path relative to the build that compiled it; the prefix makes it
   // relative to the repository. A tree the lifter builds itself, such as the block left after a
-  // `require`, has no span.
+  // `require`, has no span. Framework TASTy is deliberately not inspected, but a lifted expression
+  // may still retain a position in it; those sources live under model/umpire.
   // The prefix is the one of the jar the source came from.
   def pos(t: Tree): ir.Position = placedAt.getOrElse(written(t))
 
@@ -272,7 +273,7 @@ final private[irgen] class Context(val index: Index):
     .Try {
       val p = t.pos
       val path = p.sourceFile.path
-      val prefix = sourceRoots.getOrElse(path, "")
+      val prefix = sourceRoots.getOrElse(path, if path.startsWith("umpire/") then "model/" else "")
       ir.Position(file = prefix + path, line = p.startLine + 1)
     }
     .getOrElse(ir.Position.defaultInstance)

@@ -87,8 +87,8 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       }
     }
 
-    from(worker) {
-      import worker.*
+    from(temporal.features.activity.standalone.worker) {
+      import temporal.features.activity.standalone.worker.*
 
       on(poll) {
         when(scheduled) ~> effects.startAttempt
@@ -124,6 +124,16 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       }
     }
 
+  object properties:
+    // The public cancelRequested phase can mean either that a worker still holds an attempt or that
+    // a control followed a paused activity. The product state cannot tell those histories apart, so
+    // its pause property keeps the former, narrower meaning of "running": started. The protocol
+    // machine has enough state to use Pausable's role-derived Property directly.
+    def pausedDoesNotStartAttempt(m: Declares[State]): Property[State] =
+      m.property
+        .never(s => s.state.phase == started)
+        .from(_.phase == paused)
+
   object capabilities extends Capabilities:
     val closable: Capability = Closable(
       rejected = Outcome.rejected(Rejection.notFound)
@@ -133,6 +143,10 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       unpause = client.unpause
     )
     val pollable: Capability = Pollable(dispatch = worker.poll)
+    overriding(
+      Pausable.pausedIsNotDispatched[State, Phase] -> properties.pausedDoesNotStartAttempt,
+      because = "cancelRequested does not reveal whether a worker still holds an attempt"
+    )
 
   object queries:
     capabilities.bound(three)

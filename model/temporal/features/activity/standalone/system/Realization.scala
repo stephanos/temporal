@@ -58,11 +58,6 @@ val activityStatus = described.table
 // The worker's process stopping, as a path's own step.
 private val stopWorker = fault(taskQueue, FaultKind.workerStop)
 
-// The worker stopped before a path pauses the activity, and resumed by the unpause (see the
-// controller).
-private val stopWorkerBeforePause = fault(taskQueue, FaultKind.workerStop)
-private val resumeWorker = fault(taskQueue, FaultKind.workerResume)
-
 // Each Case runs an activity type of its own, so two Cases on one worker never share one.
 private val activityType = perCase("activity")
 
@@ -84,6 +79,15 @@ private val pauseActivity = rpc(calls, METHOD_PAUSE_ACTIVITY_EXECUTION) {}
 private val unpauseActivity = rpc(calls, METHOD_UNPAUSE_ACTIVITY_EXECUTION) {}
 private val requestCancelActivity = rpc(calls, METHOD_REQUEST_CANCEL_ACTIVITY_EXECUTION) {}
 private val terminateActivity = rpc(calls, METHOD_TERMINATE_ACTIVITY_EXECUTION) {}
+
+// Paths that require an unstarted activity hold the server's dispatch before it can reach a worker.
+// A pause path releases it only after the unpause; a schedule-to-start timeout leaves cleanup to
+// cancel it after the deadline fires. Neither depends on SDK-worker shutdown or matching unloads.
+private val unstartedDispatch =
+  Actuator("unstarted-dispatch", ControlKind.HoldDispatched(worker.poll), taskQueue)
+private val holdDispatchBeforePause = hold(unstartedDispatch)
+private val holdDispatchBeforeTimeout = hold(unstartedDispatch)
+private val releaseDispatchAfterPause = release(unstartedDispatch)
 
 // ### The worker
 
@@ -126,11 +130,11 @@ object Standalone extends Realizes(ActivitySystem):
   // activity no worker has taken: a running worker may be delivered the first attempt, and answer
   // it, before the pause lands, and a held attempt's pause is a request whose release schedules
   // nothing, so that release's answer would evidence a scheduling that did not happen. So a path
-  // that pauses keeps the worker from polling from before the start until the release.
+  // that pauses arms a dispatch hold as the start is sent, waits for it immediately after the
+  // start's answer, and releases it only after the unpause.
   object controller
       extends Controller(
         perform(shared.worker.worker.stop -> stopWorker),
-        onPath(client.pause)(stopWorkerBeforePause),
         // Every class of the start, each setting the deadlines it expires; a schedule-to-close
         // deadline no start sets, so a class that expires one is unrealizable.
         deadlines[StartActivityExecutionRequest](
@@ -142,10 +146,12 @@ object Standalone extends Realizes(ActivitySystem):
           scheduleToStart.sets(_.getScheduleToStartTimeout),
           startToClose.sets(_.getStartToCloseTimeout)
         ),
+        onPath(client.pause)(holdDispatchBeforePause),
+        onPath(deadline.scheduleToStart)(holdDispatchBeforeTimeout),
         perform(client.pause -> pauseActivity),
         onPath(client.pause)(described.await(system.Fact.statusPaused)),
         perform(client.unpause -> unpauseActivity),
-        onPath(client.unpause)(resumeWorker),
+        onPath(client.unpause)(releaseDispatchAfterPause),
         perform(client.requestCancel -> requestCancelActivity),
         perform(client.terminate -> terminateActivity),
         onPath(worker.respondCompleted)(
@@ -193,6 +199,7 @@ object Standalone extends Realizes(ActivitySystem):
           Taking(client.unpause, 1)
         )
       )
+  object controls extends Controls(unstartedDispatch)
 
 // ### The held race
 // A controller starts one activity on a queue no worker polls, holds its dispatch between

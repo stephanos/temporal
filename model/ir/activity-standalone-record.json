@@ -514,7 +514,7 @@
   }, {
     "name": "umpire.outcomes.Outcome",
     "position": {
-      "file": "umpire/Syntax.scala",
+      "file": "model/umpire/Syntax.scala",
       "line": 60
     },
     "enum": {
@@ -533,7 +533,7 @@
   }, {
     "name": "umpire.outcomes.Rejection",
     "position": {
-      "file": "umpire/Syntax.scala",
+      "file": "model/umpire/Syntax.scala",
       "line": 55
     },
     "enum": {
@@ -925,7 +925,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity/standalone/product/Product.scala",
-                    "line": 129
+                    "line": 139
                   },
                   "construct": {
                     "type": "umpire.outcomes.Outcome",
@@ -933,7 +933,7 @@
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/activity/standalone/product/Product.scala",
-                        "line": 129
+                        "line": 139
                       },
                       "literal": {
                         "enum": {
@@ -953,8 +953,8 @@
   }, {
     "name": "activityProduct.property.activityProduct.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/capabilities/Pausable.scala",
-      "line": 33
+      "file": "model/temporal/features/activity/standalone/product/Product.scala",
+      "line": 133
     },
     "params": [ {
       "name": "before",
@@ -969,29 +969,29 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Pausable.scala",
-        "line": 33
+        "file": "model/temporal/features/activity/standalone/product/Product.scala",
+        "line": 133
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Pausable.scala",
-            "line": 33
+            "file": "model/temporal/features/activity/standalone/product/Product.scala",
+            "line": 133
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Pausable.scala",
-                "line": 33
+                "file": "model/temporal/features/activity/standalone/product/Product.scala",
+                "line": 133
               },
               "call": {
                 "function": "activityProduct.property.activityProduct.pausedIsNotDispatched.from",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/capabilities/Pausable.scala",
-                    "line": 33
+                    "file": "model/temporal/features/activity/standalone/product/Product.scala",
+                    "line": 133
                   },
                   "var": "before"
                 } ]
@@ -1001,22 +1001,22 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Pausable.scala",
-            "line": 33
+            "file": "model/temporal/features/activity/standalone/product/Product.scala",
+            "line": 133
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Pausable.scala",
-                "line": 33
+                "file": "model/temporal/features/activity/standalone/product/Product.scala",
+                "line": 133
               },
               "call": {
                 "function": "activityProduct.property.activityProduct.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/capabilities/Pausable.scala",
-                    "line": 33
+                    "file": "model/temporal/features/activity/standalone/product/Product.scala",
+                    "line": 133
                   },
                   "var": "after"
                 } ]
@@ -1029,34 +1029,34 @@
   }, {
     "name": "activityProduct.property.activityProduct.pausedIsNotDispatched.from",
     "position": {
-      "file": "model/temporal/capabilities/Pausable.scala",
-      "line": 35
+      "file": "model/temporal/features/activity/standalone/product/Product.scala",
+      "line": 135
     },
     "params": [ {
-      "name": "s",
+      "name": "state",
       "type": {
         "named": "temporal.features.activity.standalone.product.State"
       }
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Pausable.scala",
-        "line": 35
+        "file": "model/temporal/features/activity/standalone/product/Product.scala",
+        "line": 135
       },
       "binary": {
-        "op": "OP_CONTAINS",
+        "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/features/activity/standalone/product/Product.scala",
-            "line": 44
+            "line": 135
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/capabilities/Pausable.scala",
-                "line": 35
+                "file": "model/temporal/features/activity/standalone/product/Product.scala",
+                "line": 135
               },
-              "var": "s"
+              "var": "state"
             },
             "field": "phase"
           }
@@ -1064,21 +1064,13 @@
         "right": {
           "position": {
             "file": "model/temporal/features/activity/standalone/product/Product.scala",
-            "line": 44
+            "line": 135
           },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/features/activity/standalone/product/Product.scala",
-                "line": 44
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.activity.standalone.product.Phase",
-                  "case": "paused"
-                }
-              }
-            } ]
+          "literal": {
+            "enum": {
+              "type": "temporal.features.activity.standalone.product.Phase",
+              "case": "paused"
+            }
           }
         }
       }
@@ -1086,8 +1078,8 @@
   }, {
     "name": "activityProduct.property.activityProduct.pausedIsNotDispatched.never",
     "position": {
-      "file": "model/temporal/capabilities/Pausable.scala",
-      "line": 34
+      "file": "model/temporal/features/activity/standalone/product/Product.scala",
+      "line": 134
     },
     "params": [ {
       "name": "s",
@@ -1097,27 +1089,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Pausable.scala",
-        "line": 34
+        "file": "model/temporal/features/activity/standalone/product/Product.scala",
+        "line": 134
       },
       "binary": {
-        "op": "OP_CONTAINS",
+        "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/features/activity/standalone/product/Product.scala",
-            "line": 44
+            "line": 134
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/capabilities/Pausable.scala",
-                "line": 34
+                "file": "model/temporal/features/activity/standalone/product/Product.scala",
+                "line": 134
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Pausable.scala",
-                    "line": 34
+                    "file": "model/temporal/features/activity/standalone/product/Product.scala",
+                    "line": 134
                   },
                   "var": "s"
                 },
@@ -1130,32 +1122,13 @@
         "right": {
           "position": {
             "file": "model/temporal/features/activity/standalone/product/Product.scala",
-            "line": 44
+            "line": 134
           },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/features/activity/standalone/product/Product.scala",
-                "line": 44
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.activity.standalone.product.Phase",
-                  "case": "started"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/activity/standalone/product/Product.scala",
-                "line": 44
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.activity.standalone.product.Phase",
-                  "case": "cancelRequested"
-                }
-              }
-            } ]
+          "literal": {
+            "enum": {
+              "type": "temporal.features.activity.standalone.product.Phase",
+              "case": "started"
+            }
           }
         }
       }
@@ -25012,7 +24985,7 @@
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 128
+      "line": 138
     },
     "holds": "activityProduct.property.activityProduct.closedIsRejectedUniformly",
     "transition": true,
@@ -25028,7 +25001,7 @@
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 131
+      "line": 141
     },
     "holds": "activityProduct.property.activityProduct.pausedIsNotDispatched",
     "transition": true,
@@ -25044,7 +25017,7 @@
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 128
+      "line": 138
     },
     "holds": "activityProduct.property.activityProduct.terminalStatesAreFinal",
     "transition": true,
@@ -25514,7 +25487,7 @@
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 128
+      "line": 138
     },
     "start": {
       "position": {
@@ -25543,7 +25516,7 @@
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 131
+      "line": 141
     },
     "start": {
       "position": {
@@ -25572,7 +25545,7 @@
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 128
+      "line": 138
     },
     "start": {
       "position": {
@@ -31254,7 +31227,7 @@
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 128
+      "line": 138
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31276,7 +31249,7 @@
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 131
+      "line": 141
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31298,7 +31271,7 @@
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
       "file": "model/temporal/features/activity/standalone/product/Product.scala",
-      "line": 128
+      "line": 138
     },
     "form": "FORM_VERIFY",
     "property": {

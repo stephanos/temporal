@@ -426,7 +426,7 @@ object HandlerWorker
 // ### The operation and the handler's worker
 //
 // The System machine's worker stop is a stutter row: the operation cannot see its handler's
-// worker, so the schedule-to-start Scenario orders the stop before the request by convention.
+// worker, so the schedule-to-start Scenario orders the stop before the request explicitly.
 // Composed with the worker of the handler's task queue, the stop is the worker's own phase change
 // and every reply is the worker serving, so a reply has a row only while the worker polls. No
 // functional Query reads the composition; it is what the cross-entity claim is verified over.

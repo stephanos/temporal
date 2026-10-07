@@ -48,7 +48,7 @@ func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 }
 
 // The activity's claims are declared in its levels' files, product/Product.scala and
-// system/System.scala, in the `properties`, `laws` and `queries` objects of its machine objects,
+// system/System.scala, in the `properties`, `capabilities` and `queries` objects of its machine objects,
 // beside the system contract's that are written there once: the competing timers'. Every
 // declaration there is lifted, into the activity root or the system contract's, and every claim the
 // activity root lifts is declared there. A capabilities section brings its companions' Properties,

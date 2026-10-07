@@ -351,7 +351,7 @@ private[irgen] trait Claims:
     case Apply(Select(companion, "apply"), _)
         if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Limits" =>
       Decl.Bounds(limitsOf(t, captured(named, "Limits", "`Limits(\"...\", ...)`", t)))
-    // A bundle of claims one shared def declares together, such as the laws `queueLaws(m)`
+    // A bundle of claims one shared def declares together, such as `queueClaims(m)`
     // declares of a provider: built by its case class's constructor, each claim folded, and read
     // back by field.
     case Apply(Select(companion, "apply"), args)

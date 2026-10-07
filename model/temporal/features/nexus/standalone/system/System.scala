@@ -131,7 +131,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     }
 
   // What the operation promises of its own: its reading of closed rejection, which its capabilities
-  // put in place of the law's.
+  // put in place of the shared Property.
   object properties:
     // A closed operation keeps its state, and answers a control alreadyCompleted, or OK where it
     // repeats a request the operation took, a recorded cancel or the terminate that closed it: the
@@ -145,14 +145,14 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
             (before.cancelRequested || before.phase == Phase.terminated)))
       )
 
-  // What the operation is, as the laws of model/temporal/capabilities read it: it closes, a client
+  // What the operation is, as the Properties in model/temporal/capabilities read it: it closes, a client
   // terminates it and requests its cancel, and DescribeNexusOperationExecution reports its status.
-  // It receives the laws without listing them, each named `nexusSystem.<law>`. It reads the
+  // It receives the Properties without listing them, each named `nexusSystem.<property>`. It reads the
   // realization, which reads this machine, so it waits in a section, which initializes on its first
   // use.
   //
   // The rejection is the operation's own: alreadyCompleted, a FailedPrecondition, where the activity
-  // answers NotFound (operation.go ErrOperationAlreadyCompleted). Each functional law's find starts
+  // answers NotFound (operation.go ErrOperationAlreadyCompleted). Each same-step Property's find starts
   // the operation, which no handler answers, so it stays running, then takes the control. A Run
   // explains an unobserved control of a closed operation too, which records nothing, so a Run of a
   // terminate or cancel find leaves the claim inconclusive: its explanations disagree.

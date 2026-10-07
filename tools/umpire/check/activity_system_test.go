@@ -117,12 +117,12 @@ const (
 // Every declaration of the system contract has one result, and none is left unanswered. The kinds are
 // the oracles' verdicts: the corrected design keeps every promise over every queue, the stale design
 // breaks each one, the detailed queue stands in for the opaque one, and each violating provider fails.
-// The laws each design and composition receives from its capabilities are verified by the Queries
-// they generate, `<machine>.<law>` over a free search of the machine, which answer as the retired
+// The Properties each design and composition receives from its capabilities are verified by the Queries
+// they generate, `<machine>.<property>` over a free search of the machine, which answer as the retired
 // `<machine>.any.notAdmittedWhilePaused` and `<machine>.any.terminalStays` did. A design's closed
 // rejection, which no hand-written Query asked, fails on both: the corrected design meets a delivery
 // after the activity timed out as accepted, owing the queue an answer and recording
-// admissionRejected, where the law wants the state kept and notFound; the stale design's free search
+// admissionRejected, where the Property wants the state kept and notFound; the stale design's free search
 // meets the monitor's second admission first.
 func TestActivitySystemResults(t *testing.T) {
 	report := systemModel(t).report
@@ -146,7 +146,7 @@ func TestActivitySystemResults(t *testing.T) {
 		"query activitySystem competingTimers.scheduleToStartFirst": Found,
 		"query activitySystem competingTimers.scheduleToCloseFirst": Found,
 
-		// The product's laws, which the system contract's Model carries with the product.
+		// The product's capability Properties, which the system contract's Model carries with the product.
 		"query activityProduct activityProduct.terminalStatesAreFinal":    Verified,
 		"query activityProduct activityProduct.pausedIsNotDispatched":     Verified,
 		"query activityProduct activityProduct.closedIsRejectedUniformly": Verified,
@@ -578,18 +578,16 @@ func TestActivityStorageLossIsAssumed(t *testing.T) {
 	require.Equal(t, 1, named, "the storage-loss assumption has one name")
 }
 
-// What the admission scope leaves out is disabled, not unknown: no unpause, cancel or terminate, and
+// What the admission scope leaves out is absent, not unknown: no unpause, cancel or terminate, and
 // no failed or canceled answer. No machine of the contract has a hole.
 func TestActivitySystemExclusionsAreDisabled(t *testing.T) {
 	c := systemModel(t)
 	for _, design := range []string{"activityRecord", "trustingActivityRecord", "recordMember", "trustingRecordMember"} {
 		mm := c.built[design]
 		require.Empty(t, mm.Holes, design)
-		for _, state := range mm.Table.States {
-			for _, class := range []string{"unpause", "requestCancel", "terminate",
-				"respondFailed-fatal", "respondFailed-retryable", "respondCanceled"} {
-				require.True(t, disabled(mm, state, class), "%s: %s-%s", design, state, class)
-			}
+		for _, class := range []string{"unpause", "requestCancel", "terminate",
+			"respondFailed-fatal", "respondFailed-retryable", "respondCanceled"} {
+			require.NotContains(t, mm.Table.Actions, class, "%s: %s", design, class)
 		}
 	}
 	for name, mm := range c.built {
@@ -603,7 +601,7 @@ func TestActivitySystemExclusionsAreDisabled(t *testing.T) {
 
 // A free search that verifies the corrected design is bounded past the depth of the table it searches,
 // so it reads every step of every state the table reaches: the bound cuts nothing off. The free
-// searches are the shared `any` Scenario's and those the capabilities generate for each law.
+// searches are the shared `any` Scenario's and those the capabilities generate for each Property.
 func TestActivityFreeSearchesReachEveryState(t *testing.T) {
 	c := systemModel(t)
 	freeScenarios := map[string]bool{}

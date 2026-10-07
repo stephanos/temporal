@@ -56,7 +56,7 @@ func TestCapabilitiesGeneratedPropertiesKeepTheirOrigin(t *testing.T) {
 	}, origins)
 }
 
-// A leftover law sidecar is JSON but no Model: a reader of an IR directory must try to load it and
+// A leftover retired sidecar is JSON but no Model: a reader of an IR directory must try to load it and
 // refuse it. Accepted lint findings remain metadata beside the IR and are not loaded as Models.
 func TestIRPathsRefuseLawSidecarsAndLeaveOutAcceptedFindings(t *testing.T) {
 	dir := t.TempDir()
@@ -79,8 +79,8 @@ func TestIRPathsRefuseLawSidecarsAndLeaveOutAcceptedFindings(t *testing.T) {
 
 // The standalone Nexus operation receives its companions' Properties without listing them:
 // its terminal statuses are final, its own reading of closed rejection (a repeated request id is
-// answered OK) holds, and its functional laws are found from its start (fn-122 R6, R11).
-func TestNexusOperationReceivesTheLaws(t *testing.T) {
+// answered OK) holds, and its same-step Properties are found from its start (fn-122 R6, R11).
+func TestNexusOperationReceivesTheCapabilityProperties(t *testing.T) {
 	path := filepath.Join("..", "..", "..", "model", "ir", "nexus-standalone.json")
 	m, err := ir.Load(path)
 	require.NoError(t, err)

@@ -48,7 +48,7 @@ func loweredActivity(t testing.TB, m *umpirespb.Model, query string) *bound {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	profile, err := temporal.DeriveProfile(lowering.Case, catalog, temporal.Environment{Identity: query + "-profile", Namespace: "namespace",
-		TaskQueue: "task-queue"})
+		TaskQueue: "task-queue", DeliveryControl: true})
 	require.NoError(t, err)
 	plain, err := testpilot.Prepare(lowering.Case, profile)
 	require.NoError(t, err)

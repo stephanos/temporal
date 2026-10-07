@@ -17,6 +17,7 @@ type managedWorker interface {
 type workerFactory func(key, queue string, registration queueRegistration) (managedWorker, error)
 
 type queueRegistration struct {
+	namespace  string
 	queue      string
 	workflows  []string
 	activities []string
@@ -72,7 +73,7 @@ func (r queueRegistration) compatible(other queueRegistration) bool {
 	if err != nil {
 		return false
 	}
-	return left.queue == right.queue && slices.Equal(left.workflows, right.workflows) && slices.Equal(left.activities, right.activities) && slices.Equal(left.nexus, right.nexus)
+	return left.namespace == right.namespace && left.queue == right.queue && slices.Equal(left.workflows, right.workflows) && slices.Equal(left.activities, right.activities) && slices.Equal(left.nexus, right.nexus)
 }
 
 type workerRegistry struct {

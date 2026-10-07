@@ -23,6 +23,13 @@ type performedOutcome struct {
 func compilePerformedOutcomes(realizer *check.Realizer, key check.ClaimKey, r *umpirespb.Realization,
 	source *testpilotspb.Case, at *umpirespb.Position,
 ) (map[coordinate]performedOutcome, error) {
+	// The framework also admits generic realizations whose outcomes do not use Temporal's shared
+	// accepted/rejected vocabulary. The rejection-code projection opts a realization into this
+	// Temporal-specific check.
+	codes := umpirerealization.RejectionCodes(r)
+	if len(codes) == 0 {
+		return nil, nil
+	}
 	bindings := map[string]coordinate{}
 	for _, script := range r.GetScripts() {
 		for _, item := range script.GetItems() {
@@ -62,7 +69,6 @@ func compilePerformedOutcomes(realizer *check.Realizer, key check.ClaimKey, r *u
 			nodes[coordinate{entrypoint: entrypoint.GetEntrypointId(), instruction: instruction.GetInstructionId()}] = true
 		}
 	}
-	codes := umpirerealization.RejectionCodes(r)
 	occurrences := map[string]int{}
 	out := map[coordinate]performedOutcome{}
 	for _, step := range answer.Witness.Steps {
@@ -119,7 +125,11 @@ func (e performedOutcome) matches(observed *testpilotspb.InstructionOutcome) boo
 		return observed.GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
 	}
 	return observed.GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE &&
-		strings.EqualFold(e.code, observed.GetProtocolCode())
+		normalizedProtocolCode(e.code) == normalizedProtocolCode(observed.GetProtocolCode())
+}
+
+func normalizedProtocolCode(value string) string {
+	return strings.NewReplacer("_", "", "-", "").Replace(strings.ToUpper(value))
 }
 
 func observedCode(outcome *testpilotspb.InstructionOutcome) string {

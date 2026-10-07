@@ -14,11 +14,10 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// These are new outputs of the source-derived task-4 spike, not replacements for production IR.
-// testdata/grouping.md gives the source checkpoint and the finite changes that produced them.
+// groupingModel reads the production form that the source-derived grouping spike became.
 func groupingModel(t *testing.T, form string) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("testdata", "grouping-"+form+".json"))
+	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", form+".json"))
 	require.NoError(t, err)
 	require.NoError(t, ir.Validate(m))
 	return m
@@ -89,7 +88,7 @@ func TestSharedNexusProductSpike(t *testing.T) {
 			checked := receiptOf(t, Check(m, DefaultScope), "query nexusSystem terminalHolds")
 			require.Equal(t, Verified, checked.Kind, checked.Explanation)
 			require.True(t, checked.Exercised)
-			require.Equal(t, "fixture.features.nexus.product", checked.Property.Family)
+			require.Equal(t, "temporal.features.nexus.product", checked.Property.Family)
 		})
 	}
 }
@@ -115,7 +114,7 @@ func TestSharedProductCatalogPrecedesOutcomeVisibility(t *testing.T) {
 	rejectedCase.GetFields()[0].Type.Ref = &umpirespb.TypeRef_Named{Named: rejection.Name}
 	m.Types = append(m.Types, rejection, outcome)
 	for _, f := range m.GetFunctions() {
-		if strings.HasPrefix(f.GetName(), "fixture.features.nexus.product.") {
+		if strings.HasPrefix(f.GetName(), "temporal.features.nexus.product.") {
 			encoded, err := protojson.Marshal(f)
 			require.NoError(t, err)
 			encoded = bytes.ReplaceAll(encoded, []byte(`"`+product.GetOutcomeType()+`"`), []byte(`"`+outcome.Name+`"`))
@@ -126,17 +125,14 @@ func TestSharedProductCatalogPrecedesOutcomeVisibility(t *testing.T) {
 	product.OutcomeType = outcome.Name
 	require.False(t, function(m, admMachine(m, "nexusSystem").GetRefines().GetVisibleOutcomes()).GetBody().GetLiteral().GetBool(), "the missing source outcome is excluded from stutter observations")
 	_, err := refinementOf(t, m, "nexusSystem")
-	var rejected *RefinementError
-	require.ErrorAs(t, err, &rejected)
-	require.Equal(t, RefinementCatalog, rejected.Kind)
-	require.ErrorContains(t, err, "'rejected-failedPrecondition' is an outcome of nexusSystem and no outcome of nexusProduct has that name")
+	require.ErrorContains(t, err, "which is no fixture.productOnlyOutcome")
 }
 
 func TestSharedProductRejectsMissingAndWrongCarriers(t *testing.T) {
 	for _, effect := range []string{"start", "succeed", "fail", "cancel", "terminate"} {
 		t.Run("missing fact "+effect, func(t *testing.T) {
 			m := groupingModel(t, "nexus-standalone")
-			f := function(m, "fixture.features.nexus.product.NexusProduct$.effects$."+effect)
+			f := function(m, "temporal.features.nexus.product.NexusProduct$.effects$."+effect)
 			f.Body.GetList().Items[0].GetConstruct().Args[2].GetList().Items = nil
 			_, err := refinementOf(t, m, "nexusSystem")
 			require.ErrorContains(t, err, "nexusSystem refines nexusProduct: the row")
@@ -145,10 +141,12 @@ func TestSharedProductRejectsMissingAndWrongCarriers(t *testing.T) {
 	for name, change := range map[string]func(*umpirespb.Model){
 		"missing termination action": func(m *umpirespb.Model) {
 			p := admMachine(m, "nexusProduct")
-			p.Steps = slices.DeleteFunc(p.Steps, func(b *umpirespb.StepBinding) bool { return b.GetAction() == "fixture.features.nexus.client.terminate" })
+			p.Steps = slices.DeleteFunc(p.Steps, func(b *umpirespb.StepBinding) bool {
+				return b.GetAction() == "temporal.features.nexus.client.terminate"
+			})
 		},
 		"wrong termination fact": func(m *umpirespb.Model) {
-			f := function(m, "fixture.features.nexus.product.NexusProduct$.effects$.terminate")
+			f := function(m, "temporal.features.nexus.product.NexusProduct$.effects$.terminate")
 			f.Body.GetList().Items[0].GetConstruct().Args[2].GetList().Items[0].GetLiteral().GetEnum().Case = "nexusOperationCanceled"
 		},
 		"observed termination hidden as cancellation": func(m *umpirespb.Model) {
@@ -162,31 +160,6 @@ func TestSharedProductRejectsMissingAndWrongCarriers(t *testing.T) {
 			change(m)
 			_, err := refinementOf(t, m, "nexusSystem")
 			require.ErrorContains(t, err, "nexusSystem refines nexusProduct: the row")
-		})
-	}
-}
-
-func TestGroupingPreservesPreviouslyEnabledFormRows(t *testing.T) {
-	for _, subject := range []struct{ fixture, baseline, machine string }{
-		{"nexus-workflow", "nexus-workflow", "nexusSystem"},
-		{"nexus-standalone", "nexus-standalone", "nexusSystem"},
-		{"activity-standalone", "activity-standalone", "activitySystem"},
-	} {
-		t.Run(subject.fixture, func(t *testing.T) {
-			baseline, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", subject.baseline+".json"))
-			require.NoError(t, err)
-			old := built(t, baseline)[subject.machine]
-			name := subject.machine
-			current := built(t, groupingModel(t, subject.fixture))[name]
-			want := sideOf(old.Table).Rows
-			require.ElementsMatch(t, want, sideOf(current.Table).Rows)
-			require.Equal(t, old.Table.Starts, current.Table.Starts)
-			require.Equal(t, old.Table.Ends, current.Table.Ends)
-			require.Equal(t, old.Table.Reachable, current.Table.Reachable)
-			if subject.machine == "activitySystem" {
-				_, err = refinementOf(t, groupingModel(t, subject.fixture), name)
-				require.NoError(t, err)
-			}
 		})
 	}
 }

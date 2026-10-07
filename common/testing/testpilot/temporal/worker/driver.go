@@ -261,7 +261,7 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, limi
 			return programDefinition{}, err
 		}
 	}
-	if err := definition.addRegistrations(queueNexus); err != nil {
+	if err := definition.addRegistrations(roles[h.options.workerRoleID].Namespace, queueNexus); err != nil {
 		return programDefinition{}, err
 	}
 	registered := make(map[string]bool, len(definition.registrations))
@@ -528,7 +528,7 @@ func preparedRolesByID(roles []testpilot.PreparedRole) map[string]testpilot.Prep
 	return result
 }
 
-func (d *programDefinition) addRegistrations(queueNexus map[string]map[nexusRegistration]struct{}) error {
+func (d *programDefinition) addRegistrations(namespace string, queueNexus map[string]map[nexusRegistration]struct{}) error {
 	queues := make(map[string]struct{})
 	for queue := range d.queueWorkflows {
 		queues[queue] = struct{}{}
@@ -540,7 +540,7 @@ func (d *programDefinition) addRegistrations(queueNexus map[string]map[nexusRegi
 		queues[queue] = struct{}{}
 	}
 	for queue := range queues {
-		registration, err := (queueRegistration{queue: queue, workflows: slices.AppendSeq(make([]string, 0, len(d.queueWorkflows[queue])), maps.Keys(d.queueWorkflows[queue])), activities: slices.Collect(maps.Keys(d.queueActivities[queue])), nexus: slices.AppendSeq(make([]nexusRegistration, 0, len(queueNexus[queue])), maps.Keys(queueNexus[queue]))}).canonical()
+		registration, err := (queueRegistration{namespace: namespace, queue: queue, workflows: slices.AppendSeq(make([]string, 0, len(d.queueWorkflows[queue])), maps.Keys(d.queueWorkflows[queue])), activities: slices.Collect(maps.Keys(d.queueActivities[queue])), nexus: slices.AppendSeq(make([]nexusRegistration, 0, len(queueNexus[queue])), maps.Keys(queueNexus[queue]))}).canonical()
 		if err != nil {
 			return err
 		}

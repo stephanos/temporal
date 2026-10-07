@@ -150,10 +150,10 @@ func TestUnconstrainedResult(t *testing.T) {
 	unconstrained := subjectsOf(holes[UnconstrainedResult]["activitySystem"])
 	// The backoff timer's rows land somewhere no claim reads.
 	require.Contains(t, unconstrained, "backoff")
-	// A terminate is held to `terminated`; a pause from paused is read by the product's law.
+	// A terminate is held to `terminated`; a pause from paused is read by the product's Property.
 	require.NotContains(t, unconstrained, "terminate")
 	require.NotContains(t, unconstrained, "pause")
-	// Through the refinement, a transition law of the product reads the protocol's carried rows.
+	// Through the refinement, a transition Property of the product reads the protocol's carried rows.
 	require.NotContains(t, unconstrained, "unpause")
 }
 
@@ -189,7 +189,7 @@ func TestMustNotPinnedIsOffByDefault(t *testing.T) {
 	}
 	i := slices.IndexFunc(pinned, func(f Finding) bool { return strings.HasPrefix(f.Subject, "backoff in ") })
 	require.GreaterOrEqual(t, i, 0)
-	// From paused, the product's law reads any step, so it pins the disabled backoff there.
+	// From paused, the product's Property reads any step, so it pins the disabled backoff there.
 	require.NotContains(t, pinned[i].Subject, "paused")
 	require.Contains(t, pinned[i].Subject, "scheduled")
 }

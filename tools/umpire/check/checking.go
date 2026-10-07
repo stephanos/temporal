@@ -1,6 +1,6 @@
 // Package check binds an admitted Model once and checks it: every Property, Query, refinement and
 // progress claim, with the engine of tools/umpire/internal/engine, into a Report of receipts; and
-// the laws a Model's capabilities generate.
+// the Properties a Model's capabilities generate.
 package check
 
 import (

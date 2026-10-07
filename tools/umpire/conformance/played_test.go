@@ -120,8 +120,14 @@ func (s *activitySession) PollRPC(ctx context.Context, at testpilot.Coordinate, 
 func (*activitySession) InvokeHandle(context.Context, testpilot.Coordinate, testpilot.OpaqueHandle, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, errUnscripted
 }
-func (*activitySession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
-	return succeeded(nil), nil
+func (s *activitySession) InjectFault(_ context.Context, _ testpilot.Coordinate, _ string, kind testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	if kind != testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
+		return succeeded(nil), nil
+	}
+	return outcome(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, "", &testpilotspb.DeliveryAdmission{
+		ActivityId: s.runID, ActivityRunId: "activity-run", DeliveryId: "delivery-1",
+		Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, Attempt: 1,
+	}), nil
 }
 func (*activitySession) Bridge(context.Context) (testpilot.HandleBridge, error)   { return nil, nil }
 func (*activitySession) Quarantine(context.Context, testpilot.EffectHandle) error { return nil }

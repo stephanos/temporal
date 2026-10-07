@@ -23,7 +23,7 @@ const (
 )
 
 func pinnedRegistration() queueRegistration {
-	return queueRegistration{queue: "task-queue", workflows: []string{"workflow-type"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}}
+	return queueRegistration{namespace: "namespace", queue: "task-queue", workflows: []string{"workflow-type"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}}
 }
 
 // recordingRegistrar records what a registration writes to an SDK worker, in call order.

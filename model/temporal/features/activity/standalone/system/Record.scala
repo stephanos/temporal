@@ -69,7 +69,7 @@ final case class AdmissionResponseState(record: AdmissionState, lossAvailable: B
 enum AdmissionResponseFact derives Finite:
   case dispatchSent, attemptAdmitted
 
-// The claims every admission design is held to: the laws its capabilities bring, the record's own
+// The claims every admission design is held to: the Properties its capabilities bring, the record's own
 // count of active attempts, and each deadline timing the activity out with the status that says which.
 // `notPaused` is the generated `<design>.pausedIsNotDispatched`, which the pinned paths read.
 final case class AdmissionClaims(
@@ -156,7 +156,7 @@ object ActivityRecord
 
     // Why the record waives closedIsRejectedUniformly: a delivery that reaches a closed record is
     // admission's to reject, and rejecting it records `admissionRejected` and owes matching the
-    // answer, so the record steps where the law has it stay (chasm/lib/activity/activity.go
+    // answer, so the record steps where the shared Property has it stay (chasm/lib/activity/activity.go
     // HandleStarted).
     val deliveryAfterClose =
       "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
@@ -264,7 +264,7 @@ object ActivityRecord
     }
 
   // The history record's promises are declared on each admission design and each composition with
-  // the record: the laws its capabilities bring, and the record's own count of active attempts. Each
+  // the record: the Properties its capabilities bring, and the record's own count of active attempts. Each
   // takes the states it speaks of as predicates, so one definition serves the record and a
   // composition, which reads the record through its `activity` member.
   object properties:

@@ -301,7 +301,7 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 
 	// Which rows each Property is about and holds on, as a digest of its sorted row answers, so two
 	// Properties with the same counts cannot trade rows. Properties that answer every row alike share
-	// a digest: the product's three laws on the product and the two that hold everywhere on the
+	// a digest: the product's three capability Properties on the product and the two that hold everywhere on the
 	// protocol, and the protocol's two Properties about a cancel request and its two about a terminate.
 	digests := map[string]string{}
 	for claim, lines := range answers {
@@ -310,23 +310,23 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 		digests[claim] = hex.EncodeToString(sum[:8])
 	}
 	require.Equal(t, map[string]string{
-		"activityProduct.closedIsRejectedUniformly on activityProduct": "dcccb38657cbb272",
-		"activityProduct.closedIsRejectedUniformly on activitySystem":  "aca3674367133567",
-		"activityProduct.pausedIsNotDispatched on activityProduct":     "dcccb38657cbb272",
-		"activityProduct.pausedIsNotDispatched on activitySystem":      "b2b01fb82419845f",
-		"activityProduct.terminalStatesAreFinal on activityProduct":    "dcccb38657cbb272",
-		"activityProduct.terminalStatesAreFinal on activitySystem":     "b2b01fb82419845f",
-		"activitySystem.cancelIsRequested on activitySystem":           "d7be46713ca32d2d",
-		"activitySystem.terminateSettles on activitySystem":            "9c62747efd31fa10",
-		"cancelRequestedWhileStarted on activitySystem":                "d7be46713ca32d2d",
-		"canceledByWorker on activitySystem":                           "ac4fc0e790c9c725",
-		"completes on activitySystem":                                  "9b2400cb53e0908a",
-		"nonRetryableFails on activitySystem":                          "ef6c558943b85ee3",
-		"retryCompletes on activitySystem":                             "d212627794c856ab",
-		"scheduleToStartFires on activitySystem":                       "b122a9d419983e01",
-		"startToCloseFires on activitySystem":                          "50698e45d993235d",
-		"startedByPollingWorker on standaloneActivity":                 "c1eeda2f52651784",
-		"terminated on activitySystem":                                 "9c62747efd31fa10",
+		"activityProduct.closedIsRejectedUniformly on activityProduct": "7fecfd6275922533",
+		"activityProduct.closedIsRejectedUniformly on activitySystem":  "fc4e73a8583c67e4",
+		"activityProduct.pausedIsNotDispatched on activityProduct":     "7fecfd6275922533",
+		"activityProduct.pausedIsNotDispatched on activitySystem":      "dfb7093f6c9ae6e2",
+		"activityProduct.terminalStatesAreFinal on activityProduct":    "7fecfd6275922533",
+		"activityProduct.terminalStatesAreFinal on activitySystem":     "dfb7093f6c9ae6e2",
+		"activitySystem.cancelIsRequested on activitySystem":           "183d3045ac4f44b2",
+		"activitySystem.terminateSettles on activitySystem":            "43594d9447d59388",
+		"cancelRequestedWhileStarted on activitySystem":                "183d3045ac4f44b2",
+		"canceledByWorker on activitySystem":                           "b4e88f84fe907dfd",
+		"completes on activitySystem":                                  "f1ecc0c67ac56ee9",
+		"nonRetryableFails on activitySystem":                          "f1b08ffff67bf1b1",
+		"retryCompletes on activitySystem":                             "6c6340cee470ffd3",
+		"scheduleToStartFires on activitySystem":                       "4aa1aca4b4be1add",
+		"startToCloseFires on activitySystem":                          "00cee888ff5314f3",
+		"startedByPollingWorker on standaloneActivity":                 "a690058909d31525",
+		"terminated on activitySystem":                                 "43594d9447d59388",
 	}, digests)
 }
 
@@ -421,7 +421,7 @@ func TestActivityQueriesAnswerAlongTheirPaths(t *testing.T) {
 	}, got)
 }
 
-// A Query the activity's capabilities generate is named `<machine>.<law>`; every other is a Scenario's
+// A Query the activity's capabilities generate is named `<machine>.<property>`; every other is a Scenario's
 // path.
 func generatedQuery(r Receipt) bool { return strings.Contains(r.Key.Name, ".") }
 
@@ -507,6 +507,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 	for name, mutant := range map[string]struct {
 		mutate    func(t *testing.T, m *umpirespb.Model)
 		rows      []string
+		paths     []string
 		generated []string
 	}{
 		// The cancel request of the Scenario's path is taken at attempt 1.
@@ -522,7 +523,8 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 			mutate: func(_ *testing.T, m *umpirespb.Model) {
 				admProperty(m, "activitySystem", "canceledByWorker").When = &umpirespb.Property_WhenAction{WhenAction: "respondCompleted"}
 			},
-			rows: []string{"canceledByWorker on activitySystem at started-1-unset-unset-unset-respondCompleted"},
+			rows:  []string{"canceledByWorker on activitySystem at started-1-unset-unset-unset-respondCompleted"},
+			paths: []string{"cancel"},
 		},
 		// No path that reads this Property terminates the activity. The free search of the product
 		// that verifies it does: it terminates a scheduled activity.
@@ -562,7 +564,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 			m := proto.Clone(activityModel(t)).(*umpirespb.Model)
 			mutant.mutate(t, m)
 			require.NoError(t, ir.Validate(m))
-			require.Empty(t, pathDisagreements(t, m), "the path Queries tell the mutant apart on their own")
+			require.Equal(t, mutant.paths, pathDisagreements(t, m))
 			require.Equal(t, mutant.generated, generatedDisagreements(t, m))
 			differing := rowDisagreements(want, irPropertyRows(t, m))
 			require.NotEmpty(t, differing)

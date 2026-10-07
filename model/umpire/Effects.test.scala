@@ -27,7 +27,7 @@ object EffectsFixture:
   object hand extends Actor:
     val press = action(this)
 
-  object Worker extends Machine[Job, Said, Note], Phased[Job, Phase](_.phase):
+  object Subject extends Machine[Job, Said, Note], Phased[Job, Phase](_.phase):
     val init = Job(Phase.idle, UpTo(0))
     override def end(s: Job) = true
 
@@ -101,7 +101,7 @@ class EffectsTest extends munit.FunSuite:
     for s <- states do assertEquals(block(s), method(s), s)
 
   test("an effect block yields the steps of its method form") {
-    import Worker.effects.*
+    import Subject.effects.*
     same(start, s => enter(s.copy(phase = Phase.busy), Note.started))
     // Assigning one field of two keeps the other.
     same(retry, s => enter(s.copy(tries = UpTo(1))))
@@ -148,15 +148,15 @@ class EffectsTest extends munit.FunSuite:
 
   test("an is block answers as its predicate") {
     for s <- states do
-      assertEquals(Worker.states.busy(s), s.phase == Phase.busy, s)
-      assertEquals(Worker.states.retried(s), s.phase == Phase.busy && s.tries == UpTo[2](1), s)
+      assertEquals(Subject.states.busy(s), s.phase == Phase.busy, s)
+      assertEquals(Subject.states.retried(s), s.phase == Phase.busy && s.tries == UpTo[2](1), s)
   }
 
   test("a rule binds an effect block and conditions on an is block") {
     val press =
-      Worker.bindings.head.function.asInstanceOf[Effect] // scalafix:ok DisableSyntax.asInstanceOf
+      Subject.bindings.head.function.asInstanceOf[Effect] // scalafix:ok DisableSyntax.asInstanceOf
     assertEquals(
-      press(Worker.init),
+      press(Subject.init),
       List(Step(Said.ok, Job(Phase.busy, UpTo(0)), List(Note.started)))
     )
     assertEquals(press(Job(Phase.busy, UpTo(1))).map(_.state.phase), List(Phase.paused))
@@ -164,9 +164,9 @@ class EffectsTest extends munit.FunSuite:
   }
 
   test("record, the one-argument reject and a field assignment compile only in an effect block") {
-    given Owner[Job, Said, Note] = Owner(Worker)
+    given Owner[Job, Said, Note] = Owner(Subject)
     // The blocks compile here, so the errors below are the draft's.
-    assert(is(phase == Phase.idle)(Worker.init))
+    assert(is(phase == Phase.idle)(Subject.init))
     val draftOnly = "which only an `effect { }` block does"
     for (code, errors) <- List(
         "record(Note.started)" -> compileErrors("record(Note.started)"),

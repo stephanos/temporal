@@ -19,14 +19,17 @@ import (
 func TestWithoutOriginsClearsOnlyOrigins(t *testing.T) {
 	plain, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
 	require.NoError(t, err)
+	expected := proto.CloneOf(plain)
+	require.NotEmpty(t, expected.GetProperties())
+	for _, p := range expected.GetProperties() {
+		p.Origin = nil
+	}
 	traced := proto.CloneOf(plain)
-	require.NotEmpty(t, traced.GetProperties())
 	for _, p := range traced.GetProperties() {
-		require.Nil(t, p.GetOrigin(), p.GetName())
 		p.Origin = &umpirespb.PropertyOrigin{Name: "temporal.capabilities.Traced." + p.GetName(), Position: proto.CloneOf(p.GetPosition())}
 	}
 	require.NoError(t, Validate(traced))
 	given := proto.CloneOf(traced)
-	protorequire.ProtoEqual(t, plain, WithoutOrigins(traced))
+	protorequire.ProtoEqual(t, expected, WithoutOrigins(traced))
 	protorequire.ProtoEqual(t, given, traced)
 }

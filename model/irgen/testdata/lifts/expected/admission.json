@@ -4,7 +4,7 @@
     "name": "fixture.specimens.admission.Active",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 104
+      "line": 109
     },
     "enum": {
       "cases": [ {
@@ -19,7 +19,7 @@
     "name": "fixture.specimens.admission.AdmissionFact",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 112
+      "line": 117
     },
     "enum": {
       "cases": [ {
@@ -40,7 +40,7 @@
     "name": "fixture.specimens.admission.AdmissionPhase",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 94
+      "line": 99
     },
     "enum": {
       "cases": [ {
@@ -59,7 +59,7 @@
     "name": "fixture.specimens.admission.AdmissionState",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 107
+      "line": 112
     },
     "record": {
       "fields": [ {
@@ -80,48 +80,23 @@
       } ]
     }
   }, {
-    "name": "fixture.specimens.admission.AttemptResult",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 32
-    },
-    "enum": {
-      "cases": [ {
-        "name": "completed"
-      }, {
-        "name": "failed",
-        "fields": [ {
-          "name": "retries",
-          "type": {
-            "bool": { }
-          }
-        } ]
-      }, {
-        "name": "canceled"
-      } ]
-    }
-  }, {
-    "name": "fixture.specimens.admission.Control",
+    "name": "fixture.specimens.admission.Failure",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 29
     },
     "enum": {
       "cases": [ {
-        "name": "pause"
+        "name": "fatal"
       }, {
-        "name": "unpause"
-      }, {
-        "name": "requestCancel"
-      }, {
-        "name": "terminate"
+        "name": "retryable"
       } ]
     }
   }, {
     "name": "fixture.specimens.admission.Finality",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 265
+      "line": 266
     },
     "enum": {
       "cases": [ {
@@ -136,7 +111,7 @@
     "name": "fixture.specimens.admission.Message",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 99
+      "line": 104
     },
     "enum": {
       "cases": [ {
@@ -164,7 +139,7 @@
     "name": "fixture.specimens.admission.ProductFact",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 51
+      "line": 46
     },
     "enum": {
       "cases": [ {
@@ -179,7 +154,7 @@
     "name": "fixture.specimens.admission.ProductPhase",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 46
+      "line": 41
     },
     "enum": {
       "cases": [ {
@@ -196,7 +171,7 @@
     "name": "fixture.specimens.admission.ProductState",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 49
+      "line": 44
     },
     "record": {
       "fields": [ {
@@ -293,7 +268,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 86
+      "line": 91
     },
     "params": [ {
       "name": "before",
@@ -309,28 +284,28 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 86
+        "line": 91
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 86
+            "line": 91
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 86
+                "line": 91
               },
               "call": {
                 "function": "activityProduct.property.pausedIsNotDispatched.from",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 86
+                    "line": 91
                   },
                   "var": "before"
                 } ]
@@ -341,21 +316,21 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 86
+            "line": 91
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 86
+                "line": 91
               },
               "call": {
                 "function": "activityProduct.property.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 86
+                    "line": 91
                   },
                   "var": "after"
                 } ]
@@ -369,7 +344,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched.from",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 88
+      "line": 93
     },
     "params": [ {
       "name": "productState",
@@ -380,20 +355,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 88
+        "line": 93
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 88
+            "line": 93
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 88
+                "line": 93
               },
               "var": "productState"
             },
@@ -403,7 +378,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 88
+            "line": 93
           },
           "literal": {
             "enum": {
@@ -418,7 +393,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched.never",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 87
+      "line": 92
     },
     "params": [ {
       "name": "step",
@@ -429,26 +404,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 87
+        "line": 92
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 87
+            "line": 92
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 87
+                "line": 92
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 87
+                    "line": 92
                   },
                   "var": "step"
                 },
@@ -461,7 +436,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 87
+            "line": 92
           },
           "literal": {
             "enum": {
@@ -476,7 +451,7 @@
     "name": "activityRecord.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 286
+      "line": 287
     },
     "params": [ {
       "name": "f",
@@ -487,14 +462,14 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 286
+        "line": 287
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.admissionEvidence",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 286
+            "line": 287
           },
           "var": "f"
         } ]
@@ -504,7 +479,7 @@
     "name": "fixture.specimens.admission.ActivityRecord$.refinement$.toProduct",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 289
+      "line": 290
     },
     "params": [ {
       "name": "s",
@@ -515,14 +490,14 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 289
+        "line": 290
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.productOfAdmission",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 289
+            "line": 290
           },
           "var": "s"
         } ]
@@ -532,7 +507,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admissionEnds",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 248
+      "line": 249
     },
     "params": [ {
       "name": "s",
@@ -543,27 +518,27 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 249
+        "line": 250
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 249
+            "line": 250
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 249
+                "line": 250
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 249
+                    "line": 250
                   },
                   "var": "s"
                 },
@@ -573,7 +548,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 249
+                "line": 250
               },
               "literal": {
                 "enum": {
@@ -587,20 +562,20 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 249
+            "line": 250
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 249
+                "line": 250
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 249
+                    "line": 250
                   },
                   "var": "s"
                 },
@@ -610,7 +585,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 249
+                "line": 250
               },
               "literal": {
                 "enum": {
@@ -627,7 +602,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admissionEvidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 239
+      "line": 240
     },
     "params": [ {
       "name": "f",
@@ -638,13 +613,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 239
+        "line": 240
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 239
+            "line": 240
           },
           "var": "f"
         },
@@ -660,7 +635,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 240
+              "line": 241
             },
             "literal": {
               "text": "statusStarted"
@@ -678,7 +653,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 241
+              "line": 242
             },
             "literal": {
               "text": "statusPaused"
@@ -696,7 +671,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 242
+              "line": 243
             },
             "literal": {
               "text": "statusCompleted"
@@ -714,7 +689,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 243
+              "line": 244
             },
             "literal": {
               "text": "dispatchEnqueued"
@@ -732,7 +707,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 244
+              "line": 245
             },
             "literal": {
               "text": "attemptAdmitted"
@@ -750,7 +725,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 245
+              "line": 246
             },
             "literal": {
               "text": "admissionRejected"
@@ -763,7 +738,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admitCurrent",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 199
+      "line": 202
     },
     "params": [ {
       "name": "s",
@@ -774,19 +749,19 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 199
+        "line": 202
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 199
+            "line": 202
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 199
+                "line": 202
               },
               "var": "s"
             },
@@ -805,7 +780,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 200
+              "line": 203
             },
             "list": { }
           }
@@ -832,26 +807,26 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 202
+              "line": 205
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 202
+                  "line": 205
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 202
+                      "line": 205
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 202
+                          "line": 205
                         },
                         "var": "s"
                       },
@@ -861,7 +836,7 @@
                   "right": {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 202
+                      "line": 205
                     },
                     "literal": {
                       "enum": {
@@ -875,14 +850,14 @@
               "then": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 202
+                  "line": 205
                 },
                 "call": {
                   "function": "fixture.specimens.admission.Admission$package$.admitted",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 202
+                      "line": 205
                     },
                     "var": "s"
                   } ]
@@ -891,20 +866,20 @@
               "else": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 204
+                  "line": 207
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 205
+                      "line": 208
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 206
+                          "line": 209
                         },
                         "literal": {
                           "enum": {
@@ -915,13 +890,13 @@
                       }, {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 207
+                          "line": 210
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Admission.scala",
-                              "line": 207
+                              "line": 210
                             },
                             "var": "s"
                           },
@@ -930,7 +905,7 @@
                             "value": {
                               "position": {
                                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                                "line": 207
+                                "line": 210
                               },
                               "literal": {
                                 "enum": {
@@ -944,13 +919,13 @@
                       }, {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 208
+                          "line": 211
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Admission.scala",
-                              "line": 208
+                              "line": 211
                             },
                             "literal": {
                               "enum": {
@@ -963,7 +938,7 @@
                       }, {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 205
+                          "line": 208
                         },
                         "literal": {
                           "text": ""
@@ -982,7 +957,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admitStale",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 213
+      "line": 216
     },
     "params": [ {
       "name": "s",
@@ -993,19 +968,19 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 213
+        "line": 216
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 213
+            "line": 216
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 213
+                "line": 216
               },
               "var": "s"
             },
@@ -1024,7 +999,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 214
+              "line": 217
             },
             "list": { }
           }
@@ -1051,14 +1026,14 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 215
+              "line": 218
             },
             "call": {
               "function": "fixture.specimens.admission.Admission$package$.admitted",
               "args": [ {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 215
+                  "line": 218
                 },
                 "var": "s"
               } ]
@@ -1071,7 +1046,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admitted",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 169
+      "line": 172
     },
     "params": [ {
       "name": "s",
@@ -1082,20 +1057,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 170
+        "line": 173
       },
       "let": {
         "name": "next",
         "value": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 170
+            "line": 173
           },
           "copy": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 170
+                "line": 173
               },
               "var": "s"
             },
@@ -1104,7 +1079,7 @@
               "value": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 170
+                  "line": 173
                 },
                 "literal": {
                   "enum": {
@@ -1118,20 +1093,20 @@
               "value": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 170
+                  "line": 173
                 },
                 "call": {
                   "function": "fixture.specimens.admission.Admission$package$.oneMore",
                   "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 170
+                      "line": 173
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 170
+                          "line": 173
                         },
                         "var": "s"
                       },
@@ -1146,26 +1121,26 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 171
+            "line": 174
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 171
+                "line": 174
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 171
+                    "line": 174
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 171
+                        "line": 174
                       },
                       "var": "s"
                     },
@@ -1175,7 +1150,7 @@
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 171
+                    "line": 174
                   },
                   "literal": {
                     "enum": {
@@ -1189,20 +1164,20 @@
             "then": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 172
+                "line": 175
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 173
+                    "line": 176
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 174
+                        "line": 177
                       },
                       "literal": {
                         "enum": {
@@ -1213,13 +1188,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 175
+                        "line": 178
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 175
+                            "line": 178
                           },
                           "var": "next"
                         },
@@ -1228,7 +1203,7 @@
                           "value": {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Admission.scala",
-                              "line": 175
+                              "line": 178
                             },
                             "literal": {
                               "enum": {
@@ -1242,13 +1217,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 176
+                        "line": 179
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 176
+                            "line": 179
                           },
                           "literal": {
                             "enum": {
@@ -1259,7 +1234,7 @@
                         }, {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 176
+                            "line": 179
                           },
                           "literal": {
                             "enum": {
@@ -1272,7 +1247,7 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 173
+                        "line": 176
                       },
                       "literal": {
                         "text": ""
@@ -1285,20 +1260,20 @@
             "else": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 180
+                "line": 183
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 182
+                    "line": 185
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 183
+                        "line": 186
                       },
                       "literal": {
                         "enum": {
@@ -1309,13 +1284,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 184
+                        "line": 187
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 184
+                            "line": 187
                           },
                           "var": "next"
                         },
@@ -1324,7 +1299,7 @@
                           "value": {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Admission.scala",
-                              "line": 184
+                              "line": 187
                             },
                             "literal": {
                               "enum": {
@@ -1338,13 +1313,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 185
+                        "line": 188
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 185
+                            "line": 188
                           },
                           "literal": {
                             "enum": {
@@ -1355,7 +1330,7 @@
                         }, {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 185
+                            "line": 188
                           },
                           "literal": {
                             "enum": {
@@ -1368,7 +1343,7 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 182
+                        "line": 185
                       },
                       "literal": {
                         "text": ""
@@ -1379,14 +1354,14 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 189
+                    "line": 192
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 190
+                        "line": 193
                       },
                       "literal": {
                         "enum": {
@@ -1397,13 +1372,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 191
+                        "line": 194
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 191
+                            "line": 194
                           },
                           "var": "next"
                         },
@@ -1412,7 +1387,7 @@
                           "value": {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Admission.scala",
-                              "line": 191
+                              "line": 194
                             },
                             "literal": {
                               "enum": {
@@ -1426,13 +1401,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 192
+                        "line": 195
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 192
+                            "line": 195
                           },
                           "literal": {
                             "enum": {
@@ -1443,7 +1418,7 @@
                         }, {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 192
+                            "line": 195
                           },
                           "literal": {
                             "enum": {
@@ -1456,7 +1431,7 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 193
+                        "line": 196
                       },
                       "literal": {
                         "text": "the channel may deliver the message again"
@@ -1475,7 +1450,7 @@
     "name": "fixture.specimens.admission.Admission$package$.atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 329
+      "line": 330
     },
     "params": [ {
       "name": "after",
@@ -1486,26 +1461,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 329
+        "line": 330
       },
       "binary": {
         "op": "OP_NE",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 329
+            "line": 330
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 329
+                "line": 330
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 329
+                    "line": 330
                   },
                   "var": "after"
                 },
@@ -1518,7 +1493,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 329
+            "line": 330
           },
           "literal": {
             "enum": {
@@ -1530,10 +1505,186 @@
       }
     }
   }, {
+    "name": "fixture.specimens.admission.Admission$package$.completionStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 220
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.admission.AdmissionState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 221
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 221
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 221
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 221
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 221
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.admission.AdmissionPhase",
+                  "case": "started"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 221
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 223
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 224
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 225
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.admission.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 226
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Admission.scala",
+                        "line": 226
+                      },
+                      "var": "s"
+                    },
+                    "updates": [ {
+                      "name": "phase",
+                      "value": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Admission.scala",
+                          "line": 226
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.admission.AdmissionPhase",
+                            "case": "completed"
+                          }
+                        }
+                      }
+                    }, {
+                      "name": "active",
+                      "value": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Admission.scala",
+                          "line": 226
+                        },
+                        "call": {
+                          "function": "fixture.specimens.admission.Admission$package$.oneLess",
+                          "args": [ {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Admission.scala",
+                              "line": 226
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/irgen/testdata/lifts/Admission.scala",
+                                  "line": 226
+                                },
+                                "var": "s"
+                              },
+                              "field": "active"
+                            }
+                          } ]
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 227
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Admission.scala",
+                        "line": 227
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.specimens.admission.AdmissionFact",
+                          "case": "statusCompleted"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 224
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
     "name": "fixture.specimens.admission.Admission$package$.countActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 254
+      "line": 255
     },
     "params": [ {
       "name": "active",
@@ -1554,20 +1705,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 255
+        "line": 256
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 255
+            "line": 256
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 255
+                "line": 256
               },
               "literal": {
                 "enum": {
@@ -1579,13 +1730,13 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 255
+                "line": 256
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 255
+                    "line": 256
                   },
                   "var": "after"
                 },
@@ -1597,14 +1748,14 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 255
+            "line": 256
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.oneMore",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 255
+                "line": 256
               },
               "var": "active"
             } ]
@@ -1613,20 +1764,20 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 256
+            "line": 257
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 256
+                "line": 257
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 256
+                    "line": 257
                   },
                   "literal": {
                     "enum": {
@@ -1638,13 +1789,13 @@
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 256
+                    "line": 257
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 256
+                        "line": 257
                       },
                       "var": "after"
                     },
@@ -1656,14 +1807,14 @@
             "then": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 256
+                "line": 257
               },
               "call": {
                 "function": "fixture.specimens.admission.Admission$package$.oneLess",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 256
+                    "line": 257
                   },
                   "var": "active"
                 } ]
@@ -1672,7 +1823,7 @@
             "else": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 257
+                "line": 258
               },
               "var": "active"
             }
@@ -1684,7 +1835,7 @@
     "name": "fixture.specimens.admission.Admission$package$.dispatchStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 129
+      "line": 134
     },
     "params": [ {
       "name": "s",
@@ -1695,33 +1846,33 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 130
+        "line": 135
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 130
+            "line": 135
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 130
+                "line": 135
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 130
+                    "line": 135
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 130
+                        "line": 135
                       },
                       "var": "s"
                     },
@@ -1731,7 +1882,7 @@
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 130
+                    "line": 135
                   },
                   "literal": {
                     "enum": {
@@ -1745,20 +1896,20 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 130
+                "line": 135
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 130
+                    "line": 135
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 130
+                        "line": 135
                       },
                       "var": "s"
                     },
@@ -1768,7 +1919,7 @@
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 130
+                    "line": 135
                   },
                   "literal": {
                     "enum": {
@@ -1784,27 +1935,27 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 130
+            "line": 135
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 132
+            "line": 137
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 133
+                "line": 138
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 133
+                    "line": 138
                   },
                   "literal": {
                     "enum": {
@@ -1815,13 +1966,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 133
+                    "line": 138
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 133
+                        "line": 138
                       },
                       "var": "s"
                     },
@@ -1830,7 +1981,7 @@
                       "value": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 133
+                          "line": 138
                         },
                         "literal": {
                           "enum": {
@@ -1844,13 +1995,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 133
+                    "line": 138
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 133
+                        "line": 138
                       },
                       "literal": {
                         "enum": {
@@ -1863,7 +2014,7 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 133
+                    "line": 138
                   },
                   "literal": {
                     "text": ""
@@ -1879,7 +2030,7 @@
     "name": "fixture.specimens.admission.Admission$package$.finality",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 268
+      "line": 269
     },
     "params": [ {
       "name": "f",
@@ -1900,13 +2051,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 268
+        "line": 269
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 268
+            "line": 269
           },
           "var": "f"
         },
@@ -1922,7 +2073,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 269
+              "line": 270
             },
             "literal": {
               "enum": {
@@ -1938,32 +2089,32 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 271
+              "line": 272
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 271
+                  "line": 272
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 271
+                      "line": 272
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 271
+                          "line": 272
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/irgen/testdata/lifts/Admission.scala",
-                              "line": 271
+                              "line": 272
                             },
                             "var": "after"
                           },
@@ -1976,7 +2127,7 @@
                   "right": {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 271
+                      "line": 272
                     },
                     "literal": {
                       "enum": {
@@ -1990,7 +2141,7 @@
               "then": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 271
+                  "line": 272
                 },
                 "literal": {
                   "enum": {
@@ -2002,27 +2153,27 @@
               "else": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 272
+                  "line": 273
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 272
+                      "line": 273
                     },
                     "binary": {
                       "op": "OP_EQ",
                       "left": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 272
+                          "line": 273
                         },
                         "var": "f"
                       },
                       "right": {
                         "position": {
                           "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 272
+                          "line": 273
                         },
                         "literal": {
                           "enum": {
@@ -2036,7 +2187,7 @@
                   "then": {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 272
+                      "line": 273
                     },
                     "literal": {
                       "enum": {
@@ -2048,7 +2199,7 @@
                   "else": {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 273
+                      "line": 274
                     },
                     "literal": {
                       "enum": {
@@ -2068,7 +2219,7 @@
     "name": "fixture.specimens.admission.Admission$package$.notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 326
+      "line": 327
     },
     "params": [ {
       "name": "before",
@@ -2084,27 +2235,27 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 327
+        "line": 328
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 327
+            "line": 328
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 327
+                "line": 328
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 327
+                    "line": 328
                   },
                   "var": "before"
                 },
@@ -2114,7 +2265,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 327
+                "line": 328
               },
               "literal": {
                 "enum": {
@@ -2128,26 +2279,26 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 327
+            "line": 328
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 327
+                "line": 328
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 327
+                    "line": 328
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 327
+                        "line": 328
                       },
                       "var": "after"
                     },
@@ -2160,7 +2311,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 327
+                "line": 328
               },
               "literal": {
                 "enum": {
@@ -2177,7 +2328,7 @@
     "name": "fixture.specimens.admission.Admission$package$.oneLess",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 163
+      "line": 166
     },
     "params": [ {
       "name": "a",
@@ -2188,13 +2339,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 163
+        "line": 166
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 163
+            "line": 166
           },
           "var": "a"
         },
@@ -2210,7 +2361,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 164
+              "line": 167
             },
             "literal": {
               "enum": {
@@ -2226,7 +2377,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 165
+              "line": 168
             },
             "literal": {
               "enum": {
@@ -2242,7 +2393,7 @@
     "name": "fixture.specimens.admission.Admission$package$.oneMore",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 159
+      "line": 162
     },
     "params": [ {
       "name": "a",
@@ -2253,13 +2404,13 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 159
+        "line": 162
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 159
+            "line": 162
           },
           "var": "a"
         },
@@ -2275,7 +2426,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 160
+              "line": 163
             },
             "literal": {
               "enum": {
@@ -2291,7 +2442,7 @@
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 161
+              "line": 164
             },
             "literal": {
               "enum": {
@@ -2307,296 +2458,232 @@
     "name": "fixture.specimens.admission.Admission$package$.pauseStep",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 137
+      "line": 142
     },
     "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
       }
-    }, {
-      "name": "c",
-      "type": {
-        "named": "fixture.specimens.admission.Control"
-      }
     } ],
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 137
+        "line": 143
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 137
+            "line": 143
           },
-          "var": "c"
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 143
+              },
+              "var": "s"
+            },
+            "field": "phase"
+          }
         },
         "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
-                "type": "fixture.specimens.admission.Control",
-                "case": "pause"
+                "type": "fixture.specimens.admission.AdmissionPhase",
+                "case": "scheduled"
               }
             }
           },
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 139
+              "line": 145
             },
-            "match": {
-              "scrutinee": {
+            "list": {
+              "items": [ {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 139
+                  "line": 146
                 },
-                "field": {
-                  "base": {
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
                     "position": {
                       "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 139
+                      "line": 147
                     },
-                    "var": "s"
-                  },
-                  "field": "phase"
-                }
-              },
-              "cases": [ {
-                "pattern": {
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.specimens.admission.AdmissionPhase",
-                      "case": "scheduled"
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.specimens.admission.Outcome",
+                        "case": "accepted"
+                      }
                     }
-                  }
-                },
-                "body": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 141
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 142
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Admission.scala",
+                      "line": 148
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Admission.scala",
+                          "line": 148
+                        },
+                        "var": "s"
                       },
-                      "construct": {
-                        "type": "umpire.Step",
-                        "args": [ {
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 143
+                            "line": 148
                           },
                           "literal": {
                             "enum": {
-                              "type": "fixture.specimens.admission.Outcome",
-                              "case": "accepted"
+                              "type": "fixture.specimens.admission.AdmissionPhase",
+                              "case": "paused"
                             }
                           }
-                        }, {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 144
-                          },
-                          "copy": {
-                            "base": {
-                              "position": {
-                                "file": "model/irgen/testdata/lifts/Admission.scala",
-                                "line": 144
-                              },
-                              "var": "s"
-                            },
-                            "updates": [ {
-                              "name": "phase",
-                              "value": {
-                                "position": {
-                                  "file": "model/irgen/testdata/lifts/Admission.scala",
-                                  "line": 144
-                                },
-                                "literal": {
-                                  "enum": {
-                                    "type": "fixture.specimens.admission.AdmissionPhase",
-                                    "case": "paused"
-                                  }
-                                }
-                              }
-                            } ]
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 145
-                          },
-                          "list": {
-                            "items": [ {
-                              "position": {
-                                "file": "model/irgen/testdata/lifts/Admission.scala",
-                                "line": 145
-                              },
-                              "literal": {
-                                "enum": {
-                                  "type": "fixture.specimens.admission.AdmissionFact",
-                                  "case": "statusPaused"
-                                }
-                              }
-                            } ]
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 142
-                          },
-                          "literal": {
-                            "text": ""
-                          }
-                        } ]
-                      }
-                    } ]
-                  }
-                }
-              }, {
-                "pattern": {
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.specimens.admission.AdmissionPhase",
-                      "case": "started"
+                        }
+                      } ]
                     }
-                  }
-                },
-                "body": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 149
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 150
-                      },
-                      "construct": {
-                        "type": "umpire.Step",
-                        "args": [ {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 151
-                          },
-                          "literal": {
-                            "enum": {
-                              "type": "fixture.specimens.admission.Outcome",
-                              "case": "accepted"
-                            }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Admission.scala",
+                      "line": 149
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Admission.scala",
+                          "line": 149
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.admission.AdmissionFact",
+                            "case": "statusPaused"
                           }
-                        }, {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 152
-                          },
-                          "copy": {
-                            "base": {
-                              "position": {
-                                "file": "model/irgen/testdata/lifts/Admission.scala",
-                                "line": 152
-                              },
-                              "var": "s"
-                            },
-                            "updates": [ {
-                              "name": "phase",
-                              "value": {
-                                "position": {
-                                  "file": "model/irgen/testdata/lifts/Admission.scala",
-                                  "line": 152
-                                },
-                                "literal": {
-                                  "enum": {
-                                    "type": "fixture.specimens.admission.AdmissionPhase",
-                                    "case": "pausedWhileHeld"
-                                  }
-                                }
-                              }
-                            } ]
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 153
-                          },
-                          "list": {
-                            "items": [ {
-                              "position": {
-                                "file": "model/irgen/testdata/lifts/Admission.scala",
-                                "line": 153
-                              },
-                              "literal": {
-                                "enum": {
-                                  "type": "fixture.specimens.admission.AdmissionFact",
-                                  "case": "statusPaused"
-                                }
-                              }
-                            } ]
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 150
-                          },
-                          "literal": {
-                            "text": ""
-                          }
-                        } ]
-                      }
-                    } ]
-                  }
-                }
-              }, {
-                "pattern": {
-                  "wildcard": { }
-                },
-                "body": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 156
-                  },
-                  "list": { }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Admission.scala",
+                      "line": 146
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
                 }
               } ]
             }
           }
         }, {
           "pattern": {
-            "alternatives": {
-              "patterns": [ {
-                "literal": {
-                  "enum": {
-                    "type": "fixture.specimens.admission.Control",
-                    "case": "unpause"
-                  }
-                }
-              }, {
-                "literal": {
-                  "enum": {
-                    "type": "fixture.specimens.admission.Control",
-                    "case": "requestCancel"
-                  }
-                }
-              }, {
-                "literal": {
-                  "enum": {
-                    "type": "fixture.specimens.admission.Control",
-                    "case": "terminate"
-                  }
-                }
-              } ]
+            "literal": {
+              "enum": {
+                "type": "fixture.specimens.admission.AdmissionPhase",
+                "case": "started"
+              }
             }
           },
           "body": {
             "position": {
               "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 157
+              "line": 153
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Admission.scala",
+                  "line": 154
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Admission.scala",
+                      "line": 155
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.specimens.admission.Outcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Admission.scala",
+                      "line": 156
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Admission.scala",
+                          "line": 156
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "phase",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Admission.scala",
+                            "line": 156
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.specimens.admission.AdmissionPhase",
+                              "case": "pausedWhileHeld"
+                            }
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Admission.scala",
+                      "line": 157
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Admission.scala",
+                          "line": 157
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.specimens.admission.AdmissionFact",
+                            "case": "statusPaused"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Admission.scala",
+                      "line": 154
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": { }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Admission.scala",
+              "line": 160
             },
             "list": { }
           }
@@ -2607,7 +2694,7 @@
     "name": "fixture.specimens.admission.Admission$package$.productOfAdmission",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 231
+      "line": 232
     },
     "params": [ {
       "name": "s",
@@ -2618,26 +2705,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 232
+        "line": 233
       },
       "let": {
         "name": "read",
         "value": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 232
+            "line": 233
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 232
+                "line": 233
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 232
+                    "line": 233
                   },
                   "var": "s"
                 },
@@ -2656,7 +2743,7 @@
               "body": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 233
+                  "line": 234
                 },
                 "literal": {
                   "enum": {
@@ -2688,7 +2775,7 @@
               "body": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 234
+                  "line": 235
                 },
                 "literal": {
                   "enum": {
@@ -2709,7 +2796,7 @@
               "body": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 235
+                  "line": 236
                 },
                 "literal": {
                   "enum": {
@@ -2730,7 +2817,7 @@
               "body": {
                 "position": {
                   "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 236
+                  "line": 237
                 },
                 "literal": {
                   "enum": {
@@ -2745,14 +2832,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 237
+            "line": 238
           },
           "construct": {
             "type": "fixture.specimens.admission.ProductState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 237
+                "line": 238
               },
               "var": "read"
             } ]
@@ -2761,244 +2848,10 @@
       }
     }
   }, {
-    "name": "fixture.specimens.admission.Admission$package$.resultStep",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 217
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "fixture.specimens.admission.AdmissionState"
-      }
-    }, {
-      "name": "r",
-      "type": {
-        "named": "fixture.specimens.admission.AttemptResult"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 217
-      },
-      "match": {
-        "scrutinee": {
-          "position": {
-            "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 217
-          },
-          "var": "r"
-        },
-        "cases": [ {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "fixture.specimens.admission.AttemptResult",
-                "case": "completed"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 219
-            },
-            "if": {
-              "condition": {
-                "position": {
-                  "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 219
-                },
-                "binary": {
-                  "op": "OP_NE",
-                  "left": {
-                    "position": {
-                      "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 219
-                    },
-                    "field": {
-                      "base": {
-                        "position": {
-                          "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 219
-                        },
-                        "var": "s"
-                      },
-                      "field": "phase"
-                    }
-                  },
-                  "right": {
-                    "position": {
-                      "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 219
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "fixture.specimens.admission.AdmissionPhase",
-                        "case": "started"
-                      }
-                    }
-                  }
-                }
-              },
-              "then": {
-                "position": {
-                  "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 219
-                },
-                "list": { }
-              },
-              "else": {
-                "position": {
-                  "file": "model/irgen/testdata/lifts/Admission.scala",
-                  "line": 221
-                },
-                "list": {
-                  "items": [ {
-                    "position": {
-                      "file": "model/irgen/testdata/lifts/Admission.scala",
-                      "line": 222
-                    },
-                    "construct": {
-                      "type": "umpire.Step",
-                      "args": [ {
-                        "position": {
-                          "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 223
-                        },
-                        "literal": {
-                          "enum": {
-                            "type": "fixture.specimens.admission.Outcome",
-                            "case": "accepted"
-                          }
-                        }
-                      }, {
-                        "position": {
-                          "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 224
-                        },
-                        "copy": {
-                          "base": {
-                            "position": {
-                              "file": "model/irgen/testdata/lifts/Admission.scala",
-                              "line": 224
-                            },
-                            "var": "s"
-                          },
-                          "updates": [ {
-                            "name": "phase",
-                            "value": {
-                              "position": {
-                                "file": "model/irgen/testdata/lifts/Admission.scala",
-                                "line": 224
-                              },
-                              "literal": {
-                                "enum": {
-                                  "type": "fixture.specimens.admission.AdmissionPhase",
-                                  "case": "completed"
-                                }
-                              }
-                            }
-                          }, {
-                            "name": "active",
-                            "value": {
-                              "position": {
-                                "file": "model/irgen/testdata/lifts/Admission.scala",
-                                "line": 224
-                              },
-                              "call": {
-                                "function": "fixture.specimens.admission.Admission$package$.oneLess",
-                                "args": [ {
-                                  "position": {
-                                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                                    "line": 224
-                                  },
-                                  "field": {
-                                    "base": {
-                                      "position": {
-                                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                                        "line": 224
-                                      },
-                                      "var": "s"
-                                    },
-                                    "field": "active"
-                                  }
-                                } ]
-                              }
-                            }
-                          } ]
-                        }
-                      }, {
-                        "position": {
-                          "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 225
-                        },
-                        "list": {
-                          "items": [ {
-                            "position": {
-                              "file": "model/irgen/testdata/lifts/Admission.scala",
-                              "line": 225
-                            },
-                            "literal": {
-                              "enum": {
-                                "type": "fixture.specimens.admission.AdmissionFact",
-                                "case": "statusCompleted"
-                              }
-                            }
-                          } ]
-                        }
-                      }, {
-                        "position": {
-                          "file": "model/irgen/testdata/lifts/Admission.scala",
-                          "line": 222
-                        },
-                        "literal": {
-                          "text": ""
-                        }
-                      } ]
-                    }
-                  } ]
-                }
-              }
-            }
-          }
-        }, {
-          "pattern": {
-            "alternatives": {
-              "patterns": [ {
-                "case": {
-                  "type": "fixture.specimens.admission.AttemptResult",
-                  "case": "failed",
-                  "fields": [ {
-                    "wildcard": { }
-                  } ]
-                }
-              }, {
-                "literal": {
-                  "enum": {
-                    "type": "fixture.specimens.admission.AttemptResult",
-                    "case": "canceled"
-                  }
-                }
-              } ]
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/irgen/testdata/lifts/Admission.scala",
-              "line": 228
-            },
-            "list": { }
-          }
-        } ]
-      }
-    }
-  }, {
     "name": "fixture.specimens.admission.Admission$package$.terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 331
+      "line": 332
     },
     "params": [ {
       "name": "before",
@@ -3014,27 +2867,27 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 332
+        "line": 333
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 332
+            "line": 333
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 332
+                "line": 333
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 332
+                    "line": 333
                   },
                   "var": "before"
                 },
@@ -3044,7 +2897,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 332
+                "line": 333
               },
               "literal": {
                 "enum": {
@@ -3058,26 +2911,26 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 332
+            "line": 333
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 332
+                "line": 333
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 332
+                    "line": 333
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 332
+                        "line": 333
                       },
                       "var": "after"
                     },
@@ -3090,7 +2943,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 332
+                "line": 333
               },
               "literal": {
                 "enum": {
@@ -3104,45 +2957,40 @@
       }
     }
   }, {
-    "name": "fixture.specimens.admission.Product$.control",
+    "name": "fixture.specimens.admission.Product$.otherControl",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 67
+      "line": 69
     },
     "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.ProductState"
       }
-    }, {
-      "name": "c",
-      "type": {
-        "named": "fixture.specimens.admission.Control"
-      }
     } ],
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 68
+        "line": 70
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 68
+            "line": 70
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 68
+                "line": 70
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 68
+                    "line": 70
                   },
                   "var": "s"
                 },
@@ -3152,7 +3000,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 68
+                "line": 70
               },
               "literal": {
                 "enum": {
@@ -3166,20 +3014,20 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 68
+            "line": 70
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 68
+                "line": 70
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 68
+                    "line": 70
                   },
                   "literal": {
                     "enum": {
@@ -3190,19 +3038,19 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 68
+                    "line": 70
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 68
+                    "line": 70
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 68
+                    "line": 70
                   },
                   "literal": {
                     "text": ""
@@ -3215,78 +3063,154 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 69
+            "line": 70
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.specimens.admission.Product$.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 64
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.admission.ProductState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 65
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 65
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 65
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 65
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 65
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.admission.ProductPhase",
+                  "case": "completed"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 65
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Admission.scala",
+                "line": 65
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 65
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.admission.Outcome",
+                      "case": "notFound"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 65
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 65
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Admission.scala",
+                    "line": 65
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Admission.scala",
+            "line": 66
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 69
+                "line": 66
               },
               "binary": {
-                "op": "OP_AND",
+                "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 69
+                    "line": 66
                   },
-                  "binary": {
-                    "op": "OP_EQ",
-                    "left": {
+                  "field": {
+                    "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 69
+                        "line": 66
                       },
-                      "var": "c"
+                      "var": "s"
                     },
-                    "right": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 69
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.specimens.admission.Control",
-                          "case": "pause"
-                        }
-                      }
-                    }
+                    "field": "phase"
                   }
                 },
                 "right": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 69
+                    "line": 66
                   },
-                  "binary": {
-                    "op": "OP_NE",
-                    "left": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 69
-                      },
-                      "field": {
-                        "base": {
-                          "position": {
-                            "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 69
-                          },
-                          "var": "s"
-                        },
-                        "field": "phase"
-                      }
-                    },
-                    "right": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 69
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "fixture.specimens.admission.ProductPhase",
-                          "case": "paused"
-                        }
-                      }
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.specimens.admission.ProductPhase",
+                      "case": "paused"
                     }
                   }
                 }
@@ -3295,13 +3219,13 @@
             "then": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 69
+                "line": 66
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 69
+                    "line": 66
                   },
                   "construct": {
                     "type": "umpire.Step",
@@ -3319,14 +3243,14 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 69
+                        "line": 66
                       },
                       "construct": {
                         "type": "fixture.specimens.admission.ProductState",
                         "args": [ {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 69
+                            "line": 66
                           },
                           "literal": {
                             "enum": {
@@ -3339,13 +3263,13 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 69
+                        "line": 66
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/irgen/testdata/lifts/Admission.scala",
-                            "line": 69
+                            "line": 66
                           },
                           "literal": {
                             "enum": {
@@ -3358,7 +3282,7 @@
                     }, {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 69
+                        "line": 66
                       },
                       "literal": {
                         "text": ""
@@ -3371,7 +3295,7 @@
             "else": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 70
+                "line": 67
               },
               "list": { }
             }
@@ -3383,7 +3307,7 @@
     "name": "fixture.specimens.admission.Product$.poll",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 58
+      "line": 53
     },
     "params": [ {
       "name": "s",
@@ -3394,26 +3318,26 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 59
+        "line": 54
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 59
+            "line": 54
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 59
+                "line": 54
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 59
+                    "line": 54
                   },
                   "var": "s"
                 },
@@ -3423,7 +3347,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 59
+                "line": 54
               },
               "literal": {
                 "enum": {
@@ -3437,13 +3361,13 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 59
+            "line": 54
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 59
+                "line": 54
               },
               "construct": {
                 "type": "umpire.Step",
@@ -3461,14 +3385,14 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 59
+                    "line": 54
                   },
                   "construct": {
                     "type": "fixture.specimens.admission.ProductState",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 59
+                        "line": 54
                       },
                       "literal": {
                         "enum": {
@@ -3481,13 +3405,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 59
+                    "line": 54
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 59
+                        "line": 54
                       },
                       "literal": {
                         "enum": {
@@ -3500,7 +3424,7 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 59
+                    "line": 54
                   },
                   "literal": {
                     "text": ""
@@ -3513,14 +3437,14 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 59
+            "line": 54
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "fixture.specimens.admission.Product$.respond",
+    "name": "fixture.specimens.admission.Product$.respondCanceled",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
       "line": 61
@@ -3530,87 +3454,64 @@
       "type": {
         "named": "fixture.specimens.admission.ProductState"
       }
-    }, {
-      "name": "r",
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 61
+      },
+      "list": { }
+    }
+  }, {
+    "name": "fixture.specimens.admission.Product$.respondCompleted",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 56
+    },
+    "params": [ {
+      "name": "s",
       "type": {
-        "named": "fixture.specimens.admission.AttemptResult"
+        "named": "fixture.specimens.admission.ProductState"
       }
     } ],
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 62
+        "line": 57
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 62
+            "line": 57
           },
           "binary": {
-            "op": "OP_AND",
+            "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 62
+                "line": 57
               },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
+              "field": {
+                "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 62
+                    "line": 57
                   },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 62
-                      },
-                      "var": "s"
-                    },
-                    "field": "phase"
-                  }
+                  "var": "s"
                 },
-                "right": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 62
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.specimens.admission.ProductPhase",
-                      "case": "started"
-                    }
-                  }
-                }
+                "field": "phase"
               }
             },
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 62
+                "line": 57
               },
-              "binary": {
-                "op": "OP_EQ",
-                "left": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 62
-                  },
-                  "var": "r"
-                },
-                "right": {
-                  "position": {
-                    "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 62
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "fixture.specimens.admission.AttemptResult",
-                      "case": "completed"
-                    }
-                  }
+              "literal": {
+                "enum": {
+                  "type": "fixture.specimens.admission.ProductPhase",
+                  "case": "started"
                 }
               }
             }
@@ -3619,13 +3520,13 @@
         "then": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 63
+            "line": 57
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 63
+                "line": 57
               },
               "construct": {
                 "type": "umpire.Step",
@@ -3643,14 +3544,14 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 63
+                    "line": 57
                   },
                   "construct": {
                     "type": "fixture.specimens.admission.ProductState",
                     "args": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 63
+                        "line": 57
                       },
                       "literal": {
                         "enum": {
@@ -3663,13 +3564,13 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 63
+                    "line": 57
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Admission.scala",
-                        "line": 63
+                        "line": 57
                       },
                       "literal": {
                         "enum": {
@@ -3682,7 +3583,7 @@
                 }, {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Admission.scala",
-                    "line": 63
+                    "line": 57
                   },
                   "literal": {
                     "text": ""
@@ -3695,17 +3596,41 @@
         "else": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 64
+            "line": 57
           },
           "list": { }
         }
       }
     }
   }, {
+    "name": "fixture.specimens.admission.Product$.respondFailed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.specimens.admission.ProductState"
+      }
+    }, {
+      "name": "failure",
+      "type": {
+        "named": "fixture.specimens.admission.Failure"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 59
+      },
+      "list": { }
+    }
+  }, {
     "name": "fixture.specimens.admission.TrustingActivityRecord$.refinement$.toProduct",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 310
+      "line": 311
     },
     "params": [ {
       "name": "s",
@@ -3716,14 +3641,14 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 310
+        "line": 311
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.productOfAdmission",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 310
+            "line": 311
           },
           "var": "s"
         } ]
@@ -3733,7 +3658,7 @@
     "name": "fixture.specimens.admission.atMostOneActiveAttempt.after",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 262
+      "line": 263
     },
     "params": [ {
       "name": "after",
@@ -3744,14 +3669,14 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 262
+        "line": 263
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 262
+            "line": 263
           },
           "literal": {
             "enum": {
@@ -3763,13 +3688,13 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 262
+            "line": 263
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 262
+                "line": 263
               },
               "var": "after"
             },
@@ -3782,7 +3707,7 @@
     "name": "fixture.specimens.admission.atMostOneActiveAttempt.violated",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 262
+      "line": 263
     },
     "params": [ {
       "name": "active",
@@ -3793,21 +3718,21 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 262
+        "line": 263
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 262
+            "line": 263
           },
           "var": "active"
         },
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 262
+            "line": 263
           },
           "literal": {
             "enum": {
@@ -3822,7 +3747,7 @@
     "name": "fixture.specimens.admission.terminalFinality.violated",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 278
+      "line": 279
     },
     "params": [ {
       "name": "finality",
@@ -3833,21 +3758,21 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 278
+        "line": 279
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 278
+            "line": 279
           },
           "var": "finality"
         },
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 278
+            "line": 279
           },
           "literal": {
             "enum": {
@@ -3862,7 +3787,7 @@
     "name": "trustingActivityRecord.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 307
+      "line": 308
     },
     "params": [ {
       "name": "f",
@@ -3873,14 +3798,14 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 307
+        "line": 308
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.admissionEvidence",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 307
+            "line": 308
           },
           "var": "f"
         } ]
@@ -3888,52 +3813,91 @@
     }
   } ],
   "actions": [ {
-    "id": "fixture.specimens.admission.control",
-    "name": "control",
-    "position": {
-      "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 44
-    },
-    "actor": "caller",
-    "inputs": [ {
-      "name": "control",
-      "type": {
-        "named": "fixture.specimens.admission.Control"
-      }
-    } ],
-    "on": "activity"
-  }, {
     "id": "fixture.specimens.admission.dispatch",
     "name": "dispatch",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 122
+      "line": 127
     },
     "actor": "system",
     "timer": true
+  }, {
+    "id": "fixture.specimens.admission.pause",
+    "name": "pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 36
+    },
+    "actor": "caller",
+    "on": "activity"
   }, {
     "id": "fixture.specimens.admission.poll",
     "name": "poll",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 42
+      "line": 32
     },
     "actor": "worker",
     "on": "activity"
   }, {
-    "id": "fixture.specimens.admission.respond",
-    "name": "respond",
+    "id": "fixture.specimens.admission.requestCancel",
+    "name": "requestCancel",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 43
+      "line": 38
+    },
+    "actor": "caller",
+    "on": "activity"
+  }, {
+    "id": "fixture.specimens.admission.respondCanceled",
+    "name": "respondCanceled",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 35
+    },
+    "actor": "worker",
+    "on": "activity"
+  }, {
+    "id": "fixture.specimens.admission.respondCompleted",
+    "name": "respondCompleted",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 33
+    },
+    "actor": "worker",
+    "on": "activity"
+  }, {
+    "id": "fixture.specimens.admission.respondFailed",
+    "name": "respondFailed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 34
     },
     "actor": "worker",
     "inputs": [ {
-      "name": "result",
+      "name": "failure",
       "type": {
-        "named": "fixture.specimens.admission.AttemptResult"
+        "named": "fixture.specimens.admission.Failure"
       }
     } ],
+    "on": "activity"
+  }, {
+    "id": "fixture.specimens.admission.terminate",
+    "name": "terminate",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 39
+    },
+    "actor": "caller",
+    "on": "activity"
+  }, {
+    "id": "fixture.specimens.admission.unpause",
+    "name": "unpause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Admission.scala",
+      "line": 37
+    },
+    "actor": "caller",
     "on": "activity"
   } ],
   "machines": [ {
@@ -4073,18 +4037,53 @@
         "line": 80
       }
     }, {
-      "action": "fixture.specimens.admission.respond",
-      "function": "fixture.specimens.admission.Product$.respond",
+      "action": "fixture.specimens.admission.respondCompleted",
+      "function": "fixture.specimens.admission.Product$.respondCompleted",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
         "line": 81
       }
     }, {
-      "action": "fixture.specimens.admission.control",
-      "function": "fixture.specimens.admission.Product$.control",
+      "action": "fixture.specimens.admission.respondFailed",
+      "function": "fixture.specimens.admission.Product$.respondFailed",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
         "line": 82
+      }
+    }, {
+      "action": "fixture.specimens.admission.respondCanceled",
+      "function": "fixture.specimens.admission.Product$.respondCanceled",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 83
+      }
+    }, {
+      "action": "fixture.specimens.admission.pause",
+      "function": "fixture.specimens.admission.Product$.pause",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 84
+      }
+    }, {
+      "action": "fixture.specimens.admission.unpause",
+      "function": "fixture.specimens.admission.Product$.otherControl",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 85
+      }
+    }, {
+      "action": "fixture.specimens.admission.requestCancel",
+      "function": "fixture.specimens.admission.Product$.otherControl",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 86
+      }
+    }, {
+      "action": "fixture.specimens.admission.terminate",
+      "function": "fixture.specimens.admission.Product$.otherControl",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Admission.scala",
+        "line": 87
       }
     } ],
     "evidence": "activityProduct.evidence"
@@ -4093,7 +4092,7 @@
     "name": "activityRecord",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 282
+      "line": 283
     },
     "entity": "activity",
     "stateType": "fixture.specimens.admission.AdmissionState",
@@ -4102,14 +4101,14 @@
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4120,7 +4119,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4131,7 +4130,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4145,7 +4144,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 285
+        "line": 286
       },
       "lambda": {
         "params": [ {
@@ -4157,14 +4156,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 285
+            "line": 286
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.admissionEnds",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 285
+                "line": 286
               },
               "var": "s"
             } ]
@@ -4177,28 +4176,28 @@
       "function": "fixture.specimens.admission.Admission$package$.dispatchStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 297
+        "line": 298
       }
     }, {
-      "action": "fixture.specimens.admission.control",
+      "action": "fixture.specimens.admission.pause",
       "function": "fixture.specimens.admission.Admission$package$.pauseStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 298
+        "line": 299
       }
     }, {
       "action": "fixture.specimens.admission.poll",
       "function": "fixture.specimens.admission.Admission$package$.admitCurrent",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 299
+        "line": 300
       }
     }, {
-      "action": "fixture.specimens.admission.respond",
-      "function": "fixture.specimens.admission.Admission$package$.resultStep",
+      "action": "fixture.specimens.admission.respondCompleted",
+      "function": "fixture.specimens.admission.Admission$package$.completionStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 300
+        "line": 301
       }
     } ],
     "evidence": "activityRecord.evidence",
@@ -4212,7 +4211,7 @@
     "name": "trustingActivityRecord",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 303
+      "line": 304
     },
     "entity": "activity",
     "stateType": "fixture.specimens.admission.AdmissionState",
@@ -4221,14 +4220,14 @@
     "starts": [ {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4239,7 +4238,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4250,7 +4249,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4264,7 +4263,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 306
+        "line": 307
       },
       "lambda": {
         "params": [ {
@@ -4276,14 +4275,14 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 306
+            "line": 307
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.admissionEnds",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Admission.scala",
-                "line": 306
+                "line": 307
               },
               "var": "s"
             } ]
@@ -4296,28 +4295,28 @@
       "function": "fixture.specimens.admission.Admission$package$.dispatchStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 318
+        "line": 319
       }
     }, {
-      "action": "fixture.specimens.admission.control",
+      "action": "fixture.specimens.admission.pause",
       "function": "fixture.specimens.admission.Admission$package$.pauseStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 319
+        "line": 320
       }
     }, {
       "action": "fixture.specimens.admission.poll",
       "function": "fixture.specimens.admission.Admission$package$.admitStale",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 320
+        "line": 321
       }
     }, {
-      "action": "fixture.specimens.admission.respond",
-      "function": "fixture.specimens.admission.Admission$package$.resultStep",
+      "action": "fixture.specimens.admission.respondCompleted",
+      "function": "fixture.specimens.admission.Admission$package$.completionStep",
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 321
+        "line": 322
       }
     } ],
     "evidence": "trustingActivityRecord.evidence",
@@ -4332,7 +4331,7 @@
     "name": "atMostOneActiveAttempt",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 259
+      "line": 260
     },
     "state": {
       "named": "fixture.specimens.admission.Active"
@@ -4340,7 +4339,7 @@
     "initial": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 260
+        "line": 261
       },
       "literal": {
         "enum": {
@@ -4357,7 +4356,7 @@
     "name": "terminalFinality",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 275
+      "line": 276
     },
     "state": {
       "named": "fixture.specimens.admission.Finality"
@@ -4365,7 +4364,7 @@
     "initial": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 276
+        "line": 277
       },
       "literal": {
         "enum": {
@@ -4383,7 +4382,7 @@
     "name": "pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 86
+      "line": 91
     },
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true
@@ -4392,7 +4391,7 @@
     "name": "atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 340
+      "line": 341
     },
     "holds": "fixture.specimens.admission.Admission$package$.atMostOneActive"
   }, {
@@ -4400,7 +4399,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 339
+      "line": 340
     },
     "holds": "fixture.specimens.admission.Admission$package$.notAdmittedWhilePaused",
     "transition": true
@@ -4409,7 +4408,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 341
+      "line": 342
     },
     "holds": "fixture.specimens.admission.Admission$package$.terminalStays",
     "transition": true
@@ -4418,7 +4417,7 @@
     "name": "atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 340
+      "line": 341
     },
     "holds": "fixture.specimens.admission.Admission$package$.atMostOneActive"
   }, {
@@ -4426,7 +4425,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 339
+      "line": 340
     },
     "holds": "fixture.specimens.admission.Admission$package$.notAdmittedWhilePaused",
     "transition": true
@@ -4435,7 +4434,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 341
+      "line": 342
     },
     "holds": "fixture.specimens.admission.Admission$package$.terminalStays",
     "transition": true
@@ -4445,19 +4444,19 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 346
+      "line": 347
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4468,7 +4467,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4479,7 +4478,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4495,32 +4494,26 @@
     }, {
       "action": "fixture.specimens.admission.poll"
     }, {
-      "action": "fixture.specimens.admission.control",
-      "inputs": [ {
-        "enum": {
-          "type": "fixture.specimens.admission.Control",
-          "case": "pause"
-        }
-      } ]
+      "action": "fixture.specimens.admission.pause"
     } ]
   }, {
     "machine": "activityRecord",
     "name": "any",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 354
+      "line": 355
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4531,7 +4524,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4542,7 +4535,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4559,19 +4552,19 @@
     "name": "duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 350
+      "line": 351
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4582,7 +4575,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4593,7 +4586,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4616,19 +4609,19 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 342
+      "line": 343
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4639,7 +4632,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4650,7 +4643,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4664,13 +4657,7 @@
     "actions": [ {
       "action": "fixture.specimens.admission.dispatch"
     }, {
-      "action": "fixture.specimens.admission.control",
-      "inputs": [ {
-        "enum": {
-          "type": "fixture.specimens.admission.Control",
-          "case": "pause"
-        }
-      } ]
+      "action": "fixture.specimens.admission.pause"
     }, {
       "action": "fixture.specimens.admission.poll"
     } ]
@@ -4679,19 +4666,19 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 346
+      "line": 347
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4702,7 +4689,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4713,7 +4700,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4729,32 +4716,26 @@
     }, {
       "action": "fixture.specimens.admission.poll"
     }, {
-      "action": "fixture.specimens.admission.control",
-      "inputs": [ {
-        "enum": {
-          "type": "fixture.specimens.admission.Control",
-          "case": "pause"
-        }
-      } ]
+      "action": "fixture.specimens.admission.pause"
     } ]
   }, {
     "machine": "trustingActivityRecord",
     "name": "any",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 354
+      "line": 355
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4765,7 +4746,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4776,7 +4757,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4793,19 +4774,19 @@
     "name": "duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 350
+      "line": 351
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4816,7 +4797,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4827,7 +4808,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4850,19 +4831,19 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 342
+      "line": 343
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Admission.scala",
-        "line": 125
+        "line": 130
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4873,7 +4854,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4884,7 +4865,7 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Admission.scala",
-            "line": 125
+            "line": 130
           },
           "literal": {
             "enum": {
@@ -4898,13 +4879,7 @@
     "actions": [ {
       "action": "fixture.specimens.admission.dispatch"
     }, {
-      "action": "fixture.specimens.admission.control",
-      "inputs": [ {
-        "enum": {
-          "type": "fixture.specimens.admission.Control",
-          "case": "pause"
-        }
-      } ]
+      "action": "fixture.specimens.admission.pause"
     }, {
       "action": "fixture.specimens.admission.poll"
     } ]
@@ -4913,7 +4888,7 @@
     "name": "activityRecord.admittedBeforePause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 357
+      "line": 358
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4935,7 +4910,7 @@
     "name": "activityRecord.any.atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 360
+      "line": 361
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4952,12 +4927,12 @@
       "actions": 5,
       "search": 65536
     },
-    "total": "2250"
+    "total": "900"
   }, {
     "name": "activityRecord.any.notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 359
+      "line": 360
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4974,12 +4949,12 @@
       "actions": 5,
       "search": 65536
     },
-    "total": "2250"
+    "total": "900"
   }, {
     "name": "activityRecord.any.terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 361
+      "line": 362
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -4996,12 +4971,12 @@
       "actions": 5,
       "search": 65536
     },
-    "total": "2250"
+    "total": "900"
   }, {
     "name": "activityRecord.duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 358
+      "line": 359
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5023,7 +4998,7 @@
     "name": "activityRecord.product.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 363
+      "line": 364
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5046,7 +5021,7 @@
     "name": "activityRecord.staleDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 356
+      "line": 357
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5068,7 +5043,7 @@
     "name": "trustingActivityRecord.admittedBeforePause",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 357
+      "line": 358
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5090,7 +5065,7 @@
     "name": "trustingActivityRecord.any.atMostOneActive",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 360
+      "line": 361
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5107,12 +5082,12 @@
       "actions": 5,
       "search": 65536
     },
-    "total": "2250"
+    "total": "900"
   }, {
     "name": "trustingActivityRecord.any.notAdmittedWhilePaused",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 359
+      "line": 360
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5129,12 +5104,12 @@
       "actions": 5,
       "search": 65536
     },
-    "total": "2250"
+    "total": "900"
   }, {
     "name": "trustingActivityRecord.any.terminalStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 361
+      "line": 362
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5151,12 +5126,12 @@
       "actions": 5,
       "search": 65536
     },
-    "total": "2250"
+    "total": "900"
   }, {
     "name": "trustingActivityRecord.duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 358
+      "line": 359
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5178,7 +5153,7 @@
     "name": "trustingActivityRecord.product.pausedIsNotDispatched",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 363
+      "line": 364
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5201,7 +5176,7 @@
     "name": "trustingActivityRecord.staleDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/Admission.scala",
-      "line": 356
+      "line": 357
     },
     "form": "FORM_VERIFY",
     "property": {

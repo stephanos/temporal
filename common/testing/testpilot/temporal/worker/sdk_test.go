@@ -17,6 +17,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/interceptor"
@@ -30,6 +31,69 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
 )
+
+func TestSDKWorkerStopBudgetIsSharedAcrossActiveComponents(t *testing.T) {
+	tests := map[string]struct {
+		total        time.Duration
+		registration queueRegistration
+		want         time.Duration
+	}{
+		"workflow only": {total: 8 * time.Second, want: cancellationPoll},
+		"workflow and activity": {
+			total: 9 * time.Second, registration: queueRegistration{activities: []string{"activity"}}, want: cancellationPoll,
+		},
+		"workflow and Nexus": {
+			total: 9 * time.Second,
+			registration: queueRegistration{nexus: []nexusRegistration{{
+				service: "service", operation: "operation",
+			}}},
+			want: cancellationPoll,
+		},
+		"workflow, activity, and Nexus": {
+			total: 8 * time.Second,
+			registration: queueRegistration{
+				activities: []string{"activity"},
+				nexus:      []nexusRegistration{{service: "service", operation: "operation"}},
+			},
+			want: cancellationPoll,
+		},
+		"tighter total budget": {total: 30 * time.Millisecond, want: 10 * time.Millisecond},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, test.want, sdkComponentStopTimeout(test.total, test.registration))
+		})
+	}
+	require.Zero(t, sdkComponentStopTimeout(0, queueRegistration{activities: []string{"activity"}}))
+}
+
+func TestSDKStopBoundaryRepeatsServerCancellationAfterLocalStop(t *testing.T) {
+	var events []string
+	boundary := &sdkStopBoundary{timeout: time.Second, shutdown: func(ctx context.Context, workerInstanceKey string) error {
+		require.NoError(t, ctx.Err())
+		require.Equal(t, "worker-instance", workerInstanceKey)
+		events = append(events, "server")
+		return nil
+	}}
+	boundary.StopWorker(t.Context(), sdkworker.PluginStopWorkerOptions{WorkerInstanceKey: "worker-instance"}, func(context.Context, sdkworker.PluginStopWorkerOptions) {
+		events = append(events, "local")
+	})
+	require.Equal(t, []string{"local", "server"}, events)
+}
+
+func TestSDKShutdownRequestNamesWorkerAndActiveTaskQueueTypes(t *testing.T) {
+	request := sdkShutdownRequest(queueRegistration{
+		namespace: "namespace", queue: "task-queue", activities: []string{"activity"},
+		nexus: []nexusRegistration{{service: "service", operation: "operation"}},
+	}, "worker-instance")
+	require.Equal(t, &workflowservice.ShutdownWorkerRequest{
+		Namespace: "namespace", TaskQueue: "task-queue", WorkerInstanceKey: "worker-instance",
+		TaskQueueTypes: []enumspb.TaskQueueType{
+			enumspb.TASK_QUEUE_TYPE_WORKFLOW, enumspb.TASK_QUEUE_TYPE_ACTIVITY, enumspb.TASK_QUEUE_TYPE_NEXUS,
+		},
+		Reason: "testpilot worker outage boundary",
+	}, request)
+}
 
 func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testing.T) {
 	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", replySynchronous)

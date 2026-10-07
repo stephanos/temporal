@@ -69,8 +69,8 @@ enum Delivered derives Finite:
 // `polled` is a poller holding the task while the consumer decides.
 final case class QueueDetail(custody: Custody, polled: Boolean, delivered: Delivered) derives Finite
 
-// The laws every provider of the detailed queue is held to, declared once by `queueLaws`.
-final case class QueueLaws(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])
+// The claims every provider of the detailed queue is held to, declared once by `queueClaims`.
+final case class QueueClaims(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])
 
 // ### Signature
 

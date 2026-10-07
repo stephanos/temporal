@@ -1,6 +1,7 @@
 package conformance
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,9 +9,19 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/check"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
+
+func TestPerformedOutcomesAreNotTemporalCheckedWithoutRejectionMetadata(t *testing.T) {
+	realization := &umpirespb.Realization{Scripts: []*umpirespb.Script{{Items: []*umpirespb.Item{{Performs: []*umpirespb.Performance{{
+		Step: &umpirespb.ActionClass{}, Command: &umpirespb.Command{Instruction: &umpirespb.Command_Rpc{Rpc: &umpirespb.Rpc{}}},
+	}}}}}}}
+	performed, err := compilePerformedOutcomes(nil, check.ClaimKey{}, realization, nil, nil)
+	require.NoError(t, err)
+	require.Empty(t, performed)
+}
 
 // A repeated terminate reaches the same realized RPC command twice: the first Model step is
 // accepted, and the second is rejected because the activity is no longer found. Each Run result is
@@ -121,7 +132,7 @@ func TestPerformedStepOutcomeMatchesItsRunInstructionResult(t *testing.T) {
 		wantObservedCode string
 	}{
 		"an exact rejection code": {
-			event: completed("terminate-activity-2", testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, "not_found", "message text is deliberately unrelated"),
+			event: completed("terminate-activity-2", testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, strings.ToLower(codes.NotFound.String()), "message text is deliberately unrelated"),
 		},
 		"a different rejection code": {
 			event:            completed("terminate-activity-2", testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, "already_exists", "not compared"),

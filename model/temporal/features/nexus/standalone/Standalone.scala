@@ -11,7 +11,7 @@
 //
 // Read top to bottom: the types; the signature (the client, the handler, the operation and their
 // actions); and last exports, its IR file. system/System.scala holds NexusSystem, its reading of
-// closed rejection and the capabilities it implements. Realization.scala
+// closed rejection and its capabilities. Realization.scala
 // realizes it.
 package temporal
 package features.nexus

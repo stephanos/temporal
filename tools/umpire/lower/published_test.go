@@ -200,7 +200,7 @@ func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) 
 	r := m.GetRealizations()[0]
 	// A class is performed by one script, so the second activity takes over the failure that is
 	// retried, and is activated by no class of its own.
-	first := scriptNamed(t, r, "activity")
+	first := scriptNamed(t, r, "attempts")
 	other := proto.CloneOf(first)
 	other.Id, other.GetActivity().Starts, other.Items = "other", nil, nil
 	for _, item := range first.GetItems() {
@@ -225,7 +225,7 @@ func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) 
 	for _, gap := range both.Unsupported {
 		if gap.Construct == construct {
 			requireDeclaredIn(t, gap.Position, activityRealizationAt)
-			require.Contains(t, gap.Why, "the attempts of scripts activity and other are not told apart")
+			require.Contains(t, gap.Why, "the attempts of scripts attempts and other are not told apart")
 			gap.Why, gap.Position = "", ""
 			gaps = append(gaps, gap)
 		}
@@ -253,7 +253,7 @@ func TestAnAttemptRecordedAsTwoKindsOfEvidenceHasNoCase(t *testing.T) {
 	require.Len(t, l.Unsupported, 1)
 	gap := l.Unsupported[0]
 	require.Contains(t, gap.Position, kitAt)
-	require.Equal(t, "a Run records attempt 1 of script activity as one Run Event, which is evidence of one kind, and the path confirms steps by "+
+	require.Equal(t, "a Run records attempt 1 of script attempts as one Run Event, which is evidence of one kind, and the path confirms steps by "+
 		activityEvidence+"statusStarted as well", gap.Why)
 	gap.Why, gap.Position = "", ""
 	require.Equal(t, Unsupported{Construct: "attempt recorded as two kinds of evidence", ID: activityEvidence + "attemptCount",
@@ -269,7 +269,7 @@ func TestARecordOfAnAttemptThePathNeverStartsIsAnError(t *testing.T) {
 	require.NoError(t, err)
 	l, err := p.Lower("retry", activityIdentity("retry"))
 	require.Nil(t, l)
-	require.ErrorContains(t, err, "evidence "+activityEvidence+"attemptCount is the record of attempt 3 of script activity, and the path of query retry starts 2")
+	require.ErrorContains(t, err, "evidence "+activityEvidence+"attemptCount is the record of attempt 3 of script attempts, and the path of query retry starts 2")
 	var located *interp.Error
 	require.ErrorAs(t, err, &located)
 	require.Contains(t, located.Position, kitAt)

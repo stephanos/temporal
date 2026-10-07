@@ -379,7 +379,7 @@ func TestWithoutTotalsClearsOnlyTotals(t *testing.T) {
 //	stoppedWorkerStartsNothing: the composition standaloneActivity, system.State × worker State
 //	  (2 phases), 576 states; stoppedBeforeRetry schedules 6 keys under 6 steps: 576 × 6 = 3456
 //
-// And on the system contract's Model, where a Query still reads the product's law through a
+// And on the system contract's Model, where a Query still reads the product's Property through a
 // refinement (the activity's own pauseHolds did, before the capabilities retired it):
 //
 //	activityRecord.product.pausedIsNotDispatched: read through the refinement to activityProduct,

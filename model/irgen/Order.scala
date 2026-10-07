@@ -99,7 +99,7 @@ final private[irgen] class Order(index: Index):
   private def isOwner(s: Symbol): Boolean =
     s.exists && s.isClassDef && s.flags.is(Flags.Module)
 
-  // An owner's name as its source writes it: `Protocol.laws`, or `Model$package` for a file's.
+  // An owner's name as its source writes it: `Protocol.properties`, or `Model$package` for a file's.
   private def nameOf(owner: Symbol): String =
     val pkg = Iterator.iterate(owner)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
     val prefix = pkg.filter(_.isPackageDef).fold("")(_.fullName + ".")

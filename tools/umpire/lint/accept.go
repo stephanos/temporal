@@ -32,7 +32,7 @@ type Accepted struct {
 	Accepted []Acceptance `json:"accepted"`
 }
 
-const capabilityWaiverAcceptance Kind = "waived-law"
+const capabilityWaiverAcceptance Kind = "capability-waiver"
 
 // Acceptance is one reason, and the findings of one kind and owner it accepts.
 type Acceptance struct {

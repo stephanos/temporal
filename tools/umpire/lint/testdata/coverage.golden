@@ -3,20 +3,20 @@ coverage model/ir/activity-standalone.json activityProduct
   verify Queries       3, 3 whose Property fired
 coverage model/ir/activity-standalone.json activitySystem
   properties           10 declared, 10 named by a Query
-  non-system actions   5, 5 performed by a realization
+  non-system actions   10, 10 performed by a realization
   facts                10, 10 with evidence
   refinements          1 declared, 0 read through by a Query
   observations         1, 1 read
   API values           7 tested, 6 mapped to a fact
 coverage model/ir/activity-standalone.json standalone
-  bindings             22, 21 of a realizable class
-  realizable classes   18 of performed actions, 13 bound
+  bindings             23, 23 of a realizable class
+  realizable classes   18 of performed actions, 14 bound
 coverage model/ir/activity-standalone.json standaloneActivity
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/ir/nexus-workflow-control.json forgedCompletion
-  bindings             18, 18 of a realizable class
-  realizable classes   19 of performed actions, 12 bound
+coverage model/ir/nexus-workflow-control.json forgedControl
+  bindings             20, 20 of a realizable class
+  realizable classes   19 of performed actions, 13 bound
 coverage model/ir/nexus-workflow-control.json trustingCaller
   properties           1 declared, 1 named by a Query
   non-system actions   6, 5 performed by a realization

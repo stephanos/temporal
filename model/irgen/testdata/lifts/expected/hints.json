@@ -216,7 +216,7 @@
   }, {
     "name": "umpire.outcomes.Outcome",
     "position": {
-      "file": "umpire/Syntax.scala",
+      "file": "model/umpire/Syntax.scala",
       "line": 60
     },
     "enum": {
@@ -235,7 +235,7 @@
   }, {
     "name": "umpire.outcomes.Rejection",
     "position": {
-      "file": "umpire/Syntax.scala",
+      "file": "model/umpire/Syntax.scala",
       "line": 55
     },
     "enum": {
@@ -8717,14 +8717,14 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 131
+        "line": 136
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 136
+        "line": 141
       },
       "projection": "fixture.hints.projection",
       "run": "fixture.hints.scope.run",
@@ -8741,7 +8741,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 189
+        "line": 194
       },
       "controller": { }
     } ],
@@ -9002,14 +9002,14 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 131
+        "line": 136
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 136
+        "line": 141
       },
       "projection": "fixture.hints.projection",
       "run": "fixture.hints.scope.run",
@@ -9026,7 +9026,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 189
+        "line": 194
       },
       "controller": { }
     } ],

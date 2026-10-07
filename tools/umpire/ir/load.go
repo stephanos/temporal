@@ -20,15 +20,21 @@ import (
 // `<file>.lint.json`: JSON and no Model. Lint, which imports the reader, names it by this constant.
 const AcceptedSuffix = ".lint.json"
 
+// WaiverSuffix ends the transient capability-waiver metadata the Scala model gate consumes and
+// removes after merging its reasons into accepted lint findings. Lifter fixture goldens retain it
+// to test that handoff; it is metadata, not an IR Model.
+const WaiverSuffix = ".waivers.json"
+
 // IRPaths lists the IR files of a directory: its JSON files, apart from the accepted lint findings
-// beside them. Any other JSON file is loaded and refused if it is not an IR Model.
+// and transient capability waivers beside them. Any other JSON file, including a retired
+// sidecar, is loaded and refused if it is not an IR Model.
 func IRPaths(dir string) ([]string, error) {
 	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
 	if err != nil {
 		return nil, err
 	}
 	return slices.DeleteFunc(paths, func(p string) bool {
-		return strings.HasSuffix(p, AcceptedSuffix)
+		return strings.HasSuffix(p, AcceptedSuffix) || strings.HasSuffix(p, WaiverSuffix)
 	}), nil
 }
 

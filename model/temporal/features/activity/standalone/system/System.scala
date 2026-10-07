@@ -202,8 +202,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       }
     }
 
-    from(worker) {
-      import worker.*
+    from(temporal.features.activity.standalone.worker) {
+      import temporal.features.activity.standalone.worker.*
 
       on(poll) {
         when(scheduled) ~> effects.startAttempt
@@ -333,9 +333,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       s.records(Fact.statusTimedOut(TimeoutType.startToClose))
     }
 
-  // What the System machine is, as the functional laws read it, which a find through its
+  // What the System machine is, as its capability Properties read it, which a find through its
   // realization asks: a terminate settles it, a cancel request is recorded, and
-  // DescribeActivityExecution reports its status by `activityStatus`. Each law's find starts the
+  // DescribeActivityExecution reports its status by `activityStatus`. Each Property's find starts the
   // activity and stops the worker before the control, so no attempt is in flight when it lands, as
   // `terminatedWhileScheduled` does. A Run explains an unobserved control of an activity that is over
   // too, which answers notFound and records nothing, so the claim's explanations disagree. It reads
