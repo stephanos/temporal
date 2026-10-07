@@ -86,6 +86,16 @@ rule case `when[R]` is that membership of the machine's `Phased` projection, and
 `case _: R` or `case q: R`, is the alternatives of the literals `C1 | … | Cn`. So a role test means
 exactly what the hand-written membership of those cases means, and the IR carries no role.
 
+A named `states` predicate that only renames a role is omitted: rule headings use `when[R]`, and
+ends, effects and compositions use `p.in[R]` on their phase, including a nested member's phase.
+`states` still names composite predicates such as `created` (`Live` or `Closed`), single-phase or
+other non-role subsets, predicates over other state fields or steps, projections and helpers.
+A predicate required by a capability field or a named-definition-only claim stays named; the
+activity product, activity record and standalone Nexus retain `terminal` for Closable, and the
+Nexus product retains `productTerminal` for its `once` claim. Retiring an alias removes its IR
+Function and puts the same case-set membership at its former calls. The resulting content-derived
+identities and Case references may change, but no Query answer or Check verdict changes.
+
 ## Levels
 
 An expression is at one of five levels, by what it is computed from:

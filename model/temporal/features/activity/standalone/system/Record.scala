@@ -154,7 +154,7 @@ object ActivityRecord
     // Whether the activity is over after a step, and whether it left where it ended.
     def finality(f: Finality, after: Step[State, Outcome, AdmissionFact]) =
       if f == Finality.reopened then Finality.reopened
-      else if terminal(after.state.phase) then Finality.closed
+      else if after.state.phase.in[Closed] then Finality.closed
       else if f == Finality.closed then Finality.reopened
       else Finality.open
 

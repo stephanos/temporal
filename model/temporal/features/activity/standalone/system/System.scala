@@ -66,7 +66,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     scheduleToStart = Timeout.unset,
     startToClose = Timeout.unset
   )
-  def end(s: State) = states.terminal(s.phase)
+  def end(s: State) = s.phase.in[Closed]
 
   // A timeout is confirmed by the one status observation, whichever deadline fired.
   val evidence: PartialFunction[Fact, String] = {
@@ -78,17 +78,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   object states:
     // Bounds the attempt count, as the type of `State.attempts` does.
     val attemptBound = 2
-
-    def terminal(p: Phase) = p.in[Closed]
-
-    // Started and not over: the phases a deadline can fire in.
-    def live(p: Phase) = p.in[Live]
-
-    // Where a worker holds the attempt: what start-to-close covers and a worker's answer settles.
-    def held(p: Phase) = p.in[Held]
-
-    // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
-    def waiting(p: Phase) = p.in[Waiting]
 
     def saturatingSucc(a: UpTo[2]): UpTo[2] = UpTo((a + 1).min(attemptBound))
 
@@ -189,8 +178,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
     // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
     // (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
-    on(worker.respond(AttemptResult.completed))(in(states.held) ~> effects.complete)
-    on(worker.respond(AttemptResult.failed(false)))(in(states.held) ~> effects.fail)
+    // Where a worker holds the attempt: what start-to-close covers and a worker's answer settles.
+    on(worker.respond(AttemptResult.completed))(when[Held] ~> effects.complete)
+    on(worker.respond(AttemptResult.failed(false)))(when[Held] ~> effects.fail)
     on(worker.respond(AttemptResult.failed(true))) {
       in(started) ~> effects.backOff
       in(cancelRequested) ~> effects.cancel
@@ -205,7 +195,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // non-pausable state", "... non-unpausable state", chasm/lib/activity/operator_commands.go), and
     // a rejecting row would add rows to the table, so they stay disabled until the behavior freeze
     // lifts.
-    on(client.control)(in(states.terminal) ~> effects.notFound)
+    on(client.control)(when[Closed] ~> effects.notFound)
     on(client.control(Control.pause)) {
       in(scheduled, backingOff) ~> effects.pause
       in(started) ~> effects.requestPause
@@ -214,24 +204,26 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       in(paused) ~> effects.resume
       in(pauseRequested) ~> effects.withdrawPause
     }
-    on(client.control(Control.requestCancel))(in(states.live) ~> effects.requestCancel)
-    on(client.control(Control.terminate))(in(states.live) ~> effects.terminate)
+    on(client.control(Control.requestCancel))(when[Live] ~> effects.requestCancel)
+    on(client.control(Control.terminate))(when[Live] ~> effects.terminate)
     on(process.stop)(always ~> effects.keep)
     on(timers.backoff)(in(backingOff) ~> effects.retry)
+    // Started and not over: the phases a deadline can fire in.
     on(deadline.scheduleToClose) {
-      in(states.live).where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
+      when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
         _,
         TimeoutType.scheduleToClose
       ))
     }
+    // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
     on(deadline.scheduleToStart) {
-      in(states.waiting).where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
+      when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
         _,
         TimeoutType.scheduleToStart
       ))
     }
     on(deadline.startToClose) {
-      in(states.held)
+      when[Held]
         .where(_.startToClose == Timeout.expires) ~> (effects.timeOut(_, TimeoutType.startToClose))
     }
 
@@ -416,7 +408,7 @@ object StandaloneActivity
       _.worker -> ActivityWorker
     ),
       Phased[StandaloneActivityState, Phase](_.activity.phase):
-  def end(s: State) = ActivitySystem.states.terminal(s.activity.phase)
+  def end(s: State) = s.activity.phase.in[Closed]
   object syncs extends Syncs:
     sync(_.activity -> process.stop, _.worker -> process.stop)
     sync(_.activity -> worker.poll, _.worker -> process.serve)

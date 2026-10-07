@@ -33,7 +33,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   import Phase.*
 
   val init = system.State(phase = unstarted, cancelRequested = false)
-  def end(s: State) = states.over(s)
+  // A path ends where the operation is over: `end` reads the Closed role.
+  def end(s: State) = s.phase.in[Closed]
 
   // The operation's status sets.
   object states:
@@ -41,14 +42,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
 
     def terminal(p: Phase): Boolean = p.in[Closed]
 
-    // A path ends where the operation is over: `end` reads this named predicate.
-    def over(s: State): Boolean = terminal(s.phase)
-
-    // Started and not over: the phases a control settles or records a request in.
-    def live(p: Phase): Boolean = p.in[Live]
-
     // Every phase after the start, live or over: the phases a control is answered in.
-    def created(p: Phase): Boolean = live(p) || terminal(p)
+    def created(p: Phase): Boolean = p.in[Live] || p.in[Closed]
 
     // A control that repeats an accepted request id is answered OK even after close.
     val repeatedRequestsAnswer =
@@ -112,8 +107,9 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // unless it repeats one the operation took (operation.go RequestCancel).
     on(client.requestCancel) {
       in(states.created).where(_.cancelRequested) ~> effects.repeated
-      in(states.terminal).where(!_.cancelRequested) ~> effects.closed
-      in(states.live).where(!_.cancelRequested) ~> effects.requestCancel
+      when[Closed].where(!_.cancelRequested) ~> effects.closed
+      // Started and not over: the phases a control settles or records a request in.
+      when[Live].where(!_.cancelRequested) ~> effects.requestCancel
     }
 
     // A repeated terminate of a terminated operation is the same request, answered OK; any other

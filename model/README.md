@@ -725,13 +725,20 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    nothing, `val unobservable`, its timers whose step records nothing a Run can read. A machine's
    entity is the one entity its actions are `on` or create; one whose actions name several, or none,
    names its own with `val entity`;
-2. `object states`, its vocabulary: the named state sets and projections its guards, effects and
-   claims read (`states.terminal`, `states.held`) and its constants. A yes/no question about the
-   state is a def of it, `def held(s: State) = s.phase.in(started, cancelRequested)`, or a block,
-   `val held = is { phase.in(started, cancelRequested) }`; a predicate of the phase, a projection
+2. `object states`, the vocabulary roles do not say: single-phase and other subsets, predicates over
+   other fields or steps, projections, constants and helpers. A yes/no question about the state is
+   a def of it, `def running(s: State) = s.phase == started`, or a block,
+   `val running = is { phase == started }`; a predicate of the phase, a projection
    (`def status(s: State) = s.phase`) and a constant keep their own forms. A member named after a
-   state field shadows the field a block reads, so a projection takes another name. A set that is
-   exactly the phases of a role is a role test, `def terminal(p: Phase) = p.in[Closed]`;
+   state field shadows the field a block reads, so a projection takes another name. A derived name
+   such as `created` keeps its name and reads `p.in[Live] || p.in[Closed]`. A set that only renames
+   one role has no predicate: rule headings read `when[Held]`, and `end`, effects and compositions
+   read the phase directly, `s.phase.in[Closed]` or `s.activity.phase.in[Closed]`. A named predicate
+   stays where a capability field or another named-definition-only caller needs it: the activity
+   product, activity record and standalone Nexus keep `terminal` for Closable until that capability
+   reads `Closed`, and the Nexus product keeps `productTerminal` for its `once` claim, since an inline
+   claim would introduce another lifted Function. A machine with no remaining vocabulary omits
+   `states`;
 3. `object refinement extends Refinement(ActivityProduct)`, where it refines another machine:
    `toProduct`, the map onto the refined machine's states, and where declared `visible`,
    `visibleOutcomes` and `unobservable`. Where both machines' phases take roles, a model test

@@ -35,7 +35,7 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
   import Phase.*
 
   val init = product.State(scheduled)
-  def end(s: State) = states.productTerminal(s)
+  def end(s: State) = s.phase.in[Closed]
 
   // The product's phase sets.
   object states:
@@ -85,7 +85,7 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
     on(handler.reply(Reply.handlerError(false)))(in(scheduled) ~> effects.fail)
 
     // An asynchronous completion settles a running operation, and is not found once it is over.
-    on(handler.complete)(where(states.productTerminal) ~> effects.notFound)
+    on(handler.complete)(when[Closed] ~> effects.notFound)
     on(handler.complete(Resolution.succeeded))(
       in(scheduled, started) ~> ((s: State) => effects.complete(s, Resolution.succeeded))
     )

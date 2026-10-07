@@ -44,15 +44,13 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
   import Phase.*
 
   val init = product.State(scheduled)
-  def end(s: State) = states.over(s)
+  def end(s: State) = s.phase.in[Closed]
 
   object states:
     def status(s: State) = s.phase
     def terminal(p: Phase) = p.in[Closed]
-    val over = is(terminal(phase))
     val paused = is(phase == Phase.paused)
     val running = is(phase == started)
-    val held = is(phase.in[Held])
     val pausable = is(phase.in(scheduled, started))
 
   object effects:
@@ -74,8 +72,8 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
     // under a cancel request; a canceled answer settles only an activity whose cancellation was
     // requested.
-    on(worker.respond(AttemptResult.completed))(where(states.held) ~> effects.complete)
-    on(worker.respond(AttemptResult.failed(false)))(where(states.held) ~> effects.fail)
+    on(worker.respond(AttemptResult.completed))(when[Held] ~> effects.complete)
+    on(worker.respond(AttemptResult.failed(false)))(when[Held] ~> effects.fail)
     on(worker.respond(AttemptResult.failed(true))) {
       in(started) ~> effects.retry
       in(cancelRequested) ~> effects.cancel
@@ -84,7 +82,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
 
     // A control on an activity that is over is not found. A pause of a paused or cancel-requested
     // activity, or an unpause of one not paused, is FailedPrecondition; the System lists them.
-    on(client.control)(in(states.terminal) ~> effects.notFound)
+    on(client.control)(when[Closed] ~> effects.notFound)
     on(client.control(Control.pause))(where(states.pausable) ~> effects.pause)
     on(client.control(Control.unpause))(where(states.paused) ~> effects.resume)
     on(client.control(Control.requestCancel)) {

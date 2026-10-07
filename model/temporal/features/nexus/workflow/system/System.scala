@@ -85,7 +85,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     scheduleToStart = Timeout.unset,
     startToClose = Timeout.unset
   )
-  def end(s: State) = states.terminalPhase(s.phase)
+  def end(s: State) = s.phase.in[Closed]
 
   // A timeout is confirmed by the one timed-out event, whichever deadline fired, and the attempt
   // count by its observation.
@@ -103,17 +103,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       require(validAttempts(a))
       if a < attemptBound then a + 1 else a
 
-    // The four phases the design ends on. A completion that arrives after one of them is not found.
-    def terminalPhase(p: Phase) = p.in[Closed]
-
-    // Scheduled and not yet over: the phases a completion resolves and a timer can fire in.
-    def running(p: Phase) = p.in[Live]
-
-    // Waiting for the handler to accept: what the schedule-to-start deadline covers.
-    def waiting(p: Phase) = p.in[Waiting]
-
     // Every phase once the operation is scheduled, running or over: what a completion answers.
-    def created(p: Phase) = running(p) || terminalPhase(p)
+    def created(p: Phase) = p.in[Live] || p.in[Closed]
 
   // The System refines the product: what each of its states reads as there.
   object refinement extends Refinement(NexusProduct):
@@ -224,8 +215,10 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // A completion resolves any running phase, and is not found once the operation is over; an
     // operation not yet scheduled has nothing to complete.
     on(handler.complete) {
-      in(states.terminalPhase) ~> effects.notFound
-      in(states.running) ~> effects.complete
+      // The four phases the design ends on. A completion that arrives after one of them is not found.
+      when[Closed] ~> effects.notFound
+      // Scheduled and not yet over: the phases a completion resolves and a timer can fire in.
+      when[Live] ~> effects.complete
     }
     on(network.fault)(in(scheduled) ~> effects.backOff)
     on(worker.stop)(always ~> effects.keep)
@@ -235,13 +228,14 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // operation, schedule-to-start the wait for the handler to accept, and start-to-close the
     // handler's own work.
     on(deadline.scheduleToClose) {
-      in(states.running).where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
+      when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
         _,
         TimeoutType.scheduleToClose
       ))
     }
+    // Waiting for the handler to accept: what the schedule-to-start deadline covers.
     on(deadline.scheduleToStart) {
-      in(states.waiting).where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
+      when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
         _,
         TimeoutType.scheduleToStart
       ))
@@ -436,7 +430,7 @@ object NexusCaller
       _.worker -> HandlerWorker
     ),
       Phased[NexusCallerState, Phase](_.operation.phase):
-  def end(s: State) = NexusSystem.states.terminalPhase(s.operation.phase)
+  def end(s: State) = s.operation.phase.in[Closed]
   object syncs extends Syncs:
     sync(_.operation -> worker.stop, _.worker -> worker.stop)
     sync(_.operation -> handler.reply, _.worker -> worker.serve)

@@ -28,7 +28,7 @@ object TrustingCaller
       Phased[system.State, Phase](_.phase),
       NegativeControl:
   val init = NexusSystem.init
-  def end(s: State) = NexusSystem.states.terminalPhase(s.phase)
+  def end(s: State) = s.phase.in[Closed]
   val evidence: PartialFunction[Fact, String] = {
     case Fact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
     case Fact.pendingAttempts           => pendingAttempts.name
@@ -40,7 +40,7 @@ object TrustingCaller
     // resolved while it runs. One effect rather than two rules, because the forged completion names
     // both alternatives of a failed callback in every such phase, the not-found ones included.
     def settle(s: State, resolution: Resolution) =
-      if NexusSystem.states.terminalPhase(s.phase) then NexusSystem.effects.notFound(s)
+      if s.phase.in[Closed] then NexusSystem.effects.notFound(s)
       else NexusSystem.effects.complete(s, resolution)
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.
@@ -59,12 +59,12 @@ object TrustingCaller
     on(worker.stop)(always ~> NexusSystem.effects.keep)
     on(timers.backoff)(in(Phase.backingOff) ~> NexusSystem.effects.retry)
     on(deadline.scheduleToClose) {
-      in(NexusSystem.states.running).where(
+      when[Live].where(
         _.scheduleToClose == Timeout.expires
       ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToClose))
     }
     on(deadline.scheduleToStart) {
-      in(NexusSystem.states.waiting).where(
+      when[Waiting].where(
         _.scheduleToStart == Timeout.expires
       ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToStart))
     }
