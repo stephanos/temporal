@@ -99,13 +99,27 @@ func TestSharedProductCatalogPrecedesOutcomeVisibility(t *testing.T) {
 	product := admMachine(m, "nexusProduct")
 	outcome := proto.Clone(admType(m, product.GetOutcomeType())).(*umpirespb.Type)
 	outcome.Name = "fixture.productOnlyOutcome"
-	outcome.GetEnum().Cases = slices.DeleteFunc(outcome.GetEnum().Cases, func(c *umpirespb.Case) bool { return c.GetName() == "rejected" })
-	m.Types = append(m.Types, outcome)
+	var rejectedCase *umpirespb.Case
+	for _, c := range outcome.GetEnum().Cases {
+		if c.GetName() == "rejected" {
+			rejectedCase = c
+		}
+	}
+	require.NotNil(t, rejectedCase)
+	require.Len(t, rejectedCase.GetFields(), 1)
+	rejectionType := rejectedCase.GetFields()[0].GetType().GetNamed()
+	require.NotEmpty(t, rejectionType)
+	rejection := proto.Clone(admType(m, rejectionType)).(*umpirespb.Type)
+	rejection.Name = "fixture.productOnlyRejection"
+	rejection.GetEnum().Cases = slices.DeleteFunc(rejection.GetEnum().Cases, func(c *umpirespb.Case) bool { return c.GetName() == "failedPrecondition" })
+	rejectedCase.GetFields()[0].Type.Ref = &umpirespb.TypeRef_Named{Named: rejection.Name}
+	m.Types = append(m.Types, rejection, outcome)
 	for _, f := range m.GetFunctions() {
 		if strings.HasPrefix(f.GetName(), "fixture.features.nexus.product.") {
 			encoded, err := protojson.Marshal(f)
 			require.NoError(t, err)
 			encoded = bytes.ReplaceAll(encoded, []byte(`"`+product.GetOutcomeType()+`"`), []byte(`"`+outcome.Name+`"`))
+			encoded = bytes.ReplaceAll(encoded, []byte(`"`+rejectionType+`"`), []byte(`"`+rejection.Name+`"`))
 			require.NoError(t, protojson.Unmarshal(encoded, f))
 		}
 	}
