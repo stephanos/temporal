@@ -31,9 +31,10 @@ Moves Nexus (product, standalone and workflow Systems) and the shared worker ont
 - [ ] The Go outcome-name expectations name the shared outcome. The commit message notes that they pass at the batch regeneration.
 - [ ] The Models compile, and the Nexus and worker Scala tests pass.
 ## Done summary
-TBD
+Migrated the Nexus product, standalone and workflow Systems, TrustingCaller, and shared worker to the shared Outcome/Rejection model. notFound is rejected(notFound); closed standalone controls are rejected(failedPrecondition) with the exact server message operation already completed. An exhaustive pin proves all 313 rejecting action/class/state cells are preserved; handwritten Go consumers now expect the shared encoding. Checked artifacts remain deferred to the batch regeneration.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 02fde7cf7b33605a133a78f5da933fc5e0dde577, 3df39897ff2d86a33c691e19b190adcd5354c863
+- Tests: PASS: Model/framework Scala suite including 15/10/288/0 rejection-cell pins, PASS: focused Nexus outcome/refinement tests, PASS: model/build/model-scala.jar packaging, PASS: tools/umpire/check compile-only surface, PASS: make lint-model-models (known JDK 27 Scalafix warning, exit 0), PASS: changed Scala/Go formatting and diff checks, EXPECTED RED: checked-IR Nexus assertions await the single batch regeneration
 - PRs:
