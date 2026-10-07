@@ -36,9 +36,10 @@ Splits the standalone activity's signature into one action per RPC and moves eve
 - [ ] The commit message lists the old → new class map that the batch diff is checked against (R7).
 - [ ] The Models compile (`scala-cli compile` of the model tree), and `StandaloneActivityPins.test.scala` passes.
 ## Done summary
-TBD
+Split standalone activity controls and worker replies into one action per RPC, introduced Failure(fatal/retryable), migrated every live Scala/lifter/Go consumer, and preserved protobuf request carriers through fn-133.8 realization bindings because literal action schemas are retired. Recorded the exact old-to-new class map and deferred only generated IR/Cases plus canonical docs to the scheduled batch steps.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0c2f1774953469371d41fb2c120270c32071eae2
+- Tests: 62 Model/framework tests passed, standalone signature pin passed, Model package passed, focused grouping and admission Go tests passed, changed Go package compile surface passed, model/irgen/syntax lints passed, full lifter retained only inherited fn-134.4 failures, generated IR/carrier checks deferred to batch regeneration
 - PRs:
