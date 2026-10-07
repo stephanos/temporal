@@ -315,14 +315,14 @@ private def oneRequest(start: Instruction) = temporalRealization(
 
 private val startSugared = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
   field(_.getTaskQueue.name) := taskQueueName
-  field(_.getScheduleToStartTimeout.seconds) := deadline
+  field(_.getScheduleToStartTimeout.seconds) := deadlineOperand
 }
 
 private val startCored = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
   Assignment.typed(Field[StartActivityExecutionRequest, String](_.getTaskQueue.name), taskQueueName)
   Assignment.typed(
     Field[StartActivityExecutionRequest, Long](_.getScheduleToStartTimeout.seconds),
-    deadline
+    deadlineOperand
   )
 }
 

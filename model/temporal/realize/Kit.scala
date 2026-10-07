@@ -77,7 +77,7 @@ val deadlineSeconds: Long = 2
 val unreachedDeadlineSeconds: Long = 300
 
 // `deadlineSeconds` as a request field's value.
-val deadline = Operand.number(deadlineSeconds)
+val deadlineOperand = Operand.number(deadlineSeconds)
 
 // `deadlineSeconds` in milliseconds, as a timer step's deadline names it.
 val deadlineMs: Long = deadlineSeconds * 1000

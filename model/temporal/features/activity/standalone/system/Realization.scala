@@ -1,16 +1,18 @@
-// The standalone activity's System realizations: StandaloneActivity, HeldDispatch and LostStartAnswer.
-// A controller starts one activity through
-// StartActivityExecution, controls it, and reads its status back; the Case's own worker runs its
-// attempts, each ending as the path's answer for it says.
+// How a Case runs the standalone activity's three System machines: StandaloneActivity, HeldDispatch
+// and LostStartAnswer.
 //
-// No kind of evidence depends on seeing a state the activity passes through on its own: with a
-// running worker a scheduled activity is started, and a started one answered, before any read need
-// see either. A call's answer is the Run's record of that call; an attempt start is the Run's record
-// of the attempt the worker was delivered; and a status is read back from DescribeActivityExecution
-// only where the activity stays in it, paused until the controller releases it, or over.
+// For StandaloneActivity a controller starts one activity with StartActivityExecution, controls it,
+// and reads its status back with DescribeActivityExecution. The Case's own worker runs the attempts,
+// and each attempt ends with the answer the path gives it. Evidence never needs to see a state the
+// activity only passes through: a call's evidence is the Run's record of the call, an attempt's is
+// the Run's record of the delivered attempt, and a status is read back only where the activity stays
+// in it (paused until the controller unpauses it, or over).
 //
-// The roles, bindings, window and run records are the kit's (temporal/realize); Go lowers a
-// Query's witness through these declarations (tools/umpire/lower).
+// HeldDispatch and LostStartAnswer are races at admission: a controller holds the activity's
+// dispatch and then releases it, or loses the answer to it, and reads what admission committed.
+//
+// The roles, bindings, window and run records are the kit's (temporal/realize). Go lowers a Query's
+// witness through these declarations (tools/umpire/lower).
 package temporal
 package features.activity
 package standalone
@@ -18,14 +20,12 @@ package system
 
 import umpire.*
 import umpire.realize.{Fact as RealizationFact, *}
-import temporal.realize.{deadline as _, *}
+import temporal.realize.*
 import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionOutcome}
 import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
-
-import shared.worker.worker as process
 
 object ActivityRealization:
   // Every call of the controller is made on the WorkflowService, in the run's namespace, of the
@@ -33,8 +33,8 @@ object ActivityRealization:
   private val calls =
     RequestBase(workflowService, "namespace" -> workerNamespace, "activity_id" -> run)
 
-  // The status DescribeActivityExecution reports while each fact holds, each read in a source of
-  // its own once the activity stays in it.
+  // The status DescribeActivityExecution reports while each fact holds. Each status is read in a
+  // source of its own, and only once the activity stays in it.
   private val described = DescribedStatus(
     calls,
     METHOD_DESCRIBE_ACTIVITY_EXECUTION,
@@ -55,21 +55,27 @@ object ActivityRealization:
 
   // ### The controller
 
+  // The worker's process stopping, as a path's own step.
   private val stopWorker = fault(taskQueue, FaultKind.workerStop)
-  private val stopWorkerUntilReleased = fault(taskQueue, FaultKind.workerStop)
+
+  // The worker stopped before a path pauses the activity, and resumed by the unpause (see the
+  // controller).
+  private val stopWorkerBeforePause = fault(taskQueue, FaultKind.workerStop)
   private val resumeWorker = fault(taskQueue, FaultKind.workerResume)
 
   // Each Case runs an activity type of its own, so two Cases on one worker never share one.
   private val activityType = perCase("activity")
 
   // The start every class of the start action makes, under the run's id; a class adds the deadlines
-  // it sets. The server refuses a start that sets neither a start-to-close nor a schedule-to-close
-  // deadline, so a class that sets none carries a start-to-close deadline no Case lives to see.
+  // it sets.
   private val startActivity = rpc(calls, METHOD_START_ACTIVITY_EXECUTION) {
     field(_.getActivityType.name) := Operand.named(activityType)
     field(_.getTaskQueue.name) := taskQueueName
     field(_.requestId) := run
   }
+  // The start of a class that sets no start-to-close deadline. The server refuses a start that sets
+  // neither a start-to-close nor a schedule-to-close deadline, so it carries a start-to-close
+  // deadline no Case lives to see.
   private val startUnreached = startActivity.withFields {
     field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
   }
@@ -85,8 +91,8 @@ object ActivityRealization:
   // nothing, so that release's answer would evidence a scheduling that did not happen. So a path
   // that pauses keeps the worker from polling from before the start until the release.
   private val standaloneController = controller(
-    perform(process.stop -> stopWorker),
-    onPath(client.control(Control.pause))(stopWorkerUntilReleased),
+    perform(shared.worker.worker.stop -> stopWorker),
+    onPath(client.control(Control.pause))(stopWorkerBeforePause),
     // Every class of the start, each setting the deadlines it expires; a schedule-to-close
     // deadline no start sets, so a class that expires one is unrealizable.
     deadlines[StartActivityExecutionRequest](
@@ -126,7 +132,7 @@ object ActivityRealization:
 
   // The activity's attempts: each delivery to the worker is an attempt start, answered in order.
   private val attempts = script(
-    "activity",
+    "attempts",
     WorkerActivation
       .Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
   )(
@@ -138,15 +144,14 @@ object ActivityRealization:
     )
   )
 
-  // An activity is scheduled by its start, again by a pause's release, and again by a retried
-  // failure. Each has evidence that stays true: the start's answer, the release's answer, and the
-  // second attempt's delivery, which shows the first failed, the activity was scheduled again and a
-  // worker took it again, confirming the three at once.
-
-  // The kind of the release's answer, which confirms that the activity was scheduled again.
+  // The kind of the unpause's answer, which confirms that the activity was scheduled again.
   private val scheduledAgain = "statusScheduledAgain"
 
-  // One standalone activity a controller starts and the Case's own worker runs.
+  // One standalone activity a controller starts and the Case's own worker runs. An activity is
+  // scheduled by its start, again by an unpause, and again by a retried failure. Each has evidence
+  // that stays true: the start's answer, the unpause's answer, and the second attempt's delivery,
+  // which shows at once that the first attempt failed, that the activity was scheduled again, and
+  // that a worker took it again.
   val standalone = temporalRealization(
     machine = ActivitySystem,
     operation = activity,
@@ -211,11 +216,6 @@ object ActivityRealization:
   private val releaseDispatch =
     command(release(dispatchHold), closes = Vector(evidenceId(AdmissionFact.attemptAdmitted)))
 
-  // The lost answer's release, under the held race's command name, so each race's evidence reads
-  // one name.
-  private val loseAdmissionResponse =
-    aliasOf(releaseDispatch)(fault(taskQueue, FaultKind.admissionResponseLoss))
-
   // That admission committed `decision`, as the release's record of the delivery names it.
   private def decided(decision: DeliveryAdmissionDecision): Condition[InstructionOutcome] =
     Condition.equal(Field(_.getDeliveryAdmission.decision), Operand.enumValue(decision))
@@ -249,10 +249,9 @@ object ActivityRealization:
     exhaustive = exhaustive
   )
 
-  // The machine starts scheduled, so every Case carries the start. Its one deadline, a start-to-close
-  // no Case lives to see, competes with no delivery.
-
-  // The stale dispatch of one paused activity, held, then delivered to admission.
+  // The stale dispatch of one paused activity, held, then delivered to admission. The machine starts
+  // scheduled, so every Case carries the start; its one deadline, a start-to-close no Case lives to
+  // see, competes with no delivery.
   val heldDelivery = temporalRealization(
     machine = HeldDispatch,
     operation = activity,
@@ -274,6 +273,15 @@ object ActivityRealization:
     ),
     controls = Vector(dispatchHold)
   )
+
+  // ### The lost admission answer
+  // A controller holds the activity's dispatch as in the held race, then loses admission's answer to
+  // it, and reads the durable decision admission recorded before the answer was replaced.
+
+  // The lost answer's release, under the held race's command name, so each race's evidence reads
+  // one name.
+  private val loseAdmissionResponse =
+    aliasOf(releaseDispatch)(fault(taskQueue, FaultKind.admissionResponseLoss))
 
   // One lost admission answer, with its durable decision observed before the response is replaced.
   val lostAdmissionResponse = temporalRealization(
