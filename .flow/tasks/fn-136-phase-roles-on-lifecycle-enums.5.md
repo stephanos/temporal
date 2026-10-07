@@ -4,7 +4,7 @@ satisfies: [R9]
 # fn-136-phase-roles-on-lifecycle-enums.5 Retire role-set states predicates; callers read roles directly (bounded IR change)
 
 ## Description
-Deletes every `states` predicate whose body is now a single role test. Callers across the activity and Nexus models read the role with `in[R]`/`is[R]` instead. This is the one step of the spec that changes IR, within R9's bound.
+Deletes every `states` predicate whose body is now a single role test. Callers across the activity and Nexus models read the role with `in[R]`/`p.in[R]` instead. This is the one step of the spec that changes IR, within R9's bound.
 
 **Size:** M
 **Files:** model/temporal/features/activity/standalone/{product/Product.scala, system/System.scala, system/Record.scala, system/WithTaskQueue.scala}, model/temporal/features/nexus/{workflow/system/System.scala, workflow/system/TrustingCaller.scala, standalone/system/System.scala, product/Product.scala}, model/ir/**, model/cases/**, model/README.md, model/SEMANTICS.md, MILESTONES.md
@@ -17,11 +17,11 @@ Deletes every `states` predicate whose body is now a single role test. Callers a
 - WithTaskQueue's four reads of `ActivityRecord.states` (`terminal` for Closable, `running` as `started` alone) are all keeps. Don't touch them, and don't rewrite capability fields here.
 - Remove a `states` object that ends up empty (the Nexus product's may, if `productTerminal` goes).
 - IR diff bound (R9): snapshot model/ir and model/cases under `.flow/tmp/fn-136.5/` before editing, regenerate with `make MODEL_GATE_ARGS=--skip-go-checks umpire-gen-model`, then classify every changed line with a script: removed retired Function, inlined case set at a former call, or a Definition ID / exploration identity / Case reference following from those. Any unclassified line stops the task. Query answers and Check verdicts must be unchanged (compare receipts).
-- Docs: README `states` section (what stays in it; role tests via `in[R]`/`is[R]`), SEMANTICS role-test forms. Update the fn-136 entry in MILESTONES.md.
+- Docs: README `states` section (what stays in it; role tests via `in[R]`/`p.in[R]`), SEMANTICS role-test forms. Update the fn-136 entry in MILESTONES.md.
 
 ### Acceptance
 - [ ] No `states` predicate whose body is a single role test remains, except the listed keeps, each with its reason in the done summary.
-- [ ] All former callers of retired predicates, including TrustingCaller and the compositions in activity and Nexus System.scala, use `in[R]` or `is[R]`. Capability fields and WithTaskQueue are untouched.
+- [ ] All former callers of retired predicates, including TrustingCaller and the compositions in activity and Nexus System.scala, use `in[R]` or `p.in[R]`. Capability fields and WithTaskQueue are untouched.
 - [ ] The diff-classification script reports zero unclassified IR or Case lines. Every Query answer and Check verdict is unchanged.
 - [ ] README, SEMANTICS and MILESTONES are updated; `make MODEL_GATE_ARGS=--skip-go-checks umpire-check-model` and `make lint-model` pass.
 
