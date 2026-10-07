@@ -160,7 +160,7 @@ Gate: the DSL batch. Tasks run in the batch order. R7 (positions only, for tasks
 
 ### fn-137: Capabilities read phase roles
 
-Gate: the DSL batch. Task 7 asks the owner about `pausedWhileHeld` before it is written. Where a capability's predicate differs from the role it now reads, the batch diff shows it and the owner resolves it; it is never absorbed.
+Gate: the DSL batch. Task 7 assigns `pausedWhileHeld` to `Held`: the admitted attempt remains owned while pause is pending, while `paused` remains `Suspended`. Where a capability's predicate differs from the role it now reads, the batch diff records and classifies it; it is never absorbed.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -170,7 +170,7 @@ Gate: the DSL batch. Task 7 asks the owner about `pausedWhileHeld` before it is 
 | fn-137.4 | ✅ done | `Rules(projection)` retired: framework, lifter fallback, fixtures, docs |
 | fn-137.5 | ✅ done | Default `end` for `Phased` objects (needs fn-136's `Closed` role) |
 | fn-137.6 | ✅ done | Closable reads the `Closed` role through `Phased` (needs fn-134, fn-136.5) |
-| fn-137.7 | ⬜ todo | Pausable reads `Suspended` and `Held`; `pausedWhileHeld` settled; capability docs |
+| fn-137.7 | ✅ done | Pausable reads `Suspended` and `Held`; `pausedWhileHeld` settled; capability docs |
 
 ### fn-139: Actor-grouped rules, per-RPC actions, shared rejections
 
