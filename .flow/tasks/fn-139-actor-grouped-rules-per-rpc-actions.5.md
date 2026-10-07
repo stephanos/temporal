@@ -32,9 +32,10 @@ Rewrites the activity product's and System's rules into actor groups and moves t
 - [ ] The munit equivalence test shows each machine's step function unchanged over every state and class, apart from the outcome value's new name.
 - [ ] The Models compile, and the activity tests pass.
 ## Done summary
-TBD
+Grouped the standalone Activity Product and System rules by actor and semantic meaning, moved Activity to the shared Outcome/Rejection model, preserved all step behavior with an exhaustive 6,435-pair equivalence pin, and migrated handwritten consumers. Product disabled process.stop remains outside from; checked generated artifacts remain deferred to the batch regeneration.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: faa90302934868962601866cef272c9883594cb0
+- Tests: PASS: Model/framework Scala suite (65 tests), PASS: standalone activity pins (4 tests, included in suite), PASS: model/build/model-scala.jar packaging, PASS: tools/umpire/check compile-only surface with test_dep, PASS: make lint-model-models (known JDK 27 Scalafix warning, exit 0), DEFERRED: checked IR/Cases regeneration and generated-consumer assertions until the single batch regeneration
 - PRs:
