@@ -30,9 +30,10 @@ Removes the old form now that no Model uses it. The `Rules` constructor paramete
 - [ ] TBD
 
 ## Done summary
-TBD
+Retired Rules projection arguments across the framework and lifter. Rules now reads only the declaring machine or composition Phased given; the parent-argument fallback is gone, all active fixtures use argument-less Rules, the non-Phased refusal remains pinned at Rules.scala:16:30, and ProjectsPhases was consolidated into PhasesOf. Authoring docs now describe Phased plus argument-less Rules. No model IR, Cases, or golden fixtures were regenerated in this batch task. The full lifter suite retains the same four inherited legacy capability-fixture failures owned by fn-134.4.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bde1e2740e
+- Tests: scala-cli test model/project.scala model/umpire (36 passed), scala-cli test model/check (passed), focused fn137 lifter suite (17 passed; exact Rules.scala:16:30 refusal), make lint-model-models lint-model-irgen lint-model-syntax (exit 0), rg extends Rules( model (no matches), full irgen suite: same four inherited legacy capability fixture failures before/after
 - PRs:
