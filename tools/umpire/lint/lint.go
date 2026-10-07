@@ -78,20 +78,6 @@ const (
 	// MustNotPinned (H5) is a disabled pair of a system action no transition claim pins. It is
 	// reported only when Options.MustNotPinned asks for it.
 	MustNotPinned Kind = "must-not-pinned"
-	// WaivedLaw is a law a declaration's capabilities bring that it waives, with `except` or
-	// `overriding`, for the reason the law sidecar records; the model gate's update forwards each such
-	// reason into the accepted findings, keyed by `<machine>.<law>` (Forward).
-	WaivedLaw Kind = "waived-law"
-	// LawWaivedWithoutReason is a waiver the law sidecar records with no reason.
-	LawWaivedWithoutReason Kind = "law-waived-without-reason"
-	// ReasonNamesNoLaw is a waiver, with its reason, of a law the sidecar's catalog does not bring.
-	ReasonNamesNoLaw Kind = "reason-names-no-law"
-	// ParameterWithoutCitation is a binding of a parameter its law has each instance back with server
-	// code, which cites none.
-	ParameterWithoutCitation Kind = "parameter-without-citation"
-	// LawWithOneInstance is a law of the catalog that fewer than two machines with their own state
-	// types instantiate, across every law sidecar a run reads.
-	LawWithOneInstance Kind = "law-with-one-instance"
 )
 
 // Finding is one thing lint says of a Model: its kind, the machine or composition it is about, what
@@ -126,21 +112,16 @@ type Lowering struct {
 	Field func(at *umpirespb.Position, md protoreflect.MessageDescriptor, path string) (protoreflect.FieldDescriptor, error)
 }
 
-// Options are the kinds a run reports beyond the default ones, and what a run reads beyond one file.
+// Options are the kinds a run reports beyond the default ones.
 type Options struct {
 	MustNotPinned bool
-	// Instances is each law's instantiating entities across every law sidecar the run reads, which
-	// LawWithOneInstance counts; nil counts the file's own sidecar alone.
-	Instances Instances
 }
 
 // Model is one admitted Model as lint reads it: its IR, the reader's receipts of its verify Queries,
-// its machines' tables, and the law sidecar beside it.
+// and its machines' tables.
 type Model struct {
 	File string
 	IR   *umpirespb.Model
-	// Laws is the law sidecar beside the IR file, or nil where its Models declare no capabilities.
-	Laws *check.LawSidecar
 	// Verified is the receipts of a check of the Model with its verify Queries alone: lint reads
 	// whether each Property fired, and a find Query's search answers nothing it asks.
 	Verified *check.Report
@@ -152,23 +133,14 @@ type Model struct {
 	options  Options
 }
 
-// Read loads, checks and interprets the IR file at path, with the law sidecar beside it. A malformed
-// file or sidecar is the reader's error, returned as the reader reports it, and gives no findings.
+// Read loads, checks and interprets the IR file at path. A malformed file is the reader's error,
+// returned as the reader reports it, and gives no findings.
 func Read(path string, lowering Lowering, options Options) (*Model, error) {
 	ir, err := umpireir.Load(path)
 	if err != nil {
 		return nil, err
 	}
-	laws, err := check.ReadLawSidecar(path)
-	if err != nil {
-		return nil, err
-	}
-	m, err := Of(path, ir, lowering, options)
-	if err != nil {
-		return nil, err
-	}
-	m.Laws = laws
-	return m, nil
+	return Of(path, ir, lowering, options)
 }
 
 // Of reads an admitted Model as Read does, under the name file.
@@ -229,21 +201,15 @@ func kinds() []kind {
 		{kind: StuckState, run: stuckStates},
 		{kind: Unproduced, run: unproduced},
 		{kind: UnrealizedFind, run: unrealizedFinds},
-		{kind: WaivedLaw, run: waivedLaws},
-		{kind: LawWaivedWithoutReason, run: lawsWaivedWithoutReason},
-		{kind: ReasonNamesNoLaw, run: reasonsNamingNoLaw},
-		{kind: ParameterWithoutCitation, run: parametersWithoutCitation},
-		{kind: LawWithOneInstance, run: lawsWithOneInstance},
 	}
 }
 
-// Result is what linting one Model found: every kind's tallies, each machine's per-operation
-// modality table with the laws it is held to, and the laws of each composition.
+// Result is what linting one Model found: every kind's tallies and each machine's per-operation
+// modality table.
 type Result struct {
 	File    string
 	Tallies []Tally
 	Tables  []*Table
-	Laws    []*LawTable
 }
 
 // Lint runs every kind over the Model.
@@ -260,7 +226,7 @@ func (m *Model) Lint() (*Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("holes: %w", err)
 	}
-	out.Tables, out.Laws = tables, m.compositionLaws()
+	out.Tables = tables
 	out.Tallies = append(out.Tallies, tallies...)
 	for i := range out.Tallies {
 		sortFindings(out.Tallies[i].Findings)
@@ -291,8 +257,7 @@ func sortFindings(fs []Finding) {
 // order is every kind in the order findings are listed.
 var order = []Kind{UnreachableValue, NeverEnabled, StuckState, Unproduced, UntakenChoice, UnaskedProperty, UnfiredVerify, UnevidencedFact,
 	UnperformedAction, UnreachableBinding, UncoveredClass, UnrealizedFind, UnreadRefinement, UnreadObservation, ExplicitWait, UnmodeledAPIValue, DisabledByDefault, SilentRejection,
-	UnconstrainedResult, WitnessOnly, MustNotPinned, WaivedLaw, LawWaivedWithoutReason, ReasonNamesNoLaw, ParameterWithoutCitation,
-	LawWithOneInstance}
+	UnconstrainedResult, WitnessOnly, MustNotPinned}
 
 func kindOrder(k Kind) int { return slices.Index(order, k) }
 

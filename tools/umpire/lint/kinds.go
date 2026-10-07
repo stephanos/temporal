@@ -25,7 +25,7 @@ func (t tallies) add(owner string, satisfied bool, subject string, at *umpirespb
 	t.addAt(owner, satisfied, subject, where(at), format, args...)
 }
 
-// addAt is add at a position already spelled `file:line`, as the law sidecar records one.
+// addAt is add at a position already spelled `file:line`.
 func (t tallies) addAt(owner string, satisfied bool, subject, position string, format string, args ...any) {
 	x, ok := t.owner[owner]
 	if !ok {

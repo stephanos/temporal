@@ -56,17 +56,25 @@ func TestCapabilitiesGeneratedPropertiesKeepTheirOrigin(t *testing.T) {
 	}, origins)
 }
 
-// The law sidecar the lifter writes beside an IR file, and the accepted lint findings an author
-// writes there, are JSON and no Model: every reader of a directory of IR files, the Case generator,
-// the exploration bridge and lint among them, lists them apart.
-func TestIRPathsLeaveOutLawSidecarsAndAcceptedFindings(t *testing.T) {
+// A leftover law sidecar is JSON but no Model: a reader of an IR directory must try to load it and
+// refuse it. Accepted lint findings remain metadata beside the IR and are not loaded as Models.
+func TestIRPathsRefuseLawSidecarsAndLeaveOutAcceptedFindings(t *testing.T) {
 	dir := t.TempDir()
-	for _, name := range []string{"activity-standalone.json", "activity-standalone.laws.json", "activity-standalone.lint.json", "nexus.json", "notes.txt"} {
-		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte("{}"), 0o600))
+	for name, encoded := range map[string]string{
+		"activity-standalone.json":      "{}",
+		"activity-standalone.laws.json": `{"claims": []}`,
+		"activity-standalone.lint.json": "{}",
+		"nexus.json":                    "{}",
+		"notes.txt":                     "{}",
+	} {
+		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(encoded), 0o600))
 	}
 	paths, err := ir.IRPaths(dir)
 	require.NoError(t, err)
-	require.Equal(t, []string{filepath.Join(dir, "activity-standalone.json"), filepath.Join(dir, "nexus.json")}, paths)
+	sidecar := filepath.Join(dir, "activity-standalone.laws.json")
+	require.Equal(t, []string{filepath.Join(dir, "activity-standalone.json"), sidecar, filepath.Join(dir, "nexus.json")}, paths)
+	_, err = ir.Load(sidecar)
+	require.ErrorContains(t, err, `unknown field "claims"`)
 }
 
 // The standalone Nexus operation receives its companions' Properties without listing them:

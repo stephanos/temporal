@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpirecheck "go.temporal.io/server/tools/umpire/check"
 	umpireir "go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lint"
 )
@@ -165,104 +164,27 @@ func TestTheOutputIsByteStable(t *testing.T) {
 }
 
 func TestAnUnknownFlagIsBadUsage(t *testing.T) {
-	a := lintRun("--verbose")
-	require.Equal(t, 2, a.status)
-	require.Contains(t, a.errors, "usage: umpire-lint [--update] [--must-not-pinned] [--tables] [ir files...]")
-	require.Empty(t, a.out)
+	for _, flag := range []string{"--update", "--verbose"} {
+		t.Run(flag, func(t *testing.T) {
+			a := lintRun(flag)
+			require.Equal(t, 2, a.status)
+			require.Contains(t, a.errors, "usage: umpire-lint [--must-not-pinned] [--tables] [ir files...]")
+			require.Empty(t, a.out)
+		})
+	}
 }
 
-// capabilities is the lifter fixture whose capability declarations write a law sidecar, with a law
-// overridden and a law excepted.
-const capabilities = "../../../../model/irgen/testdata/lifts/expected/capabilities.json"
-
-// copiedWithLaws is the capabilities fixture and its law sidecar copied into a directory of their own.
-func copiedWithLaws(t *testing.T) string {
-	t.Helper()
-	path := filepath.Join(t.TempDir(), "capabilities.json")
-	for from, to := range map[string]string{capabilities: path, umpirecheck.LawSidecarPath(capabilities): umpirecheck.LawSidecarPath(path)} {
-		encoded, err := os.ReadFile(from)
-		require.NoError(t, err)
-		require.NoError(t, os.WriteFile(to, encoded, 0o644))
+// Capability waiver acceptances are owned by the model gate. Lint preserves them in the accepted
+// findings file but neither reports them nor treats them as stale.
+func TestCapabilityWaiverAcceptancesAreIgnoredByLint(t *testing.T) {
+	path := copied(t)
+	waiver := lint.Acceptance{
+		Kind: lint.Kind("waived-law"), Owner: "task", Subjects: []string{"task.closedIsRejectedUniformly"}, Because: "the capability section states it",
 	}
-	return path
-}
+	writeAccepted(t, lint.AcceptedPath(path), accepting(findings(t, path), "the fixture declares it so", waiver))
 
-// The reasons of the laws a sidecar waives reach the accepted findings only by an update, which
-// forwards them keyed `<machine>.<law>` beside the acceptances an author wrote; a check fails on
-// accepted findings that do not carry them, and on one a waiver no longer backs.
-func TestAnUpdateForwardsTheLawWaiversAndACheckHoldsThem(t *testing.T) {
-	path := copiedWithLaws(t)
-	var authored []lint.Finding
-	for _, f := range findings(t, path) {
-		if f.Kind != lint.WaivedLaw {
-			authored = append(authored, f)
-		}
-	}
-	writeAccepted(t, lint.AcceptedPath(path), accepting(authored, "the fixture declares it so"))
-
-	check := lintRun(path)
-	require.Equal(t, 1, check.status)
-	require.Contains(t, check.errors, lint.AcceptedPath(path)+" does not carry the law waivers of "+umpirecheck.LawSidecarPath(path)+
-		": rerun make umpire-gen-model, whose update forwards them (umpire-lint --update)\n")
-	require.Contains(t, check.errors, "2 unaccepted findings, 0 stale acceptances and 1 errors;")
-
-	update := lintRun("--update", path)
-	require.Equal(t, 0, update.status, update.errors)
-	require.Contains(t, update.out, "accepted: a fixture's waiver: the legacy job keeps no status\n")
-	accepted, err := lint.ReadAccepted(path)
-	require.NoError(t, err)
-	require.Equal(t, []lint.Acceptance{
-		{Kind: lint.WaivedLaw, Owner: "legacyJob", Subjects: []string{"legacyJob.closedIsRejectedUniformly"},
-			Because: "a fixture's override: the legacy job answers a closed job as it likes"},
-		{Kind: lint.WaivedLaw, Owner: "legacyJob", Subjects: []string{"legacyJob.terminalStatesAreFinal"},
-			Because: "a fixture's waiver: the legacy job keeps no status"},
-	}, accepted.Accepted[len(accepted.Accepted)-2:])
-	require.Equal(t, update.out, lintRun(path).out, "a check after the update prints what the update did")
-	require.Equal(t, 0, lintRun(path).status)
-
-	// A waiver the sidecar no longer records leaves its forwarded acceptance stale.
-	laws, err := umpirecheck.ReadLawSidecar(path)
-	require.NoError(t, err)
-	laws.Waivers = laws.Waivers[:1]
-	encoded, err := json.Marshal(laws)
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(umpirecheck.LawSidecarPath(path), encoded, 0o644))
-	gone := lintRun(path)
-	require.Equal(t, 1, gone.status)
-	require.Contains(t, gone.out, "  stale acceptance: waived-law legacyJob \"legacyJob.terminalStatesAreFinal\" matches no finding\n")
-	require.Contains(t, gone.errors, " does not carry the law waivers of ")
-}
-
-// A law's instantiating machines are counted across every sidecar of the directories a run lints,
-// so a law with one machine in each of two files is no finding in either.
-func TestInstantiatingMachinesAreCountedAcrossTheDirectory(t *testing.T) {
-	path := copiedWithLaws(t)
-	lonely := func(path string) []string {
-		var out []string
-		m, err := lint.Read(path, lowering, lint.Options{Instances: instances([]string{filepath.Dir(path)})})
-		require.NoError(t, err)
-		result, err := m.Lint()
-		require.NoError(t, err)
-		for _, f := range result.Findings() {
-			if f.Kind == lint.LawWithOneInstance {
-				out = append(out, f.Subject)
-			}
-		}
-		return out
-	}
-	alone := lonely(path)
-	require.Contains(t, alone, "terminalStatesAreFinal", "the fixture's laws have one instantiating machine each")
-
-	laws, err := umpirecheck.ReadLawSidecar(path)
-	require.NoError(t, err)
-	for i := range laws.Catalog {
-		laws.Catalog[i].Instantiating = []umpirecheck.LawInstance{{Machine: "elsewhere", State: "fixture.Elsewhere"}}
-	}
-	laws.Claims, laws.Waivers = nil, nil
-	encoded, err := json.Marshal(laws)
-	require.NoError(t, err)
-	other := filepath.Join(filepath.Dir(path), "other.json")
-	require.NoError(t, os.WriteFile(umpirecheck.LawSidecarPath(other), encoded, 0o644))
-	require.NoError(t, os.WriteFile(other, []byte("{}"), 0o644))
-	require.Empty(t, lonely(path))
+	a := lintRun(path)
+	require.Equal(t, 0, a.status, a.errors)
+	require.Empty(t, a.errors)
+	require.NotContains(t, a.out, "waived-law")
 }

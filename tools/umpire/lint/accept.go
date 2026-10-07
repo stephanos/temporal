@@ -14,8 +14,8 @@ import (
 )
 
 // AcceptedSuffix ends the checked-in file of accepted findings beside an IR file, `<file>.lint.json`,
-// which the reader leaves out of a directory's IR files. The lifter writes nothing there: an author
-// does, with a reason for each acceptance.
+// which the reader leaves out of a directory's IR files. An author writes lint acceptances there;
+// the model gate maintains the capability waiver metadata.
 const AcceptedSuffix = ir.AcceptedSuffix
 
 // AcceptedPath is the file of accepted findings beside the IR file at irPath.
@@ -25,11 +25,14 @@ func AcceptedPath(irPath string) string { return strings.TrimSuffix(irPath, ".js
 // and the subjects it accepts there, and why. A finding is accepted by its kind, owner and subject
 // alone, never its message or position, so moving a line leaves it accepted; an acceptance that
 // matches no finding is stale, and the gate fails on it as on a finding no acceptance matches.
-// An acceptance names any kind lint reports, so a kind added later records its accepted findings, and
-// their reasons, the same way.
+// An acceptance names any kind lint reports, so a kind added later records its accepted findings,
+// and their reasons, the same way. Capability waiver entries are metadata maintained by the model
+// gate; lint preserves but does not judge them.
 type Accepted struct {
 	Accepted []Acceptance `json:"accepted"`
 }
+
+const capabilityWaiverAcceptance Kind = "waived-law"
 
 // Acceptance is one reason, and the findings of one kind and owner it accepts.
 type Acceptance struct {
@@ -40,8 +43,8 @@ type Acceptance struct {
 }
 
 // ReadAccepted reads the accepted findings beside the IR file at irPath, or none where there is no
-// such file. An acceptance with no reason, no subject, an unknown kind or a kind no reason excuses
-// (LawWaivedWithoutReason, ReasonNamesNoLaw), and a finding accepted twice, are errors of the file.
+// such file. An acceptance with no reason, no subject or an unknown kind, and a finding accepted
+// twice, are errors of the file. The model gate's capability waiver metadata is also admitted.
 func ReadAccepted(irPath string) (*Accepted, error) {
 	path := AcceptedPath(irPath)
 	encoded, err := os.ReadFile(path)
@@ -68,7 +71,7 @@ func (a *Accepted) check() error {
 	seen := map[[3]string]bool{}
 	for i, x := range a.Accepted {
 		switch {
-		case !slices.Contains(order, x.Kind):
+		case !slices.Contains(order, x.Kind) && x.Kind != capabilityWaiverAcceptance:
 			problems = append(problems, fmt.Errorf("acceptance %d names no kind lint reports: %q", i, x.Kind))
 		case x.Owner == "":
 			problems = append(problems, fmt.Errorf("acceptance %d of %s names no owner", i, x.Kind))
@@ -76,10 +79,6 @@ func (a *Accepted) check() error {
 			problems = append(problems, fmt.Errorf("acceptance %d of %s %s gives no reason", i, x.Kind, x.Owner))
 		case len(x.Subjects) == 0:
 			problems = append(problems, fmt.Errorf("acceptance %d of %s %s accepts nothing", i, x.Kind, x.Owner))
-		case x.Kind == LawWaivedWithoutReason || x.Kind == ReasonNamesNoLaw:
-			// A waiver with no reason, or of a law no capability brings, excuses nothing: it is fixed
-			// in the declaration, never accepted.
-			problems = append(problems, fmt.Errorf("acceptance %d accepts %s, which is fixed in the declaration, not accepted", i, x.Kind))
 		default:
 		}
 		for _, s := range x.Subjects {
@@ -115,6 +114,9 @@ func (v Verdict) Failed() bool { return len(v.Unaccepted) > 0 || len(v.Stale) > 
 func (a *Accepted) Judge(findings []Finding) Verdict {
 	because := map[[3]string]string{}
 	for _, x := range a.Accepted {
+		if x.Kind == capabilityWaiverAcceptance {
+			continue
+		}
 		for _, s := range x.Subjects {
 			because[[3]string{string(x.Kind), x.Owner, s}] = x.Because
 		}
@@ -131,6 +133,9 @@ func (a *Accepted) Judge(findings []Finding) Verdict {
 		v.Unaccepted = append(v.Unaccepted, f)
 	}
 	for _, x := range a.Accepted {
+		if x.Kind == capabilityWaiverAcceptance {
+			continue
+		}
 		for _, s := range x.Subjects {
 			if !matched[[3]string{string(x.Kind), x.Owner, s}] {
 				v.Stale = append(v.Stale, fmt.Sprintf("%s %s %q matches no finding", x.Kind, x.Owner, s))

@@ -18,7 +18,6 @@ var coverageFixtures = []string{
 	"model/ir/activity-standalone.json",
 	"model/ir/nexus-workflow-control.json",
 	"model/irgen/testdata/lifts/expected/admission.json",
-	"model/irgen/testdata/lifts/expected/capabilities.json",
 	"model/irgen/testdata/lifts/expected/captured.json",
 	"model/irgen/testdata/lifts/expected/channels.json",
 	"model/irgen/testdata/lifts/expected/declarations.json",
@@ -99,6 +98,22 @@ func TestAcceptedFindingsAreJudgedBothWays(t *testing.T) {
 
 	a.Accepted[0].Subjects = []string{"a in x", "b in x"}
 	require.False(t, a.Judge(findings).Failed())
+}
+
+// Capability waiver acceptances are maintained and checked by the model gate. Go lint preserves
+// them as accepted-file metadata, but does not report or judge them as lint findings.
+func TestCapabilityWaiverAcceptancesAreOwnedByTheModelGate(t *testing.T) {
+	waiver := Acceptance{
+		Kind: Kind("waived-law"), Owner: "task", Subjects: []string{"task.closedIsRejectedUniformly"}, Because: "declared by the capability section",
+	}
+	require.NotContains(t, Kinds(), waiver.Kind)
+
+	a := &Accepted{Accepted: []Acceptance{waiver}}
+	verdict := a.Judge(nil)
+	require.Empty(t, verdict.Accepted)
+	require.Empty(t, verdict.Unaccepted)
+	require.Empty(t, verdict.Stale)
+	require.False(t, verdict.Failed())
 }
 
 func TestAcceptedFileRefusesWhatItCannotJudge(t *testing.T) {

@@ -2,20 +2,14 @@
 // coverage summary, and fails on a finding no acceptance matches and on an acceptance that matches
 // no finding. A count never fails it.
 //
-//	umpire-lint [--update] [--must-not-pinned] [--tables] [ir files...]
+//	umpire-lint [--must-not-pinned] [--tables] [ir files...]
 //
 // With no file it lints every IR file of model/ir, run from the repository root as the model gate
 // runs it. The accepted findings of `<file>.json` are in `<file>.lint.json` beside it, each with
 // its reason; one beside no IR file accepts nothing and fails the run.
-//
-// The reasons of the laws a file's capability declarations waive are in its law sidecar,
-// `<file>.laws.json`, and forwarded into its accepted findings: --update writes them there, as the
-// model gate's update does, and a run without it fails on a file that does not carry them. A law's
-// instantiating machines are counted across the law sidecars of every directory the run lints.
 package main
 
 import (
-	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -30,7 +24,6 @@ import (
 	// every one of them, and lowering links the rest.
 	_ "go.temporal.io/api/workflowservice/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/internal/cli"
 	umpireir "go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lint"
@@ -67,12 +60,11 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("umpire-lint", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	flags.Usage = func() {
-		cli.WriteLine(stderr, "usage: umpire-lint [--update] [--must-not-pinned] [--tables] [ir files...]")
+		cli.WriteLine(stderr, "usage: umpire-lint [--must-not-pinned] [--tables] [ir files...]")
 		flags.PrintDefaults()
 	}
 	mustNotPinned := flags.Bool("must-not-pinned", false, "also report each disabled pair of a system action no claim pins (H5)")
 	tables := flags.Bool("tables", false, "also print each machine's per-operation modality table")
-	update := flags.Bool("update", false, "forward each law sidecar's waivers into the accepted findings beside it")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
@@ -82,9 +74,9 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 		cli.WriteLine(stderr, "umpire-lint: %v", err)
 		return 1
 	}
-	options := lint.Options{MustNotPinned: *mustNotPinned, Instances: instances(directories)}
+	options := lint.Options{MustNotPinned: *mustNotPinned}
 	for _, path := range paths {
-		if err := lintFile(path, options, *tables, *update, stdout, &t); err != nil {
+		if err := lintFile(path, options, *tables, stdout, &t); err != nil {
 			t.errors++
 			report(stderr, path, err)
 		}
@@ -132,10 +124,8 @@ func irFiles(named []string) (paths, directories []string, err error) {
 }
 
 // lintFile writes the findings and coverage of one IR file, and its tables when asked. A file the
-// reader refuses writes nothing: its error is the reader's. Its accepted findings carry the waivers
-// of its law sidecar, written there by an update; a file that does not is an error of a check, and
-// is judged as it is.
-func lintFile(path string, options lint.Options, tables, update bool, stdout io.Writer, t *tally) error {
+// reader refuses writes nothing: its error is the reader's.
+func lintFile(path string, options lint.Options, tables bool, stdout io.Writer, t *tally) error {
 	m, err := lint.Read(path, lowering, options)
 	if err != nil {
 		return err
@@ -147,14 +137,6 @@ func lintFile(path string, options lint.Options, tables, update bool, stdout io.
 	accepted, err := lint.ReadAccepted(path)
 	if err != nil {
 		return err
-	}
-	forwarded := lint.Forward(accepted, m.Laws)
-	unforwarded, err := forward(path, accepted, forwarded, update)
-	if err != nil {
-		return err
-	}
-	if !unforwarded {
-		accepted = forwarded
 	}
 	verdict := accepted.Judge(result.Findings())
 	t.unaccepted += len(verdict.Unaccepted)
@@ -170,51 +152,7 @@ func lintFile(path string, options lint.Options, tables, update bool, stdout io.
 			return err
 		}
 	}
-	if unforwarded {
-		return fmt.Errorf("%s does not carry the law waivers of %s: rerun make umpire-gen-model, whose update forwards them (umpire-lint --update)",
-			lint.AcceptedPath(path), check.LawSidecarPath(path))
-	}
 	return nil
-}
-
-// forward holds the accepted findings of the IR file at path to the forwarded ones: an update writes
-// them where they differ, and reports nothing; a check reports whether they differ. A file that
-// would accept nothing is not created.
-func forward(path string, accepted, forwarded *lint.Accepted, update bool) (bool, error) {
-	was, err := accepted.Encode()
-	if err != nil {
-		return false, err
-	}
-	now, err := forwarded.Encode()
-	if err != nil {
-		return false, err
-	}
-	switch {
-	case bytes.Equal(was, now):
-		return false, nil
-	case !update:
-		return true, nil
-	default:
-		return false, os.WriteFile(lint.AcceptedPath(path), now, 0o644)
-	}
-}
-
-// instances counts each law's instantiating machines across the law sidecars of the directories a
-// run lints. A sidecar the reader refuses counts nothing here: linting its IR file reports it.
-func instances(directories []string) lint.Instances {
-	var sidecars []*check.LawSidecar
-	for _, directory := range directories {
-		paths, err := umpireir.IRPaths(directory)
-		if err != nil {
-			continue
-		}
-		for _, path := range paths {
-			if s, err := check.ReadLawSidecar(path); err == nil {
-				sidecars = append(sidecars, s)
-			}
-		}
-	}
-	return lint.CountInstances(sidecars...)
 }
 
 // report writes an error of one file, naming the file once and indenting each further line of a

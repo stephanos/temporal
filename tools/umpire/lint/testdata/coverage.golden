@@ -36,21 +36,6 @@ coverage model/irgen/testdata/lifts/expected/admission.json trustingActivityReco
   verify Queries       6, 6 whose Property fired
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 1 read through by a Query
-coverage model/irgen/testdata/lifts/expected/capabilities.json job
-  properties           5 declared, 5 named by a Query
-  verify Queries       3, 3 whose Property fired
-coverage model/irgen/testdata/lifts/expected/capabilities.json keptJob
-  properties           1 declared, 1 named by a Query
-  verify Queries       1, 1 whose Property fired
-coverage model/irgen/testdata/lifts/expected/capabilities.json legacyJob
-  properties           1 declared, 1 named by a Query
-  verify Queries       1, 1 whose Property fired
-coverage model/irgen/testdata/lifts/expected/capabilities.json pair
-  properties           2 declared, 2 named by a Query
-  verify Queries       2, 2 whose Property fired
-coverage model/irgen/testdata/lifts/expected/capabilities.json rogueJob
-  properties           1 declared, 1 named by a Query
-  verify Queries       1, 1 whose Property fired
 coverage model/irgen/testdata/lifts/expected/captured.json detailedPair
   properties           1 declared, 1 named by a Query
 coverage model/irgen/testdata/lifts/expected/captured.json disk

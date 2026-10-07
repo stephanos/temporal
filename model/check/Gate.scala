@@ -362,13 +362,11 @@ final class Gate(tools: Tools, log: PrintStream):
     if update then step("generate every lowered Case and the Query manifest")(lower(update)): Unit
 
     // Not one of the Go checks a run may skip: it is the gate's check of the IR it settled.
-    // It fails on a finding no acceptance matches and on a stale acceptance, never on a count. An
-    // update first forwards the reasons of the laws each law sidecar waives into the accepted
-    // findings beside it; a check fails on accepted findings that do not carry them.
+    // It fails on a finding no acceptance matches and on a stale acceptance, never on a count. The
+    // gate has already held the accepted findings to the capabilities sections' waivers above.
     step("lint every IR file and print its coverage"):
-      val forward = if update then Seq("--update") else Nil
       tools
-        .run("go", Seq("run", "./tools/umpire/cmd/umpire-lint") ++ forward, Output.Shown)
+        .run("go", Seq("run", "./tools/umpire/cmd/umpire-lint"), Output.Shown)
         .orFail(): Unit
 
     // Combined verification may run the complete Go suite separately; the default gate includes it.

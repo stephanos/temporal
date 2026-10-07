@@ -16,24 +16,19 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// LawSidecarSuffix ends the law sidecar the lifter writes beside an IR file whose Models declare
-// capabilities, `<file>.laws.json`: JSON that records the generated claims, and no Model. The
-// test-only golden package, which this package cannot import, spells it once more.
-const LawSidecarSuffix = ".laws.json"
-
 // AcceptedSuffix ends the file of lint's accepted findings an author writes beside an IR file,
 // `<file>.lint.json`: JSON and no Model. Lint, which imports the reader, names it by this constant.
 const AcceptedSuffix = ".lint.json"
 
-// IRPaths lists the IR files of a directory: its JSON files, apart from the law sidecars and the
-// accepted lint findings beside them.
+// IRPaths lists the IR files of a directory: its JSON files, apart from the accepted lint findings
+// beside them. Any other JSON file is loaded and refused if it is not an IR Model.
 func IRPaths(dir string) ([]string, error) {
 	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
 	if err != nil {
 		return nil, err
 	}
 	return slices.DeleteFunc(paths, func(p string) bool {
-		return strings.HasSuffix(p, LawSidecarSuffix) || strings.HasSuffix(p, AcceptedSuffix)
+		return strings.HasSuffix(p, AcceptedSuffix)
 	}), nil
 }
 

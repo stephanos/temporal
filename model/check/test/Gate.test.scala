@@ -464,7 +464,7 @@ class GateSuite extends munit.FunSuite:
       Seq(
         vocabularyCheck,
         "go run ./tools/umpire/cmd/umpire-gen-cases --update",
-        s"$lintRun --update",
+        lintRun,
         "go vet -tags test_dep ./tools/umpire/...",
         "go test -count=1 -tags test_dep ./tools/umpire/..."
       )
@@ -628,13 +628,12 @@ class GateSuite extends munit.FunSuite:
       val answer = gate(failing.tools, arguments*)
       assertEquals(answer.status, 1, arguments.mkString(" "))
       assert(answer.err.startsWith("gate: go exited 1 in "), answer.err)
-      // An update forwards the law waivers into the accepted findings as it lints.
-      val ranLint = if arguments.contains("--update") then s"$lintRun --update" else lintRun
-      assert(answer.err.endsWith(s"$ranLint\n"), answer.err)
+      // Updating the accepted waiver metadata is the gate's job, not lint's.
+      assert(answer.err.endsWith(s"$lintRun\n"), answer.err)
       // The Go checks follow the lint, and do not run after it failed.
       assertEquals(
         failing.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")).last,
-        ranLint
+        lintRun
       )
 
   test("a file the gate cannot read fails with its path, not a stack trace"):
