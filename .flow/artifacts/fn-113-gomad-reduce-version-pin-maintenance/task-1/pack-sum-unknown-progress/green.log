@@ -1,0 +1,62 @@
+=== RUN   TestMissingPackActivationSumIsUnknown
+=== RUN   TestMissingPackActivationSumIsUnknown/both_missing
+=== RUN   TestMissingPackActivationSumIsUnknown/candidate_missing
+=== RUN   TestMissingPackActivationSumIsUnknown/baseline_bumped
+--- PASS: TestMissingPackActivationSumIsUnknown (0.05s)
+    --- PASS: TestMissingPackActivationSumIsUnknown/both_missing (0.02s)
+    --- PASS: TestMissingPackActivationSumIsUnknown/candidate_missing (0.01s)
+    --- PASS: TestMissingPackActivationSumIsUnknown/baseline_bumped (0.01s)
+=== RUN   TestPackActivationSumControls
+=== RUN   TestPackActivationSumControls/exact
+=== RUN   TestPackActivationSumControls/repaired_candidate
+=== RUN   TestPackActivationSumControls/absent
+--- PASS: TestPackActivationSumControls (0.04s)
+    --- PASS: TestPackActivationSumControls/exact (0.01s)
+    --- PASS: TestPackActivationSumControls/repaired_candidate (0.01s)
+    --- PASS: TestPackActivationSumControls/absent (0.01s)
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true
+--- PASS: TestKnownPackActivationExclusionWinsOverMissingSum (0.32s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true (0.03s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false (0.03s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true (0.03s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true (0.02s)
+=== RUN   TestPackActivationGraphUnknownRetainsReason
+--- PASS: TestPackActivationGraphUnknownRetainsReason (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.418s
+=== RUN   TestRunPinImpactMissingPackSumIsUnknown
+--- PASS: TestRunPinImpactMissingPackSumIsUnknown (0.11s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.111s
+
+real	0m1.102s
+user	0m2.287s
+sys	0m1.010s

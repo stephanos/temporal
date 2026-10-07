@@ -1,0 +1,9 @@
+/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/cmd/gomadtool/pin_impact_test.go:20:2: could not import golang.org/x/mod/sumdb/dirhash (Config.Importer.Import(golang.org/x/mod/sumdb/dirhash) returned nil but no error) (typecheck)
+	"golang.org/x/mod/sumdb/dirhash"
+	^
+1 issues:
+* typecheck: 1
+
+real	0m0.427s
+user	0m0.846s
+sys	0m0.671s

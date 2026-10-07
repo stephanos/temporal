@@ -1,0 +1,30 @@
+{
+  "base_head": "a45ebab979f4a97f9237bab651cdb90e0dc6b42b",
+  "host": "linux/arm64 development, stock Go 1.27.1",
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "base_production_sha256": "f23f837f1ef129613378d45c658cb4cceba05b76635a18f77ca0cd7a4696dbb2",
+  "final_sources": {
+    "tools/gomad3/upgrade/pinimpact/pinimpact.go": "f948c266c891ce0a04af14b109b98503df6518c422877fbcb1e3e9c0472c154e",
+    "tools/gomad3/upgrade/pinimpact/pack_sums_test.go": "50cce5e8b252c6fc87515a3471f6f7bb3cfd2994826c76a1b7a620d4d1d5218e",
+    "tools/gomad3/cmd/gomadtool/pin_impact_test.go": "1a89c21bac99eec790fc5c083a57bcde892493079f3d4f60b21760786cebb30f"
+  },
+  "focused_run": "^(TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackActivationGraphUnknownRetainsReason|TestPackRuleExclusionWinsOverUnknownActivation|TestRunPinImpactMissingPackSumIsUnknown)$",
+  "checks": [
+    {"log": "red.log", "command": "go -C tools/gomad3 test -tags test_dep ./upgrade/pinimpact -count=1 -run '^(TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackActivationGraphUnknownRetainsReason)$' -v", "exit": 1, "elapsed_seconds": 0.558, "source": "base production and initial tests"},
+    {"log": "cli-red.log", "command": "go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool -count=1 -run '^TestRunPinImpactMissingPackSumIsUnknown$' -v", "exit": 1, "elapsed_seconds": 0.800, "source": "base production and final CLI test"},
+    {"log": "final-tests-red.log", "command": "go -C tools/gomad3 test -overlay /tmp/fn113-pack-sum-baseline.okKlSpCy/overlay.json -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool -count=1 -run FOCUSED_RUN -v", "exit": 1, "elapsed_seconds": 0.881, "source": "exact base production through overlay; final tests"},
+    {"log": "final-green.log", "command": "go -C tools/gomad3 test -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool -count=1 -run FOCUSED_RUN -v", "exit": 0, "elapsed_seconds": 0.707, "source": "final_sources"},
+    {"log": "portable.log.gz", "encoding": "gzip", "command": "anchored exact command retained on first decoded log line, derived from go test -tags test_dep -list '^Test'", "exit": 0, "elapsed_seconds": 4.737, "top_level_tests": 29, "passing_records": 82, "source": "final_sources"},
+    {"log": "lint-baseline.log", "command": "cd tools/gomad3; /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags test_dep --max-issues-per-linter=0 --max-same-issues=0 --config ../../.github/.golangci.yml ./upgrade/pinimpact/...", "exit": 0, "elapsed_seconds": 0.433, "issues": 0, "source": "base before new tests"},
+    {"log": "lint-pinimpact-final.log", "command": "same scoped lint command as baseline", "exit": 0, "elapsed_seconds": 4.657, "issues": 0, "source": "final_sources"},
+    {"log": "lint-final.log", "command": "scoped lint command with ./cmd/gomadtool/... added", "exit": 1, "elapsed_seconds": 3.353, "issues": 129, "source": "earlier proposed production SHA256 1f129e4c545276c2d5aafbe943f3587cb072ca6c4dd8e6d9e298356ff40eaf46"},
+    {"log": "lint-expanded-baseline.log", "command": "expanded scoped lint command with GOFLAGS=-overlay=/tmp/fn113-pack-sum-baseline.okKlSpCy/overlay.json", "exit": 1, "elapsed_seconds": 3.219, "issues": 129, "source": "base production and final tests"},
+    {"command": "diff -u baseline-digests final-digests", "exit": 0, "resolved_canonical_and_human_pairs": 19},
+    {"command": "diff -u lint-baseline-findings lint-final-findings (timing lines removed)", "exit": 0},
+    {"command": "git diff --check", "exit": 0}
+  ],
+  "native_comparators_not_run": ["TestFixtureBumpMatchesBuildRejections", "TestSameVersionWithChangedSum", "TestReplacedModules"],
+  "task_done": false,
+  "native_qualification_claimed": false,
+  "review": "root-owned fresh independent source-progress review pending"
+}

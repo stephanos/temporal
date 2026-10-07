@@ -1,0 +1,9 @@
+Lint module tools/gomad3: 55 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mDownloading fillmore-labs.com/errortype@v0.0.7[0m
+go: fillmore-labs.com/errortype@v0.0.7: loading deprecation for fillmore-labs.com/errortype: module lookup disabled by GOPROXY=off
+make[1]: *** [Makefile:341: /tmp/fn109-lint-tools.ZdNe1t50/errortype-v0.0.7] Error 1
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+lint module tools/gomad3: exit status 2
+exit status 1
+make: *** [Makefile:495: lint-code-fast] Error 1

@@ -1,0 +1,80 @@
+=== RUN   TestMissingPackActivationSumIsUnknown
+=== RUN   TestMissingPackActivationSumIsUnknown/both_missing
+    pack_sums_test.go:59: reported pins = map[], want map[pack-rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2:unknown pack-rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash:unknown]
+=== RUN   TestMissingPackActivationSumIsUnknown/candidate_missing
+    pack_sums_test.go:65: rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2 has no missing activation sum diagnostic: ""
+    pack_sums_test.go:65: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash has no missing activation sum diagnostic: ""
+=== RUN   TestMissingPackActivationSumIsUnknown/baseline_bumped
+    pack_sums_test.go:59: reported pins = map[], want map[pack-rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2:unknown pack-rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash:unknown]
+--- FAIL: TestMissingPackActivationSumIsUnknown (0.03s)
+    --- FAIL: TestMissingPackActivationSumIsUnknown/both_missing (0.01s)
+    --- FAIL: TestMissingPackActivationSumIsUnknown/candidate_missing (0.01s)
+    --- FAIL: TestMissingPackActivationSumIsUnknown/baseline_bumped (0.01s)
+=== RUN   TestPackActivationSumControls
+=== RUN   TestPackActivationSumControls/exact
+=== RUN   TestPackActivationSumControls/repaired_candidate
+=== RUN   TestPackActivationSumControls/absent
+--- PASS: TestPackActivationSumControls (0.04s)
+    --- PASS: TestPackActivationSumControls/exact (0.01s)
+    --- PASS: TestPackActivationSumControls/repaired_candidate (0.01s)
+    --- PASS: TestPackActivationSumControls/absent (0.01s)
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2 = unknown "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate does not require github.com/klauspost/compress"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2 = unknown "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate requires github.com/klauspost/compress@v1.99.0; pinned v1.18.5"
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = unknown "", want resolved exclusion invalidated "candidate requires github.com/klauspost/compress@v1.99.0; pinned v1.18.5"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2 = not-selected "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate requires github.com/klauspost/compress@v1.99.0; pinned v1.18.5; the candidate still requires every activation module"
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = not-selected "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate requires github.com/klauspost/compress@v1.99.0; pinned v1.18.5; the candidate still requires every activation module"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2 = unknown "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate go.sum records h1:1n4ulEmUSWyNjsdu7Qz58JZ5RI1YS1Mr6/lBhSo39e0= for github.com/klauspost/compress@v1.18.5; pinned h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE="
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = unknown "", want resolved exclusion invalidated "candidate go.sum records h1:1n4ulEmUSWyNjsdu7Qz58JZ5RI1YS1Mr6/lBhSo39e0= for github.com/klauspost/compress@v1.18.5; pinned h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE="
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2 = not-selected "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate go.sum records h1:1n4ulEmUSWyNjsdu7Qz58JZ5RI1YS1Mr6/lBhSo39e0= for github.com/klauspost/compress@v1.18.5; pinned h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=; the candidate still requires every activation module"
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = not-selected "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate go.sum records h1:1n4ulEmUSWyNjsdu7Qz58JZ5RI1YS1Mr6/lBhSo39e0= for github.com/klauspost/compress@v1.18.5; pinned h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=; the candidate still requires every activation module"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2 = unknown "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate replaces github.com/klauspost/compress"
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = unknown "", want resolved exclusion invalidated "candidate replaces github.com/klauspost/compress"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/cespare/xxhash/v2 = not-selected "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate replaces github.com/klauspost/compress; the candidate still requires every activation module"
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = not-selected "", want resolved exclusion invalidated "pack activation github.com/klauspost/compress: candidate replaces github.com/klauspost/compress; the candidate still requires every activation module"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = unknown "", want resolved exclusion invalidated "pack activation github.com/cespare/xxhash/v2: candidate does not require github.com/cespare/xxhash/v2"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = unknown "", want resolved exclusion invalidated "pack activation github.com/cespare/xxhash/v2: candidate requires github.com/cespare/xxhash/v2@v2.99.0; pinned v2.3.0"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = unknown "", want resolved exclusion invalidated "pack activation github.com/cespare/xxhash/v2: candidate go.sum records h1:1n4ulEmUSWyNjsdu7Qz58JZ5RI1YS1Mr6/lBhSo39e0= for github.com/cespare/xxhash/v2@v2.3.0; pinned h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs="
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false
+    pack_sums_test.go:166: rule temporal-leaf-xxhash-darwin-arm64 github.com/klauspost/compress/zstd/internal/xxhash = unknown "", want resolved exclusion invalidated "pack activation github.com/cespare/xxhash/v2: candidate replaces github.com/cespare/xxhash/v2"
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true
+--- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum (0.22s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false (0.01s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false (0.01s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false (0.01s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false (0.01s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true (0.01s)
+    --- FAIL: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false (0.01s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true (0.01s)
+=== RUN   TestPackActivationGraphUnknownRetainsReason
+--- PASS: TestPackActivationGraphUnknownRetainsReason (0.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.300s
+FAIL
+
+real	0m0.558s
+user	0m0.696s
+sys	0m0.181s

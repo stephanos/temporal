@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,9 +14,99 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/deterministicio"
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/upgrade/pinimpact"
 	"golang.org/x/mod/module"
+	"golang.org/x/mod/sumdb/dirhash"
 )
+
+func TestRunPinImpactMissingPackSumIsUnknown(t *testing.T) {
+	fixture := newPinImpactFixture(t)
+	packs, err := compatibility.LoadPacks()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var modules []pinImpactModule
+	for _, validated := range packs {
+		pack := validated.Pack()
+		if pack.ID == "temporal-leaf-xxhash-darwin-arm64" {
+			for _, activation := range pack.Activation {
+				modules = append(modules, pinImpactModule{path: activation.Path, version: activation.Version, sum: activation.Sum})
+			}
+		}
+	}
+	if len(modules) != 2 {
+		t.Fatal("checked xxhash pack must activate on two modules")
+	}
+	proxy := t.TempDir()
+	var sums strings.Builder
+	for _, served := range modules {
+		escaped, err := module.EscapePath(served.path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		directory := filepath.Join(proxy, filepath.FromSlash(escaped), "@v")
+		if err := os.MkdirAll(directory, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		goMod := "module " + served.path + "\n\ngo 1.21\n"
+		for name, contents := range map[string]string{
+			served.version + ".mod":  goMod,
+			served.version + ".info": fmt.Sprintf(`{"Version":%q,"Time":"2026-01-01T00:00:00Z"}`, served.version),
+		} {
+			if err := os.WriteFile(filepath.Join(directory, name), []byte(contents), 0o600); err != nil {
+				t.Fatal(err)
+			}
+		}
+		modSum, err := dirhash.Hash1([]string{"go.mod"}, func(string) (io.ReadCloser, error) { return io.NopCloser(strings.NewReader(goMod)), nil })
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Fprintf(&sums, "%s %s/go.mod %s\n", served.path, served.version, modSum)
+		if served.path != "github.com/klauspost/compress" {
+			fmt.Fprintf(&sums, "%s %s %s\n", served.path, served.version, served.sum)
+		}
+	}
+	t.Setenv("GOPROXY", "file://"+filepath.ToSlash(proxy))
+	baseline, candidate := t.TempDir(), t.TempDir()
+	for _, directory := range []string{baseline, candidate} {
+		writePinImpactModule(t, directory, modules)
+		if err := os.WriteFile(filepath.Join(directory, "go.sum"), []byte(sums.String()), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	beforeBaseline, beforeCandidate := readModuleSnapshot(t, baseline), readModuleSnapshot(t, candidate)
+	for _, jsonOutput := range []bool{false, true} {
+		arguments := []string{"pin-impact", "--root", fixture.root, "--module", candidate, "--baseline-module", baseline, "--go", fixture.goCommand}
+		if jsonOutput {
+			arguments = append(arguments, "--json")
+		}
+		var stdout, stderr bytes.Buffer
+		if status := run(arguments, &stdout, &stderr); status != 1 {
+			t.Fatalf("json=%t status=%d, want1:\n%s%s", jsonOutput, status, stdout.String(), stderr.String())
+		}
+		if !strings.Contains(stdout.String(), "module_sum_missing") || !strings.Contains(stdout.String(), "github.com/klauspost/compress@v1.18.5") {
+			t.Fatalf("missing activation diagnostic:\n%s", stdout.String())
+		}
+		if jsonOutput {
+			var report pinimpact.Report
+			if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
+				t.Fatal(err)
+			}
+			if !report.Invalidated || len(report.Pins) != 2 {
+				t.Fatalf("report = %+v, want two unknown pack rules", report)
+			}
+			for _, pin := range report.Pins {
+				if pin.Class != pinimpact.ClassPackRule || pin.Status != pinimpact.StatusUnknown {
+					t.Fatalf("pin = %+v, want unknown pack rule", pin)
+				}
+			}
+		}
+	}
+	if readModuleSnapshot(t, baseline) != beforeBaseline || readModuleSnapshot(t, candidate) != beforeCandidate {
+		t.Fatal("pin impact changed a target module")
+	}
+}
 
 type pinImpactModule struct {
 	path, version, sum string

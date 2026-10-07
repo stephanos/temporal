@@ -282,6 +282,15 @@ func (evaluation *evaluation) evaluatePacks(packs []compatibility.ValidatedPack,
 				SourceSetSHA256: rule.SourceSetSHA256, Platforms: slices.Clone(pack.Governance.Platforms),
 			}
 			pin.CandidateVersion, pin.CandidateSum = evaluation.candidate.observed(rule.Module.Path)
+			match := evaluation.packModule(evaluation.candidate, rule.Module)
+			if candidateActivation.unknown && (match.ok || match.unknown) {
+				pin.Status, pin.Reason = StatusUnknown, evaluation.candidate.unresolved
+				if pin.Reason == "" {
+					pin.Reason = candidateActivation.reason
+				}
+				evaluation.record(pin)
+				continue
+			}
 			if !baselineSelected || !evaluation.packModule(evaluation.baseline, rule.Module).ok {
 				pin.Status = StatusNotSelected
 				// A pack whose activation modules the candidate still requires,
@@ -293,18 +302,17 @@ func (evaluation *evaluation) evaluatePacks(packs []compatibility.ValidatedPack,
 				evaluation.record(pin)
 				continue
 			}
-			match := evaluation.packModule(evaluation.candidate, rule.Module)
 			switch {
 			case match.ok && candidateActivation.ok:
 				pin.Status = StatusUnaffected
 			case match.absent:
 				pin.Status, pin.Reason = StatusStale, "candidate no longer requires "+rule.Module.Path
-			case match.unknown || candidateActivation.unknown:
-				pin.Status, pin.Reason = StatusUnknown, evaluation.candidate.unresolved
-			case !match.ok:
+			case !match.ok && !match.unknown:
 				pin.Status, pin.Reason = StatusInvalidated, match.reason
-			default:
+			case !candidateActivation.ok:
 				pin.Status, pin.Reason = StatusInvalidated, "pack activation "+candidateActivation.reason
+			default:
+				pin.Status, pin.Reason = StatusUnknown, match.reason
 			}
 			evaluation.record(pin)
 		}
@@ -326,13 +334,19 @@ func strandedActivation(target moduleState, activation []compatibility.PackModul
 }
 
 func (evaluation *evaluation) activates(target moduleState, activation []compatibility.PackModule) moduleMatch {
+	result := moduleMatch{ok: true}
 	for _, required := range activation {
 		if match := evaluation.packModule(target, required); !match.ok {
 			match.reason = required.Path + ": " + match.reason
-			return match
+			if !match.unknown {
+				return match
+			}
+			if result.ok {
+				result = match
+			}
 		}
 	}
-	return moduleMatch{ok: true}
+	return result
 }
 
 // packModule matches one pack module the way pack selection matches a built

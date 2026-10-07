@@ -1,0 +1,119 @@
+=== RUN   TestMissingPackActivationSumIsUnknown
+=== RUN   TestMissingPackActivationSumIsUnknown/both_missing
+=== RUN   TestMissingPackActivationSumIsUnknown/candidate_missing
+=== RUN   TestMissingPackActivationSumIsUnknown/baseline_bumped
+--- PASS: TestMissingPackActivationSumIsUnknown (0.07s)
+    --- PASS: TestMissingPackActivationSumIsUnknown/both_missing (0.02s)
+    --- PASS: TestMissingPackActivationSumIsUnknown/candidate_missing (0.03s)
+    --- PASS: TestMissingPackActivationSumIsUnknown/baseline_bumped (0.01s)
+=== RUN   TestPackActivationSumControls
+=== RUN   TestPackActivationSumControls/exact
+    pack_sums_test.go:123: resolved canonical=f03c74d112fd20a986eb7d462e4d4c42b04ce08412f90482914e4eae5161f475 human=6d66d940ce73458badc02d58d6142e23d48f459abc446f75929817b0611f6063
+=== RUN   TestPackActivationSumControls/repaired_candidate
+    pack_sums_test.go:123: resolved canonical=2e3e128dc89239d45371bbc4409994c847267ead315a8b72fe68f407d4a127b4 human=79c7179616f7d37e6bcb430fda6010aff6acd83f36326c90f1bb7ea9492ec78a
+=== RUN   TestPackActivationSumControls/absent
+    pack_sums_test.go:123: resolved canonical=373ab845a32f61d66faf3904c63bc908d6c062ff149ff66af0c7d6db0fed970d human=79c7179616f7d37e6bcb430fda6010aff6acd83f36326c90f1bb7ea9492ec78a
+--- PASS: TestPackActivationSumControls (0.05s)
+    --- PASS: TestPackActivationSumControls/exact (0.01s)
+    --- PASS: TestPackActivationSumControls/repaired_candidate (0.02s)
+    --- PASS: TestPackActivationSumControls/absent (0.01s)
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false
+    pack_sums_test.go:182: resolved canonical=c5629829c0aa7e6061230f2310e2a41180eadaafff2c1d33684616b379cba2fd human=7c9167c931575623930cb4a43b5d53e576247f33e4e83cb5822cabafe600e452
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true
+    pack_sums_test.go:182: resolved canonical=9df5aa4f7644fc09e01f19d60036de709ba7859ff5e6ae9e4b819225dc2c720e human=79c7179616f7d37e6bcb430fda6010aff6acd83f36326c90f1bb7ea9492ec78a
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false
+    pack_sums_test.go:182: resolved canonical=0c38d84ff8151a98b25fcacd5ba2ed6921b2948d324edbca0db43f3c486e7891 human=0fb340084c7689a8f61f409ecede7c2b4d07d9cab75db5c339b5dcea7a7a97b8
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true
+    pack_sums_test.go:182: resolved canonical=8b1daceb4a25b941f71f4b541a2e8a1010873772e377e19d3027abb6c7219710 human=ba9987ff405e6230bd9bf41ef30476fa4c2b9460bb43249ca8d3e5b939e14b10
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false
+    pack_sums_test.go:182: resolved canonical=9bd2ece96fe1cc0f67d5ab9844ba0273f43edca1b8941fe0f7991b7bf3c170e1 human=09fc0c66611ea3d27d56aa64186f64016d8ff1982f8148dafa8faadc6a5ca372
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true
+    pack_sums_test.go:182: resolved canonical=7fcaa6b1e2c0ad4e3e02e19035c75985abb3400314d67fe623f27f81db4c6f19 human=1613247d0f163d6ce6e3f7322d8722e67cc76b0ccc1497a348f541a38aa8a11a
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false
+    pack_sums_test.go:182: resolved canonical=b1a04cd36df1e93464b3225c4a0cdca99037e1bea4a5d3acc053281370225348 human=1f040b2620b9904aceecbbda79f43acbee0eb83e0aff3d65c96c67eb5f823323
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true
+    pack_sums_test.go:182: resolved canonical=d3fb741f85cc0b7bfe36c9750e3f8a8ab7d44e859a1dddb6b172574e1dc0f210 human=e383499f4fd9633c1ed6c5cfdff39ebf43ec9b2eb18e4d6802a27acaa4b24caa
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false
+    pack_sums_test.go:182: resolved canonical=c277eda1a8df24e78b0346e98ffb9c20b7f192261bdbe32c575b9979e0925ee3 human=6d8e7956d0989d0a4b44263ef9e3a55f21cefffa9c443255eb202f51e1b49f87
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true
+    pack_sums_test.go:182: resolved canonical=57571784a3549c293f43b75956e75af6d11e9a813c2aaed43579a82c03c0b328 human=79c7179616f7d37e6bcb430fda6010aff6acd83f36326c90f1bb7ea9492ec78a
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false
+    pack_sums_test.go:182: resolved canonical=1b381880e9d104d63f0d2ab48dddac435da1404cc9e8047c1b0a74c2f14391e1 human=3db955b6adb7809b1d7f42b4baf47fb8c05f47916a9e72a4b4fb40e0780e029e
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true
+    pack_sums_test.go:182: resolved canonical=4f6d6d5eac016f551b841328eb2c159c1b713e54c0f30c62c85070fef3d1cb57 human=f47eb12a414e024e5dc7cd9357ed52b1053b026d406c83d6a5a40fe98625b7a6
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false
+    pack_sums_test.go:182: resolved canonical=8db67c8813152ffad38c54a8c9544a48be63048aa01ae118d16f9b35aa27f703 human=d3095506241bd797ab667ab0a8b379b819282b171ca9c1823fe717a45ad430f4
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true
+    pack_sums_test.go:182: resolved canonical=c70ae3b290915ebd00903665b521d78c45d171e33dbc532fcd987138255bee9f human=27fc082c07d3eaf7ccb246333543ef4ab6f17adf421c64919e56f85242bf0535
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false
+    pack_sums_test.go:182: resolved canonical=aa5041309bbd7d9bf369aff44c13df59ef80405f3435700f5e4bbfb6ecdf658a human=1ee4941abccd2f4b8c2d878cc61d52185b3f5a13f67b83ed2cbbec76687b05df
+=== RUN   TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true
+    pack_sums_test.go:182: resolved canonical=5a48de3beb7923674d9a994affa2dde58b71833e1e048436bad8d9d631aaabaa human=3edb6e8160b7184c1cfb78b4028a7f777a9e21bc3b6eb0915c8f912f2b59ead2
+--- PASS: TestKnownPackActivationExclusionWinsOverMissingSum (0.34s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=false (0.03s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=absent/baselineMissing=true (0.03s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=version/baselineMissing=true (0.03s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=sum/baselineMissing=true (0.03s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/cespare/xxhash/v2/exclusion=replacement/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=absent/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=version/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=sum/baselineMissing=true (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=false (0.02s)
+    --- PASS: TestKnownPackActivationExclusionWinsOverMissingSum/missing=github.com/klauspost/compress/exclusion=replacement/baselineMissing=true (0.02s)
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=exact
+    pack_sums_test.go:265: separate rule disposition=unknown reason="github.com/klauspost/compress: module_sum_missing: candidate go.sum has no sum for github.com/klauspost/compress@v1.18.5"
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=missing
+    pack_sums_test.go:265: separate rule disposition=unknown reason="github.com/klauspost/compress: module_sum_missing: candidate go.sum has no sum for github.com/klauspost/compress@v1.18.5"
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=absent
+    pack_sums_test.go:265: separate rule disposition=stale reason="candidate no longer requires github.com/cespare/xxhash/v2"
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=version
+    pack_sums_test.go:265: separate rule disposition=invalidated reason="candidate requires github.com/cespare/xxhash/v2@v2.99.0; pinned v2.3.0"
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=sum
+    pack_sums_test.go:265: separate rule disposition=invalidated reason="candidate go.sum records h1:D3hjA8qJotF7n3kgkn3iCeyLMoZ0D4+zxnZqw1gmGsU= for github.com/cespare/xxhash/v2@v2.3.0; pinned h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs="
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=replacement
+    pack_sums_test.go:265: separate rule disposition=invalidated reason="candidate replaces github.com/cespare/xxhash/v2"
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=exact
+    pack_sums_test.go:265: separate rule disposition=unknown reason="github.com/klauspost/compress: module_sum_missing: candidate go.sum has no sum for github.com/klauspost/compress@v1.18.5"
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=missing
+    pack_sums_test.go:265: separate rule disposition=unknown reason="github.com/klauspost/compress: module_sum_missing: candidate go.sum has no sum for github.com/klauspost/compress@v1.18.5"
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=absent
+    pack_sums_test.go:265: separate rule disposition=not-selected reason=""
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=version
+    pack_sums_test.go:265: separate rule disposition=not-selected reason=""
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=sum
+    pack_sums_test.go:265: separate rule disposition=not-selected reason=""
+=== RUN   TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=replacement
+    pack_sums_test.go:265: separate rule disposition=not-selected reason=""
+--- PASS: TestPackRuleExclusionWinsOverUnknownActivation (0.03s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=exact (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=missing (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=absent (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=version (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=sum (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=false/rule=replacement (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=exact (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=missing (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=absent (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=version (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=sum (0.00s)
+    --- PASS: TestPackRuleExclusionWinsOverUnknownActivation/baselineMissing=true/rule=replacement (0.00s)
+=== RUN   TestPackActivationGraphUnknownRetainsReason
+--- PASS: TestPackActivationGraphUnknownRetainsReason (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.512s
+=== RUN   TestRunPinImpactMissingPackSumIsUnknown
+--- PASS: TestRunPinImpactMissingPackSumIsUnknown (0.10s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.108s
+
+real	0m0.853s
+user	0m1.194s
+sys	0m0.921s

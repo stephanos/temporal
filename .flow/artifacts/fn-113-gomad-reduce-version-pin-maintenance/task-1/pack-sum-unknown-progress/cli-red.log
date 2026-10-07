@@ -1,0 +1,15 @@
+=== RUN   TestRunPinImpactMissingPackSumIsUnknown
+    pin_impact_test.go:86: json=false status=0, want1:
+        gomad3 pin impact (pinned go1.27.1; platforms darwin/arm64, linux/amd64): 0 invalidated, 0 unknown, 0 stale
+          adapter                     15 pins: 0 invalidated, 0 unknown, 0 stale, 0 unaffected, 15 not selected
+          pack-rule                   54 pins: 0 invalidated, 0 unknown, 0 stale, 0 unaffected, 54 not selected
+          interception-fingerprint   132 pins: 0 invalidated, 0 unknown, 0 stale, 132 unaffected, 0 not selected
+          clock-reference             48 pins: 0 invalidated, 0 unknown, 0 stale, 48 unaffected, 0 not selected
+--- FAIL: TestRunPinImpactMissingPackSumIsUnknown (0.04s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.042s
+FAIL
+
+real	0m0.800s
+user	0m1.441s
+sys	0m1.079s

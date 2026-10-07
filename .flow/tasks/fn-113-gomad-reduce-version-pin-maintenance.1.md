@@ -50,6 +50,20 @@ Use TDD: retain a failing public Evaluate/Encode/Render regression before produc
 
 Retain compact RED/GREEN and final command evidence, a fresh independent source-progress review, and a separate verified-progress commit. This fixes source behavior but does not complete task1's original native acceptance. Linux remains deferred and unverified under fn128. Use the existing task1 rather than adding a duplicate owner.
 
+## Source correction: missing pack activation sums
+
+fn-113 R2 and the README require missing module identities to report unknown and count as invalidated. Investigate whether a missing zip checksum for an otherwise exact pack activation module produces not_selected when the baseline shares that omission, and whether a selected baseline yields an empty unknown reason.
+
+**Touches:** [tools/gomad3/upgrade/pinimpact/pinimpact.go, tools/gomad3/upgrade/pinimpact/*_test.go, tools/gomad3/cmd/gomadtool/pin_impact_test.go, .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/**]
+
+Retain a public Evaluate/Encode/Render failing regression before production edits. Use validated checked-in packs and real immutable module files with only an activation module's zip sum omitted, retaining its /go.mod sum. Candidate uncertainty counts as unknown only when every activation identity matches or remains unknown. Preserve fully resolved dispositions and reason bytes. Mixed missing-sum and known-exclusion inputs currently hide known exclusions or emit empty unknown reasons depending on activation order; restore the existing resolved-exclusion disposition and reason for those mixed inputs. Baseline uncertainty alone must preserve behavior for a fully known repaired candidate. Cover both missing baselines/candidates, candidate-only missing sums, exact controls, repaired candidates and packs excluded by another known activation identity.
+
+If the premise reproduces, repair only this selection and diagnostic propagation. Preserve exact resolved report bytes, pack validation, replacement policy, schemas, CLI grammar/status mappings, module immutability, pins, generated files, toolchain inputs, native guards and existing comments. Do not add dependencies or qualification claims. Keep the three original native preparation comparisons, required full/Darwin acceptance and formal review open. Linux remains deferred under fn128.
+
+Validated packs may bind a rule module separately from their activation modules. An uncertain activation must not override a definitely absent or mismatched rule identity. Cover these cases through a validated external pack. Preserve stale-rule and baseline-unselected rule dispositions; mixed uncertain activation and known rule mismatches follow the resolved rule-exclusion disposition and reason.
+
+Run focused and portable package tests with test_dep, unfiltered scoped lint, vet/errortype, check-only validate, relevant architecture checks and mandatory make lint-code-fast with fixes disabled. Retain RED/GREEN, final source-bound commands and a fresh same-family source-progress review, then commit verified progress separately. Preserve every original Acceptance, Done summary and Evidence entry.
+
 ## Acceptance
 
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
@@ -95,6 +109,18 @@ stage: plan-sync - skipped(empty: no completed task; planSync.enabled=false)
 
 Required task Quick still exits 1 on TestFixtureBumpMatchesBuildRejections, TestSameVersionWithChangedSum and TestReplacedModules: production refuses the developmental linux/arm64 host before the real pin/build endpoint comparisons. All six scoped lint findings are now repaired, and source-bound duplicate-sum, rendering, cleanup and legacy archive regressions pass, but their portable proof does not replace those original comparisons. Run the unchanged explicit task command on supported Darwin and retain passing real endpoint evidence, then obtain formal implementation review before completing task1. See .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/ for current-source receipts and fresh source-progress approval. Production platforms, pins and the registry implementation remain unchanged. Native runtime/full qualification under fn-113 R6 remains with task4; transferred Linux execution belongs to fn-128 and is not this blocker.
 
+## Source progress - missing pack sums (2026-10-07)
+
+Pin-impact now reports missing activation zip sums as unknown with a module-specific explanation, including shared baseline/candidate omissions and an excluded baseline with a potentially selectable candidate. The real CLI regression changes status 0 to status 1 while preserving both input module snapshots. Candidate uncertainty no longer hides known activation or independent rule exclusions. Mixed-input classification and empty-reason corrections are intentional; nineteen candidate-resolved canonical/human control pairs retain their baseline bytes.
+
+The worker's portable selection passes 29 top-level tests and 82 test/subtest records, with zero skips. The conductor and fresh same-family Codex reviewer independently pass six focused tests and 40 records each. Scoped pinimpact lint stays clean. Final expanded CLI/pinimpact lint remains red at 129 unchanged diagnostic blocks; mandatory fast lint passes changed lines while filtering 302 configured findings. Vet, errortype, check-only validation, four architecture checks, formatting and diff checks pass. Setup failures remain disclosed separately.
+
+See [handover](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/handover.md), [conductor proof](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-proof.json) and [source review](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/source-review.md). Earlier explicit-root diagnostics and other checkpoint receipts remain historical source progress. Original native comparator, Darwin/full and formal acceptance remains open. Linux remains deferred and unverified under fn128. Original Acceptance, Done summary and Evidence below retain their meaning.
+
+stage: worker - ran (model: gpt-6.1-sol at high)
+stage: impl-review - skipped(policy: original task Quick/native/full acceptance remains red or unavailable; source-progress review grants no formal SHIP)
+stage: plan-sync - skipped(empty: no completed task; planSync.enabled=false)
+
 ## Done summary
 The retained rebased-source baseline measures1044 runtime patch lines in20 files,61 overlay files/18437 lines,15 adapters/135 SHA256 anchors,12 packs/54 rules/19 module-version pins,131 interceptions/132 fingerprints, and25 clock references. MILESTONES maintenance counts are corrected; baseline.json includes the historical fn-110 baseline, source hashes and per-bump commands/hand edits.
 
@@ -116,6 +142,15 @@ Original task1 build-pin comparisons and required full/native-Darwin/formal gate
 The new gomadtool pin-impact command reads candidate go.mod/go.sum and the same adapter registry and validated pack descriptors as the build. Canonical path-free JSON and human output list adapters, source-set-bound pack rules, both-platform interception fingerprints and clock references. Exact immutable module version/sum identities need no resolution or downloads; missing sums are unknown. Removed/replaced modules, changed sums, indirect bumps, unselected pack variants, immutable inputs, status0/1/2/3 and output failure are tested. A sentry/reflect2 fixture invalidates exactly the adapter and pack the fail-closed build rejects.
 
 The final review fixed missing module-directive validation, retaining a CLI red status0 and green status2. Full cmd/gomadtool and upgrade tests and scoped vet pass after that three-line guard. The prior shared native45-package host gate and validate pass on unchanged runtime/generated inputs; see fn-114/task-13/integrated-source-hashes.json for the full-gate source snapshot plus supplemental fix hashes. Independent re-review returned SHIP at fn-114/task-13/integrated-review.json. Linux remains unverified; root lint cannot load nested-module paths. No implementation commits or pushes; the user owns commits. Adapter regeneration and pack refresh remain later tasks.
+
+Blocked:
+The missing-pack-sum correction has verified source progress. Public reports now expose shared missing zip checksums as unknown rather than hiding actionable pack rules, and supply module-specific explanations. The real CLI regression changes status 0 to status 1 without mutating either input module. Known activation or independent rule exclusions retain their resolved-exclusion semantics; old mixed-input empty unknown or hidden not-selected results intentionally change. Nineteen candidate-resolved canonical/human control pairs match the base production overlay.
+
+Portable selection passes 29 top-level tests and 82 test/subtest records, with zero failures or skips. The conductor and fresh same-family Codex reviewer independently pass six focused tests and 40 records each. Scoped pinimpact lint remains clean; final expanded CLI/pinimpact lint remains red at 129 identical diagnostic blocks. Mandatory fast lint passes changed lines while filtering 302 configured findings. Full lint remains red. Vet, errortype, check-only validation, four architecture checks, formatting and diff checks pass. Setup failures are retained and earn no behavioral proof.
+
+Evidence is retained under .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/. This checkpoint preserves the earlier explicit-root path correction and its evidence. The fresh source-progress review is neither formal SHIP nor task completion.
+
+Original TestFixtureBumpMatchesBuildRejections, TestSameVersionWithChangedSum and TestReplacedModules remain unchanged and unproved, along with required native Darwin/full/formal gates. The developmental linux/arm64 host and absent patched driver cannot supply them. Do not repeat unchanged unsupported-host failures. Linux remains deferred and unverified under fn128 and does not block this source correction. Historical acceptance receipts remain historical evidence, not current-candidate native proof.
 ## Evidence
 - Commits:
 - Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./upgrade/..., make -C tools/gomad3 validate, gomadtool pin-impact --format json on current rebased root, go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/...

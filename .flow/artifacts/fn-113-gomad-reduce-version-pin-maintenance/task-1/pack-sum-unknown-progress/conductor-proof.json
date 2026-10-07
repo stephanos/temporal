@@ -1,0 +1,183 @@
+{
+  "base": "a45ebab979f4a97f9237bab651cdb90e0dc6b42b",
+  "source_hashes_verified": {
+    "tools/gomad3/upgrade/pinimpact/pinimpact.go": "f948c266c891ce0a04af14b109b98503df6518c422877fbcb1e3e9c0472c154e",
+    "tools/gomad3/upgrade/pinimpact/pack_sums_test.go": "50cce5e8b252c6fc87515a3471f6f7bb3cfd2994826c76a1b7a620d4d1d5218e",
+    "tools/gomad3/cmd/gomadtool/pin_impact_test.go": "1a89c21bac99eec790fc5c083a57bcde892493079f3d4f60b21760786cebb30f"
+  },
+  "host": "linux/arm64, stock Go 1.27.1, offline",
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "checks": [
+    {
+      "name": "focused",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason|TestRunPinImpactMissingPackSumIsUnknown)$' ./upgrade/pinimpact ./cmd/gomadtool",
+      "exit_code": 0,
+      "elapsed_seconds": null,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-green.log",
+      "tool_wait_seconds": 1.000437583
+    },
+    {
+      "name": "fast-lint",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off make lint-code-fast GOLANGCI_LINT_BASE_REV=a45ebab979f4a97f9237bab651cdb90e0dc6b42b GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype-v0.0.7 ALL_TEST_TAGS=test_dep",
+      "exit_code": 2,
+      "tool_wait_seconds": 1.000537875,
+      "elapsed_seconds": null,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-fast-lint-setup-failure.log",
+      "classification": "setup failure; nonexistent errortype-v0.0.7 path; no successful lint"
+    },
+    {
+      "name": "fast-lint",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off make lint-code-fast GOLANGCI_LINT_BASE_REV=a45ebab979f4a97f9237bab651cdb90e0dc6b42b GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-fast-lint.log",
+      "elapsed_seconds": 5.821
+    },
+    {
+      "name": "expanded-lint-base",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off GOFLAGS=-overlay=/tmp/fn113-root-lint-base.belLus/overlay.json bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/pinimpact ./cmd/gomadtool'",
+      "exit_code": 1,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-expanded-lint-overlay-setup-failure.log",
+      "classification": "overlay setup/typecheck failure; linter AST imports did not agree with overlaid baseline CLI test imports; no useful lint baseline",
+      "elapsed_seconds": 0.427
+    },
+    {
+      "name": "expanded-lint-base",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off GOFLAGS=-overlay=/tmp/fn113-root-lint-base.belLus/overlay.json bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/pinimpact ./cmd/gomadtool'",
+      "exit_code": 1,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-expanded-lint-base.log",
+      "binding": "exact baseline production and final tests",
+      "elapsed_seconds": 0.441
+    },
+    {
+      "name": "expanded-lint-final",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/pinimpact ./cmd/gomadtool'",
+      "exit_code": 1,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-expanded-lint-final.log",
+      "binding": "final frozen production and tests",
+      "elapsed_seconds": 0.928
+    },
+    {
+      "name": "vet",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-vet.log",
+      "elapsed_seconds": 0.19
+    },
+    {
+      "name": "errortype",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/pinimpact ./cmd/gomadtool",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-errortype.log",
+      "elapsed_seconds": 0.112
+    },
+    {
+      "name": "validate",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-validate.log",
+      "elapsed_seconds": 2.715
+    },
+    {
+      "name": "architecture",
+      "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases)$' .",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-architecture.log",
+      "elapsed_seconds": 29.621
+    }
+  ],
+  "counts": {
+    "focused": {
+      "top_level_tests": 6,
+      "passing_test_records": 40,
+      "terminal_leaves": 36,
+      "failed_test_records": 0,
+      "skipped_test_records": 0
+    },
+    "portable": {
+      "top_level_tests": 29,
+      "passing_test_records": 82,
+      "terminal_leaves": 73,
+      "failed_test_records": 0,
+      "skipped_test_records": 0
+    },
+    "reviewer": {
+      "top_level_tests": 6,
+      "passing_test_records": 40,
+      "terminal_leaves": 36,
+      "failed_test_records": 0,
+      "skipped_test_records": 0
+    }
+  },
+  "expanded_lint": {
+    "issues_base": 129,
+    "issues_final": 129,
+    "equal": true,
+    "binding_base": "exact baseline production with final tests",
+    "binding_final": "final frozen production and tests"
+  },
+  "mandatory_fast_lint": {
+    "exit_code": 0,
+    "configured_findings_before_diff": 302,
+    "changed_line_issues": 0,
+    "full_lint_clean": false
+  },
+  "gofmt": {
+    "exit_code": 0,
+    "unformatted_files": []
+  },
+  "diff_check": {
+    "exit_code": 0
+  },
+  "immutable_inputs": "No module, policy, generated pack, runtime/toolchain, native guard or existing comment changes; source diff limited to three admitted files",
+  "evidence_log_sha256": {
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-validate.log": "45731e0fb7fe5888fd365b26204fccd4d4c0abe82b21d655db811de382a04356",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-expanded-lint-base.log": "04f0bf78cd3d3906f2f8c062e4416a65ded5ee2603057100bc38a6ee51929a39",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/green.log": "bbcd164645d728bbb79dcab2fefb0c47cdb5e38791114930db7d02df7cc9d7b3",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-architecture.log": "f0de179e8238343c285b4eb20ae4a520fe2a4c6d99cc116ad45a5c280377ac34",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/worker-handover.md": "c50ecea9df87ec96a68ecebada55d1b054dda6ff4b803e81dedf272bfc24a696",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-errortype.log": "ccb59ba85b8fe140ca2f9a8d0d15c08ea7ede9640d7d57e2bf695a881fc1c1d0",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-green.log": "62bc252d787eec5b7f10483be7bd8c940693d1048f0dcbcd34dfd98e26608aaa",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-fast-lint.log": "7aa06e601303dc427d1911842c91a413388005c3a4c9adc47ba3b927f8c4b8c6",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/lint-pinimpact-final.log": "de4a5d1c5f1c31cd2a606ffc891e3e539ac1b2ba810650a8586f4863d29e7471",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-expanded-lint-overlay-setup-failure.log": "54719a7284c116a4818469856ce7876258022612550f6e64d9269051eff52dae",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-fast-lint-setup-failure.log": "ead4a16ddea0b131e14500cc192b42a47681ca9801162a1ea3877e8285d5dbc2",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/rule-exclusion-red.log": "aa733c8d023fae71a0c5392f1bb87df7f6f274afa91bf0bc5f111aedff4cfc5c",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/red.log": "8182a17600e316b33c234a7ce8bebf4dce71b4a59470c8fd7c99a5550542919f",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/reviewer-green.log": "a4beb7ae0939a88429e9a2f34b1d4308e0734448697e6495fe4a4150cb787df7",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/lint-baseline.log": "439c64e837dc0946222e62c8e20df5db1126e03f9130196714930518ac737b78",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-vet.log": "251d66e23a7e3dfedbcaf2efbc19929523cbfbcd37528acdbfc6ec33f9d8c5bd",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/lint-expanded-baseline.log": "a8aa72512b1dac5db2dc8239e320e00db2d126d41af95d37421ad4ff20011b3a",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/cli-red.log": "2ce0707bb47fd059e9c3e1fa8aa87f2574e29959fee6027b6801d52d0a3776dd",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/final-tests-red.log": "00ba3e0c214f5e208ba29b11c6c04657dd1756bf0b0c30cb847d6a4515584d85",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/lint-final.log": "76762af89a5afaaf293609f1952517a2bcb797bb9e9516d08b168dc5e27d6303",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/conductor-expanded-lint-final.log": "b262e8dbc73e40ee073dcf575a43915fb78b697e274fbeecf2fd7959dcf47509",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/final-green.log": "4d3198dea37712ce5e9be020c59243f28be62269319afd1ee1dc00cdb999515c",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/rule-exclusion-baseline.log": "7b7a2f9dc09445a96fb2a3495d4311b1164f49e8ee008ded22be915aa22abafd",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/worker-observations.json": "46672ab7cf4fbde6085f39305f4d483550e49edb1a9e4f7baa01975c7e6ac316",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/portable.log.gz": "24867e6d189558cc6641275639098c8503ec51083d095d8faad8a5c5d1542616"
+  },
+  "required_acceptance": {
+    "native_comparators_not_run": [
+      "TestFixtureBumpMatchesBuildRejections",
+      "TestSameVersionWithChangedSum",
+      "TestReplacedModules"
+    ],
+    "Darwin_native_full_and_formal": "open",
+    "Linux": "deferred and unverified under fn128",
+    "task_done": false,
+    "formal_ship": false
+  },
+  "timing_notes": "Shell real elapsed seconds are retained when available. The first focused conductor run did not retain a command wall-clock timer; its elapsed_seconds is null and tool_wait_seconds is only time spent inside tool waits. Go package timings remain in its log.",
+  "compressed_evidence": {
+    "file": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/portable.log.gz",
+    "encoding": "gzip",
+    "decoded_sha256": "13f9960ba0721948d9f0f24eb2b14445cdb71c580d391116a82db5011ba740f5",
+    "raw_local_copy": ".flow/tmp/pack-sum-unknown-progress/portable.log",
+    "reason": "Preserve exact negative-test output including a trailing space while keeping the staged text diff whitespace-clean."
+  },
+  "staged_whitespace": {
+    "initial_exit_code": 2,
+    "reason": "one trailing space in raw negative-test stdout",
+    "resolution": "lossless gzip encoding with verified decoded SHA256; raw output moved recoverably to ignored scratch"
+  }
+}

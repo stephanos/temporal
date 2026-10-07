@@ -1,0 +1,29 @@
+{
+  "base": "a45ebab979f4a97f9237bab651cdb90e0dc6b42b",
+  "original_sections_byte_equal": {
+    "acceptance": true,
+    "done_summary": true,
+    "evidence": true
+  },
+  "flow_validation": {
+    "exit_code": 0,
+    "specs": 21,
+    "tasks": 190,
+    "valid": true,
+    "existing_warnings": [
+      "fn-104 R4 uncovered",
+      "fn-107 R10/R12/R7/R8 uncovered"
+    ]
+  },
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.1",
+  "status": "blocked",
+  "review": "source-progress-acceptable",
+  "formal_ship": false,
+  "task_done": false,
+  "writer_and_reviewer_family": "Codex, same family",
+  "push": false,
+  "files_preserved_unstaged": [
+    ".turbo/plans/gomad3-glossary-update.md",
+    ".turbo/technical-debt.md"
+  ]
+}
