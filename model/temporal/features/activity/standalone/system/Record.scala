@@ -86,8 +86,8 @@ abstract class AdmissionCapabilities(using
     rejected = Outcome.notFound
   )
   val pausable: Capability = Pausable(
-    pause = client.control(Control.pause),
-    unpause = client.control(Control.unpause)
+    pause = client.pause,
+    unpause = client.unpause
   )
   val pollable: Capability = Pollable(dispatch = worker.poll)
   except(Closable.closedIsRejectedUniformly, because = ActivityRecord.states.deliveryAfterClose)
@@ -230,7 +230,7 @@ object ActivityRecord
     on(history.dispatch)(in(scheduled) ~> effects.sendDispatch)
 
     // A pause of a paused or closed record has no rule, and the other controls are out of scope.
-    on(client.control(Control.pause)) {
+    on(client.pause) {
       in(scheduled) ~> effects.pause
       in(started) ~> effects.pauseHeld
     }
@@ -241,7 +241,7 @@ object ActivityRecord
       in(paused, pausedWhileHeld, started, completed, timedOut) ~> effects.rejectDelivery
     }
     on(history.answerMatching)(where(_.answer == Answer.owed) ~> effects.answerMatching)
-    on(worker.respond(AttemptResult.completed))(in(started) ~> effects.complete)
+    on(worker.respondCompleted)(in(started) ~> effects.complete)
 
     // Schedule-to-start covers the wait for a worker, so it fires only before an attempt is
     // admitted; schedule-to-close covers the whole activity, so it competes with the other deadline
@@ -304,16 +304,16 @@ object ActivityRecord
     ) =
       val claims = properties.admissionClaims(m, declared)
       val staleDeliveryAfterPause =
-        m.scenario.actions(history.dispatch, client.control(Control.pause), worker.poll)
+        m.scenario.actions(history.dispatch, client.pause, worker.poll)
       val admittedBeforePause =
-        m.scenario.actions(history.dispatch, worker.poll, client.control(Control.pause))
+        m.scenario.actions(history.dispatch, worker.poll, client.pause)
       val duplicateDelivery =
         m.scenario.actions(history.dispatch, worker.poll, worker.poll)
       val startedAfterCompletion = m.scenario
         .actions(
           history.dispatch,
           worker.poll,
-          worker.respond(AttemptResult.completed),
+          worker.respondCompleted,
           worker.poll
         )
       val scheduleToStartFirst = m.scenario.actions(history.dispatch, deadline.scheduleToStart)
@@ -408,7 +408,7 @@ object HeldDispatch
     import AdmissionPhase.*
 
     on(history.dispatch)(in(scheduled) ~> ActivityRecord.effects.sendDispatch)
-    on(client.control(Control.pause)) {
+    on(client.pause) {
       in(scheduled) ~> ActivityRecord.effects.pause
       in(started) ~> ActivityRecord.effects.pauseHeld
     }
@@ -436,7 +436,7 @@ object HeldDispatch
   object queries:
     val heldStaleDelivery = scenario.actions(
       history.dispatch,
-      client.control(Control.pause),
+      client.pause,
       worker.poll
     )
     val heldStaleDeliveryQuery =

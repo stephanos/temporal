@@ -103,10 +103,10 @@ private val attempts = script(
     .Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
 )(
   perform(
-    worker.respond(AttemptResult.completed) -> completeAttempt,
-    worker.respond(AttemptResult.failed(true)) -> failAttempt,
-    worker.respond(AttemptResult.failed(false)) -> failActivity,
-    worker.respond(AttemptResult.canceled) -> cancelAttempt
+    worker.respondCompleted -> completeAttempt,
+    worker.respondFailed(Failure.retryable) -> failAttempt,
+    worker.respondFailed(Failure.fatal) -> failActivity,
+    worker.respondCanceled -> cancelAttempt
   )
 )
 
@@ -130,7 +130,7 @@ object Standalone extends Realizes(ActivitySystem):
   object controller
       extends Controller(
         perform(shared.worker.worker.stop -> stopWorker),
-        onPath(client.control(Control.pause))(stopWorkerBeforePause),
+        onPath(client.pause)(stopWorkerBeforePause),
         // Every class of the start, each setting the deadlines it expires; a schedule-to-close
         // deadline no start sets, so a class that expires one is unrealizable.
         deadlines[StartActivityExecutionRequest](
@@ -142,20 +142,20 @@ object Standalone extends Realizes(ActivitySystem):
           scheduleToStart.sets(_.getScheduleToStartTimeout),
           startToClose.sets(_.getStartToCloseTimeout)
         ),
-        perform(client.control(Control.pause) -> pauseActivity),
-        onPath(client.control(Control.pause))(described.await(system.Fact.statusPaused)),
-        perform(client.control(Control.unpause) -> unpauseActivity),
-        onPath(client.control(Control.unpause))(resumeWorker),
-        perform(client.control(Control.requestCancel) -> requestCancelActivity),
-        perform(client.control(Control.terminate) -> terminateActivity),
-        onPath(worker.respond(AttemptResult.completed))(
+        perform(client.pause -> pauseActivity),
+        onPath(client.pause)(described.await(system.Fact.statusPaused)),
+        perform(client.unpause -> unpauseActivity),
+        onPath(client.unpause)(resumeWorker),
+        perform(client.requestCancel -> requestCancelActivity),
+        perform(client.terminate -> terminateActivity),
+        onPath(worker.respondCompleted)(
           described.await(system.Fact.statusCompleted)
         ),
-        onPath(worker.respond(AttemptResult.failed(false)))(
+        onPath(worker.respondFailed(Failure.fatal))(
           described.await(system.Fact.statusFailed)
         ),
-        onPath(worker.respond(AttemptResult.canceled))(described.await(system.Fact.statusCanceled)),
-        onPath(client.control(Control.terminate))(described.await(system.Fact.statusTerminated)),
+        onPath(worker.respondCanceled)(described.await(system.Fact.statusCanceled)),
+        onPath(client.terminate)(described.await(system.Fact.statusTerminated)),
         onPath(deadline.scheduleToStart, deadline.startToClose)(
           described.await(everyValue(system.Fact.statusTimedOut))
         )
@@ -183,14 +183,14 @@ object Standalone extends Realizes(ActivitySystem):
           attempts,
           attempt = 2,
           after = startActivity,
-          Taking(worker.respond(AttemptResult.failed(true)), 1),
+          Taking(worker.respondFailed(Failure.retryable), 1),
           Taking(worker.poll, 2)
         ),
         answeredAs(
           kind = scheduledAgain,
           records = system.Fact.statusScheduled,
           call = unpauseActivity,
-          Taking(client.control(Control.unpause), 1)
+          Taking(client.unpause, 1)
         )
       )
 
@@ -260,8 +260,8 @@ object HeldDelivery extends Realizes(HeldDispatch):
       extends Controller(
         everyCase(startUnreached),
         perform(history.dispatch -> holdDispatch),
-        perform(client.control(Control.pause) -> pauseActivity),
-        onPath(client.control(Control.pause))(pauseDescribed.await(AdmissionFact.statusPaused)),
+        perform(client.pause -> pauseActivity),
+        onPath(client.pause)(pauseDescribed.await(AdmissionFact.statusPaused)),
         perform(worker.poll -> releaseDispatch)
       )
   object evidence

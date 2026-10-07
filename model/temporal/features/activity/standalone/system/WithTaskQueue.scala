@@ -52,8 +52,8 @@ abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
     rejected = RecordOverQueue.states.closedAnswer
   )
   val pausable: Capability = Pausable(
-    pause = c.own(_.activity, client.control(Control.pause)),
-    unpause = c.own(_.activity, client.control(Control.unpause))
+    pause = c.own(_.activity, client.pause),
+    unpause = c.own(_.activity, client.unpause)
   )
   val pollable: Capability = Pollable(
     dispatch = c.synced(_.activity -> worker.poll)
@@ -68,8 +68,8 @@ abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
     rejected = RecordOverQueue.states.closedAnswer
   )
   val pausable: Capability = Pausable(
-    pause = c.own(_.activity, client.control(Control.pause)),
-    unpause = c.own(_.activity, client.control(Control.unpause))
+    pause = c.own(_.activity, client.pause),
+    unpause = c.own(_.activity, client.unpause)
   )
   val pollable: Capability = Pollable(
     dispatch = c.synced(_.activity -> worker.poll)
@@ -133,13 +133,13 @@ object RecordOverQueue
       val claims = properties.overQueueClaims(c, declared)
       val staleDeliveryAfterPause = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
-        c.own(_.activity, client.control(Control.pause)),
+        c.own(_.activity, client.pause),
         c.synced(_.activity -> worker.poll)
       )
       val admittedBeforePause = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
         c.synced(_.activity -> worker.poll),
-        c.own(_.activity, client.control(Control.pause))
+        c.own(_.activity, client.pause)
       )
       val duplicateDelivery = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
@@ -206,7 +206,7 @@ object RecordOverMatching
         c.synced(_.activity -> history.dispatch),
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.persistTask),
-        c.own(_.activity, client.control(Control.pause)),
+        c.own(_.activity, client.pause),
         c.synced(_.activity -> worker.poll)
       )
       val admittedBeforePause = c.scenario.actions(
@@ -214,7 +214,7 @@ object RecordOverMatching
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.persistTask),
         c.synced(_.activity -> worker.poll),
-        c.own(_.activity, client.control(Control.pause))
+        c.own(_.activity, client.pause)
       )
       // The answer to the poller is lost after the commit, so the persisted task is handed out again.
       val deliveredAgainAfterLostAck = c.scenario.actions(

@@ -289,13 +289,13 @@ func TestActivityPropertiesOnEveryRow(t *testing.T) {
 	failures := map[string]int{}
 	for _, phase := range []string{"canceled", "completed", "failed", "terminated", "timedOut"} {
 		failures["activityProduct.closedIsRejectedUniformly on activitySystem: "+phase+" stop"] = 24
-		failures["activitySystem.cancelIsRequested on activitySystem: "+phase+" control-requestCancel"] = 24
-		failures["cancelRequestedWhileStarted on activitySystem: "+phase+" control-requestCancel"] = 24
-		failures["activitySystem.terminateSettles on activitySystem: "+phase+" control-terminate"] = 24
-		failures["terminated on activitySystem: "+phase+" control-terminate"] = 24
+		failures["activitySystem.cancelIsRequested on activitySystem: "+phase+" requestCancel"] = 24
+		failures["cancelRequestedWhileStarted on activitySystem: "+phase+" requestCancel"] = 24
+		failures["activitySystem.terminateSettles on activitySystem: "+phase+" terminate"] = 24
+		failures["terminated on activitySystem: "+phase+" terminate"] = 24
 	}
 	for _, phase := range []string{"started", "cancelRequested", "pauseRequested"} {
-		failures["retryCompletes on activitySystem: "+phase+" respond-completed"] = 23
+		failures["retryCompletes on activitySystem: "+phase+" respondCompleted"] = 23
 	}
 	require.Equal(t, failures, failing)
 
@@ -382,32 +382,32 @@ func TestActivityQueriesAnswerAlongTheirPaths(t *testing.T) {
 		scheduled       = accepted("start-unset-unset-unset", "scheduled-0-unset-unset-unset", "statusScheduled")
 		stopped         = accepted("stop", "scheduled-0-unset-unset-unset")
 		started         = accepted("poll", "started-1-unset-unset-unset", "statusStarted", "attemptCount")
-		cancelRequested = accepted("control-requestCancel", "cancelRequested-1-unset-unset-unset", "statusCancelRequested")
-		canceled        = accepted("respond-canceled", "canceled-1-unset-unset-unset", "statusCanceled")
-		terminated      = accepted("control-terminate", "terminated-0-unset-unset-unset", "statusTerminated")
+		cancelRequested = accepted("requestCancel", "cancelRequested-1-unset-unset-unset", "statusCancelRequested")
+		canceled        = accepted("respondCanceled", "canceled-1-unset-unset-unset", "statusCanceled")
+		terminated      = accepted("terminate", "terminated-0-unset-unset-unset", "statusTerminated")
 	)
 	require.Equal(t, map[string]pathAnswer{
 		"activityProduct.closedIsRejectedUniformly": verified(10, 10),
 		"activityProduct.pausedIsNotDispatched":     verified(10, 10),
 		"activityProduct.terminalStatesAreFinal":    verified(10, 10),
 		"activitySystem.cancelIsRequested": found(4, scheduled, stopped,
-			accepted("control-requestCancel", "cancelRequested-0-unset-unset-unset", "statusCancelRequested")),
+			accepted("requestCancel", "cancelRequested-0-unset-unset-unset", "statusCancelRequested")),
 		"activitySystem.terminateSettles": found(4, scheduled, stopped, terminated),
 		"cancel":                          found(5, scheduled, started, cancelRequested, canceled),
 		"cancelRequest":                   found(5, scheduled, started, cancelRequested, canceled),
 		"completion": found(4, scheduled, started,
-			accepted("respond-completed", "completed-1-unset-unset-unset", "statusCompleted")),
+			accepted("respondCompleted", "completed-1-unset-unset-unset", "statusCompleted")),
 		"nonRetryableFailure": found(4, scheduled, started,
-			accepted("respond-failed-false", "failed-1-unset-unset-unset", "statusFailed")),
+			accepted("respondFailed-fatal", "failed-1-unset-unset-unset", "statusFailed")),
 		"pauseResume": found(6, scheduled,
-			accepted("control-pause", "paused-0-unset-unset-unset", "statusPaused"),
-			accepted("control-unpause", "scheduled-0-unset-unset-unset", "statusScheduled"), started,
-			accepted("respond-completed", "completed-1-unset-unset-unset", "statusCompleted")),
+			accepted("pause", "paused-0-unset-unset-unset", "statusPaused"),
+			accepted("unpause", "scheduled-0-unset-unset-unset", "statusScheduled"), started,
+			accepted("respondCompleted", "completed-1-unset-unset-unset", "statusCompleted")),
 		"retry": found(7, scheduled, started,
-			accepted("respond-failed-true", "backingOff-1-unset-unset-unset", "statusScheduled", "attemptCount"),
+			accepted("respondFailed-retryable", "backingOff-1-unset-unset-unset", "statusScheduled", "attemptCount"),
 			accepted("backoff", "scheduled-1-unset-unset-unset"),
 			accepted("poll", "started-2-unset-unset-unset", "statusStarted", "attemptCount"),
-			accepted("respond-completed", "completed-2-unset-unset-unset", "statusCompleted")),
+			accepted("respondCompleted", "completed-2-unset-unset-unset", "statusCompleted")),
 		"scheduleToStartTimeout": found(4,
 			accepted("start-unset-expires-unset", "scheduled-0-unset-expires-unset", "statusScheduled"),
 			accepted("stop", "scheduled-0-unset-expires-unset"),
@@ -515,14 +515,14 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 				f := activityFunction(t, m, "activitySystem.property.cancelRequestedWhileStarted")
 				narrowed(f, binary(umpirespb.Binary_OP_EQ, stateField(f, 0, "attempts"), expr(admIntValue(1))))
 			},
-			rows: []string{"cancelRequestedWhileStarted on activitySystem at scheduled-0-unset-unset-unset-control-requestCancel"},
+			rows: []string{"cancelRequestedWhileStarted on activitySystem at scheduled-0-unset-unset-unset-requestCancel"},
 		},
-		// The one attempt result on the path to a canceled activity is the canceled answer.
-		"canceledByWorker is about every attempt result": {
+		// The one worker answer on the path to a canceled activity is the canceled answer.
+		"canceledByWorker is about completion": {
 			mutate: func(_ *testing.T, m *umpirespb.Model) {
-				admProperty(m, "activitySystem", "canceledByWorker").When = &umpirespb.Property_WhenAction{WhenAction: "respond"}
+				admProperty(m, "activitySystem", "canceledByWorker").When = &umpirespb.Property_WhenAction{WhenAction: "respondCompleted"}
 			},
-			rows: []string{"canceledByWorker on activitySystem at started-1-unset-unset-unset-respond-completed"},
+			rows: []string{"canceledByWorker on activitySystem at started-1-unset-unset-unset-respondCompleted"},
 		},
 		// No path that reads this Property terminates the activity. The free search of the product
 		// that verifies it does: it terminates a scheduled activity.
@@ -533,8 +533,8 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 					expr(admEnum("temporal.features.activity.standalone.product.Phase", "terminated"))))
 			},
 			rows: []string{
-				"activityProduct.pausedIsNotDispatched on activityProduct at scheduled-control-terminate",
-				"activityProduct.pausedIsNotDispatched on activitySystem at scheduled-0-unset-unset-unset-control-terminate",
+				"activityProduct.pausedIsNotDispatched on activityProduct at scheduled-terminate",
+				"activityProduct.pausedIsNotDispatched on activitySystem at scheduled-0-unset-unset-unset-terminate",
 			},
 			generated: []string{"activityProduct.pausedIsNotDispatched"},
 		},

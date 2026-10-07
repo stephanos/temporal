@@ -1,4 +1,4 @@
-// The activity kind: what its forms share, the deadline types, the worker's answer and its actions
+// The activity kind: what its forms share, the deadline types, the worker's actions
 // on an activity, the timers and the deadlines. Each form owns its entity, its other declarations
 // and its exports, and binds the worker's actions to its entity (standalone/Standalone.scala).
 package temporal
@@ -13,11 +13,9 @@ import shared.worker.worker as process
 enum Timeout derives Finite:
   case unset, expires
 
-// The worker's answer; failed(retryable) is two classes, like ApplicationFailure's flag.
-enum AttemptResult derives Finite:
-  case completed
-  case failed(retryable: Boolean)
-  case canceled
+// Whether a failed attempt may be retried.
+enum Failure derives Finite:
+  case fatal, retryable
 
 // Which deadline fired.
 enum TimeoutType derives Finite:
@@ -25,20 +23,21 @@ enum TimeoutType derives Finite:
 
 // ### Signature
 
-// The worker's answer.
-val result = input[AttemptResult]
+// A failed attempt's retry policy.
+val failure = input[Failure]
 
 // The shared worker's actions on an activity: its poll receives the task for the current attempt,
-// and its answer settles it. The worker's stop is the worker's own action, `process.stop`:
+// and each answer is one RPC. The worker's stop is the worker's own action, `process.stop`:
 // nothing it records names the activity, so the activity's machines keep their state. Each form
 // binds them to its activity, as standalone/Standalone.scala does.
 object worker:
   val poll = action(process)
-
-  val respond = action(process)
-    .input(result)
-    .example(AttemptResult.failed(false), "ApplicationFailureNonRetryable")
-    .example(AttemptResult.failed(true), "ApplicationFailureRetryable")
+  val respondCompleted = action(process)
+  val respondFailed = action(process)
+    .input(failure)
+    .example(Failure.fatal, "ApplicationFailureNonRetryable")
+    .example(Failure.retryable, "ApplicationFailureRetryable")
+  val respondCanceled = action(process)
 
 // One of the activity's deadlines firing, as the product machine sees it, and the backoff.
 object timers:

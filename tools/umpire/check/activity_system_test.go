@@ -221,8 +221,8 @@ func TestActivitySystemResults(t *testing.T) {
 func TestActivityStaleDeliveryAfterPause(t *testing.T) {
 	c := systemModel(t)
 	found := receiptOf(t, c.report, stale+"staleDelivery")
-	require.Equal(t, []string{"dispatch", "control-pause", "poll"}, taken(found.Witness))
-	require.Equal(t, []string{"scheduled-none-settled-dispatch", "scheduled-none-settled-control-pause",
+	require.Equal(t, []string{"dispatch", "pause", "poll"}, taken(found.Witness))
+	require.Equal(t, []string{"scheduled-none-settled-dispatch", "scheduled-none-settled-pause",
 		"paused-none-settled-poll"}, found.Rows)
 	require.Equal(t, "started-one-owed", last(t, found.Witness).State.Value)
 	require.Equal(t, []string{"statusStarted", "attemptAdmitted"}, factsOf(last(t, found.Witness)))
@@ -232,10 +232,10 @@ func TestActivityStaleDeliveryAfterPause(t *testing.T) {
 	// monitor's own generated Query below pins its two-poll counterexample independently.
 	free := receiptOf(t, c.report, stale+"pausedIsNotDispatched")
 	require.Empty(t, free.Monitor)
-	require.Equal(t, []string{"control-pause", "poll"}, taken(free.Witness))
+	require.Equal(t, []string{"pause", "poll"}, taken(free.Witness))
 	overQueue := receiptOf(t, c.report, "query trustingRecordOverQueue trustingRecordOverQueue.pausedIsNotDispatched")
 	require.Empty(t, overQueue.Monitor)
-	require.Equal(t, []string{"dispatch", "activity_control-pause", "admit"}, taken(overQueue.Witness))
+	require.Equal(t, []string{"dispatch", "activity_pause", "admit"}, taken(overQueue.Witness))
 
 	// The corrected design's step is a stutter that records nothing the product sees.
 	require.Equal(t, []interp.Result{{Outcome: "accepted", State: "paused-none-owed", Facts: []string{"admissionRejected"}}},
@@ -267,7 +267,7 @@ func TestActivityAdmittedBeforePause(t *testing.T) {
 	}
 	for _, design := range []string{"activityRecord", "trustingActivityRecord"} {
 		require.Equal(t, []interp.Result{{Outcome: "accepted", State: "pausedWhileHeld-one-owed", Facts: []string{"statusPaused"}}},
-			plainResults(t, c.built[design].Table, "started-one-owed-control-pause"), design)
+			plainResults(t, c.built[design].Table, "started-one-owed-pause"), design)
 	}
 }
 
@@ -330,7 +330,7 @@ func TestActivityTerminalFinality(t *testing.T) {
 	c := systemModel(t)
 	reopened := receiptOf(t, c.report, stale+"startedAfterCompletion.monitored")
 	require.Equal(t, "terminalFinality", reopened.Monitor)
-	require.Equal(t, []string{"dispatch", "poll", "respond-completed", "poll"}, taken(reopened.Witness))
+	require.Equal(t, []string{"dispatch", "poll", "respondCompleted", "poll"}, taken(reopened.Witness))
 	require.Equal(t, "started-one-owed", last(t, reopened.Witness).State.Value)
 	require.Equal(t, []MonitorVerdict{{Name: "atMostOneActiveAttempt", State: "one", Verdict: umpire.MonitorHeld},
 		{Name: "terminalFinality", State: "reopened", Verdict: umpire.MonitorViolated}}, reopened.Monitors)
@@ -475,11 +475,11 @@ func TestActivityQueueSubstitution(t *testing.T) {
 
 	// The stale design's counterexample survives the substitution, step for step.
 	overQueue := receiptOf(t, c.report, "query trustingRecordOverQueue trustingRecordOverQueue.staleDelivery")
-	require.Equal(t, []string{"dispatch", "activity_control-pause", "admit"}, taken(overQueue.Witness))
+	require.Equal(t, []string{"dispatch", "activity_pause", "admit"}, taken(overQueue.Witness))
 	require.Equal(t, "started-one-owed_deliveredOnce", last(t, overQueue.Witness).State.Value)
 	require.Equal(t, overQueue.Witness, receiptOf(t, c.report, "query trustingRecordOverQueue trustingRecordOverQueue.pausedIsNotDispatched").Witness)
 	overMatching := receiptOf(t, c.report, "query trustingRecordOverMatching trustingRecordOverMatching.staleDelivery")
-	require.Equal(t, []string{"dispatch", "queue_addActivityTask", "queue_persistTask", "activity_control-pause", "admit"},
+	require.Equal(t, []string{"dispatch", "queue_addActivityTask", "queue_persistTask", "activity_pause", "admit"},
 		taken(overMatching.Witness))
 	require.Equal(t, "started-one-owed_persisted-true-once", last(t, overMatching.Witness).State.Value)
 	free := receiptOf(t, c.report, "query trustingRecordOverMatching trustingRecordOverMatching.pausedIsNotDispatched")
@@ -586,8 +586,8 @@ func TestActivitySystemExclusionsAreDisabled(t *testing.T) {
 		mm := c.built[design]
 		require.Empty(t, mm.Holes, design)
 		for _, state := range mm.Table.States {
-			for _, class := range []string{"control-unpause", "control-requestCancel", "control-terminate",
-				"respond-failed-false", "respond-failed-true", "respond-canceled"} {
+			for _, class := range []string{"unpause", "requestCancel", "terminate",
+				"respondFailed-fatal", "respondFailed-retryable", "respondCanceled"} {
 				require.True(t, disabled(mm, state, class), "%s: %s-%s", design, state, class)
 			}
 		}

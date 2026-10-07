@@ -229,12 +229,12 @@ func TestTheAdmissionDesignsAreToldApart(t *testing.T) {
 	}, kinds(r))
 
 	stale := receiptOf(t, r, "query trustingActivityRecord trustingActivityRecord.staleDelivery")
-	require.Equal(t, []string{"scheduled-empty-none-dispatch", "scheduled-queued-none-control-pause", "paused-queued-none-poll"}, stale.Rows)
+	require.Equal(t, []string{"scheduled-empty-none-dispatch", "scheduled-queued-none-pause", "paused-queued-none-poll"}, stale.Rows)
 	require.Equal(t, "started-empty-one", stale.Witness.Steps[2].State.Value)
 
 	rejected := receiptOf(t, r, "refinement trustingActivityRecord activityProduct")
 	require.Equal(t, umpire.RefinementUnmatched, rejected.Failure)
-	require.Equal(t, []string{"dispatch", "control-pause", "poll"}, taken(rejected.Witness))
+	require.Equal(t, []string{"dispatch", "pause", "poll"}, taken(rejected.Witness))
 }
 
 // The counter Model (below) with a self-loop: skipping stays in place, so a state is reached both

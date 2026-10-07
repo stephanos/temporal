@@ -42,8 +42,8 @@ type activityCase struct {
 const (
 	plainStart   = "start-unset-unset-unset"
 	startedOnce  = "poll"
-	answerDone   = "respond-completed"
-	answerFailed = "respond-failed-true"
+	answerDone   = "respondCompleted"
+	answerFailed = "respondFailed-retryable"
 )
 
 // The first three steps of most paths: the start call's answer says the activity is scheduled, and the
@@ -55,26 +55,26 @@ func begun(rest map[string][]string) map[string][]string {
 }
 
 var activityCases = map[string]activityCase{
-	// completed: start, poll, respond(completed).
+	// completed: start, poll, respondCompleted.
 	"completion": {[]string{"start-activity", "await-completed"}, []string{"complete-attempt"},
 		begun(map[string][]string{"statusCompleted": {answerDone}}), nil},
-	// nonRetryable: start, poll, respond(failed(false)).
+	// nonRetryable: start, poll, respondFailed(fatal).
 	"nonRetryableFailure": {[]string{"start-activity", "await-failed"}, []string{"fail-activity"},
-		begun(map[string][]string{"statusFailed": {"respond-failed-false"}}), nil},
-	// retriedThenCompleted: start, poll, respond(failed(true)), backoff, poll,
-	// respond(completed). The second attempt's delivery is one piece of evidence: it confirms the
+		begun(map[string][]string{"statusFailed": {"respondFailed-fatal"}}), nil},
+	// retriedThenCompleted: start, poll, respondFailed(retryable), backoff, poll,
+	// respondCompleted. The second attempt's delivery is one piece of evidence: it confirms the
 	// failure the server retried, the backoff, which records nothing, and the second attempt start.
 	"retry": {[]string{"start-activity", "await-completed"}, []string{"fail-attempt", "complete-attempt"},
 		begun(map[string][]string{"attemptCount": {answerFailed, "backoff", startedOnce}, "statusCompleted": {answerDone}}), []string{"backoff"}},
-	// terminatedWhileScheduled: start, stop, control(terminate). The stop records nothing.
+	// terminatedWhileScheduled: start, stop, terminate. The stop records nothing.
 	"terminate": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
-		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "control-terminate"}}, []string{"stop"}},
-	// pausedThenCompleted: start, control(pause), control(unpause), poll, respond(completed).
+		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "terminate"}}, []string{"stop"}},
+	// pausedThenCompleted: start, pause, unpause, poll, respondCompleted.
 	// The release schedules the activity again, which its own answer confirms. The path pauses an
 	// activity no worker has taken, so the Case keeps its worker from polling until the release.
 	"pauseResume": {[]string{"stop-worker-until-released", "start-activity", "pause-activity", "await-paused", "unpause-activity", "resume-worker",
 		"await-completed"}, []string{"complete-attempt"},
-		begun(map[string][]string{"statusPaused": {"control-pause"}, "statusScheduledAgain": {"control-unpause"}, "statusCompleted": {answerDone}}), nil},
+		begun(map[string][]string{"statusPaused": {"pause"}, "statusScheduledAgain": {"unpause"}, "statusCompleted": {answerDone}}), nil},
 	// scheduleToStartExpires: start(unset, expires, unset), stop, scheduleToStart.
 	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "await-timed-out"}, []string{},
 		map[string][]string{"statusScheduled": {"start-unset-expires-unset"}, "statusTimedOut": {"stop", "scheduleToStart"}}, []string{"stop"}},
@@ -83,11 +83,11 @@ var activityCases = map[string]activityCase{
 	// terminatedWhileScheduled's path and the same instructions as terminate's Case, but is a Case of
 	// its own (its Property and fingerprints differ), so `terminated` and `terminate` stay authored.
 	"activitySystem.terminateSettles": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
-		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "control-terminate"}}, []string{"stop"}},
-	// Cancelable's: start, stop, control(requestCancel). The request's answer confirms it, so
+		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"stop", "terminate"}}, []string{"stop"}},
+	// Cancelable's: start, stop, requestCancel. The request's answer confirms it, so
 	// nothing is awaited after it.
 	"activitySystem.cancelIsRequested": {[]string{"stop-worker", "start-activity", "request-cancel-activity"}, []string{},
-		map[string][]string{"statusScheduled": {plainStart}, "statusCancelRequested": {"stop", "control-requestCancel"}}, []string{"stop"}},
+		map[string][]string{"statusScheduled": {plainStart}, "statusCancelRequested": {"stop", "requestCancel"}}, []string{"stop"}},
 }
 
 // activityLimits is, for each Query that lowers to no Case, the one thing that keeps it from one, and
@@ -96,7 +96,7 @@ var activityCases = map[string]activityCase{
 //   - startToCloseTimeout (start, poll, startToClose) starts an attempt and lets it run out
 //     its deadline, so the attempt is given no answer, and an activity entrypoint's instructions are
 //     answers: nothing waits.
-//   - cancel and cancelRequest (start, poll, control(requestCancel), respond(canceled))
+//   - cancel and cancelRequest (start, poll, requestCancel, respondCanceled)
 //     request the cancellation while the attempt is held. A Run records an attempt once it is answered,
 //     so the record that confirms the attempt start reaches the Run after the cancel request's answer,
 //     which confirms the step after it: the Run would carry the path's evidence out of the path's order.

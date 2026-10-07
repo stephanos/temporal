@@ -737,11 +737,11 @@ func TestAdmissionAdmitsAWhenOverComposedClasses(t *testing.T) {
 	require.NotNil(t, started)
 	started.When = &umpirespb.Property_WhenClass{WhenClass: &umpirespb.ActionClass{Action: poll}}
 	require.NoError(t, Validate(m))
-	// The activity's own control has a class for each of its inputs, and the action names them all.
-	started.When = &umpirespb.Property_WhenAction{WhenAction: "activity_control"}
+	// The activity's start has a class for each set of inputs, and the action names them all.
+	started.When = &umpirespb.Property_WhenAction{WhenAction: "activity_start"}
 	require.NoError(t, Validate(m))
-	started.When = &umpirespb.Property_WhenAction{WhenAction: "activity_control-pause"}
-	require.ErrorContains(t, Validate(m), "standaloneActivity.startedByPollingWorker: standaloneActivity has no class of the action activity_control-pause")
+	started.When = &umpirespb.Property_WhenAction{WhenAction: "activity_start-unset-unset-unset"}
+	require.ErrorContains(t, Validate(m), "standaloneActivity.startedByPollingWorker: standaloneActivity has no class of the action activity_start-unset-unset-unset")
 	started.When = &umpirespb.Property_WhenClass{WhenClass: &umpirespb.ActionClass{Action: poll, Inputs: []*umpirespb.Value{admIntValue(1)}}}
 	require.ErrorContains(t, Validate(m), "standaloneActivity.startedByPollingWorker: standaloneActivity has no class poll-1")
 }

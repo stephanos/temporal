@@ -70,23 +70,25 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
     // under a cancel request; a canceled answer settles only an activity whose cancellation was
     // requested.
-    on(worker.respond(AttemptResult.completed))(when[Held] ~> effects.complete)
-    on(worker.respond(AttemptResult.failed(false)))(when[Held] ~> effects.fail)
-    on(worker.respond(AttemptResult.failed(true))) {
+    on(worker.respondCompleted)(when[Held] ~> effects.complete)
+    on(worker.respondFailed(Failure.fatal))(when[Held] ~> effects.fail)
+    on(worker.respondFailed(Failure.retryable)) {
       in(started) ~> effects.retry
       in(cancelRequested) ~> effects.cancel
     }
-    on(worker.respond(AttemptResult.canceled))(in(cancelRequested) ~> effects.cancel)
+    on(worker.respondCanceled)(in(cancelRequested) ~> effects.cancel)
 
     // A control on an activity that is over is not found. A pause of a paused or cancel-requested
     // activity, or an unpause of one not paused, is FailedPrecondition; the System lists them.
-    on(client.control)(when[Closed] ~> effects.notFound)
-    on(client.control(Control.pause))(where(states.pausable) ~> effects.pause)
-    on(client.control(Control.unpause))(where(states.paused) ~> effects.resume)
-    on(client.control(Control.requestCancel)) {
+    on(client.pause, client.unpause, client.requestCancel, client.terminate)(
+      when[Closed] ~> effects.notFound
+    )
+    on(client.pause)(where(states.pausable) ~> effects.pause)
+    on(client.unpause)(where(states.paused) ~> effects.resume)
+    on(client.requestCancel) {
       in(scheduled, started, paused, cancelRequested) ~> effects.requestCancel
     }
-    on(client.control(Control.terminate)) {
+    on(client.terminate) {
       in(scheduled, started, paused, cancelRequested) ~> effects.terminate
     }
 
@@ -99,8 +101,8 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       rejected = Outcome.notFound
     )
     val pausable: Capability = Pausable(
-      pause = client.control(Control.pause),
-      unpause = client.control(Control.unpause)
+      pause = client.pause,
+      unpause = client.unpause
     )
     val pollable: Capability = Pollable(dispatch = worker.poll)
 

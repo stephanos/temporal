@@ -73,23 +73,24 @@ func carried(t *testing.T, r *umpirespb.Realization) map[string][]string {
 	return out
 }
 
-// The four controls of the standalone activity are one action whose classes each carry their own
-// request; the worker's answers and its delivery carry what the worker sends and receives; a stop
-// the realization performs with a fault carries nothing; a class no binding performs is unmapped.
+// Each standalone activity RPC carries its own request; the worker's answers and its delivery carry
+// what the worker sends and receives; a stop the realization performs with a fault carries nothing;
+// a class no binding performs is unmapped.
 func TestCarriersOfTheStandaloneActivity(t *testing.T) {
 	c := carried(t, realizationOf(t, "activity-standalone.json", "standalone"))
 	request := func(m string) []string { return []string{"rpc temporal.api.workflowservice.v1." + m} }
-	require.Equal(t, request("PauseActivityExecutionRequest"), c["control(pause)"])
-	require.Equal(t, request("UnpauseActivityExecutionRequest"), c["control(unpause)"])
-	require.Equal(t, request("RequestCancelActivityExecutionRequest"), c["control(requestCancel)"])
-	require.Equal(t, request("TerminateActivityExecutionRequest"), c["control(terminate)"])
+	require.Equal(t, request("PauseActivityExecutionRequest"), c["pause()"])
+	require.Equal(t, request("UnpauseActivityExecutionRequest"), c["unpause()"])
+	require.Equal(t, request("RequestCancelActivityExecutionRequest"), c["requestCancel()"])
+	require.Equal(t, request("TerminateActivityExecutionRequest"), c["terminate()"])
 	// A partial class pattern binds one exact class; every bound class of the start carries the start.
 	require.Equal(t, request("StartActivityExecutionRequest"), c["start(unset,unset,unset)"])
 	require.Equal(t, request("StartActivityExecutionRequest"), c["start(unset,expires,unset)"])
 	require.NotContains(t, c, "start(expires,unset,unset)", "a class no binding performs has no carrier")
-	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest"}, c["respond(completed)"])
-	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest"}, c["respond(failed(true))"])
-	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest"}, c["respond(canceled)"])
+	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest"}, c["respondCompleted()"])
+	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest"}, c["respondFailed(fatal)"])
+	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest"}, c["respondFailed(retryable)"])
+	require.Equal(t, []string{"activity-answer temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest"}, c["respondCanceled()"])
 	require.Equal(t, []string{"activity-delivery temporal.api.workflowservice.v1.PollActivityTaskQueueResponse"}, c["poll()"])
 	stop, ok := c["stop()"]
 	require.True(t, ok, "the stop is performed")
@@ -125,9 +126,9 @@ func TestCarriersRefuseAmbiguousAndUnknownBindings(t *testing.T) {
 	for _, item := range controller.GetItems() {
 		for _, p := range item.GetPerforms() {
 			switch spelled(p.GetStep()) {
-			case "control(pause)":
+			case "pause()":
 				pause = p
-			case "control(unpause)":
+			case "unpause()":
 				unpause = p
 			}
 		}
@@ -142,7 +143,7 @@ func TestCarriersRefuseAmbiguousAndUnknownBindings(t *testing.T) {
 	unknown := proto.CloneOf(r)
 	for _, item := range unknown.GetScripts()[0].GetItems() {
 		for _, p := range item.GetPerforms() {
-			if spelled(p.GetStep()) == "control(pause)" {
+			if spelled(p.GetStep()) == "pause()" {
 				p.GetCommand().GetRpc().Method = "/temporal.api.workflowservice.v1.WorkflowService/NoSuchMethod"
 			}
 		}

@@ -8,7 +8,7 @@ import umpire.realize.*
 import temporal.realize.WorkerInstruction.{AttemptFailure, Fault}
 import temporal.realize.*
 import temporal.features.activity.Timeout
-import temporal.features.activity.standalone.{activity, client, scheduleToStart, Control}
+import temporal.features.activity.standalone.{activity, client, scheduleToStart}
 import temporal.features.activity.standalone.system.Fact as ActivityFact
 import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
@@ -82,7 +82,7 @@ private val inputInScope = rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION)
 }
 
 // A line of a request scope that assigns no field of the request.
-val notAField: Realization = realizing(perform(client.control(Control.pause) -> inputInScope))
+val notAField: Realization = realizing(perform(client.pause -> inputInScope))
 
 private val inputInPoll = await(described, workflowService)(
   Condition.equal(
@@ -102,7 +102,7 @@ val foreignFact: Realization = temporalRealization(
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller(everyCase(stopWorker))),
-  evidence = Vector(answered(Control.pause, stopWorker))
+  evidence = Vector(answered(Timeout.expires, stopWorker))
 )
 
 private val failedTwice = AttemptFailure(proto[io.temporal.api.failure.v1.Failure] {
@@ -121,7 +121,7 @@ private val overridden = rpc(baseCalls, METHOD_PAUSE_ACTIVITY_EXECUTION) {
   field(_.namespace) := workerNamespace
 }
 
-val baseOverride: Realization = realizing(perform(client.control(Control.pause) -> overridden))
+val baseOverride: Realization = realizing(perform(client.pause -> overridden))
 
 private val describedOnce = DescribedStatus(
   machine = activitySystem,
@@ -180,7 +180,7 @@ val deadlineNoTimeout: Realization = realizing(
     client.start,
     started,
     duration(2)
-  )(temporal.features.activity.standalone.Inputs.control.sets(_.getStartToCloseTimeout))
+  )(temporal.features.activity.failure.sets(_.getStartToCloseTimeout))
 )
 
 // ### Realization objects (fn-133.6), each refused at its line

@@ -54,7 +54,7 @@ func TestLawsPinTheCellsOfTheirCapabilitiesActions(t *testing.T) {
 	require.Equal(t, Silent, paused.Pins[i].Modality)
 	require.Equal(t, []string{"Pollable.dispatch"}, paused.Pins[i].Fields)
 	for _, c := range paused.Pins {
-		require.Contains(t, []string{"poll", "control-pause", "control-unpause"}, c.Class, "only its capabilities' actions")
+		require.Contains(t, []string{"poll", "pause", "unpause"}, c.Class, "only its capabilities' actions")
 	}
 
 	// Closable names no action: its laws pin the terminal cells of every class.
@@ -97,9 +97,9 @@ func TestProtocolMarksTheProductsLawsInherited(t *testing.T) {
 	require.Equal(t, Must, settles.Modality)
 	require.True(t, settles.Witnessed)
 	require.False(t, settles.Inherited)
-	require.Equal(t, "control-terminate", settles.Claim.Actions["Terminable.terminate"])
+	require.Equal(t, "terminate", settles.Claim.Actions["Terminable.terminate"])
 	for _, c := range settles.Pins {
-		require.Equal(t, "control-terminate", c.Class)
+		require.Equal(t, "terminate", c.Class)
 	}
 }
 
@@ -136,7 +136,7 @@ func TestLawTablesAreWritten(t *testing.T) {
 	require.Regexp(t, `\n  activityProduct\.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  model/temporal/features/activity/standalone/product/Product\.scala:\d+\n`, text)
 	require.Contains(t, text, "\n    promises: while an entity is paused no work is handed to a worker")
 	require.Regexp(t, `\n    poll \(Pollable\.dispatch\) +paused +MUST NOT +cell: \? s\.phase != scheduled\n`, text)
-	require.Regexp(t, `\n    control-unpause \(Pausable\.unpause\) +paused +MUST NOT of its results +cell: MAY accepted -> scheduled`, text)
+	require.Regexp(t, `\n    unpause \(Pausable\.unpause\) +paused +MUST NOT of its results +cell: MAY accepted -> scheduled`, text)
 	require.Regexp(t, `\n    every class +completed, failed, canceled, terminated, timedOut +MUST NOT\n`, text)
 	require.Contains(t, text, "\n  no law pins\n")
 	require.Contains(t, text, "inherited from activityProduct, unchecked")

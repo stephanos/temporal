@@ -18,11 +18,11 @@ func TestActivityProductTable(t *testing.T) {
 	require.Equal(t, []int{9, 5}, []int{len(tb.States), len(tb.Ends)})
 	state := func(key string) string { return row(t, product, key).Results[0].State }
 	// A canceled answer settles only an activity whose cancellation was requested.
-	require.True(t, disabled(product, "started", "respond-canceled"))
-	require.Equal(t, "canceled", state("cancelRequested-respond-canceled"))
+	require.True(t, disabled(product, "started", "respondCanceled"))
+	require.Equal(t, "canceled", state("cancelRequested-respondCanceled"))
 	// Unlike the Nexus product, a retry is visible: the client reads scheduled again.
-	require.Equal(t, "scheduled", state("started-respond-failed-true"))
-	require.Equal(t, "canceled", state("cancelRequested-respond-failed-true"))
+	require.Equal(t, "scheduled", state("started-respondFailed-retryable"))
+	require.Equal(t, "canceled", state("cancelRequested-respondFailed-retryable"))
 	// A paused activity is dispatched to no worker: no product row leaves paused for started.
 	for _, r := range tb.RowsFrom("paused") {
 		for _, res := range r.Results {
@@ -52,17 +52,17 @@ func TestActivityProtocolTable(t *testing.T) {
 	// A retryable failure backs the attempt off and is read as scheduled again with the count raised.
 	require.Equal(t, []interp.Result{{Outcome: "accepted", State: "backingOff-1-unset-unset-unset",
 		Facts: []string{"statusScheduled", "attemptCount"}, Because: "a retryable failure backs off; the client reads scheduled again"}},
-		results("started-1-unset-unset-unset-respond-failed-true"))
+		results("started-1-unset-unset-unset-respondFailed-retryable"))
 	// Under a cancel request the same failure settles the activity as canceled; under a pause request
 	// it lands in paused.
-	require.Equal(t, "canceled", phase("cancelRequested-1-unset-unset-unset-respond-failed-true"))
-	require.Equal(t, "paused", phase("pauseRequested-1-unset-unset-unset-respond-failed-true"))
+	require.Equal(t, "canceled", phase("cancelRequested-1-unset-unset-unset-respondFailed-retryable"))
+	require.Equal(t, "paused", phase("pauseRequested-1-unset-unset-unset-respondFailed-retryable"))
 	// A pause of a held attempt is a request; of a scheduled one it takes effect at once.
-	require.Equal(t, "pauseRequested", phase("started-1-unset-unset-unset-control-pause"))
-	require.Equal(t, "paused", phase("scheduled-0-unset-unset-unset-control-pause"))
+	require.Equal(t, "pauseRequested", phase("started-1-unset-unset-unset-pause"))
+	require.Equal(t, "paused", phase("scheduled-0-unset-unset-unset-pause"))
 	// A control on an activity that is over is not found.
 	require.Equal(t, []interp.Result{{Outcome: "notFound", State: "completed-1-unset-unset-unset", Facts: []string{}}},
-		results("completed-1-unset-unset-unset-control-terminate"))
+		results("completed-1-unset-unset-unset-terminate"))
 	// Each deadline covers its own span.
 	require.True(t, disabled(protocol, "scheduled-0-unset-unset-expires", "startToClose"))
 	require.Equal(t, "timedOut", phase("pauseRequested-1-unset-unset-expires-startToClose"))
@@ -88,13 +88,13 @@ func TestActivityRefinement(t *testing.T) {
 	}
 	// The visible retry is the product's retryable-failure row; the pause request is a stutter; the
 	// unpause of a requested pause is a stutter too.
-	require.Equal(t, "respond-failed-true", lookup["started-1-unset-unset-unset-respond-failed-true"])
-	require.Contains(t, lookup, "started-1-unset-unset-unset-control-pause")
-	require.Empty(t, lookup["started-1-unset-unset-unset-control-pause"])
-	require.Contains(t, lookup, "pauseRequested-1-unset-unset-unset-control-unpause")
-	require.Empty(t, lookup["pauseRequested-1-unset-unset-unset-control-unpause"])
+	require.Equal(t, "respondFailed-retryable", lookup["started-1-unset-unset-unset-respondFailed-retryable"])
+	require.Contains(t, lookup, "started-1-unset-unset-unset-pause")
+	require.Empty(t, lookup["started-1-unset-unset-unset-pause"])
+	require.Contains(t, lookup, "pauseRequested-1-unset-unset-unset-unpause")
+	require.Empty(t, lookup["pauseRequested-1-unset-unset-unset-unpause"])
 	// A retryable failure under a pause request is the product's pause.
-	require.Equal(t, "control-pause", lookup["pauseRequested-1-unset-unset-unset-respond-failed-true"])
+	require.Equal(t, "pause", lookup["pauseRequested-1-unset-unset-unset-respondFailed-retryable"])
 }
 
 func TestActivityQueries(t *testing.T) {

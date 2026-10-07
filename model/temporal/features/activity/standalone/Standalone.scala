@@ -36,11 +36,6 @@ import umpire.*
 import product.ActivityProduct
 import system.{ActivitySystem, StandaloneActivity}
 
-// ### Types
-
-enum Control derives Finite:
-  case pause, unpause, requestCancel, terminate
-
 // A step's outcome, shared by both machines by name.
 enum Outcome derives Finite:
   case accepted, notFound
@@ -55,10 +50,6 @@ val scheduleToClose = input[Timeout]
 val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
 
-// The control's input, apart because inside `client` its name is the control action.
-object Inputs:
-  val control = input[Control]
-
 // Who acts, and on what: each action is declared in the object of who takes it, and named after
 // where it is declared, `temporal.features.activity.standalone.client.start`.
 
@@ -70,18 +61,20 @@ object client extends Client:
     .input(startToClose)
     .creates(activity)
 
-  // The four controls are one action because they share a result: on an activity that is over, a
-  // control is not found. The result text is metadata of the action, not a domain a state holds.
-  val control = action(this)
-    .on(activity)
-    .input(Inputs.control)
-    .results("Delivery")
+  // Each public control is its own RPC. They share a result: on an activity that is over, each is
+  // not found. The result text is metadata of each action, not a domain a state holds.
+  val pause = action(this).on(activity).results("Delivery")
+  val unpause = action(this).on(activity).results("Delivery")
+  val requestCancel = action(this).on(activity).results("Delivery")
+  val terminate = action(this).on(activity).results("Delivery")
 
 // The kind's worker actions (../Activity.scala) bound to this activity. The timers and deadlines
 // are the kind's.
 object worker:
   val poll = temporal.features.activity.worker.poll.on(activity)
-  val respond = temporal.features.activity.worker.respond.on(activity)
+  val respondCompleted = temporal.features.activity.worker.respondCompleted.on(activity)
+  val respondFailed = temporal.features.activity.worker.respondFailed.on(activity)
+  val respondCanceled = temporal.features.activity.worker.respondCanceled.on(activity)
 
 // A retry shows the client only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.

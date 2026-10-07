@@ -594,10 +594,10 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	}
 	want := map[string]recordedKind{
 		"statusScheduled":       {"statusScheduled", accepted("start-activity"), nil, nil},
-		"statusScheduledAgain":  {"statusScheduled", accepted("unpause-activity"), nil, []taking{{"control-unpause", 1}}},
+		"statusScheduledAgain":  {"statusScheduled", accepted("unpause-activity"), nil, []taking{{"unpause", 1}}},
 		"statusCancelRequested": {"statusCancelRequested", accepted("request-cancel-activity"), nil, nil},
 		"statusStarted":         {"statusStarted", delivered(1), identity, []taking{{"poll", 1}}},
-		"attemptCount":          {"attemptCount", delivered(2), identity, []taking{{"respond-failed-true", 1}, {"poll", 2}}},
+		"attemptCount":          {"attemptCount", delivered(2), identity, []taking{{"respondFailed-retryable", 1}, {"poll", 2}}},
 	}
 	require.ElementsMatch(t, slices.Collect(maps.Keys(want)), slices.Collect(maps.Keys(got)))
 	for id, kind := range want {

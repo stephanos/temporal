@@ -1944,7 +1944,7 @@ class Fixtures extends munit.FunSuite:
       .asScala
       .map(_.asText())
       .toList
-    val pause = "activity_control-pause"
+    val pause = "activity_pause"
     val invoked = List("dispatch", "queue_addActivityTask")
     for d <- overQueue do
       assertEquals(scenarioKeys(d, "staleDeliveryAfterPause"), List("dispatch", pause, "admit"))

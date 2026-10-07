@@ -15,7 +15,7 @@ import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.activity.standalone.{activity, client, worker, Control}
+import temporal.features.activity.standalone.{activity, client, worker}
 import temporal.features.activity.standalone.system.Fact as ActivityFact
 import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.*
@@ -81,18 +81,18 @@ val helpers: Realization = temporalRealization(
   roles = Vector(workflowService, caseWorker, taskQueue),
   scripts = Vector(
     controller(
-      perform(client.control(Control.pause) -> pauseActivity),
-      onPath(client.control(Control.pause))(awaitPaused),
+      perform(client.pause -> pauseActivity),
+      onPath(client.pause)(awaitPaused),
       everyCase(startActivity.withFields {
         field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
       }),
       perform(
         worker.poll -> releaseDispatch,
-        client.control(Control.terminate) -> stopWorker
+        client.terminate -> stopWorker
       ),
       // A command written out under its own id, around a call written in its scope.
       perform(
-        client.control(Control.unpause) -> Command(
+        client.unpause -> Command(
           "unpause-written-out",
           rpc(workflowService, METHOD_UNPAUSE_ACTIVITY_EXECUTION) {
             field(_.namespace) := workerNamespace
@@ -153,7 +153,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              client.control(Control.pause),
+              client.pause,
               Command(
                 "pause-activity",
                 Instruction.rpc(
@@ -199,7 +199,7 @@ val records: Realization = Realization(
               )
             )
           ),
-          when = Vector(client.control(Control.pause))
+          when = Vector(client.pause)
         ),
         Item(command =
           Some(
@@ -240,7 +240,7 @@ val records: Realization = Realization(
               )
             ),
             Performance(
-              client.control(Control.terminate),
+              client.terminate,
               Command("stop-worker", Fault("temporal.task-queue", FaultKind.workerStop))
             )
           )
@@ -248,7 +248,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              client.control(Control.unpause),
+              client.unpause,
               Command(
                 "unpause-written-out",
                 Instruction.rpc(

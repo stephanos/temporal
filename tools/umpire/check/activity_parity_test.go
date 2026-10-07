@@ -20,16 +20,16 @@ import (
 func TestActivityDisabledBehaviorIsTheBaselines(t *testing.T) {
 	product := built(t, activityModel(t))["activityProduct"]
 	for _, pair := range [][2]string{
-		{"started", "respond-canceled"},
+		{"started", "respondCanceled"},
 		{"paused", "poll"},
 		{"scheduled", "stop"},
 		{"completed", "timeout"},
 	} {
 		require.True(t, disabled(product, pair[0], pair[1]), pair)
 	}
-	require.False(t, disabled(product, "completed", "control-terminate"), "a control of an activity that is over is answered notFound, not disabled")
+	require.False(t, disabled(product, "completed", "terminate"), "a control of an activity that is over is answered notFound, not disabled")
 	require.Equal(t, []interp.Result{{Outcome: "notFound", State: "completed", Facts: []string{}}},
-		sideOf(product.Table).Rows[rowIndex(t, product.Table, "completed-control-terminate")].Results)
+		sideOf(product.Table).Rows[rowIndex(t, product.Table, "completed-terminate")].Results)
 }
 
 // Each machine's evidence lines are its fact type's cases in the order the IR declares them, each

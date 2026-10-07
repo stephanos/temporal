@@ -20,9 +20,9 @@ func whyIn(t *testing.T, m *umpirespb.Model, machine, state, class string) *Why 
 func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	m := readIR(t, activityIR)
 
-	// A pause of a paused activity fires no rule: the control's rules are matched on the input first,
-	// then each rule of the class is tried on the state, and the last one tried disabled the pair.
-	w := whyIn(t, m, "activitySystem", "paused-1-unset-unset-unset", "control-pause")
+	// A pause of a paused activity fires no rule: each rule of the input-free action is tried on the
+	// state, and the last one tried disabled the pair.
+	w := whyIn(t, m, "activitySystem", "paused-1-unset-unset-unset", "pause")
 	require.Empty(t, w.Steps)
 	require.Nil(t, w.Hole)
 	last, ok := w.Last()
@@ -31,14 +31,14 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	require.False(t, last.Then)
 	require.True(t, last.State)
 	require.Contains(t, last.Position, "model/temporal/features/activity/standalone/system/System.scala:")
-	// The match on the input decided first, on the input alone.
-	input := w.Decisions[0]
-	require.True(t, input.Match())
-	require.Equal(t, "control", input.Expr.GetMatch().GetScrutinee().GetVar())
-	require.False(t, input.State)
+	// Splitting control into one action per RPC removes the old input Match from this step function.
+	for _, decision := range w.Decisions {
+		require.False(t, decision.Match())
+		require.True(t, decision.State)
+	}
 
 	// An unstarted activity has nothing to control: no rule's phase holds.
-	w = whyIn(t, m, "activitySystem", "unstarted-0-unset-unset-unset", "control-pause")
+	w = whyIn(t, m, "activitySystem", "unstarted-0-unset-unset-unset", "pause")
 	last, ok = w.Last()
 	require.True(t, ok)
 	require.False(t, last.Match())
@@ -46,9 +46,9 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	require.True(t, last.State)
 
 	// A terminal phase's notFound row decides through the named predicate its rule's guard calls.
-	w = whyIn(t, m, "activitySystem", "completed-1-unset-unset-unset", "control-pause")
+	w = whyIn(t, m, "activitySystem", "completed-1-unset-unset-unset", "pause")
 	require.Len(t, w.Steps, 1)
-	guard := w.Decisions[1]
+	guard := w.Decisions[0]
 	require.Equal(t, []string{"temporal.features.activity.standalone.system.ActivitySystem$.states$.terminal"}, guard.Calls)
 	require.True(t, guard.Then)
 	require.True(t, guard.State)
@@ -58,7 +58,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 func TestWhyTellsAnInputDecisionFromAStateDecision(t *testing.T) {
 	m := readIR(t, activityIR)
 	// A non-retryable failure decides on the input, then on the phase its rule names (`held`).
-	w := whyIn(t, m, "activitySystem", "started-1-unset-unset-unset", "respond-failed-false")
+	w := whyIn(t, m, "activitySystem", "started-1-unset-unset-unset", "respondFailed-fatal")
 	require.Len(t, w.Steps, 1)
 	var sawInput, sawState bool
 	for _, d := range w.Decisions {
@@ -71,23 +71,25 @@ func TestWhyTellsAnInputDecisionFromAStateDecision(t *testing.T) {
 
 func TestWhyMarksAWildcardArm(t *testing.T) {
 	m := proto.Clone(readIR(t, activityIR)).(*umpirespb.Model)
-	// Rewrite the control's rules for a pause as a default arm that fires none, as `case _ => Nil`
-	// lifts.
+	// Rewrite the pause's input-free step function as a default arm that fires none, as
+	// `case _ => Nil` lifts.
 	var rewritten bool
 	for _, f := range m.GetFunctions() {
-		if f.GetName() != "activitySystem.rules.control" {
+		if f.GetName() != "activitySystem.rules.pause" {
 			continue
 		}
-		for _, c := range f.GetBody().GetMatch().GetCases() {
-			if c.GetPattern().GetLiteral().GetEnum().GetCase() == "pause" {
-				c.Pattern = &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &umpirespb.Empty{}}}
-				c.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
-				rewritten = true
-			}
-		}
+		f.Body = &umpirespb.Expr{Position: f.GetBody().GetPosition(), Kind: &umpirespb.Expr_Match{Match: &umpirespb.Match{
+			Scrutinee: &umpirespb.Expr{Kind: &umpirespb.Expr_Field{Field: &umpirespb.FieldAccess{
+				Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "s"}}, Field: "phase"}}},
+			Cases: []*umpirespb.MatchCase{{
+				Pattern: &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &umpirespb.Empty{}}},
+				Body:    &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}},
+			}},
+		}}}
+		rewritten = true
 	}
 	require.True(t, rewritten)
-	w := whyIn(t, m, "activitySystem", "cancelRequested-1-unset-unset-unset", "control-pause")
+	w := whyIn(t, m, "activitySystem", "cancelRequested-1-unset-unset-unset", "pause")
 	last, ok := w.Last()
 	require.True(t, ok)
 	require.True(t, last.Wildcard)
@@ -99,7 +101,7 @@ func TestWhyRefusesAnUnknownStateOrClass(t *testing.T) {
 	machines, err := Build(m)
 	require.NoError(t, err)
 	in := NewInterpreter(m)
-	_, err = in.Why(machines["activitySystem"], "nowhere", "control-pause")
+	_, err = in.Why(machines["activitySystem"], "nowhere", "pause")
 	require.ErrorContains(t, err, "no state nowhere")
 	_, err = in.Why(machines["activitySystem"], "paused-1-unset-unset-unset", "control-nothing")
 	require.ErrorContains(t, err, "no class control-nothing")

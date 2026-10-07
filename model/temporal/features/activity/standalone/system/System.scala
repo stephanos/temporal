@@ -178,14 +178,14 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
     // (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
     // Where a worker holds the attempt: what start-to-close covers and a worker's answer settles.
-    on(worker.respond(AttemptResult.completed))(when[Held] ~> effects.complete)
-    on(worker.respond(AttemptResult.failed(false)))(when[Held] ~> effects.fail)
-    on(worker.respond(AttemptResult.failed(true))) {
+    on(worker.respondCompleted)(when[Held] ~> effects.complete)
+    on(worker.respondFailed(Failure.fatal))(when[Held] ~> effects.fail)
+    on(worker.respondFailed(Failure.retryable)) {
       in(started) ~> effects.backOff
       in(cancelRequested) ~> effects.cancel
       in(pauseRequested) ~> effects.pause
     }
-    on(worker.respond(AttemptResult.canceled))(in(cancelRequested) ~> effects.cancel)
+    on(worker.respondCanceled)(in(cancelRequested) ~> effects.cancel)
 
     // A control on an activity that is over is not found; an unstarted one has no control. A pause
     // is disabled in paused and pauseRequested (already paused, or asked to be) and cancelRequested
@@ -194,17 +194,19 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // non-pausable state", "... non-unpausable state", chasm/lib/activity/operator_commands.go), and
     // a rejecting row would add rows to the table, so they stay disabled until the behavior freeze
     // lifts.
-    on(client.control)(when[Closed] ~> effects.notFound)
-    on(client.control(Control.pause)) {
+    on(client.pause, client.unpause, client.requestCancel, client.terminate)(
+      when[Closed] ~> effects.notFound
+    )
+    on(client.pause) {
       in(scheduled, backingOff) ~> effects.pause
       in(started) ~> effects.requestPause
     }
-    on(client.control(Control.unpause)) {
+    on(client.unpause) {
       in(paused) ~> effects.resume
       in(pauseRequested) ~> effects.withdrawPause
     }
-    on(client.control(Control.requestCancel))(when[Live] ~> effects.requestCancel)
-    on(client.control(Control.terminate))(when[Live] ~> effects.terminate)
+    on(client.requestCancel)(when[Live] ~> effects.requestCancel)
+    on(client.terminate)(when[Live] ~> effects.terminate)
     on(process.stop)(always ~> effects.keep)
     on(timers.backoff)(in(backingOff) ~> effects.retry)
     // Started and not over: the phases a deadline can fire in.
@@ -230,12 +232,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   // activity and its worker is the composition's, and the history record's are Record.scala's.
   object properties:
     val completes =
-      property when worker.respond(AttemptResult.completed) holds { s =>
+      property when worker.respondCompleted holds { s =>
         s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
       }
 
     val nonRetryableFails =
-      property when worker.respond(AttemptResult.failed(false)) holds { s =>
+      property when worker.respondFailed(Failure.fatal) holds { s =>
         s.state.phase == Phase.failed && s.records(Fact.statusFailed)
       }
 
@@ -252,21 +254,21 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // The attempt count saturates at `states.attemptBound`, so the claim is bounded by it: a completion on
     // any later attempt than the second reads as this one.
     val retryCompletes =
-      property when worker.respond(AttemptResult.completed) holds { s =>
+      property when worker.respondCompleted holds { s =>
         s.state == completedOnRetry && s.records(Fact.statusCompleted)
       }
 
     val cancelRequestedWhileStarted =
-      property when client.control(Control.requestCancel) holds { s =>
+      property when client.requestCancel holds { s =>
         s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
       }
 
     val canceledByWorker =
-      property when worker.respond(AttemptResult.canceled) holds { s =>
+      property when worker.respondCanceled holds { s =>
         s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
       }
 
-    val terminated = property when client.control(Control.terminate) holds { s =>
+    val terminated = property when client.terminate holds { s =>
       s.state.phase == Phase.terminated && s.records(Fact.statusTerminated)
     }
 
@@ -297,13 +299,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   // first use.
   object capabilities extends Capabilities:
     val terminable: Capability = Terminable(
-      terminate = client.control(Control.terminate),
+      terminate = client.terminate,
       settled = Fact.statusTerminated,
       reach = Seq(client.start(), process.stop),
       expect = inconclusive(Reason.explanationsDisagree)
     )
     val cancelable: Capability = Cancelable(
-      requestCancel = client.control(Control.requestCancel),
+      requestCancel = client.requestCancel,
       requested = Fact.statusCancelRequested,
       reach = Seq(client.start(), process.stop),
       expect = inconclusive(Reason.explanationsDisagree)
@@ -320,38 +322,38 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val cancelRequestedThenCanceled = scenario.actions(
       client.start(),
       worker.poll,
-      client.control(Control.requestCancel),
-      worker.respond(AttemptResult.canceled)
+      client.requestCancel,
+      worker.respondCanceled
     )
     val completed = scenario.actions(
       client.start(),
       worker.poll,
-      worker.respond(AttemptResult.completed)
+      worker.respondCompleted
     )
     val nonRetryable = scenario.actions(
       client.start(),
       worker.poll,
-      worker.respond(AttemptResult.failed(false))
+      worker.respondFailed(Failure.fatal)
     )
     val retriedThenCompleted = scenario.actions(
       client.start(),
       worker.poll,
-      worker.respond(AttemptResult.failed(true)),
+      worker.respondFailed(Failure.retryable),
       timers.backoff,
       worker.poll,
-      worker.respond(AttemptResult.completed)
+      worker.respondCompleted
     )
     val terminatedWhileScheduled = scenario.actions(
       client.start(),
       process.stop,
-      client.control(Control.terminate)
+      client.terminate
     )
     val pausedThenCompleted = scenario.actions(
       client.start(),
-      client.control(Control.pause),
-      client.control(Control.unpause),
+      client.pause,
+      client.unpause,
       worker.poll,
-      worker.respond(AttemptResult.completed)
+      worker.respondCompleted
     )
     val scheduleToStartExpires = scenario.actions(
       client.start(scheduleToStart := expires),
@@ -428,7 +430,7 @@ object StandaloneActivity
       .actions(
         own(_.activity, client.start(scheduleToStart := expires)),
         synced(_.activity -> worker.poll),
-        own(_.activity, worker.respond(AttemptResult.failed(true))),
+        own(_.activity, worker.respondFailed(Failure.retryable)),
         own(_.activity, timers.backoff),
         synced(_.activity -> process.stop),
         own(_.activity, deadline.scheduleToStart)
