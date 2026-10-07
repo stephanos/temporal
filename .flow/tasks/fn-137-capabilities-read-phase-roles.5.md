@@ -30,9 +30,10 @@ A `Phased` machine or composition gets `end` = "the phase is `Closed`" by defaul
 - [ ] TBD
 
 ## Done summary
-TBD
+Added the Closed-role default end to Phased machines and compositions, backed by one witnessed finite role-case helper in the framework and the existing shared role-case check in the lifter. The lifter synthesizes the same end for omitted definitions and refuses a phase with no Closed case by object and type. Removed exactly the five equivalent Activity/Nexus workflow/System/composition ends; all other explicit Phased ends gained only the required override modifier and retained their bodies. Explicit no-Closed overrides and derived source ends remain authoritative. The illegal derived-machine rephasing case is now rejected earlier by Scala because Derived.end stays final; the derived-composition initialization guard remains. No generated IR/Cases/goldens were changed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f85bfe0528
+- Tests: scala-cli test model/project.scala model/umpire model/temporal (53 passed), scala-cli test model/irgen --test-only umpire.irgen.DefaultEndsSuite (3 passed), make lint-model-models lint-model-irgen lint-model-syntax (exit 0), scala-cli fmt --check all 285 Model Scala files (exit 0), exact audit: five ends removed; remaining explicit end bodies modifier-only, batch deferral: authoritative IR/Case byte comparison at single regeneration against 96de1fd92d
 - PRs:
