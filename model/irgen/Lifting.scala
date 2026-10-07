@@ -27,7 +27,8 @@ final private[irgen] class Lifting(val ctx: Context)
       .getOrElse(throw LiftError(s"root $root", "names no declaration of the lifted sources"))
     val d = valDef(sym, sym.tree, "a declaration")
     // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
-    if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d)
+    if realizationObject(sym) then realizationObjectOf(sym, d): Unit
+    else if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d)
     else if objectForm(sym) then compositionOf(sym, d)
     else if implementsObject(sym) || capabilitiesObject(sym) then fold(Ref(sym), Map.empty): Unit
     else if queriesSection(sym) then

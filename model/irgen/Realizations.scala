@@ -36,7 +36,8 @@ private[irgen] trait Realizations:
   // is lowered by name (Syntax.scala).
   private def vocabularyMember(sym: Symbol): Boolean =
     inVocabulary(sym) && (!sym.maybeOwner.fullName.endsWith("$package$") ||
-      sym.maybeOwner.fullName == "temporal.realize.Syntax$package$")
+      sym.maybeOwner.fullName == "temporal.realize.Syntax$package$") &&
+      sym.maybeOwner.fullName != "temporal.realize.Realizes"
 
   // A case object of the vocabulary, such as `Activation.Controller`, written as an enum case is.
   private def caseObject(sym: Symbol): Boolean =
@@ -1190,7 +1191,7 @@ private[irgen] trait Realizations:
           .getOrElse(fail(t, s"the described status lists no $name: add `$name -> status` to it"))
         val id = PString(s"${familyOf(m)}.evidence.$name")
         val calls = fieldOfDeclaration(m, "calls").get
-        val request = messageDescriptor(m.term.tpe.widen.dealias.typeArgs.head, t)
+        val request = messageDescriptor(m.term.tpe.widen.dealias.typeArgs(1), t)
         val assignD = irMessage(irField(d, "assign", t), t)
         val operand = irMessage(irField(d, "until", t), t)
         val until = irVariant(
@@ -1603,6 +1604,330 @@ private[irgen] trait Realizations:
         distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, d)
         realizations(id) = r
         r
+
+  // ### Realization objects (model/temporal/realize/Objects.scala)
+
+  private lazy val realizesClass: Symbol = Symbol.requiredClass("temporal.realize.Realizes")
+  private lazy val derivesClass: Symbol = Symbol.requiredClass("temporal.realize.DerivesFrom")
+
+  // Whether `sym` names a realization object, `object X extends Realizes(machine)`.
+  def realizationObject(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.flags.is(Flags.Module) && cls.typeRef.derivesFrom(realizesClass)
+
+  // The sections of a realization object, in the order they must come, and of a derived one.
+  private val sectionOrder = Vector("controller", "workers", "evidence", "serverSteps", "controls")
+  private val derivedSections = Vector("changes")
+
+  // A kit declaration by its file and name: a val or a def of a file of model/temporal/realize.
+  private def kitSymbol(file: String, name: String): Symbol =
+    val pkg = Symbol.requiredModule(s"temporal.realize.$file$$package").moduleClass
+    val field = pkg.declaredField(name)
+    if !field.isNoSymbol then field else pkg.declaredMethod(name).head
+
+  // The roles of the kit, in the order a realization lists them, and the two every Case binds.
+  private val kitRoles =
+    Vector("workflowService", "caseWorker", "taskQueue", "handlerTaskQueue", "nexusEndpoint")
+  private val boundRoles = Set("temporal.workflow-service", "temporal.task-queue")
+
+  // The sections of a realization object's body, each by its name, in order. Anything else in the
+  // body, a section out of order, or a second realization is refused at its line.
+  private def sectionsOf(c: ClassDef, allowed: Vector[String]): Vector[(String, ClassDef)] =
+    val found = statements(c).flatMap {
+      case v: ValDef if v.symbol.flags.is(Flags.Module) => None
+      case s: ClassDef
+          if s.symbol.flags.is(Flags.Module) && s.symbol.typeRef.derivesFrom(realizesClass) =>
+        fail(
+          s,
+          s"${c.name.stripSuffix("$")} holds a second realization, ${s.name.stripSuffix("$")}: a realization object holds one, so declare it as an object of its own"
+        )
+      case s: ClassDef if s.symbol.flags.is(Flags.Module) =>
+        val name = s.name.stripSuffix("$")
+        if !allowed.contains(name) then
+          fail(
+            s,
+            s"$name is no section of a realization object, whose sections are ${allowed.mkString(", ")}, in that order"
+          )
+        Some(name -> s)
+      case v: ValDef if isNamed(v.tpt.tpe, "umpire.realize.Realization") =>
+        fail(
+          v,
+          s"${c.name.stripSuffix("$")} holds a second realization, ${v.name}: a realization object holds one, so declare it as an object of its own"
+        )
+      case other =>
+        fail(
+          other,
+          s"a realization object holds its sections, ${allowed.mkString(", ")}, and nothing else: declare this outside the object"
+        )
+    }.toVector
+    found.zip(found.drop(1)).foreach { case ((a, _), (b, s)) =>
+      if allowed.indexOf(b) < allowed.indexOf(a) then
+        fail(
+          s,
+          s"$b comes before $a: a realization object's sections are ${allowed.mkString(", ")}, in that order"
+        )
+    }
+    found
+
+  // The arguments of a section's constructor, its one argument list of varargs.
+  private def sectionArgument(s: ClassDef): Term = parentArguments(s).flatten match
+    case List(a) => a
+    case other   =>
+      fail(s, s"a section lists its declarations in one argument list, not ${other.size}")
+
+  // What a realization object declares: its header's arguments by name, and its sections.
+  final private case class Declared(
+      machine: Term,
+      header: Map[String, Term],
+      sections: Map[String, ClassDef],
+      controller: List[Term]
+  )
+
+  private def declared(sym: Symbol, at: Tree): Declared =
+    val cls = moduleClassOf(sym)
+    val c = objectBody(cls, at)
+    if cls.typeRef.derivesFrom(derivesClass) then
+      val List(base, machine) = parentArguments(c).flatten.take(2): @unchecked
+      val baseSym = base match
+        case r: Ref if realizationObject(r.symbol) => r.symbol
+        case other                                 =>
+          fail(other, s"a derived realization names its base realization object, not ${other.show}")
+      val b = declared(baseSym, base)
+      val changes = sectionsOf(c, derivedSections).toMap
+      val items = changes.get("changes").fold(b.controller) { s =>
+        itemsOf(Bound(sectionArgument(s), Map.empty)).foldLeft(b.controller) { (items, change) =>
+          val r = reduce(change)
+          val step = fieldOfDeclaration(r, "step").get
+          val replaces = fieldOfDeclaration(r, "replaces")
+            .map(reduce(_).term)
+            .collect { case Literal(BooleanConstant(v)) =>
+              v
+            }
+            .getOrElse(false)
+          val added = fieldOfDeclaration(r, "items").map(itemsOf).getOrElse(Nil).map(_.term)
+          val name = commandName(step)
+          val at = items.indexWhere { item =>
+            scriptCall(reduce(Bound(item, Map.empty)).term) match
+              case Some(("everyCase", List(command))) =>
+                commandName(Bound(command, Map.empty)) == name
+              case Some(("onPath", List(_, command))) =>
+                commandName(Bound(command, Map.empty)) == name
+              case _ => false
+          }
+          if at < 0 then
+            fail(
+              follow(change).term,
+              s"the base controller has no step whose command is $name: a derived realization changes the steps its base has"
+            )
+          if replaces then items.patch(at, added, 1) else items.patch(at + 1, added, 0)
+        }
+      }
+      b.copy(machine = machine, controller = items)
+    else
+      val params = realizesClass.primaryConstructor.paramSymss.flatten.filter(_.isTerm).map(_.name)
+      val args = c.parents
+        .collectFirst { case t: Term => arguments(t) }
+        .flatMap(call)
+        .fold(Nil)(_._2)
+        .flatten
+      val header = args.zipWithIndex.flatMap {
+        case (NamedArg(n, a), _)     => Option.when(!isDefault(a))(n -> a)
+        case (a, i) if !isDefault(a) => Some(params(i) -> a)
+        case _                       => None
+      }.toMap
+      val sections = sectionsOf(c, sectionOrder).toMap
+      val controller = sections
+        .get("controller")
+        .map(s => itemsOf(Bound(sectionArgument(s), Map.empty)).map(_.term))
+        .getOrElse(Nil)
+      val machine = header.getOrElse(
+        "machine",
+        fail(
+          at,
+          s"a realization object names its machine, `Realizes(machine)`: ${c.parents.map(_.show)} ${params}"
+        )
+      )
+      Declared(machine, header - "machine", sections, controller)
+
+  // The entity a machine keeps state for, as the val that declares it: the one of its name closest
+  // to the realization object's package.
+  private def entityOf(machine: ir.Machine, near: Symbol, at: Tree): Term =
+    val own = near.fullName
+    val candidates = defs.collect {
+      case (sym, v: ValDef) if isNamed(v.tpt.tpe, "umpire.Entity") && sym.name == machine.entity =>
+        sym
+    }.toVector
+    def shared(sym: Symbol) = sym.fullName.split('.').zip(own.split('.')).takeWhile(_ == _).length
+    candidates
+      .sortBy(s => -shared(s))
+      .headOption
+      .map(Ref(_))
+      .getOrElse(
+        fail(
+          at,
+          s"${machine.name} keeps state for ${machine.entity}, which no val of the lifted sources declares"
+        )
+      )
+
+  // A realization object, as the record `temporalRealization` writes, with its operation, roles and
+  // default server steps derived.
+  def realizationObjectOf(sym: Symbol, at: Tree): ir.Realization =
+    val id = definitionId(sym, at)
+    realizations.getOrElse(
+      id, {
+        val d = declared(sym, at)
+        val machineName = machineOf(resolveSymbol(d.machine.asInstanceOf[Ref]), d.machine).name
+        val machine = machineNamed(machineName).get
+        val any = Inferred(defn.AnyClass.typeRef)
+        def listed(terms: List[Term]) = Repeated(terms, any)
+        def section(name: String) = d.sections.get(name).map(sectionArgument).getOrElse(listed(Nil))
+        val controller = Apply(Ref(kitSymbol("Kit", "controller")), List(listed(d.controller)))
+        val workers = d.sections
+          .get("workers")
+          .map(s => itemsOf(Bound(sectionArgument(s), Map.empty)).map(_.term))
+          .getOrElse(Nil)
+        val call = Apply(
+          Ref(kitSymbol("Kit", "temporalRealization")),
+          List(
+            d.machine,
+            entityOf(machine, sym, at),
+            listed(kitRoles.map(r => Ref(kitSymbol("Kit", r))).toList),
+            listed(controller :: workers),
+            section("evidence"),
+            d.header.getOrElse("learned", listed(Nil)),
+            d.header.getOrElse("observations", listed(List(Ref(kitSymbol("Kit", "correlated"))))),
+            section("controls"),
+            d.header.getOrElse("requiredSettings", listed(Nil)),
+            listed(Nil),
+            Ref(kitSymbol("Behavior", "temporalBehavior"))
+          )
+        )
+        factsNamed.clear()
+        commandOrigins.clear()
+        deadlineClasses.clear()
+        val emitted = emit(ir.Realization, Bound(call, familyScope(sym, Bound(call, Map.empty))))
+        ownFacts(emitted)
+        val stated = d.sections
+          .get("serverSteps")
+          .map(s => itemsOf(Bound(sectionArgument(s), Map.empty)))
+          .getOrElse(Nil)
+          .map(b =>
+            b -> ir.ServerStep.messageReads.read(
+              valueOf(irField(ir.Realization.scalaDescriptor, "server_steps", at), b)
+                .asInstanceOf[PMessage]
+            )
+          )
+        val r = emitted
+          .withId(id)
+          .withName(objectFormName(sym))
+          .withPosition(pos(at))
+          .withRoles {
+            val named = rolesNamed(emitted)
+            emitted.roles.filter(role =>
+              boundRoles(role.id) || named(role.id) || (role.resource.nonEmpty && named(
+                role.resource
+              ))
+            )
+          }
+          .withServerSteps(serverSteps(emitted, machine, stated, at))
+        classesOfMachine(r, machine)
+        distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, at)
+        realizations(id) = r
+        r
+      }
+    )
+
+  // The role ids a realization's scripts and controls name, and the environment bindings their
+  // operands read, through which a role's resource is named.
+  private def rolesNamed(r: ir.Realization): Set[String] =
+    val named = mutable.Set.empty[String]
+    def walk(v: PValue): Unit = v match
+      case PMessage(fields) =>
+        fields.foreach {
+          case (f, PString(id))
+              if Set("role", "role_id", "worker", "task_queue", "environment")(f.name) =>
+            named += id
+          case (_, x) => walk(x)
+        }
+      case PRepeated(xs) => xs.foreach(walk)
+      case _             => ()
+    r.scripts.foreach(s => walk(s.toPMessage))
+    r.controls.foreach(c => walk(c.toPMessage))
+    named.toSet
+
+  // The server steps of a realization: each class an activity script starts with, a delivery; the
+  // machine's backoff timer where an activity script runs the attempts it retries; and the deadline
+  // timer of each input a bound class expires, all at the kit's deadlines; then the stated ones, each
+  // overriding the derived step of its class, refused where it equals it.
+  private def serverSteps(
+      r: ir.Realization,
+      machine: ir.Machine,
+      stated: List[(Bound, ir.ServerStep)],
+      at: Tree
+  ): Seq[ir.ServerStep] =
+    def ms(name: String) = constInt(Ref(kitSymbol("Kit", name)))
+    val position = Some(pos(at))
+    val timers = machine.steps.map(_.action).filter(a => actions.get(a).exists(_.timer))
+    val activities = r.scripts.filter(_.activation.isActivity)
+    val deliveries = activities
+      .flatMap(_.getActivity.starts)
+      .map(c => ir.ServerStep(position, Some(c), ir.CauseKind.CAUSE_KIND_DELIVERY))
+    val backoff = timers
+      .filter(a => activities.nonEmpty && actions(a).name == "backoff")
+      .map(a =>
+        ir.ServerStep(
+          position,
+          Some(ir.ActionClass(a)),
+          ir.CauseKind.CAUSE_KIND_TIMER,
+          ms("firstRetryBackoffMs")
+        )
+      )
+    val expired = (for
+      s <- r.scripts
+      item <- s.items
+      p <- item.performs
+      step <- p.step.toSeq
+      (value, i) <- step.inputs.zipWithIndex
+      if value.kind.`enum`.exists(e => e.`type`.endsWith(".Timeout") && e.`case` == "expires")
+    yield actions(step.action).inputs(i).name).toSet
+    val deadlines = timers
+      .filter(a => expired(actions(a).name))
+      .map(a =>
+        ir.ServerStep(
+          position,
+          Some(ir.ActionClass(a)),
+          ir.CauseKind.CAUSE_KIND_TIMER,
+          ms("deadlineMs")
+        )
+      )
+    val derived = deliveries ++ backoff ++ deadlines
+    def same(x: ir.ServerStep, y: ir.ServerStep) =
+      x.withPosition(ir.Position()) == y.withPosition(ir.Position())
+    val overridden = stated.foldLeft(derived) { case (steps, (b, step)) =>
+      steps.indexWhere(_.step == step.step) match
+        case -1                        => steps :+ step
+        case i if same(steps(i), step) =>
+          fail(
+            follow(b).term,
+            s"the realization states the server step it derives for ${step.getStep.action}: drop it"
+          )
+        case i => steps.updated(i, step)
+    }
+    overridden
+
+  // Refuses a class a perform or onPath binds that is of no action its machine binds: a binding of
+  // another machine's action.
+  private def classesOfMachine(r: ir.Realization, machine: ir.Machine): Unit =
+    val bound = machine.steps.map(_.action).toSet
+    for s <- r.scripts; item <- s.items do
+      val classes = item.performs.flatMap(_.step) ++ item.when
+      classes.find(c => !bound(c.action)).foreach { c =>
+        val at = item.position.getOrElse(ir.Position())
+        throw LiftError(
+          s"${at.file}:${at.line}",
+          s"${actions(c.action).name} is no action ${machine.name} binds: a realization binds its own machine's actions"
+        )
+      }
 
   // ### Script helpers (model/umpire/realize/Scripts.scala), written by name
 

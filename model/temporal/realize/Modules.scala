@@ -8,7 +8,7 @@ package temporal.realize
 import io.grpc.MethodDescriptor
 import scalapb.{GeneratedEnum, GeneratedMessage}
 import io.temporal.api.history.v1.HistoryEvent
-import umpire.{Action, Input}
+import umpire.{Action, Input, Machine}
 import umpire.realize.*
 
 // The fields every call on `role` assigns, each a request field by its protobuf name and the
@@ -22,25 +22,28 @@ final case class RequestBase(role: Addressee, fields: (String, TypedOperand[Stri
     extends Addressee:
   def id: String = role.id
 
-// The status a describe method reports for each fact `entries` lists, read from the response's
-// `info` message, keyed to its operation by `operation` and compared at `status`: one declaration
-// of what a realization reads back of a described operation, its calls made on `calls`. It yields
+// The status a describe method reports for each fact of `machine` that `entries` lists, read from
+// the response's `info` message, keyed to its operation by `operation` and compared at `status`:
+// one declaration of what a realization reads back of a described operation, its calls made on
+// `calls`. Its facts are the machine's, so a fact of another machine does not compile. It yields
 // the evidence of each listed fact, `evidence`, in table order; one fact's, `described(fact)`; and
 // a read that waits until the description reports the fact's status, `described.await(fact)`,
 // named `await-<status>` after the status value's own name (`ACTIVITY_EXECUTION_STATUS_TIMED_OUT`
 // awaits as `await-timed-out`). Each fact is listed once.
-final case class DescribedStatus[
+final class DescribedStatus[
+    F <: AnyRef,
     Req <: GeneratedMessage,
     Rsp <: GeneratedMessage,
     Info <: GeneratedMessage,
     V <: GeneratedEnum
 ](
+    machine: Machine[?, ?, F],
     calls: RequestBase,
     method: MethodDescriptor[Req, Rsp],
     info: Field[Rsp, Info],
     operation: Field[Info, ?],
     status: Field[Info, V]
-)(val entries: (Fact, V)*):
+)(val entries: (F | EveryValue, V)*):
   // What each listed fact reads as, as a status table.
   def table: StatusTable[V] = statusTable(entries*)
 
@@ -48,7 +51,7 @@ final case class DescribedStatus[
   def evidence: Vector[EvidenceRef[Req, Info]] = entries.map((fact, _) => apply(fact)).toVector
 
   // The evidence of one fact: the describe method's status, read once the operation stays in it.
-  def apply(fact: Fact): EvidenceRef[Req, Info] = Evidence.read(
+  def apply(fact: F | EveryValue): EvidenceRef[Req, Info] = Evidence.read(
     id = evidenceId(fact),
     records = fact,
     source = sourceId(fact),
@@ -58,7 +61,7 @@ final case class DescribedStatus[
   )
 
   // Reads the description until it reports the status the table lists for `fact`.
-  def await(fact: Fact): Instruction =
+  def await(fact: F | EveryValue): Instruction =
     val reported = entries.collectFirst { case (f, v) if f == fact => v }.get
     Instruction.readUntil(apply(fact), calls)(
       Vector.empty,

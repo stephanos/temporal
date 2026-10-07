@@ -51,5 +51,5 @@ object exports:
     NexusSystem,
     NexusSystem.implements,
     NexusSystem.queries,
-    OperationRealization.standalone
+    Standalone
   )

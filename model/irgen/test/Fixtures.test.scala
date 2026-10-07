@@ -333,6 +333,10 @@ class Fixtures extends munit.FunSuite:
     "deadlineNoTimeout"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
+  // The refusals of fn-133.6's realization objects, each an object of lifts/ScriptRejects.scala.
+  private val realizationObjectRejects: Seq[String] =
+    Seq("Unordered", "Doubled", "Foreign", "Restated", "Replaced").map("fixture.scriptrejects." + _)
+
   // The refusals of fn-122.2's capability declarations, fn-122.5's citations and fn-127.2's
   // `through` (lifts/CapabilityRejects.scala).
   private val capabilityRejects: Seq[String] = Seq(
@@ -517,8 +521,9 @@ class Fixtures extends munit.FunSuite:
     "valComposition",
     "UnobservedRefiner",
     "IndexedQueries$.queries"
-  ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ sectionRejects ++ hintRejects ++
-    markerRejects ++ blockRejects ++ statusRejects ++ roleRejects ++ ruleRejects
+  ).map(rejectsRoot) ++ scriptRejects ++ realizationObjectRejects ++ capabilityRejects ++
+    sectionRejects ++ hintRejects ++ markerRejects ++ blockRejects ++ statusRejects ++ roleRejects ++
+    ruleRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -649,6 +654,10 @@ class Fixtures extends munit.FunSuite:
         "Invalid.scala:49:3" // a derived machine's own rules
       )
     )
+
+  // fn-133 R9: a realization object is typed by its machine (testdata/typedRealizations).
+  concurrently("the build refuses a realization object's evidence or status of another machine"):
+    assertEquals(refusals("typedRealizations").sorted, Seq("Typed.scala:16:46", "Typed.scala:25:3"))
 
   concurrently("the build refuses a non-finite state field, at its line"):
     assertEquals(refusals("nonfinite"), Seq("NonFinite.scala:5:47"))

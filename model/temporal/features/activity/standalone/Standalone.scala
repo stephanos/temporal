@@ -35,7 +35,7 @@ package standalone
 import umpire.*
 import io.temporal.api.workflowservice.v1.*
 import product.ActivityProduct
-import system.{ActivityRealization, ActivitySystem, StandaloneActivity}
+import system.{ActivitySystem, StandaloneActivity}
 
 // ### Types
 
@@ -112,7 +112,7 @@ object exports:
     ActivitySystem.implements,
     ActivitySystem.queries,
     StandaloneActivity.queries,
-    ActivityRealization.standalone
+    system.Standalone
   )
 
   // Its history record, the admission designs, and the shared task queue's providers it composes.
@@ -137,7 +137,7 @@ object exports:
   // own, so the history record's Queries are the ones its checkers were given.
   val activityStandaloneRace = irFile("activity-standalone-race")(
     system.HeldDispatch.queries,
-    ActivityRealization.heldDelivery,
+    system.HeldDelivery,
     system.LostStartAnswer.queries,
-    ActivityRealization.lostAdmissionResponse
+    system.LostAdmissionResponse
   )

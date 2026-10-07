@@ -309,7 +309,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
           reach = Seq(client.start(), process.stop),
           expect = inconclusive(Reason.explanationsDisagree)
         ),
-        Describable(status = ActivityRealization.activityStatus)
+        Describable(status = activityStatus)
       )
 
   // The paths, then one functional Query per side effect that settles the activity, and the Queries

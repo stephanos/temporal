@@ -199,7 +199,7 @@ file's `object exports`: its name and its roots, named by value, in a `val` name
 ```scala
 object exports:
   val nexusWorkflowControl =
-    irFile("nexus-workflow-control")(TrustingCaller.queries.forgedCompletion, NexusRealization.forgedCompletion)
+    irFile("nexus-workflow-control")(TrustingCaller.queries.forgedCompletion, ForgedControl)
 ```
 
 A root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization;
@@ -1304,10 +1304,21 @@ What every Temporal realization says alike is declared once, in the kit `model/t
 supplies for them, the correlation window, the controller script, the one form a read waits in
 (`await`, which writes no interval and no deadline), the helpers that declare evidence from the Run's own record (`answered`, `answeredAs`,
 `delivered`), the deadlines a request sets, and `temporalRealization`, which takes what a feature
-says differently. The standalone activity and the Nexus caller realizations both use it. A feature
-that reads a status back declares what each fact reads as once, `statusTable(fact -> value, …)`
-beside its realization, and its `awaitStatus` reads the status it polls for from that table. The
-table is the realization-side form of the `Describable` status map of
+says differently. A feature declares each realization as an object of its own, typed by its
+machine (`temporal/realize/Objects.scala`): `object Standalone extends Realizes(ActivitySystem)`,
+whose sections are `controller`, `workers`, `evidence`, `serverSteps` and `controls`, in that
+order, and nothing else; a derived one, `object ForgedControl extends DerivesFrom(AsyncNexus,
+TrustingCaller)`, holds `changes`, `inserting(after = step)(items*)` and `replacing(step)(items*)`
+on its base's controller. The realization is named after its object with the first letter lowered,
+and its ID is the object's qualified name. Its operation (the machine's entity), its roles (the
+WorkflowService, the Case's task queue, and each kit role its scripts name) and its default server
+steps (deliveries, the backoff timer where an activity script runs, and each deadline timer its
+`deadlines` sets) are derived; the lifter refuses a section out of order, a second realization in
+an object, a binding of another machine's action, a stated server step equal to the derived one,
+and a change at a step the base lacks. Evidence helpers and a `DescribedStatus` take facts of the
+machine, so another machine's fact does not compile; a fact case with fields is named
+`everyValue(Fact.case)`. A feature that reads a status back declares what each fact reads as once,
+in its `DescribedStatus`, whose `table` is the realization-side form of the `Describable` status map of
 [.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the IR generator reads it when it lifts,
 and it adds nothing to the IR.
 

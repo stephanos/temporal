@@ -126,12 +126,12 @@ object exports:
     temporal.shared.worker.Polling,
     NexusSystem.queries,
     NexusCaller.queries,
-    NexusRealization.asyncNexus
+    AsyncNexus
   )
 
   // The forged completion a caller must refuse, and the realization that offers it.
   val nexusWorkflowControl =
-    irFile("nexus-workflow-control")(TrustingCaller.queries, NexusRealization.forgedCompletion)
+    irFile("nexus-workflow-control")(TrustingCaller.queries, ForgedControl)
 
   // The close and reset designs. Each design's Queries are a root, and so is each progress claim.
   val nexusWorkflowClose = irFile("nexus-workflow-close")(

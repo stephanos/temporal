@@ -124,6 +124,7 @@ private val overridden = rpc(baseCalls, METHOD_PAUSE_ACTIVITY_EXECUTION) {
 val baseOverride: Realization = realizing(perform(client.control(Control.pause) -> overridden))
 
 private val describedOnce = DescribedStatus(
+  machine = activitySystem,
   calls = baseCalls,
   method = METHOD_DESCRIBE_ACTIVITY_EXECUTION,
   info = Field(_.getInfo),
@@ -137,6 +138,7 @@ val awaitUnlisted: Realization = realizing(
 )
 
 private val describedTwice = DescribedStatus(
+  machine = activitySystem,
   calls = baseCalls,
   method = METHOD_DESCRIBE_ACTIVITY_EXECUTION,
   info = Field(_.getInfo),
@@ -180,3 +182,41 @@ val deadlineNoTimeout: Realization = realizing(
     duration(2)
   )(temporal.features.activity.standalone.Inputs.control.sets(_.getStartToCloseTimeout))
 )
+
+// ### Realization objects (fn-133.6), each refused at its line
+
+// A section out of order: evidence comes after the controller.
+object Unordered extends Realizes(activitySystem):
+  object evidence extends Evidences(answered(ActivityFact.statusScheduled, started))
+  object controller extends Controller(everyCase(started))
+
+// An object holding a second realization.
+object Doubled extends Realizes(activitySystem):
+  object controller extends Controller(everyCase(started))
+  object Inner extends Realizes(activitySystem)
+
+// A binding of an action its machine does not bind.
+object Foreign extends Realizes(activitySystem):
+  object controller
+      extends Controller(perform(temporal.features.nexus.workflow.caller.inspect -> started))
+
+// A server step stated as the kit derives it.
+object Restated extends Realizes(activitySystem):
+  object controller
+      extends Controller(
+        deadlines[io.temporal.api.workflowservice.v1.StartActivityExecutionRequest](
+          client.start,
+          started,
+          duration(2)
+        )(scheduleToStart.sets(_.getScheduleToStartTimeout))
+      )
+  object serverSteps
+      extends ServerSteps(
+        ServerStep(temporal.features.activity.deadline.scheduleToStart, CauseKind.timer, deadlineMs)
+      )
+
+private val stopped = fault(taskQueue, FaultKind.workerStop)
+
+// A derived realization that replaces a step its base does not have.
+object Replaced extends DerivesFrom(Restated, activitySystem):
+  object changes extends Changes(replacing(stopped)(everyCase(started)))

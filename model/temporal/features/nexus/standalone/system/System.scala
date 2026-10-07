@@ -167,7 +167,7 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
           reach = Seq(client.start),
           expect = inconclusive(Reason.explanationsDisagree)
         ),
-        Describable(status = OperationRealization.operationStatus)
+        Describable(status = operationStatus)
       ):
     // Why the operation overrides closedIsRejectedUniformly: the server answers a control that
     // repeats a request id the operation took OK, after it closed too (operation.go RequestCancel,
