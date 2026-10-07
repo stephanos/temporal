@@ -78,6 +78,14 @@ Patterns: a wildcard matches anything; `bind n p` matches what `p` matches and b
 matches an equal value; `case T.C(p1, …, pn)` matches a value of case `C` whose fields match the `pi`;
 alternatives match when any does.
 
+A role test is not an IR expression. A role is a trait the cases of a phase enum mix in
+(`umpire/Roles.scala`), and the IR generator lowers a test of a phase against a role `R` to the
+cases of the phase's enum that have `R`, directly or through a narrower role that extends it, listed
+in declaration order: `p.in[R]` on a phase value (or `isInstanceOf[R]`) is `p in list(C1, …, Cn)`, a
+rule case `when[R]` is that membership of the rules' projection, and a type pattern against `R`,
+`case _: R` or `case q: R`, is the alternatives of the literals `C1 | … | Cn`. So a role test means
+exactly what the hand-written membership of those cases means, and the IR carries no role.
+
 ## Levels
 
 An expression is at one of five levels, by what it is computed from:
@@ -156,6 +164,11 @@ A machine's table is derived from its declaration:
    outcomes the product sees (`visible_outcomes`, a function from an outcome to a Boolean) narrows the
    stutter too: its outcome is none of them. A carried result's outcome is already the carrying
    product result's, by name.
+   Where both machines' phases take roles, a refinement also preserves closedness: a state is
+   `Closed` exactly when its mapped product state is. The IR carries no roles, so this check is not
+   the IR's: it runs in Scala, over every `Finite` state of the refining machine, in the model
+   tests, which name each such refinement and report every state whose role differs from its
+   image's, with the image. A refinement whose machines carry no roles is not checked.
 7. Its monitors ([Monitors](#monitors)) and its assumptions ([Assumptions](#assumptions)) are the
    ones it names. A machine derived by restriction keeps its source's.
 

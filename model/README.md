@@ -443,6 +443,22 @@ The IR generator reads what an author wrote, as written:
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
   `given Finite[Int] = Finite.upTo(…)` beside the state's `Finite`, which Models not yet migrated
   keep.
+- **Phase roles** (`umpire/Roles.scala`): a case of a phase enum takes roles in its own extends
+  clause, `case backingOff extends Phase, Retrying`; Scala 3 makes each such case name its enum and
+  refuses grouped cases with an extends clause. The roles are `Live`, which `Waiting`, `Held` and
+  `Suspended` extend, and `Retrying` extends `Waiting`; and `Closed`, which `Succeeded`, `Failed`,
+  `Canceled`, `Terminated` and `TimedOut` extend. A Model declares a role of its own by extending
+  one, `trait Expired extends TimedOut`; a trait that extends none is not a role. A role adds no
+  field and no state, so the enum's `Finite` values are those without roles, and a phase with no
+  role is one where the entity does not exist yet. A role test lifts to membership in the cases of
+  the phase's enum that have the role, inherited roles included, in declaration order, and the IR
+  has no role construct: `p.in[Closed]` on a phase value lifts as `p.in(succeeded, failed, …)`,
+  `when[Closed]` as a rule case as `in(succeeded, failed, …)`, and a type pattern, `case _: Closed`
+  or `case q: Closed`, as the alternatives of those case literals. The Models' lint refuses
+  `isInstanceOf`, which lifts as `p.in[R]` does. The IR generator refuses a role test on a value of
+  no enum, of a role no case of the enum has, or against a type that is not a role, and refuses, as
+  it declares the enum, a case that is both `Live` and `Closed`, has two of `Waiting`, `Held` and
+  `Suspended`, or has two closure roles.
 - **Step functions:** `if`, `match` with case, alternative, binding and wildcard patterns, local
   `val`s, `copy`, constructors, comparisons, arithmetic, list literals and `++`, and calls of other
   functions; `Step(…)` and `steps.because("…")` on steps written out, and named choices,
@@ -653,10 +669,13 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    entity is the one entity its actions are `on` or create; one whose actions name several, or none,
    names its own with `val entity`;
 2. `object states`, its vocabulary: the named state sets and projections its guards, effects and
-   claims read (`states.terminal`, `states.held`) and its constants;
+   claims read (`states.terminal`, `states.held`) and its constants; a set that is exactly the
+   phases of a role is a role test, `def terminal(p: Phase) = p.in[Closed]`;
 3. `object refinement extends Refinement(ActivityProduct)`, where it refines another machine:
    `toProduct`, the map onto the refined machine's states, and where declared `visible`,
-   `visibleOutcomes` and `unobservable`;
+   `visibleOutcomes` and `unobservable`. Where both machines' phases take roles, a model test
+   names the refinement and checks that a state is `Closed` exactly when its image is
+   (model/SEMANTICS.md, "Machines" 6);
 4. `object effects`: what each action does, plain defs named for it (`startAttempt`, `complete`),
    which never give `disabled` or `Nil`, and need no result type: `enter(…)`, `stay(s)` and
    `reject(Outcome.notFound, s)`, a step that keeps the state with another outcome, say what each
