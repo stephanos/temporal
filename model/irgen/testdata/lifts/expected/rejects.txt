@@ -47,7 +47,6 @@ lift: model/irgen/testdata/lifts/Rejects.scala:390: assumedAgain assumes lampOpa
 lift: model/irgen/testdata/lifts/Rejects.scala:344: two assumptions are named opaque: fixture.rejects.OpaqueA.opaque and fixture.rejects.OpaqueB.opaque, and the IR names them by name
 lift: model/irgen/testdata/lifts/Rejects.scala:394: assumingTwice assumes lampFaulty twice: a machine names each assumption once
 lift: model/irgen/testdata/lifts/Rejects.scala:177: channel batches's messages are lists, which have no finite catalog in the IR: give them an enum or a record
-lift: model/irgen/testdata/lifts/Rejects.scala:1090: on(fixture.rejects.bulbHand.squeeze) is written twice in blockRepeated's rules, first at model/irgen/testdata/lifts/Rejects.scala:1089: an action, or a class of it, has one block of cases
 lift: model/irgen/testdata/lifts/Rejects.scala:1081: on sits in a block of blockTwice's rules: a block holds its cases alone
 lift: model/irgen/testdata/lifts/Rejects.scala:848: the alternative lampOff of a choose is not one step written out: write its step itself, as `enter(...)`, `stay(s)` or `List(Step(...))`, one per alternative, or call a function that gives at most one
 lift: model/irgen/testdata/lifts/Rejects.scala:840: the alternative lampOn of a choose calls lampBothStep, which gives 2 steps at model/irgen/testdata/lifts/Rejects.scala:905: a function an alternative calls gives no step or one step written out in each branch
@@ -69,6 +68,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:1121: endless declares no end: a 
 lift: model/irgen/testdata/lifts/Rejects.scala:440: because explains the steps a step function writes out and does not explain, such as `enter(...)` or `List(Step(...))`: give each other step its explanation where it is written
 lift: model/irgen/testdata/lifts/Rejects.scala:374: extendBound extends oneStart by flip, which it binds already: rebind replaces the step function of an action the source binds
 lift: model/irgen/testdata/lifts/Rejects.scala:1108: extendedBare extends ruled, whose actions are bound by rules, by a bare binding: extend takes rules, `extend(on(action) { where(g) ~> effect })`
+lift: model/irgen/testdata/lifts/Rejects.scala:1089: not a rule of fromStatement's from(bulbHand): fixture.rejects.FromStatement.rules.disabled(fixture.rejects.bulbHand.twist); a from begins with its declarer's import, `import bulbHand.*`
 lift: model/irgen/testdata/lifts/Rejects.scala:359: two holes are named gap: fixture.rejects.GapA.gap and fixture.rejects.GapB.gap, and the IR names them by name
 lift: model/irgen/testdata/lifts/Rejects.scala:209: channel guessed's loss is umpire.Loss.valueOf("reliable"), not a case of Loss: a channel names its loss as Loss.lossy or Loss.reliable
 lift: model/irgen/testdata/lifts/Rejects.scala:18: fixture.rejects.Unbounded.notes is a list, which has no bound: a state holds messages in a channel's Inbox
@@ -191,6 +191,9 @@ lift: model/irgen/testdata/lifts/RoleRejects.scala:71: failed of fixture.rolerej
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:136: the described status lists no statusCompleted: add `statusCompleted -> status` to it
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:120: the call assigns namespace the value its request base gives it: drop the assignment
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:147: the described status lists statusPaused twice: list each fact once
+lift: model/irgen/testdata/lifts/RuleRejects.scala:28: on(cool) sits in from(cook), and cook declares no cool: a from holds the blocks of the actions its declarer declares
+lift: model/irgen/testdata/lifts/RuleRejects.scala:38: not a rule of importedTwice's from(cook): import fixture.grouped.clock.{_}; a from holds its declarer's import, first, then `on(action) { case ~> effect }` blocks
+lift: model/irgen/testdata/lifts/RuleRejects.scala:14: from(clock) sits in from(cook): a from holds on blocks alone
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:105: pause is a case of Control, and activitySystem records facts of temporal.features.activity.standalone.system.Fact: a realization names the facts its machine records
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:155: workflow_execution_started_event_attributes has no scheduled_event_id, the field the history keys each kind to its operation by
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:110: the literal sets message twice: set each field of a protobuf literal once

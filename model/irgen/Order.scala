@@ -223,14 +223,14 @@ final private[irgen] class Order(index: Index):
       }
 
   // A call that runs its function arguments while it is made: a rule block, `on(a) { ... }` of
-  // `rules` or of a derivation, whose cases run at once; a case, `in(set)`, `when[R]`, `where(g)` or
-  // `.where(g)`, whose condition the disjointness check calls; and `Rules`'s constructor, whose
-  // phase projection the conditions of `in` and `when` call.
+  // `rules` or of a derivation, or a `from` of them, whose cases run at once; a case, `in(set)`,
+  // `when(set)`, `when[R]`, `where(g)` or `.where(g)`, whose condition the disjointness check calls;
+  // and `Rules`'s constructor, whose phase projection the conditions of `in` and `when` call.
   private def appliesAtOnce(s: Symbol): Boolean =
     s.exists && {
       val owner = s.maybeOwner
       (owner == rulesClass &&
-        (s.isClassConstructor || s.name == "on" || s.name == "in" || s.name == "when")) ||
+        (s.isClassConstructor || Set("on", "in", "when", "from")(s.name))) ||
       (owner == caseClass && s.name == "where") ||
       (Set("on", "where")(s.name) && owner.fullName == "umpire.Syntax$package$")
     }

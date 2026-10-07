@@ -17,6 +17,9 @@
 //   scala-cli run model/check -- --check-comments    hold every Scala file of model/ to `//`
 //                                                    comments (CommentRule.scala); make lint-model
 //                                                    runs it
+//   scala-cli run model/check -- --check-block-form  hold every rule of model/temporal to the
+//                                                    block form, `on(...) { ... }`
+//                                                    (BlockFormRule.scala)
 //
 // The IR generator's fixtures under irgen/testdata are built and lifted too, by its own tests: the
 // Models it must lift, compared with the IR in irgen/testdata/lifts/expected, which --update
@@ -475,7 +478,7 @@ final class Gate(tools: Tools, log: PrintStream):
 object Gate:
   val usage =
     "usage: gate [--update] [--skip-go-checks] | gate --generate-ir|--generate-api [--if-stale]" +
-      " | gate --check-syntax | gate --check-comments"
+      " | gate --check-syntax | gate --check-comments | gate --check-block-form"
 
   private def same(checkedIn: Path, produced: Path) =
     Files.isRegularFile(checkedIn) && Files.mismatch(checkedIn, produced) == -1L
@@ -571,13 +574,15 @@ object Gate:
       "--generate-api",
       "--if-stale",
       "--check-syntax",
-      "--check-comments"
+      "--check-comments",
+      "--check-block-form"
     )
     val flags = arguments.toSet
     val generate = flags("--generate-ir") || flags("--generate-api")
     val valid = flags.subsetOf(known) &&
       (if flags("--check-syntax") then flags == Set("--check-syntax")
        else if flags("--check-comments") then flags == Set("--check-comments")
+       else if flags("--check-block-form") then flags == Set("--check-block-form")
        else if generate then
          !flags("--update") && !flags("--skip-go-checks") &&
          !(flags("--generate-ir") && flags("--generate-api"))
@@ -587,11 +592,12 @@ object Gate:
       2
     else
       try
-        if flags("--check-syntax") || flags("--check-comments") then
+        if flags("--check-syntax") || flags("--check-comments") || flags("--check-block-form") then
           // A finding is a line of its own, `file:line: reason`, so an editor opens it.
           val findings =
             if flags("--check-syntax") then SyntaxRule.findings(tools.directory)
-            else CommentRule.findings(tools.directory)
+            else if flags("--check-comments") then CommentRule.findings(tools.directory)
+            else BlockFormRule.findings(tools.directory)
           findings.foreach(err.println)
           if findings.isEmpty then 0 else 1
         else

@@ -369,6 +369,9 @@ class Fixtures extends munit.FunSuite:
     "BothForms"
   ).map(o => s"fixture.capabilitysectionrejects.$o$$.capabilities")
 
+  // The refusals of fn-139.3's `from` blocks, each a machine object (lifts/RuleRejects.scala).
+  private val ruleRejects: Seq[String] =
+    Seq("NestedFrom", "Foreign", "ImportedTwice").map("fixture.rulerejects." + _)
   // The refusals of fn-135.2's `is { }` blocks and fn-135.3's `effect { }` blocks, each a machine
   // object (lifts/BlockRejects.scala).
   private val blockRejects: Seq[String] =
@@ -495,7 +498,7 @@ class Fixtures extends munit.FunSuite:
     "EmptyEffect",
     "Unheaded",
     "BlockTwice",
-    "BlockRepeated",
+    "FromStatement",
     "PhaseLambda",
     "DisabledFired",
     "ExtendedBare",
@@ -513,7 +516,7 @@ class Fixtures extends munit.FunSuite:
     "UnobservedRefiner",
     "IndexedQueries$.queries"
   ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ sectionRejects ++ hintRejects ++
-    markerRejects ++ blockRejects ++ statusRejects ++ roleRejects
+    markerRejects ++ blockRejects ++ statusRejects ++ roleRejects ++ ruleRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -1273,6 +1276,16 @@ class Fixtures extends munit.FunSuite:
       named("plainStiffLamp").path("steps").get(1).path("function").asText(),
       "plainStiffLamp.wear",
       "a lambda a derivation binds is named after the machine it declares"
+    )
+
+  // fn-139.3: the rules of `Grouped`, in `from` blocks with `when` cases and an `on` of two
+  // classes, beside `Plain`'s, in `on` blocks with `in` cases (lifts/Grouped.scala).
+  concurrently("from, when and an on of several targets lift as on and in do"):
+    val (_, machine, _) =
+      declarations("grouped", Seq("Grouped", "Plain").map(objectRoot("grouped")))
+    assertEquals(
+      machine("grouped").replace("fixture.grouped.Grouped$", "fixture.grouped.Plain$"),
+      machine("plain")
     )
 
   // Each sugar form beside its core spelling (lifts/Sugar.scala).

@@ -1081,12 +1081,12 @@ object BlockTwice extends Machine[Bulb, Outcome, Nothing]:
       on(bulbHand.twist)(in(Glow.dim) ~> Ruled.effects.brighten)
     }
 
-// One action's block written twice.
-object BlockRepeated extends Machine[Bulb, Outcome, Nothing]:
+// A from whose first statement is no import of its declarer.
+object FromStatement extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
   object rules extends Rules(_.glow):
-    on(bulbHand.squeeze)(in(Glow.dim) ~> Ruled.effects.brighten)
+    from(bulbHand)(disabled(bulbHand.twist))
     on(bulbHand.squeeze)(in(Glow.bright) ~> Ruled.effects.darken)
 
 // A set of phases written as a lambda, which names no def of the machine's states.

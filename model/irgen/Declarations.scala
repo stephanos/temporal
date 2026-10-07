@@ -422,40 +422,61 @@ private[irgen] trait Declarations:
     )
 
   // The step of each action a machine's `rules` name, in the order each is first named: its rules
-  // lowered to one step function, or no step where it is `disabled`. Each `on` block names an action,
-  // or one class of it, once, and holds its cases alone.
+  // lowered to one step function, or no step where it is `disabled`. An `on` block names one to
+  // four actions, or classes of them, each given its cases, and holds its cases alone; the blocks
+  // of a `from` follow its declarer's import. An action, or a class of it, may sit in several
+  // blocks: the framework refuses cases of one class that overlap.
   def ruleSteps(machine: String, state: ir.TypeRef, rules: ClassDef): Seq[ir.StepBinding] =
     val projection = parentArguments(rules).flatten.find(a => lambda(a).nonEmpty)
     val written = mutable.ArrayBuffer.empty[LiftedRule]
     val order = mutable.LinkedHashMap.empty[String, Tree]
     val off = mutable.Set.empty[String]
-    val blocks = mutable.Map.empty[(String, Option[Seq[ir.Value]]), Tree]
-    for stat <- statements(rules) do
+    // One statement of the rules, or of the `from` they sit in: its declarer and its name.
+    def rule(stat: Statement, within: Option[(Symbol, String)]): Unit =
       stat match
         case t: Term if t.symbol.maybeOwner == rulesClass =>
           call(t) match
-            case Some(("on", List(List(target), List(block)))) =>
-              val (id, cls) = unwrapped(target) match
-                case r if isNamed(r.tpe, "umpire.Class") =>
-                  val c = classOf(r)
-                  c.action -> Some(c.inputs)
-                case r => action(r) -> None
-              if off(id) then
-                fail(
-                  t,
-                  s"${actions(id).name} is disabled and fired by a rule of $machine: a rule fires it"
-                )
-              for first <- blocks.get(id -> cls) do
-                fail(
-                  t,
-                  s"on(${unwrapped(target).show}) is written twice in $machine's rules, first at " +
-                    s"${where(first)}: an action, or a class of it, has one block of cases"
-                )
-              blocks(id -> cls) = t
-              for (heading, effect, at) <- cases(block, machine) do
-                written += LiftedRule(written.size + 1, heading, id, cls, effect, at)
-              order.getOrElseUpdate(id, t): Unit
-            case Some(("disabled", List(List(as)))) =>
+            case Some(("from", List(List(declarer), List(body)))) =>
+              val name = declarerName(declarer)
+              for (_, outer) <- within do
+                fail(t, s"from($name) sits in from($outer): a from holds on blocks alone")
+              fromBlock(machine, declarer, name, body).foreach(
+                rule(_, Some(declarer.symbol -> name))
+              )
+            case Some(("on", List(targets, List(block)))) if targets.sizeIs <= 4 =>
+              val fired = targets.map { target =>
+                val (id, cls) = unwrapped(target) match
+                  case r if isNamed(r.tpe, "umpire.Class") =>
+                    val c = classOf(r)
+                    c.action -> Some(c.inputs)
+                  case r => action(r) -> None
+                (target, id, cls)
+              }
+              for ((target, id, cls), i) <- fired.zipWithIndex do
+                if fired.take(i).exists((_, d, c) => d == id && c == cls) then
+                  fail(
+                    target,
+                    s"${actions(id).name} is named twice in one on: name each action, or class " +
+                      "of it, once"
+                  )
+                if off(id) then
+                  fail(
+                    t,
+                    s"${actions(id).name} is disabled and fired by a rule of $machine: a rule fires it"
+                  )
+                for (owner, name) <- within if !declaredBy(target, owner) do
+                  val a = actions(id).name
+                  fail(
+                    target,
+                    s"on($a) sits in from($name), and $name declares no $a: a from holds the " +
+                      "blocks of the actions its declarer declares"
+                  )
+              val read = cases(block, machine)
+              for (_, id, cls) <- fired do
+                for (heading, effect, at) <- read do
+                  written += LiftedRule(written.size + 1, heading, id, cls, effect, at)
+                order.getOrElseUpdate(id, t): Unit
+            case Some(("disabled", List(List(as)))) if within.isEmpty =>
               for a <- varargs(as) do
                 val id = action(a)
                 if off(id) || written.exists(_.action == id) then
@@ -463,13 +484,12 @@ private[irgen] trait Declarations:
                 off += id
                 order.getOrElseUpdate(id, a): Unit
             case _ =>
-              fail(
-                t,
-                s"not a rule of $machine: ${t.show}; its rules are `on(action) { case ~> effect }` " +
-                  "blocks and `disabled(action)`"
-              )
-        case _: Definition => fail(stat, s"$machine's rules declare rules alone, not ${stat.show}")
-        case other         => fail(other, s"not a rule of $machine: ${other.show}")
+              fail(t, notRule(machine, t, within))
+        case _: Definition if within.isEmpty =>
+          fail(stat, s"$machine's rules declare rules alone, not ${stat.show}")
+        case other if within.isEmpty => fail(other, s"not a rule of $machine: ${other.show}")
+        case other                   => fail(other, notRule(machine, other, within))
+    statements(rules).foreach(rule(_, None))
     for r <- written do
       if headingNames(r.heading).exists(_ == "in") && projection.isEmpty then
         fail(r.at, s"in names phases, and $machine's rules declare no projection: `Rules(_.phase)`")
@@ -487,6 +507,56 @@ private[irgen] trait Declarations:
       val function = lowered(machine, state, id, byAction.getOrElse(id, Vector.empty), at)
       ir.StepBinding(id, function, Some(pos(at)))
     }
+
+  // A statement of a machine's rules, or of a `from` of them, that is no rule.
+  private def notRule(machine: String, t: Tree, within: Option[(Symbol, String)]): String =
+    within match
+      case Some((_, name)) =>
+        s"not a rule of $machine's from($name): ${t.show}; a from holds its declarer's import, " +
+          "first, then `on(action) { case ~> effect }` blocks"
+      case None =>
+        s"not a rule of $machine: ${t.show}; its rules are `on(action) { case ~> effect }` " +
+          "blocks and `disabled(action)`"
+
+  // The name a `from` gives its declarer, as the framework's `from` names it: the object's name
+  // with its first letter lowered.
+  private def declarerName(declarer: Term): String =
+    val n = declarer.symbol.name.stripSuffix("$")
+    n.take(1).toLowerCase + n.drop(1)
+
+  // The statements of `from(declarer) { import declarer.*; ... }` after its import, which is its
+  // first statement and its only one.
+  private def fromBlock(
+      machine: String,
+      declarer: Term,
+      name: String,
+      body: Term
+  ): List[Statement] =
+    val stats = unwrapped(body) match
+      case Block(stats, Literal(UnitConstant())) => stats
+      case Block(stats, last)                    => stats :+ last
+      case other                                 => List(other)
+    stats match
+      case Import(expr, List(SimpleSelector("_"))) :: rest if expr.symbol == declarer.symbol =>
+        rest
+      case first :: _ =>
+        fail(
+          first,
+          s"not a rule of $machine's from($name): ${first.show}; a from begins with its " +
+            s"declarer's import, `import $name.*`"
+        )
+      case Nil => fail(body, s"from($name) in $machine's rules holds no import and no block")
+
+  // Whether the action a target fires, or the class of it, is a member of the object `owner`.
+  private def declaredBy(target: Term, owner: Symbol): Boolean =
+    def actionRef(t: Term): Option[Term] = unwrapped(t) match
+      case r: Ref if isNamed(r.tpe, "umpire.Action") => Some(r)
+      case Apply(fn, args)                           =>
+        actionRef(fn).orElse(args.iterator.flatMap(actionRef).nextOption())
+      case TypeApply(fn, _) => actionRef(fn)
+      case Select(q, _)     => actionRef(q)
+      case _                => None
+    actionRef(target).exists(_.symbol.maybeOwner == owner.moduleClass)
 
   // The kinds of case a heading is made of, `in` among them where it names phases.
   private def headingNames(h: Heading): List[String] = h match
@@ -507,8 +577,11 @@ private[irgen] trait Declarations:
   // written. A case's phases are read with the rules' projection later, so here they read none.
   def cases(block: Term, machine: String): List[(Heading, Term, Term)] =
     def one(t: Term): (Heading, Term, Term) = unwrapped(t) match
-      case b if b.symbol.name == "on" && b.symbol.maybeOwner == rulesClass =>
-        fail(b, s"on sits in a block of $machine's rules: a block holds its cases alone")
+      case b if Set("on", "from")(b.symbol.name) && b.symbol.maybeOwner == rulesClass =>
+        fail(
+          b,
+          s"${b.symbol.name} sits in a block of $machine's rules: a block holds its cases alone"
+        )
       case b @ Apply(inner, List(_)) if b.symbol.name == "~>" && b.symbol.maybeOwner == caseClass =>
         def effectOf(fn: Term): (Term, Term) = fn match
           case Apply(sel, List(effect)) => (receiverOf(sel), effect)
@@ -540,7 +613,7 @@ private[irgen] trait Declarations:
 
   private lazy val caseClass = Symbol.requiredClass("umpire.Case")
 
-  // Where a case fires: `in(...)`, `where(g)`, `always`, or one of them `.where(g)`.
+  // Where a case fires: `in(...)` or `when(...)`, `where(g)`, `always`, or one of them `.where(g)`.
   private def heading(c: Term, machine: String): Heading = unwrapped(c) match
     case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == caseClass =>
       Heading.And(heading(inner, machine), g)
@@ -555,6 +628,9 @@ private[irgen] trait Declarations:
           test.tpe.widen.dealias.typeArgs match
             case List(phase, role) => Heading.Role(test, phase, role, t)
             case _                 => fail(t, s"when tests a role, not ${test.show}")
+        case Some(("when", List(List(first, rest), _))) if owner == rulesClass =>
+          Heading.In(first, first :: varargs(rest))
+        case Some(("when", List(List(set), _))) if owner == rulesClass => Heading.InSet(set, set)
         case Some(("where", List(_, List(g)))) if owner.fullName == syntaxPackage => Heading.When(g)
         case Some(("always", List(_))) if owner.fullName == syntaxPackage         => Heading.Always
         case _                                                                    =>
