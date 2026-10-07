@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-06.
+As of 2026-10-07.
 
 ## Keeping this page current
 
@@ -188,7 +188,7 @@ Gate: the DSL batch; task 8 exports the mapping before the batch regeneration an
 | fn-139.5 | ✅ done | Activity product and System rules in `from` blocks, grouped by meaning; activity on the shared `Outcome` |
 | fn-139.6 | ✅ done | Nexus and the shared worker on the shared `Outcome`; `alreadyCompleted` becomes `rejected(failedPrecondition)` |
 | fn-139.7 | ✅ done | `in` → `when` and block form across every Model and fixture; rule-case `in` retired; block-form lint on; docs |
-| fn-139.8 | ⬜ todo | Exhaustive rejection-to-RPC-code table, realization IR export and Go reader (before regeneration) |
+| fn-139.8 | ✅ done | Exhaustive rejection-to-RPC-code table, realization IR export and Go reader (before regeneration) |
 | fn-139.9 | ⬜ todo | Conformance checks observed instruction codes against rejecting Model steps (after regeneration) |
 
 ### fn-140: One-sentence witness Queries with explicit live expectations
