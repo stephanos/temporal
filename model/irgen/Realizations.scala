@@ -774,6 +774,20 @@ private[irgen] trait Realizations:
           .mkString
       case Apply(Select(l, "+"), List(r)) =>
         textOfBound(Bound(l, b.env)) + textOfBound(Bound(r, b.env))
+      case Match(scrutinee, cases) =>
+        val selected = reduce(Bound(scrutinee, b.env)).term
+        val selectedSymbol = selected match
+          case reference: Ref => Some(reference.symbol)
+          case _              => None
+        val branch = cases
+          .collectFirst {
+            case CaseDef(pattern: Ref, None, rhs) if selectedSymbol.contains(pattern.symbol) =>
+              rhs
+          }
+          .orElse(cases.collectFirst { case CaseDef(Wildcard(), None, rhs) => rhs })
+        branch match
+          case Some(rhs) => reducedText(Bound(rhs, b.env))
+          case None      => fail(b.term, s"no written match case accepts ${selected.show}")
       case other => fail(other, s"expected a string, got ${other.show}")
 
   // The items of a sequence a declaration writes out.
@@ -795,8 +809,25 @@ private[irgen] trait Realizations:
         itemsOf(Bound(l, b.env)) ++ itemsOf(Bound(r, b.env))
       case Apply(TypeApply(Select(l, ":+"), _), List(x)) =>
         itemsOf(Bound(l, b.env)) :+ Bound(x, b.env)
-      case other =>
-        fail(other, s"expected a sequence written out, got ${other.show}")
+      case Select(companion, "values") if companion.symbol.companionClass.flags.is(Flags.Enum) =>
+        companion.symbol.companionClass.children
+          .filter(isEnumCase)
+          .map(c => Bound(Select.unique(companion, c.name), b.env))
+      case Select(source, "toVector") => itemsOf(Bound(source, b.env))
+      case t                          =>
+        applied(t) match
+          case Some((fn, List(items))) if fn.symbol.name == "wrapRefArray" =>
+            itemsOf(Bound(items, b.env))
+          case Some((fn @ Select(source, _), Nil)) if fn.symbol.name == "toVector" =>
+            itemsOf(Bound(source, b.env))
+          case Some((fn @ Select(source, _), List(mapper))) if fn.symbol.name == "map" =>
+            lambda(mapper) match
+              case Some((List(parameter), body)) =>
+                itemsOf(Bound(source, b.env)).map(item =>
+                  Bound(body, b.env + (parameter.symbol -> item))
+                )
+              case _ => fail(mapper, s"expected a one-argument map, got ${mapper.show}")
+          case _ => fail(t, s"expected a sequence written out, got ${t.show}")
 
   // One value of a field: a message of the field's type, a class, or a constant.
   def valueOf(f: FieldDescriptor, b0: Bound): PValue =

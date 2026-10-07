@@ -82,13 +82,13 @@ private def grpcCode(rejection: Rejection): String = rejection match
   case Rejection.failedPrecondition => failedPreconditionCode
   case Rejection.invalidArgument    => invalidArgumentCode
 
+// Derive every row from the exhaustive mapping; the lifter expands this finite enum traversal.
 val rejectionCodes: Vector[RejectionCode[Rejection]] =
-  Vector(
-    RejectionCode(Rejection.notFound, notFoundCode),
-    RejectionCode(Rejection.alreadyExists, alreadyExistsCode),
-    RejectionCode(Rejection.failedPrecondition, failedPreconditionCode),
-    RejectionCode(Rejection.invalidArgument, invalidArgumentCode)
-  )
+  Rejection.values.toVector.map: rejection =>
+    RejectionCode(
+      rejection,
+      grpcCode(rejection)
+    )
 
 // A name each Case gets its own copy of, such as the activity or workflow type it runs.
 def perCase(kind: String) = Name("umpire-", fixture = true, suffix = "-" + kind)
