@@ -14,6 +14,7 @@
 package temporal.realize
 
 import umpire.{Entity, Machine}
+import umpire.outcomes.Rejection
 import umpire.realize.*
 import temporal.server.api.testpilot.v1.{
   ActivityAttempt,
@@ -63,6 +64,26 @@ val taskQueueName = Operand.environment(taskQueueBinding)
 
 // The run's own id. A Case starts one operation, under that id.
 val run = Operand.run()
+
+// The server's serviceerror kinds establish these gRPC codes: closed activity and Nexus lookup
+// (chasm/lib/activity/activity.go:106; chasm/lib/nexusoperation/operation.go:312), schedule ID
+// conflict (chasm/lib/scheduler/handler.go:73), closed/conflicting Nexus and schedule operations
+// (chasm/lib/nexusoperation/operation.go:52-55; chasm/lib/scheduler/scheduler.go:111-113), and
+// malformed activity/Nexus requests (chasm/lib/activity/validator.go:102;
+// chasm/lib/nexusoperation/validator.go:133).
+private def grpcCode(rejection: Rejection): String = rejection match
+  case Rejection.notFound           => "NOT_FOUND"
+  case Rejection.alreadyExists      => "ALREADY_EXISTS"
+  case Rejection.failedPrecondition => "FAILED_PRECONDITION"
+  case Rejection.invalidArgument    => "INVALID_ARGUMENT"
+
+val rejectionCodes: Vector[RejectionCode] =
+  Vector(
+    RejectionCode(Rejection.notFound, "NOT_FOUND"),
+    RejectionCode(Rejection.alreadyExists, "ALREADY_EXISTS"),
+    RejectionCode(Rejection.failedPrecondition, "FAILED_PRECONDITION"),
+    RejectionCode(Rejection.invalidArgument, "INVALID_ARGUMENT")
+  )
 
 // A name each Case gets its own copy of, such as the activity or workflow type it runs.
 def perCase(kind: String) = Name("umpire-", fixture = true, suffix = "-" + kind)
@@ -155,7 +176,8 @@ def temporalRealization(
   cleanup = "cleanup",
   requiredSettings = requiredSettings,
   behavior = Some(behavior),
-  serverSteps = serverSteps
+  serverSteps = serverSteps,
+  rejectionCodes = rejectionCodes
 )
 
 // ### The controller and its reads

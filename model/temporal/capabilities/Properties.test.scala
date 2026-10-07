@@ -2,6 +2,7 @@ package temporal.capabilities
 // Every shared capability Property has two machines with their own state types.
 
 import umpire.{Capabilities, CapabilityKind, CapabilityOf, Machine, Property}
+import umpire.outcomes.{Outcome, Rejection}
 import temporal.features.activity.standalone.{product, system}
 import temporal.features.nexus.standalone.system.NexusSystem
 
@@ -76,6 +77,15 @@ class CapabilityPropertiesTest extends munit.FunSuite:
       closable match
         case product: Product => assertEquals(product.productElementNames.toSeq, Seq("rejected"))
         case _                => fail(s"$closable is no rejection binding")
+  }
+
+  test("a composed shared rejection derives the capability outcome key") {
+    val rejected = system.RecordOverQueue.composedOutcome(
+      system.RecordMember,
+      Outcome.rejected(Rejection.notFound)
+    )
+    assertEquals(rejected, "activity_rejected-notFound")
+    assertEquals(system.RecordOverQueue.capabilities.closable.rejected, rejected)
   }
 
   test("every Pausable and Pollable site binds only actions, including all four derived owners") {

@@ -92,6 +92,7 @@ func Admit(d Admitter, r *umpirespb.Realization) {
 	if r.GetProducer() == "" {
 		a.report(at, "it names no producer")
 	}
+	a.rejectionCodes()
 	a.declarations()
 	a.requiredSettings()
 	a.correlation()

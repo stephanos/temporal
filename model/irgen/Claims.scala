@@ -242,6 +242,7 @@ private[irgen] trait Claims:
     case Literal(StringConstant(s))            => Decl.Text(s)
     case Literal(IntConstant(i))               => Decl.Number(i)
     case Literal(LongConstant(l))              => Decl.Number(l)
+    case _ if composedOutcome(t)               => Decl.Text(composedOutcomeKey(t, env))
     case r: Ref if env.contains(r.symbol)      => env(r.symbol)
     // `s"..."`, with each argument folded to its text.
     case Apply(Select(Apply(Select(sc, "apply"), List(parts)), "s"), List(args))

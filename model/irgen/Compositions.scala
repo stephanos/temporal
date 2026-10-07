@@ -338,6 +338,34 @@ private[irgen] trait Compositions:
   // Whether a term selects a composed class or action: `c.synced(...)` or `c.own(...)`.
   def composed(t: Term): Boolean = selection(t).isDefined
 
+  private def outcomeSelection(t: Term): Option[(Term, Term, Term)] = t match
+    case Typed(e, _)        => outcomeSelection(e)
+    case Inlined(_, Nil, e) => outcomeSelection(e)
+    case Apply(fn, List(member, outcome))
+        if fn.symbol.name == "composedOutcome" && fn.symbol.maybeOwner == compositionClass =>
+      fn match
+        case TypeApply(Select(composition, _), _) => Some((composition, member, outcome))
+        case Select(composition, _)               => Some((composition, member, outcome))
+        case _                                    => None
+    case _ => None
+
+  def composedOutcome(t: Term): Boolean = outcomeSelection(t).nonEmpty
+
+  // The typed framework helper's value, folded to the same composed outcome key the reader derives.
+  def composedOutcomeKey(t: Term, env: Map[Symbol, Decl]): String =
+    val (receiver, member, outcome) = outcomeSelection(t).get
+    val name = modelName(fold(receiver, env), receiver)
+    val composition = compositions.values
+      .find(_.name == name)
+      .getOrElse(fail(receiver, s"$name is no lifted composition"))
+    val memberName = modelName(fold(member, env), member)
+    composition.members.filter(_.machine == memberName) match
+      case Seq(found) => s"${found.field}_${valueKey(literalValue(outcome))}"
+      case Seq()      =>
+        fail(member, s"$memberName is no member of $name")
+      case _ =>
+        fail(member, s"$memberName is more than one member of $name")
+
   // The composed action key `whenAction(c.synced(...))` or `whenAction(c.own(...))` names.
   def composedAction(t: Term, composition: String, env: Map[Symbol, Decl]): String =
     composedKey(t, composition, env, classes = false)

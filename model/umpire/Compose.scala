@@ -92,6 +92,17 @@ abstract class Composition[S <: Product] private (
   // the member pairs, since that action steps only with its pair.
   def own(member: S => Any, action: Class | Action[?]): Composed = Composed(this, (member, action))
 
+  // The key of one member outcome in this composition. The member fixes the outcome type, so a
+  // capability cannot bind an outcome of another machine or hand-write the composed encoding.
+  def composedOutcome[MS, O, F](member: Machine[MS, O, F], outcome: O): String =
+    val fields = mirror.fromProduct(Composition.Empty).productElementNames.toVector
+    val matching = fields.zip(members).collect { case (field, m) if m eq member => field }
+    require(
+      matching.size == 1,
+      s"${member.name} is not one unique member of $name"
+    )
+    s"${matching.head}_${valueKey(outcome)}"
+
 // A composition derivation retaining its source's typed phase and stopping point, like Derived.
 abstract class DerivedComposition[S <: Product, P](derivation: Composition[S])(using
     source: Inherited[derivation.type, S, P]

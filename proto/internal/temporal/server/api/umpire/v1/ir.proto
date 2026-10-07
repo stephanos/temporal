@@ -745,6 +745,9 @@ message Realization {
   // The kind of cause each step class no command performs is, such as an activity's delivery or a
   // server timer at a deadline the realization set.
   repeated ServerStep server_steps = 17;
+  // The shared rejection reasons and the gRPC status codes a Temporal RPC returns for them. The
+  // Temporal realization kit attaches the complete table to every realization.
+  repeated RejectionCode rejection_codes = 18;
 }
 
 // A dynamic-configuration setting a realization requires: its key and its value, each spelled as
@@ -1323,4 +1326,20 @@ message ProtoMap {
 message ProtoEntry {
   string key = 1;
   ProtoValue value = 2;
+}
+
+// The gRPC status code a shared rejection reason realizes as. Nesting the enum in this last message
+// keeps its descriptor entries at the tail and minimizes generated metadata churn.
+message RejectionCode {
+  // Zero is never a declaration: it keeps an absent or unknown value distinguishable from every
+  // closed member of the shared Scala Rejection enum.
+  enum Rejection {
+    REJECTION_UNSPECIFIED = 0;
+    REJECTION_NOT_FOUND = 1;
+    REJECTION_ALREADY_EXISTS = 2;
+    REJECTION_FAILED_PRECONDITION = 3;
+    REJECTION_INVALID_ARGUMENT = 4;
+  }
+  Rejection rejection = 1;
+  string grpc_code = 2;
 }

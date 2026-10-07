@@ -1655,7 +1655,11 @@ class Fixtures extends munit.FunSuite:
       r.remove(java.util.List.of("id", "name"))
       strip(r)
       r
-    assertEquals(realization("helpers").toPrettyString, realization("records").toPrettyString)
+    val helpers = realization("helpers").asInstanceOf[ObjectNode]
+    // This comparison is about the script helper surface. The Temporal kit now adds its shared
+    // rejection metadata centrally, while the core-record spelling intentionally does not.
+    helpers.remove("rejectionCodes")
+    assertEquals(helpers.toPrettyString, realization("records").toPrettyString)
     def request(name: String) =
       realization(name).at("/scripts/0/items/0/command/rpc").toPrettyString
     assert(request("sugaredRequest").contains("task_queue.name"), request("sugaredRequest"))
@@ -1974,6 +1978,46 @@ class Fixtures extends munit.FunSuite:
       .toList
     assertEquals(bound("leftSwitch"), List("Left.tap", "Left.flick", "turnOn"))
     assertEquals(bound("rightSwitch"), List("Right.tap", "Right.flick"))
+
+  concurrently("every Temporal realization carries the shared rejection-code table"):
+    val rootGroups = Seq(
+      Seq(
+        "temporal.features.activity.standalone.system.Standalone",
+        "temporal.features.activity.standalone.system.HeldDelivery",
+        "temporal.features.activity.standalone.system.LostAdmissionResponse"
+      ),
+      Seq(
+        "temporal.features.nexus.workflow.AsyncNexus",
+        "temporal.features.nexus.workflow.ForgedControl"
+      ),
+      Seq("temporal.features.nexus.standalone.Standalone")
+    )
+    val expected = List(
+      "REJECTION_NOT_FOUND" -> "NOT_FOUND",
+      "REJECTION_ALREADY_EXISTS" -> "ALREADY_EXISTS",
+      "REJECTION_FAILED_PRECONDITION" -> "FAILED_PRECONDITION",
+      "REJECTION_INVALID_ARGUMENT" -> "INVALID_ARGUMENT"
+    )
+    val realizations = rootGroups.zipWithIndex.flatMap { (roots, index) =>
+      val (model, _, _) = declarations(s"rejectionCodes$index", roots)
+      model.path("realizations").elements().asScala.toList
+    }
+    assertEquals(realizations.size, rootGroups.map(_.size).sum)
+    for realization <- realizations do
+      val codes = realization
+        .path("rejectionCodes")
+        .elements()
+        .asScala
+        .map(code => code.path("rejection").asText() -> code.path("grpcCode").asText())
+        .toList
+      assertEquals(codes, expected, realization.path("name").asText())
+
+  concurrently("the actual WithTaskQueue capability root folds its typed composed outcome"):
+    val (model, _, _) = declarations(
+      "withTaskQueueCapability",
+      Seq("temporal.features.activity.standalone.system.RecordOverQueue$.capabilities")
+    )
+    assert(model.path("properties").size() > 0)
 
   // fn-112.12: an independent consumer of the shared task queue (lifts/TaskQueue.scala).
   test("a consumer of temporal/shared/taskqueue lifts the queue and nothing of the activity"):

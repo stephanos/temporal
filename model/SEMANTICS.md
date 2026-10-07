@@ -517,6 +517,8 @@ A realization says how the find Queries of one machine run against a system. It 
   counted from one;
 - a **correlation**: the fields that scope evidence to its run and name its operation, the
   observation that carries it, and the window a check keeps;
+- **rejection codes**: one gRPC status-code string for every member of the shared
+  `umpire.outcomes.Rejection` enum, attached by the system's realization kit;
 - **controls**, the actuators a run needs beyond its commands: one that holds the deliveries of a
   channel, or one that holds what a step of a class dispatched, which names the task-queue role
   whose deliveries a run holds it through;
@@ -761,6 +763,8 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
 - contains a function that calls itself, directly or through others;
 - declares a realization with no id or no name, two under one id or one name, one of a machine it
   does not declare, or one with no correlation; a
+  rejection-code table that is empty, incomplete, duplicated, names an unknown or unspecified
+  rejection, or gives a rejection an empty code; a
   role, learned value, observation, kind of evidence, control, script or command with no id, or two
   of one kind under one id; a kind of evidence that names no recorded kind, no source, no operation
   key, nowhere it is recorded or no commitment, or two kinds for one recorded kind that both name no

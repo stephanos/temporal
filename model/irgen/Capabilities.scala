@@ -583,6 +583,7 @@ private[irgen] trait Capabilities:
         )
       val tpe = d.fieldTypes.get(field)
       if tpe.exists(actionType) then boundAction(machine, a, s"$field of ${d.kind}", env)
+      if tpe.exists(isNamed(_, "java.lang.String")) then textOf(fold(a, env), a): Unit
     if used.exists(field => d.fieldTypes.get(field).exists(actionType)) then
       for (field, a) <- d.fields if d.fieldTypes.get(field).exists(pathType) do
         for step <- reached(a) do boundAction(machine, step, s"$field of ${d.kind}", env)

@@ -1444,6 +1444,10 @@ Nexus caller's closing long poll take the instruction defaults the kit declares
 `temporalBehavior` also declares, once for every Temporal realization, what Testpilot and
 conformance would otherwise assume about Temporal (fn-124.3):
 
+The kit also attaches the exhaustive shared `Rejection` to gRPC status-code table to every Temporal
+realization. The IR carries it for generic readers; Go validates the exported table and maintains no
+second mapping.
+
 - `attemptNumbering = Some(AttemptNumbering(first = 1, oneRun = true))`: the server numbers an
   activity's attempts from 1, every one of its one run. The lowering writes it on each activity
   entrypoint (`ActivityActivation.attempt_numbering`); Testpilot judges each reservation's attempt by

@@ -18,6 +18,7 @@ package standalone
 package system
 
 import umpire.*
+import umpire.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import shared.Bounds.three
 import shared.taskqueue.{fault, queue, seven, twelve, Outstanding, QueueDetail, QueueView}
@@ -48,8 +49,8 @@ abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
     Declaring[OverQueue, String, String],
     Phasing[OverQueue, AdmissionPhase]
 ) extends Capabilities:
-  val closable: Capability = Closable(
-    rejected = RecordOverQueue.states.closedAnswer
+  val closable: Closable[OverQueue, AdmissionPhase, String] = Closable(
+    rejected = c.composedOutcome(RecordMember, Outcome.rejected(Rejection.notFound))
   )
   val pausable: Capability = Pausable(
     pause = c.own(_.activity, client.pause),
@@ -64,8 +65,8 @@ abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
     Declaring[OverMatching, String, String],
     Phasing[OverMatching, AdmissionPhase]
 ) extends Capabilities:
-  val closable: Capability = Closable(
-    rejected = RecordOverQueue.states.closedAnswer
+  val closable: Closable[OverMatching, AdmissionPhase, String] = Closable(
+    rejected = c.composedOutcome(RecordMember, Outcome.rejected(Rejection.notFound))
   )
   val pausable: Capability = Pausable(
     pause = c.own(_.activity, client.pause),
@@ -93,12 +94,6 @@ object RecordOverQueue
   override def end(s: State) = ActivityRecord.end(s.activity)
   // What the designs over a queue answer and waive.
   object states:
-    // The composed outcome of the record's answer to a control of a closed activity: Closable's
-    // `rejected`, which only closedIsRejectedUniformly reads, and the designs over a queue waive it.
-    // The shared `rejected(notFound)` member outcome is encoded with its composed-table key here;
-    // task .8 replaces this answer string with the realization's shared rejection mapping.
-    val closedAnswer = "activity_rejected-notFound"
-
     // Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
     // steps after the record closes, so a composed step moves the state; the record's own
     // declaration (Record.scala) holds the record to the law.

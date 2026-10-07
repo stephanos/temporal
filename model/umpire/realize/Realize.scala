@@ -21,6 +21,7 @@ import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, Unre
 import scala.util.NotGiven
 import com.google.protobuf.ByteString
 import umpire.{Channel, ClassRef, Machine, Monitor}
+import umpire.outcomes.Rejection
 
 // The root of the Definition IDs a realization declares, such as its evidence's,
 // `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR
@@ -46,8 +47,12 @@ final case class Realization(
     cleanup: String = "",
     requiredSettings: Vector[Setting] = Vector.empty,
     behavior: Option[Behavior] = None,
-    serverSteps: Vector[SystemStep] = Vector.empty
+    serverSteps: Vector[SystemStep] = Vector.empty,
+    rejectionCodes: Vector[RejectionCode] = Vector.empty
 )
+
+// One shared rejection reason and the gRPC status code a realization returns for it.
+final case class RejectionCode(rejection: Rejection, grpcCode: String)
 
 // A setting the realized system must run under, such as the flag that enables a feature, as the
 // system's kit declares one. A Case lowered through the realization carries it, and preparation
