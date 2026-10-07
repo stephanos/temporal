@@ -20,6 +20,8 @@ type plan struct {
 	reader      *reader
 	// closing is the instructions whose reads close the exhaustive kinds the Case carries.
 	closing map[coordinate]bool
+	// performed is the Model outcome expected from each instruction that performs a witness step.
+	performed map[coordinate]performedOutcome
 
 	states []string
 	ends   []bool
@@ -112,6 +114,9 @@ func compile(m *umpirespb.Model, key check.ClaimKey, source *testpilotspb.Case, 
 		return nil, err
 	}
 	p := &plan{machine: bound.Table.Machine, realization: realization.GetId(), limits: limits, states: bound.Table.States}
+	if p.performed, err = compilePerformedOutcomes(realizer, key, realization, source, at); err != nil {
+		return nil, err
+	}
 	if p.reader, err = newReader(realization, source); err != nil {
 		return nil, err
 	}

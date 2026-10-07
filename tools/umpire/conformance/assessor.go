@@ -88,14 +88,15 @@ func (a *assessor) observe(ctx context.Context, event *testpilotspb.RunEvent) (t
 	if a.frozen = a.frozen || event.GetExecutionIncomplete(); a.frozen {
 		return testpilot.Established{}, nil
 	}
+	mismatch := a.performedOutcome(event)
 	a.completion(event)
 	seen, err := a.plan.reader.read(event)
 	if err != nil || seen == nil {
-		return testpilot.Established{}, err
+		return testpilot.Established{Nonconformance: mismatch}, err
 	}
 	of, err := a.admit(seen)
 	if err != nil || of == nil {
-		return testpilot.Established{}, err
+		return testpilot.Established{Nonconformance: mismatch}, err
 	}
 	related, err := order(of.evidence, a.named)
 	if err != nil {
@@ -104,7 +105,37 @@ func (a *assessor) observe(ctx context.Context, event *testpilotspb.RunEvent) (t
 	if of.open, err = a.plan.explore(related, regime{event: seen.sequence}, &a.spent); err != nil {
 		return testpilot.Established{}, err
 	}
-	return a.established(of), nil
+	established := a.established(of)
+	if established.Nonconformance == nil {
+		established.Nonconformance = mismatch
+	}
+	return established, nil
+}
+
+// performedOutcome checks the terminal result of an instruction that performs a Model step. Once a
+// mismatch is established, later evidence cannot make that observed result match the step.
+func (a *assessor) performedOutcome(event *testpilotspb.RunEvent) *testpilot.ConformanceAssessment {
+	if a.nonconformance != nil {
+		return nil
+	}
+	kind := event.GetKind()
+	if kind != testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED && kind != testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT {
+		return nil
+	}
+	at := coordinate{entrypoint: event.GetCoordinates().GetEntrypointId(), instruction: event.GetCoordinates().GetInstructionId()}
+	expected, performed := a.plan.performed[at]
+	observed := event.GetOutcome()
+	if !performed || observed == nil || expected.matches(observed) {
+		return nil
+	}
+	a.nonconformance = &testpilot.ConformanceAssessment{
+		Status:                   testpilot.ConformanceNonconformant,
+		SupportingEventSequences: []int64{event.GetSequence()},
+		Reason:                   (because{reason: whyUnexplained}).id(),
+		Detail: fmt.Sprintf("%s, %s/%s: expected gRPC code %s, observed %s", a.plan.machine, at.entrypoint,
+			at.instruction, expected.code, observedCode(observed)),
+	}
+	return a.nonconformance
 }
 
 // completion records what an instruction's own completion says of a closing read: the Run Event that
