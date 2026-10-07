@@ -174,7 +174,7 @@ Gate: the DSL batch. Task 7 assigns `pausedWhileHeld` to `Held`: the admitted at
 
 ### fn-139: Actor-grouped rules, per-RPC actions, shared rejections
 
-Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06. fn-136.4 spells the role form `when[R]` directly.
+Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06. fn-136.4 spells the role form `when[R]` directly. Task 4 preserves each RPC's protobuf carrier through its realization binding, the current fn-133.8 contract; the older planned `.schema[T]` spelling is retired by the DSL.
 
 `from(actor) { on(action) { when(phases) ~> effect } }` rules, `when` replacing the rule-case `in`, one action per RPC for the standalone activity with a `Failure` enum, and a shared `Outcome`/`Rejection` with `rejects(r)` rows. R7: the IR differs only in positions, the renamed actions, classes and inputs, and the other differences R7 lists.
 
@@ -183,7 +183,7 @@ Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06.
 | fn-139.1 | ✅ done | Shared `Outcome`/`Rejection` and `rejects(r).because(text)` in framework and lifter; parameterized outcome admitted by the Go reader (early proof) |
 | fn-139.2 | ✅ done | Framework: `from(declarer)` with leading import, `when` case forms, multi-action `on`, overlap across blocks, beside the old forms |
 | fn-139.3 | ✅ done | Lifter reads `from`/`when`/multi-action `on`; block-form rule in the model gate |
-| fn-139.4 | ⬜ todo | Standalone activity: one action per RPC with a `Failure` enum; every consumer on the new actions |
+| fn-139.4 | ✅ done | Standalone activity: one action per RPC with a `Failure` enum; every consumer on the new actions |
 | fn-139.5 | ⬜ todo | Activity product and System rules in `from` blocks, grouped by meaning; activity on the shared `Outcome` |
 | fn-139.6 | ⬜ todo | Nexus and the shared worker on the shared `Outcome`; `alreadyCompleted` becomes `rejected(failedPrecondition)` |
 | fn-139.7 | ⬜ todo | `in` → `when` and block form across every Model and fixture; rule-case `in` retired; block-form lint on; docs |
