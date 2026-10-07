@@ -382,13 +382,21 @@ func detectModuleVersion(contents []byte, module string) (string, error) {
 // prepareCachedAdapter prepares an adapter replacement in a private directory
 // and publishes it under a name derived from its identity and replacement
 // inventory, reusing a published copy whose inventory still matches.
-func prepareCachedAdapter(definition adapterDefinition, moduleCache, cacheRoot string) (adapterPreparation, error) {
+func prepareCachedAdapter(definition adapterDefinition, moduleCache, cacheRoot string) (prepared adapterPreparation, retErr error) {
 	work, err := os.MkdirTemp(cacheRoot, ".prepare-*")
 	if err != nil {
 		return adapterPreparation{}, fmt.Errorf("create deterministic I/O adapter work directory: %w", err)
 	}
-	defer os.RemoveAll(work)
-	prepared, err := definition.implementation.prepare(moduleCache, work, definition.identity)
+	defer func() {
+		if cleanupErr := os.RemoveAll(work); cleanupErr != nil {
+			if retErr == nil {
+				retErr = cleanupErr
+			} else {
+				retErr = errors.Join(retErr, cleanupErr)
+			}
+		}
+	}()
+	prepared, err = definition.implementation.prepare(moduleCache, work, definition.identity)
 	if err != nil {
 		return adapterPreparation{}, err
 	}

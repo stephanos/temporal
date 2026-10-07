@@ -1,0 +1,159 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.49",
+  "status": "in_progress",
+  "commits": [],
+  "base_commit": "8486dcb98d2b15e1f985d5bb1e79ae7da81a0d5a",
+  "tests": [
+    "go -C tools/gomad3 test -tags test_dep -count=1 ./deterministicio -run 'Test(Prepare|Adapter|NewAdapter|DetectModule|ProfileVerifies)'",
+    "go -C tools/gomad3 vet -tags test_dep ./deterministicio",
+    "env GOFLAGS=-tags=test_dep /tmp/fn109-lint-tools.ZdNe1t50/errortype -test=true ./deterministicio",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --fix=false --build-tags=test_dep --timeout=2m ./deterministicio",
+    "go test -tags test_dep -count=1 ./deterministicio -run 'Test(AdapterRegistry|AdapterModuleSumRecords|AdapterReplacement|NewAdapterRegistry|DetectModule)'",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v ./deterministicio -run '^TestAdapterCacheCleanup'",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/next-gate-8486dcb98d/worker/base-overlay.json ./deterministicio -run '^TestAdapterCacheCleanup'",
+    "go -C tools/gomad3 test -tags test_dep -count=1 ./deterministicio -run 'Test(Prepare|Adapter|NewAdapter|DetectModule|ProfileVerifies)'",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v ./deterministicio -run 'Test(AdapterCacheCleanup|AdapterRegistry|AdapterModuleSumRecords|AdapterReplacement|NewAdapterRegistry|DetectModule)'",
+    "go -C tools/gomad3 vet -tags test_dep ./deterministicio",
+    "env GOFLAGS=-tags=test_dep /tmp/fn109-lint-tools.ZdNe1t50/errortype -test=true ./deterministicio",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --fix=false --build-tags=test_dep --timeout=2m ./deterministicio",
+    "make --trace lint-code LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./deterministicio GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype"
+  ],
+  "prs": [],
+  "source_freeze_observed_utc": "2026-10-07T19:38:00Z",
+  "tdd_tuples": [
+    {"production_sha256":"657ea0a8b44726ea13baaa4b65dcafcb210f450a5bf60f319bcc1914027401c4","test_sha256":"bf54a7aa93f51aacb13a1c9b27d6dd1347caa61aa9f0f145d9b0f81b58b53373","fault_cases_failed":4,"stage":"before production edit","log_sha256":"c110a4b3be8200d0ea4f8c4d45f338ba2ed7cc11717d9a82f959516f438ebe50"},
+    {"production_sha256":"657ea0a8b44726ea13baaa4b65dcafcb210f450a5bf60f319bcc1914027401c4","test_sha256":"e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc","fault_cases_failed":5,"stage":"exact BASE overlay with final tests","log_sha256":"b4c02705acacaed566727b507869a1c73d32ff989055ce0faa089a2188d2f736"},
+    {"production_sha256":"bb99674446c997ad48fad63050ea8ce275f1de860b3e6f7c5a70e5faddce6d25","test_sha256":"e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc","new_subcases_passed":13,"skips":0,"log_sha256":"9edceb69bd58a84f6cff4c3d1f6be99f034399ba4733eb9231e04736a1c5adf8"}
+  ],
+  "sources": {
+    "tools/gomad3/deterministicio/adapter_registry.go": "bb99674446c997ad48fad63050ea8ce275f1de860b3e6f7c5a70e5faddce6d25",
+    "tools/gomad3/deterministicio/adapter_cache_cleanup_test.go": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc"
+  },
+  "environment": {
+    "uid": 1000,
+    "platform": "linux/arm64 developmental",
+    "PATH_prefix": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOWORK": "off",
+    "GOENV": "off"
+  },
+  "observations": [
+    {
+      "phase": "baseline",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 ./deterministicio -run 'Test(Prepare|Adapter|NewAdapter|DetectModule|ProfileVerifies)'",
+      "exit_code": 1,
+      "real_seconds": 0.16,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-focused.log",
+      "note": "12 inherited unsupported-host/missing-patched-go failures"
+    },
+    {
+      "phase": "baseline",
+      "command": "go -C tools/gomad3 vet -tags test_dep ./deterministicio",
+      "exit_code": 0,
+      "real_seconds": 0.06,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-vet.log",
+      "note": ""
+    },
+    {
+      "phase": "baseline",
+      "command": "env GOFLAGS=-tags=test_dep /tmp/fn109-lint-tools.ZdNe1t50/errortype -test=true ./deterministicio",
+      "exit_code": 0,
+      "real_seconds": 0.32,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-errortype-corrected.log",
+      "note": "explicit cd nested module"
+    },
+    {
+      "phase": "baseline",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --fix=false --build-tags=test_dep --timeout=2m ./deterministicio",
+      "exit_code": 1,
+      "real_seconds": 0.17,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-scoped-lint-corrected.log",
+      "note": "unfiltered 2 issues: errcheck and forbidigo; explicit cd nested module"
+    },
+    {
+      "phase": "baseline",
+      "command": "go test -tags test_dep -count=1 ./deterministicio -run 'Test(AdapterRegistry|AdapterModuleSumRecords|AdapterReplacement|NewAdapterRegistry|DetectModule)'",
+      "exit_code": 0,
+      "real_seconds": 0.13,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-portable.log",
+      "note": "supplemental portable controls; explicit cd nested module"
+    },
+    {
+      "phase": "baseline-regression",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./deterministicio -run '^TestAdapterCacheCleanup'",
+      "exit_code": 1,
+      "real_seconds": 0.37,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-regression-complete.log",
+      "note": "four actual permission cases RED before production edit, healthy/validation controls GREEN"
+    },
+    {
+      "phase": "baseline-frozen-tests",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/next-gate-8486dcb98d/worker/base-overlay.json ./deterministicio -run '^TestAdapterCacheCleanup'",
+      "exit_code": 1,
+      "real_seconds": 0.36,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-frozen-tests.log",
+      "note": "exact BASE production owner overlay SHA657ea0a8b44726ea13baaa4b65dcafcb210f450a5bf60f319bcc1914027401c4; final test source five fault cases RED/eight controls GREEN"
+    },
+    {
+      "phase": "final",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 ./deterministicio -run 'Test(Prepare|Adapter|NewAdapter|DetectModule|ProfileVerifies)'",
+      "exit_code": 1,
+      "real_seconds": 0.34,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-wide.log",
+      "note": "same 12 inherited failures, no qualification waiver"
+    },
+    {
+      "phase": "final",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./deterministicio -run 'Test(AdapterCacheCleanup|AdapterRegistry|AdapterModuleSumRecords|AdapterReplacement|NewAdapterRegistry|DetectModule)'",
+      "exit_code": 0,
+      "real_seconds": 0.13,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-portable.log",
+      "note": "13 top-level tests, all 13 new subcases pass, zero skips"
+    },
+    {
+      "phase": "final",
+      "command": "go -C tools/gomad3 vet -tags test_dep ./deterministicio",
+      "exit_code": 0,
+      "real_seconds": 0.1,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-vet.log",
+      "note": ""
+    },
+    {
+      "phase": "final",
+      "command": "env GOFLAGS=-tags=test_dep /tmp/fn109-lint-tools.ZdNe1t50/errortype -test=true ./deterministicio",
+      "exit_code": 0,
+      "real_seconds": 0.31,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-errortype.log",
+      "note": "explicit cd nested module"
+    },
+    {
+      "phase": "final",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --fix=false --build-tags=test_dep --timeout=2m ./deterministicio",
+      "exit_code": 1,
+      "real_seconds": 0.78,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-scoped-lint.log",
+      "note": "unfiltered 1 unchanged forbidigo at profile.go211, no introduced issues"
+    },
+    {
+      "phase": "final",
+      "command": "make --trace lint-code LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./deterministicio GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "exit_code": 2,
+      "real_seconds": 1.2,
+      "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-configured-scoped-lint.log",
+      "note": "configured scope retains1 forbidigo; Make errortype unreached"
+    }
+  ],
+  "inconclusive": [
+    "base-errortype-wrong-root.log exit1: command from root, nonexistent deterministicio",
+    "base-errortype.log exit1 and base-scoped-lint.log exit7: tool workdir not honored; explicit cd corrected; never counted green"
+  ],
+  "unexecuted": [
+    "Worker architecture/purity, check-only validate, root fast and full lint are conductor-owned pending gates",
+    "Native Darwin/full-host/pinned adapter/public qualification/default/integration/functional/affected-consumer/matched-first-baseline/10-job/100-job/formal/predecessor acceptance stays open",
+    "Linux native evidence deferred under fn128; linux/arm64 private fixtures qualify no platform",
+    "Additional uncached and no-selected-adapter prepare controls proposed by source receipt were not newly executed"
+  ],
+  "go_lane_released": true
+}

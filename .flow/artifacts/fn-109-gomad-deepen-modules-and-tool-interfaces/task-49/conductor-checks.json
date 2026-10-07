@@ -1,0 +1,169 @@
+{
+  "base": "8486dcb98d2b15e1f985d5bb1e79ae7da81a0d5a",
+  "scope": "Complete adapter-cache preparation/publication/reuse cleanup owner; source progress only.",
+  "host": "linux/arm64, UID1000, stock Go1.27.1; patched toolchain absent",
+  "command_environment": {
+    "uid": 1000,
+    "platform": "linux/arm64 developmental",
+    "PATH_prefix": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOWORK": "off",
+    "GOENV": "off"
+  },
+  "baseline": {
+    "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "log": ".flow/tmp/next-gate-8486dcb98d/base-full-lint.log",
+    "exit_code": 2,
+    "shell_real_seconds": 1.41,
+    "elapsed_provenance": "Bash time -p reported to host output",
+    "sha256": "ed8facc33edf65d54cf9bc06e351bf1d40b11c41ba3511edda6202f749dab34c",
+    "findings": 266,
+    "errortype_stage_reached": false
+  },
+  "source_freeze": {
+    "tools/gomad3/deterministicio/adapter_registry.go": "bb99674446c997ad48fad63050ea8ce275f1de860b3e6f7c5a70e5faddce6d25",
+    "tools/gomad3/deterministicio/adapter_cache_cleanup_test.go": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc"
+  },
+  "checks": [
+    {
+      "name": "focused-registry",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./deterministicio -run '^TestAdapterCacheCleanup'",
+      "exit_code": 0,
+      "shell_real_seconds": 0.14,
+      "log": ".flow/tmp/next-gate-8486dcb98d/root-focused-registry.log",
+      "sha256": "293cf8582190059d482c8279154d50d7a0ae35ad914b87d8cdd0b99cb9509b74",
+      "top_level_passes": 4,
+      "passing_records": 17,
+      "failed_records": 0,
+      "skips": 0
+    },
+    {
+      "name": "architecture",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json . -run 'Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases|DomainModulesDoNotExportWireFraming|RunnerExecutionInjectionIsPrivate)$'",
+      "exit_code": 0,
+      "shell_real_seconds": 23.29,
+      "log": ".flow/tmp/next-gate-8486dcb98d/root-architecture.log",
+      "sha256": "bf31aa3954ba7230550494637d4af747306326cc39076cb7b405a9d3fb2102c1",
+      "top_level_passes": 6,
+      "passing_records": 6,
+      "failed_records": 0,
+      "skips": 0
+    },
+    {
+      "name": "validate",
+      "command": "make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "shell_real_seconds": 2.79,
+      "log": ".flow/tmp/next-gate-8486dcb98d/root-validate.log",
+      "sha256": "39eb1ceee10b64492396a5aef039c178dae15ab9fcfa19d70fa06c82ae54580e"
+    },
+    {
+      "name": "fast-lint",
+      "command": "make --trace lint-code-fast GOLANGCI_LINT_BASE_REV=8486dcb98d2b15e1f985d5bb1e79ae7da81a0d5a GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "exit_code": 0,
+      "shell_real_seconds": 4.11,
+      "log": ".flow/tmp/next-gate-8486dcb98d/root-fast-lint.log",
+      "sha256": "337af0d1c60ed2c40614bbf254347bdf11a8941d2daba4293af2721b9b68ab21",
+      "errortype_stage_reached": true,
+      "host_packages": 55
+    },
+    {
+      "name": "full-lint",
+      "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "exit_code": 2,
+      "shell_real_seconds": 1.37,
+      "log": ".flow/tmp/next-gate-8486dcb98d/root-full-lint.log",
+      "sha256": "c9a8008eba9d4aaa202e4eb44e113ebe99322d65e02dfee9c64da1edc5468bd5",
+      "errortype_stage_reached": false,
+      "host_packages": 55
+    }
+  ],
+  "full_lint_delta": {
+    "baseline": 266,
+    "final": 265,
+    "removed": [
+      "tools/gomad3/deterministicio/adapter_registry.go:<position>: Error return value of `os.RemoveAll` is not checked (errcheck)\n\tdefer os.RemoveAll(work)\n\t                  ^"
+    ],
+    "added_or_changed_residual_blocks": 0,
+    "comparison": "Normalize only diagnostic header line/column positions; all265 residual blocks including source/caret bytes match.",
+    "classes": {
+      "errcheck": 208,
+      "exhaustive": 2,
+      "forbidigo": 11,
+      "staticcheck": 44
+    }
+  },
+  "worker_integrity": {
+    "observations": "observations.json",
+    "source_hashes_match": true,
+    "tdd_log_hashes_match": true,
+    "log_hashes": [
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-focused.log",
+        "sha256": "a3fb9ddf59c9cc426fbbe2e9e22d9d2067cd593d85c492e254044b4d0ca6d5f7"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-vet.log",
+        "sha256": "627091610764947d1d39678eafcd9f4a0ab5658be2ea498a8152a4fdeb3ccbe8"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-errortype-corrected.log",
+        "sha256": "d3e12b52d5f946cd9214bbd91524a52f020cab53fa5fae882195086f9a7b5648"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-scoped-lint-corrected.log",
+        "sha256": "90928d12e4a913877158897056bc1fd8ec085a420e37a1518b03a86f5c9d0be5"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-portable.log",
+        "sha256": "a867d29878b725d3a7dd3dd0c88c0398b169e685cd22c3a1a105d00513c444eb"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-regression-complete.log",
+        "sha256": "c110a4b3be8200d0ea4f8c4d45f338ba2ed7cc11717d9a82f959516f438ebe50"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/base-frozen-tests.log",
+        "sha256": "b4c02705acacaed566727b507869a1c73d32ff989055ce0faa089a2188d2f736"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-wide.log",
+        "sha256": "8a8fe054b4955a9b6679ca6b2daa42b0fd86f49dea2b8ff589ba618643208f4f"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-portable.log",
+        "sha256": "9edceb69bd58a84f6cff4c3d1f6be99f034399ba4733eb9231e04736a1c5adf8"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-vet.log",
+        "sha256": "08f2616234c5a1aac53ea71a2076819e84402d94ec5def22ea6d091990f26b0f"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-errortype.log",
+        "sha256": "c2e9748eb3d705f5362fb8a96e5e2d4e36eeba79894314ffb958b050679bd523"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-scoped-lint.log",
+        "sha256": "ebe5b0b4de42c22ef4fd59a0fa6b53fcce0de8b448424f43d2e1e689495c448a"
+      },
+      {
+        "log": ".flow/tmp/next-gate-8486dcb98d/worker/frozen-configured-scoped-lint.log",
+        "sha256": "f4491ba8a081c222573fe1d706509b4dd56e0356d4de80ca8570bf19d77bbbb6"
+      }
+    ]
+  },
+  "admission": {
+    "predecessor48": "Integrated and independently reviewed at8486; acceptance blocked and dependency retained.",
+    "task21_acceptance_to_EOF_sha256": "244837d75f8cb29005d38e463af06b58d33d63c5211b51cca5c1250c16fa8330",
+    "task21_old_dependencies_preserved": 26,
+    "task21_only_new_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.49",
+    "tracker_bridge_active": false,
+    "plan_sync_enabled": false,
+    "requested_implementer": "gpt-6.1-sol high",
+    "requested_reviewer": "gpt-6.1-sol high, same GPT family as writer",
+    "actual_model_metadata": "not exposed"
+  },
+  "bounds": "Original wide Quick remains exit1 with same12 inherited failures. Native Darwin/public pinned adapter/full/default/integration/functional/affected/matched-first-baseline/10-100/formal/predecessor requirements remain required/open wherever unproved. Linux fn128 remains deferred and unverified. Supplemental portable controls grant no completed acceptance."
+}

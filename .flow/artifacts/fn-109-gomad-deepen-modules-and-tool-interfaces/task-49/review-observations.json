@@ -1,0 +1,32 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.49",
+  "review_kind": "fresh independent source-progress and evidence review",
+  "verdict": "source-progress accepted",
+  "formal_ship": false,
+  "findings": {"critical": [], "important": [], "minor": []},
+  "base": "8486dcb98d2b15e1f985d5bb1e79ae7da81a0d5a",
+  "head": "unchanged BASE with frozen uncommitted task49 source",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "writer_reviewer_family": "same GPT family",
+  "actual_model_metadata": "not exposed",
+  "tier": "session (jev-unavailable(no_key)); explicit project reviewer selection governs request",
+  "environment": {"uid": 1000, "go": "go1.27.1", "platform": "linux/arm64 developmental", "PATH_prefix": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin", "GOTOOLCHAIN": "local", "GOPROXY": "off", "GOSUMDB": "off", "GOWORK": "off", "GOENV": "off"},
+  "sources": {
+    "tools/gomad3/deterministicio/adapter_registry.go": "bb99674446c997ad48fad63050ea8ce275f1de860b3e6f7c5a70e5faddce6d25",
+    "tools/gomad3/deterministicio/adapter_cache_cleanup_test.go": "e46f0b8272d4878c1321c5cf8c94349d0e2852b907b398d9311362bc34d7cdcc",
+    "exact_BASE_adapter_registry.go": "657ea0a8b44726ea13baaa4b65dcafcb210f450a5bf60f319bcc1914027401c4"
+  },
+  "overlay": {"file": ".flow/tmp/next-gate-8486dcb98d/worker/base-overlay.json", "mapping_count": 1, "only_production_owner": true, "mapped_bytes_equal_git_show_BASE": true},
+  "independent_checks": [
+    {"command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/next-gate-8486dcb98d/worker/base-overlay.json ./deterministicio -run '^TestAdapterCacheCleanup'", "exit_code": 1, "real_seconds": 0.15, "failed_subcases": 5, "passing_control_subcases": 8, "skips": 0, "log": ".flow/tmp/next-gate-8486dcb98d/reviewer/base-regression.log", "sha256": "06ee126493202722649c8dd2173f26571f71b506a0802922cb5b5544536dceb6"},
+    {"command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./deterministicio -run '^TestAdapterCacheCleanup'", "exit_code": 0, "real_seconds": 0.13, "passing_subcases": 13, "passing_top_level_tests": 4, "passing_test_records": 17, "skips": 0, "log": ".flow/tmp/next-gate-8486dcb98d/reviewer/final-regression.log", "sha256": "4b8fcc6566f9cc9c6a885eb7a67354472597a2959160b43648e06489f1ea83f2"}
+  ],
+  "evidence_verification": {"conductor_check_logs_verified": 5, "worker_logs_verified": 13, "baseline_full_lint_hash_verified": true, "three_TDD_log_hashes_verified": true, "historical_edit_sequence_independently_witnessed": false, "initial_test_snapshot_reconstructed": false, "conductor_checks_sha256": "72420cd7bb53a1f8365cbf7ed68eef792c21f5b2c1f076b1fc415f1d9110a0af", "worker_observations_sha256": "164f768a9e93ad679f070b5072a7f0f2411f15b0a776babc4388e7ffadb284ac"},
+  "lint_comparison": {"command": "node .flow/tmp/next-gate-101b14f882/compare-lint.cjs .flow/tmp/next-gate-8486dcb98d/base-full-lint.log .flow/tmp/next-gate-8486dcb98d/root-full-lint.log", "exit_code": 0, "baseline": 266, "final": 265, "removed_only": "adapter_registry.go unchecked os.RemoveAll", "added_or_changed_residual_blocks": 0, "normalization": "diagnostic header line/column only", "full_lint_exit": 2, "full_errortype_reached": false, "final_classes": {"errcheck": 208, "exhaustive": 2, "forbidigo": 11, "staticcheck": 44}},
+  "preservation": {"task21_original_dependencies": 26, "task21_final_dependencies": 27, "only_added_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.49", "task49_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.48", "task21_acceptance_through_EOF_equal_BASE": true, "task21_acceptance_through_EOF_sha256": "244837d75f8cb29005d38e463af06b58d33d63c5211b51cca5c1250c16fa8330", "wide_Quick_unchanged": true, "wide_Quick_same_12_failure_names": true, "wide_Quick_remains_red": true},
+  "remaining_gates": ["Original wide Quick and full lint remain required and red", "Native Darwin/full-host/public pinned adapter/full/default/integration/functional/affected-consumer acceptance", "Matched-first-baseline and bounded10/100 evidence", "Formal review and predecessor acceptance", "Additional uncached/no-selected-adapter controls were proposed but not newly executed", "Native Linux deferred and unverified under fn128; linux/arm64 fixtures qualify no platform"],
+  "all_commands_terminal": true,
+  "go_cache_lane_released": true,
+  "root_owns_fixes_lifecycle_commit": true
+}
