@@ -167,7 +167,7 @@ Gate: the DSL batch. Task 7 asks the owner about `pausedWhileHeld` before it is 
 | fn-137.1 | ✅ done | `Phased` mixin; argument-less `Rules` reads it beside the old form (early proof) |
 | fn-137.2 | ✅ done | Lifter reads the projection from the `Phased` parent |
 | fn-137.3 | ✅ done | Every Model migrated to `Phased` and argument-less `Rules` |
-| fn-137.4 | ⬜ todo | `Rules(projection)` retired: framework, lifter fallback, fixtures, docs |
+| fn-137.4 | ✅ done | `Rules(projection)` retired: framework, lifter fallback, fixtures, docs |
 | fn-137.5 | ⬜ todo | Default `end` for `Phased` objects (needs fn-136's `Closed` role) |
 | fn-137.6 | ⬜ todo | Closable reads the `Closed` role through `Phased` (needs fn-134, fn-136.5) |
 | fn-137.7 | ⬜ todo | Pausable reads `Suspended` and `Held`; `pausedWhileHeld` settled; capability docs |
