@@ -25,9 +25,10 @@ Delete the old Scala surface now that nothing uses it: `Law`, `LawRef`, `Catalog
 - [ ] `make umpire-check-model` passes with `model/ir` byte-identical to task 3's output.
 
 ## Done summary
-TBD
+Removed the legacy Law, Catalog, Implements, cited, declaration, and law-sidecar paths from the Scala framework and lifter. Capability sections and companion-owned Properties are now the sole path; focused production roots, vocabulary checks, ordering fixtures, and capability role validation pass. Checked IR and Cases remain unchanged pending the DSL batch regeneration.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 40eb01c5d90e7533e6427335e3411d62c392130a
+- Tests: PASS: make model/build/model-scala.jar, PASS: mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check, PASS: CapabilityPropertiesTest (6), PASS: umpire.irgen.Overlap (2), PASS: umpire.irgen.QualifiedNames (4), PASS: umpire.irgen.PhaseCapabilitiesSuite (2), PASS: direct Activity and Nexus capability-root lifts emit no law sidecar, PASS: syntax, formatting, legacy-surface sweeps, git diff --check, EXPECTED_RED_BATCH: full irgen only taskqueue.json, hints.json, rejections.json, hintsRefused.json and inherited ScriptRejects rejects.txt drift, EXPECTED_RED_BATCH: IrFilesTest names the three checked law sidecars awaiting batch regeneration, INCONCLUSIVE: scoped scalafix exits 0 but emits inherited JDK 27 NoSuchFieldException: path
 - PRs:
