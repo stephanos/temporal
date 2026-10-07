@@ -720,8 +720,11 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    projection once; a composition may name a nested phase, `Phased[OverQueue, Phase](_.activity.phase)`,
    and a derived object inherits its source's projection and phase type. Then `val init`, the state
    it starts in (`init` as Quint and TLA+ name it, its fields by
-   name, `system.State(phase = unstarted, attempts = UpTo(0), …)`), `def end(s)`, the states it
-   may end in, and where declared `val entity`, `val evidence` and, for a machine that refines
+   name, `system.State(phase = unstarted, attempts = UpTo(0), …)`). `Phased` supplies `end` as the
+   `Closed` phases; a different stopping point declares `override def end(s)`. An omitted `end`
+   with no `Closed` case is refused by the lifter and on the default's first evaluation, naming
+   the object and phase type. A plain machine declares `def end(s)`. Then, where declared,
+   `val entity`, `val evidence` and, for a machine that refines
    nothing, `val unobservable`, its timers whose step records nothing a Run can read. A machine's
    entity is the one entity its actions are `on` or create; one whose actions name several, or none,
    names its own with `val entity`;

@@ -35,7 +35,7 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
   import Phase.*
 
   val init = product.State(scheduled)
-  def end(s: State) = s.phase.in[Closed]
+  override def end(s: State) = s.phase.in[Closed]
 
   // The product's phase sets.
   object states:

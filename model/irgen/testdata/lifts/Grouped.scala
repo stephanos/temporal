@@ -32,7 +32,7 @@ object Modes:
 
 object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
-  def end(s: State) = s.mode == Mode.halted
+  override def end(s: State) = s.mode == Mode.halted
 
   object effects:
     def heat(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.busy))
@@ -58,7 +58,7 @@ object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_
 
 object Plain extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
-  def end(s: State) = s.mode == Mode.halted
+  override def end(s: State) = s.mode == Mode.halted
 
   object effects:
     def heat(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.busy))

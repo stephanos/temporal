@@ -16,7 +16,7 @@ object TaskQueueProduct
     extends Machine[QueueView, QueueOutcome, QueueFact],
       Phased[QueueView, Outstanding](_.outstanding):
   val init = QueueView(Outstanding.empty)
-  def end(q: State) = q.outstanding == Outstanding.empty
+  override def end(q: State) = q.outstanding == Outstanding.empty
   object states:
     // A message is outstanding: committed, and not yet acknowledged.
     def holding(s: State) =

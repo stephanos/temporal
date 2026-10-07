@@ -34,7 +34,7 @@ object RulesFixture:
   object Switch extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     Trace.initialized += "Switch"
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = s.light == Lit.broken
+    override def end(s: Lamp) = s.light == Lit.broken
     def presses(s: Lamp): UpTo[2] = UpTo((s.presses + 1).min(2))
 
     object effects:
@@ -70,7 +70,7 @@ object RulesFixture:
 
   object Overlapping extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       on(hand.turn(Knob.up))(in(Lit.off, Lit.on) ~> Switch.effects.light)
       on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
@@ -103,7 +103,7 @@ object RulesFixture:
 
   object PhasedLamp extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object states:
       def dark(l: Lit) = l != Lit.on
     object rules extends Rules:
@@ -115,7 +115,7 @@ object RulesFixture:
 
   object OverlappingPhased extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       on(hand.turn(Knob.up))(in(Lit.off, Lit.on) ~> Switch.effects.light)
       on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
@@ -128,16 +128,12 @@ object RulesFixture:
   object PhasedStucker extends Derived(PhasedStuck.restrict(hand.press)):
     val phase = summon[Phasing[Lamp, Lit]]
 
-  // A derived machine that mixes in a projection of its own.
-  object Rephased
-      extends Derived(PhasedLamp.rebind(hand.press ~> Switch.effects.wear)),
-        Phased[Lamp, Lit](_.light)
   // The lamp on the shared outcomes: a press of a lit lamp is rejected with the server's reason,
   // and of a broken one as not found.
   object Guarded extends Machine[Lamp, outcomes.Outcome, Nothing], Phased[Lamp, Lit](_.light):
     import outcomes.Rejection
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object effects:
       def light(s: Lamp) = enter[Lamp, Outcome, Nothing](s.copy(light = Lit.on))
     object rules extends Rules:
@@ -155,7 +151,7 @@ object RulesFixture:
   // and in the plain forms, `on` and `in`, rule for rule.
   object Grouped extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = s.light == Lit.broken
+    override def end(s: Lamp) = s.light == Lit.broken
     object rules extends Rules:
       from(hand) {
         import hand.*
@@ -174,7 +170,7 @@ object RulesFixture:
 
   object Plain extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = s.light == Lit.broken
+    override def end(s: Lamp) = s.light == Lit.broken
     object rules extends Rules:
       on(hand.press) {
         in(Lit.off) ~> Switch.effects.light
@@ -187,7 +183,7 @@ object RulesFixture:
   // One action in several blocks whose cases hold in no common state.
   object Spread extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       on(hand.press)(when(Lit.off) ~> Switch.effects.light)
       on(hand.press, clock.tick)(when(Lit.broken) ~> Switch.effects.wear)
@@ -196,7 +192,7 @@ object RulesFixture:
   // The rules each of these declares are refused as its rules construct.
   object Nested extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       on(hand.press) {
         on(clock.tick)(always ~> Switch.effects.wear)
@@ -204,7 +200,7 @@ object RulesFixture:
 
   object NestedFrom extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       from(hand) {
         from(clock) {
@@ -214,7 +210,7 @@ object RulesFixture:
 
   object Foreign extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       from(hand) {
         on(clock.tick)(always ~> Switch.effects.wear)
@@ -222,20 +218,20 @@ object RulesFixture:
 
   object NamedTwice extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       on(hand.press, clock.tick, hand.press)(always ~> Switch.effects.wear)
 
   object DisabledTarget extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       disabled(clock.tick)
       on(hand.press, clock.tick)(always ~> Switch.effects.wear)
 
   object AcrossBlocks extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    def end(s: Lamp) = true
+    override def end(s: Lamp) = true
     object rules extends Rules:
       on(hand.turn)(when(Lit.off) ~> Switch.effects.turned)
       on(hand.turn(Knob.down)) {
@@ -416,9 +412,17 @@ class RulesTest extends munit.FunSuite:
     assertEquals(PhasedStucker.phase.projection(off), Lit.off)
   }
 
-  test("a derived machine or composition that mixes in Phased is refused as it initializes") {
+  test("a derived machine cannot replace its final source end with Phased's default") {
+    val refused = compileErrors(
+      "import umpire.*\nimport umpire.RulesFixture.*\n" +
+        "object Rephased extends Derived(PhasedLamp.unmonitored), Phased[Lamp, Lit](_.light)"
+    )
+    assert(refused.contains("cannot override final member"), refused)
+    assert(refused.contains("end"), refused)
+  }
+
+  test("a derived composition that mixes in Phased is refused as it initializes") {
     for (derived, message) <- List(
-        (() => Rephased.name, "rephased"),
         (() => Reprojected.name, "reprojected")
       )
     do
@@ -610,7 +614,7 @@ object RoleRulesFixture:
   object Gate extends Machine[Door, Said, Nothing], Phased[Door, Stage](_.stage):
     type Press = Door => List[Step[Door, Said, Nothing]]
     val init = Door(Stage.unstarted)
-    def end(s: Door) = s.stage.in[Closed]
+    override def end(s: Door) = s.stage.in[Closed]
     object effects:
       def open(s: Door) = stay[Door, Said, Nothing](s)
     object rules extends Rules:

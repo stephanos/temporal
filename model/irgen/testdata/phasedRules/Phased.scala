@@ -21,7 +21,7 @@ object hand extends Actor:
 
 object Switch extends Machine[Bulb, Outcome, Nothing], Phased((s: Bulb) => s.light):
   val init = Bulb(Light.off)
-  def end(s: State) = s.light == Light.broken
+  override def end(s: State) = s.light == Light.broken
   object states:
     def dark(l: Light) = l != Light.on
   object effects:

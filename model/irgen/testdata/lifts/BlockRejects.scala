@@ -11,7 +11,7 @@ def idle(using v: View[Job]): Boolean = v.get(_.phase) == Phase.idle
 
 object NestedIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object states:
     val nested = is(phase == Phase.done && is(phase == Phase.idle)(Job(Phase.idle, false)))
   object effects:
@@ -21,7 +21,7 @@ object NestedIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase)
 
 object HeaderIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   val done = is(phase == Phase.done)
   object effects:
     def keep(s: Job) = stay[Job, Outcome, Fact](s)
@@ -30,7 +30,7 @@ object HeaderIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase)
 
 object DefIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object states:
     def done = is(phase == Phase.done)
   object effects:
@@ -40,7 +40,7 @@ object DefIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
 
 object ShapedAccessor extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object states:
     val waiting = is(idle)
   object effects:
@@ -59,7 +59,7 @@ def stage_=(p: Phase)(using d: Draft[Job, ?, ?]): Unit = d.set(_.copy(phase = Ph
 
 object BranchedEffect extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val finish = effect {
       if retried then phase = Phase.done
@@ -69,7 +69,7 @@ object BranchedEffect extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.
 
 object RejectingEffect extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val refuse = effect {
       phase = Phase.done
@@ -80,7 +80,7 @@ object RejectingEffect extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_
 
 object TwiceAssigned extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val finish = effect {
       phase = Phase.running
@@ -91,7 +91,7 @@ object TwiceAssigned extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.p
 
 object ReadAfterAssigned extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val finish = effect {
       phase = Phase.done
@@ -102,7 +102,7 @@ object ReadAfterAssigned extends Machine[Job, Outcome, Fact], Phased[Job, Phase]
 
 object LocalVal extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val finish = effect {
       val next = Phase.done
@@ -113,7 +113,7 @@ object LocalVal extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase)
 
 object BareExpression extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val finish = effect {
       phase == Phase.running
@@ -124,7 +124,7 @@ object BareExpression extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.
 
 object OtherCall extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val finish = effect {
       require(retried)
@@ -135,7 +135,7 @@ object OtherCall extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase
 
 object NestedEffect extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val finish = effect {
       retried = effect(record(Fact.finished))(Job(Phase.idle, false)).isEmpty
@@ -145,7 +145,7 @@ object NestedEffect extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.ph
 
 object ShapedSetter extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     val finish = effect { stage = Phase.running }
   object rules extends Rules:
@@ -153,6 +153,6 @@ object ShapedSetter extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.ph
 
 object RuleEffect extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = true
+  override def end(s: State) = true
   object rules extends Rules:
     on(user.finish)(always ~> effect { phase = Phase.done })

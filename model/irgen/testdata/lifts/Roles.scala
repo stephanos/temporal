@@ -48,7 +48,7 @@ object user extends Actor:
 
 object Roled extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, Solo.over, Bare.unstarted)
-  def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
+  override def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
 
   // The role test as the lifter reads it, which the Models' lint leaves to the fixtures.
   // scalafix:off DisableSyntax.isInstanceOf
@@ -79,7 +79,7 @@ object Roled extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
 
 object Listed extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, Solo.over, Bare.unstarted)
-  def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
+  override def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
 
   object states:
     def closed(p: Phase) = p.in(Phase.done, Phase.failed, Phase.expired)
@@ -110,7 +110,7 @@ object Listed extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
 // positions.
 object Shortened extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, Solo.over, Bare.unstarted)
-  def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
+  override def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
 
   object states:
     def closed(p: Phase) = p.in[Closed]
@@ -131,7 +131,7 @@ object Shortened extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase
 
 object Written extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, Solo.over, Bare.unstarted)
-  def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
+  override def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
 
   object states:
     def closed(p: Phase) = p.in(Phase.done, Phase.failed, Phase.expired)

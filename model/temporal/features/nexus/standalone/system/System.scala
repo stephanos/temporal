@@ -34,7 +34,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
 
   val init = system.State(phase = unstarted, cancelRequested = false)
   // A path ends where the operation is over: `end` reads the Closed role.
-  def end(s: State) = s.phase.in[Closed]
+  override def end(s: State) = s.phase.in[Closed]
 
   // The operation's status sets.
   object states:

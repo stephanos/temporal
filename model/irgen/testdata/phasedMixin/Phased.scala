@@ -21,7 +21,7 @@ object hand extends Actor:
 
 object Switch extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Light](_.light):
   val init = Bulb(Light.off)
-  def end(s: State) = s.light == Light.broken
+  override def end(s: State) = s.light == Light.broken
   object states:
     def dark(l: Light) = l != Light.on
   object effects:
@@ -46,7 +46,7 @@ final case class Pair(left: Bulb, right: Bulb)
 object Twins
     extends Composition[Pair](_.left -> Switch, _.right -> Switch),
       Phased[Pair, Light](_.left.light):
-  def end(s: Pair) = Switch.end(s.left)
+  override def end(s: Pair) = Switch.end(s.left)
   object syncs extends Syncs:
     sync(_.left -> hand.press, _.right -> hand.press)
 

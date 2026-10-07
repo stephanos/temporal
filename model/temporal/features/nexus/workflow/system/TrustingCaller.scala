@@ -28,7 +28,6 @@ object TrustingCaller
       Phased[system.State, Phase](_.phase),
       NegativeControl:
   val init = NexusSystem.init
-  def end(s: State) = s.phase.in[Closed]
   val evidence: PartialFunction[Fact, String] = {
     case Fact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
     case Fact.pendingAttempts           => pendingAttempts.name

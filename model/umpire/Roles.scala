@@ -1,5 +1,21 @@
 package umpire
 
+import scala.reflect.{ClassTag, TypeTest}
+
+// A role's phase cases, checked when a reader first needs them so an explicit override needs no
+// case of that role. Readers share the finite catalog, witness and missing-role diagnostic.
+private[umpire] def roleCases[P, R](owner: String, role: String)(using
+    finite: Finite[P],
+    witness: TypeTest[P, R],
+    phaseType: ClassTag[P]
+): IndexedSeq[P] =
+  val cases = finite.values.filter(p => witness.unapply(p).nonEmpty)
+  require(
+    cases.nonEmpty,
+    s"$owner's phase type ${phaseType.runtimeClass.getName} has no $role case"
+  )
+  cases
+
 // The roles of a phase: what a case of a phase enum says about the entity it is the phase of, mixed
 // into the case, `case backingOff extends Phase, Retrying`. A role is metadata and not another state
 // dimension: it adds no field and no state, and a phase's `Finite` values are those of the enum

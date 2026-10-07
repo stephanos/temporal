@@ -1,6 +1,7 @@
 package umpire
 
 import scala.annotation.unused
+import scala.reflect.{ClassTag, TypeTest}
 
 // One result of an action: the outcome, the next state and the facts it records. `because` is an
 // optional explanation a generated table view shows beside the row; no fingerprint reads it.
@@ -153,7 +154,18 @@ final class Owner[S, O, F] private[umpire] (val machine: Machine[S, O, F])
 // given: `in(placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
 // (model/umpire/Syntax.scala) gives it, and a derived machine gives its source's, with the source's
 // phase type.
-final class Phasing[S, P] private[umpire] (private[umpire] val projection: S => P)
+final class Phasing[S, P] private[umpire] (private[umpire] val projection: S => P):
+  // Reads the phase a lifecycle reader tests, including a phase nested in a composed state.
+  def phase(state: S): P = projection(state)
+
+  // The phase cases with a role, refused when none has it, naming the reader and the phase type.
+  def roleCases[R](owner: String)(using
+      finite: Finite[P],
+      witness: TypeTest[P, R],
+      phaseType: ClassTag[P],
+      role: ClassTag[R]
+  ): IndexedSeq[P] =
+    umpire.roleCases[P, R](owner, role.runtimeClass.getSimpleName)(using finite, witness, phaseType)
 
 object Phasing:
   // The phasing of an object that declares no phase: its phase type is `Nothing`, so `in(...)` of

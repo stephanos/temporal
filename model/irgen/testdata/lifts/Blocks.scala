@@ -50,7 +50,7 @@ val two = Limits(steps = 2, actions = 2, search = 64)
 
 object Blocked extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = states.over(s)
+  override def end(s: State) = states.over(s)
 
   object states:
     val paused = is(phase == Phase.paused)
@@ -98,7 +98,7 @@ object Blocked extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
 
 object Defined extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
-  def end(s: State) = states.over(s)
+  override def end(s: State) = states.over(s)
 
   object states:
     def paused(s: Job) = s.phase == Phase.paused

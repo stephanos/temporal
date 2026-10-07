@@ -44,7 +44,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
   import Phase.*
 
   val init = product.State(scheduled)
-  def end(s: State) = s.phase.in[Closed]
+  override def end(s: State) = s.phase.in[Closed]
 
   object states:
     def status(s: State) = s.phase

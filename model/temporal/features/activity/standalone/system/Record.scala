@@ -119,7 +119,7 @@ object ActivityRecord
   import AdmissionFact.*
   val init =
     AdmissionState(phase = AdmissionPhase.scheduled, active = Active.none, answer = Answer.settled)
-  def end(s: State) = states.stopped(s)
+  override def end(s: State) = states.stopped(s)
   val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
     "statusTimedOut"
   }
@@ -384,7 +384,7 @@ object HeldDispatch
     extends Machine[AdmissionState, Outcome, AdmissionFact],
       Phased[AdmissionState, AdmissionPhase](_.phase):
   val init = ActivityRecord.init
-  def end(s: State) = ActivityRecord.end(s)
+  override def end(s: State) = ActivityRecord.end(s)
   val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
     "statusTimedOut"
   }

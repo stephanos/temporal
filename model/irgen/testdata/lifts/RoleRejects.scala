@@ -21,7 +21,7 @@ final case class Job(phase: Phase, next: Option[Phase]) derives Finite
 
 object NoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
-  def end(s: State) = true
+  override def end(s: State) = true
   object states:
     def closed(s: Job) = s.next.isInstanceOf[Closed]
   object effects:
@@ -31,7 +31,7 @@ object NoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase
 
 object NoCase extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
-  def end(s: State) = true
+  override def end(s: State) = true
   object states:
     def canceled(p: Phase) = p.isInstanceOf[Canceled]
   object effects:
@@ -41,7 +41,7 @@ object NoCase extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase
 
 object NoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
-  def end(s: State) = true
+  override def end(s: State) = true
   object states:
     def any(p: Phase) = p match
       case _: Phase => true
@@ -52,7 +52,7 @@ object NoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase
 
 object StandAlone extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
-  def end(s: State) = true
+  override def end(s: State) = true
   object states:
     def audited(p: Phase) = p.isInstanceOf[Audited]
   object effects:
@@ -68,7 +68,7 @@ final case class Run(ended: Ended) derives Finite
 
 object WithFields extends Machine[Run, Outcome, Nothing], Phased[Run, Ended](_.ended):
   val init = Run(Ended.running)
-  def end(s: State) = s.ended.isInstanceOf[Failed]
+  override def end(s: State) = s.ended.isInstanceOf[Failed]
   object effects:
     def keep(s: Run) = stay[Run, Outcome, Nothing](s)
   object rules extends Rules:
@@ -88,7 +88,7 @@ final case class Mixed(phase: LiveClosed) derives Finite
 
 object BothLiveClosed extends Machine[Mixed, Outcome, Nothing], Phased[Mixed, LiveClosed](_.phase):
   val init = Mixed(LiveClosed.backingOff)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     def keep(s: Mixed) = stay[Mixed, Outcome, Nothing](s)
   object rules extends Rules:
@@ -98,7 +98,7 @@ final case class Torn(phase: TwoLive) derives Finite
 
 object TwoLiveRoles extends Machine[Torn, Outcome, Nothing], Phased[Torn, TwoLive](_.phase):
   val init = Torn(TwoLive.torn)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     def keep(s: Torn) = stay[Torn, Outcome, Nothing](s)
   object rules extends Rules:
@@ -108,7 +108,7 @@ final case class Twice(phase: TwoClosed) derives Finite
 
 object TwoClosureRoles extends Machine[Twice, Outcome, Nothing], Phased[Twice, TwoClosed](_.phase):
   val init = Twice(TwoClosed.twice)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     def keep(s: Twice) = stay[Twice, Outcome, Nothing](s)
   object rules extends Rules:
@@ -127,7 +127,7 @@ object WhenNoProjection extends Machine[Job, Outcome, Nothing]:
 
 object WhenNoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     def keep(s: Job) = stay[Job, Outcome, Nothing](s)
   object rules extends Rules:
@@ -135,7 +135,7 @@ object WhenNoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.p
 
 object WhenNoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Option[Phase]](_.next):
   val init = Job(Phase.unstarted, None)
-  def end(s: State) = true
+  override def end(s: State) = true
   object effects:
     def keep(s: Job) = stay[Job, Outcome, Nothing](s)
   object rules extends Rules:
@@ -143,7 +143,7 @@ object WhenNoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Option[Pha
 
 object InNoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
-  def end(s: State) = s.phase.in[Audited]
+  override def end(s: State) = s.phase.in[Audited]
   object effects:
     def keep(s: Job) = stay[Job, Outcome, Nothing](s)
   object rules extends Rules:
@@ -151,7 +151,7 @@ object InNoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.pha
 
 object InNoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
-  def end(s: State) = s.next.in[Closed]
+  override def end(s: State) = s.next.in[Closed]
   object effects:
     def keep(s: Job) = stay[Job, Outcome, Nothing](s)
   object rules extends Rules:

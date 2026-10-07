@@ -276,7 +276,7 @@ object RejectAfterClose
     retained = Retained.none,
     known = Knowledge.none
   )
-  def end(s: State) = states.settled(s)
+  override def end(s: State) = states.settled(s)
   val evidence: PartialFunction[CloseFact, String] = {
     case CloseFact.cancelRequested(_) => "nexusOperationCancelRequested"
     case CloseFact.handlerFinished(_) => "handlerFinished"

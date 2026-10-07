@@ -7,7 +7,7 @@ import fixture.grouped.{clock, cook, Kettle, Mode, Outcome, Plain}
 
 object NestedFrom extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
-  def end(s: State) = true
+  override def end(s: State) = true
   object rules extends Rules:
     from(cook) {
       import cook.*
@@ -20,7 +20,7 @@ object NestedFrom extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode
 
 object Foreign extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
-  def end(s: State) = true
+  override def end(s: State) = true
   object rules extends Rules:
     from(cook) {
       import cook.*
@@ -30,7 +30,7 @@ object Foreign extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_
 
 object ImportedTwice extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
-  def end(s: State) = true
+  override def end(s: State) = true
   object rules extends Rules:
     from(cook) {
       import cook.*

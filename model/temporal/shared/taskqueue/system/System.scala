@@ -21,7 +21,7 @@ object TaskQueueSystem
       Phased[QueueDetail, Custody](_.custody),
       FailureModel:
   val init = states.idleQueue
-  def end(d: State) = states.queueEnds(d)
+  override def end(d: State) = states.queueEnds(d)
   object states:
     val idleQueue =
       QueueDetail(custody = Custody.nowhere, polled = false, delivered = Delivered.never)

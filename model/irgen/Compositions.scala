@@ -236,7 +236,14 @@ private[irgen] trait Compositions:
         val ended = end match
           case Some(d) => declared.withEnds(endOf(d))
           case None    =>
-            fail(c, s"$name declares no end: a composition object declares `def end(s: S) = ...`")
+            declared.withEnds(
+              defaultEndOf(cls, s, c).getOrElse(
+                fail(
+                  c,
+                  s"$name declares no end: a composition object declares `def end(s: S) = ...`"
+                )
+              )
+            )
         val synced = syncs match
           case Some(section) =>
             if !section.symbol.typeRef.derivesFrom(syncsClass) then

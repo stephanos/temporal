@@ -414,12 +414,24 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 // no parameter type from the other parents. Its sections read it as a given: `in(placed)` and
 // `in(states.terminal)` in `object rules extends Rules:` test it. It is optional, as a machine that
 // names no phase is a plain `Machine`. A derived machine or derived composition mixes in none of
-// its own, and one that mixes it in is refused as it initializes: a derived machine reads its
-// source's, with its phase type. Core form: the given `Phasing(_.phase)` the object's sections
-// read.
-trait Phased[S, P](private[umpire] val projection: S => P) extends Declares[S]:
+// its own: a derived machine reads its source's, with its phase type. Its default end is the Closed
+// role, witnessed at the concrete parent declaration; an explicit end overrides it. The default's
+// first evaluation refuses a phase with no Closed case, naming the object and phase type. A derived
+// machine's final end prevents mixing it in, and a derived composition refuses its own projection
+// as it initializes. Core form: the given `Phasing(_.phase)` the object's sections read.
+trait Phased[S, P](private[umpire] val projection: S => P)(using
+    Finite[P],
+    TypeTest[P, Closed],
+    ClassTag[P]
+) extends Declares[S]:
   // The projection its sections read.
   protected given phased: Phasing[S, P] = Phasing(projection)
+
+  private lazy val closedCases = phased.roleCases[Closed](name)
+
+  // The default stopping point is closedness. A machine whose stopping point differs overrides it.
+  // Core form: `projection(s).in(<the Closed cases of P>)`.
+  def end(s: S): Boolean = closedCases.contains(projection(s))
 
   final override private[umpire] def declaresPhase: Boolean = true
 

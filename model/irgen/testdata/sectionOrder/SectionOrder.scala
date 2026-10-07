@@ -40,7 +40,7 @@ object implements
 
 object Switch extends Machine[Lamp, Outcome, Nothing], Phased[Lamp, Boolean](_.lit):
   val init = Lamp(false)
-  def end(s: Lamp) = true
+  override def end(s: Lamp) = true
 
   object states:
     def lit(s: Lamp) = s.lit

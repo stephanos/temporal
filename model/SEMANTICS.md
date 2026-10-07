@@ -160,6 +160,9 @@ A machine's table is derived from its declaration:
    is a hole makes the pair a hole row of it: neither disabled nor enabled ([Holes](#holes)). The rows
    of a channel's delivery and loss are derived as [Channels](#channels) says.
 4. Its starts are its start expressions' values, and its ends the states its `ends` function accepts.
+   A Scala `Phased` machine or composition with no explicit `end` lowers to membership of its phase
+   projection in the enum's `Closed` cases. An explicit end keeps its stated stopping point, and
+   derivations keep their source's end.
 5. Its evidence is, for each fact in catalog order whose case has no line yet, the case name and
    `E(call(evidence, fact))`.
 6. A refining machine's refinement is checked under this rule:

@@ -262,6 +262,22 @@ private[irgen] trait Declarations:
       expr(d)(E.Lambda(ir.Lambda(parameters(List(p), body), Some(giving(body.tpe)(lift(body))))))
     case _ => fail(d, "end reads one state: `def end(s: S) = ...`")
 
+  // An omitted end of a Phased object: the Closed cases of its declared phase projection.
+  def defaultEndOf(cls: Symbol, state: TypeRepr, at: Tree): Option[ir.Expr] =
+    phaseProjection(cls, at).map: projection =>
+      lambda(projection) match
+        case Some((List(p), body)) =>
+          renamed(p.symbol) = "s"
+          val closed = Symbol.requiredClass("umpire.Closed").typeRef
+          val cases = roleSet(body.tpe, closed, projection, Some(objectFormName(cls)))
+          val test = binary(ir.Binary.Op.OP_CONTAINS, lift(body), cases, projection)
+          expr(at)(E.Lambda(ir.Lambda(Seq(ir.Param("s", Some(typeRef(state, at)))), Some(test))))
+        case _ =>
+          fail(
+            projection,
+            "a phase projection is a function of the state, `Phased[State, Phase](_.phase)`"
+          )
+
   // A machine object, `object M extends Machine[S, O, F]` or `object M extends Derived(...)`, named
   // after its object: its header members, its `rules`, lowered to one step function per action, and
   // the monitors and assumptions of its `monitors` section.
@@ -305,7 +321,10 @@ private[irgen] trait Declarations:
         case _ => fail(c, s"$name declares no init: a machine object declares `val init = ...`")
       val ends = member("end") match
         case Some(d: DefDef) => endOf(d)
-        case _ => fail(c, s"$name declares no end: a machine object declares `def end(s: S) = ...`")
+        case _               =>
+          defaultEndOf(cls, s, c).getOrElse(
+            fail(c, s"$name declares no end: a machine object declares `def end(s: S) = ...`")
+          )
       val visible = mutable.ArrayBuffer.empty[String]
       val visibleOutcomes = mutable.ArrayBuffer.empty[String]
       def function(d: Definition, kind: String): String = d match

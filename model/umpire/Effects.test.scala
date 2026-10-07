@@ -29,7 +29,7 @@ object EffectsFixture:
 
   object Worker extends Machine[Job, Said, Note], Phased[Job, Phase](_.phase):
     val init = Job(Phase.idle, UpTo(0))
-    def end(s: Job) = true
+    override def end(s: Job) = true
 
     object states:
       val busy = is(phase == Phase.busy)
@@ -76,7 +76,7 @@ object EffectsFixture:
 
   object Tasker extends Machine[Task, Said, Status], Phased[Task, Stage](_.stage):
     val init = Task(Stage.waiting, UpTo(0))
-    def end(s: Task) = true
+    override def end(s: Task) = true
 
     object effects:
       val work = effect { stage = Stage.working }

@@ -43,7 +43,7 @@ val two = Limits(steps = 2, actions = 2, search = 256)
 // The core spelling: each rejection an effect of its own.
 object DoorProduct extends Machine[Door, Outcome, Fact], Phased[Door, Phase](_.phase):
   val init = Door(Phase.shut)
-  def end(d: State) = Doors.gone(d)
+  override def end(d: State) = Doors.gone(d)
 
   object effects:
     def open(d: Door) = enter(d.copy(phase = Phase.ajar), Fact.opened)
@@ -67,7 +67,7 @@ object DoorProduct extends Machine[Door, Outcome, Fact], Phased[Door, Phase](_.p
 // The same rules with `rejects`, a refinement of the product it spells.
 object DoorSystem extends Machine[Door, Outcome, Fact], Phased[Door, Phase](_.phase):
   val init = Door(Phase.shut)
-  def end(d: State) = Doors.gone(d)
+  override def end(d: State) = Doors.gone(d)
 
   object refinement extends Refinement(DoorProduct):
     def toProduct(d: Door): Door = d

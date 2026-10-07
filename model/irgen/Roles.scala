@@ -115,7 +115,12 @@ private[irgen] trait PhaseRoles:
   // The cases of the enum of `value` that have the role `role`, in declaration order. Refused: a
   // type that is no role, a value of no enum, a role no case of the enum has, and a role a case with
   // fields has.
-  private def roleCases(value: TypeRepr, role: TypeRepr, at: Tree): List[Symbol] =
+  private def roleCases(
+      value: TypeRepr,
+      role: TypeRepr,
+      at: Tree,
+      reader: Option[String] = None
+  ): List[Symbol] =
     val r = role.dealias.typeSymbol
     if !(r.isClassDef && Roles.isRole(r.typeRef.baseClasses.map(_.fullName))) then
       fail(
@@ -134,6 +139,7 @@ private[irgen] trait PhaseRoles:
       )
     val names = closureOf(e).cases(r.fullName)
     if names.isEmpty then
+      for name <- reader do fail(at, s"$name's phase type ${e.fullName} has no ${r.name} case")
       fail(
         at,
         s"no case of ${e.fullName} is ${r.name}, so the test never holds: give the role to the " +
@@ -150,8 +156,13 @@ private[irgen] trait PhaseRoles:
     cases
 
   // The list of the cases of `phase` that have `role`, as `in(...)` lists them.
-  def roleSet(phase: TypeRepr, role: TypeRepr, at: Term): ir.Expr =
-    list(roleCases(phase, role, at).map(enumLiteral(_, at)), at)
+  def roleSet(
+      phase: TypeRepr,
+      role: TypeRepr,
+      at: Term,
+      reader: Option[String] = None
+  ): ir.Expr =
+    list(roleCases(phase, role, at, reader).map(enumLiteral(_, at)), at)
 
   // `value.isInstanceOf[R]` and `value.in[R]`, as `value.in(<the cases of R>)` lifts.
   def roleTest(value: Term, role: TypeRepr, at: Term): ir.Expr =

@@ -21,7 +21,7 @@ object hand extends Actor:
 
 object Lit extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
-  def end(s: Bulb) = true
+  override def end(s: Bulb) = true
   object effects:
     def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
   object rules extends Rules:

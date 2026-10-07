@@ -66,7 +66,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     scheduleToStart = Timeout.unset,
     startToClose = Timeout.unset
   )
-  def end(s: State) = s.phase.in[Closed]
 
   // A timeout is confirmed by the one status observation, whichever deadline fired.
   val evidence: PartialFunction[Fact, String] = {
@@ -408,7 +407,6 @@ object StandaloneActivity
       _.worker -> ActivityWorker
     ),
       Phased[StandaloneActivityState, Phase](_.activity.phase):
-  def end(s: State) = s.activity.phase.in[Closed]
   object syncs extends Syncs:
     sync(_.activity -> process.stop, _.worker -> process.stop)
     sync(_.activity -> worker.poll, _.worker -> process.serve)

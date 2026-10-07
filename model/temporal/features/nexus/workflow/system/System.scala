@@ -85,7 +85,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     scheduleToStart = Timeout.unset,
     startToClose = Timeout.unset
   )
-  def end(s: State) = s.phase.in[Closed]
 
   // A timeout is confirmed by the one timed-out event, whichever deadline fired, and the attempt
   // count by its observation.
@@ -430,7 +429,6 @@ object NexusCaller
       _.worker -> HandlerWorker
     ),
       Phased[NexusCallerState, Phase](_.operation.phase):
-  def end(s: State) = s.operation.phase.in[Closed]
   object syncs extends Syncs:
     sync(_.operation -> worker.stop, _.worker -> worker.stop)
     sync(_.operation -> handler.reply, _.worker -> worker.serve)
