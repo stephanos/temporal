@@ -52,6 +52,7 @@ private[check] object SyntaxRule:
     "record",
     "on",
     "where",
+    "when",
     "always",
     "Case",
     "Firing",

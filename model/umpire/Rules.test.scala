@@ -142,6 +142,102 @@ object RulesFixture:
         in(Lit.broken) ~> rejects(Rejection.notFound)
       }
 
+  // The switch's sets of lights, which a case names with `when(set)`.
+  object lights:
+    def unlit(l: Lit) = l != Lit.on
+
+  // One machine in the grouped forms, `from` with its import, `when` and an `on` of two classes,
+  // and in the plain forms, `on` and `in`, rule for rule.
+  object Grouped extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = s.light == Lit.broken
+    object rules extends Rules(_.light):
+      from(hand) {
+        import hand.*
+        on(press) {
+          when(Lit.off) ~> Switch.effects.light
+          when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
+        }
+        on(turn(Knob.up), turn(Knob.down)) {
+          when(lights.unlit) ~> Switch.effects.wear
+        }
+      }
+      from(clock) {
+        import clock.*
+        on(tick)(when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear)
+      }
+
+  object Plain extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = s.light == Lit.broken
+    object rules extends Rules(_.light):
+      on(hand.press) {
+        in(Lit.off) ~> Switch.effects.light
+        in(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
+      }
+      on(hand.turn(Knob.up))(in(lights.unlit) ~> Switch.effects.wear)
+      on(hand.turn(Knob.down))(in(lights.unlit) ~> Switch.effects.wear)
+      on(clock.tick)(in(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear)
+
+  // One action in several blocks whose cases hold in no common state.
+  object Spread extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object rules extends Rules(_.light):
+      on(hand.press)(when(Lit.off) ~> Switch.effects.light)
+      on(hand.press, clock.tick)(when(Lit.broken) ~> Switch.effects.wear)
+      on(hand.press)(when(Lit.on) ~> Switch.effects.dark)
+
+  // The rules each of these declares are refused as its rules construct.
+  object Nested extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object rules extends Rules(_.light):
+      on(hand.press) {
+        on(clock.tick)(always ~> Switch.effects.wear)
+      }
+
+  object NestedFrom extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object rules extends Rules(_.light):
+      from(hand) {
+        from(clock) {
+          on(clock.tick)(always ~> Switch.effects.wear)
+        }
+      }
+
+  object Foreign extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object rules extends Rules(_.light):
+      from(hand) {
+        on(clock.tick)(always ~> Switch.effects.wear)
+      }
+
+  object NamedTwice extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object rules extends Rules(_.light):
+      on(hand.press, clock.tick, hand.press)(always ~> Switch.effects.wear)
+
+  object DisabledTarget extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object rules extends Rules(_.light):
+      disabled(clock.tick)
+      on(hand.press, clock.tick)(always ~> Switch.effects.wear)
+
+  object AcrossBlocks extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object rules extends Rules(_.light):
+      on(hand.turn)(when(Lit.off) ~> Switch.effects.turned)
+      on(hand.turn(Knob.down)) {
+        when(Lit.on) ~> Switch.effects.dark
+        when(lights.unlit).where(_.presses == 0) ~> Switch.effects.wear
+      }
+
   final case class Pair(left: Lamp, right: Lamp)
 
   object Twins extends Composition[Pair](_.left -> Switch, _.right -> Unfelt):
@@ -354,6 +450,78 @@ class RulesTest extends munit.FunSuite:
     assertEquals(
       pressed(broken),
       List(Step[Lamp, Outcome, Nothing](Outcome.rejected(Rejection.notFound), broken))
+    )
+  }
+
+  // Every step of a machine, by action, state and class, as the bindings give them.
+  def steps(m: Machine[Lamp, Said, Nothing]): List[(String, Lamp, List[Any], Any)] =
+    for
+      b <- m.bindings.toList
+      s <- Finite[Lamp].values.toList
+      inputs <- classesOf(b.decl)
+    yield
+      // scalafix:off DisableSyntax.asInstanceOf
+      val result = inputs match
+        case Nil       => b.function.asInstanceOf[Lamp => Any](s)
+        case List(one) => b.function.asInstanceOf[(Lamp, Any) => Any](s, one)
+        case _         => fail("the fixture's actions take at most one input")
+      // scalafix:on DisableSyntax.asInstanceOf
+      (b.decl.name, s, inputs, result)
+
+  // An error in an object's initializer is fatal to munit's `intercept`, so it is caught here.
+  def refusal(m: => Machine[Lamp, Said, Nothing]): String =
+    try
+      m.bindings: Unit
+      fail("the rules constructed")
+    catch case e: ExceptionInInitializerError => e.getCause.getMessage
+
+  test("from, when, when(set), when(...).where and on(a, b) build the table on and in build") {
+    assertEquals(Grouped.bindings.map(_.decl), Plain.bindings.map(_.decl))
+    assertEquals(steps(Grouped), steps(Plain))
+    assert(steps(Grouped).exists((_, _, _, result) => result != Nil))
+  }
+
+  test("an action or class sits in several blocks whose cases hold in no common state") {
+    assertEquals(Spread.bindings.map(_.decl), List(hand.press, clock.tick).map(_.decl))
+    assertEquals(press(Spread, off).map(_.light), List(Lit.on))
+    assertEquals(press(Spread, lit).map(_.light), List(Lit.off))
+    assertEquals(press(Spread, Lamp(Lit.broken, UpTo(0))).map(_.light), List(Lit.broken))
+  }
+
+  test("a block in a block, a from in a from and an action its declarer does not declare") {
+    assertEquals(
+      refusal(Nested),
+      "requirement failed: on(tick) sits in on(press): a block holds cases alone"
+    )
+    assertEquals(
+      refusal(NestedFrom),
+      "requirement failed: from(clock) sits in from(hand): a from holds on blocks alone"
+    )
+    assertEquals(
+      refusal(Foreign),
+      "requirement failed: on(tick) sits in from(hand), and hand declares no tick: a from holds " +
+        "the blocks of the actions its declarer declares"
+    )
+  }
+
+  test("an on names each target once, none of them disabled") {
+    assertEquals(
+      refusal(NamedTwice),
+      "requirement failed: press is named twice in one on: name each action, or class of it, once"
+    )
+    assertEquals(
+      refusal(DisabledTarget),
+      "requirement failed: tick is disabled and fired by a rule"
+    )
+  }
+
+  test("two blocks of one class whose cases hold in one state are refused") {
+    assertEquals(
+      refusal(AcrossBlocks),
+      "acrossBlocks fires turn-down by two rules in Lamp(off,0): rule 1, when(off), and rule 3, " +
+        "when((l: umpire.RulesFixture.Lit) => umpire.RulesFixture.lights.unlit(l)).where: the " +
+        "rules of one action class hold in no common state, so write alternatives as one effect " +
+        "that names each with `choose`"
     )
   }
 

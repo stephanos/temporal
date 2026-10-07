@@ -423,18 +423,20 @@ object Phased extends Inherited.Unphased:
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
 // (`Rules(_.phase)`, which names the projection itself, still reads in its place where it is
-// written): one block per action or action class,
+// written): blocks of an action or action class,
 // `on(clerk.ship) { in(placed) ~> effects.send }`, whose cases each say where the action fires,
-// `in(...)` of phases or of a named set of them, `where(g)` of the state, `in(...).where(g)` of
-// both or `always`, and what it does there, `~> effects.x`; and the actions no state enables,
-// `disabled(courier.strike)`. A block fires a whole action, `on(buyer.change)`, or one class of it,
-// `on(buyer.change(Change.hold))`, whose effects then read the state alone; an effect that takes
-// arguments beyond the state binds them in place, `effects.timeOut(_, Deadline.close)`. Where no
+// `in(...)` or `when(...)` of phases or of a named set of them, `where(g)` of the state,
+// `when(...).where(g)` of both or `always`, and what it does there, `~> effects.x`; and the actions
+// no state enables, `disabled(courier.strike)`. A block fires a whole action, `on(buyer.change)`,
+// one class of it, `on(buyer.change(Change.hold))`, whose effects then read the state alone, or
+// several of them alike, `on(clerk.ship, clerk.cancel)`; an effect that takes arguments beyond the
+// state binds them in place, `effects.timeOut(_, Deadline.close)`. The blocks of the actions one
+// object declares may be grouped in `from(clerk) { import clerk.*; on(ship) { ... } }`. Where no
 // case holds, the action is disabled: there is no catch-all. The cases of one action class hold in
-// no common state: each is checked against the earlier ones as it is declared, over every state of
-// the `Finite` state type and every class, and an overlap is refused naming the machine, the class,
-// both rules and a state where both hold. Core form: one step function per action, the cases of the
-// action in order,
+// no common state, whichever blocks they sit in: each is checked against the earlier ones as it is
+// declared, over every state of the `Finite` state type and every class, and an overlap is refused
+// naming the machine, the class, both rules and a state where both hold. Core form: one step
+// function per action, the cases of the action in order,
 // `action ~> ((s, i) => if g1(s) && c1(i) then e1(s, i) else if g2(s) then e2(s, i) else Nil)`, and
 // `action ~> (_ => Nil)` for an action no state enables.
 //
@@ -451,10 +453,12 @@ abstract class Rules[S, O, F, P](using
   private val written = mutable.ArrayBuffer.empty[Rule[S, O, F]]
   private val never = mutable.ArrayBuffer.empty[ActionDecl]
   private val order = mutable.LinkedHashSet.empty[ActionDecl]
-  private val blocks = mutable.ArrayBuffer.empty[(ActionDecl, Option[List[Any]])]
   private var open: Option[String] = None // scalafix:ok DisableSyntax.var
+  // The `from` the rules are in, if any: its declarer's name and the actions it declares.
+  private var within: Option[(String, Set[ActionDecl])] = None // scalafix:ok DisableSyntax.var
 
-  // Runs one block's cases, refusing a block in a block and a second block of one target.
+  // Runs one block's cases, refusing a block in a block, and in a `from` an action its declarer
+  // does not declare.
   private[umpire] def block[I <: Tuple](
       decl: ActionDecl,
       values: Option[List[Any]],
@@ -463,11 +467,12 @@ abstract class Rules[S, O, F, P](using
     val action = writtenAction(code)
     require(open.isEmpty, s"on($action) sits in on(${open.get}): a block holds cases alone")
     require(!never.contains(decl), s"$action is disabled and fired by a rule")
-    require(
-      !blocks.contains(decl -> values),
-      s"on($action) is written twice: an action, or a class of it, has one block"
-    )
-    blocks += decl -> values
+    for (declarer, declared) <- within do
+      require(
+        declared.contains(decl),
+        s"on($action) sits in from($declarer), and $declarer declares no $action: a from holds " +
+          "the blocks of the actions its declarer declares"
+      )
     open = Some(action)
     val firing =
       Firing[S, O, F, I](decl, values, action, (c, effect) => bind(decl, values, c, effect, code))
@@ -499,6 +504,73 @@ abstract class Rules[S, O, F, P](using
   inline def on(inline c: Class)(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
     block[EmptyTuple](c.decl, Some(c.values), codeOf(c))(cases)
 
+  // The same cases for two actions, or classes of them, whose effects read the state alone:
+  // `on(clerk.hold, clerk.cancel) { when(shipped) ~> rejects(Rejection.failedPrecondition) }`.
+  // Fixed arities of two to four, since `codeOf` names no element of an `inline` varargs list.
+  // Core form: one block per target with the same cases, `on(a) { cases }` and `on(b) { cases }`.
+  inline def on(inline a: Action[?] | Class, inline b: Action[?] | Class)(
+      cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+  ): Unit = each(List(a -> codeOf(a), b -> codeOf(b)))(cases)
+
+  // The same cases for three actions, or classes of them. Core form: one block per target with
+  // the same cases.
+  inline def on(
+      inline a: Action[?] | Class,
+      inline b: Action[?] | Class,
+      inline c: Action[?] | Class
+  )(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
+    each(List(a -> codeOf(a), b -> codeOf(b), c -> codeOf(c)))(cases)
+
+  // The same cases for four actions, or classes of them. Core form: one block per target with the
+  // same cases.
+  inline def on(
+      inline a: Action[?] | Class,
+      inline b: Action[?] | Class,
+      inline c: Action[?] | Class,
+      inline d: Action[?] | Class
+  )(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
+    each(List(a -> codeOf(a), b -> codeOf(b), c -> codeOf(c), d -> codeOf(d)))(cases)
+
+  // Runs the cases once for each target, as its own block, refusing a target named twice. The
+  // cases run once per target, so each binds its own rules.
+  private[umpire] def each(
+      targets: List[(Action[?] | Class, String)]
+  )(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
+    val named = targets.map:
+      case (a: Action[?], code) => (a.decl, None, code)
+      case (c: Class, code)     => (c.decl, Some(c.values), code)
+    for ((decl, values, code), i) <- named.zipWithIndex do
+      require(
+        !named.take(i).exists((d, v, _) => d == decl && v == values),
+        s"${writtenAction(code)} is named twice in one on: name each action, or class of it, once"
+      )
+    for (decl, values, code) <- named do block[EmptyTuple](decl, values, code)(cases)
+
+  // The blocks of the actions `declarer` declares, each named by its bare name after the block's
+  // first statement imports them: `from(clerk) { import clerk.*; on(ship) { ... } }`. It only
+  // groups: a block means in a `from` what it means outside one. Core form: the blocks it holds,
+  // each naming its action through its declarer, `on(clerk.ship) { ... }`.
+  def from(declarer: AnyRef)(body: => Unit): Unit =
+    val name = declarer match
+      case a: Actor => a.name
+      case other    => objectName(other)
+    require(open.isEmpty, s"from($name) sits in on(${open.get}): a block holds cases alone")
+    require(
+      within.isEmpty,
+      s"from($name) sits in from(${within.get._1}): a from holds on blocks alone"
+    )
+    within = Some(name -> declaredBy(declarer))
+    try body
+    finally within = None
+
+  // The actions an object declares: the `Action` values among its public vals. An action records
+  // no object that holds it, so the object's members are read.
+  private def declaredBy(declarer: AnyRef): Set[ActionDecl] =
+    declarer.getClass.getMethods.toSet
+      .filter(m => m.getParameterCount == 0 && classOf[Action[?]].isAssignableFrom(m.getReturnType))
+      .map(_.invoke(declarer))
+      .collect { case a: Action[?] => a.decl }
+
   // A case that holds in the phases listed, as the machine's `Phased[State, Phase](_.phase)` reads
   // them; the rules of a machine that is not `Phased` name no phase. Core form:
   // `List(p1, p2).contains(s.phase)`.
@@ -512,8 +584,18 @@ abstract class Rules[S, O, F, P](using
   inline def in(inline set: P => Boolean)(using PhasesOf[P, P]): Case[S, O, F] =
     phases(set, codeOf(set))
 
-  private[umpire] def phases(set: P => Boolean, code: String): Case[S, O, F] =
-    Case(s"in(${code.trim})", s => set(phase(s)))
+  private[umpire] def phases(set: P => Boolean, code: String, word: String = "in"): Case[S, O, F] =
+    Case(s"$word(${code.trim})", s => set(phase(s)))
+
+  // A case that holds in the phases listed, as `in(...)` does: `when(placed, open)`. Core form:
+  // `List(p1, p2).contains(s.phase)`.
+  def when[Q](first: Q, rest: Q*)(using PhasesOf[P, Q]): Case[S, O, F] =
+    val phases = first +: rest
+    Case(s"when(${phases.mkString(", ")})", s => phases.contains(phase(s)))
+
+  // A case that holds in a named set of phases, as `in(set)` does: `when(states.terminal)`. Core
+  // form: `terminal(s.phase)`.
+  inline def when(inline set: P => Boolean): Case[S, O, F] = phases(set, codeOf(set), "when")
 
   // Actions no state enables, which the machine binds all the same, such as a courier's strike it does
   // not feel. Core form: `action ~> (_ => Nil)`.
@@ -539,8 +621,8 @@ abstract class Rules[S, O, F, P](using
 // not `Phased`, whose phase type is `Nothing`, name none. Core form: none of its own; `in(p1, p2)`
 // is `List(p1, p2).contains(s.phase)`.
 @implicitNotFound(
-  "in names phases of ${Q}, and these rules read phases of ${P}: mix the projection the phases " +
-    "are of into the machine, `Phased[State, Phase](_.phase)`"
+  "in and when name phases of ${Q}, and these rules read phases of ${P}: mix the projection the " +
+    "phases are of into the machine, `Phased[State, Phase](_.phase)`"
 )
 final class PhasesOf[P, Q] private ()
 
