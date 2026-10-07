@@ -48,7 +48,7 @@
     "name": "umpire.outcomes.Outcome",
     "position": {
       "file": "umpire/Syntax.scala",
-      "line": 54
+      "line": 55
     },
     "enum": {
       "cases": [ {
@@ -67,7 +67,7 @@
     "name": "umpire.outcomes.Rejection",
     "position": {
       "file": "umpire/Syntax.scala",
-      "line": 49
+      "line": 50
     },
     "enum": {
       "cases": [ {
