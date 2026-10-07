@@ -41,10 +41,12 @@ Focused verification:
 
 Expected batch deltas: the later single regeneration adds `rejectionCodes` to every checked Temporal realization IR and refreshes the five named fixture artifacts (including queued source-position/type deltas from the batch). This task intentionally changed no checked `model/ir`, Cases, expected lifter fixtures, or `MILESTONES.md`.
 
+The conductor's integration audit kept the framework metadata generic over its rejection type, added the new field to the lower inventory and schema-compatibility pins, and removed the test's disabled cast. The batch regeneration then confirmed the same complete four-entry table on every checked Temporal realization.
+
 stage: impl-review - skipped(policy: parallel-wave - conductor owns the gate)
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 3ff210b307757bf44d9ab0cc7ab3b883e14f489d
+- Commits: d6f1ccd60a, 1525e8e652, 99826d2839, 1a5ad6b702
 - Tests: go test -tags test_dep ./tools/umpire/realization -run '^TestRejectionCodesAreReadAndAdmittedAsAUniqueCompleteTable$', mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only 'temporal.realize.RejectionsTest', mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only 'temporal.capabilities.CapabilityPropertiesTest', three separate actual-root lifter invocations: activity standalone; Nexus workflow; Nexus standalone, actual capability-root lift: temporal.features.activity.standalone.system.RecordOverQueue$.capabilities, mise exec -- scala-cli test model/irgen (expected nonzero only for regeneration-deferred taskqueue.json, hints.json, rejections.json, hintsRefused.json, rejects.txt), mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check <10 changed Scala files>, gofmt -d tools/umpire/realization/rejection_codes.go tools/umpire/realization/rejection_codes_test.go tools/umpire/realization/validate_realization.go, git diff --check
 - PRs:
