@@ -177,17 +177,17 @@
       "kind": "unproduced",
       "owner": "nexusProduct",
       "subjects": [
-        "outcome alreadyCompleted"
+        "outcome rejected-failedPrecondition"
       ],
-      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing alreadyCompleted; retaining the other form's required rejection member adds no behavior."
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
     },
     {
       "kind": "unproduced",
       "owner": "nexusSystem",
       "subjects": [
-        "outcome alreadyCompleted"
+        "outcome rejected-failedPrecondition"
       ],
-      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing alreadyCompleted; retaining the other form's required rejection member adds no behavior."
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
     },
     {
       "kind": "uncovered-class",
@@ -208,6 +208,46 @@
         "schedule-expires-unset-unset"
       ],
       "because": "No schedule command sets a schedule-to-close deadline: the realization's `deadlines` declaration names schedule-to-start and start-to-close only, so a class that expires a schedule-to-close deadline is unrealizable (fn-133 R13)."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "handlerWorker",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument",
+        "outcome rejected-notFound"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusProduct",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusSystem",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "polling",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument",
+        "outcome rejected-notFound"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
     }
   ]
 }

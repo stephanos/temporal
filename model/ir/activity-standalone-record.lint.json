@@ -20,10 +20,10 @@
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "respond-canceled in scheduled, started, paused",
-        "respond-completed in scheduled, paused",
-        "respond-failed-false in scheduled, paused",
-        "respond-failed-true in scheduled, paused",
+        "respondCanceled in scheduled, started, paused",
+        "respondCompleted in scheduled, paused",
+        "respondFailed-fatal in scheduled, paused",
+        "respondFailed-retryable in scheduled, paused",
         "poll in started, paused, cancelRequested"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
@@ -32,8 +32,8 @@
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "control-pause in paused, cancelRequested",
-        "control-unpause in scheduled, started, cancelRequested"
+        "pause in paused, cancelRequested",
+        "unpause in scheduled, started, cancelRequested"
       ],
       "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
@@ -49,10 +49,10 @@
       "kind": "unconstrained-result",
       "owner": "activityProduct",
       "subjects": [
-        "respond-canceled",
-        "respond-completed",
-        "respond-failed-false",
-        "respond-failed-true",
+        "respondCanceled",
+        "respondCompleted",
+        "respondFailed-fatal",
+        "respondFailed-retryable",
         "poll"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
@@ -78,10 +78,10 @@
       "kind": "silent-rejection",
       "owner": "activitySystem",
       "subjects": [
-        "respond-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested",
-        "respond-completed in unstarted, scheduled, backingOff, paused",
-        "respond-failed-false in unstarted, scheduled, backingOff, paused",
-        "respond-failed-true in unstarted, scheduled, backingOff, paused",
+        "respondCanceled in unstarted, scheduled, backingOff, started, paused, pauseRequested",
+        "respondCompleted in unstarted, scheduled, backingOff, paused",
+        "respondFailed-fatal in unstarted, scheduled, backingOff, paused",
+        "respondFailed-retryable in unstarted, scheduled, backingOff, paused",
         "poll in unstarted, backingOff, started, paused, pauseRequested, cancelRequested"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
@@ -90,10 +90,10 @@
       "kind": "silent-rejection",
       "owner": "activitySystem",
       "subjects": [
-        "control-pause in unstarted, paused, pauseRequested, cancelRequested",
-        "control-requestCancel in unstarted",
-        "control-terminate in unstarted",
-        "control-unpause in unstarted, scheduled, backingOff, started, cancelRequested",
+        "pause in unstarted, paused, pauseRequested, cancelRequested",
+        "requestCancel in unstarted",
+        "terminate in unstarted",
+        "unpause in unstarted, scheduled, backingOff, started, cancelRequested",
         "start-expires-expires-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
         "start-expires-expires-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
         "start-expires-unset-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
@@ -109,10 +109,10 @@
       "kind": "unconstrained-result",
       "owner": "activitySystem",
       "subjects": [
-        "respond-canceled",
-        "respond-completed",
-        "respond-failed-false",
-        "respond-failed-true",
+        "respondCanceled",
+        "respondCompleted",
+        "respondFailed-fatal",
+        "respondFailed-retryable",
         "poll",
         "backoff",
         "start-expires-expires-expires",
@@ -146,24 +146,11 @@
       "because": "The current admission design admits one attempt at a time, so it never holds two; the type is shared with the stale design, which does."
     },
     {
-      "kind": "never-enabled",
-      "owner": "activityRecord",
-      "subjects": [
-        "respond-canceled",
-        "respond-failed-false",
-        "respond-failed-true",
-        "control-requestCancel",
-        "control-terminate",
-        "control-unpause"
-      ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
-    },
-    {
       "kind": "unproduced",
       "owner": "activityRecord",
       "subjects": [
         "fact statusTimedOut-startToClose",
-        "outcome notFound"
+        "outcome rejected-notFound"
       ],
       "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
@@ -180,22 +167,9 @@
       "kind": "silent-rejection",
       "owner": "activityRecord",
       "subjects": [
-        "respond-canceled in scheduled, started",
-        "respond-completed in scheduled",
-        "respond-failed-false in scheduled, started",
-        "respond-failed-true in scheduled, started"
+        "respondCompleted in scheduled"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
-    },
-    {
-      "kind": "silent-rejection",
-      "owner": "activityRecord",
-      "subjects": [
-        "control-requestCancel in scheduled, started",
-        "control-terminate in scheduled, started",
-        "control-unpause in scheduled, started"
-      ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "witness-only",
@@ -215,24 +189,11 @@
       "because": "The current admission design admits one attempt at a time, so it never holds two; the type is shared with the stale design, which does."
     },
     {
-      "kind": "never-enabled",
-      "owner": "recordMember",
-      "subjects": [
-        "respond-canceled",
-        "respond-failed-false",
-        "respond-failed-true",
-        "control-requestCancel",
-        "control-terminate",
-        "control-unpause"
-      ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
-    },
-    {
       "kind": "unproduced",
       "owner": "recordMember",
       "subjects": [
         "fact statusTimedOut-startToClose",
-        "outcome notFound"
+        "outcome rejected-notFound"
       ],
       "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
@@ -240,22 +201,9 @@
       "kind": "silent-rejection",
       "owner": "recordMember",
       "subjects": [
-        "respond-canceled in scheduled, started",
-        "respond-completed in scheduled",
-        "respond-failed-false in scheduled, started",
-        "respond-failed-true in scheduled, started"
+        "respondCompleted in scheduled"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
-    },
-    {
-      "kind": "silent-rejection",
-      "owner": "recordMember",
-      "subjects": [
-        "control-requestCancel in scheduled, started",
-        "control-terminate in scheduled, started",
-        "control-unpause in scheduled, started"
-      ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "unproduced",
@@ -430,25 +378,12 @@
       "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
-      "kind": "never-enabled",
-      "owner": "trustingActivityRecord",
-      "subjects": [
-        "respond-canceled",
-        "respond-failed-false",
-        "respond-failed-true",
-        "control-requestCancel",
-        "control-terminate",
-        "control-unpause"
-      ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
-    },
-    {
       "kind": "unproduced",
       "owner": "trustingActivityRecord",
       "subjects": [
         "fact admissionRejected",
         "fact statusTimedOut-startToClose",
-        "outcome notFound"
+        "outcome rejected-notFound"
       ],
       "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
@@ -465,22 +400,9 @@
       "kind": "silent-rejection",
       "owner": "trustingActivityRecord",
       "subjects": [
-        "respond-canceled in scheduled, started",
-        "respond-completed in scheduled",
-        "respond-failed-false in scheduled, started",
-        "respond-failed-true in scheduled, started"
+        "respondCompleted in scheduled"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
-    },
-    {
-      "kind": "silent-rejection",
-      "owner": "trustingActivityRecord",
-      "subjects": [
-        "control-requestCancel in scheduled, started",
-        "control-terminate in scheduled, started",
-        "control-unpause in scheduled, started"
-      ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "witness-only",
@@ -492,25 +414,12 @@
       "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
-      "kind": "never-enabled",
-      "owner": "trustingRecordMember",
-      "subjects": [
-        "respond-canceled",
-        "respond-failed-false",
-        "respond-failed-true",
-        "control-requestCancel",
-        "control-terminate",
-        "control-unpause"
-      ],
-      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
-    },
-    {
       "kind": "unproduced",
       "owner": "trustingRecordMember",
       "subjects": [
         "fact admissionRejected",
         "fact statusTimedOut-startToClose",
-        "outcome notFound"
+        "outcome rejected-notFound"
       ],
       "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (system/Record.scala, ActivityRecord.effects), so they enable nothing and record nothing."
     },
@@ -518,22 +427,9 @@
       "kind": "silent-rejection",
       "owner": "trustingRecordMember",
       "subjects": [
-        "respond-canceled in scheduled, started",
-        "respond-completed in scheduled",
-        "respond-failed-false in scheduled, started",
-        "respond-failed-true in scheduled, started"
+        "respondCompleted in scheduled"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
-    },
-    {
-      "kind": "silent-rejection",
-      "owner": "trustingRecordMember",
-      "subjects": [
-        "control-requestCancel in scheduled, started",
-        "control-terminate in scheduled, started",
-        "control-unpause in scheduled, started"
-      ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "unproduced",
@@ -642,6 +538,66 @@
         "trustingRecordOverQueue.closedIsRejectedUniformly"
       ],
       "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
+    },
+    {
+      "kind": "unproduced",
+      "owner": "activityProduct",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "activityRecord",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "activitySystem",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "recordMember",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "trustingActivityRecord",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "trustingRecordMember",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
     }
   ]
 }

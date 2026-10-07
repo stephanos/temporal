@@ -12,10 +12,10 @@
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "respond-canceled in scheduled, started, paused",
-        "respond-completed in scheduled, paused",
-        "respond-failed-false in scheduled, paused",
-        "respond-failed-true in scheduled, paused",
+        "respondCanceled in scheduled, started, paused",
+        "respondCompleted in scheduled, paused",
+        "respondFailed-fatal in scheduled, paused",
+        "respondFailed-retryable in scheduled, paused",
         "poll in started, paused, cancelRequested"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
@@ -24,8 +24,8 @@
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "control-pause in paused, cancelRequested",
-        "control-unpause in scheduled, started, cancelRequested"
+        "pause in paused, cancelRequested",
+        "unpause in scheduled, started, cancelRequested"
       ],
       "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
@@ -41,10 +41,10 @@
       "kind": "unconstrained-result",
       "owner": "activityProduct",
       "subjects": [
-        "respond-canceled",
-        "respond-completed",
-        "respond-failed-false",
-        "respond-failed-true",
+        "respondCanceled",
+        "respondCompleted",
+        "respondFailed-fatal",
+        "respondFailed-retryable",
         "poll"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
@@ -69,10 +69,10 @@
       "kind": "silent-rejection",
       "owner": "activitySystem",
       "subjects": [
-        "respond-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested",
-        "respond-completed in unstarted, scheduled, backingOff, paused",
-        "respond-failed-false in unstarted, scheduled, backingOff, paused",
-        "respond-failed-true in unstarted, scheduled, backingOff, paused",
+        "respondCanceled in unstarted, scheduled, backingOff, started, paused, pauseRequested",
+        "respondCompleted in unstarted, scheduled, backingOff, paused",
+        "respondFailed-fatal in unstarted, scheduled, backingOff, paused",
+        "respondFailed-retryable in unstarted, scheduled, backingOff, paused",
         "poll in unstarted, backingOff, started, paused, pauseRequested, cancelRequested"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
@@ -81,10 +81,10 @@
       "kind": "silent-rejection",
       "owner": "activitySystem",
       "subjects": [
-        "control-pause in unstarted, paused, pauseRequested, cancelRequested",
-        "control-requestCancel in unstarted",
-        "control-terminate in unstarted",
-        "control-unpause in unstarted, scheduled, backingOff, started, cancelRequested",
+        "pause in unstarted, paused, pauseRequested, cancelRequested",
+        "requestCancel in unstarted",
+        "terminate in unstarted",
+        "unpause in unstarted, scheduled, backingOff, started, cancelRequested",
         "start-expires-expires-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
         "start-expires-expires-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
         "start-expires-unset-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
@@ -100,7 +100,7 @@
       "kind": "unconstrained-result",
       "owner": "activitySystem",
       "subjects": [
-        "respond-failed-true",
+        "respondFailed-retryable",
         "backoff",
         "start-expires-expires-expires",
         "start-expires-expires-unset",
@@ -166,6 +166,48 @@
         "start-expires-unset-unset"
       ],
       "because": "No start sets a schedule-to-close deadline: the realization's `deadlines` declaration names schedule-to-start and start-to-close only, so a class that expires a schedule-to-close deadline is unrealizable (fn-133 R13)."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "activityProduct",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "activitySystem",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "activityWorker",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument",
+        "outcome rejected-notFound"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "polling",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-failedPrecondition",
+        "outcome rejected-invalidArgument",
+        "outcome rejected-notFound"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
     }
   ]
 }

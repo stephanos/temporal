@@ -198,17 +198,17 @@
       "kind": "unproduced",
       "owner": "nexusProduct",
       "subjects": [
-        "outcome alreadyCompleted"
+        "outcome rejected-failedPrecondition"
       ],
-      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing alreadyCompleted; retaining the other form's required rejection member adds no behavior."
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
     },
     {
       "kind": "unproduced",
       "owner": "nexusSystem",
       "subjects": [
-        "outcome notFound"
+        "outcome rejected-notFound"
       ],
-      "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing notFound; retaining the other form's required rejection member adds no behavior."
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
     },
     {
       "kind": "waived-law",
@@ -217,6 +217,24 @@
         "nexusSystem.closedIsRejectedUniformly"
       ],
       "because": "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate"
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusProduct",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusSystem",
+      "subjects": [
+        "outcome rejected-alreadyExists",
+        "outcome rejected-invalidArgument"
+      ],
+      "because": "These variants belong to the shared RPC Outcome catalog used for realization-wide protocol-code mapping. This owner has no reachable rule producing them, and retaining the shared variants adds no behavior."
     }
   ]
 }
