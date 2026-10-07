@@ -356,7 +356,7 @@ class RulesTest extends munit.FunSuite:
     )
   }
 
-  test("in names no phase in the rules of a machine that is not Phased") {
+  test("in and when name no phase in the rules of a machine that is not Phased") {
     val fix =
       "mix the projection the phases are of into the machine, `Phased[State, Phase](_.phase)`"
     val listed = compileErrors(
@@ -376,6 +376,23 @@ class RulesTest extends munit.FunSuite:
         "    on(hand.press)(in(dark) ~> Switch.effects.light)"
     )
     assert(named.contains(fix), named)
+    val whenListed = compileErrors(
+      "object Plain extends Machine[Lamp, Said, Nothing]:\n" +
+        "  val init = Lamp(Lit.off, UpTo(0))\n" +
+        "  def end(s: Lamp) = true\n" +
+        "  object rules extends Rules:\n" +
+        "    on(hand.press)(when(Lit.on) ~> Switch.effects.dark)"
+    )
+    assert(whenListed.contains(fix), whenListed)
+    val whenNamed = compileErrors(
+      "object Plain extends Machine[Lamp, Said, Nothing]:\n" +
+        "  val init = Lamp(Lit.off, UpTo(0))\n" +
+        "  def end(s: Lamp) = true\n" +
+        "  def dark(l: Lit) = l != Lit.on\n" +
+        "  object rules extends Rules:\n" +
+        "    on(hand.press)(when(dark) ~> Switch.effects.light)"
+    )
+    assert(whenNamed.contains(fix), whenNamed)
   }
 
   test("a derived machine reads its source's phase projection, with its phase type") {

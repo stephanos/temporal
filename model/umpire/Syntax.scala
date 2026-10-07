@@ -595,7 +595,8 @@ abstract class Rules[S, O, F, P](using
 
   // A case that holds in a named set of phases, as `in(set)` does: `when(states.terminal)`. Core
   // form: `terminal(s.phase)`.
-  inline def when(inline set: P => Boolean): Case[S, O, F] = phases(set, codeOf(set), "when")
+  inline def when(inline set: P => Boolean)(using PhasesOf[P, P]): Case[S, O, F] =
+    phases(set, codeOf(set), "when")
 
   // Actions no state enables, which the machine binds all the same, such as a courier's strike it does
   // not feel. Core form: `action ~> (_ => Nil)`.
@@ -617,9 +618,9 @@ abstract class Rules[S, O, F, P](using
                else Bound.Ruled(written.filter(_.decl == decl).toVector))
 
 // Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine
-// that mixes in `Phased[State, Phase](_.phase)` name phases with `in`, and the rules of one that is
-// not `Phased`, whose phase type is `Nothing`, name none. Core form: none of its own; `in(p1, p2)`
-// is `List(p1, p2).contains(s.phase)`.
+// that mixes in `Phased[State, Phase](_.phase)` name phases with `in` and `when`, and the rules of
+// one that is not `Phased`, whose phase type is `Nothing`, name none. Core form: none of its own;
+// `in(p1, p2)` is `List(p1, p2).contains(s.phase)`.
 @implicitNotFound(
   "in and when name phases of ${Q}, and these rules read phases of ${P}: mix the projection the " +
     "phases are of into the machine, `Phased[State, Phase](_.phase)`"
