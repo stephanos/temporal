@@ -31,7 +31,13 @@ import product.ActivityProduct
 
 // `pausedWhileHeld` is a pause after admission: the attempt it holds was admitted before it.
 enum AdmissionPhase derives Finite:
-  case scheduled, paused, pausedWhileHeld, started, completed, timedOut
+  case scheduled extends AdmissionPhase, Waiting
+  case paused extends AdmissionPhase, Suspended
+  // Held and paused at once, so it takes no role: which one it is stays open.
+  case pausedWhileHeld
+  case started extends AdmissionPhase, Held
+  case completed extends AdmissionPhase, Succeeded
+  case timedOut extends AdmissionPhase, TimedOut
 
 // Attempts admitted and not closed: an enum, not an `UpTo[2]`, as its cases are frozen keys.
 enum Active derives Finite:
@@ -106,7 +112,7 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
     // Paused before any attempt was admitted: the pause a delivery must not get past.
     def paused(s: State) = s.phase == AdmissionPhase.paused
     def running(s: State) = s.phase == AdmissionPhase.started
-    def terminal(p: AdmissionPhase) = p.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
+    def terminal(p: AdmissionPhase) = p.in[Closed]
     def twoActive(s: State) = s.active == Active.two
     def phase(s: State) = s.phase
 

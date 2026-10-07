@@ -15,15 +15,15 @@ import shared.worker.worker as process
 // What DescribeActivityExecution shows. Each case declares the status fact a step that enters it
 // records.
 enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
-  case scheduled extends Phase(Fact.statusScheduled)
-  case started extends Phase(Fact.statusStarted)
-  case paused extends Phase(Fact.statusPaused)
-  case cancelRequested extends Phase(Fact.statusCancelRequested)
-  case completed extends Phase(Fact.statusCompleted)
-  case failed extends Phase(Fact.statusFailed)
-  case canceled extends Phase(Fact.statusCanceled)
-  case terminated extends Phase(Fact.statusTerminated)
-  case timedOut extends Phase(Fact.statusTimedOut)
+  case scheduled extends Phase(Fact.statusScheduled), Waiting
+  case started extends Phase(Fact.statusStarted), Held
+  case paused extends Phase(Fact.statusPaused), Suspended
+  case cancelRequested extends Phase(Fact.statusCancelRequested), Held
+  case completed extends Phase(Fact.statusCompleted), Succeeded
+  case failed extends Phase(Fact.statusFailed), Failed
+  case canceled extends Phase(Fact.statusCanceled), Canceled
+  case terminated extends Phase(Fact.statusTerminated), Terminated
+  case timedOut extends Phase(Fact.statusTimedOut), TimedOut
 
 final case class State(phase: Phase) derives Finite
 
@@ -48,11 +48,11 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
 
   object states:
     def status(s: State) = s.phase
-    def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
+    def terminal(p: Phase) = p.in[Closed]
     val over = is(terminal(phase))
     val paused = is(phase == Phase.paused)
     val running = is(phase == started)
-    val held = is(phase.in(started, cancelRequested))
+    val held = is(phase.in[Held])
     val pausable = is(phase.in(scheduled, started))
     val notFoundCode = "chasm/lib/activity/activity.go"
 

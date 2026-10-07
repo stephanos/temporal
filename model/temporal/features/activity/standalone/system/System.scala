@@ -20,8 +20,18 @@ import Timeout.expires
 
 // It begins before the activity exists, so unstarted is one phase.
 enum Phase derives Finite:
-  case unstarted, scheduled, backingOff, started, paused, pauseRequested, cancelRequested
-  case completed, failed, canceled, terminated, timedOut
+  case unstarted
+  case scheduled extends Phase, Waiting
+  case backingOff extends Phase, Retrying
+  case started extends Phase, Held
+  case paused extends Phase, Suspended
+  case pauseRequested extends Phase, Held
+  case cancelRequested extends Phase, Held
+  case completed extends Phase, Succeeded
+  case failed extends Phase, Failed
+  case canceled extends Phase, Canceled
+  case terminated extends Phase, Terminated
+  case timedOut extends Phase, TimedOut
 
 // 12 phases, 3 attempt counts and 3 deadline flags: 288 states.
 final case class State(
@@ -69,17 +79,16 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
     // Bounds the attempt count, as the type of `State.attempts` does.
     val attemptBound = 2
 
-    def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
+    def terminal(p: Phase) = p.in[Closed]
 
     // Started and not over: the phases a deadline can fire in.
-    def live(p: Phase) =
-      p.in(scheduled, backingOff, started, paused, pauseRequested, cancelRequested)
+    def live(p: Phase) = p.in[Live]
 
     // Where a worker holds the attempt: what start-to-close covers and a worker's answer settles.
-    def held(p: Phase) = p.in(started, pauseRequested, cancelRequested)
+    def held(p: Phase) = p.in[Held]
 
     // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
-    def waiting(p: Phase) = p.in(scheduled, backingOff)
+    def waiting(p: Phase) = p.in[Waiting]
 
     def saturatingSucc(a: UpTo[2]): UpTo[2] = UpTo((a + 1).min(attemptBound))
 
