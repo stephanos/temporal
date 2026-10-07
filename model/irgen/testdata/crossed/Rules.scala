@@ -13,4 +13,4 @@ object Unprojected extends Machine[Here, Outcome, Nothing]:
   object effects:
     def turn(s: Here) = List(Step[Here, Outcome, Nothing](Outcome.accepted, Here(!s.on)))
   object rules extends Rules:
-    on(flipper.flip)(in(true) ~> effects.turn)
+    on(flipper.flip)(when(true) ~> effects.turn)

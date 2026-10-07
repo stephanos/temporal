@@ -25,7 +25,7 @@ object Lit extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   object effects:
     def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
   object rules extends Rules:
-    on(hand.push)(in(Glow.dim) ~> effects.brighten)
+    on(hand.push)(when(Glow.dim) ~> effects.brighten)
 
 // No init.
 object Unstarted extends Machine[Bulb, Outcome, Nothing]:

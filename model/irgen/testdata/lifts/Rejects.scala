@@ -1043,8 +1043,8 @@ object Ruled extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow)
     def darken(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.dim))
   object rules extends Rules:
     on(bulbHand.squeeze) {
-      in(Glow.dim) ~> effects.brighten
-      in(Glow.bright) ~> effects.darken
+      when(Glow.dim) ~> effects.brighten
+      when(Glow.bright) ~> effects.darken
     }
 
 // A rule whose effect is no def of `effects`.
@@ -1078,7 +1078,7 @@ object BlockTwice extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.
   override def end(s: Bulb) = true
   object rules extends Rules:
     on(bulbHand.squeeze) {
-      on(bulbHand.twist)(in(Glow.dim) ~> Ruled.effects.brighten)
+      on(bulbHand.twist)(when(Glow.dim) ~> Ruled.effects.brighten)
     }
 
 // A from whose first statement is no import of its declarer.
@@ -1087,14 +1087,14 @@ object FromStatement extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow]
   override def end(s: Bulb) = true
   object rules extends Rules:
     from(bulbHand)(disabled(bulbHand.twist))
-    on(bulbHand.squeeze)(in(Glow.bright) ~> Ruled.effects.darken)
+    on(bulbHand.squeeze)(when(Glow.bright) ~> Ruled.effects.darken)
 
 // A set of phases written as a lambda, which names no def of the machine's states.
 object PhaseLambda extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   override def end(s: Bulb) = true
   object rules extends Rules:
-    on(bulbHand.squeeze)(in((g: Glow) => g == Glow.dim) ~> Ruled.effects.brighten)
+    on(bulbHand.squeeze)(when((g: Glow) => g == Glow.dim) ~> Ruled.effects.brighten)
 
 // An action both disabled and fired by a rule.
 object DisabledFired extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
@@ -1102,7 +1102,7 @@ object DisabledFired extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow]
   override def end(s: Bulb) = true
   object rules extends Rules:
     disabled(bulbHand.squeeze)
-    on(bulbHand.squeeze)(in(Glow.dim) ~> Ruled.effects.brighten)
+    on(bulbHand.squeeze)(when(Glow.dim) ~> Ruled.effects.brighten)
 
 // A bare binding where the source's actions are bound by rules: extend takes rules.
 object ExtendedBare extends Derived(Ruled.extend(bulbHand.twist ~> Ruled.effects.darken))
@@ -1185,8 +1185,8 @@ object ClassRuled extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.
     def set(s: Bulb, g: Glow) = enter[Bulb, Outcome, Nothing](s.copy(glow = g))
   object rules extends Rules:
     on(dialHand.turn(Glow.bright)) {
-      in(Glow.dim) ~> Ruled.effects.brighten
-      in(Glow.bright) ~> Ruled.effects.darken
+      when(Glow.dim) ~> Ruled.effects.brighten
+      when(Glow.bright) ~> Ruled.effects.darken
     }
 
 // One effect in place of the different effects of two rules of one class.

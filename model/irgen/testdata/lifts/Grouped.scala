@@ -68,9 +68,9 @@ object Plain extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.m
 
   object rules extends Rules:
     on(cook.fill) {
-      in(Mode.idle) ~> effects.heat
-      in(Mode.busy).where(_.boils == 2) ~> effects.halt
+      when(Mode.idle) ~> effects.heat
+      when(Mode.busy).where(_.boils == 2) ~> effects.halt
     }
-    on(cook.set(Dial.low))(in(Modes.working) ~> effects.refuse)
-    on(cook.set(Dial.high))(in(Modes.working) ~> effects.refuse)
-    on(clock.cool)(in(Mode.busy, Mode.halted) ~> effects.rest)
+    on(cook.set(Dial.low))(when(Modes.working) ~> effects.refuse)
+    on(cook.set(Dial.high))(when(Modes.working) ~> effects.refuse)
+    on(clock.cool)(when(Mode.busy, Mode.halted) ~> effects.rest)

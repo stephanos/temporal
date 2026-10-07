@@ -9,7 +9,7 @@ package umpire
 
 import scala.annotation.{implicitNotFound, targetName, unused}
 import scala.collection.mutable
-import scala.compiletime.codeOf
+import scala.compiletime.{codeOf, error}
 import scala.reflect.{ClassTag, TypeTest}
 import scala.util.NotGiven
 
@@ -343,27 +343,27 @@ def stickyAcross[S, O, F](promise: (S, Step[S, O, F]) => Boolean): Monitor[S, O,
     broken => broken
   )
 
-// A case of an `on` block: where in the state space its action fires, `in(placed)`, `in(open)`,
-// `where(g)`, `always` or `in(open).where(g)`, and through `~>` the effect it has there,
-// `in(placed) ~> effects.ship`. Core form: the arm `if g(s) then e(s, inputs) else ...` of the
+// A case of an `on` block: where in the state space its action fires, `when(placed)`, `when(open)`,
+// `where(g)`, `always` or `when(open).where(g)`, and through `~>` the effect it has there,
+// `when(placed) ~> effects.ship`. Core form: the arm `if g(s) then e(s, inputs) else ...` of the
 // action's step function.
 final class Case[S, O, F] private[umpire] (
     private[umpire] val heading: String,
     private[umpire] val guard: S => Boolean
 ):
   // This case where `condition` also holds of the state, beyond its phases:
-  // `in(open).where(_.deadline == Timeout.expires)`. Core form: `g(s) && condition(s)`.
+  // `when(open).where(_.deadline == Timeout.expires)`. Core form: `g(s) && condition(s)`.
   def where(condition: S => Boolean): Case[S, O, F] =
     Case(s"$heading.where", s => guard(s) && condition(s))
 
   // The effect of the block's action where this case holds, read of the state alone:
-  // `in(placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
+  // `when(placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
   // function.
   infix def ~>(effect: S => List[Step[S, O, F]])(using firing: Firing[S, O, F, ?]): Unit =
     firing.bind(this, (s, _) => effect(s))
 
   // The effect of the block's action, of one input, where this case holds, read of the state and
-  // the input: `in(open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
+  // the input: `when(open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
   @targetName("readsOne")
   infix def ~>[A](effect: (S, A) => List[Step[S, O, F]])(using
       firing: Firing[S, O, F, A *: EmptyTuple]
@@ -377,7 +377,7 @@ final class Case[S, O, F] private[umpire] (
   ): Unit = firing.bind(this, effectOf(firing.decl, effect))
 
   // The effect of the block's action, of three inputs, read of the state and its inputs:
-  // `in(unplaced) ~> effects.open`. Core form: the arm `if g(s) then open(s, x, y, z)`.
+  // `when(unplaced) ~> effects.open`. Core form: the arm `if g(s) then open(s, x, y, z)`.
   @targetName("readsThree")
   infix def ~>[A, B, C](effect: (S, A, B, C) => List[Step[S, O, F]])(using
       firing: Firing[S, O, F, (A, B, C)]
@@ -411,8 +411,8 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 // into the object: `object OrderProduct extends Machine[OrderState, Outcome, OrderFact],
 // Phased[OrderState, Phase](_.phase)`, or for a composition a nested phase,
 // `Phased[OverQueue, Phase](_.order.phase)`. Both types are written: a trait parent's lambda takes
-// no parameter type from the other parents. Its sections read it as a given: `in(placed)` and
-// `in(states.terminal)` in `object rules extends Rules:` test it. It is optional, as a machine that
+// no parameter type from the other parents. Its sections read it as a given: `when(placed)` and
+// `when(states.terminal)` in `object rules extends Rules:` test it. It is optional, as a machine that
 // names no phase is a plain `Machine`. A derived machine or derived composition mixes in none of
 // its own: a derived machine reads its source's, with its phase type. Its default end is the Closed
 // role, witnessed at the concrete parent declaration; an explicit end overrides it. The default's
@@ -447,8 +447,8 @@ object Phased extends Inherited.Unphased:
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
 // through its given: blocks of an action or action class,
-// `on(clerk.ship) { in(placed) ~> effects.send }`, whose cases each say where the action fires,
-// `in(...)` or `when(...)` of phases or of a named set of them, `where(g)` of the state,
+// `on(clerk.ship) { when(placed) ~> effects.send }`, whose cases each say where the action fires,
+// `when(...)` of phases or of a named set of them, `where(g)` of the state,
 // `when(...).where(g)` of both or `always`, and what it does there, `~> effects.x`; and the actions
 // no state enables, `disabled(courier.strike)`. A block fires a whole action, `on(buyer.change)`,
 // one class of it, `on(buyer.change(Change.hold))`, whose effects then read the state alone, or
@@ -516,13 +516,13 @@ abstract class Rules[S, O, F, P](using
     written += rule
     order += decl
 
-  // The cases of a whole action: `on(clerk.ship) { in(placed) ~> effects.send }`. Core form: the
+  // The cases of a whole action: `on(clerk.ship) { when(placed) ~> effects.send }`. Core form: the
   // action's step function, whose arms are the cases in order.
   inline def on[I <: Tuple](inline a: Action[I])(cases: Firing[S, O, F, I] ?=> Unit): Unit =
     block[I](a.decl, None, codeOf(a))(cases)
 
   // The cases of one class of an action, whose effects read the state alone:
-  // `on(courier.report(Report.delivered)) { in(sent) ~> effects.deliver }`. Core form: the arms
+  // `on(courier.report(Report.delivered)) { when(sent) ~> effects.deliver }`. Core form: the arms
   // `if g(s) && result == Report.delivered then deliver(s)` of the action's step function.
   inline def on(inline c: Class)(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
     block[EmptyTuple](c.decl, Some(c.values), codeOf(c))(cases)
@@ -594,32 +594,29 @@ abstract class Rules[S, O, F, P](using
       .map(_.invoke(declarer))
       .collect { case a: Action[?] => a.decl }
 
-  // A case that holds in the phases listed, as the machine's `Phased[State, Phase](_.phase)` reads
-  // them; the rules of a machine that is not `Phased` name no phase. Core form:
-  // `List(p1, p2).contains(s.phase)`.
-  def in[Q](first: Q, rest: Q*)(using PhasesOf[P, Q]): Case[S, O, F] =
-    val phases = first +: rest
-    Case(s"in(${phases.mkString(", ")})", s => phases.contains(phase(s)))
+  // The retired rule-case spelling is refused where it is written, while `value.in(...)` remains
+  // the membership predicate below. Core form: none; write `when(...)` for a rule case.
+  inline def in[Q](@unused first: Q, @unused rest: Q*): Nothing =
+    error("in(...) is membership alone: write `when(...)` for a rule case")
 
-  // A case that holds in a named set of phases, a predicate of the projection the machine's
-  // `states` declares: `in(states.terminal)`. Like the phases listed, it needs a machine that is
-  // `Phased`, since any predicate is one of `Nothing`. Core form: `terminal(s.phase)`.
-  inline def in(inline set: P => Boolean)(using PhasesOf[P, P]): Case[S, O, F] =
-    phases(set, codeOf(set))
+  // The retired role spelling is refused where it is written, while `value.in[R]` remains the
+  // membership predicate below. Core form: none; write `when[R]` for a role rule case.
+  inline def in[R]: Nothing =
+    error("in[R] is membership alone: write `when[R]` for a role rule case")
 
-  private[umpire] def phases(set: P => Boolean, code: String, word: String = "in"): Case[S, O, F] =
-    Case(s"$word(${code.trim})", s => set(phase(s)))
+  private[umpire] def phases(set: P => Boolean, code: String): Case[S, O, F] =
+    Case(s"when(${code.trim})", s => set(phase(s)))
 
-  // A case that holds in the phases listed, as `in(...)` does: `when(placed, open)`. Core form:
+  // A case that holds in the phases listed: `when(placed, open)`. Core form:
   // `List(p1, p2).contains(s.phase)`.
   def when[Q](first: Q, rest: Q*)(using PhasesOf[P, Q]): Case[S, O, F] =
     val phases = first +: rest
     Case(s"when(${phases.mkString(", ")})", s => phases.contains(phase(s)))
 
-  // A case that holds in a named set of phases, as `in(set)` does: `when(states.terminal)`. Core
+  // A case that holds in a named set of phases: `when(states.terminal)`. Core
   // form: `terminal(s.phase)`.
   inline def when(inline set: P => Boolean)(using PhasesOf[P, P]): Case[S, O, F] =
-    phases(set, codeOf(set), "when")
+    phases(set, codeOf(set))
 
   // A case that holds in the phases with the role `R` (model/umpire/Roles.scala), as the projection
   // of the machine's `Phased` reads them: `when[Closed] ~> effects.notFound`; a machine that is
@@ -657,11 +654,11 @@ abstract class Rules[S, O, F, P](using
                else Bound.Ruled(written.filter(_.decl == decl).toVector))
 
 // Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine
-// that mixes in `Phased[State, Phase](_.phase)` name phases with `in` and `when`, and the rules of
+// that mixes in `Phased[State, Phase](_.phase)` name phases with `when`, and the rules of
 // one that is not `Phased`, whose phase type is `Nothing`, name none. Core form: none of its own;
-// `in(p1, p2)` is `List(p1, p2).contains(s.phase)`.
+// `when(p1, p2)` is `List(p1, p2).contains(s.phase)`.
 @implicitNotFound(
-  "in and when name phases of ${Q}, and these rules read phases of ${P}: mix the projection the " +
+  "when names phases of ${Q}, and these rules read phases of ${P}: mix the projection the " +
     "phases are of into the machine, `Phased[State, Phase](_.phase)`"
 )
 final class PhasesOf[P, Q] private ()

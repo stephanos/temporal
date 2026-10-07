@@ -54,7 +54,7 @@ object EffectsFixture:
     object rules extends Rules:
       on(hand.press) {
         where(states.busy) ~> effects.pause
-        in(Phase.idle) ~> effects.start
+        when(Phase.idle) ~> effects.start
       }
 
   // A phase that declares, on each case, the status it is recorded as. An effect block that
@@ -88,7 +88,7 @@ object EffectsFixture:
       val missing = effect(reject(Said.notFound))
 
     object rules extends Rules:
-      on(hand.press)(in(Stage.waiting) ~> effects.work)
+      on(hand.press)(when(Stage.waiting) ~> effects.work)
 
 class EffectsTest extends munit.FunSuite:
   import EffectsFixture.*

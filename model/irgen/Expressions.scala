@@ -453,7 +453,7 @@ private[irgen] trait Expressions:
     // `enter`, `stay`, `disabled`, `in`, `implies` and `records`, as their core forms lift.
     case _ if sugared(t) => sugar(t)
 
-    // A test of a phase against a role, as `in(...)` of the role's cases lifts.
+    // A test of a phase against a role, as membership in the role's cases lifts.
     case TypeApply(Select(value, "isInstanceOf"), List(role)) => roleTest(value, role.tpe, t)
 
     // The arguments a varargs parameter collects: the list they make.

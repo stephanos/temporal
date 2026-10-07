@@ -206,8 +206,12 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       enter(s.copy(phase = timedOut), nexusOperationTimedOut(t))
 
   object rules extends Rules:
-    on(caller.schedule)(in(unscheduled) ~> effects.schedule)
-    on(handler.reply)(in(scheduled) ~> effects.reply)
+    on(caller.schedule) {
+      when(unscheduled) ~> effects.schedule
+    }
+    on(handler.reply) {
+      when(scheduled) ~> effects.reply
+    }
 
     // A completion resolves any running phase, and is not found once the operation is over; an
     // operation not yet scheduled has nothing to complete.
@@ -217,9 +221,15 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       // Scheduled and not yet over: the phases a completion resolves and a timer can fire in.
       when[Live] ~> effects.complete
     }
-    on(network.fault)(in(scheduled) ~> effects.backOff)
-    on(worker.stop)(always ~> effects.keep)
-    on(timers.backoff)(in(backingOff) ~> effects.retry)
+    on(network.fault) {
+      when(scheduled) ~> effects.backOff
+    }
+    on(worker.stop) {
+      always ~> effects.keep
+    }
+    on(timers.backoff) {
+      when(backingOff) ~> effects.retry
+    }
 
     // Each deadline fires only when the schedule command set it. Schedule-to-close covers the whole
     // operation, schedule-to-start the wait for the handler to accept, and start-to-close the

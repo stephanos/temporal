@@ -228,28 +228,36 @@ object ActivityRecord
   object rules extends Rules:
     import AdmissionPhase.*
 
-    on(history.dispatch)(in(scheduled) ~> effects.sendDispatch)
+    on(history.dispatch) {
+      when(scheduled) ~> effects.sendDispatch
+    }
 
     // A pause of a paused or closed record has no rule, and the other controls are out of scope.
     on(client.pause) {
-      in(scheduled) ~> effects.pause
-      in(started) ~> effects.pauseHeld
+      when(scheduled) ~> effects.pause
+      when(started) ~> effects.pauseHeld
     }
 
     // The corrected design re-reads current eligibility: only a scheduled activity admits.
     on(worker.poll) {
-      in(scheduled) ~> effects.admit
-      in(paused, pausedWhileHeld, started, completed, timedOut) ~> effects.rejectDelivery
+      when(scheduled) ~> effects.admit
+      when(paused, pausedWhileHeld, started, completed, timedOut) ~> effects.rejectDelivery
     }
-    on(history.answerMatching)(where(_.answer == Answer.owed) ~> effects.answerMatching)
-    on(worker.respondCompleted)(in(started) ~> effects.complete)
+    on(history.answerMatching) {
+      where(_.answer == Answer.owed) ~> effects.answerMatching
+    }
+    on(worker.respondCompleted) {
+      when(started) ~> effects.complete
+    }
 
     // Schedule-to-start covers the wait for a worker, so it fires only before an attempt is
     // admitted; schedule-to-close covers the whole activity, so it competes with the other deadline
     // while none has fired.
-    on(deadline.scheduleToStart)(in(scheduled) ~> (effects.timeOut(_, TimeoutType.scheduleToStart)))
+    on(deadline.scheduleToStart) {
+      when(scheduled) ~> (effects.timeOut(_, TimeoutType.scheduleToStart))
+    }
     on(deadline.scheduleToClose) {
-      in(scheduled, paused, pausedWhileHeld, started) ~> (effects.timeOut(
+      when(scheduled, paused, pausedWhileHeld, started) ~> (effects.timeOut(
         _,
         TimeoutType.scheduleToClose
       ))
@@ -363,7 +371,9 @@ object ActivityRecord
 
 object TrustingActivityRecord
     extends Derived(
-      ActivityRecord.rebind(on(worker.poll)(always ~> ActivityRecord.effects.admit))
+      ActivityRecord.rebind(on(worker.poll) {
+        always ~> ActivityRecord.effects.admit
+      })
     ),
       NegativeControl:
   object capabilities extends AdmissionCapabilities
@@ -408,14 +418,16 @@ object HeldDispatch
   object rules extends Rules:
     import AdmissionPhase.*
 
-    on(history.dispatch)(in(scheduled) ~> ActivityRecord.effects.sendDispatch)
+    on(history.dispatch) {
+      when(scheduled) ~> ActivityRecord.effects.sendDispatch
+    }
     on(client.pause) {
-      in(scheduled) ~> ActivityRecord.effects.pause
-      in(started) ~> ActivityRecord.effects.pauseHeld
+      when(scheduled) ~> ActivityRecord.effects.pause
+      when(started) ~> ActivityRecord.effects.pauseHeld
     }
     on(worker.poll) {
-      in(scheduled) ~> effects.admitCommitted
-      in(
+      when(scheduled) ~> effects.admitCommitted
+      when(
         paused,
         pausedWhileHeld,
         started,
@@ -491,8 +503,12 @@ object LostStartAnswer
 
   // Both steps take the budget's state: once a loss consumes it, neither fires.
   object rules extends Rules:
-    on(history.dispatch)(where(_.lossAvailable) ~> effects.sendDispatch)
-    on(shared.taskqueue.fault.ackLoss)(where(_.lossAvailable) ~> effects.loseResponse)
+    on(history.dispatch) {
+      where(_.lossAvailable) ~> effects.sendDispatch
+    }
+    on(shared.taskqueue.fault.ackLoss) {
+      where(_.lossAvailable) ~> effects.loseResponse
+    }
 
   object properties:
     // A lost response still leaves the attempt admitted when the update committed.

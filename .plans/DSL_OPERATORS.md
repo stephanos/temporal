@@ -53,7 +53,9 @@ or `extension` whose tree shape the lifter recognises; no runtime semantics, no 
 | Operator | Where | Meaning | Verdict |
 | --- | --- | --- | --- |
 | `action ~> stepFunction` | a rule in `object rules extends Rules` (`a ~> effects.x`), `rebind`/`extend`, the core `Bindings(...)` (fn-126; the builder's `steps(...)` is retired) | bind an action to its effect or step function | **Keep.** The one symbol that earns its place: it names a relation no English word does better, appears in every machine, and is typed per arity. Add `@targetName("binds")`. Never reuse it for anything else, in particular not for leads-to (TLA+'s `~>`); see Do-not-do. |
-| `Phased[S, P](projection)` and argument-less `Rules` | a machine or composition's parents and its rules section | declare the phase projection once; rules read its given | `in(phases)`, `in(set)` and the `when` forms require `Phased`; derived objects inherit it from their source. |
+| `Phased[S, P](projection)` and argument-less `Rules` | a machine or composition's parents and its rules section | declare the phase projection once; rules read its given | `when(phases)`, `when(set)` and `when[R]` require `Phased`; derived objects inherit it from their source. Bare rule-case `in` is retired; dotted `p.in(...)` and `p.in[R]` remain membership. |
+| `on(actions*) { cases }`, `from(actor) { … }` | rules | bind one block to one or several actions; optionally group an actor's blocks | Every `on`, a single case included, uses braces with one case per line and a closing brace on its own line. `from` changes no meaning and is kept only in the Activity Product and System, whose actor-grouped rule sets benefit from it. |
+| `rejects(why).because(reason)` | a rule of a machine using `umpire.outcomes.{Outcome, Rejection}` | reject with a shared reason, optionally explaining it | A word, not an operator: keep the state, record no facts, answer `rejected(why)` and put `reason` in the step's `because`. |
 | `"member" -> machine`, `"member" -> action`, fn-112 `_.member -> action`, `perform(action -> command)`, fn-120 `name -> steps` | compositions, syncs, scripts, `choose` | key paired with its value | **Keep.** Scala's own tuple arrow; readers know it from `Map(...)`. Rule: left is always the key, right its value; never "transition to". |
 | `token := value` (fn-112.5) | named inputs `start(scheduleToStart := expires)` | give a named slot a value | **Keep (settled).** The sbt survivor; universal "set". Add `@targetName("set")`. The only symbol fn-112 adds. |
 | `m.property(...) when c holds f`, `holdsAcross` | Properties | restrict, then state the predicate | **Keep.** Reads as a sentence. `whenAction("...")` is replaced by the typed form fn-112.4 settles; `holdsAcross` stays (renaming churns frozen goldens for no gain). |
@@ -150,9 +152,10 @@ positive and one refusal fixture (selector of another request type does not comp
 **low**. If the context-function form proves awkward in TASTy, the fallback is `field(_.namespace)
 := ...` with `Req` still inferred from the scope; do not fall back to a symbol with another meaning.
 
-### 6. `enter`, `stay`, `disabled`, `.because(...)`, `perform`, `onPath`, `everyCase`, `choose` (accept as words; already specified)
+### 6. `enter`, `stay`, `disabled`, `rejects`, `.because(...)`, `perform`, `onPath`, `everyCase`, `choose` (accept as words; already specified)
 
-No operator. `stay(s).recording(fact)` (fn-120 sketch) and `enter(state, facts*)` read as
+No operator. `stay(s).recording(fact)` (fn-120 sketch), `enter(state, facts*)` and
+`rejects(Rejection.notFound).because("...")` read as
 sentences; they lower to the `Step` construct the lifter already builds. Keep `disabled` a `val`
 (not `disabled()`), as the spec writes it. fn-127 renamed two of these words; see Words renamed.
 
@@ -215,14 +218,16 @@ field path or a `read` that is not a def; one lifting fixture and one refusal fi
   completes them.
 - **`disabled unless cond`** or `guard(cond) { ... }`: `if cond then ... else disabled` is plain Scala
   and lifts as `if`.
-  *Reversed by the owner (fn-126, decisions 7, 27 and R16):* a step function no longer mixes when an
-  action fires with what it does. A machine's `object rules extends Rules` holds one block per
-  action, `on(action) { in(p1, p2) ~> effects.x; where(g) ~> effects.y }`, reading the machine's
+  *Settled by the owner (fn-126, then fn-139):* a step function no longer mixes when an
+  action fires with what it does. A machine's `object rules extends Rules` holds brace-delimited
+  blocks that each name one or more actions or classes; an action or class may appear in several
+  blocks whose cases are disjoint. `when(p1, p2) ~> effects.x` and `where(g) ~> effects.y` each sit
+  on their own line. The rules read the machine's
   `Phased[State, Phase](_.phase)` projection, which lowers to the
   guarded step function (`model/SEMANTICS.md`, Rules); an effect never returns `disabled`. The
-  cases, `in`, `where` and `always`, say where an action fires only, never a guard inside a step or
-  an effect, and there is no standalone guard helper. `when` is no rule heading any more (decision
-  27).
+  cases, `when`, `where` and `always`, say where an action fires only, never a guard inside a step or
+  an effect, and there is no standalone guard helper. Bare `in` is membership alone and is refused
+  as a rule heading with a diagnostic naming `when`.
 
 ## Do not do
 
@@ -249,6 +254,8 @@ field path or a `read` that is not a def; one lifting fixture and one refusal fi
    they are `always`/`eventually`/`weakFair` with TLA meaning.
 8. No operator whose lowering needs a new IR node. Every accepted candidate above lowers to `or`,
    `not`, `OP_CONTAINS`, `field` or the existing assignment record.
+9. No parenthesized rule block. Write `on(...) {`, one case per line, and `}` on its own line. Use
+   `on(a, b) { ... }` when actions share cases; use `from(actor)` only to group that actor's blocks.
 
 ## Which fn-112 task adopts what, and the spec text it implies
 

@@ -456,8 +456,9 @@ The IR generator reads what an author wrote, as written:
   field and no state, so the enum's `Finite` values are those without roles, and a phase with no
   role is one where the entity does not exist yet. A role test lifts to membership in the cases of
   the phase's enum that have the role, inherited roles included, in declaration order, and the IR
-  has no role construct: `p.in[Closed]` on a phase value lifts as `p.in(succeeded, failed, …)`,
-  `when[Closed]` as a rule case as `in(succeeded, failed, …)`, and a type pattern, `case _: Closed`
+  has no role construct: `p.in[Closed]` on a phase value lifts as membership in `succeeded, failed,
+  …`; `when[Closed]` in a rule lifts to the same membership expression; and a type pattern,
+  `case _: Closed`
   or `case q: Closed`, as the alternatives of those case literals. The Models' lint refuses
   `isInstanceOf`, which lifts as `p.in[R]` does. The IR generator refuses a role test on a value of
   no enum, of a role no case of the enum has, or against a type that is not a role, and refuses, as
@@ -753,22 +754,35 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    `reject(Outcome.notFound, s)`, a step that keeps the state with another outcome, say what each
    gives. An effect of the state alone may be a block instead, `val startAttempt = effect { phase =
    started }`, `val notFound = effect { reject(Outcome.notFound) }`, which a rule binds as it binds
-   a def, `~> effects.startAttempt`; an effect that takes arguments beyond the state stays a def;
+   a def, `~> effects.startAttempt`; an effect that takes arguments beyond the state stays a def.
+   Machines that share request outcomes import `umpire.outcomes.{Outcome, Rejection}`: `accepted`
+   is the common success and `rejected(why)` carries `notFound`, `alreadyExists`,
+   `failedPrecondition` or `invalidArgument`. In their rules,
+   `rejects(Rejection.notFound)` keeps the state and records nothing;
+   `rejects(Rejection.failedPrecondition).because("operation already completed")` also gives the
+   rejection's server-facing explanation;
 5. `object monitors`: the monitors that watch it and the assumptions it makes; an assumption no
    machine makes of its own, which a derivation adds with `assuming` or a progress claim names with
    `under`, sits in the feature's signature;
 6. `object rules extends Rules` (`umpire.Rules`), reading the machine's `Phased` projection:
-   when each action fires, one block per
-   action, or per class of one, each case a line, `on(client.control(Control.pause)) { in(scheduled,
-   backingOff) ~> effects.pause; in(started) ~> effects.requestPause }`. A case says where the action
-   fires: `in(…)` of phases or of a named set of them from `states`, `in(states.terminal)`;
-   both require `Phased[State, Phase](_.phase)` on the machine;
-   `where(g)` of the state; `in(…).where(g)`, a condition beyond the phase; or `always`. An effect
+   when each action fires, in one or more brace-delimited blocks that name actions or classes,
+   including a block with one case. Its opening brace follows `on(…)`, every case occupies its own line and its closing brace
+   occupies a line of its own; the parenthesized `on(…)(case)` form is rejected. A block may give
+   several actions the same cases, `on(client.pause, client.unpause) { … }`. A case says where the
+   action fires: `when(scheduled, backingOff)` for listed phases,
+   `when(states.terminal)` for a named set, or `when[Closed]` for a phase role; each requires
+   `Phased[State, Phase](_.phase)`. `where(g)` tests the state,
+   `when(…).where(g)` adds a condition beyond the phase and `always` holds in every state. The
+   rule-case spelling `in(…)` is retired; `p.in(…)` and `p.in[R]` remain membership predicates.
+   `from(actor) { import actor.*; on(action) { … } }` only groups blocks of actions that actor
+   declares and changes no rule meaning; the Activity Product and System use it for their larger
+   actor-grouped rule sets, while the other Models name their actions directly. An effect
    that takes arguments beyond the state binds them in place, `~> (effects.timeOut(_,
    system.TimeoutType.scheduleToClose))`. Where no case holds the action is disabled, and
    `disabled(process.stop)` binds an action no state enables. The cases of one action class
-   hold in no common state: the rules object refuses an overlap as it is constructed, over every
-   state and class, naming the machine, the class, both cases and a witness state, and the gate
+   hold in no common state, whether they sit in the same block or different blocks: the rules object
+   refuses an overlap as it is constructed, over every state and class, naming the machine, the
+   class, both cases and a witness state, and the gate
    constructs every IR file's roots (`model/temporal/IrFiles.test.scala`). Each action's cases lower
    to one step function, `<machine>.rules.<action>`;
 7. `object properties`, its claims, which name the machine implicitly: `property when … holds …`;
@@ -988,7 +1002,7 @@ and `Composition`, the phase projection `Phased`, the derivations `rebind`, `ext
 `Implements`, `choose`, `irFile`, and the realization declarations, among them the script helpers `rpc`,
 `readUntil`, `withFields`, `perform`, `onPath`, `everyCase`, `script`, `command` and `statusTable`, `Actuator`,
 `MonitorExpectation` and the kit's roles and bindings. Sugar is a form whose meaning a core form
-already says: the rules (`Rules` with `on`, `in`, `where`, `always` and `disabled`), `implies`,
+already says: the rules (`Rules` with `on`, `from`, `when`, `where`, `always` and `disabled`), `implies`,
 `in`, `records`, `enter`, `stay`, `reject`, `disabled`, the claim patterns (`once`,
 `keeps`, `never`, `from`, `stays`, `unless`), the monitor pattern (`sticky`, `stickyAcross`) and
 both spellings of `:=`, named inputs and request

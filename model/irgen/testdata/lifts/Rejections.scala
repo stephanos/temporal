@@ -54,13 +54,13 @@ object DoorProduct extends Machine[Door, Outcome, Fact], Phased[Door, Phase](_.p
 
   object rules extends Rules:
     on(visitor.open) {
-      in(Phase.shut) ~> effects.open
-      in(Phase.locked) ~> effects.locked
-      in(Phase.gone) ~> effects.missing
+      when(Phase.shut) ~> effects.open
+      when(Phase.locked) ~> effects.locked
+      when(Phase.gone) ~> effects.missing
     }
     on(visitor.close) {
-      in(Phase.ajar) ~> effects.close
-      in(Phase.shut) ~> effects.keep
+      when(Phase.ajar) ~> effects.close
+      when(Phase.shut) ~> effects.keep
     }
     on(visitor.ring)(always ~> effects.missing)
 
@@ -79,13 +79,13 @@ object DoorSystem extends Machine[Door, Outcome, Fact], Phased[Door, Phase](_.ph
 
   object rules extends Rules:
     on(visitor.open) {
-      in(Phase.shut) ~> effects.open
-      in(Phase.locked) ~> rejects(Rejection.failedPrecondition).because("the door is locked")
-      in(Phase.gone) ~> rejects(Rejection.notFound)
+      when(Phase.shut) ~> effects.open
+      when(Phase.locked) ~> rejects(Rejection.failedPrecondition).because("the door is locked")
+      when(Phase.gone) ~> rejects(Rejection.notFound)
     }
     on(visitor.close) {
-      in(Phase.ajar) ~> effects.close
-      in(Phase.shut) ~> effects.keep
+      when(Phase.ajar) ~> effects.close
+      when(Phase.shut) ~> effects.keep
     }
     on(visitor.ring)(always ~> rejects(Rejection.notFound))
 

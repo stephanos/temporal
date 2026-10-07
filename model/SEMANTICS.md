@@ -196,35 +196,46 @@ reader's table (`tools/umpire/interp`, `Table`) over the derived keys.
 
 The IR binds each action to one step function; a Model writes when it fires and what it does
 apart, and the IR generator lowers the two to that function (`model/umpire/Syntax.scala`, `Rules`).
-A machine object's `rules` holds one block per action, `on(a) { … }`, or per class of one,
-`on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`: the
-case `in(p1, …)` holds while the machine's phase projection, `Phased[State, Phase](_.phase)`, is one of the phases
-listed, `in(set)` while it is in the named set `set`, `where(g)` while the guard `g` of the state
-holds, `in(…).where(g)` while both do and `always` in every state; `e` is an effect of the machine's
+A machine object's `rules` holds one or more blocks that name actions, `on(a) { … }`, or classes,
+`on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`. An
+`on(a, b) { … }` block gives the same cases to each named action. Every `on`, including one with one
+case, is brace-delimited, with its cases on separate lines and its closing brace on a line of its
+own; `on(a)(case)` is no Model form. `from(actor) { import actor.*; on(a) { … } }` only groups the
+blocks of actions `actor` declares, so removing the group and qualifying each action preserves the
+table. The case `when(p1, …)` holds while the machine's phase projection,
+`Phased[State, Phase](_.phase)`, is one of the phases listed, `when(set)` while it is in the named
+set `set`, `when[R]` while it has phase role `R`, `where(g)` while the guard `g` of the state holds,
+`when(…).where(g)` while both do and `always` in every state; `e` is an effect of the machine's
 `effects`, which says what happens and never whether: it gives at least one step. `disabled(a)`
 binds an action no state enables.
 
 `object rules extends Rules` takes no argument and reads the machine's `Phased` given. A derived
 machine or composition inherits its source's projection and phase type. A machine without
-`Phased` may use `where(g)` and `always`, but its rules cannot name phases or phase sets with `in`
-or `when`.
+`Phased` may use `where(g)` and `always`, but its rules cannot name phases, phase sets or roles with
+`when`. The bare rule-case spelling `in(…)` is rejected; dotted `p.in(…)` and `p.in[R]` remain
+membership predicates.
 
 The rules of one action lower, in the order written, to the step function
 `<machine>.rules.<action>`: `if g1(s) then e1(s, i) else if g2(s) then e2(s, i) else Nil`, where
-`gk` is the k-th case's guard (for `in`, `List(p1, …).contains(projection(s))`; for `in(set)`,
+`gk` is the k-th case's guard (for `when`, `List(p1, …).contains(projection(s))`; for `when(set)`,
 `set(projection(s))`; for `.where(g)`, the case's guard `&&` `g(s)`; for `always`, `true`). Where a rule fires
 one class, the function first matches the inputs, one case per class in catalog order, and tries
 there the rules that fire that class, so the state alone chooses among them. `disabled(a)` lowers to
 a function that gives `Nil` for every state. The table derived from the lowered function is the one
 Machines 3 gives; nothing else of the IR records the rules.
 
-Rules of one action class are disjoint: no state and class are fired by two of them. The framework
+Rules of one action class are disjoint across every block: no state and class are fired by two of them. The framework
 checks it when the machine's rules are constructed, over every state of the state type's catalog
 and every class, and refuses the second rule of an overlap, naming the machine, the class, both
 rules by their place and heading, and a state where both hold; the model gate constructs every IR
 file's roots, so an overlap fails it. A step that can go more than one way is one effect that names
 each result with `choose` ([Named choices](#named-choices)), never two rules. Because the rules are
 disjoint, their order changes no row: it fixes only the order of the arms of the lowered function.
+
+A machine may use the shared `umpire.outcomes.Outcome`: `accepted`, or `rejected(why)` where `why`
+is one of the shared `Rejection` values. In such a rule, `rejects(why)` is the effect that keeps the
+state, records no facts and answers `rejected(why)`; `.because(text)` fills the step's `because`
+field without changing that state, facts or outcome.
 
 A derivation rebinds rules in its source's place: `rebind(a ~> e)` keeps the guards (and classes) of
 `a`'s rules and gives each the effect `e`; `rebind(on(a) { where(g) ~> e })` replaces them; `extend` adds

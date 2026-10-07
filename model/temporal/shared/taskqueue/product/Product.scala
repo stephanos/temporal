@@ -75,9 +75,15 @@ object TaskQueueProduct
   object rules extends Rules:
     import Outstanding.*
 
-    on(queue.enqueue)(in(empty) ~> effects.enqueueView)
-    on(queue.deliver)(in(committed, deliveredOnce) ~> effects.deliverView)
-    on(queue.acknowledge)(in(deliveredOnce, deliveredTwice) ~> effects.acknowledgeView)
+    on(queue.enqueue) {
+      when(empty) ~> effects.enqueueView
+    }
+    on(queue.deliver) {
+      when(committed, deliveredOnce) ~> effects.deliverView
+    }
+    on(queue.acknowledge) {
+      when(deliveredOnce, deliveredTwice) ~> effects.acknowledgeView
+    }
 
 // The interface under the storage-loss assumption: a committed message may also vanish.
 object TaskQueueProductUnderStorageLoss

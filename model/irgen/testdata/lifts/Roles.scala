@@ -1,6 +1,6 @@
 // Role tests beside the case sets they stand for (fn-136.1): `Roled` tests its phases against
 // roles, with `isInstanceOf` and with type patterns, and `Listed` names the same cases by hand,
-// with `in(...)` and alternatives of case literals. The lifter's tests lift both and require one IR
+// with `when(...)` and alternatives of case literals. The lifter's tests lift both and require one IR
 // of the two, but for names and positions: an inherited role (`Retrying` is `Waiting` and `Live`),
 // a Model's own role and its framework role, a one-case enum, and a binding type pattern.
 package fixture.roles
@@ -71,10 +71,10 @@ object Roled extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
     def stop(s: Job) = enter(s.copy(phase = Phase.done))
 
   object rules extends Rules:
-    on(user.start)(in(states.waiting) ~> effects.start)
+    on(user.start)(when(states.waiting) ~> effects.start)
     on(user.stop) {
-      in(states.live).where(states.stopping) ~> effects.stop
-      in(states.settled) ~> effects.stop
+      when(states.live).where(states.stopping) ~> effects.stop
+      when(states.settled) ~> effects.stop
     }
 
 object Listed extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
@@ -99,10 +99,10 @@ object Listed extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
     def stop(s: Job) = enter(s.copy(phase = Phase.done))
 
   object rules extends Rules:
-    on(user.start)(in(states.waiting) ~> effects.start)
+    on(user.start)(when(states.waiting) ~> effects.start)
     on(user.stop) {
-      in(states.live).where(states.stopping) ~> effects.stop
-      in(states.settled) ~> effects.stop
+      when(states.live).where(states.stopping) ~> effects.stop
+      when(states.settled) ~> effects.stop
     }
 
 // fn-136.4: the short spellings, `when[R]` in rules and `p.in[R]` elsewhere, beside the cases
@@ -144,9 +144,9 @@ object Written extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
     def stop(s: Job) = enter(s.copy(phase = Phase.done))
 
   object rules extends Rules:
-    on(user.start)(in(Phase.queued, Phase.backingOff) ~> effects.start)
+    on(user.start)(when(Phase.queued, Phase.backingOff) ~> effects.start)
     on(user.stop) {
-      in(Phase.queued, Phase.backingOff, Phase.running, Phase.paused)
+      when(Phase.queued, Phase.backingOff, Phase.running, Phase.paused)
         .where(states.stopping) ~> effects.stop
-      in(Phase.done, Phase.failed, Phase.expired) ~> effects.stop
+      when(Phase.done, Phase.failed, Phase.expired) ~> effects.stop
     }

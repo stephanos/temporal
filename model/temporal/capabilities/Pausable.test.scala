@@ -29,7 +29,9 @@ object PausingFixture:
     object effects:
       def keep(s: State) = stay[Snapshot, Answer, Nothing](s)
     object rules extends Rules:
-      on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
+      on(user.pause, user.unpause, worker.poll) {
+        always ~> effects.keep
+      }
     val pausable: Pausable[Snapshot, Phase] = Pausable(pause = user.pause, unpause = user.unpause)
     val pollable: Pollable[Snapshot, Phase] = Pollable(dispatch = worker.poll)
     val notDispatched = Pausable.pausedIsNotDispatched(this)

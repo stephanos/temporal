@@ -51,13 +51,27 @@ object TrustingCaller
 
   // The System machine's rules, its completion forged and the inspection added.
   object rules extends Rules:
-    on(caller.schedule)(in(Phase.unscheduled) ~> NexusSystem.effects.schedule)
-    on(handler.reply)(in(Phase.scheduled) ~> NexusSystem.effects.reply)
-    on(handler.complete)(in(NexusSystem.states.created) ~> effects.forgedComplete)
-    on(caller.inspect)(always ~> effects.inspect)
-    on(network.fault)(in(Phase.scheduled) ~> NexusSystem.effects.backOff)
-    on(worker.stop)(always ~> NexusSystem.effects.keep)
-    on(timers.backoff)(in(Phase.backingOff) ~> NexusSystem.effects.retry)
+    on(caller.schedule) {
+      when(Phase.unscheduled) ~> NexusSystem.effects.schedule
+    }
+    on(handler.reply) {
+      when(Phase.scheduled) ~> NexusSystem.effects.reply
+    }
+    on(handler.complete) {
+      when(NexusSystem.states.created) ~> effects.forgedComplete
+    }
+    on(caller.inspect) {
+      always ~> effects.inspect
+    }
+    on(network.fault) {
+      when(Phase.scheduled) ~> NexusSystem.effects.backOff
+    }
+    on(worker.stop) {
+      always ~> NexusSystem.effects.keep
+    }
+    on(timers.backoff) {
+      when(Phase.backingOff) ~> NexusSystem.effects.retry
+    }
     on(deadline.scheduleToClose) {
       when[Live].where(
         _.scheduleToClose == Timeout.expires

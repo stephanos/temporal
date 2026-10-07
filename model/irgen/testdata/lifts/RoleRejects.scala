@@ -37,7 +37,7 @@ object NoCase extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase
   object effects:
     def keep(s: Job) = stay[Job, Outcome, Nothing](s)
   object rules extends Rules:
-    on(user.go)(in(states.canceled) ~> effects.keep)
+    on(user.go)(when(states.canceled) ~> effects.keep)
 
 object NoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
@@ -48,7 +48,7 @@ object NoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase
   object effects:
     def keep(s: Job) = stay[Job, Outcome, Nothing](s)
   object rules extends Rules:
-    on(user.go)(in(states.any) ~> effects.keep)
+    on(user.go)(when(states.any) ~> effects.keep)
 
 object StandAlone extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
@@ -58,7 +58,7 @@ object StandAlone extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.p
   object effects:
     def keep(s: Job) = stay[Job, Outcome, Nothing](s)
   object rules extends Rules:
-    on(user.go)(in(states.audited) ~> effects.keep)
+    on(user.go)(when(states.audited) ~> effects.keep)
 
 enum Ended derives Finite:
   case running extends Ended, Held
@@ -72,7 +72,7 @@ object WithFields extends Machine[Run, Outcome, Nothing], Phased[Run, Ended](_.e
   object effects:
     def keep(s: Run) = stay[Run, Outcome, Nothing](s)
   object rules extends Rules:
-    on(user.go)(in(Ended.running) ~> effects.keep)
+    on(user.go)(when(Ended.running) ~> effects.keep)
 
 enum LiveClosed derives Finite:
   case backingOff extends LiveClosed, Retrying
@@ -92,7 +92,7 @@ object BothLiveClosed extends Machine[Mixed, Outcome, Nothing], Phased[Mixed, Li
   object effects:
     def keep(s: Mixed) = stay[Mixed, Outcome, Nothing](s)
   object rules extends Rules:
-    on(user.go)(in(LiveClosed.backingOff) ~> effects.keep)
+    on(user.go)(when(LiveClosed.backingOff) ~> effects.keep)
 
 final case class Torn(phase: TwoLive) derives Finite
 
@@ -102,7 +102,7 @@ object TwoLiveRoles extends Machine[Torn, Outcome, Nothing], Phased[Torn, TwoLiv
   object effects:
     def keep(s: Torn) = stay[Torn, Outcome, Nothing](s)
   object rules extends Rules:
-    on(user.go)(in(TwoLive.torn) ~> effects.keep)
+    on(user.go)(when(TwoLive.torn) ~> effects.keep)
 
 final case class Twice(phase: TwoClosed) derives Finite
 
@@ -112,7 +112,7 @@ object TwoClosureRoles extends Machine[Twice, Outcome, Nothing], Phased[Twice, T
   object effects:
     def keep(s: Twice) = stay[Twice, Outcome, Nothing](s)
   object rules extends Rules:
-    on(user.go)(in(TwoClosed.twice) ~> effects.keep)
+    on(user.go)(when(TwoClosed.twice) ~> effects.keep)
 
 // fn-136.4: the short spellings refused as role tests are: `when[R]` in rules whose projection is
 // not declared, against no role and of a phase of no enum; `p.in[R]` against no role and of a

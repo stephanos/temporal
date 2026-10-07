@@ -250,14 +250,14 @@ final private[irgen] class Order(index: Index):
       }
 
   // A call that runs its function arguments while it is made: a rule block, `on(a) { ... }` of
-  // `rules` or of a derivation, or a `from` of them, whose cases run at once; a case, `in(set)`,
-  // `when(set)`, `when[R]`, `where(g)` or `.where(g)`, whose condition the disjointness check calls;
-  // and the machine's `Phased` projection, which the conditions of `in` and `when` call.
+  // `rules` or of a derivation, or a `from` of them, whose cases run at once; a case, `when(set)`,
+  // `when[R]`, `where(g)` or `.where(g)`, whose condition the disjointness check calls; and the
+  // machine's `Phased` projection, which the conditions of `when` call.
   private def appliesAtOnce(s: Symbol): Boolean =
     s.exists && {
       val owner = s.maybeOwner
       (owner == rulesClass &&
-        (s.isClassConstructor || Set("on", "in", "when", "from")(s.name))) ||
+        (s.isClassConstructor || Set("on", "when", "from")(s.name))) ||
       (owner == caseClass && s.name == "where") ||
       (Set("on", "where")(s.name) && owner.fullName == "umpire.Syntax$package$")
     }
@@ -662,7 +662,7 @@ final private[irgen] class Order(index: Index):
           refuse(
             t,
             s"a step function is bound by hand, `action ~> step`, in $owner: a machine object " +
-              "says when each action fires in its `rules`, `on(action) { in(p) ~> effects.x }`, " +
+              "says when each action fires in its `rules`, `on(action) { when(p) ~> effects.x }`, " +
               "and a derivation binds one in `rebind`"
           )
         case _ => super.traverseTree(t)(o)

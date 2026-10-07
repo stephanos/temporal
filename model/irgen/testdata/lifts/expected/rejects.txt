@@ -185,7 +185,7 @@ lift: model/irgen/testdata/lifts/RoleRejects.scala:57: fixture.roles.Audited is 
 lift: model/irgen/testdata/lifts/RoleRejects.scala:85: twice of fixture.rolerejects.TwoClosed is Succeeded and Canceled, through its roles Succeeded, Canceled: a closed phase has at most one closure role of Succeeded, Failed, Canceled, Terminated and TimedOut
 lift: model/irgen/testdata/lifts/RoleRejects.scala:82: torn of fixture.rolerejects.TwoLive is Held and Suspended, through its roles Held, Suspended: a live phase is at most one of Waiting, Held and Suspended
 lift: model/irgen/testdata/lifts/RoleRejects.scala:142: a role test reads a phase, a value of a finite enum, and scala.Option[fixture.roles.Phase] is none: test the phase, such as `s.phase.in[Closed]`
-lift: model/irgen/testdata/lifts/RoleRejects.scala:126: when names the phases of a role, and whenNoProjection reads no phase projection: mix it into the machine, `Phased[State, Phase](_.phase)`
+lift: model/irgen/testdata/lifts/RoleRejects.scala:126: when names phases, and whenNoProjection reads no phase projection: mix it into the machine, `Phased[State, Phase](_.phase)`
 lift: model/irgen/testdata/lifts/RoleRejects.scala:134: fixture.roles.Audited is no role, so a test against it has no IR form: test a phase against a role of model/umpire/Roles.scala, or a trait that extends one
 lift: model/irgen/testdata/lifts/RoleRejects.scala:71: failed of fixture.rolerejects.Ended is Failed and has fields, so the cases of Failed are no set of values: give the role to cases without fields
 lift: model/irgen/testdata/lifts/RuleRejects.scala:28: on(cool) sits in from(cook), and cook declares no cool: a from holds the blocks of the actions its declarer declares

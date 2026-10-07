@@ -30,7 +30,7 @@ object Switch extends Machine[Bulb, Outcome, Nothing], Phased((s: Bulb) => s.lig
     def keep(s: Bulb) = stay[Bulb, Outcome, Nothing](s)
   object rules extends Rules:
     on(hand.press) {
-      in(Light.on) ~> effects.dark
-      in(states.dark).where(_.light != Light.broken) ~> effects.light
+      when(Light.on) ~> effects.dark
+      when(states.dark).where(_.light != Light.broken) ~> effects.light
     }
-    on(hand.drop)(in(Light.off, Light.on) ~> effects.keep)
+    on(hand.drop)(when(Light.off, Light.on) ~> effects.keep)

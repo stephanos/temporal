@@ -173,7 +173,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       import client.*
 
       on(start) {
-        in(Phase.unstarted) ~> effects.schedule
+        when(Phase.unstarted) ~> effects.schedule
       }
 
       // A control on an activity that is over is not found; an unstarted one has no control. A pause
@@ -187,12 +187,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when[Closed] ~> rejects(Rejection.notFound)
       }
       on(pause) {
-        in(scheduled, backingOff) ~> effects.pause
-        in(started) ~> effects.requestPause
+        when(scheduled, backingOff) ~> effects.pause
+        when(started) ~> effects.requestPause
       }
       on(unpause) {
-        in(paused) ~> effects.resume
-        in(pauseRequested) ~> effects.withdrawPause
+        when(paused) ~> effects.resume
+        when(pauseRequested) ~> effects.withdrawPause
       }
       on(requestCancel) {
         when[Live] ~> effects.requestCancel
@@ -206,7 +206,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       import worker.*
 
       on(poll) {
-        in(scheduled) ~> effects.startAttempt
+        when(scheduled) ~> effects.startAttempt
       }
 
       // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
@@ -221,12 +221,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       }
 
       on(respondFailed(Failure.retryable)) {
-        in(started) ~> effects.backOff
-        in(cancelRequested) ~> effects.cancel
-        in(pauseRequested) ~> effects.pause
+        when(started) ~> effects.backOff
+        when(cancelRequested) ~> effects.cancel
+        when(pauseRequested) ~> effects.pause
       }
       on(respondCanceled) {
-        in(cancelRequested) ~> effects.cancel
+        when(cancelRequested) ~> effects.cancel
       }
     }
 
@@ -242,7 +242,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       import timers.*
 
       on(backoff) {
-        in(backingOff) ~> effects.retry
+        when(backingOff) ~> effects.retry
       }
     }
 

@@ -151,7 +151,7 @@ extension [A, B, C](a: Action[(A, B, C)])
 final class Owner[S, O, F] private[umpire] (val machine: Machine[S, O, F])
 
 // The projection of a machine's or composition's state onto its phase, which its sections read as a
-// given: `in(placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
+// given: `when(placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
 // (model/umpire/Syntax.scala) gives it, and a derived machine gives its source's, with the source's
 // phase type.
 final class Phasing[S, P] private[umpire] (private[umpire] val projection: S => P):
@@ -168,7 +168,7 @@ final class Phasing[S, P] private[umpire] (private[umpire] val projection: S => 
     umpire.roleCases[P, R](owner, role.runtimeClass.getSimpleName)(using finite, witness, phaseType)
 
 object Phasing:
-  // The phasing of an object that declares no phase: its phase type is `Nothing`, so `in(...)` of
+  // The phasing of an object that declares no phase: its phase type is `Nothing`, so `when(...)` of
   // its rules does not compile, and its projection is never called.
   given unphased[S]: Phasing[S, Nothing] =
     Phasing(_ => throw IllegalStateException("this machine or composition declares no phase"))

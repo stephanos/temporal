@@ -663,6 +663,43 @@ class Fixtures extends munit.FunSuite:
   concurrently("the build refuses a retired schema, at its line"):
     assertEquals(refusals("retiredSchema"), Seq("Retired.scala:9:3"))
 
+  // fn-139.7: `in(...)` is membership alone; rule cases use `when(...)`.
+  concurrently("the build refuses a retired rule-case in with its replacement"):
+    val built = bounded(tools.scalaCli(Seq("compile", materialize("retiredRuleCase").toString)))
+    assert(built.failed, "model/irgen/testdata/retiredRuleCase built")
+    assertEquals(
+      built.errors.collect {
+        case line if line.contains("Retired.scala:26:7") => "Retired.scala:26:7"
+      },
+      Seq("Retired.scala:26:7")
+    )
+    assert(
+      built.output.contains("write `when(...)` for a rule case"),
+      built.output
+    )
+
+  concurrently("the lifter refuses a compiled retired rule-case in with its replacement"):
+    val fixture = "retiredRuleCaseLifter"
+    val jar = packaged("retired-rule-case-lifter", materialize(fixture))
+    val out = lifted("retired-rule-case-lifter")
+    val result = lift(
+      s"$jar=${stored(fixture)}",
+      modelClasspath.toString,
+      out.toString,
+      "fixture.retiredrulecaselifter.Retired"
+    )
+    assert(result.failed, "the lifter accepted the retired rule-case in")
+    assert(!Files.exists(out), "the lifter wrote IR for the retired rule-case in")
+    val diagnostic = refused(result).mkString("\n")
+    assert(diagnostic.contains("Retired.scala:30:"), diagnostic)
+    assert(
+      diagnostic.contains(
+        "a case says where its action fires, `when(phases)`, `when(states.set)`, " +
+          "`where(g)` or `always`"
+      ),
+      diagnostic
+    )
+
   concurrently("the build refuses a non-finite state field, at its line"):
     assertEquals(refusals("nonfinite"), Seq("NonFinite.scala:5:47"))
 
@@ -1088,7 +1125,7 @@ class Fixtures extends munit.FunSuite:
     val order = "object Backwards reads its header, then states, then refinement, then effects, " +
       "then monitors, then rules, then properties, then implements, then capabilities, then queries"
     val handBound = "a machine object says when each action fires in its `rules`, " +
-      "`on(action) { in(p) ~> effects.x }`, and a derivation binds one in `rebind`"
+      "`on(action) { when(p) ~> effects.x }`, and a derivation binds one in `rebind`"
     assertEquals(
       refused(result),
       Seq(
@@ -1546,7 +1583,7 @@ class Fixtures extends munit.FunSuite:
   // `when[R]` and `p.in[R]` of `Shortened` beside `Written` (lifts/Roles.scala). Every declaration
   // of one machine, with the other's name in its place and no positions, is the other's, and an
   // enum's roles leave its IR type as it is without them.
-  test("a role test lifts as the in(...) or the alternatives of the cases that have the role"):
+  test("a role test lifts as the explicit list or alternatives of cases that have the role"):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()

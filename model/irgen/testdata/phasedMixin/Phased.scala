@@ -30,10 +30,10 @@ object Switch extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Light](_.lig
     def keep(s: Bulb) = stay[Bulb, Outcome, Nothing](s)
   object rules extends Rules:
     on(hand.press) {
-      in(Light.on) ~> effects.dark
-      in(states.dark).where(_.light != Light.broken) ~> effects.light
+      when(Light.on) ~> effects.dark
+      when(states.dark).where(_.light != Light.broken) ~> effects.light
     }
-    on(hand.drop)(in(Light.off, Light.on) ~> effects.keep)
+    on(hand.drop)(when(Light.off, Light.on) ~> effects.keep)
 
 // A drop that lights the lamp, and that machine unmonitored: both read Switch's projection.
 object Stiff extends Derived(Switch.rebind(hand.drop ~> Switch.effects.light))
@@ -58,4 +58,4 @@ object Unprojected extends Machine[Bulb, Outcome, Nothing]:
   val init = Bulb(Light.off)
   def end(s: State) = true
   object rules extends Rules[Bulb, Outcome, Nothing, Light]:
-    on(hand.press)(in(Light.off) ~> Switch.effects.light)
+    on(hand.press)(when(Light.off) ~> Switch.effects.light)

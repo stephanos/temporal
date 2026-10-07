@@ -62,6 +62,12 @@ object Polling extends Machine[State, Outcome, Fact], Phased[State, Phase](_.pha
 
   // A polling worker stops and serves; a stopped one resumes, and has nothing to stop or serve.
   object rules extends Rules:
-    on(worker.stop)(in(Phase.polling) ~> effects.stop)
-    on(worker.resume)(in(Phase.stopped) ~> effects.resume)
-    on(worker.serve)(in(Phase.polling) ~> effects.serve)
+    on(worker.stop) {
+      when(Phase.polling) ~> effects.stop
+    }
+    on(worker.resume) {
+      when(Phase.stopped) ~> effects.resume
+    }
+    on(worker.serve) {
+      when(Phase.polling) ~> effects.serve
+    }

@@ -79,11 +79,11 @@ object Blocked extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
 
   object rules extends Rules:
     on(user.start)(where(states.paused) ~> effects.start)
-    on(user.pause)(in(Phase.running).where(states.busy) ~> effects.pause)
-    on(user.finish)(in(Phase.running) ~> effects.finish)
-    on(user.restart)(in(Phase.done) ~> effects.restart)
+    on(user.pause)(when(Phase.running).where(states.busy) ~> effects.pause)
+    on(user.finish)(when(Phase.running) ~> effects.finish)
+    on(user.restart)(when(Phase.done) ~> effects.restart)
     on(user.keep)(always ~> effects.keep)
-    on(user.refuse)(in(Phase.idle) ~> effects.refuse)
+    on(user.refuse)(when(Phase.idle) ~> effects.refuse)
 
   object properties:
     val pausedKept = property.stays(states.paused)
@@ -116,11 +116,11 @@ object Defined extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
 
   object rules extends Rules:
     on(user.start)(where(states.paused) ~> effects.start)
-    on(user.pause)(in(Phase.running).where(states.busy) ~> effects.pause)
-    on(user.finish)(in(Phase.running) ~> effects.finish)
-    on(user.restart)(in(Phase.done) ~> effects.restart)
+    on(user.pause)(when(Phase.running).where(states.busy) ~> effects.pause)
+    on(user.finish)(when(Phase.running) ~> effects.finish)
+    on(user.restart)(when(Phase.done) ~> effects.restart)
     on(user.keep)(always ~> effects.keep)
-    on(user.refuse)(in(Phase.idle) ~> effects.refuse)
+    on(user.refuse)(when(Phase.idle) ~> effects.refuse)
 
   object properties:
     val pausedKept = property.stays(states.paused)

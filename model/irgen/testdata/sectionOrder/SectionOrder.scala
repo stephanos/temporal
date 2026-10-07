@@ -54,7 +54,7 @@ object Switch extends Machine[Lamp, Outcome, Nothing], Phased[Lamp, Boolean](_.l
     val staysLit = sticky[Lamp, Outcome, Nothing](after => after.state.lit)
 
   object rules extends Rules:
-    on(hand.flip)(in(false, true) ~> effects.flipped)
+    on(hand.flip)(when(false, true) ~> effects.flipped)
     on(clock.tick)(where(s => !states.lit(s)) ~> effects.kept)
 
   object properties:

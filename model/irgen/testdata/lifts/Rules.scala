@@ -65,14 +65,14 @@ object Switch extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light)
 
   object rules extends Rules:
     on(hand.press) {
-      in(Light.off) ~> effects.light
-      in(Light.on) ~> effects.dark
+      when(Light.off) ~> effects.light
+      when(Light.on) ~> effects.dark
     }
-    on(hand.turn(Knob.down))(in(Light.on) ~> effects.dark)
-    on(hand.turn(Knob.up))(in(Light.on) ~> effects.light)
+    on(hand.turn(Knob.down))(when(Light.on) ~> effects.dark)
+    on(hand.turn(Knob.up))(when(Light.on) ~> effects.light)
     on(hand.turn) {
-      in(Light.off) ~> effects.turned
-      in(Light.broken) ~> effects.refuse
+      when(Light.off) ~> effects.turned
+      when(Light.broken) ~> effects.refuse
     }
     on(clock.tick)(where(s => s.presses == 2 && s.light.in(Light.off, Light.on)) ~> effects.wear)
     disabled(clock.rest)
@@ -140,8 +140,8 @@ object Mirror extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light)
     val unobservable = List(clock.rest)
   object rules extends Rules:
     on(hand.press) {
-      in(Light.off) ~> Switch.effects.light
-      in(Light.on) ~> Switch.effects.dark
+      when(Light.off) ~> Switch.effects.light
+      when(Light.on) ~> Switch.effects.dark
     }
     disabled(clock.rest)
 
@@ -177,8 +177,8 @@ object Dial extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light):
   val init = Lamp(Light.off, UpTo(0))
   override def end(s: State) = Switch.states.broken(s)
   object rules extends Rules:
-    on(hand.turn(Knob.up))(in(Light.off, Light.on) ~> Switch.effects.light)
-    on(hand.turn(Knob.down))(in(Light.off, Light.on) ~> Switch.effects.dark)
+    on(hand.turn(Knob.up))(when(Light.off, Light.on) ~> Switch.effects.light)
+    on(hand.turn(Knob.down))(when(Light.off, Light.on) ~> Switch.effects.dark)
 
 // One effect, which reads the class, in place of the two classes' effects, each keeping its guard.
 object Turned extends Derived(Dial.rebind(hand.turn ~> Switch.effects.turned))

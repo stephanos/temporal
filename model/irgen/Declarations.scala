@@ -170,8 +170,8 @@ private[irgen] trait Declarations:
   // ### Machine objects: `object M extends Machine[S, O, F]`, its header members and its sections
 
   // Where a rule fires, as its case says: a condition of the state (`where(g)`), phases of its
-  // projection (`in(p1, p2)`), a named set of them (`in(states.open)`), every state (`always`), or
-  // one of these where a condition also holds (`in(...).where(g)`).
+  // projection (`when(p1, p2)`), a named set of them (`when(states.open)`), every state (`always`),
+  // or one of these where a condition also holds (`when(...).where(g)`).
   enum Heading:
     case When(guard: Term)
     case In(projection: Term, phases: List[Term])
@@ -590,16 +590,10 @@ private[irgen] trait Declarations:
         case other                   => fail(other, notRule(machine, other, within))
     statements(rules).foreach(rule(_, None))
     for r <- written do
-      if headingNames(r.heading).exists(_ == "in") && projection.isEmpty then
-        fail(
-          r.at,
-          s"in names phases, and $machine reads no phase projection: mix it into the machine, " +
-            "`Phased[State, Phase](_.phase)`"
-        )
       if headingNames(r.heading).exists(_ == "when") && projection.isEmpty then
         fail(
           r.at,
-          s"when names the phases of a role, and $machine reads no phase projection: mix it into " +
+          s"when names phases, and $machine reads no phase projection: mix it into " +
             "the machine, `Phased[State, Phase](_.phase)`"
         )
     val withProjection =
@@ -661,12 +655,11 @@ private[irgen] trait Declarations:
       case _                => None
     actionRef(target).exists(_.symbol.maybeOwner == owner.moduleClass)
 
-  // The kinds of case a heading is made of, `in` among them where it names phases.
+  // The kinds of case a heading is made of, `when` where it names phases.
   private def headingNames(h: Heading): List[String] = h match
-    case Heading.In(_, _) | Heading.InSet(_, _) => List("in")
-    case Heading.Role(_, _, _, _)               => List("when")
-    case Heading.And(inner, _)                  => headingNames(inner)
-    case _                                      => Nil
+    case Heading.In(_, _) | Heading.InSet(_, _) | Heading.Role(_, _, _, _) => List("when")
+    case Heading.And(inner, _)                                             => headingNames(inner)
+    case _                                                                 => Nil
 
   // A heading whose phases read the rules' projection, which `cases` leaves unread.
   private def projected(h: Heading, projection: Option[Term]): Heading = h match
@@ -694,8 +687,8 @@ private[irgen] trait Declarations:
       case other =>
         fail(
           other,
-          s"not a case of $machine's rules: ${other.show}; a case is `in(...) ~> effect`, " +
-            "`where(g) ~> effect`, `in(...).where(g) ~> effect` or `always ~> effect`"
+          s"not a case of $machine's rules: ${other.show}; a case is `when(...) ~> effect`, " +
+            "`where(g) ~> effect`, `when(...).where(g) ~> effect` or `always ~> effect`"
         )
     unwrapped(contextBody(block)) match
       case Block(stats, last) =>
@@ -716,16 +709,13 @@ private[irgen] trait Declarations:
 
   private lazy val caseClass = Symbol.requiredClass("umpire.Case")
 
-  // Where a case fires: `in(...)` or `when(...)`, `where(g)`, `always`, or one of them `.where(g)`.
+  // Where a case fires: `when(...)`, `where(g)`, `always`, or one of them `.where(g)`.
   private def heading(c: Term, machine: String): Heading = unwrapped(c) match
     case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == caseClass =>
       Heading.And(heading(inner, machine), g)
     case t =>
       val owner = t.symbol.maybeOwner
       call(t) match
-        case Some(("in", List(List(first, rest), _))) if owner == rulesClass =>
-          Heading.In(first, first :: varargs(rest))
-        case Some(("in", List(List(set), _))) if owner == rulesClass => Heading.InSet(set, set)
         // `when[R]`: its role test's type, `TypeTest[P, R]`, names the phase type and the role.
         case Some(("when", List(List(test, _, _)))) if owner == rulesClass =>
           test.tpe.widen.dealias.typeArgs match
@@ -740,7 +730,7 @@ private[irgen] trait Declarations:
           fail(
             t,
             s"not a case of $machine's rules: ${t.show}; a case says where its action fires, " +
-              "`in(phases)`, `in(states.set)`, `where(g)` or `always`"
+              "`when(phases)`, `when(states.set)`, `where(g)` or `always`"
           )
 
   private val syntaxPackage = "umpire.Syntax$package$"

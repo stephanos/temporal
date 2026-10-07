@@ -69,7 +69,7 @@ private[irgen] object Roles:
 
 // The lifting of role tests: `p.isInstanceOf[R]`, `p.in[R]`, a rule's `when[R]` and the type
 // pattern `case _: R` of a phase, each lowered to the cases of the phase's enum that have the role,
-// as the `in(...)` and the alternatives of case literals written by hand lift; and the conflict
+// as `when(...)` and the alternatives of case literals written by hand lift; and the conflict
 // check of every enum whose cases take roles, run as its type is declared.
 private[irgen] trait PhaseRoles:
   self: Lifting =>
@@ -155,7 +155,7 @@ private[irgen] trait PhaseRoles:
       )
     cases
 
-  // The list of the cases of `phase` that have `role`, as `in(...)` lists them.
+  // The list of the cases of `phase` that have `role`, as `when(...)` lists them in a rule.
   def roleSet(
       phase: TypeRepr,
       role: TypeRepr,

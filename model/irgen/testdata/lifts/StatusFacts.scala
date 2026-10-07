@@ -54,11 +54,11 @@ object Derived extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
     val refuse = effect(reject(Outcome.refused))
 
   object rules extends Rules:
-    on(user.start)(in(Phase.idle) ~> effects.start)
-    on(user.resume)(in(Phase.running) ~> effects.resume)
-    on(user.retry)(in(Phase.running) ~> effects.retry)
-    on(user.pause)(in(Phase.running) ~> effects.pause)
-    on(user.refuse)(in(Phase.paused) ~> effects.refuse)
+    on(user.start)(when(Phase.idle) ~> effects.start)
+    on(user.resume)(when(Phase.running) ~> effects.resume)
+    on(user.retry)(when(Phase.running) ~> effects.retry)
+    on(user.pause)(when(Phase.running) ~> effects.pause)
+    on(user.refuse)(when(Phase.paused) ~> effects.refuse)
 
 object Written extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, UpTo(0))
@@ -72,8 +72,8 @@ object Written extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
     def refuse(s: Job) = reject(Outcome.refused, s)
 
   object rules extends Rules:
-    on(user.start)(in(Phase.idle) ~> effects.start)
-    on(user.resume)(in(Phase.running) ~> effects.resume)
-    on(user.retry)(in(Phase.running) ~> effects.retry)
-    on(user.pause)(in(Phase.running) ~> effects.pause)
-    on(user.refuse)(in(Phase.paused) ~> effects.refuse)
+    on(user.start)(when(Phase.idle) ~> effects.start)
+    on(user.resume)(when(Phase.running) ~> effects.resume)
+    on(user.retry)(when(Phase.running) ~> effects.retry)
+    on(user.pause)(when(Phase.running) ~> effects.pause)
+    on(user.refuse)(when(Phase.paused) ~> effects.refuse)

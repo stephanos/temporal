@@ -557,10 +557,18 @@ object RejectAfterClose
       )(asked => asked == Asked.lost)
 
   object rules extends Rules:
-    on(callerSide.close)(in(Caller.open) ~> effects.close)
-    on(callerSide.reset)(in(Caller.open, Caller.closed) ~> (effects.reset(Reset.reapplies, _)))
-    on(callerSide.requestCancel)(where(states.cancellable) ~> effects.requestCancel)
-    on(history.deliverCancel)(where(states.cancelInFlight) ~> effects.deliverCancel)
+    on(callerSide.close) {
+      when(Caller.open) ~> effects.close
+    }
+    on(callerSide.reset) {
+      when(Caller.open, Caller.closed) ~> (effects.reset(Reset.reapplies, _))
+    }
+    on(callerSide.requestCancel) {
+      where(states.cancellable) ~> effects.requestCancel
+    }
+    on(history.deliverCancel) {
+      where(states.cancelInFlight) ~> effects.deliverCancel
+    }
 
     // A canceled result needs the handler to have received the cancel request; having received it,
     // the handler may still succeed or fail.
@@ -570,7 +578,9 @@ object RejectAfterClose
     on(handlerSide.finish(Resolution.failed)) {
       where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.failed))
     }
-    on(handlerSide.finish)(where(_.handler == Handler.cancelReceived) ~> effects.finish)
+    on(handlerSide.finish) {
+      where(_.handler == Handler.cancelReceived) ~> effects.finish
+    }
 
     // A completion is delivered while the channel carries its result.
     on(handler.complete(Resolution.succeeded)) {

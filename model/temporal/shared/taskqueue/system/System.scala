@@ -143,14 +143,30 @@ object TaskQueueSystem
   object rules extends Rules:
     import Custody.*
 
-    on(queue.enqueue)(in(nowhere) ~> effects.enqueueDetail)
-    on(queue.addActivityTask)(in(history) ~> effects.invokeDetail)
-    on(queue.persistTask)(in(invoked) ~> effects.persistDetail)
-    on(queue.syncMatch)(in(invoked) ~> effects.reserveDetail)
-    on(queue.deliver)(where(states.deliverable) ~> effects.deliverDetail)
-    on(queue.acknowledge)(where(states.answerable) ~> effects.acknowledgeDetail)
-    on(fault.ackLoss)(where(_.polled) ~> effects.ackLossDetail)
-    on(fault.crash)(always ~> effects.crashDetail)
+    on(queue.enqueue) {
+      when(nowhere) ~> effects.enqueueDetail
+    }
+    on(queue.addActivityTask) {
+      when(history) ~> effects.invokeDetail
+    }
+    on(queue.persistTask) {
+      when(invoked) ~> effects.persistDetail
+    }
+    on(queue.syncMatch) {
+      when(invoked) ~> effects.reserveDetail
+    }
+    on(queue.deliver) {
+      where(states.deliverable) ~> effects.deliverDetail
+    }
+    on(queue.acknowledge) {
+      where(states.answerable) ~> effects.acknowledgeDetail
+    }
+    on(fault.ackLoss) {
+      where(_.polled) ~> effects.ackLossDetail
+    }
+    on(fault.crash) {
+      always ~> effects.crashDetail
+    }
 
   // What a provider promises.
   object properties:

@@ -92,17 +92,29 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     def repeated(s: State) = stay(s)
 
   object rules extends Rules:
-    on(client.start)(in(unstarted) ~> effects.start)
-    on(handler.reply(Reply.syncSuccess))(in(scheduled) ~> effects.syncSuccess)
-    on(handler.reply(Reply.operationFailed))(in(scheduled) ~> effects.syncFailure)
-    on(handler.reply(Reply.operationCanceled))(in(scheduled) ~> effects.syncCanceled)
-    on(handler.reply(Reply.async))(in(scheduled) ~> effects.async)
-    on(handler.complete)(in(started) ~> effects.complete)
+    on(client.start) {
+      when(unstarted) ~> effects.start
+    }
+    on(handler.reply(Reply.syncSuccess)) {
+      when(scheduled) ~> effects.syncSuccess
+    }
+    on(handler.reply(Reply.operationFailed)) {
+      when(scheduled) ~> effects.syncFailure
+    }
+    on(handler.reply(Reply.operationCanceled)) {
+      when(scheduled) ~> effects.syncCanceled
+    }
+    on(handler.reply(Reply.async)) {
+      when(scheduled) ~> effects.async
+    }
+    on(handler.complete) {
+      when(started) ~> effects.complete
+    }
 
     // A repeated cancel request is the same request; one of a closed operation is alreadyCompleted,
     // unless it repeats one the operation took (operation.go RequestCancel).
     on(client.requestCancel) {
-      in(states.created).where(_.cancelRequested) ~> effects.repeated
+      when(states.created).where(_.cancelRequested) ~> effects.repeated
       when[Closed].where(!_.cancelRequested) ~>
         rejects(Rejection.failedPrecondition).because("operation already completed")
       // Started and not over: the phases a control settles or records a request in.
@@ -112,10 +124,10 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // A repeated terminate of a terminated operation is the same request, answered OK; any other
     // control of a closed one is alreadyCompleted (operation.go Terminate).
     on(client.terminate) {
-      in(terminated) ~> effects.repeated
-      in(succeeded, failed, canceled) ~>
+      when(terminated) ~> effects.repeated
+      when(succeeded, failed, canceled) ~>
         rejects(Rejection.failedPrecondition).because("operation already completed")
-      in(scheduled, started) ~> effects.terminate
+      when(scheduled, started) ~> effects.terminate
     }
 
   // What the operation promises of its own: its reading of closed rejection, which its capabilities

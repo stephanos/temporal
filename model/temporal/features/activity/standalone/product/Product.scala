@@ -80,10 +80,10 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
         where(states.paused) ~> effects.resume
       }
       on(requestCancel) {
-        in(scheduled, started, paused, cancelRequested) ~> effects.requestCancel
+        when(scheduled, started, paused, cancelRequested) ~> effects.requestCancel
       }
       on(terminate) {
-        in(scheduled, started, paused, cancelRequested) ~> effects.terminate
+        when(scheduled, started, paused, cancelRequested) ~> effects.terminate
       }
     }
 
@@ -91,7 +91,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       import worker.*
 
       on(poll) {
-        in(scheduled) ~> effects.startAttempt
+        when(scheduled) ~> effects.startAttempt
       }
 
       // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
@@ -105,11 +105,11 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       }
 
       on(respondFailed(Failure.retryable)) {
-        in(started) ~> effects.retry
-        in(cancelRequested) ~> effects.cancel
+        when(started) ~> effects.retry
+        when(cancelRequested) ~> effects.cancel
       }
       on(respondCanceled) {
-        in(cancelRequested) ~> effects.cancel
+        when(cancelRequested) ~> effects.cancel
       }
     }
 
@@ -120,7 +120,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       import timers.*
 
       on(timeout) {
-        in(scheduled, started, paused, cancelRequested) ~> effects.timeOut
+        when(scheduled, started, paused, cancelRequested) ~> effects.timeOut
       }
     }
 
