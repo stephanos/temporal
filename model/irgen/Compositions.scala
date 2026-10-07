@@ -199,7 +199,7 @@ private[irgen] trait Compositions:
     val members = statements(c).collect { case d: Definition => d }
     val end = members.collectFirst { case d: DefDef if d.name == "end" => d }
     val syncs = sectionOf(c, "syncs")
-    parentArguments(c).flatten match
+    parentArguments(c).headOption.getOrElse(Nil) match
       case List(derivation) if isComposition(derivation.tpe) =>
         for d <- end.orElse(syncs) do
           fail(

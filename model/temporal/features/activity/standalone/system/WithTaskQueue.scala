@@ -45,11 +45,10 @@ final case class OverMatchingClaims(
 )
 
 abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
-    Declaring[OverQueue, String, String]
+    Declaring[OverQueue, String, String],
+    Phasing[OverQueue, AdmissionPhase]
 ) extends Capabilities:
   val closable: Capability = Closable(
-    status = through(_.activity, ActivityRecord.states.phase),
-    terminal = ActivityRecord.states.terminal,
     rejected = RecordOverQueue.states.closedAnswer
   )
   val pausable: Capability = Pausable(
@@ -64,11 +63,10 @@ abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
   except(Closable.closedIsRejectedUniformly, because = RecordOverQueue.states.queueStepsOn)
 
 abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
-    Declaring[OverMatching, String, String]
+    Declaring[OverMatching, String, String],
+    Phasing[OverMatching, AdmissionPhase]
 ) extends Capabilities:
   val closable: Capability = Closable(
-    status = through(_.activity, ActivityRecord.states.phase),
-    terminal = ActivityRecord.states.terminal,
     rejected = RecordOverQueue.states.closedAnswer
   )
   val pausable: Capability = Pausable(
@@ -168,7 +166,7 @@ object RecordOverQueue
     val recordOverQueueQueries = overQueueQueries(RecordOverQueue, capabilities)
 
 object TrustingRecordOverQueue
-    extends Composition(RecordOverQueue.withMember(_.activity -> TrustingRecordMember)),
+    extends DerivedComposition(RecordOverQueue.withMember(_.activity -> TrustingRecordMember)),
       NegativeControl:
   object capabilities extends OverQueueCapabilities(this)
   object queries:
@@ -259,7 +257,7 @@ object RecordOverMatching
     val recordOverMatchingQueries = overMatchingQueries(RecordOverMatching, capabilities)
 
 object TrustingRecordOverMatching
-    extends Composition(RecordOverMatching.withMember(_.activity -> TrustingRecordMember)),
+    extends DerivedComposition(RecordOverMatching.withMember(_.activity -> TrustingRecordMember)),
       NegativeControl:
   object capabilities extends OverMatchingCapabilities(this)
   object queries:
@@ -279,7 +277,7 @@ object RecordOverVolatile
 
 // The corrected design where storage loss is assumed, over the interface that allows it.
 object RecordOverLossyMatching
-    extends Composition(RecordOverMatching.withMember(_.queue -> LossyMatchingQueue)),
+    extends DerivedComposition(RecordOverMatching.withMember(_.queue -> LossyMatchingQueue)),
       FailureModel:
   object capabilities extends OverMatchingCapabilities(this)
   object queries:

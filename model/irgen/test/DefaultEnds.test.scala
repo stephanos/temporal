@@ -117,3 +117,87 @@ class DefaultEndsSuite extends munit.FunSuite:
           s"lift: ${stored}Ends.scala:$line: ${name.head.toLower}${name.tail}'s phase type fixture.defaultends.OpenPhase has no Closed case"
         )
       )
+
+  test("Closable brings both Properties exactly where declared, with typed derived projections"):
+    val (ran, out) = lift(
+      "ClosingEnd$.capabilities",
+      "OtherClosing$.capabilities",
+      "ClosingDerived$.capabilities",
+      "ClosingPair$.capabilities",
+      "ClosingDerivedPair$.capabilities",
+      "ClosingDerivedAgain$.capabilities",
+      "WrittenEnd"
+    )
+    ran.orFail()
+    val model = mapper.readTree(Files.readString(out))
+    val properties = model.path("properties").elements().asScala.toSeq
+    assertEquals(
+      properties.map(_.path("machine").asText()).distinct.sorted,
+      Seq(
+        "closingDerived",
+        "closingDerivedAgain",
+        "closingDerivedPair",
+        "closingEnd",
+        "closingPair",
+        "otherClosing"
+      )
+    )
+    for machine <- properties.map(_.path("machine").asText()).distinct do
+      assertEquals(
+        properties
+          .filter(_.path("machine").asText() == machine)
+          .map(_.path("name").asText())
+          .sorted,
+        Seq(s"$machine.closedIsRejectedUniformly", s"$machine.terminalStatesAreFinal")
+      )
+    for p <- properties if p.path("name").asText().endsWith("terminalStatesAreFinal") do
+      assertEquals(
+        p.path("origin").path("name").asText(),
+        "temporal.capabilities.Closable.terminalStatesAreFinal"
+      )
+      val function =
+        model.path("functions").elements().asScala.find(_.path("name") == p.path("holds")).get
+      val membership = function
+        .path("body")
+        .path("binary")
+        .path("left")
+        .path("unary")
+        .path("operand")
+        .path("binary")
+      assertEquals(membership.path("op").asText(), "OP_CONTAINS")
+      val cases = membership
+        .path("right")
+        .path("list")
+        .path("items")
+        .elements()
+        .asScala
+        .map(_.path("literal").path("enum").path("case").asText())
+        .toSeq
+      assertEquals(cases, Seq("done", "failed"))
+      val phase = membership.path("left").path("field")
+      assertEquals(phase.path("field").asText(), "phase")
+      if p.path("machine").asText().contains("Pair") || p
+          .path("machine")
+          .asText() == "closingDerivedAgain"
+      then assertEquals(phase.path("base").path("field").path("field").asText(), "left")
+
+  test("Closable refuses a missing Phased and a missing Closed by machine name"):
+    for (root, line, message) <- Seq(
+        (
+          "ClosingUnphased",
+          68,
+          "closingUnphased declares Closable but no phase: mix in Phased[State, Phase](_.phase)"
+        ),
+        (
+          "ClosingOpen",
+          74,
+          "closingOpen's phase type fixture.defaultends.OpenPhase has no Closed case"
+        )
+      )
+    do
+      val (ran, _) = lift(s"$root$$.capabilities")
+      assert(ran.failed, ran.output)
+      assertEquals(
+        ran.output.linesIterator.filter(_.startsWith("lift:")).toSeq,
+        Seq(s"lift: ${stored}Closing.scala:$line: $message")
+      )

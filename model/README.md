@@ -601,7 +601,7 @@ Scenario classes by field selector, never by a string key. A progress claim is a
 `m.leadsTo(name)(…)`. A Property or Scenario with no `val`, built in a list or in a function over a
 machine argument, keeps `property("…")` or `scenario("…")`, except where the function's body ends
 in it and a `val` declares the function's call: it then takes that `val`'s name, as a law's instance
-does (`val terminalStays = terminalStatesAreFinal(m)(Admission.phase, Admission.terminal)`). A Query
+does (`val terminalStays = Closable.terminalStatesAreFinal(m)`). A Query
 that neither a `val` nor `query("…")` names is named
 `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on, its Scenario and
 its Property: `query verify notPaused in any` over a design `m` is `m.any.notAdmittedWhilePaused`.
@@ -737,9 +737,9 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    such as `created` keeps its name and reads `p.in[Live] || p.in[Closed]`. A set that only renames
    one role has no predicate: rule headings read `when[Held]`, and `end`, effects and compositions
    read the phase directly, `s.phase.in[Closed]` or `s.activity.phase.in[Closed]`. A named predicate
-   stays where a capability field or another named-definition-only caller needs it: the activity
-   product, activity record and standalone Nexus keep `terminal` for Closable until that capability
-   reads `Closed`, and the Nexus product keeps `productTerminal` for its `once` claim, since an inline
+   stays where a capability field or another named-definition-only caller needs it: Closable reads
+   `Closed` through the object's typed `Phasing`, so no `terminal` alias is needed for it. The
+   Nexus product keeps `productTerminal` for its `once` claim, since an inline
    claim would introduce another lifted Function. A machine with no remaining vocabulary omits
    `states`;
 3. `object refinement extends Refinement(ActivityProduct)`, where it refines another machine:
@@ -901,6 +901,11 @@ field or no member, a member of another state type, a sync of an action the memb
 a `synced` that matches no sync or several, an `own` of a paired or foreign action, and a
 replacement of a replacing member by a machine that refines nothing.
 
+A lifecycle-capable composition derivation uses `DerivedComposition(base.withMember(...))`.
+Like `Derived` for machines, it inherits the source's typed `Phasing` and `end`, including explicit
+stopping points and chained derivations. Plain `Composition[S]` remains the form for other
+compositions; its constructor alone cannot retain the source's phase type.
+
 A law over a composition reads a member's status set with `through(select, read)`, where it would
 name a def: the composition's capability fields and a declaring function's function-valued
 arguments. `through(_.activity, Admission.paused)` is `s => Admission.paused(s.activity)`, so a
@@ -908,7 +913,7 @@ composition needs no def of its own that restates its member's:
 
 ```scala
 def overQueueCapabilities(c: Composition[OverQueue]) = capabilities(c, limits = five)(
-  Closable(status = through(_.activity, Admission.phase), terminal = Admission.terminal, rejected = closedAnswer),
+  Closable(rejected = closedAnswer),
   Pausable(…, paused = through(_.activity, Admission.paused)),
   Pollable(dispatch = c.synced(_.activity -> worker.poll), running = through(_.activity, Admission.running))
 )
@@ -1128,11 +1133,18 @@ citations and the one `given Catalog` live in `model/temporal/capabilities`:
 
 | Capability | Fields | Laws it brings |
 | --- | --- | --- |
-| `Closable` | `status`, `terminal`, `rejected` | `terminalStatesAreFinal`, `closedIsRejectedUniformly` |
+| `Closable` | `rejected`; owns the `Closed` role | `terminalStatesAreFinal`, `closedIsRejectedUniformly` |
 | `Terminable` | `terminate`, `settled`, `reach`, `expect` | `terminateSettles` |
 | `Cancelable` | `requestCancel`, `requested`, `reach`, `expect` | `cancelIsRequested` |
 | `Pausable` with `Pollable` | `pause`, `unpause`, `paused`; `dispatch`, `running` | `pausedIsNotDispatched`, the law of the pair |
 | `Describable` | `status`, the realization's fact-to-status table | none of its own: the generated finds' awaits read its table |
+
+Closable binds only its rejection outcome. It reads the declaring object's `Phased` projection,
+or its derivation source, through `Phasing.phase` and witnessed `Phasing.roleCases[Closed]`.
+The latter requires a nonempty role set. A companion declares its owned role with a type alias,
+`type Closed = umpire.Closed`; reading that role counts as reading its own capability field, so
+both Closable Properties are brought exactly where Closable is declared. Declaring it without
+`Phased`, or on a phase with no `Closed` case, is refused with the declaring machine's name.
 
 **The worked example.** The standalone activity declares its capabilities in two declarations, the
 `implements` objects of its `ActivityProduct` in
@@ -1145,7 +1157,7 @@ import temporal.capabilities.{given, *}
 
 // In ActivityProduct:
 object implements extends Implements(limits = three)(
-  Closable(status = states.status, terminal = states.terminal, rejected = cited(Outcome.notFound, states.notFoundCode)),
+  Closable(rejected = cited(Outcome.notFound, states.notFoundCode)),
   Pausable(pause = client.control(Control.pause), unpause = client.control(Control.unpause), paused = states.paused),
   Pollable(dispatch = worker.poll, running = states.running)
 )

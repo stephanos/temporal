@@ -163,6 +163,7 @@ final private[irgen] class Context(val index: Index):
   // And the value each of its value parameters is bound to, such as an outcome, a fact or an action
   // class, which an expression or a class reads in its place.
   var boundValues = Map.empty[Symbol, Term] // scalafix:ok DisableSyntax.var
+  var boundPhasings = Map.empty[Symbol, (Term, String)] // scalafix:ok DisableSyntax.var
 
   // A member's def read from the composed state, `through(select, read)`: the function
   // `s => read(s.<path>)` lifted under `name`, over `state`, written at `at`.
@@ -185,17 +186,20 @@ final private[irgen] class Context(val index: Index):
   def binding[A](
       functions: Map[Symbol, Symbol],
       types: Map[Symbol, TypeRepr],
-      values: Map[Symbol, Term] = Map.empty
+      values: Map[Symbol, Term] = Map.empty,
+      phasings: Map[Symbol, (Term, String)] = Map.empty
   )(body: => A): A =
-    val (fs, ts, vs) = (boundFunctions, boundTypes, boundValues)
+    val (fs, ts, vs, ps) = (boundFunctions, boundTypes, boundValues, boundPhasings)
     boundFunctions = fs ++ functions
     boundTypes = ts ++ types
     boundValues = vs ++ values
+    boundPhasings = ps ++ phasings
     try body
     finally
       boundFunctions = fs
       boundTypes = ts
       boundValues = vs
+      boundPhasings = ps
 
   // While a capability declaration's law is folded: the name `<machine>.<law>` its Property takes,
   // whatever name its body writes or its val would give it.

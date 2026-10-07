@@ -181,23 +181,34 @@ trait DerivedFrom[+M]:
 // Evidence that `T`, the source of a derivation, projects its state `S` onto the phase type `P`:
 // through its own `Phased` (whose companion gives that evidence), through the source it is derived
 // from in turn, or, where it declares no phase, onto `Nothing`.
-final class Inherited[-T, S, P] private[umpire] (private[umpire] val projection: T => S => P)
+final class Inherited[-T, S, P] private[umpire] (
+    private[umpire] val projection: T => S => P,
+    private[umpire] val end: T => S => Boolean
+)
 
 object Inherited extends Inherited.Unphased:
   // A derivation, `m.rebind(...)`: its source's.
   given derivation[S, P, M, T <: DerivedFrom[M]](using
       source: Inherited[M, S, P]
-  ): Inherited[T, S, P] = Inherited(t => source.projection(t.source))
+  ): Inherited[T, S, P] =
+    Inherited(t => source.projection(t.source), t => source.end(t.source))
 
   // A derived machine, `object M extends Derived(m.rebind(...))`: its own, which is its source's.
   given derived[S, P, T <: Derived[S, ?, ?, P]]: Inherited[T, S, P] =
-    Inherited(_.sourcePhasing.projection)
+    Inherited(_.sourcePhasing.projection, _.end)
+
+  given composed[S <: Product, P, T <: DerivedComposition[S, P]]: Inherited[T, S, P] =
+    Inherited(_.sourcePhasing.projection, _.end)
 
   // The evidence of a source that declares no phase, below every other: a given defined in an
   // object that extends this trait, such as `Phased`'s companion, is preferred to it.
   trait Unphased:
     // A source that declares no phase projects its state onto `Nothing`.
-    given unphased[T, S]: Inherited[T, S, Nothing] = Inherited(_ => Phasing.unphased[S].projection)
+    given unphased[T, S]: Inherited[T, S, Nothing] =
+      Inherited(
+        _ => Phasing.unphased[S].projection,
+        _ => _ => throw IllegalStateException("this derivation declares no phased stopping point")
+      )
 
 // What an `implements` or `capabilities` section declares the capabilities of: the machine or
 // composition whose object it sits in, with the outcomes and facts its steps answer and record.

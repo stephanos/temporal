@@ -331,7 +331,9 @@ private[irgen] trait Capabilities:
         val bound = params
           .zip(args)
           .collect {
-            case (p, a) if !p.tpt.tpe.derivesFrom(declaringClass) =>
+            case (p, a)
+                if !p.tpt.tpe
+                  .derivesFrom(declaringClass) && !isNamed(p.tpt.tpe, "umpire.Phasing") =>
               val value = fold(a, env)
               val accessor = b.fieldMember(p.name)
               Seq(p.symbol -> value) ++ Option.when(accessor.exists)(accessor -> value)
@@ -469,6 +471,40 @@ private[irgen] trait Capabilities:
         p
     }
 
+  private def fieldParameters(p: DefDef): List[ValDef] =
+    p.termParamss
+      .flatMap(_.params)
+      .filterNot(p => p.symbol.flags.is(Flags.Given) || p.symbol.flags.is(Flags.Implicit))
+
+  private def phasingOf(machine: String, at: Tree): Option[Term] =
+    defs.keys.iterator
+      .map(_.maybeOwner)
+      .filter(objectForm)
+      .find(objectFormName(_) == machine)
+      .flatMap(phaseProjection(_, at))
+
+  private def ownedRoles(companion: Symbol, at: Tree): Set[String] =
+    objectBody(companion.moduleClass, at).body
+      .collect {
+        case t: TypeDef if !t.symbol.flags.is(Flags.Synthetic) => t.symbol.typeRef.dealias
+      }
+      .filter(t => Roles.isRole(t.baseClasses.map(_.fullName)))
+      .map(_.typeSymbol.fullName)
+      .toSet
+
+  private def readRoles(p: DefDef): Set[String] =
+    val read = mutable.Set.empty[String]
+    val visitor = new TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+        tree match
+          case TypeApply(fn, List(role))
+              if fn.symbol.name == "roleCases" && fn.symbol.maybeOwner.fullName == "umpire.Phasing" =>
+            read += role.tpe.dealias.typeSymbol.fullName
+          case _ => ()
+        super.traverseTree(tree)(owner)
+    visitor.traverseTree(p)(p.symbol.maybeOwner)
+    read.toSet
+
   // Every capability Property the capabilities `ds` of `machine` bring: each def of a declared
   // kind's companion whose every parameter after the model is a field one declared capability
   // binds, the companion's own capability first among them.
@@ -476,10 +512,11 @@ private[irgen] trait Capabilities:
     val brought = for
       d <- ds
       p <- propertiesOf(d)
-      fields = p.termParamss.flatMap(_.params).drop(1).map(_.name)
+      fields = fieldParameters(p).drop(1).map(_.name)
+      roles = readRoles(p)
       if {
         val written = s"${d.kind}.${p.name}"
-        if !fields.exists(d.fields.contains) then
+        if !fields.exists(d.fields.contains) && (roles & ownedRoles(d.companion, d.at)).isEmpty then
           fail(
             p,
             s"$written reads no field of ${d.kind}: a capability Property takes the model, then " +
@@ -501,10 +538,13 @@ private[irgen] trait Capabilities:
               ds.map(d => s"${d.kind} (${d.fields.keys.toSeq.sorted.mkString(", ")})")
                 .mkString(", ")
           )
-        holders.forall(_._2.size == 1)
+        holders.forall(_._2.size == 1) && roles.forall(r =>
+          ds.exists(d => ownedRoles(d.companion, d.at)(r))
+        )
       }
     yield
-      val others = fields.flatMap(f => ds.filter(_.fields.contains(f))).distinct.filterNot(_ == d)
+      val others = (fields.flatMap(f => ds.filter(_.fields.contains(f))) ++
+        ds.filter(d => (ownedRoles(d.companion, d.at) & roles).nonEmpty)).distinct.filterNot(_ == d)
       Brought(p, d.kind, d +: others)
     for (name, twice) <- brought.groupBy(_.name) if twice.size > 1 do
       fail(
@@ -833,9 +873,9 @@ private[irgen] trait Capabilities:
         s"${cls.name} is no capability kind: a capability's companion object extends " +
           "umpire.CapabilityKind, which the catalog keys its laws by"
       )
-    val args = term match
-      case Apply(_, args) => args.map(plain)
-      case other => fail(other, s"a capability is built by its constructor, not ${other.show}")
+    val args = call(term) match
+      case Some((_, clauses)) if clauses.nonEmpty => clauses.head.map(plain)
+      case _ => fail(term, s"a capability is built by its constructor, not ${term.show}")
     val names = cls.caseFields.map(_.name)
     val typeParams = cls.primaryConstructor.paramSymss.headOption.toList.flatten.filter(_.isType)
     // A field written with `cited` binds its value alone, so the law and the IR read the same term
@@ -878,6 +918,17 @@ private[irgen] trait Capabilities:
   // Refuses a capability whose function-valued field is not a def of the lifted sources, and one
   // whose action the machine does not bind, each at its argument.
   private def checked(machine: String, d: Declared, env: Map[Symbol, Decl]): Unit =
+    val roles = ownedRoles(d.companion, d.at)
+    if roles.nonEmpty then
+      val projection = phasingOf(machine, d.at).getOrElse(
+        fail(
+          d.at,
+          s"$machine declares ${d.kind} but no phase: mix in Phased[State, Phase](_.phase)"
+        )
+      )
+      val phase = lambda(projection).get._2.tpe
+      for role <- roles.toSeq.sorted do
+        roleSet(phase, Symbol.requiredClass(role).typeRef, projection, Some(machine)): Unit
     for (field, a) <- d.fields do
       if d.fieldTypes.get(field).exists(_.dealias.isFunctionType) && forwardedDef(a).isEmpty then
         fail(
@@ -1021,7 +1072,13 @@ private[irgen] trait Capabilities:
       sym: Symbol,
       at: Term
   ): Unit =
-    def shape(d: DefDef) = d.termParamss.map(_.params.map(_.name))
+    def shape(d: DefDef) = d.termParamss
+      .map(
+        _.params
+          .filter(p => !p.symbol.flags.is(Flags.Given) && !p.symbol.flags.is(Flags.Implicit))
+          .map(_.name)
+      )
+      .filter(_.nonEmpty)
     def shown(clauses: List[List[String]]) = clauses.map(_.mkString("(", ", ", ")")).mkString
     val (what, whose) =
       if law then (s"the law $name", "law's") else (name, "capability Property's")
@@ -1062,7 +1119,7 @@ private[irgen] trait Capabilities:
       .getOrElse(replaced)
     val at = bringing.head.at
     val name = s"$machine.$lawName"
-    val params = statement.termParamss.flatMap(_.params)
+    val params = fieldParameters(statement)
     val modelParam = params.headOption.getOrElse(
       fail(at, s"$lawName takes no model: a law takes the model, then the capability's fields")
     )
@@ -1084,11 +1141,15 @@ private[irgen] trait Capabilities:
             s"$lawName takes ${p.name}, which ${holders.map(_.kind).mkString(" and ")} both bind"
           )
     }
+    val projection = phasingOf(machine, at)
+    val phaseParameters =
+      statement.termParamss.flatMap(_.params).filter(p => isNamed(p.tpt.tpe, "umpire.Phasing"))
+    val phasings = phaseParameters.map(p => p.symbol -> (projection.get -> machine)).toMap
     val types = statement.leadingTypeParams.flatMap { tp =>
       bringing.flatMap(_.types.get(tp.name)).headOption.map(tp.symbol -> _)
     }.toMap
     val bindings = (modelParam -> model) :: bound.map((p, a, _) => p -> a)
-    generating(name)(bodyOf(statement, bindings, types, env, None)) match
+    generating(name)(bodyOf(statement, bindings, types, env, None, phasings)) match
       case Decl.Claim(ref) if ref.machine == machine && ref.name == name => ()
       case other                                                         =>
         fail(

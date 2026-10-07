@@ -77,11 +77,11 @@ final case class AdmissionClaims(
     closeDeadline: Property[AdmissionState]
 )
 
-abstract class AdmissionCapabilities(using Declaring[AdmissionState, Outcome, AdmissionFact])
-    extends Capabilities:
+abstract class AdmissionCapabilities(using
+    Declaring[AdmissionState, Outcome, AdmissionFact],
+    Phasing[AdmissionState, AdmissionPhase]
+) extends Capabilities:
   val closable: Capability = Closable(
-    status = ActivityRecord.states.phase,
-    terminal = ActivityRecord.states.terminal,
     rejected = Outcome.notFound
   )
   val pausable: Capability = Pausable(
@@ -128,7 +128,6 @@ object ActivityRecord
     // Paused before any attempt was admitted: the pause a delivery must not get past.
     def paused(s: State) = s.phase == AdmissionPhase.paused
     def running(s: State) = s.phase == AdmissionPhase.started
-    def terminal(p: AdmissionPhase) = p.in[Closed]
     def twoActive(s: State) = s.active == Active.two
     def phase(s: State) = s.phase
 

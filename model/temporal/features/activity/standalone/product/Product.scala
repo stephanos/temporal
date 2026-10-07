@@ -48,7 +48,6 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
 
   object states:
     def status(s: State) = s.phase
-    def terminal(p: Phase) = p.in[Closed]
     val paused = is(phase == Phase.paused)
     val running = is(phase == started)
     val pausable = is(phase.in(scheduled, started))
@@ -98,8 +97,6 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
 
   object capabilities extends Capabilities:
     val closable: Capability = Closable(
-      status = states.status,
-      terminal = states.terminal,
       rejected = Outcome.notFound
     )
     val pausable: Capability = Pausable(

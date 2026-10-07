@@ -41,6 +41,22 @@ object PhasedFixture:
     override def end(s: State) = s.left.phase == Phase.paused
     object syncs extends Syncs
 
+  object DerivedPair extends DerivedComposition(DefaultPair.withMember(_.right -> OverrideEnd)):
+    val phase = summon[Phasing[Pair, Phase]]
+
+  object DerivedAgain extends DerivedComposition(DerivedPair.withMember(_.right -> DefaultEnd)):
+    val phase = summon[Phasing[Pair, Phase]]
+
+  object DerivedOverride extends DerivedComposition(OverridePair.withMember(_.right -> DefaultEnd))
+  object DerivedOverrideAgain
+      extends DerivedComposition(DerivedOverride.withMember(_.right -> OverrideEnd))
+
+  object PlainPair extends Composition[Pair](_.left -> DefaultEnd, _.right -> DefaultEnd):
+    def end(s: State) = true
+    object syncs extends Syncs
+
+  object PlainDerivedPair extends Composition(PlainPair.withMember(_.right -> OverrideEnd))
+
   object OpenEnd
       extends Machine[OpenPhase, Answer, Nothing],
         Phased[OpenPhase, OpenPhase](identity):
@@ -56,6 +72,17 @@ object PhasedFixture:
 
 class PhasedSuite extends munit.FunSuite:
   import PhasedFixture.*
+
+  test("derived compositions retain the source's typed nested phase through chained derivations"):
+    val state = Pair(Snapshot(Phase.done), Snapshot(Phase.waiting))
+    assertEquals(DerivedPair.phase.phase(state), Phase.done)
+    assertEquals(DerivedAgain.phase.phase(state), Phase.done)
+    assert(DerivedPair.end(state))
+    assert(DerivedAgain.end(state))
+    assert(!DerivedOverrideAgain.end(state))
+    assert(DerivedOverrideAgain.end(Pair(Snapshot(Phase.paused), Snapshot(Phase.waiting))))
+    assertEquals(PlainDerivedPair.name, "plainDerivedPair")
+    assertEquals(PlainDerivedPair.members.last, OverrideEnd)
 
   test("default ends accept exactly the Closed phases on machines and nested compositions"):
     val closed: Set[Phase] =

@@ -229,11 +229,33 @@ private[irgen] trait Declarations:
           case _                                           => None
         val derivation = parentArguments(c) match
           case List(d) :: _ if cls.typeRef.derivesFrom(derivedClass) => Some(d)
-          case List(List(d)) if isComposition(d.tpe)                 => Some(d)
+          case List(d) :: _ if isComposition(d.tpe)                  => Some(d)
           case _                                                     => None
         derivation.flatMap(source).filterNot(seen).flatMap(s => from(s, seen + cls))
       }
     from(cls, Set.empty)
+
+  object PhasingRead:
+    def unapply(t: Term): Option[ir.Expr] = phasingRead(t)
+
+  private def phasingRead(t: Term): Option[ir.Expr] =
+    def selected(t: Term): Option[(Term, String, List[TypeRepr], List[Term])] = t match
+      case Apply(fn, args)   => selected(fn).map((r, n, ts, as) => (r, n, ts, as ++ args))
+      case TypeApply(fn, ts) => selected(fn).map((r, n, _, as) => (r, n, ts.map(_.tpe), as))
+      case Select(r, n) if isNamed(r.tpe, "umpire.Phasing") => Some((r, n, Nil, Nil))
+      case _                                                => None
+    selected(t).flatMap { (receiver, name, roles, args) =>
+      boundPhasings.get(receiver.symbol).map { (projection, reader) =>
+        val (parameter, body) = lambda(projection) match
+          case Some((List(p), body)) => (p, body)
+          case _ => fail(projection, "a phase projection is a function of the state")
+        name match
+          case "phase" =>
+            binding(Map.empty, Map.empty, Map(parameter.symbol -> args.head))(lift(body))
+          case "roleCases" => roleSet(body.tpe, roles.head, projection, Some(reader))
+          case _           => fail(t, s"no phase reading $name")
+      }
+    }
 
   // The rules each machine's `Phased` projection is read by, which its lifted reads are placed at
   // (Context.placing): the rules' declaration.

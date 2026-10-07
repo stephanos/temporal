@@ -78,8 +78,9 @@ abstract class Composition[S <: Product] private (
   // for the one its new machine declares it refines; the lifter refuses a new machine of another
   // state type, one that binds no action a sync of the member pairs, and one that refines nothing
   // where the member replaces a machine.
-  def withMember(member: S => (Any, Model)): Composition[S] =
-    new Composition[S](Composition.Shape.With(this, member), mirror) {}
+  def withMember(member: S => (Any, Model)): Composition[S] & DerivedFrom[this.type] =
+    new Composition[S](Composition.Shape.With(this, member), mirror) with DerivedFrom[this.type]:
+      private[umpire] val source: Composition.this.type = Composition.this
 
   // The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
   // a class a Scenario of this composition lists, or the action `whenAction` names. The lifter
@@ -90,6 +91,14 @@ abstract class Composition[S <: Product] private (
   // this composition lists, or the action `whenAction` names. The lifter refuses an action a sync of
   // the member pairs, since that action steps only with its pair.
   def own(member: S => Any, action: Class | Action[?]): Composed = Composed(this, (member, action))
+
+// A composition derivation retaining its source's typed phase and stopping point, like Derived.
+abstract class DerivedComposition[S <: Product, P](derivation: Composition[S])(using
+    source: Inherited[derivation.type, S, P]
+) extends Composition[S](derivation):
+  private[umpire] def sourcePhasing: Phasing[S, P] = Phasing(source.projection(derivation))
+  protected given derivedPhasing: Phasing[S, P] = sourcePhasing
+  final def end(s: S): Boolean = source.end(derivation)(s)
 
 object Composition:
   // How a composition is made: from its members, from another's derivation, or with a member.

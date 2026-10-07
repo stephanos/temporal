@@ -40,8 +40,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   object states:
     def phase(s: State): Phase = s.phase
 
-    def terminal(p: Phase): Boolean = p.in[Closed]
-
     // Every phase after the start, live or over: the phases a control is answered in.
     def created(p: Phase): Boolean = p.in[Live] || p.in[Closed]
 
@@ -127,14 +125,12 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // repeats a request the operation took, a recorded cancel or the terminate that closed it: the
     // operation's own reading of closedIsRejectedUniformly.
     def closedRejectsOrRepeats(m: Machine[State, Outcome, Fact])(
-        status: State => Phase,
-        terminal: Phase => Boolean,
         rejected: Outcome
     ): Property[State] =
       m.property holdsAcross ((before, after) =>
-        !terminal(status(before)) ||
+        !before.phase.in[Closed] ||
           (after.state == before && (after.outcome == rejected || after.outcome == Outcome.accepted &&
-            (before.cancelRequested || status(before) == Phase.terminated)))
+            (before.cancelRequested || before.phase == Phase.terminated)))
       )
 
   // What the operation is, as the laws of model/temporal/capabilities read it: it closes, a client
@@ -150,8 +146,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   // terminate or cancel find leaves the claim inconclusive: its explanations disagree.
   object capabilities extends Capabilities:
     val closable: Capability = Closable(
-      status = states.phase,
-      terminal = states.terminal,
       rejected = Outcome.alreadyCompleted
     )
     val terminable: Capability = Terminable(

@@ -443,6 +443,7 @@ private[irgen] trait Expressions:
     case _ => t
 
   def lift(t: Term, expected: Option[TypeRepr] = None): ir.Expr = t match
+    case PhasingRead(read) => read
     // A step made where no step function is: the expression is at the wrong level.
     case _: Apply if makesSteps(t.tpe) && !making._1 => wrongLevel(t)
 

@@ -514,7 +514,8 @@ private[irgen] trait Claims:
       args: List[(ValDef, Term)],
       types: Map[Symbol, TypeRepr],
       env: Map[Symbol, Decl],
-      named: Option[Symbol]
+      named: Option[Symbol],
+      phasings: Map[Symbol, (Term, String)] = Map.empty
   ): Decl =
     val functions = args.collect {
       case (p, a) if p.tpt.tpe.dealias.isFunctionType => p.symbol -> boundDef(p, d, a)
@@ -528,7 +529,7 @@ private[irgen] trait Claims:
           .get(p.symbol)
           .fold(argument(p, d, a, env))(f => Decl.FunctionRef(functionName(f)))
     }
-    binding(functions, types, values)(fold(d.rhs.get, bound.toMap, named))
+    binding(functions, types, values, phasings)(fold(d.rhs.get, bound.toMap, named))
 
   // Whether a parameter takes a value an expression or a class reads, such as an outcome, a fact or
   // an action class, rather than one the fold reads: a model, a claim, Limits, a string, an integer,

@@ -441,7 +441,8 @@ trait Phased[S, P](private[umpire] val projection: S => P)(using
 object Phased extends Inherited.Unphased:
   // A source that mixes in `Phased[S, P]` projects its state onto `P` by its own projection.
   // Core form: the source's `Phasing(_.phase)`.
-  given source[S, P, T <: Phased[S, P]]: Inherited[T, S, P] = Inherited(_.projection)
+  given source[S, P, T <: Phased[S, P]]: Inherited[T, S, P] =
+    Inherited(_.projection, _.end)
 
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`

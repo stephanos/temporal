@@ -59,6 +59,25 @@ class CatalogTest extends munit.FunSuite:
     assertEquals(underInstantiated(properties, declared), Seq.empty)
   }
 
+  test("every Closable site binds only its rejection, including all four derived owners") {
+    val closables = Seq(
+      product.ActivityProduct.capabilities.closable,
+      system.ActivityRecord.capabilities.closable,
+      system.TrustingActivityRecord.capabilities.closable,
+      system.RecordOverQueue.capabilities.closable,
+      system.RecordOverMatching.capabilities.closable,
+      system.TrustingRecordOverQueue.capabilities.closable,
+      system.TrustingRecordOverMatching.capabilities.closable,
+      system.RecordOverLossyMatching.capabilities.closable,
+      NexusSystem.capabilities.closable
+    )
+    assertEquals(closables.size, 9)
+    for closable <- closables do
+      closable match
+        case product: Product => assertEquals(product.productElementNames.toSeq, Seq("rejected"))
+        case _                => fail(s"$closable is no rejection binding")
+  }
+
   test("a Property brought to one state type fails by name; derived machines count once") {
     val record = declared.filter(_.state == classOf[system.AdmissionState].getName)
     assertEquals(record.map(_.machine), Seq("activityRecord", "trustingActivityRecord"))
