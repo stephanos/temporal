@@ -670,6 +670,9 @@ func revalidate(root string, read map[string]string) error {
 		if !found {
 			return fmt.Errorf("%s appeared", relative)
 		}
+		if !entry.Type().IsRegular() {
+			return fmt.Errorf("%s changed", relative)
+		}
 		got, err := fileDigest(path)
 		if err != nil {
 			return err

@@ -1,0 +1,10 @@
+{
+  "base": "717a2de678c743e0f47e07608f94dada3d315330",
+  "acceptance_preserved": true,
+  "historical_summary_and_blocks_preserved": true,
+  "evidence_preserved": true,
+  "original_dependency": "fn-113-gomad-reduce-version-pin-maintenance.1 (unchanged)",
+  "actual_task_status": "blocked",
+  "task_done": false,
+  "formal_ship": false
+}

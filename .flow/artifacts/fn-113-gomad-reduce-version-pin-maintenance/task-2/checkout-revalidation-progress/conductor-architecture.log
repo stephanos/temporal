@@ -1,0 +1,13 @@
+=== RUN   TestPackageArchitecture
+--- PASS: TestPackageArchitecture (4.37s)
+=== RUN   TestPublicPackagesDoNotExportTypeAliases
+--- PASS: TestPublicPackagesDoNotExportTypeAliases (123.37s)
+=== RUN   TestPureModulesHaveNoHostEffects
+--- PASS: TestPureModulesHaveNoHostEffects (41.02s)
+=== RUN   TestExactModuleEdges
+--- PASS: TestExactModuleEdges (0.81s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	169.592s
+real 170.16
+user 64.93
+sys 74.62

@@ -1,0 +1,32 @@
+=== RUN   TestRunCheckoutRevalidation
+=== RUN   TestRunCheckoutRevalidation/unchanged-regular
+=== RUN   TestRunCheckoutRevalidation/same-byte-regular-replacement
+=== RUN   TestRunCheckoutRevalidation/changed-regular
+=== RUN   TestRunCheckoutRevalidation/same-byte-symlink-replacement
+    checkout_revalidation_test.go:116: checkout refusal = <nil>, want "toolchain/version/generated.txt changed"
+    checkout_revalidation_test.go:121: checkout drift lost BlockedError classification: <nil>
+    checkout_revalidation_test.go:125: refused checkout published: applied = true, paths = [deterministicio/adapter_registry_test.go deterministicio/sentry_adapter.go deterministicio/testdata/pebble/go.mod deterministicio/testdata/pebble/go.sum deterministicio/testdata/sentry/go.mod deterministicio/testdata/sentry/go.sum toolchain/version/generated.txt toolchain/version/version.json], staged = 8, publication started = true
+    checkout_revalidation_test.go:135: user symlink was changed: target = "", error = readlink /home/agent/.cache/codex-build/tmp/TestRunCheckoutRevalidationsame-byte-symlink-replacement3037985871/001/toolchain/version/generated.txt: invalid argument
+    checkout_revalidation_test.go:142: toolchain/version/version.json changed
+    checkout_revalidation_test.go:142: deterministicio/testdata/pebble/go.sum changed
+    checkout_revalidation_test.go:142: toolchain/version/generated.txt changed
+    checkout_revalidation_test.go:142: deterministicio/adapter_registry_test.go changed
+    checkout_revalidation_test.go:142: deterministicio/testdata/sentry/go.mod changed
+    checkout_revalidation_test.go:142: deterministicio/sentry_adapter.go changed
+    checkout_revalidation_test.go:142: deterministicio/testdata/pebble/go.mod changed
+    checkout_revalidation_test.go:142: deterministicio/testdata/sentry/go.sum changed
+=== RUN   TestRunCheckoutRevalidation/new-symlink
+=== RUN   TestRunCheckoutRevalidation/initial-symlink
+--- FAIL: TestRunCheckoutRevalidation (2.60s)
+    --- PASS: TestRunCheckoutRevalidation/unchanged-regular (0.69s)
+    --- PASS: TestRunCheckoutRevalidation/same-byte-regular-replacement (0.45s)
+    --- PASS: TestRunCheckoutRevalidation/changed-regular (0.43s)
+    --- FAIL: TestRunCheckoutRevalidation/same-byte-symlink-replacement (0.38s)
+    --- PASS: TestRunCheckoutRevalidation/new-symlink (0.33s)
+    --- PASS: TestRunCheckoutRevalidation/initial-symlink (0.33s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/adapterregen	2.612s
+FAIL
+real 3.08
+user 1.64
+sys 2.59

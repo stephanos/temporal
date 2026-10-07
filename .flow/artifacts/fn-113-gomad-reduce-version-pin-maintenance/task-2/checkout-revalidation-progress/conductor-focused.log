@@ -1,0 +1,19 @@
+=== RUN   TestRunCheckoutRevalidation
+=== RUN   TestRunCheckoutRevalidation/unchanged-regular
+=== RUN   TestRunCheckoutRevalidation/same-byte-regular-replacement
+=== RUN   TestRunCheckoutRevalidation/changed-regular
+=== RUN   TestRunCheckoutRevalidation/same-byte-symlink-replacement
+=== RUN   TestRunCheckoutRevalidation/new-symlink
+=== RUN   TestRunCheckoutRevalidation/initial-symlink
+--- PASS: TestRunCheckoutRevalidation (2.86s)
+    --- PASS: TestRunCheckoutRevalidation/unchanged-regular (0.62s)
+    --- PASS: TestRunCheckoutRevalidation/same-byte-regular-replacement (0.55s)
+    --- PASS: TestRunCheckoutRevalidation/changed-regular (0.44s)
+    --- PASS: TestRunCheckoutRevalidation/same-byte-symlink-replacement (0.41s)
+    --- PASS: TestRunCheckoutRevalidation/new-symlink (0.40s)
+    --- PASS: TestRunCheckoutRevalidation/initial-symlink (0.44s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade/adapterregen	2.869s
+real 3.34
+user 1.81
+sys 1.31

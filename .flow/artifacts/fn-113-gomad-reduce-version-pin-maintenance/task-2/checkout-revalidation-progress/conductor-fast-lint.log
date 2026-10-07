@@ -1,0 +1,44 @@
+Lint module tools/gomad3: 55 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+level=info msg="golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+level=info msg="[config_reader] Used config file ../../.github/.golangci.yml"
+level=info msg="[config_reader] Module name \"go.temporal.io/server/tools/gomad3\""
+level=info msg="[goenv] Read go env for 1.21975ms: map[string]string{\"GOCACHE\":\"/home/agent/.cache/go-build\", \"GOROOT\":\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64\"}"
+level=info msg="[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]"
+level=info msg="[loader] Using build tags: [test_dep]"
+level=info msg="[loader] Go packages loading at mode 8767 (exports_file|imports|compiled_files|deps|files|name|types_sizes) took 534.921626ms"
+level=info msg="[runner/filename_unadjuster] Pre-built 0 adjustments in 69.256417ms"
+level=info msg="[linters_context/goanalysis] analyzers took 2.48651527s with top 10 stages: revive: 1.062103292s, goimports: 145.290583ms, gci: 82.896834ms, buildir: 76.173599ms, forbidigo: 33.322958ms, stdversion: 32.352875ms, exhaustive: 30.996706ms, S1038: 30.560959ms, S1008: 29.582833ms, SA4021: 28.156125ms"
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^api\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^proto\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^.git\""
+level=info msg="[runner/exclusion_rules] Skipped 74 issues by rules: [Text: \"time.Now\", Path Except: \"chasm/lib/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path: \"chasm/lib/.*_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"use of `softassert\\\\.\\\\w+`\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 163 issues by rules: [Text: \"(cyclomatic|cognitive)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\", Linters: \"staticcheck\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path: \"_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 7 issues by rules: [Text: \"panic\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"chasm/lib/activity/model/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"FunctionalTestBase\", Path: \"tests/testcore/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"ActiveInCluster\", Path: \"common/namespace/(namespace|replication_resolver)(_test)?\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 10 issues by rules: [Text: \"(dot-imports|unchecked-type-assertion)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 1403 issues by rules: [Path: \"^tools\\\\/.+\\\\.go\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 3 issues by rules: [Text: \"time.Sleep\", Path Except: \"_test\\\\.go|tests/.+\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"context.Background\", Path Except: \"tests/.+_test\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 1 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path Except: \"common/persistence/cassandra/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Eventually\", Path: \"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"assert\\\\.CollectT\", Path: \"tests/(nexus_standalone|nexus_workflow)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner] Issues before processing: 1964, after processing: 0"
+level=info msg="[runner] Processors filtering stat (in/out): filename_unadjuster: 1964/1964, generated_file_filter: 1964/1964, nolint_filter: 303/302, cgo: 1964/1964, exclusion_paths: 1964/1964, diff: 302/0, path_absoluter: 1964/1964, invalid_issue: 1964/1964, path_relativity: 1964/1964, exclusion_rules: 1964/303"
+level=info msg="[runner] processing took 344.949421ms with stages: diff: 198.1345ms, nolint_filter: 81.218792ms, generated_file_filter: 55.576875ms, exclusion_rules: 8.27825ms, path_relativity: 1.208251ms, exclusion_paths: 404.251µs, invalid_issue: 45.542µs, cgo: 44.25µs, path_absoluter: 20.417µs, filename_unadjuster: 7.834µs, sort_results: 4.375µs, fixer: 3.083µs, max_same_issues: 958ns, path_shortener: 500ns, severity-rules: 500ns, path_prettifier: 334ns, source_code: 292ns, uniq_by_line: 209ns, max_per_file_from_linter: 125ns, max_from_linter: 83ns"
+level=info msg="[runner] linters took 1.349490084s with stages: goanalysis_metalinter: 1.004269875s"
+0 issues.
+level=info msg="File cache stats: 0 entries of total size 0B"
+level=info msg="Memory: 21 samples, avg is 124.2MB, max is 200.8MB"
+level=info msg="Execution took 1.960287709s"
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+real 3.81
+user 4.95
+sys 3.72

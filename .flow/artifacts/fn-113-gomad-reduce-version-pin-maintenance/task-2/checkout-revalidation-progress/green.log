@@ -1,0 +1,37 @@
+1b710dec9c0bb7e8517d919682e853b97ff0bf76dfa9d70d3fc39a3cd6825986  tools/gomad3/upgrade/adapterregen/transaction.go
+bb622e84650b111c6bf349a6265bbb13492ebb7b089876f82a359c65e5bde7ce  tools/gomad3/upgrade/adapterregen/checkout_revalidation_test.go
+{"Time":"2026-10-07T16:30:21.421075707Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen"}
+{"Time":"2026-10-07T16:30:21.427717832Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation"}
+{"Time":"2026-10-07T16:30:21.427796332Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation","Output":"=== RUN   TestRunCheckoutRevalidation\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:21.427867582Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/unchanged-regular"}
+{"Time":"2026-10-07T16:30:21.427907291Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/unchanged-regular","Output":"=== RUN   TestRunCheckoutRevalidation/unchanged-regular\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:22.333652874Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/unchanged-regular","Output":"--- PASS: TestRunCheckoutRevalidation/unchanged-regular (0.90s)\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:22.334050166Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/unchanged-regular","Elapsed":0.9}
+{"Time":"2026-10-07T16:30:22.334530291Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/same-byte-regular-replacement"}
+{"Time":"2026-10-07T16:30:22.335049041Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/same-byte-regular-replacement","Output":"=== RUN   TestRunCheckoutRevalidation/same-byte-regular-replacement\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:23.259167208Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/same-byte-regular-replacement","Output":"--- PASS: TestRunCheckoutRevalidation/same-byte-regular-replacement (0.93s)\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:23.263657583Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/same-byte-regular-replacement","Elapsed":0.93}
+{"Time":"2026-10-07T16:30:23.263871583Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/changed-regular"}
+{"Time":"2026-10-07T16:30:23.264028125Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/changed-regular","Output":"=== RUN   TestRunCheckoutRevalidation/changed-regular\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:24.156103584Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/changed-regular","Output":"--- PASS: TestRunCheckoutRevalidation/changed-regular (0.90s)\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:24.157213292Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/changed-regular","Elapsed":0.9}
+{"Time":"2026-10-07T16:30:24.157270125Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/same-byte-symlink-replacement"}
+{"Time":"2026-10-07T16:30:24.157455Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/same-byte-symlink-replacement","Output":"=== RUN   TestRunCheckoutRevalidation/same-byte-symlink-replacement\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:24.75500925Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/same-byte-symlink-replacement","Output":"--- PASS: TestRunCheckoutRevalidation/same-byte-symlink-replacement (0.60s)\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:24.755361834Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/same-byte-symlink-replacement","Elapsed":0.6}
+{"Time":"2026-10-07T16:30:24.755749625Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/new-symlink"}
+{"Time":"2026-10-07T16:30:24.755929209Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/new-symlink","Output":"=== RUN   TestRunCheckoutRevalidation/new-symlink\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:25.467120168Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/new-symlink","Output":"--- PASS: TestRunCheckoutRevalidation/new-symlink (0.71s)\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:25.467588918Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/new-symlink","Elapsed":0.71}
+{"Time":"2026-10-07T16:30:25.467647876Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/initial-symlink"}
+{"Time":"2026-10-07T16:30:25.467681709Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/initial-symlink","Output":"=== RUN   TestRunCheckoutRevalidation/initial-symlink\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:26.386679918Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/initial-symlink","Output":"--- PASS: TestRunCheckoutRevalidation/initial-symlink (0.92s)\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:26.38718496Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation/initial-symlink","Elapsed":0.92}
+{"Time":"2026-10-07T16:30:26.388162418Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation","Output":"--- PASS: TestRunCheckoutRevalidation (4.96s)\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:26.388273293Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Test":"TestRunCheckoutRevalidation","Elapsed":4.96}
+{"Time":"2026-10-07T16:30:26.388312251Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-07T16:30:26.401691126Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Output":"ok  \tgo.temporal.io/server/tools/gomad3/upgrade/adapterregen\t4.979s\n"}
+{"Time":"2026-10-07T16:30:26.401815168Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/upgrade/adapterregen","Elapsed":4.981}
+real 5.83
+user 2.70
+sys 1.61

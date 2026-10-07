@@ -1,0 +1,164 @@
+{
+  "base": "717a2de678c743e0f47e07608f94dada3d315330",
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "host": "linux/arm64, stock Go 1.27.1, offline",
+  "baseline_transaction_sha256": "7b1daf2868cac62ef0740c0ec63b143c49e2db8c84a34e85fb096e91dd7e65f8",
+  "checks": [
+    {
+      "name": "focused",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^TestRunCheckoutRevalidation$' ./upgrade/adapterregen",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-focused.log",
+      "timing": "Bash time -p real in log",
+      "shell_real_seconds": 3.34
+    },
+    {
+      "name": "scoped-lint-base",
+      "command": "GOFLAGS=-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/checkout-revalidation-base/overlay.json bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/adapterregen'",
+      "exit_code": 1,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-scoped-lint-base.log",
+      "timing": "Bash time -p real in log",
+      "shell_real_seconds": 1.83
+    },
+    {
+      "name": "scoped-lint-final",
+      "command": "bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/adapterregen'",
+      "exit_code": 1,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-scoped-lint-final.log",
+      "timing": "Bash time -p real in log",
+      "shell_real_seconds": 0.59
+    },
+    {
+      "name": "vet",
+      "command": "go -C tools/gomad3 vet -tags test_dep ./upgrade/adapterregen",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-vet.log",
+      "timing": "Bash time -p real in log",
+      "shell_real_seconds": 0.19
+    },
+    {
+      "name": "errortype",
+      "command": "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/adapterregen",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-errortype.log",
+      "timing": "Bash time -p real in log",
+      "shell_real_seconds": 0.23
+    },
+    {
+      "name": "validate",
+      "command": "make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-validate.log",
+      "timing": "Bash time -p real in log",
+      "shell_real_seconds": 5.35
+    },
+    {
+      "name": "architecture",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases)$' .",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-architecture.log",
+      "timing": "Bash time -p real in log",
+      "shell_real_seconds": 170.16
+    },
+    {
+      "name": "fast-lint",
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=717a2de678c743e0f47e07608f94dada3d315330 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-fast-lint.log",
+      "timing": "Bash time -p real in log",
+      "shell_real_seconds": 3.81
+    }
+  ],
+  "required_acceptance": {
+    "Darwin_native_full_default_functional_affected_consumer": "open where unproved",
+    "Linux": "deferred and unverified under fn128",
+    "task_done": false,
+    "formal_ship": false
+  },
+  "out_of_scope": "Recover independently uses fileDigest; neither it nor the existing check/publication race is changed.",
+  "source_hashes_verified": {
+    "tools/gomad3/upgrade/adapterregen/transaction.go": "1b710dec9c0bb7e8517d919682e853b97ff0bf76dfa9d70d3fc39a3cd6825986",
+    "tools/gomad3/upgrade/adapterregen/checkout_revalidation_test.go": "bb622e84650b111c6bf349a6265bbb13492ebb7b089876f82a359c65e5bde7ce"
+  },
+  "scoped_lint": {
+    "issues_base": 2,
+    "issues_final": 2,
+    "diagnostics_identical_ignoring_shell_timings": true,
+    "binding_base": "exact baseline transaction.go with final tests",
+    "binding_final": "final frozen transaction.go and tests",
+    "issues": "unchecked lock.Release at transaction.go:89 and :219"
+  },
+  "mandatory_fast_lint": {
+    "exit_code": 0,
+    "configured_residual_findings_before_diff": 302,
+    "changed_line_issues": 0,
+    "full_lint_clean": false
+  },
+  "counts": {
+    "worker_portable": {
+      "top_level_tests": 25,
+      "passing_test_records": 45,
+      "terminal_leaves": 40,
+      "failed_test_records": 0,
+      "skipped_test_records": 0
+    },
+    "worker_focused": {
+      "top_level_tests": 1,
+      "passing_test_records": 7,
+      "terminal_leaves": 6,
+      "failed_test_records": 0,
+      "skipped_test_records": 0
+    },
+    "conductor_focused": {
+      "top_level_tests": 1,
+      "passing_test_records": 7,
+      "terminal_leaves": 6,
+      "failed_test_records": 0,
+      "skipped_test_records": 0
+    }
+  },
+  "evidence_sha256": {
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/baseline-rerun.log": "be7e57eb91c42814ba4fab354b68f789cbd0a623f57881b5ab21069255d1ad03",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/baseline.log": "8316a64b8e872acb245084d5dddfbcdb929506eb71e50dd5ac8e0e3ea1c2d50c",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-architecture.log": "26fa3fd0b6ce3fa64f543b4530b5ad48b3bc95528847e3a22c76b60fc70375ba",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-errortype.log": "c7ed0bd8ccd9b69feb0c0554df6c82ff95d5a5d5993ccb78b6d9f3874a081d16",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-fast-lint.log": "4d7b81cdc7a3269ae9b8612b8a7fa8464a801040829432002eb7431e39e2118c",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-focused.log": "c3a667e450188dbad6cde70af63f03e2565cddf92fcfab2bb06235cbc548d588",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-scoped-lint-base.log": "50d342c4a32342f764ed6793426f2e8e1285825cace744531174e476c987c2f9",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-scoped-lint-final.log": "3032d551a68925e1cef0ff813276646ac3a73bd992388ef063b434715e6f1201",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-validate.log": "d6442b284f51d1db1f27afd1f822285ff25bf3778db6cda62e99eb8fe0c18eb4",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/conductor-vet.log": "3a5ffbde29340ad286bd6a1fc5fcc1e1102de4a312637b20743d4f3f4e72cb68",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/diff-check.log": "c75497506d3c6ce7811971be661fe5d204f275ee239d3dd5cd05840ddb08d1b9",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/flow-validate.json": "ca9d58d243418c44683a4677c70d1e9277f099f241a40655eb29739ec03b9f3e",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/gofmt.log": "cfd14b01dd439329be0b4766d9dd0cfe270dd3cf3657880ea7509f17209e991f",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/green.log": "6e99626b8c5d8dbb33f196670b482ef37c80fca38e162b43eefd8537021b48d5",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/portable.log": "2eeafc47c099a12b212157c8ee4dc240e388551be2ca9c8b61f0a54a1a991222",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/red-final.log": "0a94c6e5ded6e3efa2552dd92357b77ebb166a639f5d0caca692c682b7bcecfd",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/red.log": "ddf3d80b6d278970835e80e132da13a0d7c483b9514ea0f396a143332f6b77f5",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/worker-handover.md": "2e77b208a5dee79e92384b81f1f499a2d3ab6de1cdfe3321d231c0c30ee60c38",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/checkout-revalidation-progress/worker-observations.json": "3481c71854bfb38144a701a1c4dd89a022b41049eb5f3fea25582f15fed417df"
+  },
+  "flow_validation": {
+    "exit_code": 0,
+    "valid": true,
+    "specs": 21,
+    "tasks": 190,
+    "errors": 0,
+    "warnings": 2,
+    "inherited_warnings": "fn104 R4; fn107 R10/R12/R7/R8"
+  },
+  "gofmt": {
+    "listed_files": 0
+  },
+  "diff_check": {
+    "exit_code": 0
+  },
+  "input_hashes": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "golangci_lint": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+    "lint_config": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+    "go_mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+    "go_sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+  }
+}

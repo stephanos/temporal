@@ -1,0 +1,164 @@
+{
+  "success": true,
+  "valid": true,
+  "root_errors": [],
+  "root_warnings": [],
+  "specs": [
+    {
+      "spec": "fn-95-gomad-f1-restore-the-checkout-on",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 4
+    },
+    {
+      "spec": "fn-96-gomad-f2-close-the-go127-port-on",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 4
+    },
+    {
+      "spec": "fn-97-gomad-f3-qualify-the-frontend",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 3
+    },
+    {
+      "spec": "fn-98-gomad-f4-close-the-tests-capability",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 5
+    },
+    {
+      "spec": "fn-99-gomad-f5-one-workflow-executing",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 2
+    },
+    {
+      "spec": "fn-100-gomad-f6-a-package-level-functional",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 4
+    },
+    {
+      "spec": "fn-101-gomad-f7-any-functional-test-and-ci",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 6
+    },
+    {
+      "spec": "fn-102-gomad-architecture-consolidate",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 6
+    },
+    {
+      "spec": "fn-103-gomad-seeded-virtual-clock-ticks",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 2
+    },
+    {
+      "spec": "fn-104-gomad-run-a-downstream-cell-under-the",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Spec fn-104-gomad-run-a-downstream-cell-under-the: uncovered R-IDs: R4"
+      ],
+      "task_count": 6
+    },
+    {
+      "spec": "fn-105-gomad-follow-ups-deferred-scope",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 32
+    },
+    {
+      "spec": "fn-106-gomad-close-the-remaining-tests-gaps",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 5
+    },
+    {
+      "spec": "fn-107-gomad-finish-downstream-cell",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "Spec fn-107-gomad-finish-downstream-cell: uncovered R-IDs: R10, R12, R7, R8"
+      ],
+      "task_count": 7
+    },
+    {
+      "spec": "fn-108-gomad-reduce-code-size-without-removing",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 8
+    },
+    {
+      "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 45
+    },
+    {
+      "spec": "fn-110-gomad-minimize-the-runtime-patch",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 5
+    },
+    {
+      "spec": "fn-111-gomad-consolidate-vocabulary-and-update",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 3
+    },
+    {
+      "spec": "fn-112-gomad-determinism-assurance-and-test",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 16
+    },
+    {
+      "spec": "fn-113-gomad-reduce-version-pin-maintenance",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 4
+    },
+    {
+      "spec": "fn-114-gomad-correct-search-path-defects-and",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 16
+    },
+    {
+      "spec": "fn-128-gomad-deferred-linux-qualification-and",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 7
+    }
+  ],
+  "total_specs": 21,
+  "total_epics": 21,
+  "total_tasks": 190,
+  "total_errors": 0,
+  "total_warnings": 2
+}

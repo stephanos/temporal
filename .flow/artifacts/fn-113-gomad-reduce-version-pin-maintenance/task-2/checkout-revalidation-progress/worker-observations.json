@@ -1,0 +1,77 @@
+{
+  "task_id": "fn-113-gomad-reduce-version-pin-maintenance.2",
+  "status": "in_progress",
+  "scope": "checkout type drift source progress",
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "branch": "gomad",
+  "base_commit": "717a2de678c743e0f47e07608f94dada3d315330",
+  "commits": [],
+  "prs": [],
+  "review": "host-deferred; conductor-owned; no formal verdict",
+  "tier": "Tier: project implementer (judge unavailable no_key, explicit routing honored).",
+  "environment": {
+    "go_command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "go_version": "go version go1.27.1 linux/arm64",
+    "go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "PATH_prefix": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOWORK": "off",
+    "GOENV": "off",
+    "fixture_proxy": "newFixture supplies its existing file:// proxy after reading the cached exact pinned Sentry tree",
+    "timing": "Bash time -p footer in each raw command log; timeout 600 around each test command"
+  },
+  "source_sha256": {
+    "base_transaction.go": "7b1daf2868cac62ef0740c0ec63b143c49e2db8c84a34e85fb096e91dd7e65f8",
+    "transaction.go": "1b710dec9c0bb7e8517d919682e853b97ff0bf76dfa9d70d3fc39a3cd6825986",
+    "checkout_revalidation_test.go": "bb622e84650b111c6bf349a6265bbb13492ebb7b089876f82a359c65e5bde7ce",
+    "initial_red_checkout_revalidation_test.go": "2ebca12bdff4435604ba2b5b3749469a5ffa11c9ac63b3f0d180abb06c875127",
+    "adapterregen.go": "a29340699742fb6ce2245d32bc3864c39fcb4fc122e520bb6c96e378018f8fea",
+    "adapterregen_test.go": "83376d34035650372cf2c70622b382fd1fcf8931e5cb616b50823407bfbc358c",
+    "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+    "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+    "tools/gomad3/toolchain/version/version.json": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+    "tools/gomad3/Makefile": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd",
+    ".flow/config.json": "f7647235bfe3ffbbd86c2d88b85816ea67f133a7b23c79a97b55897678cfce23",
+    "AGENTS.md": "fe21317a19b431baba336c255867a0089990ced3063ff63f2edacb52ef43ca7c",
+    "MILESTONES.md": "9f0aab973ddfd6757eb955dc54fdae8a4e68c0c1976f58ba8823e5001743105d"
+  },
+  "tests": [
+    "timeout 600 go -C tools/gomad3 test -tags test_dep -count=1 -json ./upgrade/adapterregen",
+    "timeout 600 go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^TestRunCheckoutRevalidation$' ./upgrade/adapterregen",
+    "gofmt -l tools/gomad3/upgrade/adapterregen/transaction.go tools/gomad3/upgrade/adapterregen/checkout_revalidation_test.go",
+    "git diff --check"
+  ],
+  "observations": [
+    {"stage": "baseline", "log": "baseline-rerun.log", "command": "timeout 600 go -C tools/gomad3 test -tags test_dep -count=1 -json ./upgrade/adapterregen", "exit_code": 0, "shell_real_seconds": 18.50, "source": "base transaction; additive test absent", "top_level_tests": 24, "passing_records": 38, "passing_leaves": 34, "failures": 0, "skips": 0},
+    {"stage": "initial RED", "log": "red.log", "command": "timeout 600 go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^TestRunCheckoutRevalidation$' ./upgrade/adapterregen", "exit_code": 1, "shell_real_seconds": 6.97, "source": "base transaction; initial_red_checkout_revalidation_test.go binding", "passing_leaves": 5, "failing_leaves": 1, "skips": 0, "failure": "same-byte-symlink-replacement returned successful publication; initial verbose diagnostic then snapshot FailNow"},
+    {"stage": "final RED", "log": "red-final.log", "command": "timeout 600 go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^TestRunCheckoutRevalidation$' ./upgrade/adapterregen", "exit_code": 1, "shell_real_seconds": 7.45, "source": "base transaction; final checkout_revalidation_test.go binding", "passing_leaves": 5, "failing_leaves": 1, "skips": 0, "failure": "same-byte-symlink-replacement returned nil error, Applied=true, eight published paths and publication started; Readlink EINVAL proves user symlink was overwritten"},
+    {"stage": "GREEN", "log": "green.log", "command": "timeout 600 go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^TestRunCheckoutRevalidation$' ./upgrade/adapterregen", "exit_code": 0, "shell_real_seconds": 5.83, "source": "final transaction and test bindings", "passing_leaves": 6, "failures": 0, "skips": 0},
+    {"stage": "all portable adapterregen", "log": "portable.log", "command": "timeout 600 go -C tools/gomad3 test -tags test_dep -count=1 -json ./upgrade/adapterregen", "exit_code": 0, "shell_real_seconds": 40.54, "source": "final transaction and test bindings", "top_level_tests": 25, "passing_records": 45, "passing_leaves": 40, "failures": 0, "skips": 0},
+    {"stage": "format", "log": "gofmt.log", "command": "gofmt -l tools/gomad3/upgrade/adapterregen/transaction.go tools/gomad3/upgrade/adapterregen/checkout_revalidation_test.go", "exit_code": 0, "shell_real_seconds": 0.01, "listed_files": 0},
+    {"stage": "diff", "log": "diff-check.log", "command": "git diff --check", "exit_code": 0, "shell_real_seconds": 0.04},
+    {"stage": "unchanged supporting source", "command": "git diff --exit-code HEAD -- tools/gomad3/upgrade/adapterregen/adapterregen.go tools/gomad3/upgrade/adapterregen/adapterregen_test.go tools/gomad3/go.mod tools/gomad3/go.sum tools/gomad3/toolchain/version/version.json", "exit_code": 0}
+  ],
+  "controls": [
+    "unchanged-regular publishes",
+    "same-byte-regular-replacement with distinct inode publishes",
+    "changed-regular is blocked and intact",
+    "same-byte-symlink-replacement is blocked, symlink intact, external bytes and other checkout content unchanged",
+    "new-symlink retains appeared precedence, symlink intact, no publication",
+    "initial-symlink rejected by copyCheckout, no publication"
+  ],
+  "errors_and_intermediate_observations": [
+    {"operation": "initial required-file discovery", "exit_code": 2, "detail": "rg received the not-yet-created artifact directory; discovery/read retried separately before tests or production edits"},
+    {"operation": "baseline launcher", "log": "baseline.log", "exit_code": 127, "detail": "/usr/bin/time is absent; no test executed; corrected to Bash time -p"},
+    {"operation": "GitHub prior-fix authentication", "detail": "gh auth status reports invalid GH_TOKEN; PR/tracker sources unchecked"},
+    {"operation": "source hash metadata", "detail": "sha256sum reported missing .golangci.yml, then missing .golangci.yaml and tools/gomad3/.golangci.yaml; resolved actual .github/.golangci.yml and recorded its hash; these failed metadata paths supply no test evidence"},
+    {"operation": "initial RED diagnostics", "detail": "test diagnostics refined before production edits so Readlink and external checks run before the snapshot assertion; final RED and GREEN have the identical test hash"}
+  ],
+  "conductor_owned_checks": ["full/scoped lint", "vet", "errortype", "check-only validate", "architecture", "mandatory make lint-code-fast", "fresh independent source-progress review", "commit and Flow lifecycle"],
+  "open_acceptance": ["task1 dependency", "original R3 regeneration acceptance", "native Darwin", "full/default/functional", "affected consumers", "formal requirements"],
+  "linux": "deferred and unverified under fn128",
+  "out_of_scope": ["TOCTOU after revalidation", "independent Recover semantics"],
+  "live_commands": []
+}
