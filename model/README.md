@@ -469,10 +469,26 @@ The IR generator reads what an author wrote, as written:
   monitor, a Property, a progress claim or a Scenario's start (model/SEMANTICS.md, "Levels").
 - **Realization script helpers** (core, `umpire/realize/Scripts.scala`): `script(id, activation)`
   of `everyCase(command)`, `onPath(classes*)(command)` and `perform(step -> command, …)` items;
-  `command(instruction, …)`; `rpc(role, method) { … }`, `readUntil(…) { … }` and
-  `call.withFields { … }`, which appends assignments and keeps the call's name;
+  `command(instruction, …)`; `rpc(role, method) { … }`, `readUntil(…) { … }`,
+  `call.withFields { … }`, which appends assignments and keeps the call's name, and
+  `call.extended { … }`, which appends assignments and reads as a command of its own;
+  `aliasOf(command)(instruction)`, a command that takes another's name;
   `statusTable(fact -> value, …)`. A command is named after its `val` in kebab case
-  (`val pauseActivity` is `pause-activity`) unless written out as `Command(id, …)`. A declaration
+  (`val pauseActivity` is `pause-activity`) unless written out as `Command(id, …)`. Evidence that
+  names a call, such as `answered(fact, call)`, matches every `withFields` variant of it, since
+  each keeps the call's name. A feature file (a file under a `features` directory) writes the
+  kit's lower-case instruction forms, `fault`, `hold`, `release`, `finish`, `command`,
+  `awaitCommand`, `awaitLearned`, `attemptFailure`, `attemptCanceled`, `workflowCommand`,
+  `nexusReply` and `nexusCompletion` (`temporal/realize/Kit.scala`), never their case classes, and
+  never writes a command out with `Command(id, …)`: two commands of one realization share a name
+  only through `aliasOf`, or as `withFields` variants of one call. The kit's evidence modules
+  (`temporal/realize/Modules.scala`) declare once what realizations wrote alike:
+  `RequestBase(role, "namespace" -> …, "activity_id" -> run)`, the fields every call on the base
+  assigns first (a field by its protobuf name, at the request's top or in one message field);
+  `DescribedStatus(calls, method, info, operation, status)(fact -> value, …)`, with
+  `described(fact)`, `described.evidence` and `described.await(fact)` (named `await-<status>`); and
+  `HistoryEvidence(key, factPrefix)(HistoryKind(fact, _.attributes.x), …)`, exhaustive kinds whose
+  closing read names `evidence` in its `closes`. A declaration
   referred to by value is written as its id, a monitor as its name
   (`MonitorExpectation(terminalFinality, …)` in a Query's expected Run), and a fact as
   its enum case, or the companion of a case with fields. A lookup `table(fact)` is resolved when
@@ -491,7 +507,12 @@ The IR generator reads what an author wrote, as written:
   it records. A named call `start(scheduleToStart := expires)` lifts as the positional
   `start(unset, expires, unset)`. The kit's `field(_.name) := operand`, in
   `temporal/realize/Syntax.scala`, lifts as `Assignment.typed(Field[Req, V](_.name), operand)`,
-  where `Req` is the request type of the scope the enclosing `rpc` or `readUntil` opened.
+  where `Req` is the request type of the scope the enclosing `rpc` or `readUntil` opened; a message
+  written out for a message field of the request assigns each field it sets.
+  `proto[M] { field(_.x) := value }` lifts as `Proto[M](ProtoField.typed(Field[M, V](_.x), …))`,
+  each value's protobuf kind read from its field, a nested message written in the scope after its
+  field, `field(_.info) { … }`; and `read(path, cardinality).into(targets…)`, in a call's scope,
+  lifts as a `ResponseRead.typed(…)` of the call's reads.
 - **Claim patterns** (sugar, the same files): `once(over).keeps(_.x)`, `never(to)`,
   `never(to).from(before)`, `stays(p)` and `stays(p).unless(release)` on a Property builder, each
   lifted to the Property its lambda declares: `holdsAcross((before, after) => !over(before) ||

@@ -328,7 +328,8 @@ class Fixtures extends munit.FunSuite:
     "baseOverride",
     "awaitUnlisted",
     "describedFactTwice",
-    "historyKeyless"
+    "historyKeyless",
+    "namedTwice"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
   // The refusals of fn-122.2's capability declarations, fn-122.5's citations and fn-127.2's
@@ -2136,6 +2137,29 @@ class Fixtures extends munit.FunSuite:
     refused(lift) match
       case Seq(refusal) => assert(refusal.startsWith(line), refusal)
       case refusals     => fail(s"one refusal, not $refusals")
+
+  // fn-133.3: a feature file writes instructions in the kit's lower-case forms and names commands
+  // after their vals (testdata/features).
+  concurrently("a feature file's upper-case instruction and written-out command are refused"):
+    val jar = packaged("features", materialize("features"))
+    val at = stored("features") + "Features.scala"
+    val cases = Seq(
+      "upperCase" -> (s"lift: ${at}:20: Fault is the core form of an instruction: a feature file " +
+        "writes its lower-case form, `fault(...)`"),
+      "spelledOut" -> (s"lift: ${at}:25: Command(\"stop-named\", ...) writes a command's name " +
+        "out: a feature file names a command after its val, or shares another's with " +
+        "`aliasOf(command)(instruction)`")
+    )
+    for (name, expected) <- cases do
+      val out = lifted(s"features-$name")
+      val lift = this.lift(
+        s"$jar=${stored("features")},$modelJar=model/",
+        modelClasspath.toString,
+        out.toString,
+        s"fixture.features.Features$$package$$.$name"
+      )
+      assertNotEquals(lift.exit, 0)
+      assertEquals(refused(lift), Seq(expected))
 
   concurrently("the realization emitter refuses unknown constructors and fields at their lines"):
     val jar = packaged("realizationRefusals", materialize("realizationRefusals"))

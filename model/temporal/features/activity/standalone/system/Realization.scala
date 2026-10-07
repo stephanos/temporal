@@ -18,9 +18,7 @@ package system
 
 import umpire.*
 import umpire.realize.{Fact as RealizationFact, *}
-import umpire.realize.Instruction.{Hold, Release}
 import temporal.realize.{deadline as _, *}
-import temporal.realize.WorkerInstruction.{AttemptCanceled, AttemptFailure, Fault}
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionOutcome}
@@ -57,9 +55,9 @@ object ActivityRealization:
 
   // ### The controller
 
-  private val stopWorker = Fault(taskQueue, FaultKind.workerStop)
-  private val stopWorkerUntilReleased = Fault(taskQueue, FaultKind.workerStop)
-  private val resumeWorker = Fault(taskQueue, FaultKind.workerResume)
+  private val stopWorker = fault(taskQueue, FaultKind.workerStop)
+  private val stopWorkerUntilReleased = fault(taskQueue, FaultKind.workerStop)
+  private val resumeWorker = fault(taskQueue, FaultKind.workerResume)
 
   // Each Case runs an activity type of its own, so two Cases on one worker never share one.
   private val activityType = perCase("activity")
@@ -116,13 +114,13 @@ object ActivityRealization:
   // ### The worker
 
   // The failure an attempt that fails ends with.
-  private def attemptFailure(retryable: Boolean) =
-    AttemptFailure(applicationFailure("AttemptFailed", "attempt failed", retryable))
+  private def failed(retryable: Boolean) =
+    attemptFailure(applicationFailure("AttemptFailed", "attempt failed", retryable))
 
   private val completeAttempt = finish("done")
-  private val failAttempt = attemptFailure(retryable = true)
-  private val failActivity = attemptFailure(retryable = false)
-  private val cancelAttempt = AttemptCanceled
+  private val failAttempt = failed(retryable = true)
+  private val failActivity = failed(retryable = false)
+  private val cancelAttempt = attemptCanceled
 
   // The activity's attempts: each delivery to the worker is an attempt start, answered in order.
   private val attempts = script(
@@ -143,6 +141,9 @@ object ActivityRealization:
   // second attempt's delivery, which shows the first failed, the activity was scheduled again and a
   // worker took it again, confirming the three at once.
 
+  // The kind of the release's answer, which confirms that the activity was scheduled again.
+  private val scheduledAgain = "statusScheduledAgain"
+
   // One standalone activity a controller starts and the Case's own worker runs.
   val standalone = temporalRealization(
     machine = ActivitySystem,
@@ -154,8 +155,8 @@ object ActivityRealization:
       delivered(
         system.Fact.statusStarted,
         attempts,
-        1,
-        startActivity,
+        attempt = 1,
+        after = startActivity,
         Taking(worker.poll, 1)
       ),
       described(system.Fact.statusPaused),
@@ -168,15 +169,15 @@ object ActivityRealization:
       delivered(
         system.Fact.attemptCount,
         attempts,
-        2,
-        startActivity,
+        attempt = 2,
+        after = startActivity,
         Taking(worker.respond(AttemptResult.failed(true)), 1),
         Taking(worker.poll, 2)
       ),
       answeredAs(
-        "statusScheduledAgain",
-        system.Fact.statusScheduled,
-        unpauseActivity,
+        kind = scheduledAgain,
+        records = system.Fact.statusScheduled,
+        call = unpauseActivity,
         Taking(client.control(Control.unpause), 1)
       )
     ),
@@ -201,16 +202,17 @@ object ActivityRealization:
 
   private val dispatchHold =
     Actuator("hold-dispatch", ControlKind.HoldDispatched(history.dispatch), taskQueue)
-  private val holdDispatch = Hold(dispatchHold)
+  private val holdDispatch = hold(dispatchHold)
 
   // The hold lets no dispatch reach admission before the release, and the release records every
   // admission there was of it, so it closes that kind: a Run that records none admitted none.
   private val releaseDispatch =
-    command(Release(dispatchHold), closes = Vector(evidenceId(AdmissionFact.attemptAdmitted)))
+    command(release(dispatchHold), closes = Vector(evidenceId(AdmissionFact.attemptAdmitted)))
 
-  // The lost answer's release: the held race's command, so each race's evidence reads one name.
+  // The lost answer's release, under the held race's command name, so each race's evidence reads
+  // one name.
   private val loseAdmissionResponse =
-    Command("release-dispatch", Fault(taskQueue, FaultKind.admissionResponseLoss))
+    aliasOf(releaseDispatch)(fault(taskQueue, FaultKind.admissionResponseLoss))
 
   // That admission committed `decision`, as the release's record of the delivery names it.
   private def decided(decision: DeliveryAdmissionDecision): Condition[InstructionOutcome] =

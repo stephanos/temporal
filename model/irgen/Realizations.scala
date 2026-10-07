@@ -559,6 +559,7 @@ private[irgen] trait Realizations:
     b.term match
       case r: Ref if isEnumCase(r.symbol) || caseObject(r.symbol) =>
         vocabulary(r.symbol)
+        lowerCaseForm(r.symbol, r)
         (r.symbol.name, Nil)
       case t if scriptCall(t).nonEmpty || performed(t).nonEmpty => scriptWritten(Bound(t, b.env))
       case t                                                    =>
@@ -674,6 +675,7 @@ private[irgen] trait Realizations:
           case Some((fn, args)) if fn.symbol.name == "apply" =>
             val cls = fn.symbol.owner.companionClass
             vocabulary(cls)
+            lowerCaseForm(cls, t)
             val params =
               fn.symbol.paramSymss.flatten.filter(_.isTerm).map(_.name)
             (
@@ -1385,6 +1387,7 @@ private[irgen] trait Realizations:
       case None    =>
         val d = valDef(sym, at, "a realization")
         factsNamed.clear()
+        commandOrigins.clear()
         // A realization is where its val declares it, though a kit function may write its record.
         val emitted =
           emit(ir.Realization, Bound(d.rhs.get, familyScope(sym, Bound(d.rhs.get, Map.empty))))
@@ -1457,6 +1460,20 @@ private[irgen] trait Realizations:
   // A command, or an instruction, which stands for the command with no options.
   private def commandLike(tpe: TypeRepr): Boolean =
     declares(tpe, "umpire.realize.Command") || declares(tpe, "umpire.realize.Instruction")
+
+  // A feature file, one under a `features` directory such as model/temporal/features, writes what
+  // the kit writes for it in the kit's forms.
+  private def inFeature(at: Tree): Boolean = pos(at).file.contains("/features/")
+
+  // A feature file writes an instruction in its lower-case form, `fault(…)`, and never its core
+  // case class, `Fault(…)`, which the kit's form constructs (model/temporal/realize/Kit.scala).
+  private def lowerCaseForm(cls: Symbol, at: Term): Unit =
+    if declares(cls.typeRef, "umpire.realize.Instruction") && inFeature(at) then
+      fail(
+        at,
+        s"${cls.name} is the core form of an instruction: a feature file writes its lower-case " +
+          s"form, `${cls.name.head.toLower +: cls.name.tail}(...)`"
+      )
 
   // The declarations other declarations refer to by value, each by its `id`: a role, whichever kit
   // declares it, a script, an actuator or a learned value.
@@ -1554,16 +1571,46 @@ private[irgen] trait Realizations:
           val d = valDef(sym, r, "a command")
           scriptCall(follow(Bound(d.rhs.get, Map.empty)).term) match
             case Some(("withFields", base :: _)) => commandName(Bound(base, Map.empty))
+            case Some(("aliasOf", target :: _))  => commandName(Bound(target, Map.empty))
             case _                               => kebab(capturedName(sym, d, "a command"))
         case t =>
           scriptCall(t) match
             case Some(("withFields", base :: _)) => commandName(Bound(base, b.env))
-            case _                               =>
+            case Some(("aliasOf", target :: _))  => commandName(Bound(target, b.env))
+            // A helper's call that writes an alias, named as the command the alias names.
+            case _ if scriptCall(r0.term).exists(_._1 == "aliasOf") =>
+              commandName(Bound(scriptCall(r0.term).get._2.head, r0.env))
+            case _ =>
               fail(
                 t,
                 "a command is named after the val that declares it: declare it as a val and " +
                   "refer to it by value"
               )
+
+  // The commands of the realization being emitted, by name: what each name stands for, the val of
+  // a command, the call a `withFields` variant extends or the command an alias names.
+  private val commandOrigins = mutable.Map.empty[String, Any]
+
+  // What a command's name stands for: the val that declares it, through `withFields` and
+  // `aliasOf` to the command whose name it takes; a command written out by itself.
+  private def commandOrigin(b0: Bound): Any =
+    val b = follow(b0)
+    describedAwaitName(b).getOrElse {
+      def through(t: Term, env: Map[Symbol, Bound]): Option[Any] = scriptCall(t) match
+        case Some(("withFields", base :: _)) => Some(commandOrigin(Bound(base, env)))
+        case Some(("aliasOf", target :: _))  => Some(commandOrigin(Bound(target, env)))
+        case _                               => None
+      b.term match
+        case r: Ref if r.symbol.isValDef && defs.contains(r.symbol) =>
+          defs(r.symbol) match
+            case ValDef(_, _, Some(rhs)) =>
+              through(follow(Bound(rhs, Map.empty)).term, Map.empty).getOrElse(r.symbol)
+            case _ => r.symbol
+        case t =>
+          through(t, b.env)
+            .orElse(Some(reduce(b)).flatMap(r => through(r.term, r.env)))
+            .getOrElse(reduce(b).term)
+    }
 
   // A command: one written out, `Command(id, instruction, …)`, under its id; otherwise an instruction
   // or `command(instruction, …)`, named after its val. Either way an instruction written in the
@@ -1575,8 +1622,23 @@ private[irgen] trait Realizations:
     def supplied(names: List[String], args: List[Term]) = names.zip(args).collect {
       case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
     }
+    val id = if spelledOut(b) then idOf(b) else commandName(b0)
+    commandOrigins.get(id) match
+      case Some(origin) if origin != commandOrigin(b0) =>
+        fail(
+          b.term,
+          s"two commands of the realization are named $id: name each after its own val, or declare " +
+            "the shared name with `aliasOf(command)(instruction)`"
+        )
+      case _ => commandOrigins(id) = commandOrigin(b0)
     val (instruction, named) =
       if spelledOut(b) then
+        if inFeature(b.term) then
+          fail(
+            b.term,
+            s"Command(\"$id\", ...) writes a command's name out: a feature file names a command " +
+              "after its val, or shares another's with `aliasOf(command)(instruction)`"
+          )
         val args = applied(b.term).map(_._2).getOrElse(Nil)
         m.set(irField(d, "id", b.term), PString(idOf(b)))
         (Bound(args(1), b.env), supplied(options, args.drop(2)))
@@ -1585,7 +1647,8 @@ private[irgen] trait Realizations:
         scriptCall(b.term) match
           case Some(("command", instruction :: rest)) =>
             (Bound(instruction, b.env), supplied(options, rest))
-          case _ => (b, Nil)
+          case Some(("aliasOf", List(_, instruction))) => (Bound(instruction, b.env), Nil)
+          case _                                       => (b, Nil)
     val i = reduce(instruction)
     scriptCall(i.term) match
       case _ if describedAwait(i, irMessage(irField(d, "poll", i.term), i.term)).nonEmpty =>

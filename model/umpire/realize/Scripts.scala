@@ -52,6 +52,14 @@ def command(
     closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty
 ): Command = Command("", instruction, after, timeoutMs, regardless, closes)
 
+// A command that takes the name of another, `target`, as a race does whose evidence reads one
+// command name in every realization that runs it: `aliasOf(releaseDispatch)(fault(…))`. It is the
+// one way two commands share a name; the lifter refuses two commands of one realization with one
+// name otherwise. A call `withFields` extends keeps its call's name without an alias. IR: Command,
+// named as `target` is.
+def aliasOf(target: Command | Instruction)(instruction: Instruction): Command =
+  Command("", instruction)
+
 private def commanded(c: Command | Instruction): Command = c match
   case c: Command     => c
   case i: Instruction => Command("", i)
@@ -83,8 +91,9 @@ def readUntil[Req, Projected](
 
 extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](call: Instruction.TypedRpc[Req, Rsp])
   // The same call with more fields assigned after its own: one command written once, with what a
-  // class of an action adds. It keeps the call's command name. IR: the Rpc with the assignments
-  // appended.
+  // class of an action adds. It keeps the call's command name, so evidence that names the call,
+  // such as `answered(fact, call)`, matches every `withFields` variant of it. IR: the Rpc with the
+  // assignments appended.
   def withFields(assign: RequestScope[Req] ?=> Unit): Instruction.TypedRpc[Req, Rsp] =
     assign(using RequestScope())
     call

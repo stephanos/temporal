@@ -163,3 +163,9 @@ val historyKeyless: Realization = temporalRealization(
   scripts = Vector(controller(everyCase(stopWorker))),
   evidence = historyNoKey.evidence
 )
+
+private val stopOnce = Command("stop", fault(taskQueue, FaultKind.workerStop))
+private val stopAgain = Command("stop", fault(taskQueue, FaultKind.workerResume))
+
+// Two commands of one realization with one name and no alias (fn-133.3).
+val namedTwice: Realization = realizing(everyCase(stopOnce), everyCase(stopAgain))

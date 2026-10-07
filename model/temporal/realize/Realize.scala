@@ -77,10 +77,10 @@ enum WorkerInstruction extends Instruction:
   case WorkflowCommand(command: TypedProto[?])
 
   // A Nexus handler's answer; an asynchronous one binds the handle `binds` names.
-  case NexusReply(reply: TypedProto[?], binds: String = "")
+  case NexusReply(reply: TypedProto[?], binds: String | umpire.realize.Learned = "")
 
   // Completes the asynchronous Nexus operation a handle names, with a payload or a failure.
-  case NexusCompletion(handle: String, result: TypedProto[?])
+  case NexusCompletion(handle: String | umpire.realize.Learned, result: TypedProto[?])
 
 // A workflow's history, as evidence is read from it.
 object WorkflowHistory:

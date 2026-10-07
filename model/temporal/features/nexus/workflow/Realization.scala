@@ -18,11 +18,11 @@ package workflow
 
 import umpire.*
 import umpire.realize.*
-import umpire.realize.Instruction.{AwaitCommand, AwaitLearned}
-import temporal.realize.WorkerInstruction.{Fault, NexusCompletion, NexusReply, WorkflowCommand}
 import temporal.realize.{
   applicationFailure,
   await,
+  awaitCommand,
+  awaitLearned,
   caseWorker,
   controller,
   correlated,
@@ -30,11 +30,14 @@ import temporal.realize.{
   deadlineSeconds,
   duration,
   evidenceId,
+  fault,
   field,
   finish,
   handlerTaskQueue,
   jsonPayload,
+  nexusCompletion,
   nexusEndpoint,
+  nexusReply,
   perCase,
   proto,
   read,
@@ -44,6 +47,7 @@ import temporal.realize.{
   taskQueueName,
   temporalRealization,
   workerNamespace,
+  workflowCommand,
   workflowService,
   CauseKind,
   FaultKind,
@@ -81,10 +85,16 @@ object NexusRealization:
     _.getHistory.events.map(event => event)
   )
 
+  // The kind the scheduled event is, and the source it counts in, of its own.
+  private val scheduledKind = "scheduled"
+
+  // The source the pending operation's attempt count counts in.
+  private val describeSource = "describe"
+
   private val scheduled = Evidence.read(
-    id = evidenceId("scheduled"),
+    id = evidenceId(scheduledKind),
     records = system.Fact.nexusOperationScheduled,
-    source = sourceId("scheduled"),
+    source = sourceId(scheduledKind),
     from = Recorded.read(WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY, historyEvents),
     operation = Field(_.eventId),
     commitment = Commitment.reported
@@ -118,7 +128,7 @@ object NexusRealization:
   private val pending = Evidence.read(
     id = evidenceId(system.Fact.pendingAttempts),
     records = system.Fact.pendingAttempts,
-    source = sourceId("describe"),
+    source = sourceId(describeSource),
     from = Recorded.read(
       WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION,
       Field(_.pendingNexusOperations)
@@ -135,7 +145,7 @@ object NexusRealization:
     RequestBase(workflowService, "namespace" -> workerNamespace, "workflow_id" -> run)
 
   // The handler's worker stops polling its own queue, so the caller workflow keeps running.
-  private val stopHandlerWorker = Fault(handlerTaskQueue, FaultKind.workerStop)
+  private val stopHandlerWorker = fault(handlerTaskQueue, FaultKind.workerStop)
 
   // Each Case starts a workflow type of its own, so two Cases on one worker never share one.
   private val workflowType = perCase("workflow")
@@ -160,15 +170,15 @@ object NexusRealization:
   // The handle an asynchronous reply publishes and a completion reads.
   private val completionAuthority = Learned("completion-authority", LearnedKind.handle)
 
-  private val awaitCompletionAuthority = AwaitLearned(completionAuthority.id)
+  private val awaitCompletionAuthority = awaitLearned(completionAuthority)
 
   // The failure a failed reply or completion carries.
   private val handlerFailure =
     applicationFailure("OperationFailed", "operation failed", retryable = false)
 
   private val completeNexusOperation =
-    NexusCompletion(completionAuthority.id, jsonPayload("completed"))
-  private val failNexusOperation = NexusCompletion(completionAuthority.id, handlerFailure)
+    nexusCompletion(completionAuthority, jsonPayload("completed"))
+  private val failNexusOperation = nexusCompletion(completionAuthority, handlerFailure)
 
   // The workflow's history, waiting for new events: the request both history calls extend.
   private val historyRead =
@@ -230,31 +240,31 @@ object NexusRealization:
   private val service = "umpire.case.service"
   private val operation = "complete"
 
-  // The schedule command, setting the deadlines one class of the schedule action sets. Every class
-  // performs the one command, so the await names one: its id is written out, and each class's
-  // deadlines are written where the class binds the command.
-  private def scheduling(deadlines: ProtoScope[ScheduleNexusOperationCommandAttributes] ?=> Unit) =
-    Command(
-      "start-nexus-operation",
-      WorkflowCommand(proto[ApiCommand] {
-        field(_.commandType) := CommandType.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
-        field(_.getScheduleNexusOperationCommandAttributes) {
-          field(_.endpoint) := nexusEndpoint
-          field(_.service) := service
-          field(_.operation) := operation
-          field(_.getInput) := jsonPayload("request")
-          deadlines
-        }
-      })
-    )
+  // The schedule command, setting the deadlines one class of the schedule action sets.
+  private def schedule(deadlines: ProtoScope[ScheduleNexusOperationCommandAttributes] ?=> Unit) =
+    workflowCommand(proto[ApiCommand] {
+      field(_.commandType) := CommandType.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
+      field(_.getScheduleNexusOperationCommandAttributes) {
+        field(_.endpoint) := nexusEndpoint
+        field(_.service) := service
+        field(_.operation) := operation
+        field(_.getInput) := jsonPayload("request")
+        deadlines
+      }
+    })
 
-  private val startNexusOperation = scheduling(())
+  private val startNexusOperation = schedule(())
+
+  // Every class performs the one schedule command, so the await names one: a class that sets a
+  // deadline schedules under its name, and its deadlines are written where the class binds it.
+  private def scheduling(deadlines: ProtoScope[ScheduleNexusOperationCommandAttributes] ?=> Unit) =
+    aliasOf(startNexusOperation)(schedule(deadlines))
 
   // The duration a deadline a path sets realizes as; the backoff is the server's own.
   private val requestDeadline = duration(deadlineSeconds)
 
   private val awaitNexusOperation =
-    command(AwaitCommand(startNexusOperation.id), regardless = true)
+    command(awaitCommand(startNexusOperation), regardless = true)
 
   // The workflow closes on every path: a failed or timed-out operation is the await's recorded
   // outcome, not a reason to leave the workflow open.
@@ -289,22 +299,22 @@ object NexusRealization:
       field(_.retryBehavior) := behavior
     }
 
-  private val respondAsync = NexusReply(
+  private val respondAsync = nexusReply(
     proto[StartOperationResponse](field(_.getAsyncSuccess) {}),
-    completionAuthority.id
+    completionAuthority
   )
-  private val respondSync = NexusReply(proto[StartOperationResponse] {
+  private val respondSync = nexusReply(proto[StartOperationResponse] {
     field(_.getSyncSuccess)(field(_.getPayload) := jsonPayload("completed"))
   })
   private val respondFailed =
-    NexusReply(proto[StartOperationResponse](field(_.getFailure) := handlerFailure))
-  private val respondErrorRetryable = NexusReply(
+    nexusReply(proto[StartOperationResponse](field(_.getFailure) := handlerFailure))
+  private val respondErrorRetryable = nexusReply(
     handlerError(
       "INTERNAL",
       NexusHandlerErrorRetryBehavior.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE
     )
   )
-  private val respondError = NexusReply(
+  private val respondError = nexusReply(
     handlerError(
       "BAD_REQUEST",
       NexusHandlerErrorRetryBehavior.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE

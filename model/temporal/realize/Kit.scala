@@ -205,8 +205,8 @@ def answered(fact: Fact, call: Command | Instruction, confirms: Taking*) =
   answeredAs(fact, fact, call, confirms*)
 
 // What the Case's worker reports of one attempt it was delivered: the Run's record of an activation
-// the call carries, declared the record of the attempt of the script `attempts` that the server
-// numbers `number`, counted from 1. The Run records an attempt once it is answered, so this evidence
+// the call `after` carries, declared the record of the attempt of `attempts` the server numbers
+// `attempt`, counted from 1. The Run records an attempt once it is answered, so this evidence
 // reaches a Run with that answer, and the declaration is what says so and which record it is. A
 // delivered attempt has a delivery; the record of a position no attempt was delivered for has an
 // empty one, which is a value a record holds like any other, so the guard asks for a delivery that is
@@ -215,8 +215,8 @@ def answered(fact: Fact, call: Command | Instruction, confirms: Taking*) =
 def delivered(
     fact: Fact,
     attempts: Script,
-    number: Long,
-    call: Command | Instruction,
+    attempt: Long,
+    after: Command | Instruction,
     confirms: Taking*
 ) = Evidence.runEvent(
   id = evidenceId(fact),
@@ -225,7 +225,7 @@ def delivered(
   from = Recorded.runEvent[InstructionOutcome](
     EventKind.diagnostic,
     controllerScript,
-    call,
+    after,
     key = Operand.runKey(),
     guard = Some(
       Condition.all(
@@ -238,7 +238,7 @@ def delivered(
         )
       )
     ),
-    attempt = Some(AttemptOf(attempts, number))
+    attempt = Some(AttemptOf(attempts, attempt))
   ),
   commitment = Commitment.reported,
   fields = Vector(
@@ -329,3 +329,42 @@ def applicationFailure(
 // Completes the activation the script runs in with the text `result`.
 def finish(result: String): Instruction =
   Instruction.Finish(Operand.Literal(ProtoValue.Text(result)))
+
+// ### The instructions a realization writes, in lower case
+
+// A deliberate outage of the worker that polls `role`. Core form: `WorkerInstruction.Fault`.
+def fault(role: String | Role, kind: FaultKind): Instruction = WorkerInstruction.Fault(role, kind)
+
+// Holds what the actuator `control` holds until a release. Core form: `Instruction.Hold`.
+def hold(control: Actuator): Instruction = Instruction.Hold(control)
+
+// Releases what the actuator `control` held. Core form: `Instruction.Release`.
+def release(control: Actuator): Instruction = Instruction.Release(control)
+
+// Waits for the value `learned` to be bound. Core form: `Instruction.AwaitLearned`.
+def awaitLearned(learned: Learned): Instruction = Instruction.AwaitLearned(learned)
+
+// Waits for the operation the earlier command `started` of the script started. Core form:
+// `Instruction.AwaitCommand`.
+def awaitCommand(started: Command | Instruction): Instruction = Instruction.AwaitCommand(started)
+
+// Fails the attempt of an activity with `failure`. Core form: `WorkerInstruction.AttemptFailure`.
+def attemptFailure(failure: TypedProto[?]): Instruction = WorkerInstruction.AttemptFailure(failure)
+
+// Answers the attempt of an activity as canceled. Core form: `WorkerInstruction.AttemptCanceled`.
+def attemptCanceled: Instruction = WorkerInstruction.AttemptCanceled
+
+// A workflow command, as the message the SDK would emit. Core form:
+// `WorkerInstruction.WorkflowCommand`.
+def workflowCommand(message: TypedProto[?]): Instruction =
+  WorkerInstruction.WorkflowCommand(message)
+
+// A Nexus handler's answer; an asynchronous one binds the handle `binds`. Core form:
+// `WorkerInstruction.NexusReply`.
+def nexusReply(reply: TypedProto[?], binds: Learned | String = ""): Instruction =
+  WorkerInstruction.NexusReply(reply, binds)
+
+// Completes the asynchronous Nexus operation the handle `handle` names with `result`. Core form:
+// `WorkerInstruction.NexusCompletion`.
+def nexusCompletion(handle: Learned, result: TypedProto[?]): Instruction =
+  WorkerInstruction.NexusCompletion(handle, result)

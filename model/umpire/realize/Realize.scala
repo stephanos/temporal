@@ -433,10 +433,10 @@ object Instruction:
       until: Condition[Projected],
       intervalMs: Long = 0
   ) extends Instruction
-  final case class AwaitLearned(learned: String) extends Instruction
+  final case class AwaitLearned(learned: String | Learned) extends Instruction
 
-  // Waits for the operation an earlier command of the script started.
-  final case class AwaitCommand(command: String) extends Instruction
+  // Waits for the operation an earlier command of the script started, by its name or by value.
+  final case class AwaitCommand(command: String | Command | Instruction) extends Instruction
 
   // Completes the activation the script runs in with a result.
   final case class Finish(result: Operand) extends Instruction
