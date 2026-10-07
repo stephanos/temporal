@@ -8,9 +8,10 @@ Remove superseded expression machinery after its callers migrate, regenerate che
 
 **Size:** M
 **Files:** retired Testpilot expression implementation, `model/SEMANTICS.md`, `model/README.md`, `.plans/UMPIRE_MODULES.md`, `.plans/UMPIRE4_SPEC.md`, `MILESTONES.md`, generated artifacts and fixtures
-**Touches:** [common/testing/testpilot/internal/ir/**, model/SEMANTICS.md, model/README.md, .plans/UMPIRE_MODULES.md, .plans/UMPIRE4_SPEC.md, MILESTONES.md, model/cases/**, common/testing/testpilot/**/testdata/**]
+**Touches:** [common/testing/testpilot/casefile/**, common/testing/testpilot/evaluation/**, common/testing/testpilot/temporal/**, common/testing/testpilot/internal/ir/**, model/SEMANTICS.md, model/README.md, .plans/UMPIRE_MODULES.md, .plans/UMPIRE4_SPEC.md, MILESTONES.md, model/cases/**, common/testing/testpilot/**/testdata/**]
 
 ### Approach
+- Regenerate managed Case/Run companions under exactly 2.0 after all consumers compile; only now run generated-artifact parity and full-protocol gates.
 - Use live-caller and ownership checks to identify removable evaluator and walker code; retain no legacy replay path.
 - Regenerate checked-in Case and Run companions and replay the current format.
 - Record the pinned environment, semantic decisions, conversion boundary and remaining domain admission owners.
@@ -39,13 +40,11 @@ make lint-model
 make lint-code-fast
 make umpire-check-live-tests
 ```
-
 ## Acceptance
 - [ ] R1's current-format migration and R4-R6 agreement pass on the full fixture surface.
 - [ ] R7's superseded machinery and compatibility dispatch are gone; ownership docs are current.
 - [ ] No uncategorized Case, Run, verdict, identity or conformance delta remains.
 - [ ] Required full gates pass with evidence recorded for review.
-
 ## Done summary
 TBD
 

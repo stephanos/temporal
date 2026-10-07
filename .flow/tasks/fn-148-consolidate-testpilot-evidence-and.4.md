@@ -7,10 +7,12 @@ satisfies: [R4, R5, R8]
 Switch correlated admission and monitoring to the normalized tables for R4 and R5. Preserve continuity, authorization, causal buffering and verdicts while charging expanded work before enumeration.
 
 **Size:** M
-**Files:** `common/testing/testpilot/internal/verification/correlated_prepare.go`, `correlated.go`, limits and correlated tests, conformance fixtures
-**Touches:** [common/testing/testpilot/internal/verification/correlated_prepare.go, common/testing/testpilot/internal/verification/correlated.go, common/testing/testpilot/internal/verification/**/*correlated*_test.go, tools/umpire/conformance/**]
+**Files:** normalized producer emission and preparation-dependent lowering tests, `common/testing/testpilot/internal/verification/correlated_prepare.go`, `correlated.go`, limits and correlated tests, conformance fixtures
+**Touches:** [tools/umpire/lower/internal/producer/**, tools/umpire/lower/**/*_test.go, common/testing/testpilot/internal/execution/**, common/testing/testpilot/internal/verification/correlated_prepare.go, common/testing/testpilot/internal/verification/correlated.go, common/testing/testpilot/internal/verification/**/*correlated*_test.go, tools/umpire/conformance/**]
 
 ### Approach
+- Restore all normalized consumers and hand-authored test builders, then switch public normalized emission after admission understands the new tables.
+- Run the preparation-dependent `TestLoweredCasesPrepareUnderTheirDerivedProfile` after this integration point; managed artifact parity remains Task 7's gate.
 - Resolve IDs into checked complete states and results during bounded admission.
 - Authorize each transition by prior state and result, then retain ordered projection outputs.
 - Charge referenced and expanded structures with overflow-safe ceilings before allocating catalogs or products.
@@ -27,15 +29,14 @@ Switch correlated admission and monitoring to the normalized tables for R4 and R
 ### Quick commands
 
 ```bash
-go test -tags test_dep ./common/testing/testpilot/internal/verification/... ./tools/umpire/conformance/...
+go test -tags test_dep -run TestLoweredCasesPrepareUnderTheirDerivedProfile ./tools/umpire/lower/...
+go test -tags test_dep -run 'Test.*(Evidence|Correlated|Contract|Instruction|ReadSource|Protocol)' ./common/testing/testpilot/internal/verification/... ./tools/umpire/conformance/...
 ```
-
 ## Acceptance
 - [ ] R4 and R5 are implemented in admission and monitoring.
 - [ ] R8 runtime and admission-cost measurements use the same fixture corpus as Task 3.
 - [ ] Compression cannot bypass any existing ceiling.
 - [ ] Focused correlated and conformance tests pass.
-
 ## Done summary
 TBD
 

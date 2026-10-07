@@ -1,5 +1,7 @@
 # Modularize the Umpire IR schema
 
+> HTML render lens: .flow/artifacts/fn-145-modularize-the-umpire-ir-schema/spec.html — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -40,7 +42,7 @@ The standard empty marker migration follows the proven split. Containing oneof a
 <!-- scope: both -->
 
 - **R1:** The Umpire IR schema is split into root, common, value, expression, machine, claim, operand, script and realization files with one acyclic import graph. Every package, message and enum full name, field number, oneof arm, comment and within-message field order is unchanged. Errors: import cycles, duplicate declarations, missing imported declarations and package changes fail schema generation.
-- **R2:** ScalaPB generation, schema stamps, stale-output checks, Make prerequisites and API-linter exemptions consume the complete schema closure. Errors: changing any imported schema invalidates the generated API stamp; removing an expected generated output fails the stale check; an unchanged warm build reuses the closure stamp.
+- **R2:** ScalaPB generation, schema stamps, stale-output checks, Make prerequisites and API-linter exemptions consume the complete schema closure, including linked Go descriptor freshness and exclusion from the separate Scala API jar. Errors: changing any imported schema invalidates the generated API stamp; removing an expected generated output fails the stale check; an unchanged warm build reuses the closure stamp.
 - **R3:** The descriptor regression ledger covers the complete relocated declaration set and retains its wire assertions. Lifted ProtoJSON, deterministic Model bytes, Query answers, generated Cases and artifact identities are identical across the split. Errors: any unclassified descriptor, JSON, byte, answer, Case or identity delta stops the migration.
 - **R4:** The local empty marker is replaced with `google.protobuf.Empty` in a separate change while each containing oneof arm keeps its meaning. Serialized payload bytes and Umpire behavior remain equal, and generated callers and descriptor expectations use the standard type. Errors: an arm changes presence, oneof selection, bytes or admission behavior; a retired marker name or field number is reused.
 - **R5:** The module map, Model documentation and milestone overview describe the resulting schema ownership and generation boundary. Errors: no error surface beyond documentation link and vocabulary checks.
@@ -64,6 +66,8 @@ Task fn-145-modularize-the-umpire-ir-schema.1 validates that the gate and descri
 ## Decision Context
 <!-- scope: both -->
 
+Maintainability (plan review): duplication - omitted linked-descriptor exclusions would generate IR classes into both Scala jars; Task 1 now covers the full exclusion closure; structure - none identified.
+
 The existing sections already form an acyclic ownership graph, so declaration extraction exposes the current design without introducing a new language or dependency. A generic opcode tree, source-position table and domain-value merger would combine structural work with semantic migration and obscure the equivalence proof. Those changes stay outside this spec.
 
 Source action items come from the Umpire IR schema consolidation research. Its runtime CEL and Duration recommendations are scheduled in the following specs. The shared-leaf recommendation is evaluated by R6 without presuming a new schema owner.
@@ -85,7 +89,7 @@ make umpire-check-cases
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
 | R1 | The Umpire IR schema is split into root, common, value, expression, machine, claim, operand, script and realization files with one acyclic import graph. Every package, message and enum full name, field number, oneof arm, comment and within-message field order is unchanged. Errors: import cycles, duplicate declarations, missing imported declarations and package changes fail schema generation. | fn-145-modularize-the-umpire-ir-schema.2 | — |
-| R2 | ScalaPB generation, schema stamps, stale-output checks, Make prerequisites and API-linter exemptions consume the complete schema closure. Errors: changing any imported schema invalidates the generated API stamp; removing an expected generated output fails the stale check; an unchanged warm build reuses the closure stamp. | fn-145-modularize-the-umpire-ir-schema.1, fn-145-modularize-the-umpire-ir-schema.2 | — |
+| R2 | ScalaPB generation, schema stamps, stale-output checks, Make prerequisites and API-linter exemptions consume the complete schema closure, including linked Go descriptor freshness and exclusion from the separate Scala API jar. Errors: changing any imported schema invalidates the generated API stamp; removing an expected generated output fails the stale check; an unchanged warm build reuses the closure stamp. | fn-145-modularize-the-umpire-ir-schema.1, fn-145-modularize-the-umpire-ir-schema.2 | — |
 | R3 | The descriptor regression ledger covers the complete relocated declaration set and retains its wire assertions. Lifted ProtoJSON, deterministic Model bytes, Query answers, generated Cases and artifact identities are identical across the split. Errors: any unclassified descriptor, JSON, byte, answer, Case or identity delta stops the migration. | fn-145-modularize-the-umpire-ir-schema.1, fn-145-modularize-the-umpire-ir-schema.2, fn-145-modularize-the-umpire-ir-schema.4 | — |
 | R4 | The local empty marker is replaced with `google.protobuf.Empty` in a separate change while each containing oneof arm keeps its meaning. Serialized payload bytes and Umpire behavior remain equal, and generated callers and descriptor expectations use the standard type. Errors: an arm changes presence, oneof selection, bytes or admission behavior; a retired marker name or field number is reused. | fn-145-modularize-the-umpire-ir-schema.3, fn-145-modularize-the-umpire-ir-schema.4 | — |
 | R5 | The module map, Model documentation and milestone overview describe the resulting schema ownership and generation boundary. Errors: no error surface beyond documentation link and vocabulary checks. | fn-145-modularize-the-umpire-ir-schema.4 | — |

@@ -1,5 +1,7 @@
 # Adopt CEL for runtime predicates and values
 
+> HTML render lens: .flow/artifacts/fn-146-adopt-cel-for-runtime-predicates-and/spec.html — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -23,7 +25,7 @@ flowchart LR
 
 Testpilot owns the executable CEL schema, environment, value adapter and evaluator. Umpire keeps symbolic operands and lowers supported operands into that neutral contract without importing Testpilot into the Umpire IR. Canonical CEL protobuf bytes form the bridge to the CEL-Go AST version used by the pinned engine, and the conversion rejects unsupported nodes before engine loading.
 
-Case format 2.0 records CEL expressions and standard CEL runtime values. Duration becomes format 3.0 and evidence/state consolidation becomes format 4.0 in the following specs. Each stage migrates its producers, consumers, Case files and recorded Run companions together. Only the current format is supported; old formats are rejected before decoding or Driver I/O. No legacy decoder, encoder or evaluator is retained.
+Case format 2.0 records CEL expressions and standard CEL runtime values. Duration becomes format 3.0 and evidence/state consolidation becomes format 4.0 in the following specs. Each stage migrates its producers, consumers, Case files and recorded Run companions together. Only the current format is supported; old formats are rejected before decoding or Driver I/O. No legacy decoder, encoder or evaluator is retained. Intermediate schema and consumer tasks form one breaking integration batch; generation-only checks may gate a temporarily red consumer tree. Producer/admission version switches occur after CEL consumers integrate, and managed-artifact parity gates follow regeneration, not intermediate tasks.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->

@@ -84,7 +84,8 @@ the activity says (fn-128, fn-138, fn-129) is deferred until the batch closes.
   so each spec's single-regeneration rule (fn-134.3, fn-135.4) becomes the batch's regeneration.
 - **The diff check.** Baseline: the tree at fn-132's close, `96de1fd92d`. The expected IR change is the union of the
   deltas the tasks declare: source positions; fn-133.3, .5 and .6 renames and ID map, fn-133.4's listed new
-  Cases and fn-133.8's carrier metadata; fn-134's `origin` and the deleted `*.laws.json`; fn-135's `status`;
+  Cases and fn-133.8's carrier metadata; fn-134's `origin`, exported-root `source` substitutions from
+  `.implements` to `.capabilities`, and the deleted `*.laws.json`; fn-135's `status`;
   fn-136.5's inlined Functions; fn-137.6's removed `states.terminal` Functions and fn-137.7's
   owner-approved change; fn-139's renamed actions, classes, inputs and outcomes and the other differences
   its R7 lists. Classify every changed line against that list; any line it does not explain stops the
@@ -128,7 +129,7 @@ Gate: the DSL batch; closes before fn-131 starts. Source: owner conversation, 20
 | --- | --- | --- |
 | fn-134.1 | ✅ done | Inert `Property.origin` in the IR schema and Go reader; identity test |
 | fn-134.2 | ✅ done | `capabilities` section, capability Properties, bounds in `queries`, waiver reasons from the model gate, added beside the old path (early proof) |
-| fn-134.3 | ⬜ todo | Kit and every Model migrated; equivalence diff at the batch regeneration |
+| fn-134.3 | ✅ done | Kit and every Model migrated; equivalence diff at the batch regeneration |
 | fn-134.4 | ⬜ todo | `Law`, `Catalog`, `Implements`, `cited` and the law sidecar removed from Scala |
 | fn-134.5 | ⬜ todo | Law sidecar reader, law table and law lint kinds removed from Go (after the batch regeneration) |
 | fn-134.6 | ⬜ todo | Docs, vocabulary check; close |
@@ -143,7 +144,7 @@ Gate: the DSL batch. Tasks run in order. Task 4's comparison takes the batch bas
 | fn-135.2 | ✅ done | Lifter resolves `val` section members and lifts `is { }`; `def` paths unchanged (proof point) |
 | fn-135.3 | ✅ done | Lifter lifts `effect { }` with its statement refusals |
 | fn-135.5 | 🔄 in progress | Status facts declared on phase cases: derived in `effect { }` at run time and in lifted IR, with refusals and a fixture machine |
-| fn-135.4 | 🔄 in progress | `ActivityProduct` converted, projection renamed `status`; IR equal but for positions and that name; docs |
+| fn-135.4 | ✅ done | `ActivityProduct` converted, projection renamed `status`; IR equal but for positions and that name; docs |
 
 ### fn-136: Phase roles on lifecycle enums
 
@@ -152,7 +153,7 @@ Gate: the DSL batch. Tasks run in the batch order. R7 (positions only, for tasks
 | Task | Status | What |
 | --- | --- | --- |
 | fn-136.1 | ✅ done | Role traits; lifter lowers role tests (`isInstanceOf`, type patterns) to case-set membership and refuses conflicting roles |
-| fn-136.2 | 🔄 in progress | Activity product, system and record carry roles; `states` bodies become role tests; refinement closedness check |
+| fn-136.2 | ✅ done | Activity product, system and record carry roles; `states` bodies become role tests; refinement closedness check |
 | fn-136.3 | ✅ done | Nexus workflow, standalone and product carry roles; docs |
 | fn-136.4 | ✅ done | `in[R]` and `p.is[R]` role-test spellings; lifter lowers them like `in(...)` and `isInstanceOf` |
 | fn-136.5 | ⬜ todo | Role-set `states` predicates retire, callers read roles directly; bounded IR change (R9); docs; close |
@@ -165,7 +166,7 @@ Gate: the DSL batch. Task 7 asks the owner about `pausedWhileHeld` before it is 
 | --- | --- | --- |
 | fn-137.1 | ✅ done | `Phased` mixin; argument-less `Rules` reads it beside the old form (early proof) |
 | fn-137.2 | ✅ done | Lifter reads the projection from the `Phased` parent |
-| fn-137.3 | ⬜ todo | Every Model migrated to `Phased` and argument-less `Rules` |
+| fn-137.3 | ✅ done | Every Model migrated to `Phased` and argument-less `Rules` |
 | fn-137.4 | ⬜ todo | `Rules(projection)` retired: framework, lifter fallback, fixtures, docs |
 | fn-137.5 | ⬜ todo | Default `end` for `Phased` objects (needs fn-136's `Closed` role) |
 | fn-137.6 | ⬜ todo | Closable reads the `Closed` role through `Phased` (needs fn-134, fn-136.5) |
@@ -233,7 +234,7 @@ disposition/cleanup leaves receive a maintenance evaluation, not an assumed shar
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-145.1 | ⬜ todo | Full schema closure in generation, stamps, stale checks and descriptor ledger; proof |
+| fn-145.1 | ⬜ todo | Full schema closure, linked descriptors and Scala jar exclusions; multi-file proof |
 | fn-145.2 | ⬜ todo | Extract the nine responsibility files without changing declarations or Model meaning |
 | fn-145.3 | ⬜ todo | Local empty marker → `google.protobuf.Empty`; preserve oneof meanings |
 | fn-145.4 | ⬜ todo | Equivalence gates, shared-leaf evaluation, schema ownership docs; close |
@@ -243,14 +244,14 @@ disposition/cleanup leaves receive a maintenance evaluation, not an assumed shar
 Gate: after fn-145. Testpilot owns the restricted CEL environment and descriptor-aware value adapter;
 Umpire lowers symbolic realization operands into it. Finite Model expressions, `ModelValue` and
 descriptor-exact `ValueType` remain separate. Formats and identities move together, without legacy
-runtime paths. Tasks 2 and 3 are parallel candidates; the rest run in dependency order.
+runtime paths. Tasks run in order; admission and value adaptation share edit surfaces.
 
 | Task | Status | What |
 | --- | --- | --- |
 | fn-146.1 | ⬜ todo | Breaking format, deterministic canonical identity and companion migration contract |
 | fn-146.2 | ⬜ todo | Canonical CEL AST, restricted admission, pinned engine bridge and budgets |
 | fn-146.3 | ⬜ todo | Standard CEL values with authoritative descriptors, exact numbers and opaque `Any` |
-| fn-146.4 | ⬜ todo | Native execution bindings; descriptor/capture and online/offline proof |
+| fn-146.4 | ⬜ todo | Native execution and Driver/worker values; descriptor/capture and online/offline proof |
 | fn-146.5 | ⬜ todo | Contract and correlated verification, rule expansion and reference walkers |
 | fn-146.6 | ⬜ todo | Umpire operand lowering, Run Event guards and conformance agreement |
 | fn-146.7 | ⬜ todo | Retire custom machinery, regenerate companions, full gates and docs; close |
@@ -265,7 +266,7 @@ Scalar-only singleton-oneof presence cleanup belongs here. Tasks run in order.
 | Task | Status | What |
 | --- | --- | --- |
 | fn-147.1 | ⬜ todo | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
-| fn-147.2 | ⬜ todo | Replace schemas and migrate Scala authoring, lifting and Umpire producers |
+| fn-147.2 | ⬜ todo | Replace schemas and migrate Scala authoring, lifting, realization admission and producers |
 | fn-147.3 | ⬜ todo | Runtime consumers, polling policy and scalar presence |
 | fn-147.4 | ⬜ todo | Regenerate artifacts and Run companions, categorize identities, full gates and docs; close |
 
@@ -283,7 +284,7 @@ prior-state transitions, and projection result order stays explicit. Tasks run i
 | fn-148.3 | ⬜ todo | Complete-state and result tables in schema/lowering; compact-size measurement |
 | fn-148.4 | ⬜ todo | Normalized admission/verification, causal authorization and expanded-work ceilings |
 | fn-148.5 | ⬜ todo | Derived Contract kind, fixed correlated clock and explicit support Boolean |
-| fn-148.6 | ⬜ todo | Local instruction references, response cardinality and surviving Empty markers |
+| fn-148.6 | ⬜ todo | Local references, cardinality, Empty markers and coordinated format 4.0 activation |
 | fn-148.7 | ⬜ todo | Artifact/companion migration, measurements, full gates and ownership docs; close |
 
 ## Deferred

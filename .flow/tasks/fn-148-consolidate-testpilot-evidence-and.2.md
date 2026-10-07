@@ -8,7 +8,7 @@ Move execution binding and Umpire lowering to the generalized declaration, then 
 
 **Size:** M
 **Files:** `common/testing/testpilot/internal/execution/dataflow.go`, `evidence.go`, response-read and scheduler code, `tools/umpire/lower/internal/producer/**`, evidence tests
-**Touches:** [common/testing/testpilot/internal/execution/dataflow.go, common/testing/testpilot/internal/execution/evidence.go, common/testing/testpilot/internal/execution/response_read.go, common/testing/testpilot/internal/execution/**/*evidence*_test.go, tools/umpire/lower/internal/producer/**]
+**Touches:** [proto/internal/temporal/server/api/testpilot/v1/*.proto, api/testpilot/v1/*.go, common/testing/testpilot/internal/verification/correlated_prepare.go, common/testing/testpilot/internal/execution/dataflow.go, common/testing/testpilot/internal/execution/evidence.go, common/testing/testpilot/internal/execution/response_read.go, common/testing/testpilot/internal/execution/**/*evidence*_test.go, tools/umpire/lower/internal/producer/**]
 
 ### Approach
 - Consolidate shape binding into one declaration admission path.
@@ -31,15 +31,13 @@ The prior extraction consolidation dropped a caller-specific nonempty rejection.
 ### Quick commands
 
 ```bash
-go test -tags test_dep ./common/testing/testpilot/internal/execution/... ./common/testing/testpilot/internal/verification/... ./tools/umpire/lower/...
+go test -tags test_dep -run 'Test.*(Evidence|Correlated|Contract|Instruction|ReadSource|Protocol)' ./common/testing/testpilot/internal/execution/... ./common/testing/testpilot/internal/verification/... ./tools/umpire/lower/...
 ```
-
 ## Acceptance
 - [ ] R1-R3 pass across execution, lowering and verification fixtures.
 - [ ] Inline fields are retired and reserved only after equivalent declarations pass.
 - [ ] Caller-specific absent, empty and ambiguity diagnostics remain distinct.
 - [ ] Focused evidence lift, source and generic Contract tests pass.
-
 ## Done summary
 TBD
 

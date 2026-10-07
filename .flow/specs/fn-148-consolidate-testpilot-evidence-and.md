@@ -1,5 +1,7 @@
 # Consolidate Testpilot evidence and correlated state schemas
 
+> HTML render lens: .flow/artifacts/fn-148-consolidate-testpilot-evidence-and/spec.html — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -22,7 +24,7 @@ An evidence declaration owns source identity, projected schema, operation key, s
 
 Each local complete state stores a model atom plus ordered fields. Each result stores action, destination state, outcome and facts. Transitions reference prior state and result IDs, while projection rules retain ordered result IDs. Local deterministic IDs and expanded-work charging prevent compression from bypassing limits.
 
-Case format 4.0 owns evidence and state/result normalization plus the derived-field cleanup. Replace the old shapes directly, regenerate Cases and recorded Run companions, and reject retired formats. No historical decoding or compatibility binder is retained. Scalar singleton-oneof cleanup is already owned by the Duration spec.
+Case format 4.0 owns evidence and state/result normalization plus the derived-field cleanup. Replace the old shapes directly, regenerate Cases and recorded Run companions, and reject retired formats. No historical decoding or compatibility binder is retained. Scalar singleton-oneof cleanup is already owned by the Duration spec. The normalization producer/consumer tasks form one breaking integration batch, with public emission switching only once admission understands the tables. Exactly format 4.0 emission and admission activate together after all shape cleanups and before final regeneration; intermediate checks do not require managed artifacts to be current.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->

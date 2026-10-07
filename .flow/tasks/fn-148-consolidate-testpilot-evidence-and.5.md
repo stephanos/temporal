@@ -29,17 +29,15 @@ Derive Contract rule kind from deadline and remove the fixed correlated clock fo
 ### Quick commands
 
 ```bash
-go test -tags test_dep ./common/testing/testpilot/... ./tools/umpire/lower/...
+go test -tags test_dep -run 'Test.*(Evidence|Correlated|Contract|Instruction|ReadSource|Protocol)' ./common/testing/testpilot/... ./tools/umpire/lower/...
 ```
 
 Scalar singleton-oneof cleanup is owned by fn-147. Protocol marker and instruction-reference cleanup belongs to Task 6.
-
 ## Acceptance
 - [ ] Contract kind derives from deadline and the correlated clock is operation transitions.
 - [ ] Support inclusion uses an explicitly present independent Boolean; omission still rejects where required.
 - [ ] Superseded rule and support fields and compatibility admission paths are removed.
 - [ ] Focused Contract, correlated and lowering tests pass.
-
 ## Done summary
 TBD
 

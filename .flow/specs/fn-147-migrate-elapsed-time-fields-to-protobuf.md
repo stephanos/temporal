@@ -1,5 +1,7 @@
 # Migrate elapsed-time fields to protobuf Duration
 
+> HTML render lens: .flow/artifacts/fn-147-migrate-elapsed-time-fields-to-protobuf/spec.html — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 

@@ -8,9 +8,11 @@ Implement R5 and the Umpire half of R6. Keep symbolic realization operands in th
 
 **Size:** M
 **Files:** `tools/umpire/realization/**`, `tools/umpire/lower/**`, `tools/umpire/conformance/**`, `model/irgen/**`, realization fixtures
-**Touches:** [tools/umpire/realization/**, tools/umpire/lower/**, tools/umpire/conformance/**, model/irgen/**, model/irgen/testdata/**]
+**Touches:** [tools/umpire/lower/producer.go, common/testing/testpilot/internal/execution/prepare.go, common/testing/testpilot/evaluation/admission.go, common/testing/testpilot/case.go, tools/umpire/realization/**, tools/umpire/lower/**, tools/umpire/conformance/**, model/irgen/**, model/irgen/testdata/**]
 
 ### Approach
+- At the completed CEL integration point, activate exactly format 2.0 for emission, Case decoding, execution and independent assessment admission. Update hand-authored fixtures and current-format test builders. Reject retired and unknown formats before execution; no legacy evaluator is retained.
+- Run Task 1's deferred successful Case/Run assessment and Task 3's deferred adapter proofs before final managed-artifact regeneration.
 - Centralize symbolic operand substitution and restricted-path lowering into canonical CEL.
 - Reuse the same environment for offline Run Event guards and conformance reads.
 - Preserve Umpire source positions, fixture-dependent names, empty-conjunction refusal and unsupported-realization diagnostics.
@@ -29,13 +31,11 @@ Implement R5 and the Umpire half of R6. Keep symbolic realization operands in th
 ```bash
 go test -tags test_dep ./tools/umpire/realization/... ./tools/umpire/lower/... ./tools/umpire/conformance/...
 ```
-
 ## Acceptance
 - [ ] R5's lowering and diagnostic contract covers supported and rejected operands.
 - [ ] R6's live, replay and conformance paths agree on real correlated fixtures.
 - [ ] No Umpire IR import of Testpilot schemas is introduced.
 - [ ] Focused lifter, realization, lowering and conformance tests pass.
-
 ## Done summary
 TBD
 
