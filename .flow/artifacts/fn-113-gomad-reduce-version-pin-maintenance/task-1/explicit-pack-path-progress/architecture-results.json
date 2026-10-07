@@ -1,0 +1,17 @@
+{
+  "passes": [
+    "TestPackageArchitecture",
+    "TestPublicPackagesDoNotExportTypeAliases",
+    "TestPureModulesHaveNoHostEffects",
+    "TestExactModuleEdges"
+  ],
+  "failures": [],
+  "runtime_skips": [],
+  "packages": [
+    {
+      "Package": "go.temporal.io/server/tools/gomad3",
+      "Action": "pass",
+      "Elapsed": 28.034
+    }
+  ]
+}

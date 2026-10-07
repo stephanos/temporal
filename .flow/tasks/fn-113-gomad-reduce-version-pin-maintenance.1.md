@@ -38,6 +38,18 @@ Re-measure the pin baseline (R1) and add a `gomadtool` subcommand that reports e
 - fn-105 task 8 adds downstream adapters and changes the baseline count; record the commit the baseline was taken at.
 - A new package must satisfy the import allowlist in `architecture_test.go`.
 
+## Source correction: explicit pack-root diagnostics
+
+fn-113 R2 requires path-free canonical pin-impact reports. The explicit PacksDirectory loader can return an os.ReadDir error containing the absolute selected directory, while evaluatePacks redacts only the environment-selected root. Reproduce with an existing regular file supplied where a pack directory is expected, at two otherwise equivalent temporary locations. Missing directories intentionally hold no packs; preserve that behavior.
+
+**Touches:** [tools/gomad3/upgrade/pinimpact/pinimpact.go, tools/gomad3/upgrade/pinimpact/packs_directory_test.go, .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/explicit-pack-path-progress/**]
+
+Use the actual selected root during error rendering and replace an explicit root with a stable logical label. Preserve environment-selected report bytes, explicit-root precedence, unknown pin classification and invalidated disposition, baseline and candidate validation ordering, pack loading/selection behavior, CLI grammar/statuses, schemas, policies, module files, generated outputs and toolchain inputs. No dependencies or generic path sanitizer are needed.
+
+Use TDD: retain a failing public Evaluate/Encode/Render regression before production edits. Two same-content regular files under different roots must produce equal canonical/human reports containing neither host root, with one unknown compatibility-pack pin and Invalidated=true. Check unchanged missing-root empty selection and existing environment precedence, malformed-pack and module-validation controls. Run package tests, scoped lint/errortype/vet, source-bound check-only validate, relevant architecture checks and make lint-code-fast with pinned tools/fixes disabled. Keep the three original unsupported-host preparation comparisons and required native/full/formal gates explicitly open.
+
+Retain compact RED/GREEN and final command evidence, a fresh independent source-progress review, and a separate verified-progress commit. This fixes source behavior but does not complete task1's original native acceptance. Linux remains deferred and unverified under fn128. Use the existing task1 rather than adding a duplicate owner.
+
 ## Acceptance
 
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
@@ -85,6 +97,21 @@ Required task Quick still exits 1 on TestFixtureBumpMatchesBuildRejections, Test
 
 ## Done summary
 The retained rebased-source baseline measures1044 runtime patch lines in20 files,61 overlay files/18437 lines,15 adapters/135 SHA256 anchors,12 packs/54 rules/19 module-version pins,131 interceptions/132 fingerprints, and25 clock references. MILESTONES maintenance counts are corrected; baseline.json includes the historical fn-110 baseline, source hashes and per-bump commands/hand edits.
+
+The new gomadtool pin-impact command reads candidate go.mod/go.sum and the same adapter registry and validated pack descriptors as the build. Canonical path-free JSON and human output list adapters, source-set-bound pack rules, both-platform interception fingerprints and clock references. Exact immutable module version/sum identities need no resolution or downloads; missing sums are unknown. Removed/replaced modules, changed sums, indirect bumps, unselected pack variants, immutable inputs, status0/1/2/3 and output failure are tested. A sentry/reflect2 fixture invalidates exactly the adapter and pack the fail-closed build rejects.
+
+The final review fixed missing module-directive validation, retaining a CLI red status0 and green status2. Full cmd/gomadtool and upgrade tests and scoped vet pass after that three-line guard. The prior shared native45-package host gate and validate pass on unchanged runtime/generated inputs; see fn-114/task-13/integrated-source-hashes.json for the full-gate source snapshot plus supplemental fix hashes. Independent re-review returned SHIP at fn-114/task-13/integrated-review.json. Linux remains unverified; root lint cannot load nested-module paths. No implementation commits or pushes; the user owns commits. Adapter regeneration and pack refresh remain later tasks.
+
+Blocked:
+The explicit pack-root diagnostic correction has verified source progress. The selected directory now renders as $PacksDirectory in canonical and human reports. The public regression reproduced host-path leakage before the production edit and passes afterward. Missing-root empty selection, explicit/environment precedence, malformed-pack reporting, validation order and exact environment-selected report bytes are preserved.
+
+Portable checks pass across four packages, with 85 top-level tests and 157 passing test/subtest records. The command explicitly excludes TestFixtureBumpMatchesBuildRejections, TestSameVersionWithChangedSum and TestReplacedModules because their original comparisons require the unavailable patched driver. Their acceptance remains open. Scoped unfiltered lint, vet, errortype, check-only generator validation and four architecture checks pass. Mandatory fast lint passes for changed lines while filtering 310 residual configured findings. Full lint remains red.
+
+Evidence is retained under .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/explicit-pack-path-progress/. The conductor independently reran the four report regressions, matched environment report bytes and checked the two-file diff and final source hashes. A fresh same-family Codex source-progress review supplies no formal SHIP or task-completion verdict.
+
+Original task1 build-pin comparisons and required full/native-Darwin/formal gates remain open. This developmental Linux ARM host and absent patched toolchain cannot provide them. Do not repeat unchanged unsupported-host or missing-driver checks. Linux qualification remains deferred and unverified under fn128 and does not block this source correction. Resume original acceptance with source-bound native Darwin/full/comparator evidence. Historical qualification receipts remain historical evidence, not current-candidate proof.
+
+### Historical implementation summary retained from the pre-correction task
 
 The new gomadtool pin-impact command reads candidate go.mod/go.sum and the same adapter registry and validated pack descriptors as the build. Canonical path-free JSON and human output list adapters, source-set-bound pack rules, both-platform interception fingerprints and clock references. Exact immutable module version/sum identities need no resolution or downloads; missing sums are unknown. Removed/replaced modules, changed sums, indirect bumps, unselected pack variants, immutable inputs, status0/1/2/3 and output failure are tested. A sentry/reflect2 fixture invalidates exactly the adapter and pack the fail-closed build rejects.
 

@@ -1,0 +1,17 @@
+{
+  "commits": [],
+  "base_commit": "ae196e9ac074a897ec6cea7cc124818cb4f9e7a7",
+  "tests": [
+    "timeout 600s go -C tools/gomad3 test -count=1 -v -tags test_dep -run '^(TestPackRootLoadErrorsArePathFree|TestMissingExplicitPackRootSelectsNoPacks|TestExplicitPackRootOverridesEnvironmentAndRetainsReports|TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport)$' ./upgrade/pinimpact",
+    "timeout 600s go -C tools/gomad3 test -count=1 -json -tags test_dep -skip '^(TestFixtureBumpMatchesBuildRejections|TestSameVersionWithChangedSum|TestReplacedModules)$' ./cmd/gomadtool ./upgrade/...",
+    "cd tools/gomad3 && timeout 600s /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags=test_dep --timeout=10m --fix=false --config=../../.github/.golangci.yml ./upgrade/pinimpact",
+    "timeout 600s go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/pinimpact",
+    "timeout 600s go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact",
+    "timeout 600s make lint-code-fast GOLANGCI_LINT_BASE_REV=ae196e9ac074a897ec6cea7cc124818cb4f9e7a7 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "timeout 600s make -C tools/gomad3 validate",
+    "timeout 600s go -C tools/gomad3 test -count=1 -json -tags test_dep -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$' .",
+    "cmp .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/explicit-pack-path-progress/environment-base-bytes.txt .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/explicit-pack-path-progress/environment-fixed-bytes.txt",
+    "git diff --check -- tools/gomad3/upgrade/pinimpact/pinimpact.go tools/gomad3/upgrade/pinimpact/packs_directory_test.go"
+  ],
+  "prs": []
+}

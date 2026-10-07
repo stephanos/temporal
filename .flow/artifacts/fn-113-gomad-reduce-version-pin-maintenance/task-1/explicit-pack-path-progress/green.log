@@ -1,0 +1,14 @@
+=== RUN   TestPackRootLoadErrorsArePathFree
+=== RUN   TestPackRootLoadErrorsArePathFree/explicit
+=== RUN   TestPackRootLoadErrorsArePathFree/environment
+--- PASS: TestPackRootLoadErrorsArePathFree (0.11s)
+    --- PASS: TestPackRootLoadErrorsArePathFree/explicit (0.01s)
+    --- PASS: TestPackRootLoadErrorsArePathFree/environment (0.07s)
+=== RUN   TestMissingExplicitPackRootSelectsNoPacks
+--- PASS: TestMissingExplicitPackRootSelectsNoPacks (0.04s)
+=== RUN   TestExplicitPackRootOverridesEnvironmentAndRetainsReports
+--- PASS: TestExplicitPackRootOverridesEnvironmentAndRetainsReports (0.16s)
+=== RUN   TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport
+--- PASS: TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport (0.06s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.376s

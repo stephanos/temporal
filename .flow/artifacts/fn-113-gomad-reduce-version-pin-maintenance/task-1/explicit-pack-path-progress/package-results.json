@@ -1,0 +1,65 @@
+{
+  "passed_test_records": 157,
+  "passed_top_level_tests": 85,
+  "failures": [],
+  "runtime_skips": [],
+  "packages": [
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade",
+      "Action": "pass",
+      "Elapsed": 0.316
+    },
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Action": "pass",
+      "Elapsed": 0.342
+    },
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/cmd/gomadtool",
+      "Action": "pass",
+      "Elapsed": 0.646
+    },
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/adapterregen",
+      "Action": "pass",
+      "Elapsed": 7.015
+    }
+  ],
+  "regression_results": [
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestPackRootLoadErrorsArePathFree/explicit",
+      "Action": "pass"
+    },
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestPackRootLoadErrorsArePathFree/environment",
+      "Action": "pass"
+    },
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestPackRootLoadErrorsArePathFree",
+      "Action": "pass"
+    },
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestMissingExplicitPackRootSelectsNoPacks",
+      "Action": "pass"
+    },
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestExplicitPackRootOverridesEnvironmentAndRetainsReports",
+      "Action": "pass"
+    },
+    {
+      "Package": "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+      "Test": "TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport",
+      "Action": "pass"
+    }
+  ],
+  "excluded_tests": [
+    "TestFixtureBumpMatchesBuildRejections",
+    "TestSameVersionWithChangedSum",
+    "TestReplacedModules"
+  ]
+}

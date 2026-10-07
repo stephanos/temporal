@@ -1,0 +1,41 @@
+=== RUN   TestPackRootLoadErrorsArePathFree
+=== RUN   TestPackRootLoadErrorsArePathFree/explicit
+    packs_directory_test.go:67: canonical reports depend on the pack root:
+        {"baseline":{"go_directive":"1.27.0","go_mod_sha256":"sha256:04580f578ebbb4a8bf88390ba3d3696b294657b6f636f00879fb18d7158a81ac","go_sum_sha256":"sha256:0c132667397a82131610dfafb0913b3cac4db73dbc32db3f880da3122753d7a9"},"candidate":{"go_directive":"1.27.0","go_mod_sha256":"sha256:04580f578ebbb4a8bf88390ba3d3696b294657b6f636f00879fb18d7158a81ac","go_sum_sha256":"sha256:0c132667397a82131610dfafb0913b3cac4db73dbc32db3f880da3122753d7a9"},"classes":[{"class":"adapter","invalidated":0,"not_selected":14,"stale":0,"total":15,"unaffected":1,"unknown":0},{"class":"pack-rule","invalidated":0,"not_selected":0,"stale":0,"total":1,"unaffected":0,"unknown":1},{"class":"interception-fingerprint","invalidated":0,"not_selected":0,"stale":0,"total":132,"unaffected":132,"unknown":0},{"class":"clock-reference","invalidated":0,"not_selected":0,"stale":0,"total":48,"unaffected":48,"unknown":0}],"invalidated":true,"pinned_go_version":"go1.27.1","pins":[{"class":"pack-rule","id":"compatibility packs","reason":"load compatibility packs: read external compatibility packs: open /home/agent/.cache/codex-build/tmp/TestPackRootLoadErrorsArePathFreeexplicit1316563079/001/packs: not a directory","status":"unknown"}],"platforms":["darwin/arm64","linux/amd64"],"schema":"gomad3.pin-impact/v1"}
+
+        {"baseline":{"go_directive":"1.27.0","go_mod_sha256":"sha256:04580f578ebbb4a8bf88390ba3d3696b294657b6f636f00879fb18d7158a81ac","go_sum_sha256":"sha256:0c132667397a82131610dfafb0913b3cac4db73dbc32db3f880da3122753d7a9"},"candidate":{"go_directive":"1.27.0","go_mod_sha256":"sha256:04580f578ebbb4a8bf88390ba3d3696b294657b6f636f00879fb18d7158a81ac","go_sum_sha256":"sha256:0c132667397a82131610dfafb0913b3cac4db73dbc32db3f880da3122753d7a9"},"classes":[{"class":"adapter","invalidated":0,"not_selected":14,"stale":0,"total":15,"unaffected":1,"unknown":0},{"class":"pack-rule","invalidated":0,"not_selected":0,"stale":0,"total":1,"unaffected":0,"unknown":1},{"class":"interception-fingerprint","invalidated":0,"not_selected":0,"stale":0,"total":132,"unaffected":132,"unknown":0},{"class":"clock-reference","invalidated":0,"not_selected":0,"stale":0,"total":48,"unaffected":48,"unknown":0}],"invalidated":true,"pinned_go_version":"go1.27.1","pins":[{"class":"pack-rule","id":"compatibility packs","reason":"load compatibility packs: read external compatibility packs: open /home/agent/.cache/codex-build/tmp/TestPackRootLoadErrorsArePathFreeexplicit1316563079/002/packs: not a directory","status":"unknown"}],"platforms":["darwin/arm64","linux/amd64"],"schema":"gomad3.pin-impact/v1"}
+    packs_directory_test.go:72: canonical report contains host root /home/agent/.cache/codex-build/tmp/TestPackRootLoadErrorsArePathFreeexplicit1316563079/001
+    packs_directory_test.go:76: canonical report lacks logical pack root $PacksDirectory
+    packs_directory_test.go:72: canonical report contains host root /home/agent/.cache/codex-build/tmp/TestPackRootLoadErrorsArePathFreeexplicit1316563079/002
+    packs_directory_test.go:76: canonical report lacks logical pack root $PacksDirectory
+    packs_directory_test.go:67: human reports depend on the pack root:
+        gomad3 pin impact (pinned go1.27.1; platforms darwin/arm64, linux/amd64): 0 invalidated, 1 unknown, 0 stale
+          adapter                     15 pins: 0 invalidated, 0 unknown, 0 stale, 1 unaffected, 14 not selected
+          pack-rule                    1 pins: 0 invalidated, 1 unknown, 0 stale, 0 unaffected, 0 not selected
+          interception-fingerprint   132 pins: 0 invalidated, 0 unknown, 0 stale, 132 unaffected, 0 not selected
+          clock-reference             48 pins: 0 invalidated, 0 unknown, 0 stale, 48 unaffected, 0 not selected
+        unknown pack-rule compatibility packs: load compatibility packs: read external compatibility packs: open /home/agent/.cache/codex-build/tmp/TestPackRootLoadErrorsArePathFreeexplicit1316563079/001/packs: not a directory
+
+        gomad3 pin impact (pinned go1.27.1; platforms darwin/arm64, linux/amd64): 0 invalidated, 1 unknown, 0 stale
+          adapter                     15 pins: 0 invalidated, 0 unknown, 0 stale, 1 unaffected, 14 not selected
+          pack-rule                    1 pins: 0 invalidated, 1 unknown, 0 stale, 0 unaffected, 0 not selected
+          interception-fingerprint   132 pins: 0 invalidated, 0 unknown, 0 stale, 132 unaffected, 0 not selected
+          clock-reference             48 pins: 0 invalidated, 0 unknown, 0 stale, 48 unaffected, 0 not selected
+        unknown pack-rule compatibility packs: load compatibility packs: read external compatibility packs: open /home/agent/.cache/codex-build/tmp/TestPackRootLoadErrorsArePathFreeexplicit1316563079/002/packs: not a directory
+    packs_directory_test.go:72: human report contains host root /home/agent/.cache/codex-build/tmp/TestPackRootLoadErrorsArePathFreeexplicit1316563079/001
+    packs_directory_test.go:76: human report lacks logical pack root $PacksDirectory
+    packs_directory_test.go:72: human report contains host root /home/agent/.cache/codex-build/tmp/TestPackRootLoadErrorsArePathFreeexplicit1316563079/002
+    packs_directory_test.go:76: human report lacks logical pack root $PacksDirectory
+=== RUN   TestPackRootLoadErrorsArePathFree/environment
+--- FAIL: TestPackRootLoadErrorsArePathFree (0.14s)
+    --- FAIL: TestPackRootLoadErrorsArePathFree/explicit (0.02s)
+    --- PASS: TestPackRootLoadErrorsArePathFree/environment (0.10s)
+=== RUN   TestMissingExplicitPackRootSelectsNoPacks
+--- PASS: TestMissingExplicitPackRootSelectsNoPacks (0.03s)
+=== RUN   TestExplicitPackRootOverridesEnvironmentAndRetainsReports
+--- PASS: TestExplicitPackRootOverridesEnvironmentAndRetainsReports (0.21s)
+=== RUN   TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport
+--- PASS: TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport (0.08s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.478s
+FAIL

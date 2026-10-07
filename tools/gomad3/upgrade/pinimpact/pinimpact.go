@@ -167,7 +167,7 @@ func Evaluate(ctx context.Context, spec Spec) (Report, error) {
 	} else {
 		packs, packErr = compatibility.LoadPackDirectory(spec.PacksDirectory)
 	}
-	evaluation.evaluatePacks(packs, packErr)
+	evaluation.evaluatePacks(packs, packErr, spec.PacksDirectory)
 	toolchainReason := candidate.toolchainReason()
 	evaluation.evaluateInterceptions(spec.Root, toolchainReason)
 	evaluation.evaluateClockReferences(spec.Root, toolchainReason)
@@ -246,11 +246,16 @@ func (evaluation *evaluation) evaluateAdapters() {
 // evaluatePacks judges each rule of every pack the baseline selects. A pack is
 // selected when all its activation modules match exactly, as the build's pack
 // selection requires.
-func (evaluation *evaluation) evaluatePacks(packs []compatibility.ValidatedPack, loadErr error) {
+func (evaluation *evaluation) evaluatePacks(packs []compatibility.ValidatedPack, loadErr error, directory string) {
 	if loadErr != nil {
 		reason := loadErr.Error()
-		if directory := os.Getenv(compatibility.ExternalPacksEnvironment); directory != "" {
-			reason = strings.ReplaceAll(reason, directory, "$"+compatibility.ExternalPacksEnvironment)
+		label := "$PacksDirectory"
+		if directory == "" {
+			directory = os.Getenv(compatibility.ExternalPacksEnvironment)
+			label = "$" + compatibility.ExternalPacksEnvironment
+		}
+		if directory != "" {
+			reason = strings.ReplaceAll(reason, directory, label)
 		}
 		evaluation.record(Pin{Class: ClassPackRule, Status: StatusUnknown, ID: "compatibility packs", Reason: "load compatibility packs: " + reason})
 		return

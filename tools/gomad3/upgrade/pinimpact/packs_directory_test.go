@@ -18,6 +18,86 @@ func authoringSpec(t *testing.T, directory string) pinimpact.Spec {
 	return pinimpact.Spec{Root: gomadRoot(t), Baseline: files, Candidate: files, Resolver: goModResolver{}, PacksDirectory: directory}
 }
 
+func TestPackRootLoadErrorsArePathFree(t *testing.T) {
+	spec := authoringSpec(t, "")
+	for _, test := range []struct {
+		name     string
+		explicit bool
+		label    string
+	}{
+		{name: "explicit", explicit: true, label: "$PacksDirectory"},
+		{name: "environment", label: "$GOMAD3_COMPATIBILITY_PACKS"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			roots := []string{t.TempDir(), t.TempDir()}
+			var canonical, human []string
+			for _, root := range roots {
+				directory := filepath.Join(root, "packs")
+				if err := os.WriteFile(directory, []byte("regular file, not a pack directory"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				selected := spec
+				if test.explicit {
+					selected.PacksDirectory = directory
+					t.Setenv(compatibility.ExternalPacksEnvironment, filepath.Join(t.TempDir(), "unused-environment-packs"))
+				} else {
+					t.Setenv(compatibility.ExternalPacksEnvironment, directory)
+				}
+				report, err := pinimpact.Evaluate(t.Context(), selected)
+				if err != nil {
+					t.Fatal(err)
+				}
+				requirePins(t, report, map[string]pinimpact.Status{"pack-rule compatibility packs": pinimpact.StatusUnknown})
+				if !report.Invalidated {
+					t.Fatal("unloadable packs did not invalidate the candidate")
+				}
+				encoded, err := pinimpact.Encode(report)
+				if err != nil {
+					t.Fatal(err)
+				}
+				var rendered strings.Builder
+				if err := pinimpact.Render(&rendered, report); err != nil {
+					t.Fatal(err)
+				}
+				canonical = append(canonical, string(encoded))
+				human = append(human, rendered.String())
+			}
+			for name, outputs := range map[string][]string{"canonical": canonical, "human": human} {
+				if outputs[0] != outputs[1] {
+					t.Errorf("%s reports depend on the pack root:\n%s\n%s", name, outputs[0], outputs[1])
+				}
+				for _, output := range outputs {
+					for _, root := range roots {
+						if strings.Contains(output, root) {
+							t.Errorf("%s report contains host root %s", name, root)
+						}
+					}
+					if !strings.Contains(output, test.label) {
+						t.Errorf("%s report lacks logical pack root %s", name, test.label)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestMissingExplicitPackRootSelectsNoPacks(t *testing.T) {
+	spec := authoringSpec(t, filepath.Join(t.TempDir(), "missing-packs"))
+	t.Setenv(compatibility.ExternalPacksEnvironment, filepath.Join(t.TempDir(), "unused-environment-packs"))
+	report, err := pinimpact.Evaluate(t.Context(), spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Invalidated || len(report.Pins) != 0 {
+		t.Fatalf("missing explicit root report = %+v, want no invalidated pins", report)
+	}
+	for _, summary := range report.Classes {
+		if summary.Class == pinimpact.ClassPackRule && summary.Total != 0 {
+			t.Fatalf("missing explicit root pack summary = %+v, want no packs", summary)
+		}
+	}
+}
+
 func TestExplicitPackRootOverridesEnvironmentAndRetainsReports(t *testing.T) {
 	directory := filepath.Join(gomadRoot(t), "internal", "compatibilitypack", "packs")
 	spec := authoringSpec(t, directory)

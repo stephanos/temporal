@@ -1,0 +1,53 @@
+{
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.1",
+  "status": "in_progress",
+  "scope": "Explicit pack-root diagnostic source correction only",
+  "base_commit": "ae196e9ac074a897ec6cea7cc124818cb4f9e7a7",
+  "commits": [],
+  "workspace": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "host": "linux/arm64",
+  "environment": {
+    "PATH_prefix": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin",
+    "GOPROXY": "off", "GOSUMDB": "off", "GOTOOLCHAIN": "local", "GOWORK": "off", "GOENV": "off"
+  },
+  "tools": {
+    "go": {"path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go", "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"},
+    "golangci_lint": {"path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0", "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"},
+    "errortype": {"path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype", "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"}
+  },
+  "source_bindings": {
+    "baseline_production_sha256": "c8d1bdc43e57e825bd66cfb7c269a674027a763d8266ff6d144e0c5501c825b5",
+    "baseline_test_sha256": "4f2f59a697d0b64c7dca6e98423f0ca7d5631384e2897b08c00b94bac50e9956",
+    "final_production": {"path": "tools/gomad3/upgrade/pinimpact/pinimpact.go", "sha256": "f23f837f1ef129613378d45c658cb4cceba05b76635a18f77ca0cd7a4696dbb2"},
+    "final_test": {"path": "tools/gomad3/upgrade/pinimpact/packs_directory_test.go", "sha256": "fa61180eac2a249ab890772e7e9510846b04ac916f60ada02466f0a64e204993"},
+    "unchanged_loader_sha256": "7c80bfa7cce53d14967b8aff784461e855e70c066af32607fb6ca03a3da65f59",
+    "unchanged_nested_go_mod_sha256": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+    "unchanged_nested_go_sum_sha256": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960",
+    "changed_paths_under_gomad_modules": ["tools/gomad3/upgrade/pinimpact/packs_directory_test.go", "tools/gomad3/upgrade/pinimpact/pinimpact.go"],
+    "final_verification_after_instrumentation_removal": true
+  },
+  "observations": [
+    {"stage": "portable baseline", "command": "timeout 600s go -C tools/gomad3 test -count=1 -tags test_dep -skip '^(TestFixtureBumpMatchesBuildRejections|TestSameVersionWithChangedSum|TestReplacedModules)$' ./upgrade/pinimpact", "started": "2026-10-07T14:33:01Z", "ended": "2026-10-07T14:33:02Z", "elapsed_seconds": 1, "exit_code": 0, "log": "baseline.log"},
+    {"stage": "baseline validate", "command": "timeout 600s make -C tools/gomad3 validate", "started": "2026-10-07T14:33:14Z", "ended": "2026-10-07T14:33:18Z", "elapsed_seconds": 4, "exit_code": 0, "log": "baseline-validate.log"},
+    {"stage": "RED", "command": "timeout 600s go -C tools/gomad3 test -count=1 -v -tags test_dep -run '^(TestPackRootLoadErrorsArePathFree|TestMissingExplicitPackRootSelectsNoPacks|TestExplicitPackRootOverridesEnvironmentAndRetainsReports|TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport)$' ./upgrade/pinimpact", "started": "2026-10-07T14:34:36Z", "ended": "2026-10-07T14:34:38Z", "elapsed_seconds": 2, "exit_code": 1, "production_sha256": "c8d1bdc43e57e825bd66cfb7c269a674027a763d8266ff6d144e0c5501c825b5", "test_sha256": "fa61180eac2a249ab890772e7e9510846b04ac916f60ada02466f0a64e204993", "failed_case": "TestPackRootLoadErrorsArePathFree/explicit", "failure": "Canonical and human output differ across roots and expose absolute host roots", "passed_controls": ["environment", "missing explicit root", "explicit override", "malformed pack and module-validation order"], "log": "red.log"},
+    {"stage": "GREEN", "command": "Same public regression command as RED", "started": "2026-10-07T14:35:10Z", "ended": "2026-10-07T14:35:12Z", "elapsed_seconds": 2, "exit_code": 0, "source_binding": "final_production and final_test", "log": "green.log"},
+    {"stage": "environment byte preservation on unchanged base", "command": "timeout 600s go -C /tmp/fn113-pack-env-base.XheHvb16/tools/gomad3 test -count=1 -v -tags test_dep -run '^TestPackRootLoadErrorsArePathFree$/^environment$' ./upgrade/pinimpact", "started": "2026-10-07T14:37:32Z", "ended": "2026-10-07T14:37:33Z", "elapsed_seconds": 1, "exit_code": 0, "production_sha256": "c8d1bdc43e57e825bd66cfb7c269a674027a763d8266ff6d144e0c5501c825b5", "instrumented_test_sha256": "21811333921be757ed6015afeb10f284e32da181b96912409a647a07571d6c6e", "log": "environment-base.log"},
+    {"stage": "environment byte preservation on corrected source", "command": "timeout 600s go -C tools/gomad3 test -count=1 -v -tags test_dep -run '^TestPackRootLoadErrorsArePathFree$/^environment$' ./upgrade/pinimpact", "started": "2026-10-07T14:37:33Z", "ended": "2026-10-07T14:37:33Z", "elapsed_seconds": 0, "exit_code": 0, "production_sha256": "f23f837f1ef129613378d45c658cb4cceba05b76635a18f77ca0cd7a4696dbb2", "instrumented_test_sha256": "21811333921be757ed6015afeb10f284e32da181b96912409a647a07571d6c6e", "log": "environment-fixed.log"},
+    {"stage": "portable task package verification", "command": "timeout 600s go -C tools/gomad3 test -count=1 -json -tags test_dep -skip '^(TestFixtureBumpMatchesBuildRejections|TestSameVersionWithChangedSum|TestReplacedModules)$' ./cmd/gomadtool ./upgrade/...", "started": "2026-10-07T14:37:56Z", "ended": "2026-10-07T14:38:03Z", "elapsed_seconds": 7, "exit_code": 0, "source_binding": "final_production and final_test", "results": "package-results.json", "bulk_output": ".flow/tmp/fn113-explicit-pack-tests.jsonl", "bulk_output_sha256": "4887a4ad86d093f1bc8fa3661aba4ff91d2bc81ef4c121209363f94ba7e636f7"},
+    {"stage": "scoped lint attempt", "command": "timeout 600s /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags=test_dep --timeout=10m --fix=false --config=/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml ./upgrade/pinimpact", "started": "2026-10-07T14:38:38Z", "ended": "2026-10-07T14:38:38Z", "elapsed_seconds": 0, "exit_code": 7, "disposition": "inconclusive", "reason": "Shell began at repository root despite requested nested working directory; package selection did not exist", "log": "scoped-lint.log"},
+    {"stage": "corrected unfiltered scoped lint", "command": "cd tools/gomad3 && timeout 600s /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags=test_dep --timeout=10m --fix=false --config=../../.github/.golangci.yml ./upgrade/pinimpact", "started": "2026-10-07T14:39:07Z", "ended": "2026-10-07T14:39:09Z", "elapsed_seconds": 2, "exit_code": 0, "source_binding": "final_production and final_test", "issues": 0, "log": "scoped-lint-corrected.log"},
+    {"stage": "scoped errortype", "command": "timeout 600s go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/pinimpact", "started": "2026-10-07T14:39:30Z", "ended": "2026-10-07T14:39:30Z", "elapsed_seconds": 0, "exit_code": 0, "source_binding": "final_production and final_test", "log": "errortype.log"},
+    {"stage": "scoped vet", "command": "timeout 600s go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact", "started": "2026-10-07T14:39:30Z", "ended": "2026-10-07T14:39:31Z", "elapsed_seconds": 1, "exit_code": 0, "source_binding": "final_production and final_test", "log": "vet.log"},
+    {"stage": "mandatory changed-line lint", "command": "timeout 600s make lint-code-fast GOLANGCI_LINT_BASE_REV=ae196e9ac074a897ec6cea7cc124818cb4f9e7a7 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep", "started": "2026-10-07T14:39:43Z", "ended": "2026-10-07T14:39:47Z", "elapsed_seconds": 4, "exit_code": 0, "source_binding": "final_production and final_test", "host_packages": 55, "configured_findings_before_diff_filter": 310, "issues_after_diff_filter": 0, "scope_limit": "Changed-line pass only; other package findings are not a full green", "log": "lint-code-fast.log"},
+    {"stage": "final check-only validation", "command": "timeout 600s make -C tools/gomad3 validate", "started": "2026-10-07T14:40:24Z", "ended": "2026-10-07T14:40:27Z", "elapsed_seconds": 3, "exit_code": 0, "source_binding": "final_production and final_test", "log": "validate.log"},
+    {"stage": "architecture", "command": "timeout 600s go -C tools/gomad3 test -count=1 -json -tags test_dep -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$' .", "started": "2026-10-07T14:40:27Z", "ended": "2026-10-07T14:40:55Z", "elapsed_seconds": 28, "exit_code": 0, "source_binding": "final_production and final_test", "results": "architecture-results.json", "static_source_sets": ["darwin/arm64", "linux/amd64"], "bulk_output": ".flow/tmp/fn113-explicit-pack-architecture.jsonl", "bulk_output_sha256": "8412899a379daf6a4db65193aa329ba22f423750b4c2172b8cace6d0c738320b"}
+  ],
+  "environment_byte_comparison": {"command": "cmp environment-base-bytes.txt environment-fixed-bytes.txt", "exit_code": 0, "records": 4, "bytes": 4102, "sha256_both": "e18ec64616ba76117d6380603ff5755204f13b271008c8fde7bca6c417934d15", "temporary_logging_removed": true, "exact_task_owned_worktree_removed": "/tmp/fn113-pack-env-base.XheHvb16"},
+  "open_acceptance": {
+    "original_task_Quick": "Retained inherited red. No unchanged unsupported-host retry by conductor instruction.",
+    "excluded_native_preparation_comparators": ["TestFixtureBumpMatchesBuildRejections", "TestSameVersionWithChangedSum", "TestReplacedModules"],
+    "required_Darwin_and_full_gates": "Open; no native qualification or determinism claim",
+    "formal_review": "Open; conductor owns fresh source-progress review and formal task acceptance",
+    "Linux_execution": "Deferred and unverified under fn-128"
+  }
+}
