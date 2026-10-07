@@ -154,8 +154,8 @@ class Fixtures extends munit.FunSuite:
     // fn-135.5: status facts derived from the phase an effect block assigns, and their written
     // twins (lifts/StatusFacts.scala).
     "statusFacts" -> Seq("Derived", "Written").map(o => s"fixture.statusfacts.$o"),
-    // fn-136.1: role tests beside the case sets they stand for (lifts/Roles.scala).
-    "roles" -> Seq("Roled", "Listed").map("fixture.roles." + _),
+    // fn-136.1, fn-136.4: role tests beside the case sets they stand for (lifts/Roles.scala).
+    "roles" -> Seq("Roled", "Listed", "Shortened", "Written").map("fixture.roles." + _),
     "captured" -> Seq(
       "queries",
       "diskQueries",
@@ -406,7 +406,13 @@ class Fixtures extends munit.FunSuite:
     "WithFields",
     "BothLiveClosed",
     "TwoLiveRoles",
-    "TwoClosureRoles"
+    "TwoClosureRoles",
+    // fn-136.4: the short spellings.
+    "WhenNoProjection",
+    "WhenNoRole",
+    "WhenNoEnum",
+    "InNoRole",
+    "InNoEnum"
   ).map("fixture.rolerejects." + _)
 
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
@@ -1433,9 +1439,10 @@ class Fixtures extends munit.FunSuite:
       "a phase that declares statuses lifts as the enum it is without them"
     )
 
-  // fn-136.1: each role test of `Roled` beside the cases `Listed` names by hand
-  // (lifts/Roles.scala). Every declaration of one machine, with the other's name in its place and no
-  // positions, is the other's, and an enum's roles leave its IR type as it is without them.
+  // fn-136.1: each role test of `Roled` beside the cases `Listed` names by hand, and fn-136.4's
+  // `when[R]` and `p.in[R]` of `Shortened` beside `Written` (lifts/Roles.scala). Every declaration
+  // of one machine, with the other's name in its place and no positions, is the other's, and an
+  // enum's roles leave its IR type as it is without them.
   test("a role test lifts as the in(...) or the alternatives of the cases that have the role"):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
@@ -1446,8 +1453,8 @@ class Fixtures extends munit.FunSuite:
         case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
         case _             => ()
       n.elements().asScala.foreach(strip)
-    def declarations(machine: String): Map[String, Map[String, String]] =
-      val named = (s: String) => s.replace(machine, "Listed").replace(machine.toLowerCase, "listed")
+    def declarations(machine: String, as: String): Map[String, Map[String, String]] =
+      val named = (s: String) => s.replace(machine, as).replace(machine.toLowerCase, as.toLowerCase)
       Seq("machines", "functions").map { kind =>
         kind -> model
           .path(kind)
@@ -1461,8 +1468,16 @@ class Fixtures extends munit.FunSuite:
           }
           .toMap
       }.toMap
-    val (roled, listed) = (declarations("Roled"), declarations("Listed"))
+    val (roled, listed) = (declarations("Roled", "Listed"), declarations("Listed", "Listed"))
     for kind <- roled.keys do assertEquals(roled(kind), listed(kind), kind)
+    val (short, written) =
+      (declarations("Shortened", "Written"), declarations("Written", "Written"))
+    for kind <- short.keys do assertEquals(short(kind), written(kind), kind)
+    assertEquals(
+      short("functions").keySet.filter(_.contains("rules")),
+      Set("written.rules.start", "written.rules.stop"),
+      "each when[R] is lifted"
+    )
     assertEquals(
       roled("functions").keySet.filter(_.contains("states")),
       Set("closed", "waiting", "live", "expiring", "over", "settled", "stopping")

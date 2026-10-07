@@ -1,5 +1,5 @@
 {
-  "source": "model: fixture.roles.Listed, fixture.roles.Roled",
+  "source": "model: fixture.roles.Listed, fixture.roles.Roled, fixture.roles.Shortened, fixture.roles.Written",
   "types": [ {
     "name": "fixture.roles.Bare",
     "position": {
@@ -1529,6 +1529,1014 @@
       }
     }
   }, {
+    "name": "fixture.roles.Shortened$.effects$.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 122
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 122
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 122
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 40
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 122
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 122
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Roles.scala",
+                      "line": 122
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.roles.Phase",
+                        "case": "running"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 122
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 122
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Fact",
+                      "case": "started"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 122
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.roles.Shortened$.effects$.stop",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 123
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 123
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 123
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 40
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 123
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 123
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Roles.scala",
+                      "line": 123
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.roles.Phase",
+                        "case": "done"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 123
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 123
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.roles.Shortened$.states$.closed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 116
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.roles.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 116
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 116
+          },
+          "var": "p"
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 116
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 116
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Phase",
+                  "case": "done"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 116
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Phase",
+                  "case": "failed"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 116
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Phase",
+                  "case": "expired"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.roles.Shortened$.states$.expiring",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 117
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.roles.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 117
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 117
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 117
+              },
+              "var": "p"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 117
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 117
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "expired"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 117
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 117
+              },
+              "var": "p"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 117
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 117
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "expired"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.roles.Shortened$.states$.over",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 118
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 118
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 118
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 118
+              },
+              "var": "s"
+            },
+            "field": "solo"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 118
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 118
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Solo",
+                  "case": "over"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.roles.Shortened$.states$.stopping",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 119
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 119
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 119
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 119
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 119
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 119
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 119
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 119
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 119
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 119
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 119
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Phase",
+                  "case": "paused"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.roles.Written$.effects$.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 143
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 143
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 143
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 40
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 143
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 143
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Roles.scala",
+                      "line": 143
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.roles.Phase",
+                        "case": "running"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 143
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 143
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Fact",
+                      "case": "started"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 143
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.roles.Written$.effects$.stop",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 144
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 144
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 144
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 40
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 144
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 144
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Roles.scala",
+                      "line": 144
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.roles.Phase",
+                        "case": "done"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 144
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 144
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.roles.Written$.states$.closed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 137
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.roles.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 137
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 137
+          },
+          "var": "p"
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 137
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 137
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Phase",
+                  "case": "done"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 137
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Phase",
+                  "case": "failed"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 137
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Phase",
+                  "case": "expired"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.roles.Written$.states$.expiring",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 138
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.roles.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 138
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 138
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 138
+              },
+              "var": "p"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 138
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 138
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "expired"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 138
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 138
+              },
+              "var": "p"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 138
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 138
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "expired"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.roles.Written$.states$.over",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 139
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 139
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 139
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 139
+              },
+              "var": "s"
+            },
+            "field": "solo"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 139
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 139
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Solo",
+                  "case": "over"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.roles.Written$.states$.stopping",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 140
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 140
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 140
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 140
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 140
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 140
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 140
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 140
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 140
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 140
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 140
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.roles.Phase",
+                  "case": "paused"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
     "name": "listed.evidence",
     "position": {
       "file": "model/irgen/testdata/lifts/Roles.scala",
@@ -2040,6 +3048,770 @@
         }
       }
     }
+  }, {
+    "name": "shortened.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 111
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.roles.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 111
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 111
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.roles.Fact",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Roles.scala",
+              "line": 111
+            },
+            "literal": {
+              "text": "started"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "shortened.rules.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 126
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 126
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 126
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 125
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 125
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 126
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 126
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "queued"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 126
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "backingOff"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 126
+          },
+          "call": {
+            "function": "fixture.roles.Shortened$.effects$.start",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 126
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 126
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "shortened.rules.stop",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 127
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 128
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 128
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 128
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 125
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 125
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 128
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 128
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "queued"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 128
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "backingOff"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 128
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "running"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 128
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "paused"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 128
+              },
+              "call": {
+                "function": "fixture.roles.Shortened$.states$.stopping",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 128
+                  },
+                  "var": "s"
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 128
+          },
+          "call": {
+            "function": "fixture.roles.Shortened$.effects$.stop",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 128
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 129
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 129
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 125
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 125
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 129
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 129
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "done"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 129
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "failed"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 129
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "expired"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 129
+              },
+              "call": {
+                "function": "fixture.roles.Shortened$.effects$.stop",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 129
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 127
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "written.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 132
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.roles.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 132
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 132
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.roles.Fact",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Roles.scala",
+              "line": 132
+            },
+            "literal": {
+              "text": "started"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "written.rules.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 147
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 147
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 147
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 146
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 146
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 147
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 147
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "queued"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 147
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.roles.Phase",
+                      "case": "backingOff"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 147
+          },
+          "call": {
+            "function": "fixture.roles.Written$.effects$.start",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 147
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 147
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "written.rules.stop",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 148
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.roles.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 149
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 149
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 149
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 146
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 146
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 149
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 149
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "queued"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 149
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "backingOff"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 149
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "running"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 149
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "paused"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 150
+              },
+              "call": {
+                "function": "fixture.roles.Written$.states$.stopping",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 150
+                  },
+                  "var": "s"
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 150
+          },
+          "call": {
+            "function": "fixture.roles.Written$.effects$.stop",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 150
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 151
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 151
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 146
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 146
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 151
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 151
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "done"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 151
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "failed"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 151
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.roles.Phase",
+                          "case": "expired"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 151
+              },
+              "call": {
+                "function": "fixture.roles.Written$.effects$.stop",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 151
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 148
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
   } ],
   "actions": [ {
     "id": "fixture.roles.user.start",
@@ -2392,5 +4164,339 @@
       }
     } ],
     "evidence": "roled.evidence"
+  }, {
+    "family": "fixture.roles",
+    "name": "shortened",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 111
+    },
+    "stateType": "fixture.roles.Job",
+    "outcomeType": "fixture.roles.Outcome",
+    "factType": "fixture.roles.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 112
+      },
+      "construct": {
+        "type": "fixture.roles.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 112
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.roles.Phase",
+              "case": "unstarted"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 112
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.roles.Solo",
+              "case": "over"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 112
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.roles.Bare",
+              "case": "unstarted"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 113
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.roles.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 113
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 113
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 113
+                  },
+                  "call": {
+                    "function": "fixture.roles.Shortened$.states$.closed",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 113
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Roles.scala",
+                            "line": 113
+                          },
+                          "var": "s"
+                        },
+                        "field": "phase"
+                      }
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 113
+                  },
+                  "call": {
+                    "function": "fixture.roles.Shortened$.states$.over",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 113
+                      },
+                      "var": "s"
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 113
+              },
+              "call": {
+                "function": "fixture.roles.Shortened$.states$.expiring",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 113
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 113
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.roles.user.start",
+      "function": "shortened.rules.start",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 126
+      }
+    }, {
+      "action": "fixture.roles.user.stop",
+      "function": "shortened.rules.stop",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 127
+      }
+    } ],
+    "evidence": "shortened.evidence"
+  }, {
+    "family": "fixture.roles",
+    "name": "written",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Roles.scala",
+      "line": 132
+    },
+    "stateType": "fixture.roles.Job",
+    "outcomeType": "fixture.roles.Outcome",
+    "factType": "fixture.roles.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 133
+      },
+      "construct": {
+        "type": "fixture.roles.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 133
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.roles.Phase",
+              "case": "unstarted"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 133
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.roles.Solo",
+              "case": "over"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 133
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.roles.Bare",
+              "case": "unstarted"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 134
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.roles.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Roles.scala",
+            "line": 134
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 134
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 134
+                  },
+                  "call": {
+                    "function": "fixture.roles.Written$.states$.closed",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 134
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Roles.scala",
+                            "line": 134
+                          },
+                          "var": "s"
+                        },
+                        "field": "phase"
+                      }
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 134
+                  },
+                  "call": {
+                    "function": "fixture.roles.Written$.states$.over",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 134
+                      },
+                      "var": "s"
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Roles.scala",
+                "line": 134
+              },
+              "call": {
+                "function": "fixture.roles.Written$.states$.expiring",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Roles.scala",
+                    "line": 134
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Roles.scala",
+                        "line": 134
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.roles.user.start",
+      "function": "written.rules.start",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 147
+      }
+    }, {
+      "action": "fixture.roles.user.stop",
+      "function": "written.rules.stop",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Roles.scala",
+        "line": 148
+      }
+    } ],
+    "evidence": "written.evidence"
   } ]
 }

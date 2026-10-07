@@ -67,10 +67,10 @@ private[irgen] object Roles:
   // A role as a refusal names it: by its simple name.
   def named(role: String): String = role.split('.').last
 
-// The lifting of role tests: `p.isInstanceOf[R]` and the type pattern `case _: R` of a phase, each
-// lowered to the cases of the phase's enum that have the role, as the `in(...)` and the
-// alternatives of case literals written by hand lift; and the conflict check of every enum whose
-// cases take roles, run as its type is declared.
+// The lifting of role tests: `p.isInstanceOf[R]`, `p.in[R]`, a rule's `when[R]` and the type
+// pattern `case _: R` of a phase, each lowered to the cases of the phase's enum that have the role,
+// as the `in(...)` and the alternatives of case literals written by hand lift; and the conflict
+// check of every enum whose cases take roles, run as its type is declared.
 private[irgen] trait PhaseRoles:
   self: Lifting =>
   import ctx.*
@@ -129,7 +129,7 @@ private[irgen] trait PhaseRoles:
         fail(
           at,
           s"a role test reads a phase, a value of a finite enum, and ${value.widen.show} is " +
-            s"none: test the phase, such as `s.phase.isInstanceOf[${r.name}]`"
+            s"none: test the phase, such as `s.phase.in[${r.name}]`"
         )
       )
     val names = closureOf(e).cases(r.fullName)
@@ -149,10 +149,14 @@ private[irgen] trait PhaseRoles:
       )
     cases
 
-  // `value.isInstanceOf[R]`, as `value.in(<the cases of R>)` lifts.
+  // The list of the cases of `phase` that have `role`, as `in(...)` lists them.
+  def roleSet(phase: TypeRepr, role: TypeRepr, at: Term): ir.Expr =
+    list(roleCases(phase, role, at).map(enumLiteral(_, at)), at)
+
+  // `value.isInstanceOf[R]` and `value.in[R]`, as `value.in(<the cases of R>)` lifts.
   def roleTest(value: Term, role: TypeRepr, at: Term): ir.Expr =
-    val cases = roleCases(value.tpe, role, at)
-    binary(ir.Binary.Op.OP_CONTAINS, lift(value), list(cases.map(enumLiteral(_, at)), at), at)
+    val cases = roleSet(value.tpe, role, at)
+    binary(ir.Binary.Op.OP_CONTAINS, lift(value), cases, at)
 
   // The type pattern `case _: R` of a `scrutinee`, as the alternatives of the cases of R written
   // by hand lift: `case Phase.done | Phase.failed`, and one case as its literal alone.

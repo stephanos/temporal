@@ -550,3 +550,55 @@ class RulesTest extends munit.FunSuite:
     )
     assertEquals(writtenAction("umpire.apply[(A, B)](example.orders.buyer.place)(x := y)"), "place")
   }
+
+  // fn-136.4: `when[R]` fires in the phases with the role, the narrower roles' included, and
+  // `phase.in[R]` holds in them; rules that declare no projection name no role.
+  test("when[R] fires in exactly the phases with the role R") {
+    import RoleRulesFixture.*
+    val press =
+      Gate.bindings.head.function.asInstanceOf[Gate.Press] // scalafix:ok DisableSyntax.asInstanceOf
+    assertEquals(
+      Stage.values.toList.filter(p => press(Door(p)).nonEmpty),
+      List(Stage.queued, Stage.backingOff, Stage.done)
+    )
+    assertEquals(
+      Stage.values.toList.filter(_.in[Waiting]),
+      List(Stage.queued, Stage.backingOff)
+    )
+    val refused = compileErrors(
+      "object NoProjection extends Machine[Door, Said, Nothing] {\n" +
+        "  val init = Door(Stage.unstarted)\n  def end(s: Door) = true\n" +
+        "  object rules extends Rules { on(hand.press)(when[Closed] ~> Gate.effects.open) }\n}"
+    )
+    assert(
+      refused.contains(
+        "when names the phases of a role, and these rules declare no projection: declare the " +
+          "projection the phases are of, `object rules extends Rules(_.phase)`"
+      ),
+      refused
+    )
+  }
+
+object RoleRulesFixture:
+  import RulesFixture.{hand, Said, given}
+
+  enum Stage derives Finite:
+    case unstarted
+    case queued extends Stage, Waiting
+    case backingOff extends Stage, Retrying
+    case running extends Stage, Held
+    case done extends Stage, Succeeded
+
+  final case class Door(stage: Stage) derives Finite
+
+  object Gate extends Machine[Door, Said, Nothing]:
+    type Press = Door => List[Step[Door, Said, Nothing]]
+    val init = Door(Stage.unstarted)
+    def end(s: Door) = s.stage.in[Closed]
+    object effects:
+      def open(s: Door) = stay[Door, Said, Nothing](s)
+    object rules extends Rules(_.stage):
+      on(hand.press) {
+        when[Waiting] ~> effects.open
+        when[Closed] ~> effects.open
+      }

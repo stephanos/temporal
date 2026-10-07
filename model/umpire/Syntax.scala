@@ -6,6 +6,7 @@ package umpire
 import scala.annotation.{implicitNotFound, targetName, unused}
 import scala.collection.mutable
 import scala.compiletime.codeOf
+import scala.reflect.{ClassTag, TypeTest}
 import scala.util.NotGiven
 
 // The outcome `enter` and `stay` answer for a machine whose outcomes are `O`, declared once beside
@@ -186,6 +187,12 @@ def reject[S, O, F](using draft: Draft[S, O, F])(outcome: O): Unit = draft.refus
 // `phase.in(a, b, c)`: whether the value is one of the members listed, of which there is at least
 // one. Written dotted, never infix. Core form: `List(a, b, c).contains(phase)`.
 extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
+
+// `phase.in[Closed]`: whether the phase has the role `Closed` (model/umpire/Roles.scala), the roles
+// its case declares and the broader ones they extend. Written dotted, never infix. Core form:
+// `List(<the cases of Closed, in declaration order>).contains(phase)`.
+extension [A](value: A)
+  def in[R](using role: TypeTest[A, R]): Boolean = role.unapply(value).nonEmpty
 
 // `a implies b`: `b` holds wherever `a` does. `b` is read only where `a` holds, so a hole it reaches
 // is not reached where `a` is false. Core form: `!a || b`.
@@ -598,6 +605,17 @@ abstract class Rules[S, O, F, P](using
   inline def when(inline set: P => Boolean)(using PhasesOf[P, P]): Case[S, O, F] =
     phases(set, codeOf(set), "when")
 
+  // A case that holds in the phases with the role `R` (model/umpire/Roles.scala), as the projection
+  // of `Rules(_.phase)` reads them: `when[Closed] ~> effects.notFound`; rules that declare no
+  // projection name no role. Core form:
+  // `List(<the cases of R, in declaration order>).contains(s.phase)`.
+  def when[R](using
+      role: TypeTest[P, R],
+      named: ClassTag[R],
+      @unused projected: ProjectsPhases[P]
+  ): Case[S, O, F] =
+    Case(s"when[${named.runtimeClass.getSimpleName}]", s => role.unapply(phase(s)).nonEmpty)
+
   // Actions no state enables, which the machine binds all the same, such as a courier's strike it does
   // not feel. Core form: `action ~> (_ => Nil)`.
   def disabled(actions: Action[?]*): Unit =
@@ -611,6 +629,11 @@ abstract class Rules[S, O, F, P](using
 
   // `phase.in(a, b)` in a condition, as outside the rules. Core form: `List(a, b).contains(phase)`.
   extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
+
+  // `phase.in[Closed]` in a condition, as outside the rules. Core form:
+  // `List(<the cases of Closed, in declaration order>).contains(phase)`.
+  extension [A](value: A)
+    def in[R](using role: TypeTest[A, R]): Boolean = role.unapply(value).nonEmpty
 
   private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     order.toVector.map: decl =>
@@ -633,6 +656,20 @@ object PhasesOf:
   // takes a role, `case done extends Phase, Succeeded`, is a `Phase & Succeeded`. Core form:
   // `List(p1, p2).contains(s.phase)`, whose phases are of the type of `s.phase`.
   given [P, Q <: P](using NotGiven[P =:= Nothing]): PhasesOf[P, Q] = PhasesOf()
+
+// Evidence that the rules declare a projection, `object rules extends Rules(_.phase)`: rules that
+// declare none project the state onto `Nothing`, and name no phase. Core form: none of its own;
+// `when[Closed]` is `List(<the cases of Closed>).contains(s.phase)`.
+@implicitNotFound(
+  "when names the phases of a role, and these rules declare no projection: declare the projection " +
+    "the phases are of, `object rules extends Rules(_.phase)`"
+)
+final class ProjectsPhases[P] private ()
+
+// Every projection but none. Core form: `List(p1, p2).contains(s.phase)`, which reads `s.phase`.
+object ProjectsPhases:
+  // A projection of a type other than `Nothing`. Core form: `s.phase`.
+  given [P](using NotGiven[P =:= Nothing]): ProjectsPhases[P] = ProjectsPhases()
 
 // The rules of one action a derivation binds in its source's place:
 // `rebind(on(clerk.ship) { always ~> OrderRecord.effects.send })`, each case `where(g)` or

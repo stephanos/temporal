@@ -113,3 +113,46 @@ object TwoClosureRoles extends Machine[Twice, Outcome, Nothing]:
     def keep(s: Twice) = stay[Twice, Outcome, Nothing](s)
   object rules extends Rules(_.phase):
     on(user.go)(in(TwoClosed.twice) ~> effects.keep)
+
+// fn-136.4: the short spellings refused as role tests are: `when[R]` in rules whose projection is
+// not declared, against no role and of a phase of no enum; `p.in[R]` against no role and of a
+// value of no enum.
+object WhenNoProjection extends Machine[Job, Outcome, Nothing]:
+  val init = Job(Phase.unstarted, None)
+  def end(s: State) = true
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules[Job, Outcome, Nothing, Phase]:
+    on(user.go)(when[Closed] ~> effects.keep)
+
+object WhenNoRole extends Machine[Job, Outcome, Nothing]:
+  val init = Job(Phase.unstarted, None)
+  def end(s: State) = true
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules(_.phase):
+    on(user.go)(when[Audited] ~> effects.keep)
+
+object WhenNoEnum extends Machine[Job, Outcome, Nothing]:
+  val init = Job(Phase.unstarted, None)
+  def end(s: State) = true
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules(_.next):
+    on(user.go)(when[Closed] ~> effects.keep)
+
+object InNoRole extends Machine[Job, Outcome, Nothing]:
+  val init = Job(Phase.unstarted, None)
+  def end(s: State) = s.phase.in[Audited]
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules(_.phase):
+    on(user.go)(always ~> effects.keep)
+
+object InNoEnum extends Machine[Job, Outcome, Nothing]:
+  val init = Job(Phase.unstarted, None)
+  def end(s: State) = s.next.in[Closed]
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules(_.phase):
+    on(user.go)(always ~> effects.keep)

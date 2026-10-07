@@ -48,7 +48,8 @@ private[irgen] trait Syntax:
   // Hook: a sugar form lifted to the IR of its core form. Core form: `enter(s, f)` lifts as
   // `List(Step(Outcome.accepted, s, List(f)))`, `stay(s)` as `List(Step(Outcome.accepted, s))`,
   // `reject(Outcome.notFound, s)` as `List(Step(Outcome.notFound, s))`,
-  // `disabled` as `Nil`, `x.in(a, b)` as `List(a, b).contains(x)`, `a implies b` as `!a || b`,
+  // `disabled` as `Nil`, `x.in(a, b)` as `List(a, b).contains(x)`, `x.in[Closed]` as
+  // `x.isInstanceOf[Closed]`, `a implies b` as `!a || b`,
   // `after.records(f)` as `after.facts.contains(f)` and a composition's `after.records(_.member, f)`
   // as `after.facts.contains("member_f")`.
   def sugar(t: Term): ir.Expr = sugarCall(t) match
@@ -59,6 +60,7 @@ private[irgen] trait Syntax:
     case Some(("reject", List(List(outcome, state)))) =>
       list(Seq(step(lift(outcome), lift(state), list(Nil, t), text("", t), t)), t)
     case Some(("disabled", Nil))                            => list(Nil, t)
+    case Some(("in", List(List(value), List(_))))           => roleTest(value, typeArgs(t).head, t)
     case Some(("in", List(List(value), List(first, rest)))) =>
       val member = typeArgs(t).headOption
       val members = rest match

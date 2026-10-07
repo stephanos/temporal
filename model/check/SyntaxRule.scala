@@ -59,7 +59,8 @@ private[check] object SyntaxRule:
     "Rules",
     "PhasesOf",
     "Phased",
-    "proto"
+    "proto",
+    "ProjectsPhases"
   )
 
   final case class Finding(file: String, line: Int, reason: String):

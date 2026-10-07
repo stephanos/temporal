@@ -172,6 +172,7 @@ private[irgen] trait Declarations:
     case When(guard: Term)
     case In(projection: Term, phases: List[Term])
     case InSet(projection: Term, set: Term)
+    case Role(projection: Term, phase: TypeRepr, role: TypeRepr, at: Term)
     case Always
     case And(heading: Heading, guard: Term)
 
@@ -472,6 +473,12 @@ private[irgen] trait Declarations:
     for r <- written do
       if headingNames(r.heading).exists(_ == "in") && projection.isEmpty then
         fail(r.at, s"in names phases, and $machine's rules declare no projection: `Rules(_.phase)`")
+      if headingNames(r.heading).exists(_ == "when") && projection.isEmpty then
+        fail(
+          r.at,
+          s"when names the phases of a role, and $machine's rules declare no projection: " +
+            "`Rules(_.phase)`"
+        )
     val withProjection =
       written.toVector.map(r => r.copy(heading = projected(r.heading, projection)))
     val byAction = withProjection.groupBy(_.action)
@@ -484,6 +491,7 @@ private[irgen] trait Declarations:
   // The kinds of case a heading is made of, `in` among them where it names phases.
   private def headingNames(h: Heading): List[String] = h match
     case Heading.In(_, _) | Heading.InSet(_, _) => List("in")
+    case Heading.Role(_, _, _, _)               => List("when")
     case Heading.And(inner, _)                  => headingNames(inner)
     case _                                      => Nil
 
@@ -491,6 +499,7 @@ private[irgen] trait Declarations:
   private def projected(h: Heading, projection: Option[Term]): Heading = h match
     case Heading.In(_, phases) => Heading.In(projection.get, phases)
     case Heading.InSet(_, set) => Heading.InSet(projection.get, set)
+    case r: Heading.Role       => r.copy(projection = projection.get)
     case Heading.And(inner, g) => Heading.And(projected(inner, projection), g)
     case other                 => other
 
@@ -541,6 +550,11 @@ private[irgen] trait Declarations:
         case Some(("in", List(List(first, rest), _))) if owner == rulesClass =>
           Heading.In(first, first :: varargs(rest))
         case Some(("in", List(List(set), _))) if owner == rulesClass => Heading.InSet(set, set)
+        // `when[R]`: its role test's type, `TypeTest[P, R]`, names the phase type and the role.
+        case Some(("when", List(List(test, _, _)))) if owner == rulesClass =>
+          test.tpe.widen.dealias.typeArgs match
+            case List(phase, role) => Heading.Role(test, phase, role, t)
+            case _                 => fail(t, s"when tests a role, not ${test.show}")
         case Some(("where", List(_, List(g)))) if owner.fullName == syntaxPackage => Heading.When(g)
         case Some(("always", List(_))) if owner.fullName == syntaxPackage         => Heading.Always
         case _                                                                    =>
@@ -629,6 +643,8 @@ private[irgen] trait Declarations:
           fail(set, s"in names a set of phases by a def of the machine's states, not ${set.show}")
         )
         expr(set)(E.Call(ir.Call(callee(d, set), Seq(phaseOf(projection)))))
+      case Heading.Role(projection, phase, role, at) =>
+        binary(ir.Binary.Op.OP_CONTAINS, phaseOf(projection), roleSet(phase, role, at), at)
       case Heading.Always        => expr(at)(E.Literal(ir.Value(ir.Value.Kind.Bool(true))))
       case Heading.And(inner, g) =>
         binary(ir.Binary.Op.OP_AND, heading(inner, at), condition(g), at)
