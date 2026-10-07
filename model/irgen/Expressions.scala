@@ -323,27 +323,39 @@ private[irgen] trait Expressions:
   // The field a setter of the fixed shape replaces with its parameter,
   // `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`, or None
   // for a def of any other shape.
-  def setterField(fn: Symbol): Option[String] = defs.get(fn) match
+  def setterField(fn: Symbol): Option[String] = setterShape(fn).map(_._1)
+
+  // The field a setter of a fixed shape replaces with its parameter, and whether it is the shape of a
+  // field whose values declare their status, which also hands the draft the value,
+  // `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))`.
+  // None for a def of any other shape.
+  def setterShape(fn: Symbol): Option[(String, Boolean)] = defs.get(fn) match
     case Some(DefDef(_, List(TermParamClause(List(p)), TermParamClause(List(d))), _, Some(rhs)))
         if d.symbol.flags.is(Flags.Given) && isNamed(d.tpt.tpe, "umpire.Draft") =>
-      rhs match
+      val (update, recorded) = rhs match
         case Apply(Select(r: Ident, "set"), List(update)) if r.symbol == d.symbol =>
-          lambda(update).collect { case (List(x), body) => (x, arguments(body)) }.flatMap {
-            case (x, Apply(Select(base: Ident, "copy"), args)) if base.symbol == x.symbol =>
-              val fields = fieldTypes(base.tpe.widen.typeSymbol).map(_._1)
-              val replaced = args.zipWithIndex.flatMap {
-                case (Select(_, g), _) if g.startsWith("copy$default$")               => None
-                case (TypeApply(Select(_, g), _), _) if g.startsWith("copy$default$") => None
-                case (NamedArg(name, value), _)                                       =>
-                  Some(name -> value)
-                case (value, i) => Some(fields(i) -> value)
-              }
-              replaced match
-                case List((field, v: Ident)) if v.symbol == p.symbol => Some(field)
-                case _                                               => None
-            case _ => None
-          }
-        case _ => None
+          (Some(update), false)
+        case Apply(Apply(Select(r: Ident, "set"), List(v: Ident)), List(update))
+            if r.symbol == d.symbol && v.symbol == p.symbol =>
+          (Some(update), true)
+        case _ => (None, false)
+      update.flatMap { update =>
+        lambda(update).collect { case (List(x), body) => (x, arguments(body)) }.flatMap {
+          case (x, Apply(Select(base: Ident, "copy"), args)) if base.symbol == x.symbol =>
+            val fields = fieldTypes(base.tpe.widen.typeSymbol).map(_._1)
+            val replaced = args.zipWithIndex.flatMap {
+              case (Select(_, g), _) if g.startsWith("copy$default$")               => None
+              case (TypeApply(Select(_, g), _), _) if g.startsWith("copy$default$") => None
+              case (NamedArg(name, value), _)                                       =>
+                Some(name -> value)
+              case (value, i) => Some(fields(i) -> value)
+            }
+            replaced match
+              case List((field, v: Ident)) if v.symbol == p.symbol => Some(field -> recorded)
+              case _                                               => None
+          case _ => None
+        }
+      }
     case _ => None
 
   // Whether a def takes the state of a block, a `View` (an `effect`'s draft is one too): an accessor.

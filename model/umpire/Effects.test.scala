@@ -57,6 +57,39 @@ object EffectsFixture:
         in(Phase.idle) ~> effects.start
       }
 
+  // A phase that declares, on each case, the status it is recorded as. An effect block that
+  // assigns it records that status after its own facts.
+  enum Status derives Finite:
+    case waiting, working, resting, retried
+
+  enum Stage(val status: Status) extends Recorded[Status] derives Finite:
+    case waiting extends Stage(Status.waiting)
+    case working extends Stage(Status.working)
+    case resting extends Stage(Status.resting)
+
+  final case class Task(stage: Stage, attempts: UpTo[2]) derives Finite
+
+  def stage(using v: View[Task]): Stage = v.get(_.stage)
+  def stage_=(p: Stage)(using d: Draft[Task, ?, Status]): Unit = d.set(p)(_.copy(stage = p))
+  def attempts(using v: View[Task]): UpTo[2] = v.get(_.attempts)
+  def attempts_=(a: UpTo[2])(using d: Draft[Task, ?, Status]): Unit = d.set(_.copy(attempts = a))
+
+  object Tasker extends Machine[Task, Said, Status]:
+    val init = Task(Stage.waiting, UpTo(0))
+    def end(s: Task) = true
+
+    object effects:
+      val work = effect { stage = Stage.working }
+      val retry = effect { attempts = UpTo(1) }
+      val rest = effect {
+        stage = Stage.resting
+        record(Status.retried)
+      }
+      val missing = effect(reject(Said.notFound))
+
+    object rules extends Rules(_.stage):
+      on(hand.press)(in(Stage.waiting) ~> effects.work)
+
 class EffectsTest extends munit.FunSuite:
   import EffectsFixture.*
 
@@ -81,6 +114,36 @@ class EffectsTest extends munit.FunSuite:
     same(pause, s => enter(s.copy(phase = Phase.paused)))
     same(keep, s => enter(s))
     same(missing, s => reject(Said.notFound, s))
+  }
+
+  test("an effect block that assigns a status records it after its own facts") {
+    import Tasker.effects.*
+    type Steps = Task => List[Step[Task, Said, Status]]
+    def same(block: Steps, method: Steps)(using munit.Location): Unit =
+      for s <- Finite[Task].values do assertEquals(block(s), method(s), s)
+    // From a working task too: assigning the status it has still records it.
+    same(work, s => enter(s.copy(stage = Stage.working), Status.working))
+    // A block that does not assign the status records none.
+    same(retry, s => enter(s.copy(attempts = UpTo(1))))
+    same(rest, s => enter(s.copy(stage = Stage.resting), Status.retried, Status.resting))
+    // Nor does one that rejects.
+    same(missing, s => reject(Said.notFound, s))
+  }
+
+  test("an effect block that records the status its assignment records is refused") {
+    given Owner[Task, Said, Status] = Owner(Tasker)
+    val twice = effect {
+      stage = Stage.resting
+      record(Status.resting)
+    }
+    val refused = intercept[IllegalArgumentException](twice(Tasker.init))
+    assert(
+      refused.getMessage.contains(
+        "an effect block records resting, which its assignment of a status already records: " +
+          "drop the record(resting)"
+      ),
+      refused.getMessage
+    )
   }
 
   test("an is block answers as its predicate") {

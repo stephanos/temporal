@@ -75,22 +75,51 @@ private[irgen] trait Syntax:
       binary(ir.Binary.Op.OP_CONTAINS, lift(fact), facts, t)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
-  // A statement of an `effect { ... }` block: a field assignment by its setter, `phase = p`, a
-  // `record(facts*)` or a `reject(outcome)`.
+  // A statement of an `effect { ... }` block: a field assignment by its setter, `phase = p`, which
+  // for a field whose values declare their status records it, a `record(facts*)` or a
+  // `reject(outcome)`.
   private enum EffectStatement(val at: Tree):
-    case Assign(field: String, value: Term, call: Tree) extends EffectStatement(call)
+    case Assign(field: String, value: Term, call: Tree, recorded: Boolean)
+        extends EffectStatement(call)
     case Record(facts: List[Term], call: Tree) extends EffectStatement(call)
     case Reject(outcome: Term, call: Tree) extends EffectStatement(call)
 
     def values: List[Term] = this match
-      case Assign(_, value, _) => List(value)
-      case Record(facts, _)    => facts
-      case Reject(outcome, _)  => List(outcome)
+      case Assign(_, value, _, _) => List(value)
+      case Record(facts, _)       => facts
+      case Reject(outcome, _)     => List(outcome)
 
     def written: String = this match
-      case Assign(field, _, _) => s"the assignment of $field"
-      case Record(_, _)        => "record(...)"
-      case Reject(_, _)        => "reject(...)"
+      case Assign(field, _, _, _) => s"the assignment of $field"
+      case Record(_, _)           => "record(...)"
+      case Reject(_, _)           => "reject(...)"
+
+  private lazy val recordedClass = Symbol.requiredClass("umpire.Recorded")
+
+  // The status fact an enum case declares, the argument its case passes to the enum's parameter
+  // `status`: `Fact.statusStarted` of `case started extends Phase(Fact.statusStarted)`.
+  private def declaredStatus(caseSym: Symbol, at: Tree): Term =
+    val phase = enumOf(caseSym)
+    val index = phase.primaryConstructor.paramSymss
+      .find(_.headOption.exists(_.isTerm))
+      .map(_.indexWhere(_.name == "status"))
+      .filter(_ >= 0)
+      .getOrElse(
+        fail(
+          at,
+          s"${phase.name} declares the status of its cases by its parameter `status`, " +
+            s"`enum ${phase.name}(val status: Fact) extends Recorded[Fact]`"
+        )
+      )
+    object constructed extends TreeAccumulator[Option[Term]]:
+      def foldTree(found: Option[Term], tree: Tree)(owner: Symbol) =
+        found.orElse(tree match
+          case Apply(fn, args) if fn.symbol == phase.primaryConstructor => args.lift(index)
+          case _ => foldOverTree(None, tree)(owner))
+    val declared = defs.get(caseSym).orElse(scala.util.Try(caseSym.tree).toOption)
+    declared
+      .flatMap(d => constructed.foldTree(None, d)(caseSym))
+      .getOrElse(fail(at, s"${caseSym.name} of ${phase.name} declares no status"))
 
   private def syntaxCall(fn: Term, name: String): Boolean =
     fn.symbol.name == name && fn.symbol.maybeOwner.fullName == sugarOwner
@@ -105,9 +134,18 @@ private[irgen] trait Syntax:
       Some(EffectStatement.Reject(outcome, c))
     case c: Apply if accessor(c.symbol) && getterField(c.symbol).isEmpty =>
       val fn = c.symbol
-      (setterField(fn), c) match
-        case (Some(field), Apply(Apply(_, List(value)), List(_))) =>
-          Some(EffectStatement.Assign(field, value, c))
+      (setterShape(fn), c) match
+        case (Some((field, false)), Apply(Apply(_, List(value)), List(_)))
+            if value.tpe.widen.derivesFrom(recordedClass) =>
+          fail(
+            c,
+            s"${fn.name}, declared at ${declaredAt(fn)}, assigns $field, whose values declare " +
+              "their status, so it hands the draft the value whose status the step records: " +
+              "`def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = " +
+              "d.set(p)(_.copy(phase = p))`"
+          )
+        case (Some((field, recorded)), Apply(Apply(_, List(value)), List(_))) =>
+          Some(EffectStatement.Assign(field, value, c, recorded))
         case _ =>
           fail(
             c,
@@ -215,7 +253,31 @@ private[irgen] trait Syntax:
         val entered =
           if updates.isEmpty then state else expr(at)(E.Copy(ir.Copy(Some(state), updates)))
         val fact = b.call.types.lift(2)
-        val facts = lifted.collect { case r: Record => r.facts }.flatten.map(lift(_, fact))
+        val recorded = lifted.collect { case r: Record => r.facts.map(f => (r, lift(f, fact))) }
+        // Each assignment of a field whose values declare their status records the status of the
+        // case it names, after the facts the block records.
+        val statuses = assigns.filter(_.recorded).map { a =>
+          val declared = resolve(a.value) match
+            case r: Ref if isEnumCase(r.symbol) => declaredStatus(r.symbol, a.at)
+            case _                              =>
+              fail(
+                a.value,
+                s"$block assigns ${a.field} a value that names no case: the status it records " +
+                  s"is the declared status of a case, so name the case, `${a.field} = Phase.paused`"
+              )
+          val status = lift(declared, fact)
+          val name = resolve(declared) match
+            case r: Ref => r.symbol.name
+            case other  => other.show
+          for (r, f) <- recorded.flatten if f.kind == status.kind do
+            fail(
+              r.at,
+              s"$block records $name, which its assignment of ${a.field} already records: " +
+                s"drop the record($name)"
+            )
+          status
+        }
+        val facts = recorded.flatten.map(_._2) ++ statuses
         list(Seq(step(outcome, entered, list(facts, at), text("", at), at)), at)
 
   // Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:

@@ -45,10 +45,21 @@ sealed trait View[S]:
 // The view an `is { }` block reads: the state it is asked of. Core form: the predicate's parameter.
 final private class Fixed[S](private[umpire] val state: S) extends View[S]
 
+// The status fact a phase enum's case is recorded as, declared on each case through the enum's
+// parameter, which has no default, so a case without one does not compile:
+// `enum Phase(val status: Fact) extends Recorded[Fact]`, `case started extends Phase(statusStarted)`.
+// An `effect { }` block that assigns such a value records its status after the facts the block
+// records. Core form: the status fact each step writes by hand,
+// `enter(s.copy(phase = started), statusStarted)`.
+trait Recorded[F]:
+  def status: F
+
 // What an `effect { }` block makes of one step while it runs: the state it enters, which each field
 // assignment replaces with a copy, by the setters its state type declares, each of one shape:
-// `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`; the facts
-// it records; and the outcome it rejects with, if any. Each call of the effect makes a fresh draft,
+// `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`, or for a
+// field whose values are `Recorded`, `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit =
+// d.set(p)(_.copy(phase = p))`; the facts it records, then the status of the value such a setter
+// assigned; and the outcome it rejects with, if any. Each call of the effect makes a fresh draft,
 // which never leaves the block. Core form: the arguments of the step the step function returns,
 // `Step(outcome, s.copy(phase = p), List(facts*))`.
 @implicitNotFound(
@@ -59,17 +70,33 @@ final class Draft[S, O, F] private[umpire] (start: S) extends View[S]:
   private var current: S = start // scalafix:ok DisableSyntax.var
   private var facts: List[F] = Nil // scalafix:ok DisableSyntax.var
   private var rejection: Option[O] = None // scalafix:ok DisableSyntax.var
+  private var statuses: List[F] = Nil // scalafix:ok DisableSyntax.var
 
   private[umpire] def state: S = current
 
   // The state with one field replaced: `d.set(_.copy(phase = p))`. Core form: `s.copy(phase = p)`.
   def set(update: S => S): Unit = current = update(current)
 
+  // The state with the field whose values declare their status replaced by `value`, which the step
+  // records the status of: `d.set(p)(_.copy(phase = p))`. Core form: `s.copy(phase = p)`, and
+  // `p.status` among the step's facts.
+  def set(value: Recorded[F])(update: S => S): Unit =
+    current = update(current)
+    statuses = statuses :+ value.status
+
   // The step the block made, from the state `s` it started in: the rejection with `s`, or the ok
-  // outcome with the state assigned and the facts in the order recorded.
+  // outcome with the state assigned and the facts in the order recorded, then the status of each
+  // value assigned, which the block does not record itself.
   private[umpire] def step(s: S, ok: Ok[O]): Step[S, O, F] = rejection match
     case Some(outcome) => Step(outcome, s)
-    case None          => Step(ok.outcome, current, facts)
+    case None          =>
+      for f <- statuses do
+        require(
+          !facts.contains(f),
+          s"an effect block records $f, which its assignment of a status already records: " +
+            s"drop the record($f)"
+        )
+      Step(ok.outcome, current, facts ++ statuses)
 
   private[umpire] def add(recorded: Seq[F]): Unit = facts = facts ++ recorded
 

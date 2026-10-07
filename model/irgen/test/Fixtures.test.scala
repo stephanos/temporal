@@ -151,6 +151,9 @@ class Fixtures extends munit.FunSuite:
     "blocks" -> Seq("Blocked", "Defined").flatMap(o =>
       Seq(s"fixture.blocks.$o$$.capabilities", s"fixture.blocks.$o$$.queries")
     ),
+    // fn-135.5: status facts derived from the phase an effect block assigns, and their written
+    // twins (lifts/StatusFacts.scala).
+    "statusFacts" -> Seq("Derived", "Written").map(o => s"fixture.statusfacts.$o"),
     "captured" -> Seq(
       "queries",
       "diskQueries",
@@ -375,6 +378,13 @@ class Fixtures extends munit.FunSuite:
       "RuleEffect"
     ).map("fixture.blockrejects." + _)
 
+  // The refusals of fn-135.5's status assignments, each a machine object
+  // (lifts/StatusFactRejects.scala).
+  private val statusRejects: Seq[String] =
+    Seq("ExplicitStatus", "ComputedStatus", "PlainStatusSetter").map(
+      "fixture.statusfactrejects." + _
+    )
+
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
   private val hintRejects: Seq[String] =
     Seq("builtWrite", "builtRead").map("fixture.hintrejects.HintRejects$package$." + _)
@@ -473,7 +483,7 @@ class Fixtures extends munit.FunSuite:
     "UnobservedRefiner",
     "IndexedQueries$.queries"
   ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ sectionRejects ++ hintRejects ++
-    markerRejects ++ blockRejects
+    markerRejects ++ blockRejects ++ statusRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -581,6 +591,7 @@ class Fixtures extends munit.FunSuite:
         "Sections.scala:22:46",
         "Sections.scala:23:51",
         "Sections.scala:24:45",
+        "Statuses.scala:12:3",
         "Sugar.scala:10:27",
         "Sugar.scala:13:86",
         "Sugar.scala:16:71",
@@ -1345,6 +1356,56 @@ class Fixtures extends munit.FunSuite:
       "each effect block is a function of its own"
     )
     assert(blocked("properties").size == 2, blocked("properties").keys)
+
+  // fn-135.5: each `effect { }` val of `Derived`, which records the status of the phase it assigns,
+  // beside the def of `Written` that records it by hand (lifts/StatusFacts.scala). Every machine and
+  // function of one, with the other's name in its place and no positions, is the other's, and the
+  // phase enum that declares the statuses lifts as an enum of cases with no fields.
+  test("an effect block's derived status facts lift as the facts its method form writes"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val model = mapper.readTree(ir("statusFacts"))
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    def declarations(machine: String): Map[String, String] =
+      Seq("machines", "functions").flatMap { kind =>
+        model
+          .path(kind)
+          .elements()
+          .asScala
+          .filter(_.toString.toLowerCase.contains(machine.toLowerCase))
+          .map { d =>
+            val named = d.toString
+              .replace(machine, "Written")
+              .replace(machine.toLowerCase, "written")
+            val copy = mapper.readTree(named)
+            strip(copy)
+            s"$kind/${copy.path("name").asText()}" -> copy.toPrettyString
+          }
+      }.toMap
+    val (derived, written) = (declarations("Derived"), declarations("Written"))
+    assertEquals(derived, written)
+    assertEquals(
+      derived.keySet.filter(_.contains("effects")),
+      Set("start", "resume", "retry", "pause", "refuse")
+        .map(e => s"functions/fixture.statusfacts.Written$$.effects$$.$e"),
+      "each effect block is a function of its own"
+    )
+    val phase = model
+      .path("types")
+      .elements()
+      .asScala
+      .find(_.path("name").asText() == "fixture.statusfacts.Phase")
+      .get
+    assertEquals(
+      phase.path("enum").toString,
+      """{"cases":[{"name":"idle"},{"name":"running"},{"name":"paused"}]}""",
+      "a phase that declares statuses lifts as the enum it is without them"
+    )
 
   // fn-112.9: the script helpers and the Temporal kit beside the core records they stand for, and
   // the kit's `field(_.name) :=` beside `Assignment.typed` (lifts/Scripts.scala).

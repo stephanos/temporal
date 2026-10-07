@@ -1,0 +1,2335 @@
+{
+  "source": "model: fixture.statusfacts.Derived, fixture.statusfacts.Written",
+  "types": [ {
+    "name": "fixture.statusfacts.Fact",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 12
+    },
+    "enum": {
+      "cases": [ {
+        "name": "statusIdle"
+      }, {
+        "name": "statusRunning"
+      }, {
+        "name": "statusPaused"
+      }, {
+        "name": "attempted"
+      } ]
+    }
+  }, {
+    "name": "fixture.statusfacts.Job",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 21
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.statusfacts.Phase"
+        }
+      }, {
+        "name": "attempts",
+        "type": {
+          "intRange": {
+            "high": "2"
+          }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.statusfacts.Outcome",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 23
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      }, {
+        "name": "refused"
+      } ]
+    }
+  }, {
+    "name": "fixture.statusfacts.Phase",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 16
+    },
+    "enum": {
+      "cases": [ {
+        "name": "idle"
+      }, {
+        "name": "running"
+      }, {
+        "name": "paused"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "derived.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 42
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.statusfacts.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 42
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 42
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.statusfacts.Fact",
+                "case": "statusIdle"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+              "line": 42
+            },
+            "literal": {
+              "text": "statusIdle"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.statusfacts.Fact",
+                "case": "statusRunning"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+              "line": 42
+            },
+            "literal": {
+              "text": "statusRunning"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.statusfacts.Fact",
+                "case": "statusPaused"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+              "line": 42
+            },
+            "literal": {
+              "text": "statusPaused"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.statusfacts.Fact",
+                "case": "attempted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+              "line": 42
+            },
+            "literal": {
+              "text": "attempted"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "derived.rules.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 60
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 60
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 60
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 56
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 56
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 60
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 60
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 60
+          },
+          "call": {
+            "function": "fixture.statusfacts.Derived$.effects$.pause",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 60
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 60
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "derived.rules.refuse",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 61
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 61
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 56
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 56
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 61
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 61
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "paused"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 61
+          },
+          "call": {
+            "function": "fixture.statusfacts.Derived$.effects$.refuse",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 61
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 61
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "derived.rules.resume",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 58
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 58
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 56
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 56
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 58
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 58
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 58
+          },
+          "call": {
+            "function": "fixture.statusfacts.Derived$.effects$.resume",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 58
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 58
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "derived.rules.retry",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 59
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 59
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 56
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 56
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 59
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 59
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 59
+          },
+          "call": {
+            "function": "fixture.statusfacts.Derived$.effects$.retry",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 59
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 59
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "derived.rules.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 57
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 57
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 57
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 56
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 56
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 57
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 57
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "idle"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 57
+          },
+          "call": {
+            "function": "fixture.statusfacts.Derived$.effects$.start",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 57
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 57
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Derived$.effects$.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 50
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 50
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 50
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 50
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 50
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                      "line": 51
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.statusfacts.Phase",
+                        "case": "paused"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 50
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 52
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Fact",
+                      "case": "attempted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 19
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Fact",
+                      "case": "statusPaused"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 50
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Derived$.effects$.refuse",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 54
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 54
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 54
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 54
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "refused"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 54
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 54
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 54
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Derived$.effects$.resume",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 48
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 48
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 48
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 48
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 48
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                      "line": 48
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.statusfacts.Phase",
+                        "case": "running"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 48
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 18
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Fact",
+                      "case": "statusRunning"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 48
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Derived$.effects$.retry",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 49
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 49
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 49
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 49
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 49
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "attempts",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                      "line": 49
+                    },
+                    "literal": {
+                      "int": "1"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 49
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 49
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Derived$.effects$.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 47
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 47
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 47
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 47
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 47
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                      "line": 47
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.statusfacts.Phase",
+                        "case": "running"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 47
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 18
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Fact",
+                      "case": "statusRunning"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 47
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Written$.effects$.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 71
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 71
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 71
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 71
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 71
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                      "line": 71
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.statusfacts.Phase",
+                        "case": "paused"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 71
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 71
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Fact",
+                      "case": "attempted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 71
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Fact",
+                      "case": "statusPaused"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 71
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Written$.effects$.refuse",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 72
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 72
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 72
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 72
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "refused"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 72
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 72
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 72
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Written$.effects$.resume",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 69
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 69
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 69
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 69
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 69
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                      "line": 69
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.statusfacts.Phase",
+                        "case": "running"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 69
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 69
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Fact",
+                      "case": "statusRunning"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 69
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Written$.effects$.retry",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 70
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 70
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 70
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 70
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 70
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "attempts",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                      "line": 70
+                    },
+                    "literal": {
+                      "int": "1"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 70
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 70
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.statusfacts.Written$.effects$.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 68
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 68
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 68
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 68
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 68
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                      "line": 68
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.statusfacts.Phase",
+                        "case": "running"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 68
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 68
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Fact",
+                      "case": "statusRunning"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 68
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "written.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 63
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.statusfacts.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 63
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 63
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.statusfacts.Fact",
+                "case": "statusIdle"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+              "line": 63
+            },
+            "literal": {
+              "text": "statusIdle"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.statusfacts.Fact",
+                "case": "statusRunning"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+              "line": 63
+            },
+            "literal": {
+              "text": "statusRunning"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.statusfacts.Fact",
+                "case": "statusPaused"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+              "line": 63
+            },
+            "literal": {
+              "text": "statusPaused"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.statusfacts.Fact",
+                "case": "attempted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+              "line": 63
+            },
+            "literal": {
+              "text": "attempted"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "written.rules.pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 78
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 78
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 78
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 74
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 74
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 78
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 78
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 78
+          },
+          "call": {
+            "function": "fixture.statusfacts.Written$.effects$.pause",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 78
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 78
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "written.rules.refuse",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 79
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 79
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 79
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 74
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 74
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 79
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 79
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "paused"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 79
+          },
+          "call": {
+            "function": "fixture.statusfacts.Written$.effects$.refuse",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 79
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 79
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "written.rules.resume",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 76
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 76
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 76
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 74
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 74
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 76
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 76
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 76
+          },
+          "call": {
+            "function": "fixture.statusfacts.Written$.effects$.resume",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 76
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 76
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "written.rules.retry",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 77
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 77
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 77
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 74
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 74
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 77
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 77
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "running"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 77
+          },
+          "call": {
+            "function": "fixture.statusfacts.Written$.effects$.retry",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 77
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 77
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "written.rules.start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 75
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.statusfacts.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 75
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 75
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 74
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 74
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 75
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 75
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.statusfacts.Phase",
+                      "case": "idle"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 75
+          },
+          "call": {
+            "function": "fixture.statusfacts.Written$.effects$.start",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 75
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 75
+          },
+          "list": { }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.statusfacts.user.pause",
+    "name": "pause",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 39
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.statusfacts.user.refuse",
+    "name": "refuse",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 40
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.statusfacts.user.resume",
+    "name": "resume",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 37
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.statusfacts.user.retry",
+    "name": "retry",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 38
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.statusfacts.user.start",
+    "name": "start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 36
+    },
+    "actor": "user"
+  } ],
+  "machines": [ {
+    "family": "fixture.statusfacts",
+    "name": "derived",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 42
+    },
+    "stateType": "fixture.statusfacts.Job",
+    "outcomeType": "fixture.statusfacts.Outcome",
+    "factType": "fixture.statusfacts.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 43
+      },
+      "construct": {
+        "type": "fixture.statusfacts.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 43
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.statusfacts.Phase",
+              "case": "idle"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 43
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 44
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.statusfacts.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 44
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 44
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 44
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 44
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Phase",
+                  "case": "paused"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.statusfacts.user.start",
+      "function": "derived.rules.start",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 57
+      }
+    }, {
+      "action": "fixture.statusfacts.user.resume",
+      "function": "derived.rules.resume",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 58
+      }
+    }, {
+      "action": "fixture.statusfacts.user.retry",
+      "function": "derived.rules.retry",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 59
+      }
+    }, {
+      "action": "fixture.statusfacts.user.pause",
+      "function": "derived.rules.pause",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 60
+      }
+    }, {
+      "action": "fixture.statusfacts.user.refuse",
+      "function": "derived.rules.refuse",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 61
+      }
+    } ],
+    "evidence": "derived.evidence"
+  }, {
+    "family": "fixture.statusfacts",
+    "name": "written",
+    "position": {
+      "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+      "line": 63
+    },
+    "stateType": "fixture.statusfacts.Job",
+    "outcomeType": "fixture.statusfacts.Outcome",
+    "factType": "fixture.statusfacts.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 64
+      },
+      "construct": {
+        "type": "fixture.statusfacts.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 64
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.statusfacts.Phase",
+              "case": "idle"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 64
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 65
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.statusfacts.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+            "line": 65
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 65
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                    "line": 65
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+                "line": 65
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.statusfacts.Phase",
+                  "case": "paused"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.statusfacts.user.start",
+      "function": "written.rules.start",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 75
+      }
+    }, {
+      "action": "fixture.statusfacts.user.resume",
+      "function": "written.rules.resume",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 76
+      }
+    }, {
+      "action": "fixture.statusfacts.user.retry",
+      "function": "written.rules.retry",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 77
+      }
+    }, {
+      "action": "fixture.statusfacts.user.pause",
+      "function": "written.rules.pause",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 78
+      }
+    }, {
+      "action": "fixture.statusfacts.user.refuse",
+      "function": "written.rules.refuse",
+      "position": {
+        "file": "model/irgen/testdata/lifts/StatusFacts.scala",
+        "line": 79
+      }
+    } ],
+    "evidence": "written.evidence"
+  } ]
+}
