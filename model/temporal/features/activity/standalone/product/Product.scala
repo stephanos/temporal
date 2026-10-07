@@ -8,6 +8,7 @@ package standalone
 package product
 
 import umpire.*
+import umpire.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
 import shared.Bounds.three
 import shared.worker.worker as process
@@ -62,43 +63,70 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     val requestCancel = effect { phase = cancelRequested }
     val terminate = effect { phase = terminated }
     val timeOut = effect { phase = timedOut }
-    val notFound = effect(reject(Outcome.notFound))
 
   object rules extends Rules:
-    on(worker.poll)(in(scheduled) ~> effects.startAttempt)
+    from(client) {
+      import client.*
 
-    // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
-    // under a cancel request; a canceled answer settles only an activity whose cancellation was
-    // requested.
-    on(worker.respondCompleted)(when[Held] ~> effects.complete)
-    on(worker.respondFailed(Failure.fatal))(when[Held] ~> effects.fail)
-    on(worker.respondFailed(Failure.retryable)) {
-      in(started) ~> effects.retry
-      in(cancelRequested) ~> effects.cancel
+      // A control on an activity that is over is not found. A pause of a paused or cancel-requested
+      // activity, or an unpause of one not paused, is FailedPrecondition; the System lists them.
+      on(pause, unpause, requestCancel, terminate) {
+        when[Closed] ~> rejects(Rejection.notFound)
+      }
+      on(pause) {
+        where(states.pausable) ~> effects.pause
+      }
+      on(unpause) {
+        where(states.paused) ~> effects.resume
+      }
+      on(requestCancel) {
+        in(scheduled, started, paused, cancelRequested) ~> effects.requestCancel
+      }
+      on(terminate) {
+        in(scheduled, started, paused, cancelRequested) ~> effects.terminate
+      }
     }
-    on(worker.respondCanceled)(in(cancelRequested) ~> effects.cancel)
 
-    // A control on an activity that is over is not found. A pause of a paused or cancel-requested
-    // activity, or an unpause of one not paused, is FailedPrecondition; the System lists them.
-    on(client.pause, client.unpause, client.requestCancel, client.terminate)(
-      when[Closed] ~> effects.notFound
-    )
-    on(client.pause)(where(states.pausable) ~> effects.pause)
-    on(client.unpause)(where(states.paused) ~> effects.resume)
-    on(client.requestCancel) {
-      in(scheduled, started, paused, cancelRequested) ~> effects.requestCancel
-    }
-    on(client.terminate) {
-      in(scheduled, started, paused, cancelRequested) ~> effects.terminate
+    from(worker) {
+      import worker.*
+
+      on(poll) {
+        in(scheduled) ~> effects.startAttempt
+      }
+
+      // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
+      // under a cancel request; a canceled answer settles only an activity whose cancellation was
+      // requested.
+      on(respondCompleted) {
+        when[Held] ~> effects.complete
+      }
+      on(respondFailed(Failure.fatal)) {
+        when[Held] ~> effects.fail
+      }
+
+      on(respondFailed(Failure.retryable)) {
+        in(started) ~> effects.retry
+        in(cancelRequested) ~> effects.cancel
+      }
+      on(respondCanceled) {
+        in(cancelRequested) ~> effects.cancel
+      }
     }
 
     // The worker stopping is a fault the Run records and the activity does not feel.
     disabled(process.stop)
-    on(timers.timeout)(in(scheduled, started, paused, cancelRequested) ~> effects.timeOut)
+
+    from(timers) {
+      import timers.*
+
+      on(timeout) {
+        in(scheduled, started, paused, cancelRequested) ~> effects.timeOut
+      }
+    }
 
   object capabilities extends Capabilities:
     val closable: Capability = Closable(
-      rejected = Outcome.notFound
+      rejected = Outcome.rejected(Rejection.notFound)
     )
     val pausable: Capability = Pausable(
       pause = client.pause,

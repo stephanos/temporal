@@ -28,7 +28,7 @@ func TestActivityDisabledBehaviorIsTheBaselines(t *testing.T) {
 		require.True(t, disabled(product, pair[0], pair[1]), pair)
 	}
 	require.False(t, disabled(product, "completed", "terminate"), "a control of an activity that is over is answered notFound, not disabled")
-	require.Equal(t, []interp.Result{{Outcome: "notFound", State: "completed", Facts: []string{}}},
+	require.Equal(t, []interp.Result{{Outcome: "rejected-notFound", State: "completed", Facts: []string{}}},
 		sideOf(product.Table).Rows[rowIndex(t, product.Table, "completed-terminate")].Results)
 }
 

@@ -2,12 +2,357 @@ package umpire
 // What the standalone activity Model's effects do, run as Scala.
 
 import temporal.features.activity.{failure, Failure}
-import temporal.features.activity.standalone.{activity, client, system, worker, Outcome}
+import temporal.features.activity.standalone.{activity, client, system, worker}
+import temporal.features.activity.{deadline, timers, Timeout, TimeoutType}
+import temporal.features.activity.standalone.product
+import temporal.shared.worker.worker as process
+import umpire.outcomes.Outcome
 import system.*
 
 class StandaloneActivityPins extends munit.FunSuite:
   type Loss =
     AdmissionResponseState => List[Step[AdmissionResponseState, Outcome, AdmissionResponseFact]]
+
+  final case class ExpectedStep[S, F](
+      outcome: String,
+      state: S,
+      facts: List[F] = Nil,
+      because: String = ""
+  )
+
+  final case class ExpectedRule[S, F](
+      decl: ActionDecl,
+      inputs: Option[List[Any]],
+      guard: S => Boolean,
+      run: S => List[ExpectedStep[S, F]]
+  )
+
+  private def accepted[S, F](state: S, facts: F*): List[ExpectedStep[S, F]] =
+    List(ExpectedStep("accepted", state, facts.toList))
+
+  private def acceptedBecause[S, F](
+      state: S,
+      because: String,
+      facts: F*
+  ): List[ExpectedStep[S, F]] =
+    List(ExpectedStep("accepted", state, facts.toList, because))
+
+  private def rejectedNotFound[S, F](state: S): List[ExpectedStep[S, F]] =
+    List(ExpectedStep("rejected(notFound)", state))
+
+  private def observed[S, O, F](steps: List[Step[S, O, F]]): List[ExpectedStep[S, F]] =
+    steps.map(s => ExpectedStep(s.outcome.toString, s.state, s.facts, s.because))
+
+  private def run[S, O, F](
+      binding: StepBinding[S, O, F],
+      state: S,
+      inputs: List[Any]
+  ): List[Step[S, O, F]] =
+    // scalafix:off DisableSyntax.asInstanceOf
+    inputs match
+      case Nil       => binding.function.asInstanceOf[S => List[Step[S, O, F]]](state)
+      case List(one) =>
+        binding.function.asInstanceOf[(S, Any) => List[Step[S, O, F]]](state, one)
+      case List(one, two) =>
+        binding.function.asInstanceOf[(S, Any, Any) => List[Step[S, O, F]]](state, one, two)
+      case List(one, two, three) =>
+        binding.function
+          .asInstanceOf[(S, Any, Any, Any) => List[Step[S, O, F]]](state, one, two, three)
+      case other => fail(s"the pinned activity action has ${other.size} inputs")
+    // scalafix:on DisableSyntax.asInstanceOf
+
+  private def assertStepTable[S, O, F](
+      machine: Machine[S, O, F],
+      rules: List[ExpectedRule[S, F]]
+  )(using states: Finite[S]): Unit =
+    for
+      binding <- machine.bindings
+      inputs <- classesOf(binding.decl)
+      state <- states.values
+    do
+      val matches =
+        rules.filter(r => r.decl == binding.decl && r.inputs.forall(_ == inputs) && r.guard(state))
+      assert(
+        matches.sizeIs <= 1,
+        s"several pinned rows match ${binding.decl.name}$inputs in $state"
+      )
+      val expected = matches.headOption.fold(List.empty[ExpectedStep[S, F]])(_.run(state))
+      assertEquals(
+        observed(run(binding, state, inputs)),
+        expected,
+        s"${machine.name}: ${binding.decl.name}$inputs in $state"
+      )
+
+  private val productRules: List[ExpectedRule[product.State, product.Fact]] =
+    import product.{Fact, Phase, State}
+    import Phase.*
+    List[ExpectedRule[State, Fact]](
+      ExpectedRule(
+        worker.poll.decl,
+        None,
+        _.phase == scheduled,
+        s => accepted(s.copy(phase = started), Fact.statusStarted)
+      ),
+      ExpectedRule(
+        worker.respondCompleted.decl,
+        None,
+        s => s.phase == started || s.phase == cancelRequested,
+        s => accepted(s.copy(phase = completed), Fact.statusCompleted)
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.fatal)),
+        s => s.phase == started || s.phase == cancelRequested,
+        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.retryable)),
+        _.phase == started,
+        s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.retryable)),
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        worker.respondCanceled.decl,
+        None,
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        client.pause.decl,
+        None,
+        s => closedProduct(s.phase),
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        client.unpause.decl,
+        None,
+        s => closedProduct(s.phase),
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        client.requestCancel.decl,
+        None,
+        s => closedProduct(s.phase),
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        client.terminate.decl,
+        None,
+        s => closedProduct(s.phase),
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        client.pause.decl,
+        None,
+        s => s.phase == scheduled || s.phase == started,
+        s => accepted(s.copy(phase = paused), Fact.statusPaused)
+      ),
+      ExpectedRule(
+        client.unpause.decl,
+        None,
+        _.phase == paused,
+        s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
+      ),
+      ExpectedRule(
+        client.requestCancel.decl,
+        None,
+        s => productLive(s.phase),
+        s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
+      ),
+      ExpectedRule(
+        client.terminate.decl,
+        None,
+        s => productLive(s.phase),
+        s => accepted(s.copy(phase = terminated), Fact.statusTerminated)
+      ),
+      ExpectedRule(
+        timers.timeout.decl,
+        None,
+        s => productLive(s.phase),
+        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut)
+      )
+    )
+
+  private def closedProduct(p: product.Phase): Boolean =
+    import product.Phase.*
+    p == completed || p == failed || p == canceled || p == terminated || p == timedOut
+
+  private def productLive(p: product.Phase): Boolean =
+    import product.Phase.*
+    p == scheduled || p == started || p == paused || p == cancelRequested
+
+  private lazy val systemRules: List[ExpectedRule[system.State, system.Fact]] =
+    import system.{Fact, Phase, State}
+    import Phase.*
+    List[ExpectedRule[State, Fact]](
+      ExpectedRule(
+        worker.poll.decl,
+        None,
+        _.phase == scheduled,
+        s =>
+          accepted(
+            s.copy(phase = started, attempts = UpTo[2](((s.attempts: Int) + 1).min(2))),
+            Fact.statusStarted,
+            Fact.attemptCount
+          )
+      ),
+      ExpectedRule(
+        worker.respondCompleted.decl,
+        None,
+        s => heldSystem(s.phase),
+        s => accepted(s.copy(phase = completed), Fact.statusCompleted)
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.fatal)),
+        s => heldSystem(s.phase),
+        s => accepted(s.copy(phase = failed), Fact.statusFailed)
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.retryable)),
+        _.phase == started,
+        s =>
+          acceptedBecause(
+            s.copy(phase = backingOff),
+            "a retryable failure backs off; the client reads scheduled again",
+            Fact.statusScheduled,
+            Fact.attemptCount
+          )
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.retryable)),
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.retryable)),
+        _.phase == pauseRequested,
+        s => accepted(s.copy(phase = paused), Fact.statusPaused)
+      ),
+      ExpectedRule(
+        worker.respondCanceled.decl,
+        None,
+        _.phase == cancelRequested,
+        s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
+      ),
+      ExpectedRule(client.pause.decl, None, s => closedSystem(s.phase), rejectedNotFound),
+      ExpectedRule(client.unpause.decl, None, s => closedSystem(s.phase), rejectedNotFound),
+      ExpectedRule(client.requestCancel.decl, None, s => closedSystem(s.phase), rejectedNotFound),
+      ExpectedRule(client.terminate.decl, None, s => closedSystem(s.phase), rejectedNotFound),
+      ExpectedRule(
+        client.pause.decl,
+        None,
+        s => s.phase == scheduled || s.phase == backingOff,
+        s => accepted(s.copy(phase = paused), Fact.statusPaused)
+      ),
+      ExpectedRule(
+        client.pause.decl,
+        None,
+        _.phase == started,
+        s =>
+          acceptedBecause(
+            s.copy(phase = pauseRequested),
+            "the worker learns of the pause on its next heartbeat",
+            Fact.statusPaused
+          )
+      ),
+      ExpectedRule(
+        client.unpause.decl,
+        None,
+        _.phase == paused,
+        s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
+      ),
+      ExpectedRule(
+        client.unpause.decl,
+        None,
+        _.phase == pauseRequested,
+        s => accepted(s.copy(phase = started), Fact.statusStarted)
+      ),
+      ExpectedRule(
+        client.requestCancel.decl,
+        None,
+        s => liveSystem(s.phase),
+        s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
+      ),
+      ExpectedRule(
+        client.terminate.decl,
+        None,
+        s => liveSystem(s.phase),
+        s => accepted(s.copy(phase = terminated), Fact.statusTerminated)
+      ),
+      ExpectedRule(process.stop.decl, None, _ => true, s => accepted(s)),
+      ExpectedRule(
+        timers.backoff.decl,
+        None,
+        _.phase == backingOff,
+        s => accepted(s.copy(phase = scheduled))
+      ),
+      ExpectedRule(
+        deadline.scheduleToClose.decl,
+        None,
+        s => liveSystem(s.phase) && s.scheduleToClose == Timeout.expires,
+        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut(TimeoutType.scheduleToClose))
+      ),
+      ExpectedRule(
+        deadline.scheduleToStart.decl,
+        None,
+        s => waitingSystem(s.phase) && s.scheduleToStart == Timeout.expires,
+        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut(TimeoutType.scheduleToStart))
+      ),
+      ExpectedRule(
+        deadline.startToClose.decl,
+        None,
+        s => heldSystem(s.phase) && s.startToClose == Timeout.expires,
+        s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut(TimeoutType.startToClose))
+      )
+    ) ++ startRules
+
+  private val startRules: List[ExpectedRule[system.State, system.Fact]] =
+    for
+      scheduleClose <- Timeout.values.toList
+      scheduleStart <- Timeout.values.toList
+      startClose <- Timeout.values.toList
+    yield ExpectedRule[system.State, system.Fact](
+      client.start.decl,
+      Some(List(scheduleClose, scheduleStart, startClose)),
+      _.phase == system.Phase.unstarted,
+      _ =>
+        accepted(
+          system.State(
+            phase = system.Phase.scheduled,
+            attempts = UpTo(0),
+            scheduleToClose = scheduleClose,
+            scheduleToStart = scheduleStart,
+            startToClose = startClose
+          ),
+          system.Fact.statusScheduled
+        )
+    )
+
+  private def liveSystem(p: system.Phase): Boolean =
+    import system.Phase.*
+    p == scheduled || p == backingOff || p == started || p == paused ||
+    p == pauseRequested || p == cancelRequested
+
+  private def waitingSystem(p: system.Phase): Boolean =
+    p == system.Phase.scheduled || p == system.Phase.backingOff
+
+  private def heldSystem(p: system.Phase): Boolean =
+    p == system.Phase.started || p == system.Phase.pauseRequested ||
+      p == system.Phase.cancelRequested
+
+  private def closedSystem(p: system.Phase): Boolean =
+    import system.Phase.*
+    p == completed || p == failed || p == canceled || p == terminated || p == timedOut
 
   test("the standalone signature declares one action for every RPC") {
     assertEquals(client.start.decl.creates, Some(activity))
@@ -37,6 +382,48 @@ class StandaloneActivityPins extends munit.FunSuite:
         ClassExample(Failure.retryable, "ApplicationFailureRetryable")
       )
     )
+  }
+
+  test("the activity machines bind actions in actor-group order") {
+    assertEquals(
+      product.ActivityProduct.bindings.map(_.decl),
+      List(
+        client.pause,
+        client.unpause,
+        client.requestCancel,
+        client.terminate,
+        worker.poll,
+        worker.respondCompleted,
+        worker.respondFailed,
+        worker.respondCanceled,
+        process.stop,
+        timers.timeout
+      ).map(_.decl)
+    )
+    assertEquals(
+      ActivitySystem.bindings.map(_.decl),
+      List(
+        client.start,
+        client.pause,
+        client.unpause,
+        client.requestCancel,
+        client.terminate,
+        worker.poll,
+        worker.respondCompleted,
+        worker.respondFailed,
+        worker.respondCanceled,
+        process.stop,
+        timers.backoff,
+        deadline.scheduleToClose,
+        deadline.scheduleToStart,
+        deadline.startToClose
+      ).map(_.decl)
+    )
+  }
+
+  test("the activity machines keep the recorded step table over every state and class") {
+    assertStepTable(product.ActivityProduct, productRules)
+    assertStepTable(ActivitySystem, systemRules)
   }
 
   test("one lost admission response consumes its budget for either durable outcome") {

@@ -36,10 +36,6 @@ import umpire.*
 import product.ActivityProduct
 import system.{ActivitySystem, StandaloneActivity}
 
-// A step's outcome, shared by both machines by name.
-enum Outcome derives Finite:
-  case accepted, notFound
-
 // ### Signature
 
 // Named by the id the client chose: every read carries it, so no run id or event id is needed.
@@ -79,8 +75,6 @@ object worker:
 // A retry shows the client only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.
 val attemptCount = Observation(on = activity, read = "attempt")
-
-given Ok[Outcome] = Ok(Outcome.accepted)
 
 // The bounds of the levels' Queries and the history record's, beside three and four (shared.Bounds).
 val five = Limits(steps = 5, actions = 5, search = 65536)

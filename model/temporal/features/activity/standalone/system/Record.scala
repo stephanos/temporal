@@ -20,6 +20,7 @@ package standalone
 package system
 
 import umpire.*
+import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
 import umpire.realize.{Reason, RunExpectation}
 import temporal.capabilities.*
@@ -83,7 +84,7 @@ abstract class AdmissionCapabilities(using
     Phasing[AdmissionState, AdmissionPhase]
 ) extends Capabilities:
   val closable: Capability = Closable(
-    rejected = Outcome.notFound
+    rejected = Outcome.rejected(Rejection.notFound)
   )
   val pausable: Capability = Pausable(
     pause = client.pause,

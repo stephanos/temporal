@@ -95,7 +95,9 @@ object RecordOverQueue
   object states:
     // The composed outcome of the record's answer to a control of a closed activity: Closable's
     // `rejected`, which only closedIsRejectedUniformly reads, and the designs over a queue waive it.
-    val closedAnswer = "activity_notFound"
+    // The shared `rejected(notFound)` member outcome is encoded with its composed-table key here;
+    // task .8 replaces this answer string with the realization's shared rejection mapping.
+    val closedAnswer = "activity_rejected-notFound"
 
     // Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
     // steps after the record closes, so a composed step moves the state; the record's own

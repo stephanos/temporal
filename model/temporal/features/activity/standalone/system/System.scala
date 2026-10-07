@@ -10,6 +10,7 @@ package system
 
 import scala.annotation.unused
 import umpire.*
+import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.Reason
 import temporal.capabilities.*
 import temporal.realize.{inconclusive, satisfied}
@@ -140,9 +141,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
 
-    // A control on an activity that is over is not found.
-    def notFound(s: State) = reject(Outcome.notFound, s)
-
     def pause(s: State) = enter(s.copy(phase = paused), statusPaused)
 
     // A pause of a held attempt is a request the worker learns of on its next heartbeat, so it is its
@@ -171,61 +169,107 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       enter(s.copy(phase = timedOut), statusTimedOut(t))
 
   object rules extends Rules:
-    on(client.start)(in(Phase.unstarted) ~> effects.schedule)
-    on(worker.poll)(in(scheduled) ~> effects.startAttempt)
+    from(client) {
+      import client.*
 
-    // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
-    // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
-    // (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
-    // Where a worker holds the attempt: what start-to-close covers and a worker's answer settles.
-    on(worker.respondCompleted)(when[Held] ~> effects.complete)
-    on(worker.respondFailed(Failure.fatal))(when[Held] ~> effects.fail)
-    on(worker.respondFailed(Failure.retryable)) {
-      in(started) ~> effects.backOff
-      in(cancelRequested) ~> effects.cancel
-      in(pauseRequested) ~> effects.pause
-    }
-    on(worker.respondCanceled)(in(cancelRequested) ~> effects.cancel)
+      on(start) {
+        in(Phase.unstarted) ~> effects.schedule
+      }
 
-    // A control on an activity that is over is not found; an unstarted one has no control. A pause
-    // is disabled in paused and pauseRequested (already paused, or asked to be) and cancelRequested
-    // (a cancel request is not pausable), an unpause in scheduled, backingOff, started and
-    // cancelRequested (not paused): the server answers FailedPrecondition ("activity is in
-    // non-pausable state", "... non-unpausable state", chasm/lib/activity/operator_commands.go), and
-    // a rejecting row would add rows to the table, so they stay disabled until the behavior freeze
-    // lifts.
-    on(client.pause, client.unpause, client.requestCancel, client.terminate)(
-      when[Closed] ~> effects.notFound
-    )
-    on(client.pause) {
-      in(scheduled, backingOff) ~> effects.pause
-      in(started) ~> effects.requestPause
+      // A control on an activity that is over is not found; an unstarted one has no control. A pause
+      // is disabled in paused and pauseRequested (already paused, or asked to be) and cancelRequested
+      // (a cancel request is not pausable), an unpause in scheduled, backingOff, started and
+      // cancelRequested (not paused): the server answers FailedPrecondition ("activity is in
+      // non-pausable state", "... non-unpausable state", chasm/lib/activity/operator_commands.go), and
+      // a rejecting row would add rows to the table, so they stay disabled until the behavior freeze
+      // lifts.
+      on(pause, unpause, requestCancel, terminate) {
+        when[Closed] ~> rejects(Rejection.notFound)
+      }
+      on(pause) {
+        in(scheduled, backingOff) ~> effects.pause
+        in(started) ~> effects.requestPause
+      }
+      on(unpause) {
+        in(paused) ~> effects.resume
+        in(pauseRequested) ~> effects.withdrawPause
+      }
+      on(requestCancel) {
+        when[Live] ~> effects.requestCancel
+      }
+      on(terminate) {
+        when[Live] ~> effects.terminate
+      }
     }
-    on(client.unpause) {
-      in(paused) ~> effects.resume
-      in(pauseRequested) ~> effects.withdrawPause
+
+    from(worker) {
+      import worker.*
+
+      on(poll) {
+        in(scheduled) ~> effects.startAttempt
+      }
+
+      // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
+      // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
+      // (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
+      // Where a worker holds the attempt: what start-to-close covers and a worker's answer settles.
+      on(respondCompleted) {
+        when[Held] ~> effects.complete
+      }
+      on(respondFailed(Failure.fatal)) {
+        when[Held] ~> effects.fail
+      }
+
+      on(respondFailed(Failure.retryable)) {
+        in(started) ~> effects.backOff
+        in(cancelRequested) ~> effects.cancel
+        in(pauseRequested) ~> effects.pause
+      }
+      on(respondCanceled) {
+        in(cancelRequested) ~> effects.cancel
+      }
     }
-    on(client.requestCancel)(when[Live] ~> effects.requestCancel)
-    on(client.terminate)(when[Live] ~> effects.terminate)
-    on(process.stop)(always ~> effects.keep)
-    on(timers.backoff)(in(backingOff) ~> effects.retry)
-    // Started and not over: the phases a deadline can fire in.
-    on(deadline.scheduleToClose) {
-      when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
-        _,
-        TimeoutType.scheduleToClose
-      ))
+
+    from(process) {
+      import process.*
+
+      on(stop) {
+        always ~> effects.keep
+      }
     }
-    // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
-    on(deadline.scheduleToStart) {
-      when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
-        _,
-        TimeoutType.scheduleToStart
-      ))
+
+    from(timers) {
+      import timers.*
+
+      on(backoff) {
+        in(backingOff) ~> effects.retry
+      }
     }
-    on(deadline.startToClose) {
-      when[Held]
-        .where(_.startToClose == Timeout.expires) ~> (effects.timeOut(_, TimeoutType.startToClose))
+
+    from(deadline) {
+      import deadline.*
+
+      // Started and not over: the phases a deadline can fire in.
+      on(scheduleToClose) {
+        when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
+          _,
+          TimeoutType.scheduleToClose
+        ))
+      }
+      // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
+      on(scheduleToStart) {
+        when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
+          _,
+          TimeoutType.scheduleToStart
+        ))
+      }
+      on(startToClose) {
+        when[Held]
+          .where(_.startToClose == Timeout.expires) ~> (effects.timeOut(
+          _,
+          TimeoutType.startToClose
+        ))
+      }
     }
 
   // What the System promises of its own: the settlement claims. The cross-entity claim of the

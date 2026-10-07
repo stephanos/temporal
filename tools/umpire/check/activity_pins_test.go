@@ -61,7 +61,7 @@ func TestActivityProtocolTable(t *testing.T) {
 	require.Equal(t, "pauseRequested", phase("started-1-unset-unset-unset-pause"))
 	require.Equal(t, "paused", phase("scheduled-0-unset-unset-unset-pause"))
 	// A control on an activity that is over is not found.
-	require.Equal(t, []interp.Result{{Outcome: "notFound", State: "completed-1-unset-unset-unset", Facts: []string{}}},
+	require.Equal(t, []interp.Result{{Outcome: "rejected-notFound", State: "completed-1-unset-unset-unset", Facts: []string{}}},
 		results("completed-1-unset-unset-unset-terminate"))
 	// Each deadline covers its own span.
 	require.True(t, disabled(protocol, "scheduled-0-unset-unset-expires", "startToClose"))
