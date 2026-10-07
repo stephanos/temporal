@@ -121,6 +121,8 @@ Maintainability (plan review): duplication - the "phase has no Closed case" refu
 
 [paraphrase] This spec is one of three split from one conversation. It depends on fn-136 ("Phase roles on lifecycle enums") and on fn-134; fn-138 ("Retries and Deadline capabilities") depends on it.
 
+[decision] 2026-10-06, fn-137.1 (conductor, owner away): derived machines get the source's typed `Phasing[S, P]` through `DerivedFrom[this.type]`; derived compositions do not yet, because `Composition[S]` carries no phase type. Chosen fix, built in fn-137.6 where `trustingRecordOverQueue`, `trustingRecordOverMatching` and `recordOverLossyMatching` need it: composition derivations return `Composition[S] & DerivedFrom[this.type]` as machine derivations do, and the phase type comes from the source object's own `Phased[S, P]`. Rejected: a phase type parameter on `Composition` (about 50 explicit sites) and a new declaration form for derived compositions (changes the Model surface); `tracked` parameters need `experimental.modularity`, which marks the build experimental.
+
 ## Parked unknowns
 
 - [planning review] The role of the activity record's `pausedWhileHeld`. fn-136 leaves it role-less and hands the decision here (its R5 and Boundaries). This spec owns it: task .7 asks the owner unconditionally whether it is `Suspended`, `Held`, or a model-specific role extending one of them (fn-136 R4 forbids both), assigns it on the enum, then regenerates and compares. Left role-less it would read as "does not exist yet" to fn-138's `Live` readers. Today `ActivityRecord`'s Pausable reads "paused" as `paused` alone and "running" as `started` alone.

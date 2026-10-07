@@ -19,7 +19,9 @@ Closable loses its `status` and `terminal` fields and reads "closed" as the `Clo
 - Once the `terminal` field is gone, delete the `states.terminal` predicates that fn-136 task .5 kept only for it (activity product, ActivityRecord, Nexus standalone), and rewrite any remaining callers to `in[Closed]` / `is[Closed]`. This is an IR change within the bound of fn-136 R9: the Function is removed and its case set inlined. Classify the diff the same way.
 - If a site's old `terminal` set differs from its `Closed` cases, the regeneration shows it. Stop and resolve it with the owner, never absorb it.
 
-### Acceptance
+#- Derived compositions (spec Decision Context, 2026-10-06): make composition derivations return `Composition[S] & DerivedFrom[this.type]`, as machine derivations do after fn-137.1, so `trustingRecordOverQueue`, `trustingRecordOverMatching` and `recordOverLossyMatching` read the source's typed `Phasing[S, P]`.
+
+## Acceptance
 - [ ] Every Closable declaration, including the four on derived objects, binds only the rejection outcome.
 - [ ] `terminalStatesAreFinal` is brought on exactly the machines that declare Closable (fn-134's two-machine test still passes).
 - [ ] Regeneration leaves every Query's name, answer, receipt and Definition ID unchanged.
