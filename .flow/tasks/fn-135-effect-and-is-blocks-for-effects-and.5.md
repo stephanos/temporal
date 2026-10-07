@@ -51,9 +51,74 @@ The spec's "a step that changes the declared status" is implemented as **an effe
 
 
 ## Done summary
-TBD
+Each case of a phase enum can now declare the status fact it is recorded as, through the framework trait `Recorded[F]` (`enum Phase(val status: Fact) extends Recorded[Fact]`). An `effect { }` block that assigns such a field records the assigned case's status after the block's own facts, both at run time and in the lifted IR. The static assignment reading from the task's Decision is implemented: a same-value assignment still records, and a block that does not assign the field or that rejects records none.
 
+stage: impl-review - skipped(config: REVIEW_MODE=none, DSL batch reviews at the batch end)
+
+Tier: IMPLEMENTER claude-opus-5-5 at high (actual_model: claude-opus-5-5)
+
+Baseline: green before the first edit. `scala-cli test model/project.scala model/umpire` rc=0, and `scala-cli test model/irgen` rc=0.
+
+### What changed
+- `model/umpire/Syntax.scala`:
+  - New `trait Recorded[F] { def status: F }`, with a `Core form:` doc.
+  - `Draft` gains the overload `set(value: Recorded[F])(update: S => S)`, which keeps a list of assigned statuses.
+  - `Draft.step` appends those statuses after the recorded facts. With a `require`, it refuses a block that also records one of them: "an effect block records X, which its assignment of a status already records: drop the record(X)".
+- Setter shape for a status field: `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))`. The fact type must be concrete, because a wildcard `F` cannot accept `Recorded[Fact]`. Other fields keep the `Draft[State, ?, ?]` shape from .1.
+- `model/irgen/Expressions.scala`: `setterField` now delegates to the new `setterShape(fn): Option[(field, recorded)]`, which also recognizes the status shape. The value passed must be the setter's own parameter.
+- `model/irgen/Syntax.scala` (`effectSteps`):
+  - `Assign` carries a `recorded` flag.
+  - `declaredStatus(caseSym)` finds the enum case's call to the enum constructor in the case's own tree, and takes the argument at the position of the parameter named `status`.
+  - Each status assignment of a case literal appends that fact after the `record` facts.
+  - Three refusals, each naming the effect, the statement and its position:
+    - an explicit `record` of the derived fact;
+    - a status assignment that names no case;
+    - a plain-shape setter for a field whose values are `Recorded`. I added this third one: without it such a setter would silently derive nothing.
+
+### Acceptance
+- A case without a status does not compile. `testdata/crossed/Statuses.scala:12:3` is in the crossed refusals list.
+- Run time: `Effects.test.scala` adds the `Tasker` machine with two tests:
+  - derivation, compared over every state with the method form: phase change, same-value assignment, other field only, explicit fact plus status, reject;
+  - the draft's refusal of an explicitly recorded derived fact.
+  
+  Red-first: with the derivation and the refusal disabled, both tests failed.
+- IR (R9): in `lifts/StatusFacts.scala`, the blocks of `Derived` sit beside the hand-written defs of `Written`. The new Fixtures test "an effect block's derived status facts lift as the facts its method form writes" requires machines and functions to be identical apart from names and positions. It also requires `Phase` to lift as `{"cases":[{"name":"idle"},{"name":"running"},{"name":"paused"}]}`, an enum whose cases carry no fields. Lifted fact lists: start/resume `[statusRunning]`, retry `[]`, pause `[attempted, statusPaused]`, refuse `[]`. I did not run this IR test red first. The expected JSON shows the derived facts, which the method twin writes by hand.
+- Refusals: `lifts/StatusFactRejects.scala` adds the roots `ExplicitStatus` (line 20), `ComputedStatus` (line 30) and `PlainStatusSetter` (line 39), each with a line in `expected/rejects.txt`.
+- Every existing lifter fixture is unchanged. The update run changed only `expected/rejects.txt` (3 added lines) and the new `expected/statusFacts.json`.
+
+### Tests run
+- `mise exec -- scala-cli test --suppress-outdated-dependency-warning model/project.scala model/umpire` rc=0
+- `make model/build/model-scala.jar` (needed so the lifts build sees the framework change; this is not an IR regeneration)
+- `UMPIRE_LIFTER_UPDATE=1 mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen` rc=0
+- `mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen` (check mode) rc=0
+- `mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/project.scala model/umpire model/temporal model/irgen model/check` rc=0
+- `make lint-model-models`, `lint-model-irgen`, `lint-model-irgen-lifts`, `lint-model-check` and `lint-model-syntax`: each rc=0 (`lint-model-syntax` after a fix to the Core form doc, which changed only a comment)
+- GATE_SKIPPED:umpire-check-model:batch - DSL batch rule: make umpire-check-model and the byte-identical model/ir check run at the batch's single regeneration
+
+### Declared IR delta
+None for `model/ir`, `model/cases` or the Model lift expectations. No Model's phase enum extends `Recorded`, and the new paths fire only for a setter of the status shape. Deliberate fixture changes: the new `expected/statusFacts.json` and 3 new lines in `expected/rejects.txt`.
+
+### Touches
+- `model/irgen/testdata/crossed/Statuses.scala` is outside the declared Touches (`testdata/lifts/**`). The task asks for a build-failure fixture through `refusals(fixture)`. A file that fails to compile cannot live under `lifts/`, which builds as one project, so it joins the existing `crossed` build-refusal fixture.
+- `sugarNames` (`model/check/SyntaxRule.scala`) is unchanged: the syntax rule does not require `Recorded` there, and the file is outside Touches.
+
+### For later tasks
+- fn-135.4 (ActivityProduct):
+  - Declare `enum Phase(val status: Fact) extends Recorded[Fact] derives Finite` with `case started extends Phase(statusStarted)` and so on. The parameter must be named `status`, because the lifter finds the constructor argument by that name.
+  - The phase setter must be exactly `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))`, with the concrete fact type in the `Draft`. A plain-shape phase setter is refused by the lifter.
+  - Assign the phase a case literal (`phase = Phase.started`, or an imported case). Anything else is refused.
+  - Drop the `record(statusX)` calls: recording a derived fact explicitly is refused.
+  - `requestCancel` from `cancelRequested` still records `statusCancelRequested`, because a same-value assignment records (R10).
+  - Run-time order is the explicit facts, then the status.
+- If fn-136's role mixins come later (`case started extends Phase(statusStarted), Held`), the lifter still finds the enum constructor's call among the case's parents.
+
+### Follow-ups (not built)
+- `View`/`Draft`/`Recorded` are not in `sugarNames` (carried over).
+- The draft's run-time refusal cannot name the effect val: the framework has no name for it at run time, unlike the lifter's message.
+- No MILESTONES.md edit is needed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 68f19659153a7a345c1e4050167e44e23ad43c55
+- Tests: mise exec -- scala-cli test --suppress-outdated-dependency-warning model/project.scala model/umpire, UMPIRE_LIFTER_UPDATE=1 mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen, mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen, mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/project.scala model/umpire model/temporal model/irgen model/check, make lint-model-models, make lint-model-irgen, make lint-model-irgen-lifts, make lint-model-check, make lint-model-syntax, GATE_SKIPPED:umpire-check-model:batch - DSL batch rule: make umpire-check-model and the byte-identical model/ir check run at the batch's single regeneration
 - PRs:
