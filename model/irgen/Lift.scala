@@ -54,6 +54,11 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
   // Every refusal, with the IR file it was lifting: "" for a lift of roots, or for none.
   val errors = mutable.ArrayBuffer.empty[(String, LiftError)]
 
+  // The phase projection each machine or composition object lifted reads, by its name, as its
+  // source writes it: its `Phased` argument, or a derived object's source's. Nothing is written of
+  // it; the lifter's tests read it.
+  val phases = mutable.LinkedHashMap.empty[String, String]
+
   // What each negative control of every file lifted asks of the run's Queries.
   private val refutations = mutable.ArrayBuffer.empty[Refutation]
 
@@ -135,6 +140,7 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
       progress = sorted(progress),
       realizations = sorted(realizations)
     )
+    phases ++= concerns.phases
     for laws <- lawSidecar(ctx) do sidecars(file) = laws
     for stated <- sectionWaivers(ctx) do waivers(file) = stated
 

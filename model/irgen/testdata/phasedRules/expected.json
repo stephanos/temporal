@@ -1,0 +1,710 @@
+{
+  "source": "model: fixture.phased.Switch",
+  "types": [ {
+    "name": "fixture.phased.Bulb",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 11
+    },
+    "record": {
+      "fields": [ {
+        "name": "light",
+        "type": {
+          "named": "fixture.phased.Light"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.phased.Light",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 8
+    },
+    "enum": {
+      "cases": [ {
+        "name": "off"
+      }, {
+        "name": "on"
+      }, {
+        "name": "broken"
+      } ]
+    }
+  }, {
+    "name": "fixture.phased.Outcome",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 13
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.phased.Switch$.effects$.dark",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 29
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.phased.Bulb"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 29
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 29
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 16
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.phased.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 29
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 29
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "light",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                      "line": 29
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.phased.Light",
+                        "case": "off"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 29
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 29
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.phased.Switch$.effects$.keep",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 30
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.phased.Bulb"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 30
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 30
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 16
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.phased.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 30
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 30
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 30
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.phased.Switch$.effects$.light",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 28
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.phased.Bulb"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 28
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 28
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 16
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.phased.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 28
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 28
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "light",
+                  "value": {
+                    "position": {
+                      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                      "line": 28
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.phased.Light",
+                        "case": "on"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 28
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 28
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.phased.Switch$.states$.dark",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 26
+    },
+    "params": [ {
+      "name": "l",
+      "type": {
+        "named": "fixture.phased.Light"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 26
+      },
+      "binary": {
+        "op": "OP_NE",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 26
+          },
+          "var": "l"
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 26
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.phased.Light",
+              "case": "on"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "switch.rules.drop",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 36
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.phased.Bulb"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 36
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 36
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 31
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 31
+                  },
+                  "var": "s"
+                },
+                "field": "light"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 36
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 36
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.phased.Light",
+                      "case": "off"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 36
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.phased.Light",
+                      "case": "on"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 36
+          },
+          "call": {
+            "function": "fixture.phased.Switch$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 36
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 36
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "switch.rules.press",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 32
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.phased.Bulb"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 33
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 33
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 31
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 31
+                  },
+                  "var": "s"
+                },
+                "field": "light"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 33
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 33
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.phased.Light",
+                      "case": "on"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 33
+          },
+          "call": {
+            "function": "fixture.phased.Switch$.effects$.dark",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 33
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 34
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 34
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 34
+                  },
+                  "call": {
+                    "function": "fixture.phased.Switch$.states$.dark",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                        "line": 31
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                            "line": 31
+                          },
+                          "var": "s"
+                        },
+                        "field": "light"
+                      }
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 34
+                  },
+                  "binary": {
+                    "op": "OP_NE",
+                    "left": {
+                      "position": {
+                        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                        "line": 34
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                            "line": 34
+                          },
+                          "var": "s"
+                        },
+                        "field": "light"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                        "line": 34
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.phased.Light",
+                          "case": "broken"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 34
+              },
+              "call": {
+                "function": "fixture.phased.Switch$.effects$.light",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 34
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 32
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.phased.hand.drop",
+    "name": "drop",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 20
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.phased.hand.press",
+    "name": "press",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 19
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.phased",
+    "name": "switch",
+    "position": {
+      "file": "model/irgen/testdata/phasedRules/Phased.scala",
+      "line": 22
+    },
+    "stateType": "fixture.phased.Bulb",
+    "outcomeType": "fixture.phased.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 23
+      },
+      "construct": {
+        "type": "fixture.phased.Bulb",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 23
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.phased.Light",
+              "case": "off"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 24
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.phased.Bulb"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/phasedRules/Phased.scala",
+            "line": 24
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 24
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                    "line": 24
+                  },
+                  "var": "s"
+                },
+                "field": "light"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/phasedRules/Phased.scala",
+                "line": 24
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.phased.Light",
+                  "case": "broken"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.phased.hand.press",
+      "function": "switch.rules.press",
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 32
+      }
+    }, {
+      "action": "fixture.phased.hand.drop",
+      "function": "switch.rules.drop",
+      "position": {
+        "file": "model/irgen/testdata/phasedRules/Phased.scala",
+        "line": 36
+      }
+    } ]
+  } ]
+}

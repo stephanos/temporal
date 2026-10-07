@@ -97,6 +97,7 @@ private[irgen] trait Compositions:
           finally composing -= sym
         distinctModelName(c.name, sym, c.getPosition)
         compositions(sym.fullName) = c
+        recordPhase(moduleClassOf(sym), c.name, at)
         c
 
   // The compositions whose declarations are being lifted, so one derived from itself is refused.

@@ -892,6 +892,85 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
+  // fn-137.2: the phase projection a machine mixes in, `Phased[Bulb, Light](_.light)`, which its
+  // argument-less rules read (testdata/phasedMixin), and the one its rules name, `Rules(_.light)`
+  // (testdata/phasedRules), lift to one IR, byte for byte (phasedRules/expected.json). Both are
+  // lifted at phasedRules' positions, whose lines the Phased spelling keeps.
+  private lazy val phasedMixinJar = packaged("phasedMixin", materialize("phasedMixin"))
+
+  concurrently("a Phased machine's argument-less rules lift as Rules(projection)'s, byte for byte"):
+    val at = stored("phasedRules")
+    def switchOf(fixture: String, jar: Path): String =
+      val out = scratch.resolve(s"$fixture-out.json")
+      val result =
+        lift(
+          s"$jar=$at,$modelJar=model/",
+          modelClasspath.toString,
+          out.toString,
+          "fixture.phased.Switch"
+        )
+      assert(!result.failed, result.diagnostics)
+      Files.readString(out)
+    val written = switchOf("phasedRules", packaged("phasedRules", materialize("phasedRules")))
+    assertEquals(switchOf("phasedMixin", phasedMixinJar), written)
+    val shared = testdata.resolve("phasedRules/expected.json")
+    if update then Files.writeString(shared, written): Unit
+    else
+      assert(
+        Files.isRegularFile(shared) && Files.readString(shared) == written,
+        s"${root.relativize(shared)} is stale; UMPIRE_LIFTER_UPDATE=1 rewrites it"
+      )
+
+  concurrently("in names phases no projection reads, refused at its line"):
+    val out = scratch.resolve("phasedNone-out.json")
+    val result = lift(
+      s"$phasedMixinJar=${stored("phasedMixin")},$modelJar=model/",
+      modelClasspath.toString,
+      out.toString,
+      "fixture.phased.Unprojected"
+    )
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: ${stored("phasedMixin")}Phased.scala:61: in names phases, and unprojected reads no " +
+          "phase projection: mix it into the machine, `Phased[State, Phase](_.phase)`"
+      )
+    )
+
+  // A derived machine reads its source's projection, through each derivation, and a derived
+  // composition its source's; derivation rules name no phase, so the lifter's record is read, in a
+  // lift run here.
+  concurrently("a derived machine's and a derived composition's projection is their source's"):
+    val tastys = Files.createDirectories(scratch.resolve("phasedTasty"))
+    val zip = java.util.zip.ZipFile(phasedMixinJar.toFile)
+    val files =
+      try
+        zip.entries.asScala.toList
+          .filter(_.getName.endsWith(".tasty"))
+          .map { e =>
+            val to = tastys.resolve(e.getName)
+            Files.createDirectories(to.getParent)
+            Files.copy(zip.getInputStream(e), to): Unit
+            to.toString
+          }
+      finally zip.close()
+    val classpath = phasedMixinJar.toString +: Files
+      .readString(modelClasspath)
+      .trim
+      .split(java.io.File.pathSeparator)
+      .toList
+    val roots = Seq("Switch", "Stiffer", "Twins", "Lopsided").map("fixture.phased." + _)
+    val lifter = Lifter(Target.Roots(roots), files.map(_ -> stored("phasedMixin")).toMap)
+    bounded(
+      scala.tasty.inspector.TastyInspector.inspectAllTastyFiles(files, Nil, classpath)(lifter)
+    )
+    assertEquals(lifter.errors.toList, Nil)
+    val phases = lifter.phases
+    assert(phases("switch").contains("light"), phases.toString)
+    assert(phases("twins").contains("left"), phases.toString)
+    assertEquals(phases.get("stiffer"), phases.get("switch"))
+    assertEquals(phases.get("lopsided"), phases.get("twins"))
+
   // fn-126 decision 23: an ID derived from a name is unique in its package across the run, even
   // when one shared def declares both records at one position.
   concurrently(

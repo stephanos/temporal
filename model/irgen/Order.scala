@@ -31,8 +31,10 @@ import scala.collection.mutable
 //
 // A read inside a def, a lambda, a by-name argument or a lazy val of the owner itself, and an object
 // declared but not read, initializes nothing. A context function the DSL applies at once is read
-// as written, and so are a rule block's cases and their conditions, and the phase projection of
-// `Rules(_.phase)`, which the rules' disjointness check calls while they initialize. A def called
+// as written, and so are a rule block's cases and their conditions, and the phase projection,
+// which the rules' disjointness check calls while they initialize: `Rules(_.phase)`'s, read as the
+// rules' constructor runs, or the machine's `Phased[State, Phase](_.phase)`, a constructor argument
+// of the machine object, initialized before its rules and read as they initialize. A def called
 // while its owner initializes is not followed, so a val it reads is not checked.
 //
 // Scala's own checkers do not serve: `-Wsafe-init` checks classes, not objects (Scala 3.9), and
@@ -86,6 +88,7 @@ final private[irgen] class Order(index: Index):
   private val compositionClass = Symbol.requiredClass("umpire.Composition")
   private val rulesClass = Symbol.requiredClass("umpire.Rules")
   private val caseClass = Symbol.requiredClass("umpire.Case")
+  private val phasedClass = Symbol.requiredClass("umpire.Phased")
 
   // Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`.
   private def objectForm(c: Symbol): Boolean =
@@ -134,6 +137,7 @@ final private[irgen] class Order(index: Index):
     // body, statement by statement.
     val inits: List[(Int, Tree)] =
       cls.parents.collect { case t: Term => -1 -> t } ++
+        phaseRead(cls).map(-1 -> _) ++
         inherited(cls).map(-1 -> _) ++
         cls.body.zipWithIndex.flatMap {
           case (v: ValDef, i) if !lazily(v.symbol)        => v.rhs.map(i -> _)
@@ -202,6 +206,29 @@ final private[irgen] class Order(index: Index):
           case id: Ident => read(id, i)
           case _         => super.traverseTree(t)(o)
       initReads.traverseTree(init)(owner)
+
+  // What a machine's `rules` read of its `Phased[State, Phase](_.phase)` as they initialize: the
+  // projection's body, which the disjointness check calls. The projection itself, an argument of
+  // the machine's constructor, is initialized before the rules.
+  private def phaseRead(cls: ClassDef): List[Tree] =
+    def body(t: Tree): List[Tree] = t match
+      case Lambda(_, b)       => List(b)
+      case Inlined(_, Nil, e) => body(e)
+      case Typed(e, _)        => body(e)
+      case Block(Nil, e)      => body(e)
+      case _                  => Nil
+    if !cls.symbol.typeRef.derivesFrom(rulesClass) then Nil
+    else
+      treeOf(cls.symbol.maybeOwner).toList.flatMap {
+        case machine: ClassDef =>
+          machine.parents.flatMap {
+            case t @ Apply(_, args)
+                if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass =>
+              args.flatMap(body)
+            case _ => Nil
+          }
+        case _ => Nil
+      }
 
   // What constructing `cls` runs of the classes of the lifted sources it extends, outermost last:
   // each one's parents' arguments, its vals' right-hand sides and its statements. A framework class

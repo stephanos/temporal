@@ -199,6 +199,46 @@ private[irgen] trait Declarations:
   def parentArguments(c: ClassDef): List[List[Term]] =
     c.parents.collectFirst { case t: Term => t }.flatMap(call).fold(Nil)(_._2)
 
+  private lazy val phasedClass = Symbol.requiredClass("umpire.Phased")
+
+  // The phase projection of each object form lifted that reads one, by its name, as its source
+  // writes it: its own, or a derived machine's or derived composition's source's.
+  val phases = mutable.LinkedHashMap.empty[String, String]
+
+  // The phase projection an object form reads: the argument of its `Phased[State, Phase](_.phase)`
+  // parent or, for a derived machine or derived composition, its source's, followed through every
+  // derivation to the object it starts from. None where it declares none, as for a plain `Machine`.
+  def phaseProjection(cls: Symbol, at: Tree): Option[Term] =
+    def from(cls: Symbol, seen: Set[Symbol]): Option[Term] =
+      val c = objectBody(cls, at)
+      val own = c.parents.collectFirst {
+        case t: Term if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass =>
+          call(t).toList.flatMap(_._2.flatten)
+      }
+      own.flatMap(_.headOption).orElse {
+        // A derivation, `Derived(m.op(...))` or `Composition(c.withMember(...))`, starts from an
+        // object, which may itself be derived.
+        def source(t: Term): Option[Symbol] = unwrapped(t) match
+          case Derivation(_, inner, _)                     => source(inner)
+          case Apply(Select(inner, "withMember"), List(_)) => source(inner)
+          case r: Ref if r.symbol.flags.is(Flags.Module)   => Some(r.symbol.moduleClass)
+          case _                                           => None
+        val derivation = parentArguments(c) match
+          case List(d) :: _ if cls.typeRef.derivesFrom(derivedClass) => Some(d)
+          case List(List(d)) if isComposition(d.tpe)                 => Some(d)
+          case _                                                     => None
+        derivation.flatMap(source).filterNot(seen).flatMap(s => from(s, seen + cls))
+      }
+    from(cls, Set.empty)
+
+  // The rules each machine's `Phased` projection is read by, which its lifted reads are placed at
+  // (Context.placing): where `Rules(_.phase)` writes the projection.
+  private val phaseReaders = mutable.Map.empty[Term, Tree]
+
+  // Records the phase projection `cls` reads, where it reads one, under its name.
+  def recordPhase(cls: Symbol, name: String, at: Tree): Unit =
+    for p <- phaseProjection(cls, at) do phases(name) = p.show
+
   // A member section of an object form: `object effects` and the like.
   def sectionOf(c: ClassDef, name: String): Option[ClassDef] = c.body.collectFirst {
     case s: ClassDef if s.symbol.flags.is(Flags.Module) && s.name.stripSuffix("$") == name => s
@@ -229,8 +269,11 @@ private[irgen] trait Declarations:
       parentArguments(c) match
         case List(List(derivation), _) =>
           derivation match
-            case Derivation(_, _, _) => derivedMachine(derivation, familyOf(cls), name)
-            case other               =>
+            case Derivation(_, _, _) =>
+              val derived = derivedMachine(derivation, familyOf(cls), name)
+              recordPhase(cls, name, c)
+              derived
+            case other =>
               fail(
                 other,
                 s"$name derives from ${other.show}: a derived machine is `Derived(m.op(...))` of " +
@@ -369,7 +412,7 @@ private[irgen] trait Declarations:
             .filter(a => !isNamed(a.tpe, "umpire.Owner"))
             .flatMap(varargs)
             .map(stepBinding(_, name, "a core binding is `action ~> function`"))
-        else ruleSteps(name, typeRef(s, c), rules)
+        else ruleSteps(name, typeRef(s, c), rules, c.symbol)
       val folded = inferredEntity(watched.addAllSteps(steps), c)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
       checkChannels(m, irTypeName(s.dealias.typeSymbol), c)
@@ -426,8 +469,21 @@ private[irgen] trait Declarations:
   // four actions, or classes of them, each given its cases, and holds its cases alone; the blocks
   // of a `from` follow its declarer's import. An action, or a class of it, may sit in several
   // blocks: the framework refuses cases of one class that overlap.
-  def ruleSteps(machine: String, state: ir.TypeRef, rules: ClassDef): Seq[ir.StepBinding] =
-    val projection = parentArguments(rules).flatten.find(a => lambda(a).nonEmpty)
+  // A case's phases read the machine's `Phased[State, Phase](_.phase)`, or the projection its rules
+  // name, `Rules(_.phase)`, which is read in its place where it is written.
+  def ruleSteps(
+      machine: String,
+      state: ir.TypeRef,
+      rules: ClassDef,
+      owner: Symbol
+  ): Seq[ir.StepBinding] =
+    val projection = parentArguments(rules).flatten
+      .find(a => lambda(a).nonEmpty)
+      .orElse(phaseProjection(owner, rules).map { p =>
+        phaseReaders(p) = rules
+        p
+      })
+    recordPhase(owner, machine, rules)
     val written = mutable.ArrayBuffer.empty[LiftedRule]
     val order = mutable.LinkedHashMap.empty[String, Tree]
     val off = mutable.Set.empty[String]
@@ -492,7 +548,11 @@ private[irgen] trait Declarations:
     statements(rules).foreach(rule(_, None))
     for r <- written do
       if headingNames(r.heading).exists(_ == "in") && projection.isEmpty then
-        fail(r.at, s"in names phases, and $machine's rules declare no projection: `Rules(_.phase)`")
+        fail(
+          r.at,
+          s"in names phases, and $machine reads no phase projection: mix it into the machine, " +
+            "`Phased[State, Phase](_.phase)`"
+        )
       if headingNames(r.heading).exists(_ == "when") && projection.isEmpty then
         fail(
           r.at,
@@ -708,8 +768,12 @@ private[irgen] trait Declarations:
     def phaseOf(projection: Term): ir.Expr = lambda(projection) match
       case Some((List(p), body)) =>
         bind(List(p), List(stateName))
-        lift(body)
-      case _ => fail(projection, "a rules' projection is a function of the state, `_.phase`")
+        phaseReaders.get(projection).fold(lift(body))(rules => placing(pos(rules))(lift(body)))
+      case _ =>
+        fail(
+          projection,
+          "a phase projection is a function of the state, `Phased[State, Phase](_.phase)`"
+        )
     def heading(h: Heading, at: Tree): ir.Expr = h match
       case Heading.When(g)                => condition(g)
       case Heading.In(projection, phases) =>

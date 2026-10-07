@@ -265,7 +265,10 @@ final private[irgen] class Context(val index: Index):
   // relative to the repository. A tree the lifter builds itself, such as the block left after a
   // `require`, has no span.
   // The prefix is the one of the jar the source came from.
-  def pos(t: Tree): ir.Position = scala.util
+  def pos(t: Tree): ir.Position = placedAt.getOrElse(written(t))
+
+  // Where `t` is written, whatever the expressions lifted now are placed at.
+  private def written(t: Tree): ir.Position = scala.util
     .Try {
       val p = t.pos
       val path = p.sourceFile.path
@@ -274,7 +277,20 @@ final private[irgen] class Context(val index: Index):
     }
     .getOrElse(ir.Position.defaultInstance)
 
-  def where(t: Tree): String = s"${pos(t).file}:${pos(t).line}"
+  // The position the expressions lifted now are recorded at in place of their own, where one is
+  // set: a machine's `Phased[State, Phase](_.phase)`, read by its rules' cases, is placed at its
+  // rules' declaration, where `Rules(_.phase)` writes the projection, so the IR is the same either
+  // way. A refusal still names where its tree is written.
+  private var placedAt: Option[ir.Position] = None // scalafix:ok DisableSyntax.var
+
+  // `body`, its expressions placed at `at`.
+  def placing[A](at: ir.Position)(body: => A): A =
+    val was = placedAt
+    placedAt = Some(at)
+    try body
+    finally placedAt = was
+
+  def where(t: Tree): String = s"${written(t).file}:${written(t).line}"
   def fail(t: Tree, message: String): Nothing = throw LiftError(where(t), message)
 
   // ### Names taken from vals, and the Definition IDs symbol-based declarations take
