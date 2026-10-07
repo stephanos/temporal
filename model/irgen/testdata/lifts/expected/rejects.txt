@@ -210,10 +210,10 @@ lift: model/irgen/testdata/lifts/ScriptRejects.scala:31: perform names at least 
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:40: the status table lists statusPaused twice
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:64: the status table lists no statusCompleted: add `statusCompleted -> value` to it
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:28: a command is named after the val that declares it: declare it as a val and refer to it by value
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:191: controller comes before evidence: a realization object's sections are controller, workers, evidence, serverSteps, controls, in that order
 lift: model/irgen/testdata/lifts/StatusFactRejects.scala:30: the effect block of pause assigns phase a value that names no case: the status it records is the declared status of a case, so name the case, `phase = Phase.paused`
 lift: model/irgen/testdata/lifts/StatusFactRejects.scala:20: the effect block of pause records statusPaused, which its assignment of phase already records: drop the record(statusPaused)
 lift: model/irgen/testdata/lifts/StatusFactRejects.scala:39: stage_=, declared at model/irgen/testdata/lifts/StatusFactRejects.scala:12, assigns phase, whose values declare their status, so it hands the draft the value whose status the step records: `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))`
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:191: controller comes before evidence: a realization object's sections are controller, workers, evidence, serverSteps, controls, in that order
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:83: refinedControl is a negative control, and controlRefiner refines it: a deliberately wrong design is no machine's Product, so nothing refines it
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:35: faultUnmarked binds the fault blowout and is marked neither a FailureModel, the real design under the fault, nor a NegativeControl, a deliberately wrong one: mix in the one it is
 lift: model/irgen/testdata/lifts/MarkerRejects.scala:41: faultlessFailure is a failure model and binds no fault: bind an action of the actor `fault` that some state enables
