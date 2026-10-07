@@ -30,9 +30,10 @@ Pausable reads "paused" as `Suspended` and Pollable reads "running" as `Held` of
 - [ ] TBD
 
 ## Done summary
-TBD
+Pausable now binds only pause/unpause and owns Suspended; Pollable binds only dispatch and owns Held. Their Property reads the declaring object typed Phasing and is brought only for the pair. All eight direct/derived owners migrated; three predicate aliases retired. pausedWhileHeld is Held because the admitted attempt remains owned while pause is pending. Runtime, focused lifter, package, format and scoped lint evidence passed; regeneration remains deferred by DSL batch policy.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a8a669c1208c6f875c9249096394c80d5b478da8
+- Tests: scala-cli test model/project.scala model/umpire model/temporal (62 passed), scala-cli test model/irgen --test-only *PhaseCapabilities* after fresh model package/classpath (2 passed), make model/build/model-scala.jar (passed, no unchecked warnings), make lint-model-models lint-model-irgen lint-model-syntax (exit 0), git diff --check (exit 0)
 - PRs:
