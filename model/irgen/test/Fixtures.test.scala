@@ -324,7 +324,11 @@ class Fixtures extends munit.FunSuite:
     "notAField",
     "notAPolledField",
     "foreignFact",
-    "literalTwice"
+    "literalTwice",
+    "baseOverride",
+    "awaitUnlisted",
+    "describedFactTwice",
+    "historyKeyless"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
   // The refusals of fn-122.2's capability declarations, fn-122.5's citations and fn-127.2's

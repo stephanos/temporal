@@ -112,3 +112,54 @@ private val failedTwice = AttemptFailure(proto[io.temporal.api.failure.v1.Failur
 
 // A protobuf literal that sets one field twice (fn-133.1).
 val literalTwice: Realization = realizing(everyCase(failedTwice))
+
+private val baseCalls =
+  RequestBase(workflowService, "namespace" -> workerNamespace, "activity_id" -> run)
+
+// A call that assigns a base field the value its request base gives it (fn-133.2).
+private val overridden = rpc(baseCalls, METHOD_PAUSE_ACTIVITY_EXECUTION) {
+  field(_.namespace) := workerNamespace
+}
+
+val baseOverride: Realization = realizing(perform(client.control(Control.pause) -> overridden))
+
+private val describedOnce = DescribedStatus(
+  calls = baseCalls,
+  method = METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+  info = Field(_.getInfo),
+  operation = Field(_.activityId),
+  status = Field(_.status)
+)(ActivityFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED)
+
+// An await of a fact the described status does not list.
+val awaitUnlisted: Realization = realizing(
+  everyCase(describedOnce.await(ActivityFact.statusCompleted))
+)
+
+private val describedTwice = DescribedStatus(
+  calls = baseCalls,
+  method = METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+  info = Field(_.getInfo),
+  operation = Field(_.activityId),
+  status = Field(_.status)
+)(
+  ActivityFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED,
+  ActivityFact.statusPaused -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
+)
+
+// A described status that lists one fact twice.
+val describedFactTwice: Realization =
+  realizing(everyCase(describedTwice.await(ActivityFact.statusPaused)))
+
+private val historyNoKey = HistoryEvidence(key = "scheduled_event_id", factPrefix = "status")(
+  HistoryKind(ActivityFact.statusPaused, _.attributes.workflowExecutionStartedEventAttributes)
+)
+
+// A history kind whose attributes have no field the history keys it by.
+val historyKeyless: Realization = temporalRealization(
+  machine = activitySystem,
+  operation = activity,
+  roles = Vector(workflowService, taskQueue),
+  scripts = Vector(controller(everyCase(stopWorker))),
+  evidence = historyNoKey.evidence
+)

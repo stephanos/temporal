@@ -47,10 +47,12 @@ import temporal.realize.{
   workflowService,
   CauseKind,
   FaultKind,
+  HistoryEvidence,
+  HistoryKind,
   ProtoScope,
+  RequestBase,
   ServerStep,
-  WorkerActivation,
-  WorkflowHistory
+  WorkerActivation
 }
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.history.v1.*
@@ -88,54 +90,30 @@ object NexusRealization:
     commitment = Commitment.reported
   )
 
-  // One history event kind of the operation, keyed by the scheduled event it answers. The history is
-  // read once the workflow has closed, when it holds every event the operation will ever have, so the
-  // kind is exhaustive and that read closes it.
-  private def historyKind[Attributes](
-      kind: String,
-      records: Fact,
-      attributes: Field[HistoryEvent, Option[Attributes]],
-      operation: Field[HistoryEvent, Long]
-  ) = Evidence.keyed(
-    id = evidenceId(kind),
-    records = records,
-    source = sourceId("history"),
-    from = WorkflowHistory.event(attributes),
-    operation = operation,
-    commitment = Commitment.reported,
-    exhaustive = true
-  )
-
-  private val started = historyKind(
-    "started",
-    system.Fact.nexusOperationStarted,
-    Field(_.attributes.nexusOperationStartedEventAttributes),
-    Field(_.getNexusOperationStartedEventAttributes.scheduledEventId)
-  )
-  private val completed = historyKind(
-    "completed",
-    system.Fact.nexusOperationCompleted,
-    Field(_.attributes.nexusOperationCompletedEventAttributes),
-    Field(_.getNexusOperationCompletedEventAttributes.scheduledEventId)
-  )
-  private val failed = historyKind(
-    "failed",
-    system.Fact.nexusOperationFailed,
-    Field(_.attributes.nexusOperationFailedEventAttributes),
-    Field(_.getNexusOperationFailedEventAttributes.scheduledEventId)
-  )
-  private val canceled = historyKind(
-    "canceled",
-    system.Fact.nexusOperationCanceled,
-    Field(_.attributes.nexusOperationCanceledEventAttributes),
-    Field(_.getNexusOperationCanceledEventAttributes.scheduledEventId)
-  )
-  private val timedOut = historyKind(
-    "timedOut",
-    system.Fact.nexusOperationTimedOut,
-    Field(_.attributes.nexusOperationTimedOutEventAttributes),
-    Field(_.getNexusOperationTimedOutEventAttributes.scheduledEventId)
-  )
+  // The operation's history events, each keyed by the scheduled event it answers.
+  private val historyKinds =
+    HistoryEvidence(key = "scheduled_event_id", factPrefix = "nexusOperation")(
+      HistoryKind(
+        system.Fact.nexusOperationStarted,
+        _.attributes.nexusOperationStartedEventAttributes
+      ),
+      HistoryKind(
+        system.Fact.nexusOperationCompleted,
+        _.attributes.nexusOperationCompletedEventAttributes
+      ),
+      HistoryKind(
+        system.Fact.nexusOperationFailed,
+        _.attributes.nexusOperationFailedEventAttributes
+      ),
+      HistoryKind(
+        system.Fact.nexusOperationCanceled,
+        _.attributes.nexusOperationCanceledEventAttributes
+      ),
+      HistoryKind(
+        system.Fact.nexusOperationTimedOut,
+        _.attributes.nexusOperationTimedOutEventAttributes
+      )
+    )
 
   private val pending = Evidence.read(
     id = evidenceId(system.Fact.pendingAttempts),
@@ -151,6 +129,11 @@ object NexusRealization:
 
   // ### The controller's commands
 
+  // Every call of the controller is made on the WorkflowService, in the run's namespace, of the
+  // workflow the run started under its own id.
+  private val calls =
+    RequestBase(workflowService, "namespace" -> workerNamespace, "workflow_id" -> run)
+
   // The handler's worker stops polling its own queue, so the caller workflow keeps running.
   private val stopHandlerWorker = Fault(handlerTaskQueue, FaultKind.workerStop)
 
@@ -158,29 +141,21 @@ object NexusRealization:
   private val workflowType = perCase("workflow")
 
   private val startWorkflow =
-    rpc(workflowService, WorkflowServiceGrpc.METHOD_START_WORKFLOW_EXECUTION) {
-      field(_.namespace) := workerNamespace
-      field(_.workflowId) := run
+    rpc(calls, WorkflowServiceGrpc.METHOD_START_WORKFLOW_EXECUTION) {
       field(_.getWorkflowType.name) := Operand.named(workflowType)
       field(_.getTaskQueue.name) := taskQueueName
       field(_.requestId) := run
     }
 
   // Polls the history for the scheduled event, run until the event exists.
-  private val awaitScheduled = await(scheduled, workflowService)(
+  private val awaitScheduled = await(scheduled, calls)(
     Condition.present(Field(_.attributes.nexusOperationScheduledEventAttributes))
-  ) {
-    field(_.namespace) := workerNamespace
-    field(_.getExecution.workflowId) := run
-  }
+  ) {}
 
   // Polls the pending operation until its first attempt has failed.
-  private val pendingAttempts = await(pending, workflowService)(
+  private val pendingAttempts = await(pending, calls)(
     Condition.equal(Field(_.attempt), Operand.integer(1))
-  ) {
-    field(_.namespace) := workerNamespace
-    field(_.getExecution.workflowId) := run
-  }
+  ) {}
 
   // The handle an asynchronous reply publishes and a completion reads.
   private val completionAuthority = Learned("completion-authority", LearnedKind.handle)
@@ -197,9 +172,7 @@ object NexusRealization:
 
   // The workflow's history, waiting for new events: the request both history calls extend.
   private val historyRead =
-    rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY) {
-      field(_.namespace) := workerNamespace
-      field(_.getExecution.workflowId) := run
+    rpc(calls, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY) {
       field(_.maximumPageSize) := Operand.integer(64)
       field(_.waitNewEvent) := Operand.flag(true)
     }
@@ -217,15 +190,12 @@ object NexusRealization:
     historyRead.extended {
       read(historyEvents, Cardinality.each).into(historyEvent, Target.Lift(correlated.id))
     },
-    closes = Vector(started, completed, failed, canceled, timedOut)
+    closes = historyKinds.evidence
   )
 
   // Only the forged control's path inspects the workflow.
   private val inspectWorkflow =
-    rpc(workflowService, WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION) {
-      field(_.namespace) := workerNamespace
-      field(_.getExecution.workflowId) := run
-    }
+    rpc(calls, WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION) {}
 
   // ### The controller
   //
@@ -370,7 +340,7 @@ object NexusRealization:
     operation = features.nexus.workflow.operation,
     roles = Vector(workflowService, caseWorker, taskQueue, handlerTaskQueue, nexusEndpoint),
     scripts = Vector(callerController(steps*), workflowScript, handlerScript),
-    evidence = Vector(scheduled, started, completed, failed, canceled, timedOut, pending),
+    evidence = Vector(scheduled) ++ historyKinds.evidence :+ pending,
     learned = Vector(completionAuthority),
     observations = Vector(historyEvent, correlated),
     // A timeout class fires at the deadline its schedule command sets. No command sets a

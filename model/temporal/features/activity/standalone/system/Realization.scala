@@ -30,18 +30,20 @@ import Timeout.expires
 import shared.worker.worker as process
 
 object ActivityRealization:
-  // A status DescribeActivityExecution reports, each kind in its own source: a poll reads one.
-  private def status(fact: RealizationFact) = Evidence.read(
-    id = evidenceId(fact),
-    records = fact,
-    source = sourceId(fact),
-    from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
-    operation = Field(_.activityId),
-    commitment = Commitment.reported
-  )
+  // Every call of the controller is made on the WorkflowService, in the run's namespace, of the
+  // activity the run started under its own id.
+  private val calls =
+    RequestBase(workflowService, "namespace" -> workerNamespace, "activity_id" -> run)
 
-  // The status the activity's description reports while each fact holds.
-  val activityStatus = statusTable(
+  // The status DescribeActivityExecution reports while each fact holds, each read in a source of
+  // its own once the activity stays in it.
+  private val described = DescribedStatus(
+    calls,
+    METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+    Field(_.getInfo),
+    Field(_.activityId),
+    Field(_.status)
+  )(
     system.Fact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
     system.Fact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
     system.Fact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,
@@ -50,14 +52,8 @@ object ActivityRealization:
     system.Fact.statusTimedOut -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
   )
 
-  // Reads the activity's description until it reports the status the fact's evidence names.
-  private def awaitStatus(fact: RealizationFact) =
-    await(status(fact), workflowService)(
-      Condition.equal(Field(_.status), Operand.enumValue(activityStatus(fact)))
-    ) {
-      field(_.namespace) := workerNamespace
-      field(_.activityId) := run
-    }
+  // The status table the machine's Describable capability names.
+  val activityStatus = described.table
 
   // ### The controller
 
@@ -71,9 +67,7 @@ object ActivityRealization:
   // The start every class of the start action makes, under the run's id; a class adds the deadlines
   // it sets. The server refuses a start that sets neither a start-to-close nor a schedule-to-close
   // deadline, so a class that sets none carries a start-to-close deadline no Case lives to see.
-  private val startActivity = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
-    field(_.namespace) := workerNamespace
-    field(_.activityId) := run
+  private val startActivity = rpc(calls, METHOD_START_ACTIVITY_EXECUTION) {
     field(_.getActivityType.name) := Operand.named(activityType)
     field(_.getTaskQueue.name) := taskQueueName
     field(_.requestId) := run
@@ -82,30 +76,10 @@ object ActivityRealization:
     field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
   }
 
-  private val pauseActivity = rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION) {
-    field(_.namespace) := workerNamespace
-    field(_.activityId) := run
-  }
-  private val unpauseActivity = rpc(workflowService, METHOD_UNPAUSE_ACTIVITY_EXECUTION) {
-    field(_.namespace) := workerNamespace
-    field(_.activityId) := run
-  }
-  private val requestCancelActivity =
-    rpc(workflowService, METHOD_REQUEST_CANCEL_ACTIVITY_EXECUTION) {
-      field(_.namespace) := workerNamespace
-      field(_.activityId) := run
-    }
-  private val terminateActivity = rpc(workflowService, METHOD_TERMINATE_ACTIVITY_EXECUTION) {
-    field(_.namespace) := workerNamespace
-    field(_.activityId) := run
-  }
-
-  private val awaitPaused = awaitStatus(system.Fact.statusPaused)
-  private val awaitCompleted = awaitStatus(system.Fact.statusCompleted)
-  private val awaitFailed = awaitStatus(system.Fact.statusFailed)
-  private val awaitCanceled = awaitStatus(system.Fact.statusCanceled)
-  private val awaitTerminated = awaitStatus(system.Fact.statusTerminated)
-  private val awaitTimedOut = awaitStatus(system.Fact.statusTimedOut)
+  private val pauseActivity = rpc(calls, METHOD_PAUSE_ACTIVITY_EXECUTION) {}
+  private val unpauseActivity = rpc(calls, METHOD_UNPAUSE_ACTIVITY_EXECUTION) {}
+  private val requestCancelActivity = rpc(calls, METHOD_REQUEST_CANCEL_ACTIVITY_EXECUTION) {}
+  private val terminateActivity = rpc(calls, METHOD_TERMINATE_ACTIVITY_EXECUTION) {}
 
   // The one order every functional Query's path makes its calls in. A pause is read back only of an
   // activity no worker has taken: a running worker may be delivered the first attempt, and answer
@@ -125,16 +99,18 @@ object ActivityRealization:
       }
     ),
     perform(client.control(Control.pause) -> pauseActivity),
-    onPath(client.control(Control.pause))(awaitPaused),
+    onPath(client.control(Control.pause))(described.await(system.Fact.statusPaused)),
     perform(client.control(Control.unpause) -> unpauseActivity),
     onPath(client.control(Control.unpause))(resumeWorker),
     perform(client.control(Control.requestCancel) -> requestCancelActivity),
     perform(client.control(Control.terminate) -> terminateActivity),
-    onPath(worker.respond(AttemptResult.completed))(awaitCompleted),
-    onPath(worker.respond(AttemptResult.failed(false)))(awaitFailed),
-    onPath(worker.respond(AttemptResult.canceled))(awaitCanceled),
-    onPath(client.control(Control.terminate))(awaitTerminated),
-    onPath(deadline.scheduleToClose, deadline.scheduleToStart, deadline.startToClose)(awaitTimedOut)
+    onPath(worker.respond(AttemptResult.completed))(described.await(system.Fact.statusCompleted)),
+    onPath(worker.respond(AttemptResult.failed(false)))(described.await(system.Fact.statusFailed)),
+    onPath(worker.respond(AttemptResult.canceled))(described.await(system.Fact.statusCanceled)),
+    onPath(client.control(Control.terminate))(described.await(system.Fact.statusTerminated)),
+    onPath(deadline.scheduleToClose, deadline.scheduleToStart, deadline.startToClose)(
+      described.await(system.Fact.statusTimedOut)
+    )
   )
 
   // ### The worker
@@ -182,13 +158,13 @@ object ActivityRealization:
         startActivity,
         Taking(worker.poll, 1)
       ),
-      status(system.Fact.statusPaused),
+      described(system.Fact.statusPaused),
       answered(system.Fact.statusCancelRequested, requestCancelActivity),
-      status(system.Fact.statusCompleted),
-      status(system.Fact.statusFailed),
-      status(system.Fact.statusCanceled),
-      status(system.Fact.statusTerminated),
-      status(system.Fact.statusTimedOut),
+      described(system.Fact.statusCompleted),
+      described(system.Fact.statusFailed),
+      described(system.Fact.statusCanceled),
+      described(system.Fact.statusTerminated),
+      described(system.Fact.statusTimedOut),
       delivered(
         system.Fact.attemptCount,
         attempts,
@@ -282,13 +258,13 @@ object ActivityRealization:
         everyCase(startUnreached),
         perform(history.dispatch -> holdDispatch),
         perform(client.control(Control.pause) -> pauseActivity),
-        onPath(client.control(Control.pause))(awaitPaused),
+        onPath(client.control(Control.pause))(described.await(system.Fact.statusPaused)),
         perform(worker.poll -> releaseDispatch)
       )
     ),
     evidence = Vector(
       answered(AdmissionFact.dispatchSent, holdDispatch),
-      status(AdmissionFact.statusPaused),
+      described(AdmissionFact.statusPaused),
       committed(AdmissionFact.admissionRejected, releaseDispatch)(rejected),
       committed(AdmissionFact.attemptAdmitted, releaseDispatch, exhaustive = true)(admitted)
     ),

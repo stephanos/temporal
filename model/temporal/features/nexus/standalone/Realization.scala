@@ -15,32 +15,28 @@ import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.NexusOperationExecutionStatus.*
 
 object OperationRealization:
-  // The status DescribeNexusOperationExecution reports, read once the operation stays in it.
-  private def status(fact: Fact) = Evidence.read(
-    id = evidenceId(fact),
-    records = fact,
-    source = sourceId(fact),
-    from = Recorded.single(METHOD_DESCRIBE_NEXUS_OPERATION_EXECUTION, Field(_.getInfo)),
-    operation = Field(_.operationId),
-    commitment = Commitment.reported
-  )
+  // Every call of the controller is made on the WorkflowService, in the run's namespace, of the
+  // operation the run started under its own id.
+  private val calls =
+    RequestBase(workflowService, "namespace" -> workerNamespace, "operation_id" -> run)
 
-  // The status the operation's description reports while each fact holds (operationExecutionStatus).
-  val operationStatus = statusTable(
+  // The status DescribeNexusOperationExecution reports while each fact holds
+  // (operationExecutionStatus), read once the operation stays in it.
+  private val described = DescribedStatus(
+    calls,
+    METHOD_DESCRIBE_NEXUS_OPERATION_EXECUTION,
+    Field(_.getInfo),
+    Field(_.operationId),
+    Field(_.status)
+  )(
     OperationFact.nexusOperationCompleted -> NEXUS_OPERATION_EXECUTION_STATUS_COMPLETED,
     OperationFact.nexusOperationFailed -> NEXUS_OPERATION_EXECUTION_STATUS_FAILED,
     OperationFact.nexusOperationCanceled -> NEXUS_OPERATION_EXECUTION_STATUS_CANCELED,
     OperationFact.nexusOperationTerminated -> NEXUS_OPERATION_EXECUTION_STATUS_TERMINATED
   )
 
-  // Polls the operation's description until it reads the status the fact's evidence names.
-  private def awaitStatus(fact: Fact) =
-    await(status(fact), workflowService)(
-      Condition.equal(Field(_.status), Operand.enumValue(operationStatus(fact)))
-    ) {
-      field(_.namespace) := workerNamespace
-      field(_.operationId) := run
-    }
+  // The status table the machine's Describable capability names.
+  val operationStatus = described.table
 
   // The service and operation the start names, which no handler of the Case answers.
   private val service = "umpire-case-service"
@@ -50,34 +46,26 @@ object OperationRealization:
   private val operationName = "complete"
 
   // The start, under the run's id, of an operation the Case's endpoint names and no handler answers.
-  private val startOperation = rpc(workflowService, METHOD_START_NEXUS_OPERATION_EXECUTION) {
-    field(_.namespace) := workerNamespace
-    field(_.operationId) := run
+  private val startOperation = rpc(calls, METHOD_START_NEXUS_OPERATION_EXECUTION) {
     field(_.endpoint) := nexusEndpointName
     field(_.service) := Operand.text(service)
     field(_.operation) := Operand.text(operationName)
     field(_.requestId) := run
   }
   private val requestCancelOperation =
-    rpc(workflowService, METHOD_REQUEST_CANCEL_NEXUS_OPERATION_EXECUTION) {
-      field(_.namespace) := workerNamespace
-      field(_.operationId) := run
+    rpc(calls, METHOD_REQUEST_CANCEL_NEXUS_OPERATION_EXECUTION) {
       field(_.requestId) := run
     }
   private val terminateOperation =
-    rpc(workflowService, METHOD_TERMINATE_NEXUS_OPERATION_EXECUTION) {
-      field(_.namespace) := workerNamespace
-      field(_.operationId) := run
+    rpc(calls, METHOD_TERMINATE_NEXUS_OPERATION_EXECUTION) {
       field(_.requestId) := run
     }
-
-  private val awaitTerminated = awaitStatus(OperationFact.nexusOperationTerminated)
 
   private val operationController = controller(
     perform(client.start -> startOperation),
     perform(client.requestCancel -> requestCancelOperation),
     perform(client.terminate -> terminateOperation),
-    onPath(client.terminate)(awaitTerminated)
+    onPath(client.terminate)(described.await(OperationFact.nexusOperationTerminated))
   )
 
   // The frontend serves the standalone operation only with its flag on
@@ -94,7 +82,7 @@ object OperationRealization:
     evidence = Vector(
       answered(OperationFact.statusScheduled, startOperation),
       answered(OperationFact.statusCancelRequested, requestCancelOperation),
-      status(OperationFact.nexusOperationTerminated)
+      described(OperationFact.nexusOperationTerminated)
     ),
     requiredSettings = Vector(standaloneEnabled)
   )

@@ -701,6 +701,11 @@ private[irgen] trait Realizations:
   // family's root.
   def textOfBound(b0: Bound): String =
     val f = follow(b0)
+    val evidenceIdField = irField(ir.Evidence.scalaDescriptor, "id", f.term)
+    if f.env.contains(moduleMark) || isNamed(f.term.tpe, "umpire.realize.EvidenceRef") then
+      entryEvidence(f).map(_.value(evidenceIdField)) match
+        case Some(PString(id)) => return id
+        case _                 => ()
     f.term match
       case t if commandLike(t.tpe)               => commandName(f)
       case r: Ref if factCase(r.symbol)          => r.symbol.name
@@ -768,7 +773,9 @@ private[irgen] trait Realizations:
       case other => fail(other, s"expected a string, got ${other.show}")
 
   // The items of a sequence a declaration writes out.
-  def itemsOf(b0: Bound): List[Bound] =
+  def itemsOf(b0: Bound): List[Bound] = moduleEvidence(b0).getOrElse(itemsOf0(b0))
+
+  private def itemsOf0(b0: Bound): List[Bound] =
     val b = reduce(b0)
     b.term match
       case Repeated(items, _) => items.map(Bound(_, b.env))
@@ -879,6 +886,12 @@ private[irgen] trait Realizations:
   def declaration(b0: Bound, into: Message): Unit =
     val b = reduce(b0)
     val d = into.descriptor
+    if d.name == "Evidence" then
+      entryEvidence(b0) match
+        case Some(e) =>
+          e.value.foreach((f, v) => into.set(f, v))
+          return
+        case None => ()
     d.findFieldByName("position").foreach(into.set(_, pos(b.term).toPMessage))
     def typeArgument(t: Term): Option[TypeRepr] = t match
       case Apply(fn, _)              => typeArgument(fn)
@@ -986,6 +999,300 @@ private[irgen] trait Realizations:
           )
         )
       )
+
+  // ### The kit's evidence modules (model/temporal/realize/Modules.scala), written by name
+
+  private val describedClass = "temporal.realize.DescribedStatus"
+  private val historyClass = "temporal.realize.HistoryEvidence"
+  private val baseClass = "temporal.realize.RequestBase"
+
+  // The env key that marks one entry of a module's `evidence`: the module, bound to it.
+  private def moduleMark: Symbol = Symbol.noSymbol
+
+  // A module's declaration, once the names it goes through are followed, if `b` is one of `cls`.
+  private def moduleOf(b: Bound, cls: String): Option[Bound] =
+    Some(reduce(b)).filter(r => isNamed(r.term.tpe, cls) && applied(r.term).nonEmpty)
+
+  // The family a module's declarations hang off: the package of the val that declares it.
+  private def familyOf(module: Bound): String =
+    module.env
+      .get(familySymbol)
+      .map(textOfBound)
+      .getOrElse(
+        fail(
+          module.term,
+          "a module's evidence is named after the package of the val that declares it"
+        )
+      )
+
+  // The entries of a described status: each fact, its status value and the line that lists it. A
+  // fact listed twice is refused at its second line.
+  private def describedEntries(module: Bound): List[(Bound, Bound, Term)] =
+    val listed = fieldOfDeclaration(module, "entries")
+      .map(itemsOf)
+      .getOrElse(Nil)
+      .map { e =>
+        val pair = follow(e)
+        performed(pair.term) match
+          case Some((k, v)) => (Bound(k, pair.env), Bound(v, pair.env), pair.term)
+          case None         =>
+            fail(pair.term, s"a described status lists `fact -> status`, not ${pair.term.show}")
+      }
+    listed.foldLeft(Set.empty[String]) { case (seen, (fact, _, at)) =>
+      val name = textOfBound(fact)
+      if seen(name) then fail(at, s"the described status lists $name twice: list each fact once")
+      seen + name
+    }: Unit
+    listed
+
+  // The kinds of a history module: each kind's line.
+  private def historyKinds(module: Bound): List[Bound] =
+    fieldOfDeclaration(module, "kinds").map(itemsOf).getOrElse(Nil)
+
+  // A module's `evidence`, written where a sequence of evidence is: one marked entry per fact or
+  // kind, or None for a term that is not one.
+  private def moduleEvidence(b0: Bound): Option[List[Bound]] =
+    follow(b0).term match
+      case Select(q, "evidence") =>
+        val module = Bound(q, follow(b0).env)
+        def marked(items: List[Bound], m: Bound) =
+          items.map(i => Bound(i.term, i.env + (moduleMark -> m)))
+        moduleOf(module, describedClass)
+          .map(m => marked(describedEntries(m).map((_, _, at) => Bound(at, m.env)), m))
+          .orElse(moduleOf(module, historyClass).map(m => marked(historyKinds(m), m)))
+      case _ => None
+
+  // The evidence one entry of a module declares, or `described(fact)` declares, written out as
+  // the IR Evidence its core form writes, or None for a term that is neither.
+  private def entryEvidence(b0: Bound): Option[PMessage] =
+    val b = follow(b0)
+    val d = ir.Evidence.scalaDescriptor
+    def written(fields: (String, PValue)*): PMessage =
+      PMessage(fields.map((n, v) => irField(d, n, b.term) -> v).toMap)
+    val reported = PEnum(ir.Evidence.Commitment.COMMITMENT_REPORTED.scalaValueDescriptor)
+    def described(module: Bound, fact: Bound, at: Term): PMessage =
+      val family = familyOf(module)
+      val name = textOfBound(fact)
+      follow(fact).term match
+        case r: Ref if factCase(r.symbol) => factsNamed += r
+        case _                            => ()
+      val method = fieldOfDeclaration(module, "method").get
+      val info = fieldOfDeclaration(module, "info").get
+      val operation = fieldOfDeclaration(module, "operation").get
+      val source = ir.ReadSource.scalaDescriptor
+      written(
+        "id" -> PString(s"$family.evidence.$name"),
+        "position" -> pos(at).toPMessage,
+        "records" -> PString(name),
+        "source" -> PString(s"$family.source.$name"),
+        "single" -> PMessage(
+          Map(
+            irField(source, "method", at) -> PString(methodName(method)),
+            irField(source, "path", at) -> PString(fieldPath(info))
+          )
+        ),
+        "operation" -> PString(fieldPath(operation)),
+        "commitment" -> reported
+      )
+    def history(module: Bound, kind: Bound): PMessage =
+      val k = reduce(kind)
+      val family = familyOf(module)
+      val fact =
+        fieldOfDeclaration(k, "fact").getOrElse(fail(k.term, "a history kind names its fact"))
+      val selector = fieldOfDeclaration(k, "attributes").map(follow).get
+      val (root, path) = selector.term match
+        case Block(List(dd: DefDef), _: Closure) =>
+          val event = dd.termParamss.flatMap(_.params).head.tpt.tpe
+          (event, selectorPath(event, selector.term, k.term))
+        case other =>
+          fail(
+            other,
+            s"a history kind names its attributes member, `_.attributes.x`, not ${other.show}"
+          )
+      if !path.startsWith("attributes<") || !path.endsWith(">") then
+        fail(k.term, s"$path is no history event attributes member")
+      val member = path.stripPrefix("attributes<").stripSuffix(">")
+      val key = textOfBound(fieldOfDeclaration(module, "key").get)
+      val attributes =
+        messageDescriptor(root, k.term).fields.find(_.name == member).map(_.scalaType)
+      attributes match
+        case Some(ScalaType.Message(md)) if md.findFieldByName(key).nonEmpty => ()
+        case _                                                               =>
+          fail(
+            k.term,
+            s"$member has no $key, the field the history keys each kind to its operation by"
+          )
+      val name = textOfBound(fact)
+      follow(fact).term match
+        case r: Ref if factCase(r.symbol) => factsNamed += r
+        case _                            => ()
+      val prefix = textOfBound(fieldOfDeclaration(module, "factPrefix").get)
+      if !name.startsWith(prefix) || name == prefix then
+        fail(
+          k.term,
+          s"$name does not begin with $prefix, the prefix the history's kinds are named without"
+        )
+      val kindName = name.stripPrefix(prefix)
+      written(
+        "id" -> PString(s"$family.evidence.${kindName.head.toLower +: kindName.tail}"),
+        "position" -> pos(k.term).toPMessage,
+        "records" -> PString(name),
+        "source" -> PString(s"$family.source.history"),
+        "history" -> PString(member),
+        "operation" -> PString(s"$path.$key"),
+        "commitment" -> reported,
+        "exhaustive" -> PBoolean(true)
+      )
+    b.env.get(moduleMark) match
+      case Some(module) =>
+        val entry = Bound(b.term, b.env - moduleMark)
+        moduleOf(module, describedClass)
+          .flatMap(m =>
+            describedEntries(m).find(_._3 == b.term).map((fact, _, at) => described(m, fact, at))
+          )
+          .orElse(
+            moduleOf(module, historyClass)
+              .filter(_ => isNamed(reduce(entry).term.tpe, "temporal.realize.HistoryKind"))
+              .map(history(_, entry))
+          )
+      case None =>
+        applied(b.term).collect {
+          case (fn @ Select(q, "apply"), List(fact))
+              if fn.symbol.maybeOwner.fullName == describedClass =>
+            val m = moduleOf(Bound(q, b.env), describedClass).get
+            described(m, Bound(fact, b.env), b.term)
+        }
+
+  // `described.await(fact)`: the poll its core form writes, `readUntil` of the fact's evidence on
+  // the module's calls until its status field equals the status the table lists; or None for a
+  // term that is not one. An await of a fact the table does not list is refused at its line.
+  private def describedAwait(b0: Bound, d: Descriptor): Option[PMessage] =
+    val b = follow(b0)
+    applied(b.term).collect {
+      case (fn @ Select(q, "await"), List(fact))
+          if fn.symbol.maybeOwner.fullName == describedClass =>
+        val m = moduleOf(Bound(q, b.env), describedClass).get
+        val t = b.term
+        val name = textOfBound(Bound(fact, b.env))
+        val (_, status, _) = describedEntries(m)
+          .find(e => textOfBound(e._1) == name)
+          .getOrElse(fail(t, s"the described status lists no $name: add `$name -> status` to it"))
+        val id = PString(s"${familyOf(m)}.evidence.$name")
+        val calls = fieldOfDeclaration(m, "calls").get
+        val request = messageDescriptor(m.term.tpe.widen.dealias.typeArgs.head, t)
+        val assignD = irMessage(irField(d, "assign", t), t)
+        val operand = irMessage(irField(d, "until", t), t)
+        val until = irVariant(
+          operand,
+          "equal",
+          t,
+          Map(
+            "left" -> projectedPath(fieldOfDeclaration(m, "status").get, operand, t),
+            "right" -> PMessage(
+              Map(
+                irField(operand, "literal", t) -> PMessage(
+                  Map(
+                    irField(irMessage(irField(operand, "literal", t), t), "enum_name", t) ->
+                      PString(generatedEnumName(status))
+                  )
+                ),
+                irField(operand, "position", t) -> pos(t).toPMessage
+              )
+            )
+          )
+        )
+        val assigned = baseAssignments(calls, request, Nil, assignD, t)
+        PMessage(
+          Map(
+            irField(d, "evidence", t) -> id,
+            irField(d, "role", t) -> valueOf(irField(d, "role", t), baseRole(calls).get),
+            irField(d, "until", t) -> until,
+            irField(d, "interval_ms", t) -> PLong(0)
+          ) ++ Option.when(assigned.nonEmpty)(
+            irField(d, "assign", t) -> PRepeated(assigned.toVector)
+          )
+        )
+    }
+
+  // The name of the command `described.await(fact)` is: `await-` and the status the table lists
+  // for the fact, after its `_STATUS_`, in kebab case.
+  private def describedAwaitName(b0: Bound): Option[String] =
+    val b = follow(b0)
+    applied(b.term).collect {
+      case (fn @ Select(q, "await"), List(fact))
+          if fn.symbol.maybeOwner.fullName == describedClass =>
+        val m = moduleOf(Bound(q, b.env), describedClass).get
+        val name = textOfBound(Bound(fact, b.env))
+        val status = describedEntries(m)
+          .find(e => textOfBound(e._1) == name)
+          .map(e => generatedEnumName(e._2))
+          .getOrElse(
+            fail(b.term, s"the described status lists no $name: add `$name -> status` to it")
+          )
+        val at = status.lastIndexOf("_STATUS_")
+        "await-" + (if at < 0 then status else status.substring(at + 8)).toLowerCase
+          .replace('_', '-')
+    }
+
+  // The role a call on a request base is made on, if `b` is a request base.
+  private def baseRole(b: Bound): Option[Bound] =
+    moduleOf(b, baseClass).flatMap(fieldOfDeclaration(_, "role"))
+
+  // The assignments a request base adds to a call's request of type `request`, before its own
+  // `own`: each base field the call does not assign itself, at the request's field of that name or
+  // the one message field of the request that holds one. An own assignment equal to the base's is
+  // refused at `at`.
+  private def baseAssignments(
+      base: Bound,
+      request: Descriptor,
+      own: List[PMessage],
+      assignD: Descriptor,
+      at: Term
+  ): List[PMessage] =
+    val m = moduleOf(base, baseClass).get
+    val target = irField(assignD, "target", at)
+    val value = irField(assignD, "value", at)
+    def stripped(v: PValue): PValue = v match
+      case PMessage(fs) =>
+        PMessage(fs.collect { case (f, x) if f.name != "position" => f -> stripped(x) })
+      case PRepeated(xs) => PRepeated(xs.map(stripped))
+      case other         => other
+    val owned = own.map(a => a.value(target) -> a.value(value)).toMap
+    fieldOfDeclaration(m, "fields").map(itemsOf).getOrElse(Nil).flatMap { item =>
+      val pair = follow(item)
+      val (name, operand) = performed(pair.term)
+        .map((k, v) => (textOfBound(Bound(k, pair.env)), Bound(v, pair.env)))
+        .getOrElse(
+          fail(pair.term, s"a request base lists `field -> operand`, not ${pair.term.show}")
+        )
+      val nested = request.fields.toList.collect {
+        case f @ FieldDescriptorMessage(md) if md.findFieldByName(name).nonEmpty =>
+          s"${f.name}.$name"
+      }
+      val path: String = (request.findFieldByName(name), nested) match
+        case (Some(_), _)    => name
+        case (None, List(p)) => p
+        case _               =>
+          fail(
+            at,
+            s"the request base sets $name, which ${request.fullName} has neither as a field nor " +
+              "in one message field"
+          )
+      val written = typedOperandValue(operand, irMessage(value, at))
+      owned.get(PString(path)) match
+        case Some(assigned) if stripped(assigned) == stripped(written) =>
+          fail(
+            at,
+            s"the call assigns $path the value its request base gives it: drop the assignment"
+          )
+        case Some(_) => Nil
+        case None    => List(PMessage(Map(target -> PString(path), value -> written)))
+    }
+
+  private object FieldDescriptorMessage:
+    def unapply(f: FieldDescriptor): Option[Descriptor] = f.scalaType match
+      case ScalaType.Message(md) if !f.isRepeated => Some(md)
+      case _                                      => None
 
   // ### API behavior hints (model/temporal/realize/Realize.scala, Behavior.scala)
 
@@ -1236,7 +1543,8 @@ private[irgen] trait Realizations:
   def commandName(b0: Bound): String =
     val b = follow(b0)
     val r0 = reduce(b)
-    if spelledOut(r0) then idOf(r0)
+    if describedAwaitName(b).nonEmpty then describedAwaitName(b).get
+    else if spelledOut(r0) then idOf(r0)
     else
       b.term match
         case r: Ref if r.symbol.isValDef && defs.contains(r.symbol) =>
@@ -1278,6 +1586,9 @@ private[irgen] trait Realizations:
           case _ => (b, Nil)
     val i = reduce(instruction)
     scriptCall(i.term) match
+      case _ if describedAwait(i, irMessage(irField(d, "poll", i.term), i.term)).nonEmpty =>
+        val f = irField(d, "poll", i.term)
+        m.set(f, describedAwait(i, irMessage(f, i.term)).get)
       case Some(("rpc" | "withFields" | "extended", _)) =>
         val f = irField(d, "rpc", i.term)
         m.set(f, rpcValue(i, irMessage(f, i.term)))
@@ -1304,7 +1615,19 @@ private[irgen] trait Realizations:
         (role, method, assigned ++ more, reads ++ moreReads)
       case _ =>
         fail(c.term, "withFields and extended extend a call written `rpc(role, method) { ... }`")
-    val (role, method, assigned, reads) = call(b)
+    val (base, method, own, reads) = call(b)
+    val role = baseRole(base).getOrElse(base)
+    val assigned = baseRole(base).fold(own) { _ =>
+      val request = messageDescriptor(b.term.tpe.widen.dealias.typeArgs.head, b.term)
+      baseAssignments(
+        base,
+        request,
+        own,
+        irMessage(irField(d, "assign", b.term), b.term),
+        b.term
+      ) ++
+        own
+    }
     PMessage(
       Map(
         irField(d, "role", b.term) -> valueOf(irField(d, "role", b.term), role),
@@ -1319,13 +1642,30 @@ private[irgen] trait Realizations:
   // A read written with `readUntil(evidence, role, until, intervalMs) { … }`.
   private def pollValue(b: Bound, d: Descriptor): PMessage = scriptCall(b.term) match
     case Some(("readUntil", List(evidence, role, until, interval, assign))) =>
-      val (assigned, _) = scoped(Bound(assign, b.env), d, None)
+      val (own, _) = scoped(Bound(assign, b.env), d, None)
       def value(name: String, a: Term) =
         irField(d, name, b.term) -> valueOf(irField(d, name, b.term), Bound(a, b.env))
+      val base = baseRole(Bound(role, b.env))
+      val assigned = base.fold(own) { _ =>
+        val request = messageDescriptor(
+          follow(Bound(evidence, b.env)).term.tpe.widen.dealias.typeArgs.head,
+          b.term
+        )
+        baseAssignments(
+          Bound(role, b.env),
+          request,
+          own,
+          irMessage(irField(d, "assign", b.term), b.term),
+          b.term
+        ) ++
+          own
+      }
       PMessage(
         Map(
           value("evidence", evidence),
-          value("role", role),
+          base.fold(value("role", role))(r =>
+            irField(d, "role", b.term) -> valueOf(irField(d, "role", b.term), r)
+          ),
           value("until", until),
           value("interval_ms", interval)
         ) ++

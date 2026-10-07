@@ -170,7 +170,7 @@ def controller(items: Item*) = script(controllerScript, Activation.Controller)(i
 // the scope it opens: the one form a realization waits in. It writes no interval and no deadline:
 // the lowering derives from the API behavior (Behavior.scala) whether the read reads once or polls,
 // and within which bound (tools/umpire/lower/waits.go).
-def await[Req, Projected](evidence: EvidenceRef[Req, Projected], role: Role)(
+def await[Req, Projected](evidence: EvidenceRef[Req, Projected], role: Addressee)(
     until: Condition[Projected]
 )(assign: RequestScope[Req] ?=> Unit) =
   readUntil(evidence, role, until, intervalMs = 0)(assign)
