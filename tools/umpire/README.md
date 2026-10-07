@@ -59,8 +59,10 @@ make umpire-check-backends                  # Quint against the reader; needs th
 ```
 
 A finding is accepted in `<file>.lint.json` beside its IR file, by its kind, its machine or
-composition and its subject, each acceptance with the reason it is accepted. The IR generator writes no
-such file; an author does, and one beside no IR file fails the run.
+composition and its subject, each acceptance with the reason it is accepted. Authors own finding
+acceptances; the model gate also maintains `capability-waiver` metadata there from each
+`capabilities` section. Lint preserves that metadata without reporting or judging it, and an
+accepted file beside no IR file fails the run.
 
 The reader's tests pin what each Model of `model/ir` means, and `umpire-check-cases` holds every
 managed Case tree to what lowering produces, byte for byte. A change that moves either changes what

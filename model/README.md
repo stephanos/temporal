@@ -178,20 +178,11 @@ line of what it names:
 fails. A table that cannot be constructed remains a reader error; a failed refinement does not hide
 an otherwise constructible table. A shortest witness is constructed only for a finding.
 
-Lint reads the law sidecar beside an IR file (`model/ir/<file>.laws.json`) for the law kinds, each at
-the Scala line the sidecar records:
-
-| Kind | Reported for | Fix |
-| --- | --- | --- |
-| `waived-law` | a law a declaration waives with `except` or `overriding` and a reason | nothing: the gate's update forwards the reason into `<file>.lint.json`, keyed `<machine>.<law>` |
-| `law-waived-without-reason` | a waiver with an empty reason (the IR generator refuses one, so the sidecar was edited) | regenerate the sidecar |
-| `reason-names-no-law` | a waiver of a law the sidecar's catalog does not bring | remove the waiver, or declare the capability that brings the law |
-| `parameter-without-citation` | a binding of a parameter its law lists in `Law(parameters = …)`, written without `cited(value, "<server file>")` | cite the server code that answers it so |
-| `law-with-one-instance` | a catalog law fewer than two machines with their own state types instantiate, across every sidecar of `model/ir` | take the law out of the catalog until a second machine declares it |
-
-The waivers' reasons have one source, the sidecar: `make umpire-gen-model` rewrites each forwarded
-`waived-law` acceptance from it, after the acceptances an author wrote, and a check fails on a
-`<file>.lint.json` that does not carry them, and on a forwarded acceptance whose waiver is gone.
+Capability waivers are not lint findings. The lifter writes their owner, Property and reason to
+`<file>.waivers.json`; the model gate forwards that metadata into `<file>.lint.json` as
+`capability-waiver` entries. Lint preserves those entries but neither reports nor judges them. A
+check fails when the accepted file omits a current waiver or retains one the capabilities section
+no longer states.
 
 Each file of `model/ir` is declared once, in Scala, beside the Models it holds, in the feature
 file's `object exports`: its name and its roots, named by value, in a `val` named after the file.
@@ -354,7 +345,7 @@ by id.
 | Path | What it holds |
 | --- | --- |
 | `model/umpire` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `umpire/realize` |
-| `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, the laws stated once for every entity; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
+| `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -417,7 +408,7 @@ The IR generator reads what an author wrote, as written:
 - **Declarations:** machine objects, `object M extends Machine[S, O, F]`, with an optional
   `Phased[S, P](projection)` parent naming their phase, their header members
   (`init`, `end`, `entity`, `evidence`, `unobservable`) and their sections (`states`,
-  `refinement`, `effects`, `monitors`, `rules`, `properties`, `implements`, `queries`); derived
+  `refinement`, `effects`, `monitors`, `rules`, `properties`, `capabilities`, `queries`); derived
   machines, `object D extends Derived(m.op(…))`, of the derivations `restrict`, `rebind`,
   `extend`, `refining`, `assuming` and `unmonitored`; composition objects; action chains
   (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `results`, `example`);
@@ -430,15 +421,15 @@ The IR generator reads what an author wrote, as written:
   (`_.activity -> RecordMember`), and so do its `sync`, `replaces` and `withMember`; a `sync`
   with no name is named after its first member's action; a Scenario
   or `whenAction` of it names a sync by one member action it pairs, `c.synced(_.activity ->
-  history.dispatch)`, and a member's own action by `c.own(_.activity, client.control(Control.pause))`.
+  history.dispatch)`, and a member's own action by `c.own(_.activity, client.pause)`.
 - **Shared claims:** `property` and `scenario` are declared on `Declares[S]`, the supertype of a
   machine and a composition, so one function over `m: Declares[S]` declares a Property on either.
   A function-valued argument of such a function names a def of the lifted sources, which the
   IR generator binds where the function is called, as it binds a machine argument; a type parameter
   reads as the type the call applies it to. A case class whose every field is a Property, Scenario
   or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
-  `x.field` reads one back. The laws such functions state once for every entity are lifted sources
-  too, in `model/temporal/capabilities`; the framework holds none.
+  `x.field` reads one back. Shared capability Properties are lifted sources too, in
+  `model/temporal/capabilities`; the framework holds none.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
@@ -535,7 +526,8 @@ The IR generator reads what an author wrote, as written:
   as the function its method form gives, with a parameter `s` of the machine's state type. An
   `effect` block holds only straight-line field assignments, each field assigned at most once and
   not read after it, `record(facts*)`, which appends in call order, or a lone
-  `reject(Outcome.notFound)`, which lifts as `reject(Outcome.notFound, s)`; a block that records
+  `reject(Outcome.rejected(Rejection.notFound))`, which lifts as
+  `reject(Outcome.rejected(Rejection.notFound), s)`; a block that records
   nothing enters the assigned state with no fact. Assigning a field whose values declare their
   status (the enum declaration above) records that case's status after the block's own facts,
   even when the value is the one the step starts in, and recording it again with `record` is
@@ -601,7 +593,8 @@ composition has none: each is named after its object or `val`, and a composition
 Scenario classes by field selector, never by a string key. A progress claim is always named,
 `m.leadsTo(name)(…)`. A Property or Scenario with no `val`, built in a list or in a function over a
 machine argument, keeps `property("…")` or `scenario("…")`, except where the function's body ends
-in it and a `val` declares the function's call: it then takes that `val`'s name, as a law's instance
+in it and a `val` declares the function's call: it then takes that `val`'s name, as a shared
+Property instance
 does (`val terminalStays = Closable.terminalStatesAreFinal(m)`). A Query
 that neither a `val` nor `query("…")` names is named
 `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on, its Scenario and
@@ -688,12 +681,11 @@ types, signature and givens sit in its file, and a given another subject must no
 object of its own or in its type's companion, as the close policy's `Answer`'s `Ok` does.
 
 The standalone activity's executable realizations live in `system/Realization.scala`, beside the
-System subjects they execute; the root's exports import `system.ActivityRealization`. Keep the
-existing wrapper object until typed realization objects land. Add a Product realization only when
-the Product has an executable realization. Nexus realizations retain their current root placement.
-Inside a level package, qualify its facts as `system.Fact` and alias the generic realization
-evidence type, `import umpire.realize.{Fact as RealizationFact, *}`, so helpers can also accept the
-record's facts.
+System subjects they execute; the root's exports name the typed objects directly (`system.Standalone`,
+`system.HeldDelivery`, `system.LostAdmissionResponse`). A Product realization is added only when the
+Product has an executable realization. Nexus realizations retain their root placement. Every object
+extends `Realizes(machine)` or `DerivesFrom(base, machine)`, so its facts, action bindings and
+derived defaults are checked against that machine.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/ir`
@@ -751,9 +743,9 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    (model/SEMANTICS.md, "Machines" 6);
 4. `object effects`: what each action does, plain defs named for it (`startAttempt`, `complete`),
    which never give `disabled` or `Nil`, and need no result type: `enter(…)`, `stay(s)` and
-   `reject(Outcome.notFound, s)`, a step that keeps the state with another outcome, say what each
+   `reject(Outcome.rejected(Rejection.notFound), s)`, a step that keeps the state with another outcome, say what each
    gives. An effect of the state alone may be a block instead, `val startAttempt = effect { phase =
-   started }`, `val notFound = effect { reject(Outcome.notFound) }`, which a rule binds as it binds
+   started }`, `val notFound = effect { reject(Outcome.rejected(Rejection.notFound)) }`, which a rule binds as it binds
    a def, `~> effects.startAttempt`; an effect that takes arguments beyond the state stays a def.
    Machines that share request outcomes import `umpire.outcomes.{Outcome, Rejection}`: `accepted`
    is the common success and `rejected(why)` carries `notFound`, `alreadyExists`,
@@ -863,7 +855,7 @@ caller keeps the domain roles `caller` and `handler`.
 
 A machine's sections are objects named after what they hold, `object effects`, `object states`, and
 need no base class; the ones that carry behaviour extend it, `Rules`, `Syncs`, `Refinement` and
-`Implements`. The structure lint refuses an object of a machine of any other name (below).
+`Capabilities`. The structure lint refuses an object of a machine of any other name (below).
 
 A derived machine is another machine's declaration with one thing changed, an object named after
 itself, in its own package's family. Chained, the derivation is one expression:
@@ -900,7 +892,7 @@ object RecordOverQueue extends Composition[OverQueue](_.activity -> RecordMember
   object queries:
     val stale = scenario.actions(
       synced(_.activity -> history.dispatch),
-      own(_.activity, client.control(Control.pause))
+      own(_.activity, client.pause)
     )
 object TrustingRecordOverQueue extends Composition(RecordOverQueue.withMember(_.activity -> TrustingRecordMember))
 ```
@@ -921,8 +913,8 @@ Like `Derived` for machines, it inherits the source's typed `Phasing` and `end`,
 stopping points and chained derivations. Plain `Composition[S]` remains the form for other
 compositions; its constructor alone cannot retain the source's phase type.
 
-A law over a composition reads a member's named state set with `through(select, read)`, where it
-would name a def: a non-role capability field or a declaring function's function-valued argument.
+A shared Property over a composition reads a member's named state set with `through(select, read)`,
+where it would name a def: a non-role capability field or a declaring function's function-valued argument.
 `through(_.activity, Admission.twoActive)` is `s => Admission.twoActive(s.activity)`, so a
 composition needs no def of its own that restates its member's:
 
@@ -933,19 +925,19 @@ atMostOneActive(c)(through(_.activity, Admission.twoActive))
 The IR generator lifts each `through` as one function of the composed state,
 `<state>.through.<path>.<def>` (here
 `temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.paused`),
-which the law calls as it calls a def. `select` is a field path, `_.activity` or `_.left.phase`, and
+which the Property calls as it calls a def. `select` is a field path, `_.activity` or `_.left.phase`, and
 `read` a def of the lifted sources; each other selector and a lambda for `read` are refused at their
 line, as a lambda is, and a `read` over another type than the member's does not compile. Its two
 arguments share one parameter list: Scala infers the composed state from where the function is
 passed only then. `through` is core, not sugar: no def of the lifted sources says which member a
-law reads.
+Property reads.
 
 The queue in that example is the task queue, `model/temporal/shared/taskqueue`: a shared entity
 (`taskQueue`, keyed by the queue's name) that a feature composes by synchronizing its own actions
 with `enqueue`, `deliver` and `acknowledge`, and that imports nothing of any feature. It owns the
 opaque contract `TaskQueueProduct` and its storage-loss variant, the providers that refine it
 (`TaskQueueSystem` and the lossy one, failure models, and the forgetful and volatile negative
-controls), the laws `queueLaws` every provider is held to, and the provider Queries.
+controls), the claims `queueClaims` every provider is held to, and the provider Queries.
 A feature keeps its own syncs and its cross-entity claims, as the standalone activity's
 `system/WithTaskQueue.scala` does. The queue is a bounded abstraction, not a general queue: one message at a
 time, delivered at most twice before its acknowledgment. The detailed provider's table, and a
@@ -954,37 +946,38 @@ are named where they are declared, in `temporal.shared.taskqueue` and its `produ
 packages.
 
 A claim over several designs is one function over `Declares[S]` whose state-dependent parts are
-parameters, and each call passes defs of the lifted sources. A law is such a function, written once
-for every entity in `model/temporal/capabilities`, and each instance is named by the
-`val` that declares its call:
+parameters, and each call passes defs of the lifted sources. A shared capability Property is such
+a function, written on its capability companion in `model/temporal/capabilities`. The capability
+expander names each instance for the declaring machine:
 
 ```scala
-object pausedIsNotDispatched extends Law(cites = Seq("chasm/lib/activity/tasks.go"), promises = "…", doesNotPromise = "…"):
-  def apply[S](m: Declares[S])(paused: S => Boolean, running: S => Boolean): Property[S] =
-    m.property.never(s => running(s.state)).from(paused)
-
-val notAdmittedWhilePaused = pausedIsNotDispatched(m)(Admission.paused, Admission.running)
+object Pausable extends CapabilityKind:
+  def pausedIsNotDispatched[S, P](m: Declares[S])(using
+      phasing: Phasing[S, P], suspended: TypeTest[P, Suspended],
+      held: TypeTest[P, Pollable.Held], phaseType: ClassTag[P]
+  ): Property[S] =
+    m.property
+      .never(s => phasing.roleCases[Pollable.Held](m.name).contains(phasing.phase(s.state)))
+      .from(s => phasing.roleCases[Suspended](m.name).contains(phasing.phase(s)))
 ```
 
-A law is an object named after it: its `apply` states it, and its `Law` arguments are the server
-code it rests on, what it promises and what it does not. A lambda passed for a function-valued
-parameter is refused at its line, naming the def to write (a member's def read with `through`, above,
-passes for a def), and so is a claim pattern after `when` (a
+A lambda passed for a function-valued parameter is refused at its line, naming the def to write (a
+member's def read with `through`, above, passes for a def), and so is a claim pattern after `when` (a
 pattern reads every step) and a `keeps` projection that is not a field path. Any other value
 parameter, such as an outcome, a fact or an action class, reads as the value the call passes: an
-expression, a class or `when` reads `rejected` as `Outcome.notFound`.
+expression, a class or `when` reads `rejected` as `Outcome.rejected(Rejection.notFound)`.
 
-A machine that declares capabilities receives such laws without calling them: see
-[Capabilities and their laws](#capabilities-and-their-laws).
+A machine that declares capabilities receives such Properties without calling them: see
+[Capabilities and their Properties](#capabilities-and-their-properties).
 
 Such a function returns several claims as a bundle, a case class whose every field is a Property,
 Scenario or Query. The IR generator folds the constructor's call to its claims, and a field read to the
-one claim it names, as `providerQueries` reads `laws.delivers`:
+one claim it names, as `providerQueries` reads `claims.delivers`:
 
 ```scala
-final case class QueueLaws(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])
+final case class QueueClaims(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])
 
-def queueLaws(m: Machine[QueueDetail, QueueOutcome, QueueFact]): QueueLaws = QueueLaws(
+def queueClaims(m: Machine[QueueDetail, QueueOutcome, QueueFact]): QueueClaims = QueueClaims(
   m.property("delivers") when deliver holds (after => after.records(QueueFact.delivered)),
   m.property("committedStays")
     .stays(_.custody != Custody.nowhere)
@@ -999,7 +992,7 @@ and `Composition`, the phase projection `Phased`, the derivations `rebind`, `ext
 `Step` and `because`, `Declares[S]`, `property` with `holds`, `holdsAcross` and `when`, `monitor`,
 `leadsTo`, `Syncs` with `sync` (named or after its first member's action), `synced`, `own` and
 `withMember`, `scenario`, `query` (named or after its Scenario and Property), `Limits`, `.total`,
-`Implements`, `choose`, `irFile`, and the realization declarations, among them the script helpers `rpc`,
+`Capabilities`, `choose`, `irFile`, and the realization declarations, among them the script helpers `rpc`,
 `readUntil`, `withFields`, `perform`, `onPath`, `everyCase`, `script`, `command` and `statusTable`, `Actuator`,
 `MonitorExpectation` and the kit's roles and bindings. Sugar is a form whose meaning a core form
 already says: the rules (`Rules` with `on`, `from`, `when`, `where`, `always` and `disabled`), `implies`,
@@ -1081,9 +1074,9 @@ line, as `lift: <file>:<line>: …`:
 | Kind | Refused | Fix |
 | --- | --- | --- |
 | (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
-| (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the System's `implements` is |
+| (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the System's `capabilities` is |
 | (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's header and sections, or a Scenario after a Query in `queries` | move it |
-| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `implements`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario (but a Query whose Scenario is written in it may sit in the `queries` of another machine object of its package, the one its IR file is about, as `competingTimers` over `ActivitySystem` sits in `ActivityRecord.queries`); beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
+| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `capabilities`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario (but a Query whose Scenario is written in it may sit in the `queries` of another machine object of its package, the one its IR file is about, as `competingTimers` over `ActivitySystem` sits in `ActivityRecord.queries`); beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
 
 A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an object declared but never
 read while another initializes, initializes nothing and is not refused; a context function the DSL
@@ -1119,35 +1112,31 @@ kind-layout refusal specimens are in `model/irgen/testdata/layout/r4/`, each pin
 line by the fixture tests.
 The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
 object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
-`syncs`, `properties`, `implements` or `queries`; its refusal fixtures are under
+`syncs`, `properties`, `capabilities` or `queries`; its refusal fixtures are under
 `model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter
 fixture once it has a `product/` or `system/` folder. A file of a level folder reads in a feature
 file's order, without `object exports`, which only the root feature file holds.
 
-### Capabilities and their laws
+### Capabilities and their Properties
 
-A capability is what an entity can do, declared on its machine as a binding of a protocol's
-parameters to the machine's own vocabulary: which outcome rejects a closed request, which class
-pauses it, which class hands its work to a worker, and which phase roles those actions read. A law
-is a claim stated once for every entity that has a
-capability, or a pair of them. A machine that declares its capabilities receives the laws the given
-`Catalog` brings for each capability and for each pair it declares both of, without listing them,
-as a Property, a Scenario and a Query named `<machine>.<law>`. A capability is not a machine: the
-entity's machine stays the only one, and the laws are read on it.
+A capability binds a reusable protocol to one machine's vocabulary: for example, which outcome
+rejects a closed request, which class pauses an entity, or which phase roles describe suspended and
+held work. A capability companion defines the Properties that use those bindings. Declaring a
+capability brings those Properties without restating or calling them; a Property that reads two
+capability kinds is brought only when both are declared. The machine remains the only machine—the
+capability declaration expands into Properties, Scenarios and Queries owned by it.
 
-The framework keeps the mechanism and names no capability (`model/umpire/Capabilities.scala`:
-`CapabilityOf`, `capabilities`, `except`, `overriding`, `cited`; `model/umpire/Catalog.scala`:
-`CapabilityKind`, `Law`, `Catalog`; `model/umpire/Compose.scala`: `through`, which a composition's
-non-role fields read a member with). Temporal's capability kinds, every law with its server
-citations and the one `given Catalog` live in `model/temporal/capabilities`:
+The Temporal-agnostic mechanism is in `model/umpire/Capabilities.scala`: `CapabilityOf`,
+`CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding` and `bound`. Temporal's capability
+case classes and companion Properties are in `model/temporal/capabilities`:
 
-| Capability | Fields | Laws it brings |
+| Capability | Fields | Properties it brings |
 | --- | --- | --- |
 | `Closable` | `rejected`; owns the `Closed` role | `terminalStatesAreFinal`, `closedIsRejectedUniformly` |
 | `Terminable` | `terminate`, `settled`, `reach`, `expect` | `terminateSettles` |
 | `Cancelable` | `requestCancel`, `requested`, `reach`, `expect` | `cancelIsRequested` |
-| `Pausable` with `Pollable` | `pause`, `unpause`; owns `Suspended`; `dispatch`; owns `Held` | `pausedIsNotDispatched`, the law of the pair |
-| `Describable` | `status`, the realization's fact-to-status table | none of its own: the generated finds' awaits read its table |
+| `Pausable` with `Pollable` | `pause`, `unpause`; owns `Suspended`; `dispatch`; owns `Held` | `pausedIsNotDispatched`, brought by the pair |
+| `Describable` | `statusTable`, the realization's fact-to-status table | none; generated finds use the table for their awaits |
 
 Closable binds only its rejection outcome. It reads the declaring object's `Phased` projection,
 or its derivation source, through `Phasing.phase` and witnessed `Phasing.roleCases[Closed]`.
@@ -1170,33 +1159,42 @@ repeat its projection.
 machine as a root (`ActivityProduct`):
 
 ```scala
-import temporal.capabilities.{given, *}
+import temporal.capabilities.*
 
 // In ActivityProduct:
 object capabilities extends Capabilities:
-  val closable: Capability = Closable(rejected = Outcome.notFound)
+  val closable: Capability = Closable(
+    rejected = Outcome.rejected(Rejection.notFound)
+  )
   val pausable: Capability = Pausable(
-    pause = client.control(Control.pause),
-    unpause = client.control(Control.unpause)
+    pause = client.pause,
+    unpause = client.unpause
   )
   val pollable: Capability = Pollable(dispatch = worker.poll)
+  overriding(
+    Pausable.pausedIsNotDispatched[State, Phase] -> properties.pausedDoesNotStartAttempt,
+    because = "cancelRequested does not reveal whether a worker still holds an attempt"
+  )
 
 // In ActivitySystem:
 object capabilities extends Capabilities:
   val terminable: Capability = Terminable(
-    terminate = client.control(Control.terminate), settled = Fact.statusTerminated,
+    terminate = client.terminate, settled = Fact.statusTerminated,
     reach = Seq(client.start(), process.stop), expect = inconclusive(explanationsDisagree)
   )
   val cancelable: Capability = Cancelable(
-    requestCancel = client.control(Control.requestCancel), requested = Fact.statusCancelRequested,
+    requestCancel = client.requestCancel, requested = Fact.statusCancelRequested,
     reach = Seq(client.start(), process.stop), expect = inconclusive(explanationsDisagree)
   )
-  val describable: Capability = Describable(statusTable = ActivityRealization.activityStatus)
+  val describable: Capability = Describable(statusTable = activityStatus)
+
+object queries:
+  capabilities.bound(three)
 ```
 
 Several designs can share an `abstract class AdmissionCapabilities extends Capabilities` that
-declares the same bindings. Each design's `object capabilities` extends it and binds its own laws
-from `queries`.
+declares the same bindings and waivers. Each design's `object capabilities` extends it; its
+`queries` section bounds the generated Queries.
 
 Binding each object in its `queries` section gives `activityProduct.terminalStatesAreFinal` and
 `activityProduct.closedIsRejectedUniformly` (Closable), and
@@ -1207,116 +1205,66 @@ under `three`, and the System reads them through its refinement. The second give
 Property asked by a `find` that starts the activity, stops the worker and then takes the control; a
 find has a realization, so they lower to the Cases `activity-standalone-activitySystem.terminateSettles` and
 `activity-standalone-activitySystem.cancelIsRequested`, whose awaited status comes from the `Describable`
-table. The functional laws sit on the System because a find lowers only through a realization,
+table. The same-step Properties sit on the System because a find lowers only through a realization,
 which is the System's. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
 activity's own files any more; the admission designs and both composition families declare the same
 three capabilities on their record, and the Nexus operation (`features/nexus/standalone`) declares
 Closable, Terminable, Cancelable and Describable.
 
-**How a law is lifted.** Each capability Property is its companion's def (or the def an
+**How a Property is brought.** Each capability Property is its companion's def (or the def an
 `overriding(property -> def, because = …)` names) folded with the model and the fields or owned roles
 of the capabilities that bring it, bound by parameter name. Every field that takes a
 function names a def of the lifted sources, or a member's def read with `through` on a composition,
-never a lambda. A law of one action class (`when`) is
+never a lambda. A Property of one action class (`when`) is
 asked by a `find` from the start through the capability's path to a live state (its field that lists
 action classes, Terminable's `reach`) and that class, expecting of a server the Run its
 `RunExpectation` field names; any other is verified over the free Scenario from the start under
 `limits`. The Query's total is computed as [below](#counting-a-querys-total). A field of an action
 class names an action the machine must bind. A capability is a case class extending `CapabilityOf`
-whose companion extends `CapabilityKind`, which the catalog keys its laws by; the IR generator
-refuses any other. A Query of the entity's own reads a generated Property by its law,
+whose companion extends `CapabilityKind`; the IR generator refuses any other. A Query of the
+entity's own reads a generated Property through `claim`,
 `ActivityProduct.capabilities.claim(Pausable.pausedIsNotDispatched[product.State, product.Phase])`
 or `declared.claim(Pausable.pausedIsNotDispatched[State, AdmissionPhase])`,
 as the activity's pinned paths do.
 
-**`except` and `overriding`.** An entity the server answers otherwise waives the law with its reason,
-citing the server code; both are refused without one. `except(law, because = …)` lifts nothing for
-the law: the admission record answers a delivery after it closed, so its designs and compositions
+The generated IR Property records the companion def's Definition ID in `origin`. That gives tools a
+stable connection from an expanded Property back to the shared definition without adding a second
+metadata file. A Property brought by two capabilities, such as
+`Pausable.pausedIsNotDispatched`, has one origin and is expanded only where both declarations are
+present.
+
+**`except` and `overriding`.** An entity the server answers otherwise waives the shared Property
+with its reason; both forms are refused without one. `except(property, because = …)` lifts no
+Property or Query: the admission record answers a delivery after it closed, so its designs and compositions
 declare `.except(closedIsRejectedUniformly, because = deliveryAfterClose)`.
-`overriding(law -> ownDef, because = …)` lifts the entity's own def under the law's name: the Nexus
+`overriding(property -> ownDef, because = …)` lifts the entity's own def under the shared Property's name: the Nexus
 operation answers a repeated request id OK after it closed, so its `capabilities` body declares
 `overriding(closedIsRejectedUniformly -> closedRejectsOrRepeats, because = repeatedRequestsAnswer)`.
 Both are protected members of `Capabilities`, so only the section's own body, including a shared
 capabilities base class, waives a Property.
-A law lists the parameters where entities differ on purpose, `Law(…, parameters = Seq("rejected"))`,
-and an entity backs each such binding with the server code that answers it so,
-`rejected = cited(Outcome.notFound, "chasm/lib/activity/activity.go")`; `cited` changes no IR. Lint
-forwards each waiver's reason into `<file>.lint.json` and reports a binding left uncited
-([Running the gate](#running-the-gate)).
 
-**How a new entity gets its laws.**
+The lifter writes current waiver metadata to `<file>.waivers.json`; the gate maintains matching
+`capability-waiver` entries in `<file>.lint.json`. Those entries preserve the source-owned reason,
+but are not lint findings.
+
+**How a new entity gets its capability Properties.**
 
 1. Give its machine object a `capabilities` object, in a feature file that imports
-   `temporal.capabilities.{given, *}`, written `object capabilities extends Capabilities` with one
+   `temporal.capabilities.*`, written `object capabilities extends Capabilities` with one
    `val name: Capability = Kind(…)` per capability. A waiver is a statement of its body,
    `except(Kind.property, because = …)` or `overriding(Kind.property -> ownDef, because = …)`.
 2. Bind it in the machine's `queries` section with `capabilities.bound(limits)`. The folder's
    `irFile` continues to name the machine or composition root.
-3. Run `make umpire-gen-model`: it writes the generated claims, the Cases of the generated finds and
-   the law sidecar. A law the Model breaks shows as a counterexample of the Query `<machine>.<law>`.
-   Where the server does not keep the law for this entity, waive it with `except` or `overriding`
-   and the reason; otherwise fix the Model.
-4. Read the laws on the machine's table: `go run ./tools/umpire/cmd/umpire-lint --tables
-   model/ir/<file>.json` (below).
+   Pass `Kind.property -> otherLimits` after the default limits when one generated Query needs a
+   different bound.
+3. Run `make umpire-gen-model`: it writes the generated Properties, Queries and Cases. A Property
+   the Model breaks appears as a counterexample of `<machine>.<property>`. Where the server does not
+   keep it for this entity, use `except` or `overriding` with the reason; otherwise fix the Model.
 
-**The catalog and the two-entity rule.** The catalog is a Scala value, `given catalog` in
-`model/temporal/capabilities/Catalog.scala`, built with `Catalog.single(kind)(law, …)`,
-`Catalog.pair(kind, kind)(law, …)` and `++`; the IR generator folds it as data, and finds the pairs
-among a declaration's kinds. A law enters the catalog only once two instantiating entities declare
-the capabilities that bring it, an instantiating entity being a machine with its own state type: a
-composition reading its members' capabilities through their projections does not count again, and
-neither does a derived machine. `Catalog.test.scala` fails, naming the law, for a law fewer than two
-declared machines instantiate, and lint's `law-with-one-instance` counts the same way across the
-sidecars of `model/ir`. A claim with one instance stays the feature's own (`atMostOneActive`,
-`startedByPollingWorker`).
-
-**The law sidecar.** The IR has no text field on a Property, so the IR generator writes what it
-expanded beside each IR file whose Models declare capabilities, as `<file>.laws.json`: each
-generated claim with its law, the capabilities that brought it, the action class each of their
-action fields names (`Pollable.dispatch`: `poll`), its bindings and the citations of its
-cited bindings, and the def that overrides it; each waiver with its reason and position; and the
-catalog's laws with what they promise and do not promise, the parameters each instance must cite,
-where the catalog brings them and the machines, one per state type, that instantiate them. It is a
-checked-in output of the gate like the IR, not IR: lint, the table view and the accepted findings
-read it, and a Go reader skips it (`IRPaths`). A generated Query whose verdict is a counterexample is
-reported with the law, its capabilities and their bindings
-(`rogueJob.pausedIsNotDispatched breaks the law pausedIsNotDispatched of Pausable and Pollable
-(Suspended = …, Held = …)`).
-
-**The laws on the table.** `umpire-lint --tables` prints, after each machine's per-operation table,
-the laws it is held to: per law its claim, what it promises and does not promise, and the modality
-it pins (MUST NOT for a transition law, of its results where the cell is a MAY; MUST for a same-step
-one, which a find asks on its path only) on the cells of its capabilities' actions, beside each
-cell's own modality; a law whose
-capabilities name no action, Closable's, pins its cells on every class. A product law the System
-reads through its refinement is marked `inherited`, and `unchecked` where no Query over the
-System's own Scenarios asks it. Then come the cells of the capabilities' actions that no law pins,
-and the laws the machine waives with `except`. A law pins cells the step function wrote; it never
-adds, removes or rewrites a row:
-
-```text
-laws model/ir/activity-standalone.json activityProduct
-  activityProduct.pausedIsNotDispatched  pausedIsNotDispatched of Pausable and Pollable, MUST NOT  …/product/Product.scala:133
-    promises: while an entity is paused no work is handed to a worker: no step from paused lands in running
-    does not promise: what a pause of held work does (…), what a second pause or an unpause of a live entity answers, …
-    poll (Pollable.dispatch)    paused  MUST NOT  cell: ? s.phase != scheduled
-    control-pause (Pausable.pause)      paused  MUST NOT  cell: ? !pausable(s)
-    control-unpause (Pausable.unpause)  paused  MUST NOT of its results  cell: MAY accepted -> scheduled [statusScheduled]
-  activityProduct.terminalStatesAreFinal  terminalStatesAreFinal of Closable, MUST NOT  …/product/Product.scala:128
-    …
-    every class  completed, failed, canceled, terminated, timedOut  MUST NOT
-  no law pins
-    poll (Pollable.dispatch)    scheduled                 MAY  accepted -> started [statusStarted]
-    control-pause (Pausable.pause)      scheduled, started        MAY  accepted -> paused [statusPaused]
-    …
-```
-
-**Core and sugar.** `capabilities`, the capability types and kinds, `except`, `overriding`, `cited`,
-`through`, `Catalog`, `Law` and the law objects are core: each introduces meaning the IR or the sidecar needs.
-This surface has no sugar today; a convenience spelling of it would live in
-`model/umpire/Syntax.scala` or `model/temporal/capabilities/Syntax.scala`, documented with its core
-form, with its matching in `model/irgen/Syntax.scala` and a fixture requiring the core spelling's IR,
-under the rule [above](#writing-a-model).
+`Properties.test.scala` keeps the shared vocabulary honest: every companion Property must be
+brought to at least two machines with distinct state types. Derived machines do not create another
+state type, and a one-off claim stays in its feature's own `properties` section. The capability
+surface has no separate registry and no sugar today.
 
 ### Counting a Query's total
 
@@ -1469,8 +1417,8 @@ the lowering nor Testpilot names a history message.
 Realizations use generated unary method constants and typed field selectors. An action names no
 message type: what performing one of its classes carries is derived from the realization's binding
 of the class, `perform(class -> instruction)` (fn-133.8, `tools/umpire/realization` `Carriers`). A
-call carries its method's request, so `control(pause) -> pauseActivity` carries
-`PauseActivityExecutionRequest` and each control class its own request; a workflow command carries
+call carries its method's request, so `client.pause -> pauseActivity` carries
+`PauseActivityExecutionRequest` and each per-RPC action carries its own request; a workflow command carries
 the command attributes it sets, a Nexus handler's answer or completion the message it answers with,
 an activity attempt's answer the `RespondActivityTask…Request` the worker sends, and an activity
 script's start the task the worker polls. A fault, a hold or release, a wait and a read carry
