@@ -1,0 +1,26 @@
+{
+  "scope": "Conductor source-progress verification for fn-113.2 publication cleanup only",
+  "base_commit": "cefbe173514a4dde8b263462d3fc5504df340bf1",
+  "command": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^TestRunScratchCleanup' ./upgrade/adapterregen",
+  "exit": 0,
+  "wall_time_seconds": 4.150364793,
+  "leaf_passes": 13,
+  "permission_observations": 12,
+  "skips": 0,
+  "source_sha256": {
+    "adapterregen.go": "a29340699742fb6ce2245d32bc3864c39fcb4fc122e520bb6c96e378018f8fea",
+    "transaction.go": "7b1daf2868cac62ef0740c0ec63b143c49e2db8c84a34e85fb096e91dd7e65f8",
+    "publication_cleanup_test.go": "82346aa1055ae812690860e2a333fd545a7cf6d5ba77065370263cefd831e5a0"
+  },
+  "log": "conductor-green.log",
+  "mandatory_fast_lint": {
+    "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=cefbe17351 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "exit": 0,
+    "wall_time_seconds": 2.238019834,
+    "host_packages": 55,
+    "configured_residual_before_changed_line_filter": 308,
+    "changed_line_findings": 0
+  },
+  "original_acceptance": "Task1 dependency and original native Darwin/full/default/functional/affected-consumer/formal acceptance remain open; no formal SHIP or task completion",
+  "linux": "Deferred and unverified under fn128"
+}

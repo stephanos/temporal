@@ -1,0 +1,46 @@
+=== RUN   TestRunScratchCleanupBeforePublication
+=== RUN   TestRunScratchCleanupBeforePublication/primary/control
+=== RUN   TestRunScratchCleanupBeforePublication/primary/permission
+    publication_cleanup_test.go:43: observed real scratch unlink EACCES: gomad3-adapter-regenerate-2741721379
+    publication_cleanup_test.go:43: observed real scratch unlink EACCES: gomad3-adapter-stage-3727330876
+=== RUN   TestRunScratchCleanupBeforePublication/input/control
+=== RUN   TestRunScratchCleanupBeforePublication/input/permission
+    publication_cleanup_test.go:43: observed real scratch unlink EACCES: gomad3-adapter-regenerate-2417550344
+    publication_cleanup_test.go:43: observed real scratch unlink EACCES: gomad3-adapter-stage-687387470
+=== RUN   TestRunScratchCleanupBeforePublication/blocked/control
+=== RUN   TestRunScratchCleanupBeforePublication/blocked/permission
+    publication_cleanup_test.go:43: observed real scratch unlink EACCES: gomad3-adapter-regenerate-3518067726
+    publication_cleanup_test.go:43: observed real scratch unlink EACCES: gomad3-adapter-stage-2222199546
+--- PASS: TestRunScratchCleanupBeforePublication (2.22s)
+    --- PASS: TestRunScratchCleanupBeforePublication/primary/control (0.51s)
+    --- PASS: TestRunScratchCleanupBeforePublication/primary/permission (0.39s)
+    --- PASS: TestRunScratchCleanupBeforePublication/input/control (0.32s)
+    --- PASS: TestRunScratchCleanupBeforePublication/input/permission (0.33s)
+    --- PASS: TestRunScratchCleanupBeforePublication/blocked/control (0.34s)
+    --- PASS: TestRunScratchCleanupBeforePublication/blocked/permission (0.33s)
+=== RUN   TestRunScratchCleanupStageOnly
+=== RUN   TestRunScratchCleanupStageOnly/control
+=== RUN   TestRunScratchCleanupStageOnly/permission
+    publication_cleanup_test.go:95: observed real scratch unlink EACCES: gomad3-adapter-regenerate-2016525529
+    publication_cleanup_test.go:95: observed real scratch unlink EACCES: gomad3-adapter-stage-1622943273
+--- PASS: TestRunScratchCleanupStageOnly (0.62s)
+    --- PASS: TestRunScratchCleanupStageOnly/control (0.31s)
+    --- PASS: TestRunScratchCleanupStageOnly/permission (0.31s)
+=== RUN   TestRunScratchCleanupMissingDownloadRoot
+--- PASS: TestRunScratchCleanupMissingDownloadRoot (0.31s)
+=== RUN   TestRunScratchCleanupAfterPublication
+=== RUN   TestRunScratchCleanupAfterPublication/residual/control
+=== RUN   TestRunScratchCleanupAfterPublication/residual/permission
+    publication_cleanup_test.go:173: observed real scratch unlink EACCES: gomad3-adapter-regenerate-3243859536
+    publication_cleanup_test.go:173: observed real scratch unlink EACCES: gomad3-adapter-stage-893284927
+=== RUN   TestRunScratchCleanupAfterPublication/scan-warning/control
+=== RUN   TestRunScratchCleanupAfterPublication/scan-warning/permission
+    publication_cleanup_test.go:173: observed real scratch unlink EACCES: gomad3-adapter-regenerate-125485819
+    publication_cleanup_test.go:173: observed real scratch unlink EACCES: gomad3-adapter-stage-1276965907
+--- PASS: TestRunScratchCleanupAfterPublication (1.26s)
+    --- PASS: TestRunScratchCleanupAfterPublication/residual/control (0.33s)
+    --- PASS: TestRunScratchCleanupAfterPublication/residual/permission (0.31s)
+    --- PASS: TestRunScratchCleanupAfterPublication/scan-warning/control (0.31s)
+    --- PASS: TestRunScratchCleanupAfterPublication/scan-warning/permission (0.32s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade/adapterregen	4.417s

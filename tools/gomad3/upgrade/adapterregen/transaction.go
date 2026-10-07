@@ -74,7 +74,7 @@ type journal struct {
 	Entries []journalEntry `json:"entries"`
 }
 
-func apply(ctx context.Context, spec Spec, regeneration deterministicio.AdapterRegeneration, candidate string) (publication, error) {
+func apply(ctx context.Context, spec Spec, regeneration deterministicio.AdapterRegeneration, candidate string) (result publication, returnErr error) {
 	state := filepath.Join(spec.Root, filepath.FromSlash(stateDirectory))
 	if err := os.MkdirAll(state, 0o700); err != nil {
 		return publication{}, err
@@ -100,7 +100,17 @@ func apply(ctx context.Context, spec Spec, regeneration deterministicio.AdapterR
 	if err != nil {
 		return publication{}, err
 	}
-	defer removeWritable(work)
+	defer func() {
+		if cleanupErr := removeWritable(work); cleanupErr != nil {
+			if result.published != nil {
+				result.warnings = append(result.warnings, fmt.Sprintf("published, but cleaning stage scratch failed: %v", cleanupErr))
+			} else if returnErr == nil {
+				returnErr = cleanupErr
+			} else {
+				returnErr = errors.Join(returnErr, cleanupErr)
+			}
+		}
+	}()
 	stage := filepath.Join(work, "root")
 	read, err := copyCheckout(spec.Root, stage)
 	if err != nil {
@@ -134,7 +144,7 @@ func apply(ctx context.Context, spec Spec, regeneration deterministicio.AdapterR
 	if err := completeJournal(spec.Root, spec.beforeApplyFile); err != nil {
 		return publication{}, err
 	}
-	result := publication{staged: staged, published: make([]string, len(entries))}
+	result = publication{staged: staged, published: make([]string, len(entries))}
 	for index, entry := range entries {
 		result.published[index] = entry.Path
 	}

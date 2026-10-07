@@ -116,7 +116,7 @@ type StalePack struct {
 }
 
 // Run performs a dry run, or an apply when spec.Approval is set.
-func Run(ctx context.Context, spec Spec) (Result, error) {
+func Run(ctx context.Context, spec Spec) (result Result, returnErr error) {
 	if spec.Root == "" || spec.Module == "" || spec.Version == "" || spec.GoCommand == "" {
 		return Result{}, &InputError{Err: errors.New("adapter regeneration needs a root, module, version, and go command")}
 	}
@@ -150,7 +150,17 @@ func Run(ctx context.Context, spec Spec) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
-	defer removeWritable(work)
+	defer func() {
+		if cleanupErr := removeWritable(work); cleanupErr != nil {
+			if result.Applied {
+				result.Warnings = append(result.Warnings, fmt.Sprintf("published, but cleaning download scratch failed: %v", cleanupErr))
+			} else if returnErr == nil {
+				returnErr = cleanupErr
+			} else {
+				returnErr = errors.Join(returnErr, cleanupErr)
+			}
+		}
+	}()
 	downloads, err := download(ctx, spec, filepath.Join(work, "modcache"), []string{pinned.Version, spec.Version})
 	if err != nil {
 		return Result{}, err
@@ -173,7 +183,7 @@ func Run(ctx context.Context, spec Spec) (Result, error) {
 		}
 		return Result{}, err
 	}
-	result := Result{Regeneration: regeneration, Diffs: diffs(regeneration)}
+	result = Result{Regeneration: regeneration, Diffs: diffs(regeneration)}
 	result.StalePacks, err = stalePacks(spec.Root, spec.Module, spec.Version)
 	if err != nil {
 		return Result{}, err
@@ -185,12 +195,12 @@ func Run(ctx context.Context, spec Spec) (Result, error) {
 		return Result{}, &InputError{Err: fmt.Errorf("approval %s does not match the review digest %s of %s@%s", spec.Approval, regeneration.ApprovalSHA256, spec.Module, spec.Version)}
 	}
 	published, err := apply(ctx, spec, regeneration, candidate.Dir)
-	if err != nil {
+	if err != nil && published.staged == nil {
 		return Result{}, err
 	}
 	result.Staged = published.staged
 	if spec.StageOnly {
-		return result, nil
+		return result, err
 	}
 	result.Applied, result.Published, result.Residual, result.Warnings = true, published.published, published.residual, published.warnings
 	return result, nil
@@ -331,14 +341,29 @@ func goEnvironment(environment []string, extra ...string) []string {
 }
 
 // removeWritable removes a tree the go command made read-only.
-func removeWritable(root string) {
-	_ = filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+func removeWritable(root string) error {
+	var cleanupErrors []error
+	walkErr := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			cleanupErrors = append(cleanupErrors, err)
+		}
 		if err == nil && entry.IsDir() {
-			_ = os.Chmod(path, 0o700)
+			if err := os.Chmod(path, 0o700); err != nil {
+				cleanupErrors = append(cleanupErrors, err)
+			}
 		}
 		return nil
 	})
-	_ = os.RemoveAll(root)
+	if walkErr != nil {
+		cleanupErrors = append(cleanupErrors, walkErr)
+	}
+	if err := os.RemoveAll(root); err != nil {
+		cleanupErrors = append(cleanupErrors, err)
+	}
+	if len(cleanupErrors) == 1 {
+		return cleanupErrors[0]
+	}
+	return errors.Join(cleanupErrors...)
 }
 
 // Verify checks the checkout's compiled adapter for module against the module

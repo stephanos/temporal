@@ -1,0 +1,60 @@
+{
+  "scope": "fn-113.2 bounded publication-aware scratch cleanup source progress",
+  "base_commit": "cefbe173514a4dde8b263462d3fc5504df340bf1",
+  "host": {"os": "linux", "arch": "arm64", "uid": 1000},
+  "writer": {"model": "gpt-6.1-sol", "effort": "high", "tier_selector": "unavailable(no_key)", "selection": "project pinned fallback"},
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off; fixture tests supply their file proxy",
+  "raw_log_root": ".flow/tmp/publication-cleanup",
+  "retained_compact_logs": ["red-final-tests.log", "green.log", "baseline-scoped-lint.log", "final-scoped-lint.log", "package-tests.log"],
+  "source_sha256": {
+    "base/adapterregen.go": "77580c8a6aafd5fddcaff619a7f9485767c727f283c224344756b26d12dfed10",
+    "base/transaction.go": "ecd345cb4f41567c3181a8980c5ef2af9f1e8ef8f9d6a8393d554f96c56e7953",
+    "final/adapterregen.go": "a29340699742fb6ce2245d32bc3864c39fcb4fc122e520bb6c96e378018f8fea",
+    "final/transaction.go": "7b1daf2868cac62ef0740c0ec63b143c49e2db8c84a34e85fb096e91dd7e65f8",
+    "red-and-final/publication_cleanup_test.go": "82346aa1055ae812690860e2a333fd545a7cf6d5ba77065370263cefd831e5a0",
+    "unchanged/adapterregen_test.go": "83376d34035650372cf2c70622b382fd1fcf8931e5cb616b50823407bfbc358c"
+  },
+  "tool_config_sha256": {
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "commands": {
+    "focused": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^TestRunScratchCleanup' ./upgrade/adapterregen",
+    "package": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./upgrade/adapterregen",
+    "scoped_lint": "cd tools/gomad3; /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config ../../.github/.golangci.yml --fix=false --build-tags=test_dep --path-mode=abs ./upgrade/adapterregen/...",
+    "configured_baseline": "make lint-code-gomad3 GOLANGCI_LINT_BASE_REV=cefbe17351 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "vet": "go -C tools/gomad3 vet -tags test_dep ./upgrade/adapterregen",
+    "errortype": "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/adapterregen",
+    "validate": "make -C tools/gomad3 validate",
+    "architecture": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases)$' .",
+    "fast_lint": "make lint-code-fast GOLANGCI_LINT_BASE_REV=cefbe17351 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "format_and_diff": "gofmt -l tools/gomad3/upgrade/adapterregen/adapterregen.go tools/gomad3/upgrade/adapterregen/transaction.go tools/gomad3/upgrade/adapterregen/publication_cleanup_test.go; git diff --check"
+  },
+  "receipts": [
+    {"name": "unchanged final-test RED", "command": "focused", "exit": 1, "elapsed_seconds": 5, "go_test_seconds": 4.650, "control_passes": 6, "fault_failures": 7, "permission_cases": 6, "EACCES_observations": 12, "skips": 0, "log": "red-final-tests.log", "sha256": "fcd282de14ed7878ccd59b07e6abc3a8d3a4d95dcb5a5901db7bc9b58b9e98c3"},
+    {"name": "final focused GREEN", "command": "focused", "exit": 0, "elapsed_seconds": 5, "go_test_seconds": 4.440, "leaves": 13, "controls": 6, "permission_cases": 6, "traversal_cases": 1, "EACCES_observations": 12, "skips": 0, "log": "green.log", "sha256": "8514afbbccb518544faec7bce581d988a0c9a02c39b42db2a3e78d8f5ca495cf"},
+    {"name": "whole portable adapterregen package", "command": "package", "exit": 0, "elapsed_seconds": 13, "go_test_seconds": 12.403, "leaves": 35, "test_summaries_including_parents": 38, "EACCES_observations": 12, "skips": 0, "log": "package-tests.log", "sha256": "8ed00f8352e3f3ba72c07fba67dbc18da634cf28d8cc62af206c0e50d756fab2"},
+    {"name": "unchanged scoped unfiltered lint", "command": "scoped_lint", "exit": 1, "elapsed_seconds": 0, "diagnostics": 2, "log": "baseline-scoped-lint.log", "sha256": "fec42eb6bc82fbd0f2fae3a2270cae6889944c93172665bdc665b173a06fbdc6"},
+    {"name": "final scoped unfiltered lint", "command": "scoped_lint", "exit": 1, "elapsed_seconds": 1, "diagnostics": 2, "owned_additions": 0, "owned_removals": 0, "log": "final-scoped-lint.log", "sha256": "5aba24febfab848f2bec27da55415b16b591857800a5ed88ceaa6815e881e7c5"},
+    {"name": "unchanged configured host lint", "command": "configured_baseline", "exit": 0, "elapsed_seconds": 2, "host_packages": 55, "configured_before_diff": 308, "changed_line_diagnostics": 0, "log": "baseline-configured-lint.log", "sha256": "d0b7f1cb11de18c34001b828cfdb5bcdb2c4f40473c9d484c3961ac76a854e82"},
+    {"name": "scoped vet", "command": "vet", "exit": 0, "elapsed_seconds": 0, "output": "none"},
+    {"name": "scoped errortype", "command": "errortype", "exit": 0, "elapsed_seconds": 0, "log": "errortype.log", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"name": "check-only validate", "command": "validate", "exit": 0, "elapsed_seconds": 2, "log": "validate.log", "sha256": "14f0f6898d1f2f53f9554d007882d37feccca09025cfa71566ed9c8e482d019e"},
+    {"name": "four architecture checks", "command": "architecture", "exit": 0, "elapsed_seconds": 25, "go_test_seconds": 25.022, "checks": 4, "log": "architecture.log", "sha256": "78703003ab2d772d5f332bd777b3555ce6377b122ea687bea9078af5613f1479"},
+    {"name": "mandatory fast lint", "command": "fast_lint", "exit": 0, "elapsed_seconds": 2, "host_packages": 55, "configured_before_diff": 308, "changed_line_diagnostics": 0, "log": "fast-lint.log", "sha256": "38adb87e2c7bcf7dd552655c6d5a9a87b2be9763e5cdafaf28c46f5d49cc20aa"},
+    {"name": "format and diff", "command": "format_and_diff", "exit": 0, "output": "none"}
+  ],
+  "observations": [
+    "Initial test expectations omitted four changed fixture files. Corrected the hand-derived list before official final-test RED; initial output remains in tool transcript.",
+    "First production attempt passed all six permission cases, but sole traversal error remained wrapped. green-first.log exit1, Go test4.304s, SHA2567dda347224c8fb8f6b2d172231fc0c94c96b01fb8157886927581e02cbe7a825. Final helper returns a sole cause directly.",
+    "Absent /usr/bin/time caused setup exit127. Shell SECONDS supplied the retained integer timings.",
+    "Execution tool ignored workdir argument. First relative redirection failed before running lint; explicit cd corrected invocation.",
+    "Stock-Go ./... lint includes patched runtime overlay source and fails with three typecheck findings. baseline-full-lint.log exit1, elapsed2s, SHA256ea56caa18328f15f8836e4dbf5732ab24624eefefb4392a3ad1bbf26dbf76ed0. Configured host lint excludes overlay through existing source ownership."
+  ],
+  "preservation": ["ordinary apply failure Result{}", "exact primary identity when cleanup succeeds", "InputError and BlockedError classification", "staged data on newly exposed cleanup-only failure", "Applied/Published/Staged/Residual and existing warnings after completed publication", "stage cleanup then original lock.Release then download cleanup", "both existing Lock.Release calls", "recovery decisions and journal retirement errors", "pins/comments/public parameter and result types/schemas/generators/native guards/runtime/toolchain inputs"],
+  "open_requirements": ["fresh independent source review and conductor commit", "task1 dependency", "original regeneration acceptance", "native Darwin", "full-host/default/functional/affected-consumer/formal gates", "full lint remains red with308configured residual findings", "native Linux deferred and unverified under fn128"],
+  "formal_ship": false,
+  "task_done": false
+}

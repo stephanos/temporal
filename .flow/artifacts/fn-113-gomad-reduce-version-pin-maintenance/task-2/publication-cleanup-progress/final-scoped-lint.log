@@ -1,0 +1,8 @@
+/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/upgrade/adapterregen/transaction.go:89:20: Error return value of `lock.Release` is not checked (errcheck)
+	defer lock.Release()
+	                  ^
+/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/upgrade/adapterregen/transaction.go:219:20: Error return value of `lock.Release` is not checked (errcheck)
+	defer lock.Release()
+	                  ^
+2 issues:
+* errcheck: 2
