@@ -78,6 +78,33 @@ class CatalogTest extends munit.FunSuite:
         case _                => fail(s"$closable is no rejection binding")
   }
 
+  test("every Pausable and Pollable site binds only actions, including all four derived owners") {
+    val pausableAndPollable = Seq(
+      product.ActivityProduct.capabilities.pausable -> product.ActivityProduct.capabilities.pollable,
+      system.ActivityRecord.capabilities.pausable -> system.ActivityRecord.capabilities.pollable,
+      system.TrustingActivityRecord.capabilities.pausable ->
+        system.TrustingActivityRecord.capabilities.pollable,
+      system.RecordOverQueue.capabilities.pausable -> system.RecordOverQueue.capabilities.pollable,
+      system.TrustingRecordOverQueue.capabilities.pausable ->
+        system.TrustingRecordOverQueue.capabilities.pollable,
+      system.RecordOverMatching.capabilities.pausable ->
+        system.RecordOverMatching.capabilities.pollable,
+      system.TrustingRecordOverMatching.capabilities.pausable ->
+        system.TrustingRecordOverMatching.capabilities.pollable,
+      system.RecordOverLossyMatching.capabilities.pausable ->
+        system.RecordOverLossyMatching.capabilities.pollable
+    )
+    assertEquals(pausableAndPollable.size, 8)
+    for (pausable, pollable) <- pausableAndPollable do
+      pausable match
+        case binding: Product =>
+          assertEquals(binding.productElementNames.toSeq, Seq("pause", "unpause"))
+        case _ => fail(s"$pausable is no action-only Pausable binding")
+      pollable match
+        case binding: Product => assertEquals(binding.productElementNames.toSeq, Seq("dispatch"))
+        case _                => fail(s"$pollable is no action-only Pollable binding")
+  }
+
   test("a Property brought to one state type fails by name; derived machines count once") {
     val record = declared.filter(_.state == classOf[system.AdmissionState].getName)
     assertEquals(record.map(_.machine), Seq("activityRecord", "trustingActivityRecord"))

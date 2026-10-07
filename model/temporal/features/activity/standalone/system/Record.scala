@@ -26,6 +26,7 @@ import temporal.capabilities.*
 import temporal.realize.satisfied
 import shared.Bounds.{four, three}
 import product.ActivityProduct
+import product.ActivityProduct.phased
 
 // ### Types. Both deadlines are armed in every state, which lets them compete with a delivery.
 
@@ -33,8 +34,8 @@ import product.ActivityProduct
 enum AdmissionPhase derives Finite:
   case scheduled extends AdmissionPhase, Waiting
   case paused extends AdmissionPhase, Suspended
-  // Held and paused at once, so it takes no role: which one it is stays open.
-  case pausedWhileHeld
+  // The admitted attempt remains held while its pause is pending.
+  case pausedWhileHeld extends AdmissionPhase, Held
   case started extends AdmissionPhase, Held
   case completed extends AdmissionPhase, Succeeded
   case timedOut extends AdmissionPhase, TimedOut
@@ -86,11 +87,9 @@ abstract class AdmissionCapabilities(using
   )
   val pausable: Capability = Pausable(
     pause = client.control(Control.pause),
-    unpause = client.control(Control.unpause),
-    paused = ActivityRecord.states.paused
+    unpause = client.control(Control.unpause)
   )
-  val pollable: Capability =
-    Pollable(dispatch = worker.poll, running = ActivityRecord.states.running)
+  val pollable: Capability = Pollable(dispatch = worker.poll)
   except(Closable.closedIsRejectedUniformly, because = ActivityRecord.states.deliveryAfterClose)
 
 // ### Signature
@@ -125,9 +124,6 @@ object ActivityRecord
   }
   // The record's status sets, which a composition reads through `activity`, and its counts.
   object states:
-    // Paused before any attempt was admitted: the pause a delivery must not get past.
-    def paused(s: State) = s.phase == AdmissionPhase.paused
-    def running(s: State) = s.phase == AdmissionPhase.started
     def twoActive(s: State) = s.active == Active.two
     def phase(s: State) = s.phase
 
@@ -278,7 +274,7 @@ object ActivityRecord
         after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToClose))
       )
       AdmissionClaims(
-        declared.claim(Pausable.pausedIsNotDispatched),
+        declared.claim(Pausable.pausedIsNotDispatched[State, AdmissionPhase]),
         atMostOneActive(m)(states.twoActive),
         scheduleToStartTimesOut,
         scheduleToCloseTimesOut
@@ -343,7 +339,10 @@ object ActivityRecord
           scheduleToCloseFirst limits three,
         // The product's own Property, read through the design's declared refinement.
         query(s"${m.name}.product.pausedIsNotDispatched")
-          .verify(ActivityProduct.capabilities.claim(Pausable.pausedIsNotDispatched))
+          .verify(
+            ActivityProduct.capabilities
+              .claim(Pausable.pausedIsNotDispatched[product.State, product.Phase])
+          )
           .in(staleDeliveryAfterPause) limits three
       )
 

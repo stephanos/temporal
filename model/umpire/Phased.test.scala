@@ -73,6 +73,11 @@ object PhasedFixture:
 class PhasedSuite extends munit.FunSuite:
   import PhasedFixture.*
 
+  test("a declared Phased exposes its typed projection to capability claim readers"):
+    import DefaultEnd.phased
+    val phasing = summon[Phasing[Snapshot, Phase]]
+    assertEquals(phasing.phase(Snapshot(Phase.held)), Phase.held)
+
   test("derived compositions retain the source's typed nested phase through chained derivations"):
     val state = Pair(Snapshot(Phase.done), Snapshot(Phase.waiting))
     assertEquals(DerivedPair.phase.phase(state), Phase.done)

@@ -4,7 +4,7 @@ satisfies: [R2, R3]
 # fn-137-capabilities-read-phase-roles.7 Pausable reads Suspended and Held; settle pausedWhileHeld; capability docs
 
 ## Description
-Pausable reads "paused" as `Suspended` and Pollable reads "running" as `Held` of the `Phased` phase. They stay separate capabilities (fn-134). `pausedIsNotDispatched` reads both owned roles and is still brought only where both are declared. This task also settles the role of `pausedWhileHeld` with the owner, and finishes the capability docs and the MILESTONES entry.
+Pausable reads "paused" as `Suspended` and Pollable reads "running" as `Held` of the `Phased` phase. They stay separate capabilities (fn-134). `pausedIsNotDispatched` reads both owned roles and is still brought only where both are declared. This task records `pausedWhileHeld` as `Held` and finishes the capability docs; the conductor owns the batched MILESTONES update.
 
 **Size:** M
 **Files:** model/temporal/capabilities/{Pausable,Pollable}.scala (fn-134's one-file-per-capability layout), Catalog.test.scala, model/irgen/Capabilities.scala, model/irgen/testdata/lifts/Capabilities.scala (+ expected), Pausable sites: activity product Product.scala, Record.scala, WithTaskQueue.scala; model/README.md (capabilities), MILESTONES.md
@@ -15,16 +15,16 @@ Pausable reads "paused" as `Suspended` and Pollable reads "running" as `Held` of
 - Remove `paused` (Pausable.scala after fn-134) and `running` (Pollable.scala). Read them through `Phased` with `Suspended` and `Held` witnesses, following task 6's pattern. The Property body (Pausable.scala's companion; before fn-134 Pause.scala, `pausedIsNotDispatched`) takes role-derived inputs.
 - Lifter refusals: Pausable on a phase with no `Suspended` case, and the pause-with-polling Property on a phase with no `Held` case, each naming the missing role.
 - Owned roles count as fields (task 6's rule): Pausable owns `Suspended` and Pollable owns `Held`, so `pausedIsNotDispatched` is brought exactly where both are declared.
-- `pausedWhileHeld`: before regenerating, ask the owner unconditionally whether it is `Suspended`, `Held`, or a model-specific role extending one (fn-136 R4 forbids both). Assign it on the record's admission-phase enum, then regenerate and compare. ActivityRecord today reads paused = `paused` only and running = `started` only (Record.scala:267-281). Record the decision in the spec, move it out of Parked unknowns, and stop on any Query change the owner hasn't approved.
-- Docs: capability descriptions in the README and the Closable.scala, Pausable.scala and Pollable.scala header comments. Mark fn-137 done in MILESTONES.md.
+- `pausedWhileHeld`: give it `Held`, not `Suspended`. It is an admitted attempt that remains held and owned while pause is requested; `paused` remains the dispatch-blocking `Suspended` phase. Record the decision and expected batch delta in the spec, move it out of Parked unknowns, and defer regeneration so no unapproved generated Query change is absorbed.
+- Docs: capability descriptions in the README and the Closable.scala, Pausable.scala and Pollable.scala header comments. The conductor updates MILESTONES.md after the DSL batch.
 
 ### Acceptance
 - [ ] No Pausable or Pollable declaration binds a paused, running or projection field, including on derived objects.
 - [ ] `pausedIsNotDispatched` is brought exactly where Pausable and Pollable are both declared.
-- [ ] `pausedWhileHeld` carries the owner's chosen role on its enum, and the spec records the decision.
+- [ ] `pausedWhileHeld` carries `Held`, and the spec records why it is not `Suspended`.
 - [ ] Regeneration leaves Query names, answers, receipts and Definition IDs unchanged, except an ActivityRecord change the owner approves, recorded in the spec.
 - [ ] Both refusal fixtures pass, naming the missing role.
-- [ ] The README and MILESTONES are updated, and `make umpire-check-model` and `make lint-model` pass.
+- [ ] The README and capability comments are updated; focused model, lifter, packaging and scoped lint gates pass. MILESTONES and regeneration remain conductor-owned.
 
 ## Acceptance
 - [ ] TBD

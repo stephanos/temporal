@@ -90,12 +90,15 @@ A named `states` predicate that only renames a role is omitted: rule headings us
 ends, effects and compositions use `p.in[R]` on their phase, including a nested member's phase.
 `states` still names composite predicates such as `created` (`Live` or `Closed`), single-phase or
 other non-role subsets, predicates over other state fields or steps, projections and helpers.
-A predicate required by a capability field or a named-definition-only claim stays named; the
-Nexus product retains `productTerminal` for its `once` claim. Closable reads the witnessed,
-nonempty `Closed` set of its declaring object's typed `Phasing`, so the activity product,
-activity record and standalone Nexus no longer retain `terminal` for it. Retiring an alias removes its IR
-Function and puts the same case-set membership at its former calls. The resulting content-derived
-identities and Case references may change, but no Query answer or Check verdict changes.
+A predicate required by a non-role capability field or a named-definition-only claim stays named;
+the Nexus product retains `productTerminal` for its `once` claim. Closable reads the witnessed,
+nonempty `Closed` set of its declaring object's typed `Phasing`, so the activity product, activity
+record and standalone Nexus no longer retain `terminal` for it. Pausable and Pollable likewise read
+the witnessed `Suspended` and `Held` sets and retain no `paused` or `running` aliases solely for
+their fields; the activity product's remaining `paused` predicate is a rule guard. Retiring an
+alias removes its IR Function and puts the same case-set membership at its former calls. The
+resulting content-derived identities and Case references may change, but no Query answer or Check
+verdict changes.
 
 ## Levels
 

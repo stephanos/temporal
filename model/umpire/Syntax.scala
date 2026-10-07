@@ -424,8 +424,8 @@ trait Phased[S, P](private[umpire] val projection: S => P)(using
     TypeTest[P, Closed],
     ClassTag[P]
 ) extends Declares[S]:
-  // The projection its sections read.
-  protected given phased: Phasing[S, P] = Phasing(projection)
+  // The projection its sections and readers of their generated capability claims share.
+  given phased: Phasing[S, P] = Phasing(projection)
 
   private lazy val closedCases = phased.roleCases[Closed](name)
 

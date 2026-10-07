@@ -1,4 +1,4 @@
-// An entity's terminal statuses and the Properties every closing entity keeps.
+// Closing an entity; Closed phases define the terminal statuses its Properties read.
 package temporal.capabilities
 
 import umpire.*

@@ -49,7 +49,6 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
   object states:
     def status(s: State) = s.phase
     val paused = is(phase == Phase.paused)
-    val running = is(phase == started)
     val pausable = is(phase.in(scheduled, started))
 
   object effects:
@@ -101,10 +100,9 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     )
     val pausable: Capability = Pausable(
       pause = client.control(Control.pause),
-      unpause = client.control(Control.unpause),
-      paused = states.paused
+      unpause = client.control(Control.unpause)
     )
-    val pollable: Capability = Pollable(dispatch = worker.poll, running = states.running)
+    val pollable: Capability = Pollable(dispatch = worker.poll)
 
   object queries:
     capabilities.bound(three)

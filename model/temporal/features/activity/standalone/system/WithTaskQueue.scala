@@ -53,12 +53,10 @@ abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
   )
   val pausable: Capability = Pausable(
     pause = c.own(_.activity, client.control(Control.pause)),
-    unpause = c.own(_.activity, client.control(Control.unpause)),
-    paused = through(_.activity, ActivityRecord.states.paused)
+    unpause = c.own(_.activity, client.control(Control.unpause))
   )
   val pollable: Capability = Pollable(
-    dispatch = c.synced(_.activity -> worker.poll),
-    running = through(_.activity, ActivityRecord.states.running)
+    dispatch = c.synced(_.activity -> worker.poll)
   )
   except(Closable.closedIsRejectedUniformly, because = RecordOverQueue.states.queueStepsOn)
 
@@ -71,12 +69,10 @@ abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
   )
   val pausable: Capability = Pausable(
     pause = c.own(_.activity, client.control(Control.pause)),
-    unpause = c.own(_.activity, client.control(Control.unpause)),
-    paused = through(_.activity, ActivityRecord.states.paused)
+    unpause = c.own(_.activity, client.control(Control.unpause))
   )
   val pollable: Capability = Pollable(
-    dispatch = c.synced(_.activity -> worker.poll),
-    running = through(_.activity, ActivityRecord.states.running)
+    dispatch = c.synced(_.activity -> worker.poll)
   )
   except(Closable.closedIsRejectedUniformly, because = RecordOverQueue.states.queueStepsOn)
 
@@ -120,7 +116,7 @@ object RecordOverQueue
             !after.records(_.activity, AdmissionFact.attemptAdmitted))
       )
       OverQueueClaims(
-        declared.claim(Pausable.pausedIsNotDispatched),
+        declared.claim(Pausable.pausedIsNotDispatched[State, AdmissionPhase]),
         ActivityRecord.properties.atMostOneActive(c)(
           through(_.activity, ActivityRecord.states.twoActive)
         ),
@@ -192,7 +188,7 @@ object RecordOverMatching
   object properties:
     def overMatchingClaims(c: Composition[State], declared: Capabilities[State, String, String]) =
       OverMatchingClaims(
-        declared.claim(Pausable.pausedIsNotDispatched),
+        declared.claim(Pausable.pausedIsNotDispatched[State, AdmissionPhase]),
         ActivityRecord.properties.atMostOneActive(c)(
           through(_.activity, ActivityRecord.states.twoActive)
         )
