@@ -20,7 +20,6 @@ package standalone
 import umpire.*
 import temporal.Client
 import system.NexusSystem
-import io.temporal.api.workflowservice.v1.*
 
 // ### Signature
 
@@ -32,9 +31,8 @@ val operation: Entity = Entity(key = "operationId")
 
 // The client starts the operation, and requests its cancel or terminates it.
 object client extends Client:
-  val start = action(this).creates(operation).schema[StartNexusOperationExecutionRequest]
-  val requestCancel =
-    action(this).on(operation).schema[RequestCancelNexusOperationExecutionRequest]
+  val start = action(this).creates(operation)
+  val requestCancel = action(this).on(operation)
   val terminate = temporal.features.nexus.client.terminate.on(operation)
 
 // The endpoint's handler replies to the start, and completes an operation it started async.

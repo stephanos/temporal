@@ -6,7 +6,6 @@ package features.activity
 
 import umpire.*
 import shared.worker.worker as process
-import io.temporal.api.workflowservice.v1.*
 
 // ### Types
 
@@ -34,13 +33,10 @@ val result = input[AttemptResult]
 // nothing it records names the activity, so the activity's machines keep their state. Each form
 // binds them to its activity, as standalone/Standalone.scala does.
 object worker:
-  val poll = action(process).schema[PollActivityTaskQueueResponse]
+  val poll = action(process)
 
   val respond = action(process)
     .input(result)
-    .schema[RespondActivityTaskCompletedRequest]
-    .schema[RespondActivityTaskFailedRequest]
-    .schema[RespondActivityTaskCanceledRequest]
     .example(AttemptResult.failed(false), "ApplicationFailureNonRetryable")
     .example(AttemptResult.failed(true), "ApplicationFailureRetryable")
 

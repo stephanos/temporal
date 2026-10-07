@@ -4,7 +4,7 @@
     "name": "temporal.features.activity.AttemptResult",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 18
+      "line": 17
     },
     "enum": {
       "cases": [ {
@@ -25,7 +25,7 @@
     "name": "temporal.features.activity.Timeout",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 14
+      "line": 13
     },
     "enum": {
       "cases": [ {
@@ -38,7 +38,7 @@
     "name": "temporal.features.activity.TimeoutType",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 24
+      "line": 23
     },
     "enum": {
       "cases": [ {
@@ -53,7 +53,7 @@
     "name": "temporal.features.activity.standalone.Control",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 42
+      "line": 41
     },
     "enum": {
       "cases": [ {
@@ -70,7 +70,7 @@
     "name": "temporal.features.activity.standalone.Outcome",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 46
+      "line": 45
     },
     "enum": {
       "cases": [ {
@@ -3753,7 +3753,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -3850,7 +3850,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -3947,7 +3947,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -4105,7 +4105,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -4202,7 +4202,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -4299,7 +4299,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -4396,7 +4396,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -4493,7 +4493,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -4590,7 +4590,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -4687,7 +4687,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5098,7 +5098,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5206,7 +5206,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5303,7 +5303,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5400,7 +5400,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5497,7 +5497,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5619,7 +5619,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5716,7 +5716,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5813,7 +5813,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -5910,7 +5910,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -6007,7 +6007,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -6106,7 +6106,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -6220,7 +6220,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -6355,7 +6355,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -6457,7 +6457,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -6559,7 +6559,7 @@
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity/standalone/Standalone.scala",
-                "line": 96
+                "line": 90
               },
               "literal": {
                 "enum": {
@@ -7393,7 +7393,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 54
+      "line": 50
     },
     "actor": "system",
     "timer": true
@@ -7402,7 +7402,7 @@
     "name": "scheduleToStart",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 55
+      "line": 51
     },
     "actor": "system",
     "timer": true
@@ -7411,7 +7411,7 @@
     "name": "startToClose",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 56
+      "line": 52
     },
     "actor": "system",
     "timer": true
@@ -7420,7 +7420,7 @@
     "name": "control",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 77
+      "line": 75
     },
     "actor": "client",
     "inputs": [ {
@@ -7430,14 +7430,13 @@
       }
     } ],
     "on": "activity",
-    "schemas": [ "temporal.api.workflowservice.v1.PauseActivityExecutionRequest", "temporal.api.workflowservice.v1.UnpauseActivityExecutionRequest", "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest", "temporal.api.workflowservice.v1.TerminateActivityExecutionRequest" ],
     "results": "Delivery"
   }, {
     "id": "temporal.features.activity.standalone.client.start",
     "name": "start",
     "position": {
       "file": "model/temporal/features/activity/standalone/Standalone.scala",
-      "line": 68
+      "line": 67
     },
     "actor": "client",
     "inputs": [ {
@@ -7456,14 +7455,13 @@
         "named": "temporal.features.activity.Timeout"
       }
     } ],
-    "creates": "activity",
-    "schemas": [ "temporal.api.workflowservice.v1.StartActivityExecutionRequest" ]
+    "creates": "activity"
   }, {
     "id": "temporal.features.activity.timers.backoff",
     "name": "backoff",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 50
+      "line": 46
     },
     "actor": "system",
     "timer": true
@@ -7472,7 +7470,7 @@
     "name": "timeout",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 49
+      "line": 45
     },
     "actor": "system",
     "timer": true
@@ -7481,17 +7479,16 @@
     "name": "poll",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 37
+      "line": 36
     },
     "actor": "worker",
-    "on": "activity",
-    "schemas": [ "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse" ]
+    "on": "activity"
   }, {
     "id": "temporal.features.activity.worker.respond",
     "name": "respond",
     "position": {
       "file": "model/temporal/features/activity/Activity.scala",
-      "line": 39
+      "line": 38
     },
     "actor": "worker",
     "inputs": [ {
@@ -7501,7 +7498,6 @@
       }
     } ],
     "on": "activity",
-    "schemas": [ "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest" ],
     "examples": [ {
       "value": {
         "enum": {

@@ -26,7 +26,6 @@ package features.nexus
 package workflow
 
 import umpire.*
-import io.temporal.api.command.v1.ScheduleNexusOperationCommandAttributes
 import product.NexusProduct
 import system.{HandlerWorker, NexusCaller, NexusSystem, TrustingCaller}
 
@@ -67,7 +66,6 @@ object caller extends Actor:
     .input(scheduleToStart)
     .input(startToClose)
     .creates(operation)
-    .schema[ScheduleNexusOperationCommandAttributes]
 
   // The caller's inspection of its workflow, which only the forged control (system/) takes.
   val inspect = action(this).on(operation)

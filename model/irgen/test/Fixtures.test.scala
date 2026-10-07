@@ -659,6 +659,10 @@ class Fixtures extends munit.FunSuite:
   concurrently("the build refuses a realization object's evidence or status of another machine"):
     assertEquals(refusals("typedRealizations").sorted, Seq("Typed.scala:16:46", "Typed.scala:25:3"))
 
+  // fn-133.8: `.schema[T]` is retired with a migration diagnostic (testdata/retiredSchema).
+  concurrently("the build refuses a retired schema, at its line"):
+    assertEquals(refusals("retiredSchema"), Seq("Retired.scala:9:3"))
+
   concurrently("the build refuses a non-finite state field, at its line"):
     assertEquals(refusals("nonfinite"), Seq("NonFinite.scala:5:47"))
 
@@ -681,7 +685,6 @@ class Fixtures extends munit.FunSuite:
         "Invalid.scala:160:3",
         "Invalid.scala:165:49",
         "Invalid.scala:169:26",
-        "Invalid.scala:22:63",
         "Invalid.scala:29:7",
         "Invalid.scala:43:9",
         "Invalid.scala:66:7",
@@ -776,7 +779,7 @@ class Fixtures extends munit.FunSuite:
     )
 
   // The typed selectors no live Model writes (lifts/Typed.scala); model/ir pins the rest.
-  concurrently("typed schemas, paths and bound constants lift to their protobuf names"):
+  concurrently("typed paths and bound constants lift to their protobuf names"):
     val out = lifted("typed")
     val roots = Seq("fixture.typed.Typed", "fixture.typed.Typed$package$.typedRealization")
     val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
@@ -785,10 +788,8 @@ class Fixtures extends munit.FunSuite:
     val model = mapper.readTree(Files.readString(out))
     val actions = model.path("actions")
     assertEquals(actions.size(), 1)
-    assertEquals(
-      actions.get(0).path("schemas").get(0).asText(),
-      "temporal.api.workflowservice.v1.StartActivityExecutionRequest"
-    )
+    // fn-133.8: an action names no carrier; the realization's binding derives it.
+    assert(actions.get(0).path("schemas").isMissingNode, actions.get(0).toPrettyString)
     val realizations = model.path("realizations")
     assertEquals(realizations.size(), 1)
     val typed = realizations.get(0)
@@ -2316,10 +2317,6 @@ class Fixtures extends munit.FunSuite:
     assertEquals(shared.head.path("actor").asText(), "worker")
     assertEquals(shared.head.path("inputs").get(0).path("name").asText(), "ready")
     assertEquals(shared.head.path("inputs").get(1).path("name").asText(), "resolution")
-    assertEquals(
-      shared.head.path("schemas").get(0).asText(),
-      "temporal.api.nexus.v1.StartOperationResponse"
-    )
     assertEquals(shared.head.path("results").asText(), "Delivery")
     val respond = json
       .path("actions")

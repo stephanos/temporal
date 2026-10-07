@@ -33,7 +33,6 @@ package features.activity
 package standalone
 
 import umpire.*
-import io.temporal.api.workflowservice.v1.*
 import product.ActivityProduct
 import system.{ActivitySystem, StandaloneActivity}
 
@@ -70,17 +69,12 @@ object client extends Client:
     .input(scheduleToStart)
     .input(startToClose)
     .creates(activity)
-    .schema[StartActivityExecutionRequest]
 
   // The four controls are one action because they share a result: on an activity that is over, a
   // control is not found. The result text is metadata of the action, not a domain a state holds.
   val control = action(this)
     .on(activity)
     .input(Inputs.control)
-    .schema[PauseActivityExecutionRequest]
-    .schema[UnpauseActivityExecutionRequest]
-    .schema[RequestCancelActivityExecutionRequest]
-    .schema[TerminateActivityExecutionRequest]
     .results("Delivery")
 
 // The kind's worker actions (../Activity.scala) bound to this activity. The timers and deadlines

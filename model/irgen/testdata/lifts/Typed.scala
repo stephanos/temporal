@@ -19,7 +19,7 @@ import temporal.server.api.testpilot.v1.InstructionOutcome
 import umpire.*
 import umpire.realize.*, temporal.realize.{Role, RoleKind, WorkerInstruction}
 
-val one = action(Actor("caller")).schema[StartActivityExecutionRequest]
+val one = action(Actor("caller"))
 
 enum State derives Finite:
   case idle

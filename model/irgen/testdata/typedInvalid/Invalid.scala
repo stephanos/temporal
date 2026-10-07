@@ -19,7 +19,7 @@ import temporal.server.api.testpilot.v1.InstructionOutcome
 import umpire.*
 import umpire.realize.*
 
-val nonMessage = action("bad", Actor("caller")).schema[String]
+// An action names no message since fn-133.8: testdata/retiredSchema holds that refusal.
 val wrongRequest = Instruction.rpc(
   "endpoint",
   WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION

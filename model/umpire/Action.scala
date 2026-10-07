@@ -1,7 +1,5 @@
 package umpire
 
-import scalapb.{GeneratedMessage, GeneratedMessageCompanion}
-
 // Who takes an action: an object that extends it, `object caller extends Actor`, whose members are
 // the actions it takes, `val start = action(this)`, named after its object with the first letter
 // lowered; or one named in place, `Actor("fixture")`. `system` is reserved for the steps a machine
@@ -37,7 +35,6 @@ final case class ActionDecl(
     actor: Actor,
     on: Option[Entity] = None,
     creates: Option[Entity] = None,
-    schemas: List[String] = Nil,
     inputs: List[String] = Nil,
     results: String = "",
     examples: List[ClassExample] = Nil,
@@ -67,9 +64,12 @@ final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
   infix def on(e: Entity): Action[I] = Action(decl.copy(on = Some(e)))
   infix def creates(e: Entity): Action[I] = Action(decl.copy(creates = Some(e)))
 
-  // The protobuf messages the action carries, by type.
-  def schema[M <: GeneratedMessage](using companion: GeneratedMessageCompanion[M]): Action[I] =
-    Action(decl.copy(schemas = decl.schemas :+ companion.scalaDescriptor.fullName))
+  // Retired (fn-133.8): an action names no protobuf message. What performing a class of it carries
+  // is derived from the realization's binding of the class (tools/umpire/realization, Carriers).
+  inline def schema[M]: Action[I] = compiletime.error(
+    "`.schema[T]` is retired: what a class carries is derived from the realization's binding of " +
+      "it (`perform(class -> instruction)`); delete the schema"
+  )
 
   // The domain of results the action reports, by name.
   infix def results(name: String): Action[I] = Action(decl.copy(results = name))

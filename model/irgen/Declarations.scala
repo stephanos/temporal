@@ -76,8 +76,12 @@ private[irgen] trait Declarations:
       case Apply(Select(inner, "on"), List(e))      => walk(inner).withOn(constString(e))
       case Apply(Select(inner, "creates"), List(e)) => walk(inner).withCreates(constString(e))
       case Apply(Select(inner, "results"), List(n)) => walk(inner).withResults(constString(n))
-      case Apply(TypeApply(Select(inner, "schema"), List(tpt)), _) =>
-        walk(inner).addSchemas(messageDescriptor(tpt.tpe, t).fullName)
+      case Apply(TypeApply(Select(_, "schema"), _), _) | TypeApply(Select(_, "schema"), _) =>
+        fail(
+          t,
+          "`.schema[T]` is retired: what a class carries is derived from the realization's binding " +
+            "of it (`perform(class -> instruction)`); delete the schema"
+        )
       case Apply(Apply(TypeApply(Select(inner, "input"), List(tpt)), List(name)), _) =>
         val a = walk(inner)
         tokens += None

@@ -1,7 +1,7 @@
 package fixture.binding
 
 import umpire.*
-import io.temporal.api.nexus.v1.StartOperationResponse
+// Its actions name no message: a realization binding derives what a class carries (fn-133.8).
 
 enum Outcome derives Finite:
   case accepted
@@ -19,11 +19,9 @@ object worker extends Actor:
   val take = action(this)
     .input(ready)
     .input(resolution)
-    .schema[StartOperationResponse]
     .results("Delivery")
   val respond = action(this)
     .input(resolution)
-    .schema[StartOperationResponse]
     .example(Resolution.failed(false), "NonRetryable")
     .example(Resolution.failed(true), "Retryable")
 object caller extends Actor:

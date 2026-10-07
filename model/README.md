@@ -419,7 +419,7 @@ The IR generator reads what an author wrote, as written:
   `refinement`, `effects`, `monitors`, `rules`, `properties`, `implements`, `queries`); derived
   machines, `object D extends Derived(m.op(…))`, of the derivations `restrict`, `rebind`,
   `extend`, `refining`, `assuming` and `unmonitored`; composition objects; action chains
-  (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `schema`, `results`, `example`);
+  (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `results`, `example`);
   input tokens, `val scheduleToStart = input[Timeout]` declared on an action with
   `.input(scheduleToStart)`, each input named after its token's `val`; classes, `flip`, the
   positional `start(unset, expires, unset)` and `start()`, every input at its domain's first value
@@ -1381,17 +1381,24 @@ the lowering nor Testpilot names a history message.
 
 ### Naming protobuf data in a Model
 
-Actions name message types, and realizations use generated unary method constants and typed field
-selectors. For example:
+Realizations use generated unary method constants and typed field selectors. An action names no
+message type: what performing one of its classes carries is derived from the realization's binding
+of the class, `perform(class -> instruction)` (fn-133.8, `tools/umpire/realization` `Carriers`). A
+call carries its method's request, so `control(pause) -> pauseActivity` carries
+`PauseActivityExecutionRequest` and each control class its own request; a workflow command carries
+the command attributes it sets, a Nexus handler's answer or completion the message it answers with,
+an activity attempt's answer the `RespondActivityTask…Request` the worker sends, and an activity
+script's start the task the worker polls. A fault, a hold or release, a wait and a read carry
+nothing the action owns, and a class no binding performs has no carrier. `.schema[T]` is retired: a
+build refuses it with that diagnostic. For example:
 
 ```scala
-import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
 import umpire.*
 import umpire.realize.*
 import temporal.realize.*
 
-val start = action("start", Actor("caller")).schema[StartActivityExecutionRequest]
+val start = action("start", Actor("caller"))
 val startActivity = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
   field(_.namespace) := workerNamespace
   field(_.activityId) := run
