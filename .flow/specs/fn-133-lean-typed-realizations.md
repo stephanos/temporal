@@ -159,6 +159,8 @@ Paths are fn-132's (`features/activity/standalone`, `features/nexus/{workflow,st
 - No change to the Testpilot IR.
 
 ## Decision Context
+
+[decision] 2026-10-06, DSL batch lane E (implementer, owner away; conductor accepted): no per-call `answers(...)`, which fn-139.8's shared rejection-to-RPC-code table replaces; `release-dispatch` and `start-nexus-operation` stay shared through `aliasOf(target)(instruction)`, so no command id changes; evidence keeps its IR order, so the activity lists `described(fact)` once per fact; the upper-case-instruction and "override equal to base" checks are lifter refusals rather than umpire-lint findings; a class of another machine is refused by the lifter (its Scala type does not carry the machine), while facts and `DescribedStatus` keys are compile errors and a fact case with fields is `everyValue(Fact.case)`; carriers are derived in Go (`tools/umpire/realization.Carriers`) from the existing Performances, with no new IR field; the Nexus control realization is renamed `forgedCompletion` → `forgedControl` (`ForgedCompletion` is retired vocabulary).
 <!-- scope: both -->
 
 - **Kit modules over per-file helpers.** `status`/`awaitStatus` are already duplicated across two features and will be written again by every Describe-backed feature (activity workflow form, schedules). A deep module, one call that hides the read, table, awaits and evidence, removes about 60 lines here and about 25 in the standalone Nexus realization, and it rarely changes.
