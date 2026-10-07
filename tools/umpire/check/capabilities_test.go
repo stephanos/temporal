@@ -1,25 +1,20 @@
 package check
 
-// The claims capability declarations generate, lifted from
-// model/irgen/testdata/lifts/Capabilities.scala: each law the catalog brings a job, a pair of
-// jobs, a legacy job and a job under the fixture's own catalog, named `<machine>.<law>`, with the
-// total the lifter computed for its Query.
+// Claims brought by capability companions, with their query bounds and inert origins.
 
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/ir"
 )
 
-// Each generated Query is admitted with the total the lifter computed, which Go recounts, and each
-// has its answer: the job keeps every law, its functional laws are found from `reach`, the legacy
-// job's override and the fixture catalog's keeps-law hold, and the pair keeps the pair's law.
+// Generated Queries use the bounds their queries sections state, including a per-Property
+// override. Shared sections keep their waivers, and the paired Property needs both capabilities.
 func TestCapabilitiesGeneratedClaims(t *testing.T) {
-	m := lifted(t, "capabilities")
+	m := lifted(t, "capabilitySections")
 	recounted, err := ir.WithTotals(m)
 	require.NoError(t, err)
 	for i, q := range m.GetQueries() {
@@ -30,37 +25,35 @@ func TestCapabilitiesGeneratedClaims(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, c.report.Unsupported())
 	require.Equal(t, map[string]ReceiptKind{
-		"query job job.terminalStatesAreFinal":                Verified,
-		"query job job.closedIsRejectedUniformly":             Verified,
-		"query job job.pausedIsNotDispatched":                 Verified,
-		"query job job.terminateSettles":                      Found,
-		"query job job.cancelIsRequested":                     Found,
-		"query legacyJob legacyJob.closedIsRejectedUniformly": Verified,
-		"query keptJob keptJob.statusStaysClosed":             Verified,
-		"query pair pair.pausedIsNotDispatched":               Verified,
-		"query pair rightNeverHeld":                           Verified,
-		"query job killedWhileQueued":                         Found,
-		"query rogueJob rogueJob.pausedIsNotDispatched":       Counterexample,
+		"query chore chore.sealedIsRefused":             Verified,
+		"query task heldStaysUntaken":                   Verified,
+		"query mirrorPair mirrorPair.sealedStaysSealed": Verified,
+		"query task task.heldIsNotTaken":                Verified,
+		"query task task.sealedIsRefused":               Verified,
+		"query task task.sealedStaysSealed":             Verified,
+		"query taskPair taskPair.heldIsNotTaken":        Verified,
+		"query taskPair taskPair.sealedStaysSealed":     Verified,
 	}, kinds(c.report))
 }
 
-// A Model that breaks a law is rejected with the law's name and the entity's bindings (fn-122 R11):
-// the rogue job's poll dispatches a paused job, so its generated pausedIsNotDispatched fails, and the
-// report reads the law, both capabilities and their bindings from the sidecar.
-func TestCapabilitiesViolationNamesTheLawAndItsBindings(t *testing.T) {
-	path := filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", "capabilities.json")
-	c, err := checkedOnce(lifted(t, "capabilities"))
-	require.NoError(t, err)
-	sidecar, err := ReadLawSidecar(path)
-	require.NoError(t, err)
-	require.NotNil(t, sidecar)
-	violations := LawViolations(c.report, sidecar)
-	require.Len(t, violations, 1)
-	require.True(t, strings.HasPrefix(violations[0], "rogueJob.pausedIsNotDispatched breaks the law "+
-		"pausedIsNotDispatched of Pausable and Pollable (paused = fixture.capabilities.Jobs$.paused, "+
-		"running = fixture.capabilities.Jobs$.running): "), violations[0])
-	witness := receiptOf(t, c.report, "query rogueJob rogueJob.pausedIsNotDispatched").Witness
-	require.Equal(t, []string{"pause", "poll"}, taken(witness))
+func TestCapabilitiesGeneratedPropertiesKeepTheirOrigin(t *testing.T) {
+	m := lifted(t, "capabilitySections")
+	origins := map[string]string{}
+	for _, property := range m.GetProperties() {
+		if property.GetOrigin() != nil {
+			origins[property.GetName()] = property.GetOrigin().GetName()
+			require.NotEmpty(t, property.GetOrigin().GetPosition().GetFile(), property.GetName())
+		}
+	}
+	require.Equal(t, map[string]string{
+		"chore.sealedIsRefused":        "fixture.capabilitysections.Sealable.sealedIsRefused",
+		"mirrorPair.sealedStaysSealed": "fixture.capabilitysections.Sealable.sealedStaysSealed",
+		"task.heldIsNotTaken":          "fixture.capabilitysections.Holdable.heldIsNotTaken",
+		"task.sealedIsRefused":         "fixture.capabilitysections.Sealable.sealedIsRefused",
+		"task.sealedStaysSealed":       "fixture.capabilitysections.Sealable.sealedStaysSealed",
+		"taskPair.heldIsNotTaken":      "fixture.capabilitysections.Holdable.heldIsNotTaken",
+		"taskPair.sealedStaysSealed":   "fixture.capabilitysections.Sealable.sealedStaysSealed",
+	}, origins)
 }
 
 // The law sidecar the lifter writes beside an IR file, and the accepted lint findings an author
@@ -76,7 +69,7 @@ func TestIRPathsLeaveOutLawSidecarsAndAcceptedFindings(t *testing.T) {
 	require.Equal(t, []string{filepath.Join(dir, "activity-standalone.json"), filepath.Join(dir, "nexus.json")}, paths)
 }
 
-// The standalone Nexus operation, the laws' second entity, receives them without listing them:
+// The standalone Nexus operation receives its companions' Properties without listing them:
 // its terminal statuses are final, its own reading of closed rejection (a repeated request id is
 // answered OK) holds, and its functional laws are found from its start (fn-122 R6, R11).
 func TestNexusOperationReceivesTheLaws(t *testing.T) {
@@ -93,8 +86,17 @@ func TestNexusOperationReceivesTheLaws(t *testing.T) {
 		"query nexusSystem nexusSystem.terminateSettles":          Found,
 		"query nexusSystem nexusSystem.cancelIsRequested":         Found,
 	}, kinds(c.report))
-	sidecar, err := ReadLawSidecar(path)
-	require.NoError(t, err)
-	require.NotNil(t, sidecar)
-	require.Empty(t, LawViolations(c.report, sidecar))
+	origins := map[string]string{}
+	for _, property := range m.GetProperties() {
+		if property.GetOrigin() != nil {
+			origins[property.GetName()] = property.GetOrigin().GetName()
+			require.NotEmpty(t, property.GetOrigin().GetPosition().GetFile(), property.GetName())
+		}
+	}
+	require.Equal(t, map[string]string{
+		"nexusSystem.terminalStatesAreFinal":    "temporal.capabilities.Closable.terminalStatesAreFinal",
+		"nexusSystem.closedIsRejectedUniformly": "temporal.capabilities.Closable.closedIsRejectedUniformly",
+		"nexusSystem.terminateSettles":          "temporal.capabilities.Terminable.terminateSettles",
+		"nexusSystem.cancelIsRequested":         "temporal.capabilities.Cancelable.cancelIsRequested",
+	}, origins)
 }

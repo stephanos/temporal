@@ -6,7 +6,7 @@ package system
 import scala.annotation.unused
 import umpire.*
 import umpire.realize.Reason
-import temporal.capabilities.{given, *}
+import temporal.capabilities.*
 import temporal.realize.inconclusive
 import temporal.shared.Bounds.three
 
@@ -49,6 +49,10 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
 
     // Every phase after the start, live or over: the phases a control is answered in.
     def created(p: Phase): Boolean = live(p) || terminal(p)
+
+    // A control that repeats an accepted request id is answered OK even after close.
+    val repeatedRequestsAnswer =
+      "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate"
 
   object refinement extends Refinement(product.NexusProduct):
     def toProduct(s: State): product.State = s.phase match
@@ -148,39 +152,33 @@ object NexusSystem extends Machine[State, Outcome, Fact]:
   // the operation, which no handler answers, so it stays running, then takes the control. A Run
   // explains an unobserved control of a closed operation too, which records nothing, so a Run of a
   // terminate or cancel find leaves the claim inconclusive: its explanations disagree.
-  object implements
-      extends Implements(limits = three)(
-        Closable(
-          status = states.phase,
-          terminal = states.terminal,
-          rejected = cited(Outcome.alreadyCompleted, "chasm/lib/nexusoperation/operation.go")
-        ),
-        Terminable(
-          terminate = client.terminate,
-          settled = Fact.nexusOperationTerminated,
-          reach = Seq(client.start),
-          expect = inconclusive(Reason.explanationsDisagree)
-        ),
-        Cancelable(
-          requestCancel = client.requestCancel,
-          requested = Fact.statusCancelRequested,
-          reach = Seq(client.start),
-          expect = inconclusive(Reason.explanationsDisagree)
-        ),
-        Describable(status = operationStatus)
-      ):
-    // Why the operation overrides closedIsRejectedUniformly: the server answers a control that
-    // repeats a request id the operation took OK, after it closed too (operation.go RequestCancel,
-    // Terminate).
-    val repeatedRequestsAnswer =
-      "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate"
-
+  object capabilities extends Capabilities:
+    val closable: Capability = Closable(
+      status = states.phase,
+      terminal = states.terminal,
+      rejected = Outcome.alreadyCompleted
+    )
+    val terminable: Capability = Terminable(
+      terminate = client.terminate,
+      settled = Fact.nexusOperationTerminated,
+      reach = Seq(client.start),
+      expect = inconclusive(Reason.explanationsDisagree)
+    )
+    val cancelable: Capability = Cancelable(
+      requestCancel = client.requestCancel,
+      requested = Fact.statusCancelRequested,
+      reach = Seq(client.start),
+      expect = inconclusive(Reason.explanationsDisagree)
+    )
+    val describable: Capability = Describable(statusTable = operationStatus)
     overriding(
-      closedIsRejectedUniformly -> properties.closedRejectsOrRepeats,
-      because = repeatedRequestsAnswer
+      Closable.closedIsRejectedUniformly -> properties.closedRejectsOrRepeats,
+      because = states.repeatedRequestsAnswer
     )
 
   object queries:
+    capabilities.bound(three)
+
     val asyncThenSucceeded = scenario.actions(
       client.start,
       handler.reply(Reply.async),

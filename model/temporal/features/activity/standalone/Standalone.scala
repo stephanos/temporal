@@ -102,8 +102,8 @@ object exports:
   val activityStandalone = irFile("activity-standalone")(
     StandaloneActivity,
     ActivityProduct,
-    ActivityProduct.implements,
-    ActivitySystem.implements,
+    ActivityProduct.capabilities,
+    ActivitySystem.capabilities,
     ActivitySystem.queries,
     StandaloneActivity.queries,
     system.Standalone

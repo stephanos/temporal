@@ -11,7 +11,7 @@ package system
 import scala.annotation.unused
 import umpire.*
 import umpire.realize.Reason
-import temporal.capabilities.{given, *}
+import temporal.capabilities.*
 import temporal.realize.{inconclusive, satisfied}
 import shared.Bounds.{four, three}
 import shared.worker.{worker as process, Phase as WorkerPhase, State as WorkerState}
@@ -304,28 +304,28 @@ object ActivitySystem extends Machine[State, Outcome, Fact]:
   // too, which answers notFound and records nothing, so the claim's explanations disagree. It reads
   // the realization, which reads this machine, so it waits in a section, which initializes on its
   // first use.
-  object implements
-      extends Implements(limits = three)(
-        Terminable(
-          terminate = client.control(Control.terminate),
-          settled = Fact.statusTerminated,
-          reach = Seq(client.start(), process.stop),
-          expect = inconclusive(Reason.explanationsDisagree)
-        ),
-        Cancelable(
-          requestCancel = client.control(Control.requestCancel),
-          requested = Fact.statusCancelRequested,
-          reach = Seq(client.start(), process.stop),
-          expect = inconclusive(Reason.explanationsDisagree)
-        ),
-        Describable(status = activityStatus)
-      )
+  object capabilities extends Capabilities:
+    val terminable: Capability = Terminable(
+      terminate = client.control(Control.terminate),
+      settled = Fact.statusTerminated,
+      reach = Seq(client.start(), process.stop),
+      expect = inconclusive(Reason.explanationsDisagree)
+    )
+    val cancelable: Capability = Cancelable(
+      requestCancel = client.control(Control.requestCancel),
+      requested = Fact.statusCancelRequested,
+      reach = Seq(client.start(), process.stop),
+      expect = inconclusive(Reason.explanationsDisagree)
+    )
+    val describable: Capability = Describable(statusTable = activityStatus)
 
   // The paths, then one functional Query per side effect that settles the activity, and the Queries
   // that carry the other promises into the lifted Model. Each path starts before the activity exists;
   // a start that sets no deadline is `start()`, each input at `unset`. A path one Query takes is
   // written in it.
   object queries:
+    capabilities.bound(three)
+
     val cancelRequestedThenCanceled = scenario.actions(
       client.start(),
       worker.poll,

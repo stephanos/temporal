@@ -1,105 +1,86 @@
 package temporal.capabilities
-// The two-entity rule of the catalog, run as Scala.
+// Every shared capability Property has two machines with their own state types.
 
-import umpire.{CapabilityKind, Catalog, Law}
+import umpire.{Capabilities, CapabilityKind, CapabilityOf, Machine, Property}
+import temporal.features.activity.standalone.{product, system}
+import temporal.features.nexus.standalone.system.NexusSystem
 
-// Every law of the catalog has at least two instantiating entities: machines, each with its own
-// state type, that declare the capabilities bringing it. A composition reading a member's capability
-// through its projection, and a machine derived from another, share a counted machine's state type
-// and so do not count again.
-//
-// The declarations counted are the ones the activity and the Nexus operation Models declare, as
-// model/ir/<file>.laws.json lists them for each law; they are written here because a Model test reads
-// no lifted output.
 class CatalogTest extends munit.FunSuite:
-  // A machine that declares capabilities: its name, the state type it owns, what it declares.
-  final case class Declaring(machine: String, state: String, capabilities: Set[CapabilityKind])
+  final case class Brought(name: String, by: Set[CapabilityKind])
+  final case class Declared(machine: String, state: String, capabilities: Set[String])
 
-  val declared: Seq[Declaring] = Seq(
-    Declaring(
-      "activityProduct",
-      "temporal.features.activity.standalone.product.State",
-      Set(Closable, Pausable, Pollable)
-    ),
-    Declaring("activityRecord", "AdmissionState", Set(Closable, Pausable, Pollable)),
-    // Derived from activityRecord by rebinding its dispatch: one entity with it.
-    Declaring("trustingActivityRecord", "AdmissionState", Set(Closable, Pausable, Pollable)),
-    // Reads the record through its `activity` member: the record's entity again.
-    Declaring("recordOverQueue", "AdmissionState", Set(Closable, Pausable, Pollable)),
-    Declaring(
-      "activitySystem",
-      "temporal.features.activity.standalone.system.State",
-      Set(Terminable, Cancelable, Describable)
-    ),
-    // The standalone Nexus operation (model/temporal/features/nexus/standalone).
-    Declaring(
-      "nexusOperation",
-      "OperationState",
-      Set(Closable, Terminable, Cancelable, Describable)
-    )
+  val companions = Seq(Closable, Terminable, Cancelable, Pausable, Pollable, Describable)
+  val properties = Seq(
+    Brought("Closable.terminalStatesAreFinal", Set(Closable)),
+    Brought("Closable.closedIsRejectedUniformly", Set(Closable)),
+    Brought("Terminable.terminateSettles", Set(Terminable)),
+    Brought("Cancelable.cancelIsRequested", Set(Cancelable)),
+    Brought("Pausable.pausedIsNotDispatched", Set(Pausable, Pollable))
   )
 
-  // The state types of the machines that instantiate a law brought by `by`.
-  def instantiating(by: Set[CapabilityKind], declared: Seq[Declaring]): Seq[String] =
-    declared.filter(d => by.subsetOf(d.capabilities)).map(_.state).distinct
+  def declaring[S, O, F](m: Machine[S, O, F], section: Capabilities[S, O, F]): Declared =
+    val kinds = section.getClass.getMethods
+      .filter(method => classOf[CapabilityOf[?, ?, ?]].isAssignableFrom(method.getReturnType))
+      .map(_.invoke(section).getClass.getSimpleName)
+      .toSet
+    Declared(m.name, m.init.getClass.getName, kinds)
 
-  // Each law of `catalog` with fewer than two instantiating entities, by name.
-  def underInstantiated(catalog: Catalog, declared: Seq[Declaring]): Vector[String] =
-    catalog.entries.flatMap { b =>
-      val entities = instantiating(b.by, declared)
-      Option.when(entities.size < 2)(
-        s"${b.law.name} is instantiated by ${entities.size} machine(s) with their own state " +
-          s"type (${entities.mkString(", ")}): a law joins the catalog with two"
+  val declared = Seq(
+    declaring(product.ActivityProduct, product.ActivityProduct.capabilities),
+    declaring(system.ActivityRecord, system.ActivityRecord.capabilities),
+    declaring(system.TrustingActivityRecord, system.TrustingActivityRecord.capabilities),
+    declaring(system.ActivitySystem, system.ActivitySystem.capabilities),
+    declaring(NexusSystem, NexusSystem.capabilities)
+  )
+
+  def instantiating(p: Brought, machines: Seq[Declared]): Seq[String] =
+    machines.filter(d => p.by.map(_.name).subsetOf(d.capabilities)).map(_.state).distinct
+
+  def underInstantiated(claims: Seq[Brought], machines: Seq[Declared]): Seq[String] =
+    claims.flatMap { p =>
+      val states = instantiating(p, machines)
+      Option.when(states.size < 2)(
+        s"${p.name} is brought to ${states.size} machine(s) with their own state type " +
+          s"(${states.mkString(", ")}): a capability Property needs two"
       )
     }
 
-  test("every law of the Temporal catalog has two instantiating machines among the declared ones") {
-    assertEquals(underInstantiated(catalog, declared), Vector.empty)
+  test("capability companions define the Properties they bring") {
+    val defined = companions.flatMap { companion =>
+      companion.getClass.getDeclaredMethods
+        .filter(_.getReturnType == classOf[Property[?]])
+        .map(method => s"${companion.name}.${method.getName}")
+    }
+    assertEquals(defined.sorted, properties.map(_.name).sorted)
+    assertEquals(defined.distinct.size, defined.size)
   }
 
-  test("a law with one instantiating machine fails by its name; derived machines count once") {
-    object describedWhilePaused extends Law(Nil, "", "")
-    val lonely = describedWhilePaused
-    val failing = Catalog.pair(Pausable, Describable)(lonely)
+  test("every capability Property has two declared machines with their own state types") {
+    assertEquals(underInstantiated(properties, declared), Seq.empty)
+  }
+
+  test("a Property brought to one state type fails by name; derived machines count once") {
+    val record = declared.filter(_.state == classOf[system.AdmissionState].getName)
+    assertEquals(record.map(_.machine), Seq("activityRecord", "trustingActivityRecord"))
     assertEquals(
-      instantiating(Set(Closable), declared),
+      underInstantiated(properties.filter(_.by == Set(Closable)), record),
       Seq(
-        "temporal.features.activity.standalone.product.State",
-        "AdmissionState",
-        "OperationState"
+        "Closable.terminalStatesAreFinal is brought to 1 machine(s) with their own state type " +
+          "(temporal.features.activity.standalone.system.AdmissionState): a capability Property needs two",
+        "Closable.closedIsRejectedUniformly is brought to 1 machine(s) with their own state type " +
+          "(temporal.features.activity.standalone.system.AdmissionState): a capability Property needs two"
       )
     )
+  }
+
+  test("Pausable's dispatch Property needs Pollable as well") {
+    val dispatch = properties.find(_.name == "Pausable.pausedIsNotDispatched").get
     assertEquals(
-      underInstantiated(failing, declared),
-      Vector(
-        "describedWhilePaused is instantiated by 0 machine(s) with their own state type (): a law " +
-          "joins the catalog with two"
-      )
+      instantiating(dispatch, Seq(Declared("pausedOnly", "Paused", Set("Pausable")))),
+      Seq.empty
     )
-    val record = declared.filter(_.state == "AdmissionState")
-    assertEquals(underInstantiated(Catalog.single(Closable)(lonely), record).size, 1)
-  }
-
-  test("a machine receives the law of a pair it declares both of, without naming the pair") {
-    val product = declared.head.capabilities
-    assert(catalog.laws(product).map(_.name).contains("pausedIsNotDispatched"))
-    assert(!catalog.laws(Set(Pausable)).map(_.name).contains("pausedIsNotDispatched"))
-  }
-
-  test("no two laws share a name, which generated claims take as `<machine>.<law>`") {
-    val names = catalog.entries.map(_.law.name)
-    assertEquals(names.distinct, names)
-  }
-
-  test("a law is named after its object, which generated claims are named after") {
     assertEquals(
-      catalog.entries.map(_.law.name).sorted,
-      Vector(
-        "cancelIsRequested",
-        "closedIsRejectedUniformly",
-        "pausedIsNotDispatched",
-        "terminalStatesAreFinal",
-        "terminateSettles"
-      )
+      instantiating(dispatch, declared),
+      Seq(classOf[product.State].getName, classOf[system.AdmissionState].getName)
     )
   }

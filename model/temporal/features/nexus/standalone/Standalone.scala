@@ -47,7 +47,7 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 object exports:
   val nexusStandalone = irFile("nexus-standalone")(
     NexusSystem,
-    NexusSystem.implements,
+    NexusSystem.capabilities,
     NexusSystem.queries,
     Standalone
   )

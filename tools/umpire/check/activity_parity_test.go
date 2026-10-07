@@ -1,7 +1,6 @@
 package check
 
 import (
-	"encoding/json"
 	"maps"
 	"os"
 	"path/filepath"
@@ -52,9 +51,8 @@ func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 // system/System.scala, in the `properties`, `laws` and `queries` objects of its machine objects,
 // beside the system contract's that are written there once: the competing timers'. Every
 // declaration there is lifted, into the activity root or the system contract's, and every claim the
-// activity root lifts is declared there. A capability declaration declares, for each law of the
-// catalog whose capabilities it names, the law's Property, Scenario and Query, each named
-// `<machine>.<law>`.
+// activity root lifts is declared there. A capabilities section brings its companions' Properties,
+// each with a Scenario and Query named `<machine>.<property>`.
 func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	dir := filepath.Join("..", "..", "..", "model", "temporal", "features", "activity", "standalone")
 	files := []string{"product/Product.scala", "system/System.scala"}
@@ -75,72 +73,37 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	for _, match := range regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*\(?\s*(?:(query)\b|(?:\w+\.)?(property|scenario)\b)`).FindAllStringSubmatch(string(source), -1) {
 		declared = append(declared, match[2]+match[3]+" "+match[1])
 	}
-	// A law's instance is named after the val that declares its call: `val terminalIsFinal =
-	// terminalStatesAreFinal(activityProduct)(…)`.
-	laws := []string{}
-	for _, file := range []string{"Close.scala", "Pause.scala", "Terminate.scala", "Cancel.scala"} {
-		text, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "temporal", "capabilities", file))
-		require.NoError(t, err)
-		for _, match := range regexp.MustCompile(`(?m)^object (\w+)\b`).FindAllStringSubmatch(string(text), -1) {
-			laws = append(laws, match[1])
-		}
+	capabilityProperties := map[string][]string{
+		"terminalStatesAreFinal":    {"Closable"},
+		"closedIsRejectedUniformly": {"Closable"},
+		"pausedIsNotDispatched":     {"Pausable", "Pollable"},
+		"terminateSettles":          {"Terminable"},
+		"cancelIsRequested":         {"Cancelable"},
 	}
-	require.NotEmpty(t, laws)
-	law := regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*(?:\w+\.)*(` + strings.Join(laws, "|") + `)\(`)
-	for _, match := range law.FindAllStringSubmatch(string(source), -1) {
-		declared = append(declared, "property "+match[1])
-	}
-	// The catalog says which capabilities each law reads; a declaration's own capabilities are the
-	// constructors it calls at the top of its argument list.
-	var catalog struct {
-		Catalog []struct {
-			Law          string   `json:"law"`
-			Capabilities []string `json:"capabilities"`
-		} `json:"catalog"`
-	}
-	encoded, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.laws.json"))
-	require.NoError(t, err)
-	require.NoError(t, json.Unmarshal(encoded, &catalog))
-	require.NotEmpty(t, catalog.Catalog)
-	// A machine object declares its own capabilities in its `implements` section,
-	// `object implements extends Implements(limits = ...)(...)`, named after the object it sits in.
-	capabilityDeclarations := regexp.MustCompile(`(?m)^[ \t]*object implements\s+extends Implements\([^)]*\)\(`).FindAllStringSubmatchIndex(string(source), -1)
-	require.Len(t, capabilityDeclarations, 2, "the product's and the protocol's")
+	// Each capabilities section brings its companions' Properties; the two-capability Property
+	// needs both declared kinds. The Scala test holds this list to the companions' definitions.
+	sections := regexp.MustCompile(`(?ms)^[ \t]*object capabilities extends Capabilities:\n(.*?)(?:^[ \t]*object queries:|\z)`).FindAllStringSubmatchIndex(string(source), -1)
+	require.Len(t, sections, 2, "the product's and the protocol's")
 	objects := regexp.MustCompile(`(?m)^object (\w+) extends Machine\b`).FindAllSubmatchIndex(source, -1)
-	for _, at := range capabilityDeclarations {
+	for _, section := range sections {
 		machine := ""
-		for _, o := range objects {
-			if o[0] < at[0] {
-				name := string(source[o[2]:o[3]])
+		for _, object := range objects {
+			if object[0] < section[0] {
+				name := string(source[object[2]:object[3]])
 				machine = strings.ToLower(name[:1]) + name[1:]
 			}
 		}
 		require.NotEmpty(t, machine)
 		named := map[string]bool{}
-		argument, depth := at[1], 1
-		for i := argument; depth > 0; i++ {
-			switch source[i] {
-			case '(':
-				if depth == 1 {
-					constructor := regexp.MustCompile(`(\w+)\s*$`).FindSubmatch(source[argument:i])
-					require.NotNil(t, constructor, machine)
-					named[string(constructor[1])] = true
-				}
-				depth++
-			case ')':
-				depth--
-			case ',':
-				if depth == 1 {
-					argument = i + 1
-				}
-			default:
-			}
+		body := string(source[section[2]:section[3]])
+		for _, match := range regexp.MustCompile(`val \w+: Capability\s*=\s*(\w+)\(`).FindAllStringSubmatch(body, -1) {
+			named[match[1]] = true
 		}
 		require.NotEmpty(t, named, machine)
-		for _, entry := range catalog.Catalog {
-			if !slices.ContainsFunc(entry.Capabilities, func(c string) bool { return !named[c] }) {
+		for property, required := range capabilityProperties {
+			if !slices.ContainsFunc(required, func(kind string) bool { return !named[kind] }) {
 				for _, kind := range []string{"property", "scenario", "query"} {
-					declared = append(declared, kind+" "+machine+"."+entry.Law)
+					declared = append(declared, kind+" "+machine+"."+property)
 				}
 			}
 		}
@@ -153,6 +116,11 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 		// system/WithTaskQueue.scala and the task queue, are not these files'.
 		here := func(p *umpirespb.Position) bool { return m != system || at[p.GetFile()] }
 		for _, p := range m.GetProperties() {
+			if strings.HasPrefix(p.GetName(), p.GetMachine()+".") {
+				require.NotNil(t, p.GetOrigin(), p.GetName())
+				require.True(t, strings.HasPrefix(p.GetOrigin().GetName(), "temporal.capabilities."), p.GetName())
+				require.NotEmpty(t, p.GetOrigin().GetPosition().GetFile(), p.GetName())
+			}
 			if here(p.GetPosition()) {
 				lifted["property "+p.GetName()] = true
 			}

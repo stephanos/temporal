@@ -13,7 +13,7 @@
 // and monitors every design reads; TrustingActivityRecord, the deliberately faulty design derived from it;
 // HeldDispatch, the held race a server is run through; LostStartAnswer, a lost admission
 // response. Each reads its header, then its sections in order: states, refinement, effects,
-// monitors, rules, properties, implements and queries.
+// monitors, rules, properties, capabilities and queries.
 package temporal
 package features.activity
 package standalone
@@ -22,7 +22,7 @@ package system
 import umpire.*
 import umpire.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
 import umpire.realize.{Reason, RunExpectation}
-import temporal.capabilities.{given, *}
+import temporal.capabilities.*
 import temporal.realize.satisfied
 import shared.Bounds.{four, three}
 import product.ActivityProduct
@@ -76,6 +76,22 @@ final case class AdmissionClaims(
     startDeadline: Property[AdmissionState],
     closeDeadline: Property[AdmissionState]
 )
+
+abstract class AdmissionCapabilities(using Declaring[AdmissionState, Outcome, AdmissionFact])
+    extends Capabilities:
+  val closable: Capability = Closable(
+    status = ActivityRecord.states.phase,
+    terminal = ActivityRecord.states.terminal,
+    rejected = Outcome.notFound
+  )
+  val pausable: Capability = Pausable(
+    pause = client.control(Control.pause),
+    unpause = client.control(Control.unpause),
+    paused = ActivityRecord.states.paused
+  )
+  val pollable: Capability =
+    Pollable(dispatch = worker.poll, running = ActivityRecord.states.running)
+  except(Closable.closedIsRejectedUniformly, because = ActivityRecord.states.deliveryAfterClose)
 
 // ### Signature
 
@@ -252,8 +268,10 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
     def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
       m.property("atMostOneActive").never(s => twoActive(s.state))
 
-    def admissionClaims(m: Machine[State, Outcome, AdmissionFact]) =
-      val declared = implements.admissionCapabilities(m)
+    def admissionClaims(
+        m: Machine[State, Outcome, AdmissionFact],
+        declared: Capabilities[State, Outcome, AdmissionFact]
+    ) =
       val scheduleToStartTimesOut = m.property when deadline.scheduleToStart holds (after =>
         after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart))
       )
@@ -261,33 +279,17 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
         after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToClose))
       )
       AdmissionClaims(
-        declared.claim(pausedIsNotDispatched),
+        declared.claim(Pausable.pausedIsNotDispatched),
         atMostOneActive(m)(states.twoActive),
         scheduleToStartTimesOut,
         scheduleToCloseTimesOut
       )
 
-  // What an admission design is as the laws of model/temporal/capabilities read it, the record as a
-  // machine of its own: it closes, it pauses before an attempt is admitted, and its work is handed out
-  // by a worker's poll. Its free Queries run within `five`, as the history record's did. It waives
-  // closedIsRejectedUniformly, the one law the record does not keep.
-  object implements:
-    def admissionCapabilities(m: Machine[State, Outcome, AdmissionFact]) =
-      capabilities(m, limits = five)(
-        Closable(
-          status = states.phase,
-          terminal = states.terminal,
-          rejected = Outcome.notFound
-        ),
-        Pausable(
-          pause = client.control(Control.pause),
-          unpause = client.control(Control.unpause),
-          paused = states.paused
-        ),
-        Pollable(dispatch = worker.poll, running = states.running)
-      ).except(closedIsRejectedUniformly, because = states.deliveryAfterClose)
+  object capabilities extends AdmissionCapabilities
 
   object queries:
+    capabilities.bound(five)
+
     // The System's own deadlines, which the record's IR file carries: neither is ordered before
     // the other, so each firing is a trace of its own. Both deadlines are set and no attempt started,
     // so either may fire first.
@@ -301,8 +303,11 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
     )
 
     // Every claim and path, declared on the design `m`, since each belongs to one machine.
-    def admissionQueries(m: Machine[State, Outcome, AdmissionFact]) =
-      val claims = properties.admissionClaims(m)
+    def admissionQueries(
+        m: Machine[State, Outcome, AdmissionFact],
+        declared: Capabilities[State, Outcome, AdmissionFact]
+    ) =
+      val claims = properties.admissionClaims(m, declared)
       val staleDeliveryAfterPause =
         m.scenario.actions(history.dispatch, client.control(Control.pause), worker.poll)
       val admittedBeforePause =
@@ -339,7 +344,7 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
           scheduleToCloseFirst limits three,
         // The product's own Property, read through the design's declared refinement.
         query(s"${m.name}.product.pausedIsNotDispatched")
-          .verify(ActivityProduct.implements.claim(pausedIsNotDispatched))
+          .verify(ActivityProduct.capabilities.claim(Pausable.pausedIsNotDispatched))
           .in(staleDeliveryAfterPause) limits three
       )
 
@@ -352,7 +357,7 @@ object ActivityRecord extends Machine[AdmissionState, Outcome, AdmissionFact]:
         bothDeadlinesCloseFirst limits three
     )
 
-    val activityRecordQueries = admissionQueries(ActivityRecord)
+    val activityRecordQueries = admissionQueries(ActivityRecord, capabilities)
 
 // ### The deliberately faulty design: admission trusts the eligibility the message was sent with,
 // so every delivery is admitted as one that meets a scheduled activity is.
@@ -362,9 +367,11 @@ object TrustingActivityRecord
       ActivityRecord.rebind(on(worker.poll)(always ~> ActivityRecord.effects.admit))
     ),
       NegativeControl:
+  object capabilities extends AdmissionCapabilities
   object queries:
+    capabilities.bound(five)
     val trustingActivityRecordQueries =
-      ActivityRecord.queries.admissionQueries(TrustingActivityRecord)
+      ActivityRecord.queries.admissionQueries(TrustingActivityRecord, capabilities)
 
 // ### The held race, run against a server. The stale message is held at the dispatch cut while the
 // pause commits, then delivered. The race is declared on the corrected design the server is

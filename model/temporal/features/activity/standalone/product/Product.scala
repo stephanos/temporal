@@ -8,7 +8,7 @@ package standalone
 package product
 
 import umpire.*
-import temporal.capabilities.{given, *}
+import temporal.capabilities.*
 import shared.Bounds.three
 import shared.worker.worker as process
 
@@ -54,7 +54,6 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
     val running = is(phase == started)
     val held = is(phase.in[Held])
     val pausable = is(phase.in(scheduled, started))
-    val notFoundCode = "chasm/lib/activity/activity.go"
 
   object effects:
     val startAttempt = effect { phase = started }
@@ -99,17 +98,18 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
     disabled(process.stop)
     on(timers.timeout)(in(scheduled, started, paused, cancelRequested) ~> effects.timeOut)
 
-  object implements
-      extends Implements(limits = three)(
-        Closable(
-          status = states.status,
-          terminal = states.terminal,
-          rejected = cited(Outcome.notFound, states.notFoundCode)
-        ),
-        Pausable(
-          pause = client.control(Control.pause),
-          unpause = client.control(Control.unpause),
-          paused = states.paused
-        ),
-        Pollable(dispatch = worker.poll, running = states.running)
-      )
+  object capabilities extends Capabilities:
+    val closable: Capability = Closable(
+      status = states.status,
+      terminal = states.terminal,
+      rejected = Outcome.notFound
+    )
+    val pausable: Capability = Pausable(
+      pause = client.control(Control.pause),
+      unpause = client.control(Control.unpause),
+      paused = states.paused
+    )
+    val pollable: Capability = Pollable(dispatch = worker.poll, running = states.running)
+
+  object queries:
+    capabilities.bound(three)
