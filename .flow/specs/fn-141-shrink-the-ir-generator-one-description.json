@@ -1,6 +1,11 @@
 {
   "branch_name": "fn-141-shrink-the-ir-generator-one-description",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-06T19:12:35.186879Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-133-lean-typed-realizations",
     "fn-134-capabilities-own-their-properties",
@@ -11,9 +16,12 @@
     "fn-140-one-sentence-witness-queries-with"
   ],
   "id": "fn-141-shrink-the-ir-generator-one-description",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-141-shrink-the-ir-generator-one-description.md",
   "status": "open",
   "title": "Shrink the IR generator: one description of each DSL construct",
@@ -28,5 +36,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T19:12:53.904308Z"
+  "updated_at": "2026-10-07T17:44:13.395728Z"
 }
