@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-136-phase-roles-on-lifecycle-enums",
   "spec_path": ".flow/tasks/fn-136-phase-roles-on-lifecycle-enums.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retire role-set states predicates; callers read roles directly (bounded IR change)",
   "updated_at": "2026-10-06T17:27:46.959190Z"
 }

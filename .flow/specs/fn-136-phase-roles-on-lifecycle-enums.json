@@ -145,7 +145,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-136-phase-roles-on-lifecycle-enums.md",
-  "status": "open",
+  "status": "done",
   "title": "Phase roles on lifecycle enums",
   "tracker": {
     "baseHashFlow": null,
@@ -158,5 +158,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T17:27:47.448360Z"
+  "updated_at": "2026-10-07T16:52:25.104416Z"
 }

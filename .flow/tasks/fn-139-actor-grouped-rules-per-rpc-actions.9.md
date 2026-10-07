@@ -22,9 +22,12 @@ Trace the existing Case/program coordinates through `tools/umpire/conformance/` 
 
 
 ## Done summary
-TBD
+Correlated every performed RPC witness step with its lowered instruction result and enforced the realization-exported rejection-to-gRPC-code mapping. Accepted steps require success; rejected steps require protocol failure with the mapped code; mismatches name expected and observed codes and never compare message text.
 
+The integration audit added separator-insensitive normalization matching Testpilot's recorded `codes.Code.String()` spelling and made the Temporal check explicitly opt-in through rejection metadata, so generic realizations retain their own outcome vocabulary. Focused tests cover exact and mismatched rejection codes, accepted-with-error, rejected-with-OK, repeated performed instructions, and the generic no-metadata path.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d380d2b1ee, a58929556b
+- Tests: PASS: go test ./tools/umpire/conformance, PASS: mise exec -- go test -json ./tools/umpire/..., PASS: make umpire-gen-model, PASS: make umpire-check-live-tests (87 identities, empty failure set), PASS: TestTestpilotNexusCallerScheduleToStartTimeout count=10 across HSM and CHASM
 - PRs:

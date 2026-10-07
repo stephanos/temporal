@@ -86,7 +86,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-139-actor-grouped-rules-per-rpc-actions.md",
-  "status": "open",
+  "status": "done",
   "title": "Actor-grouped rules, per-RPC actions, shared rejections",
   "tracker": {
     "baseHashFlow": null,
@@ -99,5 +99,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T18:25:18.800251Z"
+  "updated_at": "2026-10-07T16:52:19.037146Z"
 }

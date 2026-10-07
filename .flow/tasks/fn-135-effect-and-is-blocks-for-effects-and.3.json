@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-135-effect-and-is-blocks-for-effects-and",
   "spec_path": ".flow/tasks/fn-135-effect-and-is-blocks-for-effects-and.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lift effect { } blocks with their statement refusals",
   "updated_at": "2026-10-06T16:23:08.195729Z"
 }

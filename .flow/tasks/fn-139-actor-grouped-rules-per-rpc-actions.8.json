@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-139-actor-grouped-rules-per-rpc-actions",
   "spec_path": ".flow/tasks/fn-139-actor-grouped-rules-per-rpc-actions.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Export shared rejection-to-RPC status mapping",
   "updated_at": "2026-10-07T09:29:08.800206Z"
 }

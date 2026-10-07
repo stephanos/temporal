@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-136-phase-roles-on-lifecycle-enums",
   "spec_path": ".flow/tasks/fn-136-phase-roles-on-lifecycle-enums.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "in[R] and p.is[R]: short role-test spellings, lifted like in(...) and isInstanceOf",
   "updated_at": "2026-10-06T17:27:46.481710Z"
 }

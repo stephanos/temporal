@@ -384,7 +384,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-135-effect-and-is-blocks-for-effects-and.md",
-  "status": "open",
+  "status": "done",
   "title": "effect { } and is { } blocks for effects and predicates",
   "tracker": {
     "baseHashFlow": null,
@@ -397,5 +397,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T18:02:18.861520Z"
+  "updated_at": "2026-10-07T16:52:24.826324Z"
 }

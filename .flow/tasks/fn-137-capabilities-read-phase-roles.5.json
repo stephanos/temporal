@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-137-capabilities-read-phase-roles",
   "spec_path": ".flow/tasks/fn-137-capabilities-read-phase-roles.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Default end for Phased objects (needs fn-136's Closed role)",
   "updated_at": "2026-10-06T16:49:36.975476Z"
 }

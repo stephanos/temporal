@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-135-effect-and-is-blocks-for-effects-and",
   "spec_path": ".flow/tasks/fn-135-effect-and-is-blocks-for-effects-and.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Status declarations on phase cases: derived facts, lifting and refusals",
   "updated_at": "2026-10-06T18:02:11.354856Z"
 }

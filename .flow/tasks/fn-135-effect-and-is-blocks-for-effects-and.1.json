@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-135-effect-and-is-blocks-for-effects-and",
   "spec_path": ".flow/tasks/fn-135-effect-and-is-blocks-for-effects-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "effect, is, record and reject(outcome) sugar in umpire",
   "updated_at": "2026-10-06T16:23:07.184341Z"
 }

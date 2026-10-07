@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-137-capabilities-read-phase-roles",
   "spec_path": ".flow/tasks/fn-137-capabilities-read-phase-roles.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate every Model to Phased and argument-less Rules",
   "updated_at": "2026-10-06T16:49:36.478767Z"
 }

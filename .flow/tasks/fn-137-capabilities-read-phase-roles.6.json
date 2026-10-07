@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-137-capabilities-read-phase-roles",
   "spec_path": ".flow/tasks/fn-137-capabilities-read-phase-roles.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Closable reads the Closed role through Phased (needs fn-134, fn-136)",
   "updated_at": "2026-10-06T17:12:36.219056Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-135-effect-and-is-blocks-for-effects-and",
   "spec_path": ".flow/tasks/fn-135-effect-and-is-blocks-for-effects-and.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Convert ActivityProduct, prove identical IR, update docs",
   "updated_at": "2026-10-06T18:02:18.285184Z"
 }

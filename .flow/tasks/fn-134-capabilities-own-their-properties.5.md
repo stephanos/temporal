@@ -24,9 +24,12 @@ Delete the Go side of laws: the sidecar reader, the law table view, the five law
 - [ ] `go test -tags test_dep -p 2 -timeout 30m ./tools/umpire/...` and `make umpire-check-lint` pass with `model/ir/*.lint.json` unchanged.
 
 ## Done summary
-TBD
+Removed every Go consumer of the retired law sidecar: the check reader, lint law findings and tables, command forwarding, and archived grouping snapshots. The IR directory reader now skips only waiver metadata and deliberately admits a leftover `.laws.json` to normal JSON loading so the retired artifact is refused. Capability waiver metadata remains gate-owned and is preserved by lint without being judged there.
 
+The batch regeneration deleted the sidecars and refreshed the checked IR, lint acceptances, functional fixtures, Cases, and canary artifacts. Vocabulary scans retain `law` only where tests deliberately name the retired `.laws.json` boundary or the private legacy proof engine.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2e8fafa685, a58929556b, f275ba75ed
+- Tests: PASS: make umpire-gen-model, PASS: make MODEL_GATE_ARGS=--skip-go-checks umpire-check-model, PASS: make lint-model, PASS: make umpire-check-cases umpire-check-fixtures canary-check-case umpire-check-lint, PASS: mise exec -- go test -json ./tools/umpire/..., PASS: make umpire-check-live-tests (87 identities, empty failure set), PASS: retired-vocabulary scan and git diff --check
 - PRs:
