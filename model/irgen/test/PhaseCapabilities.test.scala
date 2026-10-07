@@ -60,6 +60,13 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
       .map(_.path("literal").path("enum").path("case").asText())
       .toSeq
 
+  private def enumTypes(node: JsonNode): Set[String] =
+    if node.isArray then node.elements().asScala.flatMap(enumTypes).toSet
+    else if node.isObject then
+      val own = Option(node.get("enum")).map(_.path("type").asText()).filter(_.nonEmpty).toSet
+      own ++ node.elements().asScala.flatMap(enumTypes)
+    else Set.empty
+
   test("Pausable and Pollable lower exact role sets through direct and derived projections"):
     val (ran, out) = lift(
       "Direct$.capabilities",
@@ -142,4 +149,26 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
         Seq(
           s"lift: ${stored}Pausing.scala:$line: ${root.head.toLower}${root.tail}'s phase type fixture.phasecapabilities.$phase has no $role case"
         )
+      )
+
+  test("capability Properties use their owning object when short machine names collide"):
+    for branch <- Seq("first", "second") do
+      val (ran, out) = lift(s"$branch.Same$$.capabilities")
+      ran.orFail()
+      val model = mapper.readTree(Files.readString(out))
+      val property = model
+        .path("properties")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == "same.terminalStatesAreFinal")
+        .get
+      val holds = model
+        .path("functions")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == property.path("holds").asText())
+        .get
+      assertEquals(
+        enumTypes(holds.path("body")),
+        Set(s"fixture.phasecapabilities.$branch.ClosePhase")
       )

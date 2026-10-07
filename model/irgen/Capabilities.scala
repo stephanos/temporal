@@ -114,7 +114,7 @@ private[irgen] trait Capabilities:
       )
     val machine = modelName(fold(This(owner), Map.empty), c)
     val members = membersOf(c, Map.empty)
-    declareSection(machine, This(owner), cls, members)
+    declareSection(machine, This(owner), cls, members, phaseProjection(owner, c))
     Decl.Capable(machine)
 
   // The members a section's class `c` declares in its body, then those of the class of the lifted
@@ -174,7 +174,8 @@ private[irgen] trait Capabilities:
       machine: String,
       model: Term,
       section: Symbol,
-      members: Members
+      members: Members,
+      projection: Option[Term]
   ): Unit =
     val env = members.env
     val declared = members.vals.map { v =>
@@ -212,7 +213,7 @@ private[irgen] trait Capabilities:
         .flatMap(p => fieldParameters(p.property).drop(1).map(_.name))
         .filter(d.fields.contains)
         .toSet
-      checked(machine, d, used, env)
+      checked(machine, d, used, env, projection)
 
     val excepted = mutable.Set.empty[String]
     val overridden = mutable.Map.empty[String, (Symbol, Term)]
@@ -262,7 +263,8 @@ private[irgen] trait Capabilities:
         p.property,
         p.bringing,
         overridden.get(p.name),
-        env
+        env,
+        projection
       ): Unit
       val name = s"$machine.${p.name}"
       val origin =
@@ -300,13 +302,6 @@ private[irgen] trait Capabilities:
     p.termParamss
       .flatMap(_.params)
       .filterNot(p => p.symbol.flags.is(Flags.Given) || p.symbol.flags.is(Flags.Implicit))
-
-  private def phasingOf(machine: String, at: Tree): Option[Term] =
-    defs.keys.iterator
-      .map(_.maybeOwner)
-      .filter(objectForm)
-      .find(objectFormName(_) == machine)
-      .flatMap(phaseProjection(_, at))
 
   private def ownedRoles(companion: Symbol, at: Tree): Set[String] =
     objectBody(companion.moduleClass, at).body
@@ -561,19 +556,20 @@ private[irgen] trait Capabilities:
       machine: String,
       d: Declared,
       used: Set[String],
-      env: Map[Symbol, Decl]
+      env: Map[Symbol, Decl],
+      projection: Option[Term]
   ): Unit =
     val roles = ownedRoles(d.companion, d.at)
     if roles.nonEmpty then
-      val projection = phasingOf(machine, d.at).getOrElse(
+      val phaseProjection = projection.getOrElse(
         fail(
           d.at,
           s"$machine declares ${d.kind} but no phase: mix in Phased[State, Phase](_.phase)"
         )
       )
-      val phase = lambda(projection).get._2.tpe
+      val phase = lambda(phaseProjection).get._2.tpe
       for role <- roles.toSeq.sorted do
-        roleSet(phase, Symbol.requiredClass(role).typeRef, projection, Some(machine)): Unit
+        roleSet(phase, Symbol.requiredClass(role).typeRef, phaseProjection, Some(machine)): Unit
     for (field, a) <- d.fields if used(field) do
       if d.fieldTypes.get(field).exists(_.dealias.isFunctionType) && forwardedDef(a).isEmpty then
         fail(
@@ -688,7 +684,8 @@ private[irgen] trait Capabilities:
       replaced: DefDef,
       bringing: Seq[Declared],
       overriding: Option[(Symbol, Term)],
-      env: Map[Symbol, Decl]
+      env: Map[Symbol, Decl],
+      projection: Option[Term]
   ): Unit =
     val statement = overriding
       .flatMap((sym, _) => defs.get(sym))
@@ -721,7 +718,6 @@ private[irgen] trait Capabilities:
             s"$propertyName takes ${p.name}, which ${holders.map(_.kind).mkString(" and ")} both bind"
           )
     }
-    val projection = phasingOf(machine, at)
     val phaseParameters =
       statement.termParamss.flatMap(_.params).filter(p => isNamed(p.tpt.tpe, "umpire.Phasing"))
     val phasings = phaseParameters.map(p => p.symbol -> (projection.get -> machine)).toMap
