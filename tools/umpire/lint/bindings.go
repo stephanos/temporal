@@ -53,7 +53,7 @@ func (m *Model) realizable(r *umpirespb.Realization, machine *interp.Machine) (b
 		}
 		reached[s] = true
 		for _, row := range machine.Table.Rows {
-			if row.Source != s || !(bound[row.Action] || systemic[row.Action]) {
+			if row.Source != s || (!bound[row.Action] && !systemic[row.Action]) {
 				continue
 			}
 			for _, result := range row.Results {
