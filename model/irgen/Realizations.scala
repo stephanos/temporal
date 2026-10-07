@@ -702,15 +702,16 @@ private[irgen] trait Realizations:
   def textOfBound(b0: Bound): String =
     val f = follow(b0)
     val evidenceIdField = irField(ir.Evidence.scalaDescriptor, "id", f.term)
-    if f.env.contains(moduleMark) || isNamed(f.term.tpe, "umpire.realize.EvidenceRef") then
-      entryEvidence(f).map(_.value(evidenceIdField)) match
-        case Some(PString(id)) => return id
-        case _                 => ()
-    f.term match
-      case t if commandLike(t.tpe)               => commandName(f)
-      case r: Ref if factCase(r.symbol)          => r.symbol.name
-      case t if isNamed(t.tpe, "umpire.Monitor") => monitorName(t)
-      case _                                     => reducedText(b0)
+    val evidenceId =
+      if f.env.contains(moduleMark) || isNamed(f.term.tpe, "umpire.realize.EvidenceRef") then
+        entryEvidence(f).map(_.value(evidenceIdField)).collect { case PString(id) => id }
+      else None
+    evidenceId.getOrElse:
+      f.term match
+        case t if commandLike(t.tpe)               => commandName(f)
+        case r: Ref if factCase(r.symbol)          => r.symbol.name
+        case t if isNamed(t.tpe, "umpire.Monitor") => monitorName(t)
+        case _                                     => reducedText(b0)
 
   // The name of a monitor written by value, `MonitorExpectation(terminalFinality, …)`: the one the
   // declaration of its val gives it. A monitor no val declares, or that no lifted machine watches,
@@ -884,14 +885,15 @@ private[irgen] trait Realizations:
   // one of the message's oneofs writes that member; any other writes the fields its parameters
   // name, and a parameter named after a oneof takes the member its argument writes.
   def declaration(b0: Bound, into: Message): Unit =
+    val entry = if into.descriptor.name == "Evidence" then entryEvidence(b0) else None
+    entry match
+      case Some(e) => e.value.foreach((f, v) => into.set(f, v))
+      case None    => declared(b0, into)
+
+  // A declaration that is no entry of an evidence module, written field by field.
+  private def declared(b0: Bound, into: Message): Unit =
     val b = reduce(b0)
     val d = into.descriptor
-    if d.name == "Evidence" then
-      entryEvidence(b0) match
-        case Some(e) =>
-          e.value.foreach((f, v) => into.set(f, v))
-          return
-        case None => ()
     d.findFieldByName("position").foreach(into.set(_, pos(b.term).toPMessage))
     def typeArgument(t: Term): Option[TypeRepr] = t match
       case Apply(fn, _)              => typeArgument(fn)
