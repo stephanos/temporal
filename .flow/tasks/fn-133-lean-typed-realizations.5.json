@@ -10,7 +10,7 @@
   "priority": 50,
   "spec": "fn-133-lean-typed-realizations",
   "spec_path": ".flow/tasks/fn-133-lean-typed-realizations.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Name collisions and the activity realization's local fixes",
   "updated_at": "2026-10-06T06:42:52.227873Z"
 }

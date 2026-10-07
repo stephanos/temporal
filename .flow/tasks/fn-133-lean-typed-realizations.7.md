@@ -13,9 +13,10 @@ R10. Record the three realizations' line counts before the spec and after each p
 - [ ] `MILESTONES.md` updated and the spec closed.
 
 ## Done summary
-TBD
+Closed the typed-realization migration with the README forms, projection proofs, and milestone cleanup. Realization line counts were 333/514/101 at baseline; recorded batch checkpoints were 296/357/88, 308/358/88, 303/305/83, and 303/305/83; the final activity-system/Nexus-workflow/Nexus-standalone counts are 310/305/83. The generated IR and Cases, lifter checks, Go consumers, and live runs provide the linked projection proof for each part.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9b248a6019, 1a5ad6b702, 96a7dd3ba9, a58929556b, f275ba75ed, 46008b3322
+- Tests: make umpire-gen-model, make lint-model, make umpire-check-cases umpire-check-fixtures canary-check-case umpire-check-lint, mise exec -- go test -json ./tools/umpire/..., make umpire-check-live-tests
 - PRs:

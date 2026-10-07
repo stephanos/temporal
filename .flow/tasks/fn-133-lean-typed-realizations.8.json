@@ -10,7 +10,7 @@
   "priority": 65,
   "spec": "fn-133-lean-typed-realizations",
   "spec_path": ".flow/tasks/fn-133-lean-typed-realizations.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Derive per-class carrier schemas from typed realizations",
   "updated_at": "2026-10-06T05:22:12.925306Z"
 }

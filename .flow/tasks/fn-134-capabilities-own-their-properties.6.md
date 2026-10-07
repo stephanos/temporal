@@ -25,9 +25,10 @@ Rewrite the docs for capabilities and capability Properties, run R7's vocabulary
 - [ ] Full gate: `make umpire-check-model`, `make umpire-check-cases`, `make umpire-check-lint`, `make lint-model` and the Go suite pass.
 
 ## Done summary
-TBD
+Rewrote the capability documentation around capability-owned Properties, removed the retired law-sidecar vocabulary, updated the module/tooling documentation, and removed the completed spec from MILESTONES.md.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f275ba75ed, 46008b3322
+- Tests: make umpire-gen-model, make lint-model, make umpire-check-cases umpire-check-fixtures canary-check-case umpire-check-lint, mise exec -- go test -json ./tools/umpire/..., make umpire-check-live-tests, vocabulary scan of model/, tools/, and live documentation
 - PRs:

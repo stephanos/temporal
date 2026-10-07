@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-134-capabilities-own-their-properties.md",
-  "status": "open",
+  "status": "done",
   "title": "Capabilities own their properties",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-06T16:05:56.653301Z"
+  "updated_at": "2026-10-07T16:59:40.508385Z"
 }

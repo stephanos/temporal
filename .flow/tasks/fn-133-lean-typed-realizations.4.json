@@ -10,7 +10,7 @@
   "priority": 40,
   "spec": "fn-133-lean-typed-realizations",
   "spec_path": ".flow/tasks/fn-133-lean-typed-realizations.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Coverage report, class-pattern rule, deadlines bound once, action-level onPath",
   "updated_at": "2026-10-06T00:23:46.173455Z"
 }

@@ -10,7 +10,7 @@
   "priority": 20,
   "spec": "fn-133-lean-typed-realizations",
   "spec_path": ".flow/tasks/fn-133-lean-typed-realizations.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Kit evidence modules: described status, history evidence, request base",
   "updated_at": "2026-10-06T00:23:46.171713Z"
 }

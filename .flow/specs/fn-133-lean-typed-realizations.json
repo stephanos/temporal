@@ -86,7 +86,7 @@
     "impl:fn-133-lean-typed-realizations.7": 0
   },
   "spec_path": ".flow/specs/fn-133-lean-typed-realizations.md",
-  "status": "open",
+  "status": "done",
   "title": "Lean, typed realizations",
   "tracker": {
     "baseHashFlow": null,
@@ -99,5 +99,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-07T15:56:18.086828Z"
+  "updated_at": "2026-10-07T16:59:40.824861Z"
 }
