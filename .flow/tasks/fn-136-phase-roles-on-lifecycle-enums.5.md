@@ -27,12 +27,12 @@ Deletes every `states` predicate whose body is now a single role test. Callers a
 
 
 ## Done summary
-TBD
+Retired 11 lifecycle states aliases and rewrote their Activity and Nexus callers to direct role reads using the settled when[R] rule-heading and p.in[R] value forms. Kept the three terminal predicates still consumed by Closable, the claim-named productTerminal predicate, all non-role subsets/helpers, and every WithTaskQueue read. Added an executable inventory guard and updated authoring/semantic docs. No IR, Cases, fixtures, or capability fields were regenerated or changed; the bounded generated diff and Query/Check equivalence remain deferred to the DSL batch regeneration.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e6dc5dc033
+- Tests: scala-cli test model/project.scala model/umpire model/temporal (50 passed), scala-cli test model/irgen --test-only umpire.irgen.RolesSuite (3 passed), make lint-model-models lint-model-syntax (exit 0), scalafmt check over changed Scala (exit 0), git diff --check (exit 0), batch deferral: generated IR/Case classification and Query/Check proof at the single regeneration against 96de1fd92d
 - PRs:
-
 ## Acceptance
 - [ ] TBD
