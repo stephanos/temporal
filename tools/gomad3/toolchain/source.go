@@ -76,7 +76,7 @@ func EnsureSource(ctx context.Context, config SourceSpec) (string, error) {
 	return "", fmt.Errorf("download source archive after %d attempt(s): %w", retries, lastErr)
 }
 
-func ExtractSource(ctx context.Context, archivePath, destination string) error {
+func ExtractSource(ctx context.Context, archivePath, destination string) (retErr error) {
 	if archivePath == "" || destination == "" {
 		return errors.New("source archive and destination are required")
 	}
@@ -91,18 +91,42 @@ func ExtractSource(ctx context.Context, archivePath, destination string) error {
 	if err != nil {
 		return fmt.Errorf("open source archive destination: %w", err)
 	}
-	defer root.Close()
+	defer func() {
+		if err := root.Close(); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 
 	file, _, err := hostfs.OpenPath(archivePath)
 	if err != nil {
 		return fmt.Errorf("open source archive: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	zipper, err := gzip.NewReader(file)
 	if err != nil {
 		return fmt.Errorf("open compressed source archive: %w", err)
 	}
-	defer zipper.Close()
+	defer func() {
+		if err := zipper.Close(); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 
 	reader := tar.NewReader(zipper)
 	seen := make(map[string]struct{})
@@ -139,7 +163,7 @@ func ExtractSource(ctx context.Context, archivePath, destination string) error {
 			if err := root.Chmod(name, fs.FileMode(header.Mode)&0o777); err != nil {
 				return fmt.Errorf("set source archive directory mode %s: %w", name, err)
 			}
-		case tar.TypeReg, tar.TypeRegA:
+		case tar.TypeReg:
 			if header.Size < 0 || expanded > maximumExpandedBytes-header.Size {
 				return fmt.Errorf("source archive expands beyond %d bytes", maximumExpandedBytes)
 			}
@@ -182,12 +206,20 @@ func validateSourceSpec(config SourceSpec) error {
 	return nil
 }
 
-func matchesDigest(filePath, want string) (bool, error) {
+func matchesDigest(filePath, want string) (match bool, retErr error) {
 	file, info, err := hostfs.OpenPath(filePath)
 	if err != nil {
 		return false, err
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	if info.Size() < 0 || info.Size() > maximumDownloadBytes {
 		return false, nil
 	}
@@ -198,7 +230,7 @@ func matchesDigest(filePath, want string) (bool, error) {
 	return fmt.Sprintf("%x", digest.Sum(nil)) == want, nil
 }
 
-func download(ctx context.Context, client *http.Client, config SourceSpec, archivePath string) error {
+func download(ctx context.Context, client *http.Client, config SourceSpec, archivePath string) (retErr error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, config.URL, nil)
 	if err != nil {
 		return fmt.Errorf("construct source archive request: %w", err)
@@ -207,7 +239,15 @@ func download(ctx context.Context, client *http.Client, config SourceSpec, archi
 	if err != nil {
 		return fmt.Errorf("request source archive: %w", err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		return fmt.Errorf("request source archive: HTTP status %s", response.Status)
 	}
@@ -216,29 +256,58 @@ func download(ctx context.Context, client *http.Client, config SourceSpec, archi
 		return fmt.Errorf("create source archive download: %w", err)
 	}
 	temporaryPath := temporary.Name()
-	defer os.Remove(temporaryPath)
+	published := false
+	defer func() {
+		if err := os.Remove(temporaryPath); err != nil && (!published || !errors.Is(err, os.ErrNotExist)) {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	digest := sha256.New()
 	written, copyErr := copyWithContext(ctx, io.MultiWriter(temporary, digest), io.LimitReader(response.Body, maximumDownloadBytes+1))
 	if copyErr != nil {
-		temporary.Close()
-		return fmt.Errorf("download source archive: %w", copyErr)
+		closeErr := temporary.Close()
+		retErr = fmt.Errorf("download source archive: %w", copyErr)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		return retErr
 	}
 	if written > maximumDownloadBytes {
-		temporary.Close()
-		return fmt.Errorf("source archive download exceeds %d bytes", maximumDownloadBytes)
+		closeErr := temporary.Close()
+		retErr = fmt.Errorf("source archive download exceeds %d bytes", maximumDownloadBytes)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		return retErr
 	}
 	actual := fmt.Sprintf("%x", digest.Sum(nil))
 	if actual != config.SHA256 {
-		temporary.Close()
-		return fmt.Errorf("source archive checksum mismatch: got %s, want %s", actual, config.SHA256)
+		closeErr := temporary.Close()
+		retErr = fmt.Errorf("source archive checksum mismatch: got %s, want %s", actual, config.SHA256)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		return retErr
 	}
 	if err := temporary.Chmod(0o644); err != nil {
-		temporary.Close()
-		return fmt.Errorf("set source archive mode: %w", err)
+		closeErr := temporary.Close()
+		retErr = fmt.Errorf("set source archive mode: %w", err)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		return retErr
 	}
 	if err := temporary.Sync(); err != nil {
-		temporary.Close()
-		return fmt.Errorf("sync source archive download: %w", err)
+		closeErr := temporary.Close()
+		retErr = fmt.Errorf("sync source archive download: %w", err)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		return retErr
 	}
 	if err := temporary.Close(); err != nil {
 		return fmt.Errorf("close source archive download: %w", err)
@@ -246,6 +315,7 @@ func download(ctx context.Context, client *http.Client, config SourceSpec, archi
 	if err := os.Rename(temporaryPath, archivePath); err != nil {
 		return fmt.Errorf("publish source archive download: %w", err)
 	}
+	published = true
 	return syncSourceDirectory(filepath.Dir(archivePath))
 }
 

@@ -1,0 +1,83 @@
+{
+  "base": "4a5f2cf2f84332727b44ddbc14b4844490ea9ef8",
+  "verdict": "source-progress-acceptable; both historical P2 findings resolved; no introduced P0-P3 in reviewed scope",
+  "reviewer_preference": "Requested gpt-6.1-sol high, same GPT family as writer; actual host execution model metadata unavailable",
+  "source_sha256": "d94fdc4e96ea9e29b0b02b7016988b9108f62a4690db7927a8223af7d444dafa",
+  "test_sha256": "31df5ec792df3294ce8ac20ca3e61dcc48912439651c514376a17bc071f0c72f",
+  "old_test_sha256": "9eb452390d8e8404c658e444951d19ccd6594699b03b8f6f357217112f006ac6",
+  "old_test_exact_base": true,
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off; login=false; cwd=/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "independent_commands": [
+    {
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./toolchain -run '^TestSourceCleanup'",
+      "exit": 0, "seconds": 0.248, "top_pass": 6, "pass_records": 25, "skips": 0,
+      "captured_output_sha256": "16591d0a09f53f7c1d5e86954aa06c24a962a59674314b3e5f5286c4f8e8d923"
+    },
+    {
+      "command": "go -C tools/gomad3 test -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/next-gate-4a5f2cf2f8/task47-base-overlay.json -tags test_dep -count=1 -json ./toolchain -run '^TestSourceCleanup'",
+      "exit": 1, "seconds": 0.198, "top_pass": 3, "pass_records": 12, "top_fail": 3, "fail_records": 13, "skips": 0,
+      "captured_output_sha256": "776fb1622ede108429a69f3df8007581504a22d72d89e53a603c80dbcf3d297c",
+      "overlay_source_exact_base": true,
+      "meaningful_failures": "False success despite completed publication; omitted real os.ErrClosed and ENOTEMPTY causes; premature retry termination"
+    }
+  ],
+  "independent_output_retention": "Raw output held in tool receipt; no extra review log files written",
+  "retained_evidence_verified": {
+    "worker_handover_read": true, "worker_observations_read": true, "conductor_checks_read": true,
+    "distinct_log_hashes_matched": 16,
+    "full_lint": {"base": 285, "final": 273, "removed_errcheck": 11, "removed_staticcheck": 1, "added_or_changed_residual_blocks": 0, "final_exit": 2, "errortype_reached": false},
+    "scoped_lint": {"base": 35, "final": 23, "added_or_changed_residual_blocks": 0, "final_exit": 1},
+    "comparison_normalization": "Diagnostic header line and column only; all remaining source/caret block bytes identical",
+    "portable": {"top_pass": 36, "pass_records": 96, "top_skip": 2, "skip_reason": "Pinned Go source archive go1.27.1.src.tar.gz not cached", "scope": "Selected portable consumers, not full package/native builder"},
+    "architecture": {"top_pass": 6, "skips": 0},
+    "validation_exit": 0, "fast_lint_exit": 0, "fast_lint_errortype_reached": true,
+    "task21_acceptance_through_eof_exact": true,
+    "task21_acceptance_sha256": "244837d75f8cb29005d38e463af06b58d33d63c5211b51cca5c1250c16fa8330",
+    "task21_original_dependencies_preserved": 24, "task21_sole_added_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.47"
+  },
+  "findings": [
+    {"id": "P2-close-before-format", "path": "tools/gomad3/toolchain/source.go", "line": 273, "reason": "Primary formatting invokes arbitrary reader error.Error before temporary Close, reversing BASE observable lifetime", "fix": "Capture temporary.Close first in each of five early branches, then original formatting and conditional join", "evidence": "Source diff plus pinned fmt/print.go657-660; callback fixture not independently executed"},
+    {"id": "P2-gzip-close-evidence", "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-47/handover.md", "line": 15, "reason": "Claim gzip.Close cannot fail contradicts pinned flate Close stored-error return", "fix": "Correct disclosure and exercise actual corrupt-deflate public extraction cleanup branch", "evidence": "Pinned gzip/gunzip.go290 and flate/inflate.go355-360; corrupt-stream fixture not independently executed"}
+  ],
+  "review_fix": {
+    "namespace": "/root/source_archive_cleanup_review; tools/gomad3/toolchain only; reviewer writes limited to source-review.md and review-observations.json",
+    "source_sha256": "180882c6fff0fb20bafcbff06cc5e50ac136d9ee1e4d2b052945349ea1384fbb",
+    "test_sha256": "46b6381f0dcbe71fc34663144e730c5a93aa537a893e94d13a5da8c221541326",
+    "old_test_sha256": "9eb452390d8e8404c658e444951d19ccd6594699b03b8f6f357217112f006ac6",
+    "resolved": ["P2-close-before-format", "P2-gzip-close-evidence"],
+    "introduced_findings": [],
+    "five_close_before_format_branches_verified": 5,
+    "outside_admitted_source_delta_byte_equal_to_base": true,
+    "mechanical_comparison": "Undo only eleven cleanup changes plus tar.TypeRegA removal in memory and compare byte-for-byte to git show BASE:source.go",
+    "production_seams_added": false,
+    "command_prefix": "go -C tools/gomad3 test",
+    "command_suffix": "-tags test_dep -count=1 -json ./toolchain -run REGEX",
+    "base_overlay_flag": "-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/next-gate-4a5f2cf2f8/task47-base-overlay.json",
+    "independent_commands": [
+      {"regex": "^TestSourceCleanup", "source": "final", "exit": 0, "seconds": 0.244, "top_pass": 8, "pass_records": 27, "skip": 0, "output_sha256": "8201c1733409268a8301b5afa44e515de7803492153bbabf2dffdcdc3ca77dc7"},
+      {"regex": "^TestSourceCleanup", "source": "exact_base_overlay", "exit": 1, "seconds": 0.207, "top_pass": 4, "pass_records": 13, "top_fail": 4, "fail_records": 14, "skip": 0, "output_sha256": "1c053ff002ef7e79c53469a7324f6e2e5a4ebf104ace123dd480d87622679685"},
+      {"regex": "^TestSourceCleanupClosesTemporaryBeforeFormattingPrimary$", "source": "final", "exit": 0, "seconds": 0.204, "skip": 0, "output_sha256": "2f6ca7a9c44c3f6766efc61ce2dce87d36cdc4bff15c7cb8231155402a3a4acb"},
+      {"regex": "^TestSourceCleanupClosesTemporaryBeforeFormattingPrimary$", "source": "exact_base_overlay", "exit": 0, "seconds": 0.183, "skip": 0, "output_sha256": "8c3fc5de55f225394d6f01109754314f811ef64a652f52b89706b924da649ef0"},
+      {"regex": "^TestSourceCleanupCorruptDeflateReadAndClose$", "source": "final", "exit": 0, "seconds": 0.188, "skip": 0, "output_sha256": "b02ea86a201358a3bc643376380d7b913e3a5e34f57ebedb8e8f5193a06a61ec"},
+      {"regex": "^TestSourceCleanupCorruptDeflateReadAndClose$", "source": "exact_base_overlay", "exit": 1, "seconds": 0.185, "skip": 0, "output_sha256": "b8ffbac7b1ea218ff6dfd9e35f45dc1302705be7fc85455483f09f10698606d6"}
+    ],
+    "callback_proof": "Actual production FD open during Read; actual EBADF during primary Error callback on final and BASE, no skip this host. Worker historical initial-candidate RED matched and read.",
+    "callback_portability_limit": "Explicit skip on non-Linux or inaccessible /proc/self/fd",
+    "deflate_proof": "Actual flate.CorruptInputError(1) on Read and Close; public ExtractSource primary-first two-child join and literal text pass final; BASE lacks Close child",
+    "current_false_gzip_impossibility_claim_removed": true,
+    "worker_and_conductor_final_receipts_read": true,
+    "new_referenced_log_hashes_matched": 15,
+    "final_full_lint": {"base": 285, "final": 273, "removed_source_errcheck": 11, "removed_source_staticcheck": 1, "added_or_changed_residual_blocks": 0, "exit": 2, "errortype_reached": false},
+    "final_scoped_lint": {"base": 35, "final": 23, "added_or_changed_residual_blocks": 0, "exit": 1},
+    "final_portable": {"top_pass": 38, "pass_records": 98, "top_skip": 2, "scope": "Selected consumers only; missing pinned archive skips remain"},
+    "final_conductor": {"focused_top_pass": 8, "focused_pass_records": 27, "focused_skip": 0, "architecture_pass": 6, "architecture_skip": 0, "validate_exit": 0, "fast_lint_exit": 0, "fast_lint_errortype_reached": true},
+    "remaining_unexecuted": "Root/file/cache-reader Close; five private temporary Close faults and combinations; publication-operation failures and limit stress; original native/full/formal/predecessor qualification gates",
+    "formal_ship_or_qualification_granted": false,
+    "all_six_commands_terminal": true,
+    "go_cache_lane_returned": true
+  },
+  "commands_terminal": true,
+  "go_cache_lane_returned": true,
+  "qualification": "Open native Darwin/full/default/functional/affected, matched-first-baseline, bounded 10/100, formal and predecessor gates; Linux fn128 deferred and unverified",
+  "writes": "Only source-review.md and review-observations.json; no source/test/index/commit/lifecycle mutations"
+}

@@ -1,0 +1,62 @@
+{
+  "base": "4a5f2cf2f84332727b44ddbc14b4844490ea9ef8",
+  "scope": "Verified source progress only; original native/full/formal qualification remains incomplete.",
+  "host": "linux/arm64, stock Go1.27.1; patched toolchain absent",
+  "command_environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "log_directory": ".flow/tmp/next-gate-4a5f2cf2f8/",
+  "initial_frozen_files": [
+    {"path": "tools/gomad3/toolchain/source.go", "sha256": "d94fdc4e96ea9e29b0b02b7016988b9108f62a4690db7927a8223af7d444dafa"},
+    {"path": "tools/gomad3/toolchain/source_cleanup_test.go", "sha256": "31df5ec792df3294ce8ac20ca3e61dcc48912439651c514376a17bc071f0c72f"},
+    {"path": "tools/gomad3/toolchain/source_test.go", "sha256": "9eb452390d8e8404c658e444951d19ccd6594699b03b8f6f357217112f006ac6", "unchanged": true}
+  ],
+  "initial_checks": [
+    {"name": "baseline-full-lint", "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep", "log": "base-full-lint.log", "exit_code": 2, "shell_real_seconds": 1.52, "sha256": "adefbf3db42d6eca0924a0fdb1ca453d0eab851d6650cd21a249043b4ffd963c"},
+    {"name": "focused-public", "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./toolchain -run '^TestSourceCleanup'", "log": "root-focused-public.log", "exit_code": 0, "shell_real_seconds": 0.21, "sha256": "82b4d88939ab2c18350e98220d9a327d1f2635bb8a74ff625214ab7fd8480d49", "top_level_tests": 6, "passing_records": 25, "failures": 0, "skips": 0},
+    {"name": "architecture", "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json . -run 'Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases|DomainModulesDoNotExportWireFraming|RunnerExecutionInjectionIsPrivate)$'", "log": "root-architecture.log", "exit_code": 0, "shell_real_seconds": 24.14, "sha256": "7663cc67a4328995693c1075cd72a936e101b95e79a0ded45fb86d27a3db105e", "top_level_tests": 6, "passing_records": 6, "failures": 0, "skips": 0},
+    {"name": "validate", "command": "make -C tools/gomad3 validate", "log": "root-validate.log", "exit_code": 0, "shell_real_seconds": 2.10, "sha256": "1a76844ec0dab2b731333ae3685c271f465a392161b67c94f056f01a2864e995"},
+    {"name": "fast-lint", "command": "make --trace lint-code-fast GOLANGCI_LINT_BASE_REV=4a5f2cf2f84332727b44ddbc14b4844490ea9ef8 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep", "log": "root-fast-lint.log", "exit_code": 0, "shell_real_seconds": 2.39, "sha256": "fc8ff21602125f8eddd4825161e1086c3fcbd39bf17a793d9bfc28a3491128fa", "host_packages": 55, "findings": 0, "errortype_stage_reached": true},
+    {"name": "full-lint", "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep", "log": "root-full-lint.log", "exit_code": 2, "shell_real_seconds": 1.35, "sha256": "a62440f7293d2f66b472e4c370012aa9957ebbcc32e7c40e87c4f497eeb2b3d7", "host_packages": 55, "errortype_stage_reached": false}
+  ],
+  "full_lint_delta": {
+    "baseline_findings": 285,
+    "final_findings": 273,
+    "removed": 12,
+    "removed_sites": "source.go eleven unchecked cleanup sites and tar.TypeRegA SA1019 only",
+    "added_or_changed_residual_blocks": 0,
+    "comparison": "Only diagnostic header line/column positions normalized; all273 residual blocks byte-identical, including caret lines.",
+    "final_classes": {"errcheck": 216, "exhaustive": 2, "forbidigo": 11, "staticcheck": 44},
+    "limit": "Changed-line lint success does not establish the original full-lint gate. Full lint remains red before errortype."
+  },
+  "flow": {
+    "task47_status_at_checks": "in_progress",
+    "predecessor46": "blocked; source-only admission retains dependency",
+    "task21_original_acceptance_through_EOF_exact": true,
+    "task21_original_acceptance_through_EOF_sha256": "244837d75f8cb29005d38e463af06b58d33d63c5211b51cca5c1250c16fa8330",
+    "task21_old_dependencies_preserved": 24,
+    "task21_only_added_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.47",
+    "tracker_bridge_active": false,
+    "validation": "valid;47tasks",
+    "final_task47_status": "blocked",
+    "task47_description_acceptance_quick_and_evidence_exact": true,
+    "progress_summary_stage_counts": {"impl_review": 1, "plan_sync": 1}
+  },
+  "pending": "Native Darwin full-host/builder/full/default/functional/affected, original R18/R19 matched-first-baseline, bounded10/100, formal and predecessor acceptance remain incomplete wherever unproved. Linux remains deferred and unverified under fn128.",
+  "review_fix": {
+    "findings": "Two P2 findings. Restore temporary.Close before primary formatting in all five early branches; correct gzip.Close impossibility disclosure and add genuine corrupt-deflate read/Close proof.",
+    "frozen_files": [
+      {"path": "tools/gomad3/toolchain/source.go", "sha256": "180882c6fff0fb20bafcbff06cc5e50ac136d9ee1e4d2b052945349ea1384fbb"},
+      {"path": "tools/gomad3/toolchain/source_cleanup_test.go", "sha256": "46b6381f0dcbe71fc34663144e730c5a93aa537a893e94d13a5da8c221541326"}
+    ],
+    "checks": [
+      {"name": "focused-public", "command": "Same focused-public command as initial_checks", "log": "root-final-focused-public.log", "exit_code": 0, "shell_real_seconds": 0.20, "sha256": "efa7e3aa252cf31e562aece9a9aec5190ceda19d97302f1dcf148487b76eca51", "top_level_tests": 8, "passing_records": 27, "failures": 0, "skips": 0},
+      {"name": "architecture", "command": "Same architecture command as initial_checks", "log": "root-final-architecture.log", "exit_code": 0, "shell_real_seconds": 23.57, "sha256": "7277fa5fd59c007ce77a48209e40dea56370f7b7a7f04755e67d6d5f9b6f58ce", "top_level_tests": 6, "passing_records": 6, "failures": 0, "skips": 0},
+      {"name": "validate", "command": "Same validate command as initial_checks", "log": "root-final-validate.log", "exit_code": 0, "shell_real_seconds": 1.95, "sha256": "90d28ada217b9d74d7697e618304f5bd2ca31290514d3e2065e58fcf477c1896"},
+      {"name": "fast-lint", "command": "Same fast-lint command as initial_checks", "log": "root-final-fast-lint.log", "exit_code": 0, "shell_real_seconds": 2.43, "sha256": "e1bef4249e8bf16ae938f0d76db98330fb98757a9b900fe8f4251162b4a8417f", "errortype_stage_reached": true},
+      {"name": "full-lint", "command": "Same full-lint command as initial_checks", "log": "root-final-full-lint.log", "exit_code": 2, "shell_real_seconds": 1.39, "sha256": "476e7d37e039570d33ce44bac83ee7c8840e2758ec9d445d7ff1d3de406b26a3", "errortype_stage_reached": false}
+    ],
+    "verification_reason": "Final callback-lifetime and real inflater-failure controls changed the reviewed freeze. Root freshly reran all five bounded source checks against the final source/test hashes.",
+    "full_lint_delta": "285 to273;exactly12 source.go findings removed;zero added/changed residual blocks after header-position normalization;full lint remains red before errortype."
+  },
+  "review": {"verdict": "source-progress-acceptable; both P2 findings resolved; no introduced P0-P3; no formal SHIP or completed qualification", "source_review": "source-review.md", "observations": "review-observations.json", "requested_preference": "gpt-6.1-sol high; same GPT family as writer; actual model not exposed by host metadata"},
+  "setup_notes": ["Optional read-only inspections requested some log/artifact paths before their actual names or creation; none changed state or supplied test evidence. Correct files were subsequently read. Optional tier judge unavailable(no_key); explicit project models used."]
+}

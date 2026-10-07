@@ -88,6 +88,10 @@ The [recorded-format and selected-workload audit](../artifacts/fn-109-gomad-deep
 
 Task46 owns the 17 unchecked maintainer-command stdout reports identified at `a6a28720af58fe65cb6fd3bc618ef8102765b50b`. Consume its direct dependency's public-command writer failures, unchanged healthy bytes and publication snapshots, deferred qualification-output error precedence, and actual lint delta. Fn-113.3 retains approval and publication ownership. This task still implements nothing. Keep every unexecuted conformance/build/discovery/qualification/dossier success sequence, original full/native-Darwin/formal/affected and matched-first-baseline requirement open. Linux remains deferred and unverified under fn128. The [source audit](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/next-gate-source-audit-a6a28720af.md) records the 302-finding full-gate baseline; correction evidence belongs under task-46.
 
+### Source archive correction evidence owner, 2026-10-07
+
+Task47 owns the eleven source-archive cleanup omissions and redundant legacy tar selector identified at `4a5f2cf2f84332727b44ddbc14b4844490ea9ef8`. Consume its direct dependency's real cleanup errors, primary-error/retry/publication preservation, raw legacy-header controls and actual lint delta under task-47. This task still implements nothing. Keep original native Darwin/full/formal/affected, matched-first-baseline, bounded-measurement and predecessor acceptance unchanged and open wherever unproved; Linux remains deferred and unverified under fn128. The [source audit](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/next-gate-source-audit-4a5f2cf2f8.md) records the bounded implementation recommendation.
+
 ## Acceptance
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
 
