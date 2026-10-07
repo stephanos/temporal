@@ -155,8 +155,8 @@ Gate: the DSL batch. Tasks run in the batch order. R7 (positions only, for tasks
 | fn-136.1 | ✅ done | Role traits; lifter lowers role tests (`isInstanceOf`, type patterns) to case-set membership and refuses conflicting roles |
 | fn-136.2 | ✅ done | Activity product, system and record carry roles; `states` bodies become role tests; refinement closedness check |
 | fn-136.3 | ✅ done | Nexus workflow, standalone and product carry roles; docs |
-| fn-136.4 | ✅ done | `in[R]` and `p.in[R]` role-test spellings; lifter lowers them like `in(...)` and `isInstanceOf` |
-| fn-136.5 | ⬜ todo | Role-set `states` predicates retire, callers read roles directly; bounded IR change (R9); docs; close |
+| fn-136.4 | ✅ done | `when[R]` and `p.in[R]` role-test spellings; lifter lowers them like `in(...)` and `isInstanceOf` |
+| fn-136.5 | ✅ done | Role-set `states` predicates retire, callers read roles directly; bounded IR change (R9); docs; close |
 
 ### fn-137: Capabilities read phase roles
 
