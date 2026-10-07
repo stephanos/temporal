@@ -5,6 +5,7 @@ package system
 
 import scala.annotation.unused
 import umpire.*
+import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.Reason
 import temporal.capabilities.*
 import temporal.realize.inconclusive
@@ -87,9 +88,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // Terminate settles a live operation terminated (TransitionTerminated).
     def terminate(s: State) = enter(s.copy(phase = terminated), nexusOperationTerminated)
 
-    // A control of a closed operation is alreadyCompleted (operation.go).
-    def closed(s: State) = reject(Outcome.alreadyCompleted, s)
-
     // A control that repeats a request the operation took is the same request, answered OK.
     def repeated(s: State) = stay(s)
 
@@ -105,7 +103,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // unless it repeats one the operation took (operation.go RequestCancel).
     on(client.requestCancel) {
       in(states.created).where(_.cancelRequested) ~> effects.repeated
-      when[Closed].where(!_.cancelRequested) ~> effects.closed
+      when[Closed].where(!_.cancelRequested) ~>
+        rejects(Rejection.failedPrecondition).because("operation already completed")
       // Started and not over: the phases a control settles or records a request in.
       when[Live].where(!_.cancelRequested) ~> effects.requestCancel
     }
@@ -114,7 +113,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // control of a closed one is alreadyCompleted (operation.go Terminate).
     on(client.terminate) {
       in(terminated) ~> effects.repeated
-      in(succeeded, failed, canceled) ~> effects.closed
+      in(succeeded, failed, canceled) ~>
+        rejects(Rejection.failedPrecondition).because("operation already completed")
       in(scheduled, started) ~> effects.terminate
     }
 
@@ -146,7 +146,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   // terminate or cancel find leaves the claim inconclusive: its explanations disagree.
   object capabilities extends Capabilities:
     val closable: Capability = Closable(
-      rejected = Outcome.alreadyCompleted
+      rejected = Outcome.rejected(Rejection.failedPrecondition)
     )
     val terminable: Capability = Terminable(
       terminate = client.terminate,

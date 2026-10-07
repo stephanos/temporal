@@ -89,8 +89,6 @@ object network extends Actor:
 
 val pendingAttempts = Observation(on = operation, read = "attempts")
 
-given Ok[Outcome] = Ok(Outcome.accepted)
-
 // One of the operation's deadlines firing, as the product machine sees it, and the backoff.
 object timers:
   val timeout = temporal.features.nexus.timers.timeout

@@ -32,7 +32,7 @@ func TestSharedNexusProductSpike(t *testing.T) {
 			product, system := machines["nexusProduct"], machines["nexusSystem"]
 			require.Equal(t, "operation", product.Decl.GetEntity())
 			require.Equal(t, "operation", system.Decl.GetEntity())
-			require.Equal(t, []string{"accepted", "notFound", "alreadyCompleted"}, product.Table.Outcomes)
+			require.Equal(t, []string{"accepted", "rejected-notFound", "rejected-alreadyExists", "rejected-failedPrecondition", "rejected-invalidArgument"}, product.Table.Outcomes)
 			rows, err := refinementOf(t, m, "nexusSystem")
 			require.NoError(t, err)
 			require.Len(t, rows, len(system.Table.Rows))
@@ -81,7 +81,7 @@ func TestSharedNexusProductSpike(t *testing.T) {
 				for _, key := range []string{"unstarted-false-start", "scheduled-false-requestCancel", "terminated-false-terminate", "succeeded-true-requestCancel"} {
 					require.Empty(t, carriers[key], key)
 				}
-				require.Equal(t, "alreadyCompleted", row(t, system, "succeeded-false-terminate").Results[0].Outcome)
+				require.Equal(t, "rejected-failedPrecondition", row(t, system, "succeeded-false-terminate").Results[0].Outcome)
 				require.Equal(t, "accepted", row(t, system, "terminated-false-terminate").Results[0].Outcome)
 			}
 
@@ -99,7 +99,7 @@ func TestSharedProductCatalogPrecedesOutcomeVisibility(t *testing.T) {
 	product := admMachine(m, "nexusProduct")
 	outcome := proto.Clone(admType(m, product.GetOutcomeType())).(*umpirespb.Type)
 	outcome.Name = "fixture.productOnlyOutcome"
-	outcome.GetEnum().Cases = slices.DeleteFunc(outcome.GetEnum().Cases, func(c *umpirespb.Case) bool { return c.GetName() == "alreadyCompleted" })
+	outcome.GetEnum().Cases = slices.DeleteFunc(outcome.GetEnum().Cases, func(c *umpirespb.Case) bool { return c.GetName() == "rejected" })
 	m.Types = append(m.Types, outcome)
 	for _, f := range m.GetFunctions() {
 		if strings.HasPrefix(f.GetName(), "fixture.features.nexus.product.") {
@@ -115,7 +115,7 @@ func TestSharedProductCatalogPrecedesOutcomeVisibility(t *testing.T) {
 	var rejected *RefinementError
 	require.ErrorAs(t, err, &rejected)
 	require.Equal(t, RefinementCatalog, rejected.Kind)
-	require.ErrorContains(t, err, "'alreadyCompleted' is an outcome of nexusSystem and no outcome of nexusProduct has that name")
+	require.ErrorContains(t, err, "'rejected-failedPrecondition' is an outcome of nexusSystem and no outcome of nexusProduct has that name")
 }
 
 func TestSharedProductRejectsMissingAndWrongCarriers(t *testing.T) {

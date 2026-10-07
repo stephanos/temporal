@@ -18,7 +18,7 @@ func TestBothProductionNexusFormsRefineKindProduct(t *testing.T) {
 			require.NotNil(t, product)
 			require.NotNil(t, system)
 			require.Equal(t, "temporal.features.nexus.product", product.Decl.GetFamily())
-			require.Equal(t, []string{"accepted", "notFound", "alreadyCompleted"}, product.Table.Outcomes)
+			require.Equal(t, []string{"accepted", "rejected-notFound", "rejected-alreadyExists", "rejected-failedPrecondition", "rejected-invalidArgument"}, product.Table.Outcomes)
 			rows, err := refinementOf(t, m, "nexusSystem")
 			require.NoError(t, err)
 			require.Len(t, rows, len(system.Table.Rows))

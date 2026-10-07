@@ -17,6 +17,7 @@ package shared.worker
 
 import scala.annotation.unused
 import umpire.*
+import umpire.outcomes.Outcome
 
 // ### Types
 
@@ -24,9 +25,6 @@ enum Phase derives Finite:
   case polling, stopped
 
 final case class State(phase: Phase) derives Finite
-
-enum Outcome derives Finite:
-  case accepted
 
 // A worker records nothing of its own. Its stop and resume are faults the Run records against no
 // entity, and what it serves is recorded by the work it serves.
@@ -37,8 +35,6 @@ type Fact = Nothing
 // Named by the task queue it polls: the handler's worker and the workflow's worker are two
 // instances of this entity, told apart by their queue.
 val entity = Entity("worker", key = "taskQueue")
-
-given Ok[Outcome] = Ok(Outcome.accepted)
 
 // The worker, which stops and resumes, and serves its queue. Its stop and resume name no entity, as
 // the outage machine spells them. The serve action is the worker's own and takes no input, so a

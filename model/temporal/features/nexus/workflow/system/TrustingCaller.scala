@@ -10,6 +10,7 @@ package workflow
 package system
 
 import umpire.*
+import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
 import umpire.realize.{PropertyOutcome, RunExpectation, Variation}
 import temporal.shared.worker.worker
@@ -39,7 +40,7 @@ object TrustingCaller
     // resolved while it runs. One effect rather than two rules, because the forged completion names
     // both alternatives of a failed callback in every such phase, the not-found ones included.
     def settle(s: State, resolution: Resolution) =
-      if s.phase.in[Closed] then NexusSystem.effects.notFound(s)
+      if s.phase.in[Closed] then reject(Outcome.rejected(Rejection.notFound), s)
       else NexusSystem.effects.complete(s, resolution)
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.

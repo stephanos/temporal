@@ -104,7 +104,7 @@ func TestNexusProtocolTable(t *testing.T) {
 		results("backingOff-1-unset-unset-unset-complete-succeeded")[0].Facts)
 	require.Equal(t, []string{"nexusOperationCompleted"}, results("started-0-unset-unset-unset-complete-succeeded")[0].Facts)
 	// A completion after the operation is over is not found and changes nothing.
-	require.Equal(t, []interp.Result{{Outcome: "notFound", State: "timedOut-0-unset-unset-unset", Facts: []string{}}},
+	require.Equal(t, []interp.Result{{Outcome: "rejected-notFound", State: "timedOut-0-unset-unset-unset", Facts: []string{}}},
 		results("timedOut-0-unset-unset-unset-complete-succeeded"))
 	// A timer fires only when the schedule command set it, and each covers its own span.
 	require.True(t, disabled(protocol, "scheduled-0-unset-unset-expires", "startToClose"))

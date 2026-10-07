@@ -40,8 +40,6 @@ object handler extends Actor:
   val reply = temporal.features.nexus.handler.reply.on(operation)
   val complete = temporal.features.nexus.handler.complete.on(operation)
 
-given Ok[Outcome] = Ok(Outcome.accepted)
-
 // ### The checked-in IR file of the standalone Nexus operation Model (umpire.irFile).
 
 object exports:

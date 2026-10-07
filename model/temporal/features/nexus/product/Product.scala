@@ -7,6 +7,7 @@ package features.nexus
 package product
 
 import umpire.*
+import umpire.outcomes.{Outcome, Rejection}
 import temporal.shared.worker.worker
 
 // What an operation does.
@@ -66,9 +67,6 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
 
     def cancel(s: State) = enter(s.copy(phase = canceled), nexusOperationCanceled)
 
-    // A completion that arrives after the operation is over is not found, and changes nothing.
-    def notFound(s: State) = reject(Outcome.notFound, s)
-
     // One of the operation's deadlines firing. Which deadline is the System's account of how, so
     // the product machine has one timer.
     def timeOut(s: State) = enter(s.copy(phase = timedOut), nexusOperationTimedOut)
@@ -85,7 +83,7 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
     on(handler.reply(Reply.handlerError(false)))(in(scheduled) ~> effects.fail)
 
     // An asynchronous completion settles a running operation, and is not found once it is over.
-    on(handler.complete)(when[Closed] ~> effects.notFound)
+    on(handler.complete)(when[Closed] ~> rejects(Rejection.notFound))
     on(handler.complete(Resolution.succeeded))(
       in(scheduled, started) ~> ((s: State) => effects.complete(s, Resolution.succeeded))
     )

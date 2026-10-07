@@ -10,6 +10,7 @@ package system
 
 import scala.annotation.unused
 import umpire.*
+import umpire.outcomes.{Outcome, Rejection}
 import umpire.realize.{Alternative, Exploration, Reason, Variation}
 import temporal.realize.{inconclusive, satisfied}
 import temporal.shared.Bounds.{four, three}
@@ -182,9 +183,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // step after it, and the Case says so in a Known Gap.
     def keep(s: State) = stay(s)
 
-    // A completion that arrives after the operation is over is not found, and changes nothing.
-    def notFound(s: State) = reject(Outcome.notFound, s)
-
     // An asynchronous completion. Before a start, the server records a Started event first, which is
     // why the evidence is two facts and not one -- and why the product machine, which has no
     // backingOff phase to have skipped, could write the completion alone.
@@ -215,7 +213,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // operation not yet scheduled has nothing to complete.
     on(handler.complete) {
       // The four phases the design ends on. A completion that arrives after one of them is not found.
-      when[Closed] ~> effects.notFound
+      when[Closed] ~> rejects(Rejection.notFound)
       // Scheduled and not yet over: the phases a completion resolves and a timer can fire in.
       when[Live] ~> effects.complete
     }

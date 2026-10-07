@@ -133,12 +133,12 @@ func TestNexusCloseCompletionClaimsEqualTheGoModel(t *testing.T) {
 func TestNexusCloseLateCompletionDiffersFromTheGoModel(t *testing.T) {
 	c := closeModel(t)
 	baseline := plainResults(t, baselineNexusTable(t, "nexusProduct"), "succeeded-complete-succeeded")
-	require.Equal(t, []interp.Result{{Outcome: "notFound", State: "succeeded", Facts: []string{}}}, baseline)
+	require.Equal(t, []interp.Result{{Outcome: "rejected-notFound", State: "succeeded", Facts: []string{}}}, baseline)
 	duplicate := plainResults(t, c.built["retainAndRoute"].Table,
 		"open-none-done-succeeded-inFlight-succeeded-none-original-succeeded-complete-succeeded")
 	require.Equal(t, "accepted", duplicate[0].Outcome)
 	late := plainResults(t, baselineNexusTable(t, "nexusProduct"), "timedOut-complete-succeeded")
-	require.Equal(t, []interp.Result{{Outcome: "notFound", State: "timedOut", Facts: []string{}}}, late)
+	require.Equal(t, []interp.Result{{Outcome: "rejected-notFound", State: "timedOut", Facts: []string{}}}, late)
 	require.Equal(t, []interp.Result{{Outcome: "rejectedPermanent", State: "open-none-done-succeeded-none-none-expired",
 		Facts: []string{"completionDropped"}}},
 		plainResults(t, c.built["retainAndRouteWithDeadline"].Table,

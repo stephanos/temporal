@@ -13,10 +13,8 @@ enum Reply derives Finite:
 enum Resolution derives Finite:
   case succeeded, failed, canceled
 
-// A step's outcome. The Product and System machines share these three members, and an outcome reads
-// as the refined machine's outcome of the same name.
-enum Outcome derives Finite:
-  case accepted, notFound, alreadyCompleted
+// The Product and System levels share the framework outcome, so a refinement reads the same value
+// at both levels.
 
 val operation = Entity()
 object Inputs:
@@ -40,4 +38,3 @@ object client extends Client:
   val terminate = action(this).on(operation)
 object timers:
   val timeout = timer
-given Ok[Outcome] = Ok(Outcome.accepted)
