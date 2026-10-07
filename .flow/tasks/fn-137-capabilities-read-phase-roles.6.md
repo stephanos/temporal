@@ -32,9 +32,10 @@ Closable loses its `status` and `terminal` fields and reads "closed" as the `Clo
 - [ ] TBD
 
 ## Done summary
-TBD
+Closable now binds only rejection outcomes and reads owned Closed roles through typed Phased projections. A localized DerivedComposition bridge preserves typed phasing and explicit/default end semantics across chained composition derivations. Nine Temporal owners, including four derived owners, migrate; three terminal aliases retire. Focused framework, Temporal, lifter, package, format and scoped lint evidence passed. Full regeneration and batch gates remain deferred by the DSL batch policy.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bc7854ea4d248052041dacd8b90b42b4864e8837
+- Tests: scala-cli test model/project.scala model/umpire model/temporal (58 passed), scala-cli test model/irgen --test-only *DefaultEnds* after rebuilding model-scala.jar (5 passed), make model/build/model-scala.jar (passed, no unchecked warnings), make lint-model-models lint-model-irgen lint-model-syntax (exit 0), git diff --check (exit 0)
 - PRs:
