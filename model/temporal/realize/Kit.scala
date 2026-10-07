@@ -77,7 +77,7 @@ private def grpcCode(rejection: Rejection): String = rejection match
   case Rejection.failedPrecondition => "FAILED_PRECONDITION"
   case Rejection.invalidArgument    => "INVALID_ARGUMENT"
 
-val rejectionCodes: Vector[RejectionCode] =
+val rejectionCodes: Vector[RejectionCode[Rejection]] =
   Vector(
     RejectionCode(Rejection.notFound, "NOT_FOUND"),
     RejectionCode(Rejection.alreadyExists, "ALREADY_EXISTS"),
