@@ -15,7 +15,7 @@ package umpire.realize
 
 import io.grpc.MethodDescriptor
 import scalapb.GeneratedMessage
-import umpire.ClassRef
+import umpire.{Action, ClassRef}
 
 // A fact as a machine records it: a case of its fact enum (`system.Fact.statusPaused`), or for a
 // case with fields the case itself (`system.Fact.statusTimedOut`), which names every value of it.
@@ -33,10 +33,14 @@ def script(id: String, activation: Activation)(items: Item*): Script =
 def perform(bindings: (ClassRef, Command | Instruction)*): Item =
   Item(performs = bindings.toVector.map((step, command) => Performance(step, commanded(command))))
 
-// A command only the Cases whose path takes one of the classes carry. At least one class. IR: an
-// Item of `command` and `when`.
-def onPath(classes: ClassRef*)(command: Command | Instruction): Item =
-  Item(command = Some(commanded(command)), when = classes.toVector)
+// A command only the Cases whose path takes one of the classes carry. At least one class. An
+// action with inputs, `onPath(caller.schedule)`, stands for each of its classes a `deadlines`
+// declaration of the realization performs. IR: an Item of `command` and `when`.
+def onPath(classes: (ClassRef | Action[?])*)(command: Command | Instruction): Item =
+  Item(
+    command = Some(commanded(command)),
+    when = classes.toVector.map(_.asInstanceOf[ClassRef])
+  )
 
 // A command every Case carries. IR: an Item of `command`.
 def everyCase(command: Command | Instruction): Item = Item(command = Some(commanded(command)))

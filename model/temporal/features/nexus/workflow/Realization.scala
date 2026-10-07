@@ -27,6 +27,7 @@ import temporal.realize.{
   controller,
   correlated,
   deadlineMs,
+  deadlines,
   deadlineSeconds,
   duration,
   evidenceId,
@@ -42,6 +43,7 @@ import temporal.realize.{
   proto,
   read,
   run,
+  sets,
   sourceId,
   taskQueue,
   taskQueueName,
@@ -69,7 +71,6 @@ import io.temporal.api.enums.v1.{
 import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import temporal.shared.worker.worker
 
-import Timeout.expires
 import system.{NexusSystem, TrustingCaller}
 
 object NexusRealization:
@@ -255,11 +256,6 @@ object NexusRealization:
 
   private val startNexusOperation = schedule(())
 
-  // Every class performs the one schedule command, so the await names one: a class that sets a
-  // deadline schedules under its name, and its deadlines are written where the class binds it.
-  private def scheduling(deadlines: ProtoScope[ScheduleNexusOperationCommandAttributes] ?=> Unit) =
-    aliasOf(startNexusOperation)(schedule(deadlines))
-
   // The duration a deadline a path sets realizes as; the backoff is the server's own.
   private val requestDeadline = duration(deadlineSeconds)
 
@@ -272,21 +268,16 @@ object NexusRealization:
 
   private val workflowScript =
     script("workflow", WorkerActivation.Workflow(workflowType, caseWorker, taskQueue))(
-      // The schedule command once per class of deadline a path of the caller Model sets.
-      perform(
-        caller.schedule() -> startNexusOperation,
-        caller.schedule(scheduleToStart := expires) -> scheduling(
-          field(_.getScheduleToStartTimeout) := requestDeadline
+      // The schedule command for every class of deadlines a path of the caller Model sets, each
+      // under the one command's name; a schedule-to-close deadline no command sets, so a class that
+      // expires one is unrealizable.
+      deadlines[ApiCommand](caller.schedule, startNexusOperation, requestDeadline)(
+        scheduleToStart.sets(
+          _.getScheduleNexusOperationCommandAttributes.getScheduleToStartTimeout
         ),
-        caller.schedule(startToClose := expires) -> scheduling(
-          field(_.getStartToCloseTimeout) := requestDeadline
-        )
+        startToClose.sets(_.getScheduleNexusOperationCommandAttributes.getStartToCloseTimeout)
       ),
-      onPath(
-        caller.schedule(),
-        caller.schedule(scheduleToStart := expires),
-        caller.schedule(startToClose := expires)
-      )(awaitNexusOperation),
+      onPath(caller.schedule)(awaitNexusOperation),
       everyCase(finishWorkflow)
     )
 

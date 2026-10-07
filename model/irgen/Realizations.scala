@@ -875,7 +875,9 @@ private[irgen] trait Realizations:
 
   // Sets the field a parameter names. An optional argument that is `None` leaves it unset.
   def fieldOf(into: Message, f: FieldDescriptor, b: Bound): Unit =
-    if f.isRepeated then itemsOf(b).foreach(i => into.add(f, valueOf(f, i)))
+    if f.isRepeated && f.name == "when" && into.descriptor.name == "Item" then
+      whenClasses(b).foreach(into.add(f, _))
+    else if f.isRepeated then itemsOf(b).foreach(i => into.add(f, valueOf(f, i)))
     else
       reduce(b).term match
         case r: Ref if r.symbol == noneModule                                                 => ()
@@ -887,12 +889,17 @@ private[irgen] trait Realizations:
   // one of the message's oneofs writes that member; any other writes the fields its parameters
   // name, and a parameter named after a oneof takes the member its argument writes.
   def declaration(b0: Bound, into: Message): Unit =
-    val entry = if into.descriptor.name == "Evidence" then entryEvidence(b0) else None
+    val d = into.descriptor
+    val entry =
+      if d.name == "Item" then deadlinesItem(b0, d)
+      else if d.name == "Evidence" then entryEvidence(b0)
+      else None
     entry match
       case Some(e) => e.value.foreach((f, v) => into.set(f, v))
       case None    => declared(b0, into)
 
-  // A declaration that is no entry of an evidence module, written field by field.
+  // A declaration that is no item of a `deadlines` declaration and no entry of an evidence module,
+  // written field by field.
   private def declared(b0: Bound, into: Message): Unit =
     val b = reduce(b0)
     val d = into.descriptor
@@ -1298,6 +1305,201 @@ private[irgen] trait Realizations:
       case ScalaType.Message(md) if !f.isRepeated => Some(md)
       case _                                      => None
 
+  // ### Deadlines bound once (model/temporal/realize/Modules.scala, `deadlines`)
+
+  // The classes each action's `deadlines` declaration of the realization being emitted binds.
+  private val deadlineClasses = mutable.Map.empty[String, Vector[ir.ActionClass]]
+
+  // `deadlines[M](action, call, value, unset)(input.sets(_.field), …)`: the `perform` item of every
+  // class of the action the declared inputs make, in the order a binary count over the declared
+  // inputs gives (the first declared is the lowest bit), each the call with the fields of the
+  // inputs it expires set to `value`; or None for a term that is not one. An input that is no
+  // `Timeout` of the action is refused at its line.
+  private def deadlinesItem(b0: Bound, d: Descriptor): Option[PMessage] =
+    val b = follow(b0)
+    applied(b.term)
+      .filter((fn, _) =>
+        fn.symbol.name == "apply" && fn.symbol.maybeOwner.fullName == "temporal.realize.deadlines$"
+      )
+      .map { (_, args) =>
+        val t = b.term
+        def arg(i: Int) = Bound(args(i), b.env)
+        val message = typeArguments(t).headOption.getOrElse(
+          fail(t, "deadlines names the message its fields are of")
+        )
+        val id = action(follow(arg(0)).term)
+        val decl = actions(id)
+        val tokens = inputTokens.getOrElse(id, Vector.empty)
+        val fields = itemsOf(arg(args.length - 1)).map { f =>
+          val r = reduce(f)
+          val input = fieldOfDeclaration(r, "input").map(i => follow(i).term).get
+          val sym = input match
+            case ref: Ref => resolveSymbol(ref)
+            case other    =>
+              fail(r.term, s"a deadline names its input by its token's val, not ${other.show}")
+          val index = tokens.indexOf(Some(sym))
+          val param = Option.when(index >= 0)(decl.inputs(index))
+          val timeout =
+            param.map(_.getType).collect { case ir.TypeRef(ir.TypeRef.Ref.Named(n), _) => n }
+          val cases = timeout.flatMap(types.get).map(_.shape).collect {
+            case ir.Type.Shape.Enum(e) if e.cases.size == 2 => e.cases.map(_.name)
+          }
+          if timeout.forall(n => !n.endsWith(".Timeout")) || cases.isEmpty then
+            fail(
+              follow(f).term,
+              s"${sym.name} is no Timeout input of ${decl.name}: a deadline names one of its action's Timeout inputs"
+            )
+          val selector = fieldOfDeclaration(r, "field").map(follow).get
+          (index, timeout.get, cases.get(1), selectorPath(message, selector.term, r.term))
+        }
+        val unset = fieldOfDeclaration(b, "unset").map(reduce).flatMap { u =>
+          applied(u.term)
+            .collect {
+              case (some, List(pair)) if some.symbol.owner == someModule.moduleClass => pair
+            }
+            .flatMap(pair =>
+              performed(follow(Bound(pair, u.env)).term).map((i, c) => (i, Bound(c, u.env)))
+            )
+        }
+        val unsetIndex = unset.map((i, _) => tokens.indexOf(Some(resolveSymbol(i))))
+        val commandD = irMessage(irField(irMessage(irField(d, "performs", t), t), "command", t), t)
+        val proto = Message(ir.Proto.scalaDescriptor)
+        declaration(arg(2), proto)
+        val classes = (0 until (1 << fields.size)).map { mask =>
+          val set = fields.zipWithIndex.collect { case (f, i) if (mask & (1 << i)) != 0 => f }
+          val values = decl.inputs.zipWithIndex.map { (param, i) =>
+            set.find(_._1 == i) match
+              case Some((_, n, expires, _)) =>
+                ir.Value(ir.Value.Kind.Enum(ir.EnumValue(n, expires, Nil)))
+              case None => firstInput(param, decl.name, t)
+          }
+          val base = unset match
+            case Some((_, command)) if !set.exists(f => unsetIndex.contains(f._1)) => command
+            case _                                                                 => arg(1)
+          val command = set.foldLeft(commandValue(base, commandD)) { case (c, (_, _, _, path)) =>
+            deadlineSet(c, path, proto.written, t)
+          }
+          (ir.ActionClass(id, values), command)
+        }
+        deadlineClasses(id) = classes.map(_._1).toVector
+        val performance = irMessage(irField(d, "performs", t), t)
+        PMessage(
+          Map(
+            irField(d, "position", t) -> pos(t).toPMessage,
+            irField(d, "performs", t) -> PRepeated(classes.map { (c, command) =>
+              PMessage(
+                Map(
+                  irField(performance, "position", t) -> pos(t).toPMessage,
+                  irField(performance, "step", t) -> c.toPMessage,
+                  irField(performance, "command", t) -> command
+                )
+              )
+            }.toVector)
+          )
+        )
+      }
+
+  private def typeArguments(t: Term): List[TypeRepr] = t match
+    case Apply(fn, _)        => typeArguments(fn)
+    case TypeApply(_, targs) => targs.map(_.tpe)
+    case _                   => Nil
+
+  // The command `c` with the deadline field at `path` set to the message `value`: an assignment of
+  // each field the message sets, appended to its call's request, or the field appended to the
+  // message at `path` of the protobuf a worker command carries.
+  private def deadlineSet(c: PMessage, path: String, value: PMessage, at: Term): PMessage =
+    val d = ir.Command.scalaDescriptor
+    val rpc = irField(d, "rpc", at)
+    val workflow = irField(d, "workflow_command", at)
+    c.value.get(rpc) match
+      case Some(call: PMessage) =>
+        val assign = irField(ir.Rpc.scalaDescriptor, "assign", at)
+        val own = call.value.get(assign) match
+          case Some(PRepeated(xs)) => xs
+          case _                   => Vector.empty
+        val added = assignedMessage(path, value, ir.Assignment.scalaDescriptor, at)
+        PMessage(c.value + (rpc -> PMessage(call.value + (assign -> PRepeated(own ++ added)))))
+      case _ =>
+        c.value.get(workflow) match
+          case Some(w: PMessage) =>
+            val commandF = irField(ir.WorkflowCommand.scalaDescriptor, "command", at)
+            val inner = w.value(commandF).asInstanceOf[PMessage]
+            PMessage(
+              c.value + (workflow -> PMessage(
+                w.value + (commandF -> protoSet(
+                  inner,
+                  path.split('.').toList.map(_.replaceAll("^[^<]*<(.*)>$", "$1")),
+                  value,
+                  at
+                ))
+              ))
+            )
+          case _ =>
+            fail(
+              at,
+              "deadlines sets a field of a call's request or of a workflow command's protobuf"
+            )
+
+  // The Proto `m` with the field at `path` set to the message `value`, appended where it is unset.
+  private def protoSet(m: PMessage, path: List[String], value: PMessage, at: Term): PMessage =
+    val protoD = ir.Proto.scalaDescriptor
+    val fieldsF = irField(protoD, "fields", at)
+    val fieldD = ir.ProtoField.scalaDescriptor
+    val valueD = ir.ProtoValue.scalaDescriptor
+    val fields = m.value.get(fieldsF) match
+      case Some(PRepeated(xs)) => xs.collect { case p: PMessage => p }
+      case _                   => Vector.empty
+    def named(f: PMessage) = f.value.get(irField(fieldD, "name", at)).contains(PString(path.head))
+    val updated = path match
+      case List(last) =>
+        fields :+ PMessage(
+          Map(
+            irField(fieldD, "name", at) -> PString(last),
+            irField(fieldD, "value", at) -> PMessage(Map(irField(valueD, "message", at) -> value))
+          )
+        )
+      case head :: rest =>
+        val i = fields.indexWhere(named)
+        if i < 0 then
+          fail(at, s"the workflow command's protobuf sets no $head to set a deadline in")
+        val f = fields(i)
+        val v = f.value(irField(fieldD, "value", at)).asInstanceOf[PMessage]
+        val nested = v.value(irField(valueD, "message", at)).asInstanceOf[PMessage]
+        fields.updated(
+          i,
+          PMessage(
+            f.value + (irField(fieldD, "value", at) ->
+              PMessage(
+                v.value + (irField(valueD, "message", at) -> protoSet(nested, rest, value, at))
+              ))
+          )
+        )
+      case Nil => fields
+    PMessage(m.value + (fieldsF -> PRepeated(updated)))
+
+  // The classes an `onPath` names: each class, and for an action with inputs, each class the
+  // realization's `deadlines` declaration of it binds.
+  private def whenClasses(b: Bound): List[PValue] =
+    itemsOf(b).flatMap { item =>
+      reduce(item).term match
+        case r: Ref
+            if isNamed(r.tpe, "umpire.Action") && actions
+              .get(action(r))
+              .exists(_.inputs.nonEmpty) =>
+          deadlineClasses
+            .getOrElse(
+              action(r),
+              fail(
+                r,
+                s"${actions(action(r)).name} has inputs, and no deadlines declaration of the " +
+                  "realization before it binds its classes: name each class"
+              )
+            )
+            .map(_.toPMessage)
+            .toList
+        case t => List(classOf(t).toPMessage)
+    }
+
   // ### API behavior hints (model/temporal/realize/Realize.scala, Behavior.scala)
 
   private val hintMessages =
@@ -1388,6 +1590,7 @@ private[irgen] trait Realizations:
         val d = valDef(sym, at, "a realization")
         factsNamed.clear()
         commandOrigins.clear()
+        deadlineClasses.clear()
         // A realization is where its val declares it, though a kit function may write its record.
         val emitted =
           emit(ir.Realization, Bound(d.rhs.get, familyScope(sym, Bound(d.rhs.get, Map.empty))))

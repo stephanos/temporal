@@ -19,12 +19,12 @@ package system
 import umpire.*
 import umpire.realize.{Fact as RealizationFact, *}
 import temporal.realize.{deadline as _, *}
+import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionOutcome}
 import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 
-import Timeout.expires
 import shared.worker.worker as process
 
 object ActivityRealization:
@@ -87,14 +87,16 @@ object ActivityRealization:
   private val standaloneController = controller(
     perform(process.stop -> stopWorker),
     onPath(client.control(Control.pause))(stopWorkerUntilReleased),
-    perform(
-      client.start() -> startUnreached,
-      client.start(scheduleToStart := expires) -> startUnreached.withFields {
-        field(_.getScheduleToStartTimeout) := duration(deadlineSeconds)
-      },
-      client.start(startToClose := expires) -> startActivity.withFields {
-        field(_.getStartToCloseTimeout) := duration(deadlineSeconds)
-      }
+    // Every class of the start, each setting the deadlines it expires; a schedule-to-close
+    // deadline no start sets, so a class that expires one is unrealizable.
+    deadlines[StartActivityExecutionRequest](
+      client.start,
+      startActivity,
+      duration(deadlineSeconds),
+      unset = Some(startToClose -> startUnreached)
+    )(
+      scheduleToStart.sets(_.getScheduleToStartTimeout),
+      startToClose.sets(_.getStartToCloseTimeout)
     ),
     perform(client.control(Control.pause) -> pauseActivity),
     onPath(client.control(Control.pause))(described.await(system.Fact.statusPaused)),
@@ -106,7 +108,7 @@ object ActivityRealization:
     onPath(worker.respond(AttemptResult.failed(false)))(described.await(system.Fact.statusFailed)),
     onPath(worker.respond(AttemptResult.canceled))(described.await(system.Fact.statusCanceled)),
     onPath(client.control(Control.terminate))(described.await(system.Fact.statusTerminated)),
-    onPath(deadline.scheduleToClose, deadline.scheduleToStart, deadline.startToClose)(
+    onPath(deadline.scheduleToStart, deadline.startToClose)(
       described.await(system.Fact.statusTimedOut)
     )
   )

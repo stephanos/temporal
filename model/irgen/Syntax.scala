@@ -422,7 +422,7 @@ private[irgen] trait Syntax:
 
   // The assignments a message written out for the request field `target` makes: one per scalar
   // field it sets, at that field's path below `target`, nested messages field by field.
-  private def assignedMessage(
+  private[irgen] def assignedMessage(
       target: String,
       proto: PMessage,
       into: Descriptor,

@@ -155,6 +155,17 @@
         "stop"
       ],
       "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "uncovered-class",
+      "owner": "standalone",
+      "subjects": [
+        "start-expires-expires-expires",
+        "start-expires-expires-unset",
+        "start-expires-unset-expires",
+        "start-expires-unset-unset"
+      ],
+      "because": "No start sets a schedule-to-close deadline: the realization's `deadlines` declaration names schedule-to-start and start-to-close only, so a class that expires a schedule-to-close deadline is unrealizable (fn-133 R13)."
     }
   ]
 }

@@ -488,7 +488,16 @@ The IR generator reads what an author wrote, as written:
   `DescribedStatus(calls, method, info, operation, status)(fact -> value, …)`, with
   `described(fact)`, `described.evidence` and `described.await(fact)` (named `await-<status>`); and
   `HistoryEvidence(key, factPrefix)(HistoryKind(fact, _.attributes.x), …)`, exhaustive kinds whose
-  closing read names `evidence` in its `closes`. A declaration
+  closing read names `evidence` in its `closes`. A class pattern is exact:
+  `start(scheduleToStart := expires)` is the one class whose omitted inputs are at their domain's
+  first value (`unset`), and it binds no other class of the action. `deadlines[M](action, call,
+  value, unset)(input.sets(_.field), …)` binds every class of the action the declared `Timeout`
+  inputs make, combined ones too, each the call with the expiring inputs' fields set to `value`; a
+  class expiring an input it leaves out is unrealizable. `onPath(action)` of an action with inputs
+  stands for each class its `deadlines` binds. umpire-lint reports a binding of a class no
+  realizable path reaches (`unreachable-binding`) and a class of a performed action a realizable
+  path can take that no binding performs (`uncovered-class`), accepted with why where it is
+  unrealizable. A declaration
   referred to by value is written as its id, a monitor as its name
   (`MonitorExpectation(terminalFinality, …)` in a Query's expected Run), and a fact as
   its enum case, or the companion of a case with fields. A lookup `table(fact)` is resolved when

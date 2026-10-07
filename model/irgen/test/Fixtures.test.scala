@@ -329,7 +329,8 @@ class Fixtures extends munit.FunSuite:
     "awaitUnlisted",
     "describedFactTwice",
     "historyKeyless",
-    "namedTwice"
+    "namedTwice",
+    "deadlineNoTimeout"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
   // The refusals of fn-122.2's capability declarations, fn-122.5's citations and fn-127.2's

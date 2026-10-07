@@ -8,6 +8,7 @@ package temporal.realize
 import io.grpc.MethodDescriptor
 import scalapb.{GeneratedEnum, GeneratedMessage}
 import io.temporal.api.history.v1.HistoryEvent
+import umpire.{Action, Input}
 import umpire.realize.*
 
 // The fields every call on `role` assigns, each a request field by its protobuf name and the
@@ -91,3 +92,33 @@ final case class HistoryEvidence(key: String, factPrefix: String)(val kinds: His
 
 // The one source a workflow's history-event kinds count in.
 def historySource = sourceId("history")
+
+// The request field, of a message `M`, that an input of an action sets when its deadline expires:
+// `scheduleToStart.sets(_.getScheduleToStartTimeout)`.
+final case class DeadlineField[M](
+    input: Input[?],
+    field: M => com.google.protobuf.duration.Duration
+)
+
+extension (input: Input[?])
+  // The field of `M` the input's deadline sets.
+  def sets[M](field: M => com.google.protobuf.duration.Duration): DeadlineField[M] =
+    DeadlineField(input, field)
+
+// The bindings of every class of `action` the deadlines `fields` declare, one `perform` item:
+// `deadlines[StartActivityExecutionRequest](client.start, startActivity, duration(2))(
+// scheduleToStart.sets(_.getScheduleToStartTimeout), startToClose.sets(_.getStartToCloseTimeout))`.
+// Each class sets the inputs it expires among the declared ones, each a `Timeout` of the action,
+// and no other: its command is `call` with each such input's field set to `value`, in the order the
+// fields are declared, keeping the call's name, as `withFields` does. A class that leaves the input
+// `unset` names unset is performed from that entry's command instead, since the server refuses the
+// call without it. A class that expires an input the declaration leaves out is unrealizable: no
+// binding performs it, and the coverage report shows it. `M` is the message of `call` the fields
+// are of: its request, or the protobuf a worker command carries.
+object deadlines:
+  def apply[M](
+      action: Action[?],
+      call: Command | Instruction,
+      value: TypedProto[com.google.protobuf.duration.Duration],
+      unset: Option[(Input[?], Command | Instruction)] = None
+  )(fields: DeadlineField[M]*): Item = Item()

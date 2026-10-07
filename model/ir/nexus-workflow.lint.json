@@ -188,6 +188,26 @@
         "outcome alreadyCompleted"
       ],
       "because": "The kind-owned Outcome catalog admits accepted, notFound and alreadyCompleted before refinement visibility is read. This owner has no enabled step producing alreadyCompleted; retaining the other form's required rejection member adds no behavior."
+    },
+    {
+      "kind": "uncovered-class",
+      "owner": "asyncNexus",
+      "subjects": [
+        "complete-canceled",
+        "reply-operationCanceled"
+      ],
+      "because": "The Case's handler answers no operation as canceled, and the controller completes none as canceled: a canceled answer is not realized, so the Queries whose paths take it are not lowered."
+    },
+    {
+      "kind": "uncovered-class",
+      "owner": "asyncNexus",
+      "subjects": [
+        "schedule-expires-expires-expires",
+        "schedule-expires-expires-unset",
+        "schedule-expires-unset-expires",
+        "schedule-expires-unset-unset"
+      ],
+      "because": "No schedule command sets a schedule-to-close deadline: the realization's `deadlines` declaration names schedule-to-start and start-to-close only, so a class that expires a schedule-to-close deadline is unrealizable (fn-133 R13)."
     }
   ]
 }

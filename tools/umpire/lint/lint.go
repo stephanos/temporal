@@ -46,6 +46,13 @@ const (
 	// UnperformedAction is an action of a realized machine whose actor is not `system` that no
 	// performance binds and no activity script starts with.
 	UnperformedAction Kind = "unperformed-action"
+	// UnreachableBinding is a class a `perform` or an `onPath` of a realization binds that no state a
+	// realizable path of its machine reaches enables: no Case carries the binding (fn-133 R6).
+	UnreachableBinding Kind = "unreachable-binding"
+	// UncoveredClass is a class of an action a realization performs that a realizable path can take
+	// and no binding of the realization performs (fn-133 R6). A class the realization cannot perform,
+	// such as one setting a deadline its `deadlines` declaration leaves out, is accepted with why.
+	UncoveredClass Kind = "uncovered-class"
 	// UnrealizedFind is a find Query whose machine no realization runs.
 	UnrealizedFind Kind = "unrealized-find"
 	// UnreadRefinement is a refinement no Query reads through.
@@ -210,6 +217,8 @@ func kinds() []kind {
 		{kind: UnfiredVerify, run: unfiredVerifies, count: &count{"verify Queries", "", "whose Property fired"}},
 		{kind: UnperformedAction, run: unperformedActions, count: &count{"non-system actions", "", "performed by a realization"}},
 		{kind: UnevidencedFact, run: unevidencedFacts, count: &count{"facts", "", "with evidence"}},
+		{kind: UnreachableBinding, run: unreachableBindings, count: &count{"bindings", "", "of a realizable class"}},
+		{kind: UncoveredClass, run: uncoveredClasses, count: &count{"realizable classes", "of performed actions", "bound"}},
 		{kind: UntakenChoice, run: untakenChoices, count: &count{"named choices", "", "taken by a reachable state"}},
 		{kind: UnreadRefinement, run: unreadRefinements, count: &count{"refinements", "declared", "read through by a Query"}},
 		{kind: UnreadObservation, run: unreadObservations, count: &count{"observations", "", "read"}},
@@ -281,7 +290,7 @@ func sortFindings(fs []Finding) {
 
 // order is every kind in the order findings are listed.
 var order = []Kind{UnreachableValue, NeverEnabled, StuckState, Unproduced, UntakenChoice, UnaskedProperty, UnfiredVerify, UnevidencedFact,
-	UnperformedAction, UnrealizedFind, UnreadRefinement, UnreadObservation, ExplicitWait, UnmodeledAPIValue, DisabledByDefault, SilentRejection,
+	UnperformedAction, UnreachableBinding, UncoveredClass, UnrealizedFind, UnreadRefinement, UnreadObservation, ExplicitWait, UnmodeledAPIValue, DisabledByDefault, SilentRejection,
 	UnconstrainedResult, WitnessOnly, MustNotPinned, WaivedLaw, LawWaivedWithoutReason, ReasonNamesNoLaw, ParameterWithoutCitation,
 	LawWithOneInstance}
 

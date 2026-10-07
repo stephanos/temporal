@@ -169,3 +169,14 @@ private val stopAgain = Command("stop", fault(taskQueue, FaultKind.workerResume)
 
 // Two commands of one realization with one name and no alias (fn-133.3).
 val namedTwice: Realization = realizing(everyCase(stopOnce), everyCase(stopAgain))
+
+private val started = rpc(baseCalls, METHOD_START_ACTIVITY_EXECUTION) {}
+
+// A deadlines declaration naming an input that is no Timeout of the action (fn-133.4).
+val deadlineNoTimeout: Realization = realizing(
+  deadlines[io.temporal.api.workflowservice.v1.StartActivityExecutionRequest](
+    client.start,
+    started,
+    duration(2)
+  )(temporal.features.activity.standalone.Inputs.control.sets(_.getStartToCloseTimeout))
+)

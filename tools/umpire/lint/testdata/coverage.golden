@@ -8,9 +8,15 @@ coverage model/ir/activity-standalone.json activitySystem
   refinements          1 declared, 0 read through by a Query
   observations         1, 1 read
   API values           7 tested, 6 mapped to a fact
+coverage model/ir/activity-standalone.json standalone
+  bindings             22, 21 of a realizable class
+  realizable classes   18 of performed actions, 13 bound
 coverage model/ir/activity-standalone.json standaloneActivity
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
+coverage model/ir/nexus-workflow-control.json forgedCompletion
+  bindings             18, 18 of a realizable class
+  realizable classes   19 of performed actions, 12 bound
 coverage model/ir/nexus-workflow-control.json trustingCaller
   properties           1 declared, 1 named by a Query
   non-system actions   6, 5 performed by a realization
@@ -74,12 +80,24 @@ coverage model/irgen/testdata/lifts/expected/realizations.json door
   non-system actions   1, 1 performed by a realization
   facts                1, 1 with evidence
   observations         1, 1 read
+coverage model/irgen/testdata/lifts/expected/realizations.json doorRealization
+  bindings             1, 1 of a realizable class
+  realizable classes   1 of performed actions, 1 bound
 coverage model/irgen/testdata/lifts/expected/realizations.json errand
   properties           2 declared, 2 named by a Query
   non-system actions   3, 3 performed by a realization
   facts                3, 3 with evidence
   observations         1, 1 read
   API values           7 tested, 2 mapped to a fact
+coverage model/irgen/testdata/lifts/expected/realizations.json errandRealization
+  bindings             5, 5 of a realizable class
+  realizable classes   5 of performed actions, 5 bound
+coverage model/irgen/testdata/lifts/expected/realizations.json learnedRun
+  bindings             1, 1 of a realizable class
+  realizable classes   1 of performed actions, 1 bound
+coverage model/irgen/testdata/lifts/expected/realizations.json pauseRace
+  bindings             1, 1 of a realizable class
+  realizable classes   1 of performed actions, 1 bound
 coverage model/irgen/testdata/lifts/expected/realizations.json race
   properties           1 declared, 1 named by a Query
   non-system actions   1, 1 performed by a realization
@@ -95,6 +113,9 @@ coverage model/irgen/testdata/lifts/expected/realizations.json tally
   non-system actions   1, 1 performed by a realization
   facts                1, 1 with evidence
   observations         1, 1 read
+coverage model/irgen/testdata/lifts/expected/realizations.json tallyRealization
+  bindings             1, 1 of a realizable class
+  realizable classes   1 of performed actions, 1 bound
 coverage model/irgen/testdata/lifts/expected/taskqueue.json forgetfulQueue
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 0 read through by a Query
