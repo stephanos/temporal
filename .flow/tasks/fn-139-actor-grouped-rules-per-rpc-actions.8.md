@@ -1,39 +1,31 @@
 ---
 satisfies: [R10]
 ---
-# fn-139-actor-grouped-rules-per-rpc-actions.8 Rejection to RPC status code table and conformance check
+# fn-139-actor-grouped-rules-per-rpc-actions.8 Export shared rejection-to-RPC status mapping
 
 ## Description
-Adds the one table, shared by every Model, from each `Rejection` to the RPC status code a Run observes, in the realization layer. Conformance then checks each rejecting step's observed code against it, replacing per-realization answer strings such as the activity's `closedAnswer = "activity_notFound"` (R10). Runs after the DSL batch's regeneration, with fn-133.8's carrier metadata already in place.
+**Batch:** DSL batch (see MILESTONES.md, DSL batch). This schema/export half runs before the batch's single regeneration. Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task. Framework, lifter, reader and focused unit tests still run here. Commit the task on its own.
 
-**Size:** M (split it at start if the Go side needs a new IR field and a reader change as well as the conformance check)
-**Files:** model/temporal/realize/ (new shared table, e.g. Rejections.scala), the realization metadata path fn-133.8 establishes (Scala carrier and IR export), model/temporal/features/activity/standalone/system/WithTaskQueue.scala (`closedAnswer` removed), any other realization with a rejection answer string, tools/umpire/conformance/ (expected-code check and tests), common/testing/testpilot/temporal/ (where a Run's observed status code is captured, if it is not captured yet)
-**Touches:** [model/temporal/realize/**, model/temporal/features/**, model/irgen/**, proto/internal/temporal/server/api/umpire/v1/**, tools/umpire/**, common/testing/testpilot/temporal/**]
-**Batch:** DSL batch (see MILESTONES.md, DSL batch). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at the batch's single regeneration against the batch baseline (the tree at fn-132's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
+Investigation found no existing realization metadata slot that can carry the shared `Rejection` to gRPC status-code mapping, so the former task 8 is split as its own size rule requires. Add one table in the Temporal realization layer, written as an exhaustive Scala match over every `umpire.outcomes.Rejection` case: `notFound` -> `NOT_FOUND`, `alreadyExists` -> `ALREADY_EXISTS`, `failedPrecondition` -> `FAILED_PRECONDITION`, and `invalidArgument` -> `INVALID_ARGUMENT`. Attach that table centrally through `temporalRealization`, export it on each Temporal `Realization` through a new IR field, and admit/validate it in the Go realization reader. There must be no independently maintained Go mapping.
 
-### Approach
-- The table is Scala, in the Temporal realization layer, written as an exhaustive `match` over `Rejection` with no wildcard, so a new case without a code does not compile. `notFound` → NOT_FOUND, `alreadyExists` → ALREADY_EXISTS, `failedPrecondition` → FAILED_PRECONDITION, `invalidArgument` → INVALID_ARGUMENT. Cite the server sources in comments (spec, Resolved via Research, practice-scout).
-- Carry the table to Go through the realization metadata fn-133.8 adds to the IR, not through a second Go-side table. If that path cannot carry it, a new IR field is needed (proto, lifter, Go reader). Stop, split the task, and say so.
-- Conformance: for each step whose Model outcome is `rejected(r)`, compare the observed gRPC status code with the table's code for `r`. A mismatch fails the step's conformance, naming both codes. Compare codes only, never message text. Also cover the reverse cases: an accepted step that observes an error, and a rejecting step that observes OK.
-- Find where a Run's error is captured today (common/testing/testpilot/temporal/server/session.go:171-177 maps context errors to codes; control/activity.go handles ObsoleteMatchingTask). Capture the observed status code where steps are recorded, if it is not captured yet.
-- Remove `closedAnswer` and any other per-realization rejection strings once the check replaces them.
-- A Go test proves the table is total: every `Rejection` case in the IR has a code.
+Remove `RecordOverQueue.states.closedAnswer` and any other ad-hoc rejection-answer string. Replace the composition binding with a typed/shared derivation of the composed outcome key; do not inline the old string. Preserve every Query assessment. Add focused Scala/lifter and Go reader tests proving the mapping is exhaustive, exported on each Temporal realization, unique, complete, and correctly read. Declare the new IR metadata and the answer-string removal for the batch diff. The post-regeneration conformance consumer is task 9.
 
-### Investigation targets
-**Required:**
-- model/temporal/features/activity/standalone/system/WithTaskQueue.scala:60-110, 180-195 (`closedAnswer`)
-- tools/umpire/conformance/ (package layout, activity_test.go)
-- common/testing/testpilot/temporal/server/session.go:160-180 and control/activity.go
-- fn-133.8's realization metadata in the IR (read its task and done summary)
-- proto/internal/temporal/server/api/umpire/v1/ir.proto (realization section)
+**Files:** `model/temporal/realize/` (shared mapping and central attachment), `model/umpire/realize/Realize.scala`, `model/temporal/features/activity/standalone/system/WithTaskQueue.scala`, any framework helper needed to derive a composed outcome key without hand-written strings, `model/irgen/`, `proto/internal/temporal/server/api/umpire/v1/ir.proto`, and the Go realization reader/tests.
+
+**Touches:** [model/temporal/realize/**, model/umpire/**, model/temporal/features/**, model/irgen/**, proto/internal/temporal/server/api/umpire/v1/**, tools/umpire/realization/**]
+
+Required investigation already established:
+- `Realization` currently ends at field 17; allocate a new field without renumbering existing fields.
+- `temporalRealization` in `model/temporal/realize/Kit.scala` is the central attachment point for every Temporal realization.
+- fn-133.8 derived carriers from existing performance metadata, but rejection codes are not derivable from any existing IR field.
+- Run instruction outcomes already retain lower-case protocol codes; task 9 owns correlating them to Model steps and enforcing conformance.
 
 ## Acceptance
-- [ ] One Scala table maps every `Rejection` to an RPC status code. Removing a case's code fails compilation, and a Go test checks that the exported table is total.
-- [ ] Conformance fails a rejecting step whose observed code differs from the table's, naming the expected and observed codes, with a Go test for the mismatch, for an accepted step observing an error, and for a rejecting step observing OK.
-- [ ] No realization carries its own rejection answer string (`closedAnswer` is gone).
-- [ ] The Go unit tests for the touched packages and the Scala munit and fixture suites pass. The IR change is declared in the commit message for the batch diff check.
-
-
+- [ ] One shared Temporal Scala table exhaustively maps every `Rejection` to its gRPC status code with no wildcard; removing a case's mapping fails compilation.
+- [ ] A new realization IR field carries that table from Scala through the lifter. Every Temporal realization receives it through `temporalRealization`; no second Go-side mapping exists.
+- [ ] The Go realization reader admits only a unique, complete mapping and a Go test proves every exported shared `Rejection` case has exactly one code.
+- [ ] `closedAnswer` and every equivalent hand-written rejection-answer string are gone. Composition capability bindings derive the shared rejected outcome key without inlining its encoded string, and existing Query assessments remain unchanged.
+- [ ] Focused Scala framework/lifter tests and Go realization reader tests pass. No checked IR, fixture golden, or Cases regeneration occurs; the schema and metadata delta is declared for the batch regeneration.
 ## Done summary
 TBD
 

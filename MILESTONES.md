@@ -87,8 +87,9 @@ the activity says (fn-128, fn-138, fn-129) is deferred until the batch closes.
   Cases and fn-133.8's carrier metadata; fn-134's `origin`, exported-root `source` substitutions from
   `.implements` to `.capabilities`, and the deleted `*.laws.json`; fn-135's `status`;
   fn-136.5's inlined Functions; fn-137.6's removed `states.terminal` Functions and fn-137.7's
-  owner-approved change; fn-139's renamed actions, classes, inputs and outcomes and the other differences
-  its R7 lists. Classify every changed line against that list; any line it does not explain stops the
+  owner-approved change; fn-139's renamed actions, classes, inputs and outcomes, task 8's realization
+  rejection-code metadata, and the other differences its R7 lists. Classify every changed line against
+  that list; any line it does not explain stops the
   batch until it is traced to its task. Per-task "equal but for positions" claims are checked against the
   baseline, never absorbed. Every Query answer and receipt is otherwise unchanged.
 - **Order.**
@@ -99,11 +100,11 @@ the activity says (fn-128, fn-138, fn-129) is deferred until the batch closes.
      `WithTaskQueue.scala` and the Nexus System and Product: fn-135.4 → fn-136.2, .3 → fn-134.3 →
      fn-137.3, .4 → fn-136.5 → fn-137.5, .6 → fn-137.7 (ask the owner about `pausedWhileHeld` before
      writing it) → fn-139.4–.7.
-  4. Removals and Go: fn-134.4, then the batch regeneration, then fn-134.5 (Go refuses law sidecars, so
-     it follows the regeneration that deletes them) and fn-139.8 (rejection-to-RPC-code table and
-     conformance).
+  4. Removals and Go: fn-134.4, then fn-139.8 (the rejection-to-RPC-code table, new realization IR
+     field and Go reader), then the batch regeneration, then fn-134.5 (Go refuses law sidecars, so it
+     follows the regeneration that deletes them) and fn-139.9 (the conformance consumer).
   5. Gates: the full Go suite, the model gate and reviews once, then one live run for fn-133.4's new Cases
-     and fn-139.8's conformance check. Close fn-133 (task 7), fn-134, fn-135, fn-136, fn-137 and fn-139
+     and fn-139.9's conformance check. Close fn-133 (task 7), fn-134, fn-135, fn-136, fn-137 and fn-139
      after it.
 
 ### fn-133: Lean, typed realizations
@@ -174,7 +175,7 @@ Gate: the DSL batch. Task 7 assigns `pausedWhileHeld` to `Held`: the admitted at
 
 ### fn-139: Actor-grouped rules, per-RPC actions, shared rejections
 
-Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06. fn-136.4 spells the role form `when[R]` directly. Task 4 preserves each RPC's protobuf carrier through its realization binding, the current fn-133.8 contract; the older planned `.schema[T]` spelling is retired by the DSL.
+Gate: the DSL batch; task 8 exports the mapping before the batch regeneration and task 9 consumes it after. Captured 2026-10-06; task 8 split on 2026-10-07 after investigation proved a new IR field and reader path were required. fn-136.4 spells the role form `when[R]` directly. Task 4 preserves each RPC's protobuf carrier through its realization binding, the current fn-133.8 contract; the older planned `.schema[T]` spelling is retired by the DSL.
 
 `from(actor) { on(action) { when(phases) ~> effect } }` rules, `when` replacing the rule-case `in`, one action per RPC for the standalone activity with a `Failure` enum, and a shared `Outcome`/`Rejection` with `rejects(r)` rows. R7: the IR differs only in positions, the renamed actions, classes and inputs, and the other differences R7 lists.
 
@@ -187,7 +188,8 @@ Gate: the DSL batch; task 8 follows the batch regeneration. Captured 2026-10-06.
 | fn-139.5 | ✅ done | Activity product and System rules in `from` blocks, grouped by meaning; activity on the shared `Outcome` |
 | fn-139.6 | ✅ done | Nexus and the shared worker on the shared `Outcome`; `alreadyCompleted` becomes `rejected(failedPrecondition)` |
 | fn-139.7 | ✅ done | `in` → `when` and block form across every Model and fixture; rule-case `in` retired; block-form lint on; docs |
-| fn-139.8 | ⬜ todo | Rejection-to-RPC-code table and conformance check |
+| fn-139.8 | ⬜ todo | Exhaustive rejection-to-RPC-code table, realization IR export and Go reader (before regeneration) |
+| fn-139.9 | ⬜ todo | Conformance checks observed instruction codes against rejecting Model steps (after regeneration) |
 
 ### fn-140: One-sentence witness Queries with explicit live expectations
 
