@@ -1,0 +1,67 @@
+{
+  "base_commit": "a936b597b4c62fa50f11a6c16c91111cd52b1ec3",
+  "checks": {
+    "exact_seven_forms": true,
+    "only_four_production_files_changed": true,
+    "fixed_inputs_and_tools_preserved": true,
+    "source_stable_during_commands": true,
+    "matching_existing_package_terminals": true,
+    "matching_portable_conformance_execution_architecture_terminals": true,
+    "gofmt_clean": true,
+    "standalone_errortype_and_check_only_validation_pass": true,
+    "exact_scoped_lint_delta": true,
+    "exact_original_full_lint_delta": true,
+    "only_admitted_diagnostics_removed": true
+  },
+  "source_hashes": {
+    "tools/gomad3/internal/gomadtool/architecture/standard.go": {
+      "baseline": "efad9411c3876b452d4d2f4905a4ba1cb92b43a0428ea2f039c94b3e5d9fd88d",
+      "final": "4c2fa20f308108598be0b825da6225453726fc0d0b2b0150e6c0eb696679b2c6"
+    },
+    "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go": {
+      "baseline": "8a8737669ac1cb1971354f3467ca23b337eee1754508caa9c0af1352fffee779",
+      "final": "8d5f7df4dc8a86d01da64e745d99b4ba7f2174f46758dfb78c63842ab0b52d88"
+    },
+    "tools/gomad3/runner/internal/execution/process_unix.go": {
+      "baseline": "c9285406a0602cea4e301a80d88810a08c77f888659df158d4dd7e3d7a74f6a5",
+      "final": "388f3756e72b11c5e52bc7c71911f04816af2a308d9b83966ce1c72138674df6"
+    },
+    "tools/gomad3/qualification/set/manifestgen/manifestgen.go": {
+      "baseline": "0c758db8a23e6bcc047d1cd881d7ce1b67de9c8f9cc804c3c9b590a6bd4cc95c",
+      "final": "0924a5270179017620ee9085e35d003f32dd0d28778c7da996439c50c63f1fd5"
+    }
+  },
+  "scoped_lint": {
+    "baseline_count": 33,
+    "final_count": 26,
+    "removed": [
+      "tools/gomad3/internal/gomadtool/architecture/standard.go:<position>: QF1003: could use tagged switch on id (staticcheck)",
+      "tools/gomad3/internal/gomadtool/architecture/standard.go:<position>: QF1003: could use tagged switch on id (staticcheck)",
+      "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go:<position>: QF1001: could apply De Morgan's law (staticcheck)",
+      "tools/gomad3/qualification/set/manifestgen/manifestgen.go:<position>: ST1016: methods on the same type should have the same receiver name (seen 1x \"inherited\", 1x \"resolved\") (staticcheck)",
+      "tools/gomad3/runner/internal/execution/process_unix.go:<position>: QF1001: could apply De Morgan's law (staticcheck)",
+      "tools/gomad3/runner/internal/execution/process_unix.go:<position>: QF1001: could apply De Morgan's law (staticcheck)",
+      "tools/gomad3/runner/internal/execution/process_unix.go:<position>: QF1001: could apply De Morgan's law (staticcheck)"
+    ],
+    "added": [],
+    "residual_multiset_sha256": "3abdd96207e930b1846185a587270cfd0c7faec51fc1d66d193b468ba11f4912",
+    "complete_residual_blocks_match_after_position_normalization": true
+  },
+  "full_lint": {
+    "baseline_count": 317,
+    "final_count": 310,
+    "removed": [
+      "tools/gomad3/internal/gomadtool/architecture/standard.go:<position>: QF1003: could use tagged switch on id (staticcheck)",
+      "tools/gomad3/internal/gomadtool/architecture/standard.go:<position>: QF1003: could use tagged switch on id (staticcheck)",
+      "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go:<position>: QF1001: could apply De Morgan's law (staticcheck)",
+      "tools/gomad3/qualification/set/manifestgen/manifestgen.go:<position>: ST1016: methods on the same type should have the same receiver name (seen 1x \"inherited\", 1x \"resolved\") (staticcheck)",
+      "tools/gomad3/runner/internal/execution/process_unix.go:<position>: QF1001: could apply De Morgan's law (staticcheck)",
+      "tools/gomad3/runner/internal/execution/process_unix.go:<position>: QF1001: could apply De Morgan's law (staticcheck)",
+      "tools/gomad3/runner/internal/execution/process_unix.go:<position>: QF1001: could apply De Morgan's law (staticcheck)"
+    ],
+    "added": [],
+    "residual_multiset_sha256": "28a4c8b3a4b062f02a6b94d667a5b6b249a805662c3d24767709dc00dfda72c5",
+    "complete_residual_blocks_match_after_position_normalization": true
+  },
+  "source_diff_sha256": "46d424d5f0944cf6a3251140272e1587afb3790e59639ae2a2909de72fff7a8c"
+}

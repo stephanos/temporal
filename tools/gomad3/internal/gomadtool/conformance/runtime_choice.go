@@ -212,7 +212,7 @@ func (campaign *runtimeCampaign) runChoiceSpec(spec choiceRunSpec) (choiceRun, i
 		return choiceRun{}, result.ExitCode, fmt.Errorf("%s published choice trace offset %d", spec.name, next)
 	}
 	trace, err := choice.DecodeTrace(backing[choiceTraceHeaderBytes:next], terminal, choiceTraceBytes)
-	if err != nil && !(result.ExitCode == 125 && errors.Is(err, choice.ErrDiverged)) {
+	if err != nil && (result.ExitCode != 125 || !errors.Is(err, choice.ErrDiverged)) {
 		return choiceRun{}, result.ExitCode, fmt.Errorf("decode %s choice trace: %w", spec.name, err)
 	}
 	run := choiceRun{transcript: commandOutput(result), trace: trace, terminal: terminal}

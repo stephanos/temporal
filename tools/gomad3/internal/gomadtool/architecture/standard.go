@@ -219,7 +219,8 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 			return result, true
 		}
 		start := 0
-		if id == "fmt.Errorf" {
+		switch id {
+		case "fmt.Errorf":
 			a.checkSummarySource("fmt/errors.go", pos)
 			start = 1
 			result.builtin = true
@@ -229,11 +230,11 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 			} else {
 				a.builtinErrorType(result, "errors", "errorString")
 			}
-		} else if id == "fmt.Sprintf" || id == "fmt.Printf" {
+		case "fmt.Sprintf", "fmt.Printf":
 			start = 1
-		} else if id == "fmt.Appendf" {
+		case "fmt.Appendf":
 			start = 2
-		} else if id == "fmt.Append" || id == "fmt.Appendln" {
+		case "fmt.Append", "fmt.Appendln":
 			start = 1
 		}
 		if strings.HasPrefix(id, "fmt.F") {
@@ -301,9 +302,10 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		a.checkSummarySource("encoding/json/decode.go", pos)
 		if receiver != nil {
 			readError := callbackError(a.implicit(receiver.fields["transport"], []string{"Read"}, nil, pos, map[types.Type]bool{}))
-			if id == "encoding/json.*Decoder.Decode" {
+			switch id {
+			case "encoding/json.*Decoder.Decode":
 				result = join(result, readError)
-			} else if id == "encoding/json.*Decoder.Token" {
+			case "encoding/json.*Decoder.Token":
 				result.fields["1"] = join(result.fields["1"], readError)
 			}
 		} else {

@@ -647,7 +647,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	if diagnosticSession != nil {
 		trace, err := diagnosticSession.Collect()
-		if err != nil && !(errors.Is(err, choice.ErrDiagnosticIncomplete) && (result.WatchdogTimeout || result.Cancelled)) {
+		if err != nil && (!errors.Is(err, choice.ErrDiagnosticIncomplete) || (!result.WatchdogTimeout && !result.Cancelled)) {
 			return result, fmt.Errorf("collect diagnostic trace: %w", err)
 		}
 		if err == nil && uint64(len(trace.Records)) != result.ChoiceTrace.Trace.Summary.Records {
@@ -657,14 +657,14 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	if ioSession != nil {
 		collected := <-collectedIO
-		if collected.err != nil && !(errors.Is(collected.err, deterministicio.ErrTranscriptUnterminated) && (result.WatchdogTimeout || result.Cancelled)) {
+		if collected.err != nil && (!errors.Is(collected.err, deterministicio.ErrTranscriptUnterminated) || (!result.WatchdogTimeout && !result.Cancelled)) {
 			return result, collected.err
 		}
 		result.IOTranscript = collected.transcript
 	}
 	// A target the watchdog or a cancellation killed never terminated its
 	// trace; that termination is the outcome the caller classifies.
-	if choiceErr != nil && !(errors.Is(choiceErr, ErrChoiceTraceUnterminated) && (result.WatchdogTimeout || result.Cancelled)) {
+	if choiceErr != nil && (!errors.Is(choiceErr, ErrChoiceTraceUnterminated) || (!result.WatchdogTimeout && !result.Cancelled)) {
 		return result, choiceErr
 	}
 	if readOnlyMountBroker != nil {

@@ -165,13 +165,13 @@ func (inherited retention) with(override TestOverride) retention {
 
 // validate refuses the combinations the manifest validation rejects, so the
 // spec entry at fault is named instead of every workload it generates.
-func (resolved retention) validate() error {
+func (inherited retention) validate() error {
 	switch {
-	case resolved.replaySuccesses && resolved.choiceBytes == 0:
+	case inherited.replaySuccesses && inherited.choiceBytes == 0:
 		return errors.New("replays successes without a choice trace; set choice_bytes")
-	case resolved.replaySuccesses && (resolved.artifactLimit == 0 || resolved.bytesLimit == 0):
+	case inherited.replaySuccesses && (inherited.artifactLimit == 0 || inherited.bytesLimit == 0):
 		return errors.New("replays successes and requires success_artifact_limit and success_bytes_limit")
-	case !resolved.replaySuccesses && (resolved.artifactLimit != 0 || resolved.bytesLimit != 0):
+	case !inherited.replaySuccesses && (inherited.artifactLimit != 0 || inherited.bytesLimit != 0):
 		return errors.New("sets success limits without replay_successes")
 	}
 	return nil
