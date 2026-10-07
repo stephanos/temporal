@@ -413,10 +413,10 @@ object FlagLamp extends Machine[Lamp, Outcome, Nothing]:
     def toProduct(l: Lamp) = Flag(l.lit)
   object rules extends Bindings(flip ~> lampStep)
 object RefinedOtherwise extends Derived(FlagLamp.refining(Glance)(_ => Glimpse(Seen.seen)))
-
 // Two machines derived from each other.
-object LoopFirst extends Derived[Lamp, Outcome, Nothing](LoopSecond.rebind(flip ~> darkStep))
-object LoopSecond extends Derived[Lamp, Outcome, Nothing](LoopFirst.rebind(flip ~> lampStep))
+object LoopFirst
+    extends Derived[Lamp, Outcome, Nothing, Nothing](LoopSecond.rebind(flip ~> darkStep))
+object LoopSecond extends Derived(LoopFirst.rebind(flip ~> lampStep))
 
 // Two machines that are aliases of each other.
 val aliasFirst: Machine[Lamp, Outcome, Nothing] = aliasSecond

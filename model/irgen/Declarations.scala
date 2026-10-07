@@ -224,8 +224,9 @@ private[irgen] trait Declarations:
     val c = objectBody(cls, at)
     val name = objectFormName(cls)
     if cls.typeRef.derivesFrom(derivedClass) then
+      // The derivation, then the evidence of its source's phase the constructor takes.
       parentArguments(c) match
-        case List(List(derivation)) =>
+        case List(List(derivation), _) =>
           derivation match
             case Derivation(_, _, _) => derivedMachine(derivation, familyOf(cls), name)
             case other               =>
@@ -539,7 +540,7 @@ private[irgen] trait Declarations:
       call(t) match
         case Some(("in", List(List(first, rest), _))) if owner == rulesClass =>
           Heading.In(first, first :: varargs(rest))
-        case Some(("in", List(List(set)))) if owner == rulesClass => Heading.InSet(set, set)
+        case Some(("in", List(List(set), _))) if owner == rulesClass => Heading.InSet(set, set)
         case Some(("where", List(_, List(g)))) if owner.fullName == syntaxPackage => Heading.When(g)
         case Some(("always", List(_))) if owner.fullName == syntaxPackage         => Heading.Always
         case _                                                                    =>

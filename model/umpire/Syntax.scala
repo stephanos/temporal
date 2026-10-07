@@ -6,6 +6,7 @@ package umpire
 import scala.annotation.{implicitNotFound, targetName, unused}
 import scala.collection.mutable
 import scala.compiletime.codeOf
+import scala.util.NotGiven
 
 // The outcome `enter` and `stay` answer for a machine whose outcomes are `O`, declared once beside
 // the outcome type: `given Ok[Outcome] = Ok(Outcome.accepted)`. Core form: the outcome itself,
@@ -345,8 +346,34 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
   val _ = firing
   Case("always", _ => true)
 
+// The projection of a machine's or composition's state onto its phase, declared once by mixing it
+// into the object: `object OrderProduct extends Machine[OrderState, Outcome, OrderFact],
+// Phased[OrderState, Phase](_.phase)`, or for a composition a nested phase,
+// `Phased[OverQueue, Phase](_.order.phase)`. Both types are written: a trait parent's lambda takes
+// no parameter type from the other parents. Its sections read it as a given: `in(placed)` and
+// `in(states.terminal)` in `object rules extends Rules:` test it. It is optional, as a machine that
+// names no phase is a plain `Machine`. A derived machine or derived composition mixes in none of
+// its own, and one that mixes it in is refused as it initializes: a derived machine reads its
+// source's, with its phase type. Core form: the given `Phasing(_.phase)` the object's sections
+// read.
+trait Phased[S, P](private[umpire] val projection: S => P) extends Declares[S]:
+  // The projection its sections read.
+  protected given phased: Phasing[S, P] = Phasing(projection)
+
+  final override private[umpire] def declaresPhase: Boolean = true
+
+// The phase a derived machine reads through its source. Its evidence is preferred to the evidence
+// of a source that declares no phase, which it extends. Core form: none of its own; it is the
+// source's `Phasing(_.phase)`.
+object Phased extends Inherited.Unphased:
+  // A source that mixes in `Phased[S, P]` projects its state onto `P` by its own projection.
+  // Core form: the source's `Phasing(_.phase)`.
+  given source[S, P, T <: Phased[S, P]]: Inherited[T, S, P] = Inherited(_.projection)
+
 // When each action of a machine fires, written as the machine object's `object rules extends
-// Rules`, or `Rules(_.phase)` where its cases name phases: one block per action or action class,
+// Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
+// (`Rules(_.phase)`, which names the projection itself, still reads in its place where it is
+// written): one block per action or action class,
 // `on(clerk.ship) { in(placed) ~> effects.send }`, whose cases each say where the action fires,
 // `in(...)` of phases or of a named set of them, `where(g)` of the state, `in(...).where(g)` of
 // both or `always`, and what it does there, `~> effects.x`; and the actions no state enables,
@@ -366,9 +393,11 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 // lifter names it after its `val`, so `scala.compiletime.codeOf` names the action in an overlap
 // message. TASTy is pickled before inlining, so the lifter reads the unexpanded call, and it refuses
 // an expanded one loudly ("not a rule") rather than lift it.
-abstract class Rules[S, O, F, P](using owner: Owner[S, O, F])(
-    phase: S => P = (_: S) => throw IllegalStateException("these rules declare no projection")
-) extends RuleBook[S, O, F]:
+abstract class Rules[S, O, F, P](using
+    owner: Owner[S, O, F],
+    phasing: Phasing[S, ? <: P]
+)(phase: S => P = phasing.projection)
+    extends RuleBook[S, O, F]:
   private val written = mutable.ArrayBuffer.empty[Rule[S, O, F]]
   private val never = mutable.ArrayBuffer.empty[ActionDecl]
   private val order = mutable.LinkedHashSet.empty[ActionDecl]
@@ -420,15 +449,18 @@ abstract class Rules[S, O, F, P](using owner: Owner[S, O, F])(
   inline def on(inline c: Class)(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
     block[EmptyTuple](c.decl, Some(c.values), codeOf(c))(cases)
 
-  // A case that holds in the phases listed, as the projection of `Rules(_.phase)` reads them; rules
-  // that declare no projection name no phase. Core form: `List(p1, p2).contains(s.phase)`.
+  // A case that holds in the phases listed, as the machine's `Phased[State, Phase](_.phase)` reads
+  // them; the rules of a machine that is not `Phased` name no phase. Core form:
+  // `List(p1, p2).contains(s.phase)`.
   def in[Q](first: Q, rest: Q*)(using PhasesOf[P, Q]): Case[S, O, F] =
     val phases = first +: rest
     Case(s"in(${phases.mkString(", ")})", s => phases.contains(phase(s)))
 
   // A case that holds in a named set of phases, a predicate of the projection the machine's
-  // `states` declares: `in(states.terminal)`. Core form: `terminal(s.phase)`.
-  inline def in(inline set: P => Boolean): Case[S, O, F] = phases(set, codeOf(set))
+  // `states` declares: `in(states.terminal)`. Like the phases listed, it needs a machine that is
+  // `Phased`, since any predicate is one of `Nothing`. Core form: `terminal(s.phase)`.
+  inline def in(inline set: P => Boolean)(using PhasesOf[P, P]): Case[S, O, F] =
+    phases(set, codeOf(set))
 
   private[umpire] def phases(set: P => Boolean, code: String): Case[S, O, F] =
     Case(s"in(${code.trim})", s => set(phase(s)))
@@ -452,21 +484,22 @@ abstract class Rules[S, O, F, P](using owner: Owner[S, O, F])(
       decl -> (if never.contains(decl) then Bound.Disabled[S, O, F]()
                else Bound.Ruled(written.filter(_.decl == decl).toVector))
 
-// Evidence that a case's phases are of the type the rules' projection reads: the rules of
-// `object rules extends Rules(_.phase)` name phases with `in`, and rules that declare no projection
-// name none. Core form: none of its own; `in(p1, p2)` is `List(p1, p2).contains(s.phase)`.
+// Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine
+// that mixes in `Phased[State, Phase](_.phase)` name phases with `in`, and the rules of one that is
+// not `Phased`, whose phase type is `Nothing`, name none. Core form: none of its own; `in(p1, p2)`
+// is `List(p1, p2).contains(s.phase)`.
 @implicitNotFound(
-  "in names phases of ${Q}, and these rules project the state onto ${P}: declare the projection the " +
-    "phases are of, `object rules extends Rules(_.phase)`"
+  "in names phases of ${Q}, and these rules read phases of ${P}: mix the projection the phases " +
+    "are of into the machine, `Phased[State, Phase](_.phase)`"
 )
 final class PhasesOf[P, Q] private ()
 
 // The one projection a case's phases are of: its own. Core form: `List(p1, p2).contains(s.phase)`.
 object PhasesOf:
-  // Phases of the projection's own type, or of a narrower one: a case that takes a role,
-  // `case done extends Phase, Succeeded`, is a `Phase & Succeeded`. Core form:
+  // Phases of the projection's own type, other than `Nothing`, or of a narrower one: a case that
+  // takes a role, `case done extends Phase, Succeeded`, is a `Phase & Succeeded`. Core form:
   // `List(p1, p2).contains(s.phase)`, whose phases are of the type of `s.phase`.
-  given [P, Q <: P]: PhasesOf[P, Q] = PhasesOf()
+  given [P, Q <: P](using NotGiven[P =:= Nothing]): PhasesOf[P, Q] = PhasesOf()
 
 // The rules of one action a derivation binds in its source's place:
 // `rebind(on(clerk.ship) { always ~> OrderRecord.effects.send })`, each case `where(g)` or

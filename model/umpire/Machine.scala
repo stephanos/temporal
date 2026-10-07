@@ -64,6 +64,10 @@ trait Declares[S] extends Model:
   // they would hide the feature's own `Outcome` and fact types.
   type State = S
 
+  // Whether the object mixes in its own phase projection, `Phased[State, Phase](_.phase)`
+  // (model/umpire/Syntax.scala), which a derived machine or derived composition may not.
+  private[umpire] def declaresPhase: Boolean = false
+
   // A Property or a Scenario is named after the `val` that declares it (`val completes =
   // orderProduct.property holds ...`), or by the name it is given where it is declared without
   // one, such as in a list or inside a function over a machine. A Scenario that names no start starts
@@ -141,8 +145,47 @@ extension [A, B, C](a: Action[(A, B, C)])
     StepBinding(a.decl, f)
 
 // The owner of a machine's sections, which its `rules` read the machine's types from:
-// `object rules extends Rules(_.phase)` in `object OrderProduct extends Machine[...]`.
+// `object rules extends Rules:` in `object OrderProduct extends Machine[...], Phased[...](_.phase)`,
+// whose rules read the phase projection from the machine's `Phasing`.
 final class Owner[S, O, F] private[umpire] (val machine: Machine[S, O, F])
+
+// The projection of a machine's or composition's state onto its phase, which its sections read as a
+// given: `in(placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
+// (model/umpire/Syntax.scala) gives it, and a derived machine gives its source's, with the source's
+// phase type.
+final class Phasing[S, P] private[umpire] (private[umpire] val projection: S => P)
+
+object Phasing:
+  // The phasing of an object that declares no phase: its phase type is `Nothing`, so `in(...)` of
+  // its rules does not compile, and its projection is never called.
+  given unphased[S]: Phasing[S, Nothing] =
+    Phasing(_ => throw IllegalStateException("this machine or composition declares no phase"))
+
+// What a machine a derivation makes is made from: `m.rebind(...)` is made from `m`. Its static type
+// keeps the source's object type, so a derived machine reads its source's phase.
+trait DerivedFrom[+M]:
+  private[umpire] def source: M
+
+// Evidence that `T`, the source of a derivation, projects its state `S` onto the phase type `P`:
+// through its own `Phased` (whose companion gives that evidence), through the source it is derived
+// from in turn, or, where it declares no phase, onto `Nothing`.
+final class Inherited[-T, S, P] private[umpire] (private[umpire] val projection: T => S => P)
+
+object Inherited extends Inherited.Unphased:
+  // A derivation, `m.rebind(...)`: its source's.
+  given derivation[S, P, M, T <: DerivedFrom[M]](using
+      source: Inherited[M, S, P]
+  ): Inherited[T, S, P] = Inherited(t => source.projection(t.source))
+
+  // A derived machine, `object M extends Derived(m.rebind(...))`: its own, which is its source's.
+  given derived[S, P, T <: Derived[S, ?, ?, P]]: Inherited[T, S, P] =
+    Inherited(_.sourcePhasing.projection)
+
+  // The evidence of a source that declares no phase, below every other: a given defined in an
+  // object that extends this trait, such as `Phased`'s companion, is preferred to it.
+  trait Unphased:
+    // A source that declares no phase projects its state onto `Nothing`.
+    given unphased[T, S]: Inherited[T, S, Nothing] = Inherited(_ => Phasing.unphased[S].projection)
 
 // What an `implements` or `capabilities` section declares the capabilities of: the machine or
 // composition whose object it sits in, with the outcomes and facts its steps answer and record.
@@ -250,8 +293,12 @@ private[umpire] def writtenAction(code: String): String =
 //   def end(s: OrderState) = states.terminal(s.phase)
 //   object states: ...
 //   object effects: ...
-//   object rules extends Rules(_.phase): ...
+//   object rules extends Rules: ...
 // }}}
+//
+// A machine whose rules name phases mixes in its phase projection, `extends Machine[OrderState,
+// Outcome, OrderFact], Phased[OrderState, Phase](_.phase)` (model/umpire/Syntax.scala), which its
+// sections read; a machine that names no phase is a plain `Machine`.
 //
 // Its members are its header, the state it starts in, `init`, the states it may end in, `end`, and
 // where it declares them, `entity` and `evidence`; then its sections, objects named after what they
@@ -306,13 +353,17 @@ abstract class Machine[S, O, F](using
   private def built(
       table: => Vector[(ActionDecl, Bound[S, O, F])],
       also: Model*
-  ): Machine[S, O, F] =
-    Built(objectName(this), List(init), end, table, this +: also)(using fs, fo, ff)
+  ): Machine[S, O, F] & DerivedFrom[this.type] =
+    Built[S, O, F, this.type](objectName(this), List(init), end, table, this, also)(using
+      fs,
+      fo,
+      ff
+    )
 
   // A machine that keeps the rows of the named actions and drops the rest, named after the object
   // that declares it, `object M extends Derived(m.restrict(...))`. It keeps the state type, starts
   // and ends, owns its own name and Definition IDs, and does not inherit a refinement.
-  def restrict(keep: Action[?]*): Machine[S, O, F] =
+  def restrict(keep: Action[?]*): Machine[S, O, F] & DerivedFrom[this.type] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
     built(table.filter((d, _) => decls(d)))
@@ -323,7 +374,9 @@ abstract class Machine[S, O, F](using
   // its whole-action rules have several effects (rules that each fire one class may differ, as the
   // new effect reads the class's inputs); `on(action) { where(g) ~> effect }` replaces its rules.
   // The lifter refuses an action this machine does not bind.
-  def rebind(replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*): Machine[S, O, F] =
+  def rebind(
+      replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
+  ): Machine[S, O, F] & DerivedFrom[this.type] =
     val by = replaced.foldLeft(Map.empty[ActionDecl, Bound[S, O, F]]): (by, r) =>
       r(using machineOwner) match
         case StepBinding(decl, f) =>
@@ -341,7 +394,9 @@ abstract class Machine[S, O, F](using
   // A machine that also binds actions this one does not, after its own bindings, by rules:
   // `extend(on(action) { where(g) ~> effect })`. The lifter refuses an action this machine binds
   // already, and a bare binding where this machine's actions are bound by rules.
-  def extend(added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*): Machine[S, O, F] =
+  def extend(
+      added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
+  ): Machine[S, O, F] & DerivedFrom[this.type] =
     val more = added.flatMap(r =>
       r(using machineOwner) match
         case StepBinding(decl, f) => Vector(decl -> Bound.Function[S, O, F](f))
@@ -351,23 +406,41 @@ abstract class Machine[S, O, F](using
 
   // A machine that refines `product` through `map` in place of the refinement this one declares,
   // and keeps the facts and outcomes that refinement lets the refined machine see.
-  def refining[PS, PO, PF](product: Machine[PS, PO, PF])(@unused map: S => PS): Machine[S, O, F] =
+  def refining[PS, PO, PF](product: Machine[PS, PO, PF])(
+      @unused map: S => PS
+  ): Machine[S, O, F] & DerivedFrom[this.type] =
     built(table, product)
 
   // A machine whose checks also make the assumptions named, each once, after this one's.
-  def assuming(@unused added: Assumption*): Machine[S, O, F] = built(table)
+  def assuming(@unused added: Assumption*): Machine[S, O, F] & DerivedFrom[this.type] =
+    built(table)
 
   // A machine without this one's monitors and refinement: the same transitions, for a composition
   // a member's monitors may not watch (model/SEMANTICS.md leaves that undefined).
-  def unmonitored: Machine[S, O, F] = built(table)
+  def unmonitored: Machine[S, O, F] & DerivedFrom[this.type] = built(table)
 
 // A machine derived from another, declared as an object that is it:
 // `object LateRecord extends Derived(OrderRecord.rebind(...))`, named after the object. The
 // derivation is an expression of the core operations `rebind`, `extend`, `restrict`, `refining`,
 // `assuming` and `unmonitored`; the object adds only the sections that are its own, `states`,
-// `properties`, `implements` and `queries`, and reuses its source's effects by name.
-abstract class Derived[S, O, F](derivation: Machine[S, O, F])
-    extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff):
+// `properties`, `implements` and `queries`, and reuses its source's effects by name. It mixes in no
+// `Phased` of its own: its sections read its source's phase projection, with its phase type.
+//
+// Its phase type `P` is its source's, read off the derivation's static type, `Nothing` where the
+// source declares no phase.
+abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
+    source: Inherited[derivation.type, S, P]
+) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff):
+  require(
+    !declaresPhase,
+    s"$name is derived and keeps its source's phase: it mixes in no Phased of its own"
+  )
+
+  // The phase projection its sections read: its source's, with its phase type.
+  private[umpire] def sourcePhasing: Phasing[S, P] = Phasing(source.projection(derivation))
+
+  protected given derivedPhasing: Phasing[S, P] = sourcePhasing
+
   final def init: S = derivation.init
   final def end(s: S): Boolean = derivation.end(s)
   final def rules: RuleBook[S, O, F] = derivation.rules
@@ -377,18 +450,21 @@ abstract class Derived[S, O, F](derivation: Machine[S, O, F])
     derivation +: Refinement.declaredBy(this).toSeq
 
 // A machine a derivation makes from another: its name, its starts and ends, what it binds each
-// action to and the machines it is made from. What else it declares only the lifter reads.
-final private[umpire] class Built[S, O, F](
+// action to, its source and the other machines it is made from. What else it declares only the
+// lifter reads.
+final private[umpire] class Built[S, O, F, M <: Model](
     override val name: String,
     starts: List[S],
     isEnd: S => Boolean,
     bound: => Vector[(ActionDecl, Bound[S, O, F])],
-    from: Seq[Model]
+    private[umpire] val source: M,
+    also: Seq[Model]
 )(using Finite[S], Finite[O], Finite[F])
-    extends Machine[S, O, F]:
+    extends Machine[S, O, F],
+      DerivedFrom[M]:
   def init: S = starts.head
   def end(s: S): Boolean = isEnd(s)
   object rules extends RuleBook[S, O, F]:
     private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
   final override private[umpire] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound
-  final override private[umpire] def reaches: Seq[Model] = from
+  final override private[umpire] def reaches: Seq[Model] = source +: also

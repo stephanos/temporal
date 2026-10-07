@@ -28,6 +28,10 @@ import scala.deriving.Mirror
 // composition must implement, since a derived one keeps its source's: the IR generator requires them
 // of a declared composition object and refuses them in a derived one. At run time a composition is
 // its members, which the gate constructs (IrFile.construct).
+//
+// A composition whose sections read its phase mixes in its projection, `extends
+// Composition[OverQueue](...), Phased[OverQueue, Phase](_.order.phase)` (model/umpire/Syntax.scala).
+// A derived one mixes in none of its own, and one that does is refused as it initializes.
 abstract class Composition[S <: Product] private (
     private[umpire] val shape: Composition.Shape[S],
     private[umpire] val mirror: Mirror.ProductOf[S]
@@ -45,6 +49,14 @@ abstract class Composition[S <: Product] private (
 
   // The object's name with its first letter lowered.
   def name: String = objectName(this)
+
+  shape match
+    case Composition.Shape.Of(_) =>
+      require(
+        !declaresPhase,
+        s"$name is derived and keeps its source's phase: it mixes in no Phased of its own"
+      )
+    case _ => ()
 
   // The owner its `syncs` read the composed state type from.
   protected given compositionOwner: Composer[S] = Composer(this)

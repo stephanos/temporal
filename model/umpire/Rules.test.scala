@@ -82,6 +82,52 @@ object RulesFixture:
       on(hand.press)(always ~> Switch.effects.light)
       disabled(clock.tick)
 
+  // One lamp's rules twice: its projection named by the rules, `Rules(_.light)`, and mixed into the
+  // machine, `Phased[Lamp, Lit](_.light)`, which argument-less `Rules` reads.
+  object Projected extends Machine[Lamp, Said, Nothing]:
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object states:
+      def dark(l: Lit) = l != Lit.on
+    object rules extends Rules(_.light):
+      on(hand.press) {
+        in(Lit.on) ~> Switch.effects.dark
+        in(states.dark) ~> Switch.effects.light
+      }
+      on(hand.turn)(in(Lit.off, Lit.broken) ~> Switch.effects.refuse)
+
+  object PhasedLamp extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object states:
+      def dark(l: Lit) = l != Lit.on
+    object rules extends Rules:
+      on(hand.press) {
+        in(Lit.on) ~> Switch.effects.dark
+        in(states.dark) ~> Switch.effects.light
+      }
+      on(hand.turn)(in(Lit.off, Lit.broken) ~> Switch.effects.refuse)
+
+  object OverlappingPhased extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+    val init = Lamp(Lit.off, UpTo(0))
+    def end(s: Lamp) = true
+    object rules extends Rules:
+      on(hand.turn(Knob.up))(in(Lit.off, Lit.on) ~> Switch.effects.light)
+      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
+
+  // A derivation of a `Phased` machine reads its phase, with its phase type, and so does a
+  // derivation of that.
+  object PhasedStuck extends Derived(PhasedLamp.rebind(hand.press ~> Switch.effects.wear)):
+    val phase = summon[Phasing[Lamp, Lit]]
+
+  object PhasedStucker extends Derived(PhasedStuck.restrict(hand.press)):
+    val phase = summon[Phasing[Lamp, Lit]]
+
+  // A derived machine that mixes in a projection of its own.
+  object Rephased
+      extends Derived(PhasedLamp.rebind(hand.press ~> Switch.effects.wear)),
+        Phased[Lamp, Lit](_.light)
+
   final case class Pair(left: Lamp, right: Lamp)
 
   object Twins extends Composition[Pair](_.left -> Switch, _.right -> Unfelt):
@@ -90,6 +136,11 @@ object RulesFixture:
       sync(_.left -> hand.press, _.right -> hand.press)
 
   object Odd extends Composition(Twins.withMember(_.right -> Stuck))
+
+  // A derived composition that mixes in a projection of its own.
+  object Reprojected
+      extends Composition(Twins.withMember(_.right -> Stuck)),
+        Phased[Pair, Lit](_.left.light)
 
 class RulesTest extends munit.FunSuite:
   import RulesFixture.*
@@ -166,6 +217,78 @@ class RulesTest extends munit.FunSuite:
         "where: the rules of one action class hold in no common state, so write alternatives as " +
         "one effect that names each with `choose`"
     )
+  }
+
+  test(
+    "argument-less rules read the machine's Phased projection as Rules(projection) reads its own"
+  ) {
+    val knobs = Knob.values.toList
+    for s <- Finite[Lamp].values do
+      assertEquals(press(PhasedLamp, s), press(Projected, s), s)
+      for k <- knobs do assertEquals(turn(PhasedLamp, s, k), turn(Projected, s, k), (s, k))
+    assertEquals(press(PhasedLamp, off), List(Lamp(Lit.on, UpTo(1))))
+    assertEquals(press(PhasedLamp, lit), List(lit.copy(light = Lit.off)))
+    assertEquals(turn(PhasedLamp, off, Knob.up).map(_.outcome), List(Said.refused))
+    assertEquals(turn(PhasedLamp, lit, Knob.up), Nil)
+  }
+
+  test("an overlap through the Phased projection is refused as the rules construct") {
+    val refused =
+      try
+        OverlappingPhased.bindings: Unit
+        fail("the overlapping rules constructed")
+      catch case e: ExceptionInInitializerError => e.getCause
+    assertEquals(
+      refused.getMessage,
+      "overlappingPhased fires turn-up by two rules in Lamp(off,1): rule 1, in(off, on), and " +
+        "rule 2, where: the rules of one action class hold in no common state, so write " +
+        "alternatives as one effect that names each with `choose`"
+    )
+  }
+
+  test("in names no phase in the rules of a machine that is not Phased") {
+    val fix =
+      "mix the projection the phases are of into the machine, `Phased[State, Phase](_.phase)`"
+    val listed = compileErrors(
+      "object Plain extends Machine[Lamp, Said, Nothing]:\n" +
+        "  val init = Lamp(Lit.off, UpTo(0))\n" +
+        "  def end(s: Lamp) = true\n" +
+        "  object rules extends Rules:\n" +
+        "    on(hand.press)(in(Lit.on) ~> Switch.effects.dark)"
+    )
+    assert(listed.contains(fix), listed)
+    val named = compileErrors(
+      "object Plain extends Machine[Lamp, Said, Nothing]:\n" +
+        "  val init = Lamp(Lit.off, UpTo(0))\n" +
+        "  def end(s: Lamp) = true\n" +
+        "  def dark(l: Lit) = l != Lit.on\n" +
+        "  object rules extends Rules:\n" +
+        "    on(hand.press)(in(dark) ~> Switch.effects.light)"
+    )
+    assert(named.contains(fix), named)
+  }
+
+  test("a derived machine reads its source's phase projection, with its phase type") {
+    assertEquals(PhasedStuck.phase.projection(lit), Lit.on)
+    assertEquals(PhasedStucker.phase.projection(off), Lit.off)
+  }
+
+  test("a derived machine or composition that mixes in Phased is refused as it initializes") {
+    for (derived, message) <- List(
+        (() => Rephased.name, "rephased"),
+        (() => Reprojected.name, "reprojected")
+      )
+    do
+      val refused =
+        try
+          derived(): Unit
+          fail(s"$message initialized")
+        catch case e: ExceptionInInitializerError => e.getCause
+      assertEquals(
+        refused.getMessage,
+        s"requirement failed: $message is derived and keeps its source's phase: it mixes in no " +
+          "Phased of its own"
+      )
   }
 
   test("a derivation's rules are checked as it binds them") {
