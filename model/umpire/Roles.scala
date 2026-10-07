@@ -24,7 +24,7 @@ trait Waiting extends Live
 // It backs off between attempts.
 trait Retrying extends Waiting
 
-// A worker or a handler holds its attempt.
+// Its attempt is held by whoever runs it.
 trait Held extends Live
 
 // It is paused.
