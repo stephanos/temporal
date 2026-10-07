@@ -37,9 +37,38 @@ Lifter half of the new rule forms from task .2: the lifter reads `from` blocks (
 - [ ] `make fmt-model` keeps a multi-line single-case block as written (shown by a fixture or test), and changes nothing else under model/.
 - [ ] `scala-cli test model/irgen`, `scala-cli test model/check` and `make lint-model` pass. `model/ir` is untouched.
 ## Done summary
-TBD
+The lifter now reads the task-.2 rule forms. It reads `from(d) { import d.*; on(...) ... }`, the `when(...)` and `when(set)` cases (lifted exactly as `in`), and `on(a, b[, c[, d]])`, which gives each target the same cases. It drops its "written twice" one-block refusal. The new model-gate rule `gate --check-block-form` reports a parenthesized `on(x)(case)` under model/temporal, as task .3 asked; it is not in `make lint-model` yet.
 
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+Tier: claude-opus-5-5 at high (lane D)
+
+### What changed
+- model/irgen/Declarations.scala `ruleSteps`: the statement loop is now a local `rule(stat, within)`, which recurses into a `from` with its declarer. New private helpers: `notRule`, `declarerName`, `fromBlock` (the first statement must be `Import(d, SimpleSelector("_"))`, and only the first) and `declaredBy` (the target's action val is owned by the declarer's module class). A multi-target `on` refuses a target named twice and a disabled target. `cases` refuses a `from` inside an `on`. `heading` maps `when` to `Heading.In`/`Heading.InSet`. `Heading.When` (meaning `where`) is not renamed.
+- model/irgen/Order.scala `appliesAtOnce`: `when` and `from` are added beside `on` and `in`.
+- model/check/BlockFormRule.scala (new) and the `--check-block-form` flag in Gate.scala (usage and doc lines included); model/check/test/BlockFormRule.test.scala (new). Not added to the Makefile.
+- Fixtures: lifts/Grouped.scala (new) holds `Grouped` (from, when, when(set), when.where, on of two classes) and `Plain` (on/in). A new test requires one machine of the two, except for names and positions. It uses the `declarations` helper, so there is no expected file. lifts/RuleRejects.scala (new): a from in a from, an undeclared action, an import after the first statement. In Rejects.scala the old `BlockRepeated` specimen is replaced in place, with the same line count, by `FromStatement`, a from with no leading import. expected/rejects.txt is updated.
+- Formatter: `make fmt-model` keeps a multi-line single-case brace block as written. It rewrites only a one-line `on(x) { case }` to `on(x)(case)`, and the block-form rule then flags that. So `parensForOneLineApply` needed no change: model/.scalafmt.conf is untouched, and `scala-cli fmt --check` passes across model/.
+
+### Lifter messages (match the framework's from .2)
+- `from(<d>) sits in from(<outer>): a from holds on blocks alone`
+- `on(<a>) sits in from(<d>), and <d> declares no <a>: a from holds the blocks of the actions its declarer declares`
+- `<a> is named twice in one on: name each action, or class of it, once`
+- Lifter-only messages: `not a rule of <m>'s from(<d>): <stmt>; a from begins with its declarer's import, \`import <d>.*\`` and `...; a from holds its declarer's import, first, then \`on(action) { case ~> effect }\` blocks`, plus `from sits in a block of <m>'s rules: a block holds its cases alone`.
+
+### Expected IR delta (batch regeneration)
+None in model/ir: no Model uses the new forms, and the lowering of the existing forms is unchanged.
+
+### For later tasks
+- fn-139.7: `gate --check-block-form` reports 74 lines today, not the spec's 73. The extra line is one derivation, `ActivityRecord.rebind(on(worker.poll)(always ~> ActivityRecord.effects.admit))`, which R4 also covers. Wire it into `lint-model-syntax` (Makefile) once the Models are converted.
+- The lifter checks declarer membership by symbol owner. A `from(worker)` whose vals forward another object's action (`val poll = kind.worker.poll.on(activity)`) declares that val itself, so `on(poll)` in `from(worker)` passes, and the framework's reflection agrees.
+- `disabled(...)` inside a `from` is refused, as "not a rule of ...'s from(...)". It stays outside any from (spec decision).
+- fn-136.4: `when[R]` needs its own `heading` case too; `call` yields `("when", List(List(evidence)))`-shaped args, which the current `when(set)` case would take for a set. Distinguish it by its type args or evidence type.
+
+### Follow-ups (not built)
+- None.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 64b4b8140c
+- Tests: UMPIRE_LIFTER_UPDATE=1 mise exec -- scala-cli test --suppress-outdated-dependency-warning model/irgen (rc=0; own fixture expectation rejects.txt only), mise exec -- scala-cli test --suppress-outdated-dependency-warning model/check (rc=0, all suites incl. BlockFormRuleSuite and GateSuite), scala-cli run model/check -- --check-block-form on the repository: 74 findings (expected; not in lint-model until fn-139.7), make lint-model-irgen lint-model-irgen-lifts lint-model-check lint-model-syntax (each rc=0, one by one); scala-cli fmt --check model/... (rc=0), GATE_SKIPPED:umpire-check-model:batch - DSL batch rule
 - PRs:
