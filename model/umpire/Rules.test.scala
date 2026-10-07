@@ -552,7 +552,7 @@ class RulesTest extends munit.FunSuite:
   }
 
   // fn-136.4: `when[R]` fires in the phases with the role, the narrower roles' included, and
-  // `phase.in[R]` holds in them; rules that declare no projection name no role.
+  // `phase.in[R]` holds in them; rules that read no projection name no role.
   test("when[R] fires in exactly the phases with the role R") {
     import RoleRulesFixture.*
     val press =
@@ -572,8 +572,8 @@ class RulesTest extends munit.FunSuite:
     )
     assert(
       refused.contains(
-        "when names the phases of a role, and these rules declare no projection: declare the " +
-          "projection the phases are of, `object rules extends Rules(_.phase)`"
+        "when names the phases of a role, and these rules read no phase projection: mix the " +
+          "projection the phases are of into the machine, `Phased[State, Phase](_.phase)`"
       ),
       refused
     )

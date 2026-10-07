@@ -556,8 +556,8 @@ private[irgen] trait Declarations:
       if headingNames(r.heading).exists(_ == "when") && projection.isEmpty then
         fail(
           r.at,
-          s"when names the phases of a role, and $machine's rules declare no projection: " +
-            "`Rules(_.phase)`"
+          s"when names the phases of a role, and $machine reads no phase projection: mix it into " +
+            "the machine, `Phased[State, Phase](_.phase)`"
         )
     val withProjection =
       written.toVector.map(r => r.copy(heading = projected(r.heading, projection)))

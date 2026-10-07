@@ -657,12 +657,12 @@ object PhasesOf:
   // `List(p1, p2).contains(s.phase)`, whose phases are of the type of `s.phase`.
   given [P, Q <: P](using NotGiven[P =:= Nothing]): PhasesOf[P, Q] = PhasesOf()
 
-// Evidence that the rules declare a projection, `object rules extends Rules(_.phase)`: rules that
-// declare none project the state onto `Nothing`, and name no phase. Core form: none of its own;
-// `when[Closed]` is `List(<the cases of Closed>).contains(s.phase)`.
+// Evidence that the rules read a projection, the machine's `Phased[State, Phase](_.phase)` or
+// `Rules(_.phase)`: rules that read none project the state onto `Nothing`, and name no phase.
+// Core form: none of its own; `when[Closed]` is `List(<the cases of Closed>).contains(s.phase)`.
 @implicitNotFound(
-  "when names the phases of a role, and these rules declare no projection: declare the projection " +
-    "the phases are of, `object rules extends Rules(_.phase)`"
+  "when names the phases of a role, and these rules read no phase projection: mix the projection " +
+    "the phases are of into the machine, `Phased[State, Phase](_.phase)`"
 )
 final class ProjectsPhases[P] private ()
 
