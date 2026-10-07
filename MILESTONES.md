@@ -58,7 +58,7 @@ Umpire IR and the Testpilot IR are what connect the parts. See [SCALA.md](.plans
 [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
 
 The DSL framework (`model/umpire`) stays Temporal-agnostic as far as is realistic: Temporal's capability
-vocabulary, laws, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
+vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
 are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
 
 The planned work below continues that direction: the Scala layer first, then the Models.
@@ -68,138 +68,126 @@ The planned work below continues that direction: the Scala layer first, then the
 Listed in delivery order. Flow records spec and task dependencies; the conductor also holds
 batch-close gates and serializes work that shares a regeneration baseline.
 
-### DSL batch
+### Activity model batch: fn-128 → fn-138 → fn-129
 
-fn-132 closed 2026-10-06 (commit 96de1fd92d is its tree). The DSL work of fn-133, fn-134, fn-135, fn-136, fn-137 and fn-139 runs as one batch
-instead of one regeneration per task. Tasks write and commit their Scala in the order below, with no
-`make umpire-gen-model` and no full gates in between. The tree may be red between tasks. The batch then
-regenerates once, checks the diff, and runs the full Go suite, the model gate and reviews once. Batched
-2026-10-06 (owner decision) to cut repeated regenerations and full runs; the Model work that changes what
-the activity says (fn-128, fn-138, fn-129) is deferred until the batch closes.
+Ready 2026-10-07. These specs run as one batch: one regeneration, one gate run, and one live run serving
+fn-128.6 and fn-129.5. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Each task declares its IR change,
+which is checked at the batch regeneration.
 
-- **Within the batch.** A framework or lifter task still runs its own fixtures and munit tests, which are
-  cheap and need no regeneration. A Model task needs no regeneration and no gate. Each task is its own
-  commit, so an unexplained difference can be bisected with `make umpire-gen-model`; prefer leaving the
-  tree compiling so bisection can test each commit. No regeneration of any kind runs during the batch,
-  so each spec's single-regeneration rule (fn-134.3, fn-135.4) becomes the batch's regeneration.
-- **The diff check.** Baseline: the tree at fn-132's close, `96de1fd92d`. The expected IR change is the union of the
-  deltas the tasks declare: source positions; fn-133.3, .5 and .6 renames and ID map, fn-133.4's listed new
-  Cases and fn-133.8's carrier metadata; fn-134's `origin`, exported-root `source` substitutions from
-  `.implements` to `.capabilities`, and the deleted `*.laws.json`; fn-135's `status`;
-  fn-136.5's inlined Functions; fn-137.6's removed `states.terminal` Functions and fn-137.7's
-  owner-approved change; fn-139's renamed actions, classes, inputs and outcomes, task 8's realization
-  rejection-code metadata, and the other differences its R7 lists. Classify every changed line against
-  that list; any line it does not explain stops the
-  batch until it is traced to its task. Per-task "equal but for positions" claims are checked against the
-  baseline, never absorbed. Every Query answer and receipt is otherwise unchanged.
-- **Order.**
-  1. Framework and lifter, beside the old forms: fn-134.1, fn-134.2, fn-135.1–.3, fn-135.5, fn-136.1,
-     fn-136.4 (spelled `when[R]`, since fn-139 renames the rule-case `in`), fn-137.1–.2, fn-139.1–.3.
-  2. Realizations: fn-133.1–.6, then fn-133.8 (IR carrier metadata and its Go consumers).
-  3. Models, in this order because they share `Product.scala`, `System.scala`, `Record.scala`,
-     `WithTaskQueue.scala` and the Nexus System and Product: fn-135.4 → fn-136.2, .3 → fn-134.3 →
-     fn-137.3, .4 → fn-136.5 → fn-137.5, .6 → fn-137.7 (ask the owner about `pausedWhileHeld` before
-     writing it) → fn-139.4–.7.
-  4. Removals and Go: fn-134.4, then fn-139.8 (the rejection-to-RPC-code table, new realization IR
-     field and Go reader), then the batch regeneration, then fn-134.5 (Go refuses law sidecars, so it
-     follows the regeneration that deletes them) and fn-139.9 (the conformance consumer).
-  5. Gates: the full Go suite, the model gate and reviews once, then one live run for fn-133.4's new Cases
-     and fn-139.9's conformance check. Close fn-133 (task 7), fn-134, fn-135, fn-136, fn-137 and fn-139
-     after it.
+### fn-128: Close the activity's precision gaps
 
-### fn-133: Lean, typed realizations
-
-Gate: the DSL batch. Source: review of the realizations, 2026-10-05. Tasks run in order.
+Tasks run in order.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-133.1 | ✅ done | `proto[T] { … }` literal scope, response reads in the call scope, literal helpers |
-| fn-133.2 | ✅ done | Kit evidence modules: described status, history evidence, request base |
-| fn-133.3 | ✅ done | Lower-case instruction forms, no borrowed command names, named evidence arguments, ids from facts |
-| fn-133.4 | ✅ done | Coverage report, class-pattern rule, `deadlines(…)` binding, action-level `onPath` |
-| fn-133.5 | ✅ done | Name collisions removed; activity realization local fixes |
-| fn-133.6 | ✅ done | Typed realization objects; derived operation, roles, server steps; derived realizations |
-| fn-133.8 | ✅ done | Per-class carrier schemas derived from typed realizations |
-| fn-133.7 | ⬜ todo | Line counts, docs; close |
+| fn-128.1 | ⬜ todo | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
+| fn-128.2 | ⬜ todo | Rejections as rows (`failedPrecondition`, `invalidArgument`); repeated RequestCancel; `silent-rejection` acceptances removed |
+| fn-128.3 | ⬜ todo | Retry policy: `maxAttempts` input, `retriesRemaining`, retryable start-to-close timeout |
+| fn-128.4 | ⬜ todo | Stutter facts checked: `visible` on `ActivitySystem`'s refinement |
+| fn-128.5 | ⬜ todo | `cancelIsNotUndone` Property; attempt count in every Case; time-window `because` |
+| fn-128.6 | ⬜ todo | Evidence map, live Cases run once (the batch's live run); close |
 
-### fn-134: Capabilities own their properties
+### fn-138: Retries and Deadline capabilities
 
-Gate: the DSL batch; closes before fn-131 starts. Source: owner conversation, 2026-10-06. Tasks run in the batch order. Task 3's equivalence harness takes the batch baseline, and its regeneration is the batch's.
+Runs after fn-128.5: fn-128.1 replaces the `backingOff` phase and fn-128.3 adds the retry policy,
+both of which Retries reads. Open questions for the owner are in the spec; tasks .1 and .2 settle them
+before writing Properties.
 
-| Task | Status | What |
-| --- | --- | --- |
-| fn-134.1 | ✅ done | Inert `Property.origin` in the IR schema and Go reader; identity test |
-| fn-134.2 | ✅ done | `capabilities` section, capability Properties, bounds in `queries`, waiver reasons from the model gate, added beside the old path (early proof) |
-| fn-134.3 | ✅ done | Kit and every Model migrated; equivalence diff at the batch regeneration |
-| fn-134.4 | ✅ done | `Law`, `Catalog`, `Implements`, `cited` and the law sidecar removed from Scala |
-| fn-134.5 | ⬜ todo | Law sidecar reader, law table and law lint kinds removed from Go (after the batch regeneration) |
-| fn-134.6 | ⬜ todo | Docs, vocabulary check; close |
-
-### fn-135: `effect { }` and `is { }` blocks for effects and predicates
-
-Gate: the DSL batch. Tasks run in order. Task 4's comparison takes the batch baseline. Amended 2026-10-06: `ActivityProduct`'s phase cases declare their status facts (R8–R10). Parked: renaming `Phase` to `Status` across every machine.
+Retries (a retryable failure of a `Held` attempt lands in `Waiting`, a non-retryable one in `Failed`,
+attempts never exceed the bound) and Deadline capabilities are declared by the activity and Nexus
+workflow systems; their timer windows become role tests.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-135.1 | ✅ done | `effect`, `is`, `record` and `reject(outcome)` sugar in umpire; run-time equivalence tests |
-| fn-135.2 | ✅ done | Lifter resolves `val` section members and lifts `is { }`; `def` paths unchanged (proof point) |
-| fn-135.3 | ✅ done | Lifter lifts `effect { }` with its statement refusals |
-| fn-135.5 | ✅ done | Status facts declared on phase cases: derived in `effect { }` at run time and in lifted IR, with refusals and a fixture machine |
-| fn-135.4 | ✅ done | `ActivityProduct` converted, projection renamed `status`; IR equal but for positions and that name; docs |
+| fn-138.1 | ⬜ todo | Retries capability: kit Properties and lifter refusals (owner question first) |
+| fn-138.2 | ⬜ todo | Deadline capability: kit Properties, per-declaration names and lifter refusals |
+| fn-138.3 | ⬜ todo | Activity and Nexus workflow systems declare Retries and Deadlines; timer windows as role tests; docs |
 
-### fn-136: Phase roles on lifecycle enums
+### fn-129: Activity coverage
 
-Gate: the DSL batch. Tasks run in the batch order. R7 (positions only, for tasks 1 to 3) and R9 (task 5's bounded change: retired predicate Functions removed and their case sets inlined, Query answers unchanged) are checked at the batch regeneration.
+Runs after fn-138. Tasks run in order.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-136.1 | ✅ done | Role traits; lifter lowers role tests (`isInstanceOf`, type patterns) to case-set membership and refuses conflicting roles |
-| fn-136.2 | ✅ done | Activity product, system and record carry roles; `states` bodies become role tests; refinement closedness check |
-| fn-136.3 | ✅ done | Nexus workflow, standalone and product carry roles; docs |
-| fn-136.4 | ✅ done | `when[R]` and `p.in[R]` role-test spellings; lifter lowers them like `in(...)` and `isInstanceOf` |
-| fn-136.5 | ✅ done | Role-set `states` predicates retire, callers read roles directly; bounded IR change (R9); docs; close |
-
-### fn-137: Capabilities read phase roles
-
-Gate: the DSL batch. Task 7 assigns `pausedWhileHeld` to `Held`: the admitted attempt remains owned while pause is pending, while `paused` remains `Suspended`. Where a capability's predicate differs from the role it now reads, the batch diff records and classifies it; it is never absorbed.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-137.1 | ✅ done | `Phased` mixin; argument-less `Rules` reads it beside the old form (early proof) |
-| fn-137.2 | ✅ done | Lifter reads the projection from the `Phased` parent |
-| fn-137.3 | ✅ done | Every Model migrated to `Phased` and argument-less `Rules` |
-| fn-137.4 | ✅ done | `Rules(projection)` retired: framework, lifter fallback, fixtures, docs |
-| fn-137.5 | ✅ done | Default `end` for `Phased` objects (needs fn-136's `Closed` role) |
-| fn-137.6 | ✅ done | Closable reads the `Closed` role through `Phased` (needs fn-134, fn-136.5) |
-| fn-137.7 | ✅ done | Pausable reads `Suspended` and `Held`; `pausedWhileHeld` settled; capability docs |
-
-### fn-139: Actor-grouped rules, per-RPC actions, shared rejections
-
-Gate: the DSL batch; task 8 exports the mapping before the batch regeneration and task 9 consumes it after. Captured 2026-10-06; task 8 split on 2026-10-07 after investigation proved a new IR field and reader path were required. fn-136.4 spells the role form `when[R]` directly. Task 4 preserves each RPC's protobuf carrier through its realization binding, the current fn-133.8 contract; the older planned `.schema[T]` spelling is retired by the DSL.
-
-`from(actor) { on(action) { when(phases) ~> effect } }` rules, `when` replacing the rule-case `in`, one action per RPC for the standalone activity with a `Failure` enum, and a shared `Outcome`/`Rejection` with `rejects(r)` rows. R7: the IR differs only in positions, the renamed actions, classes and inputs, and the other differences R7 lists.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-139.1 | ✅ done | Shared `Outcome`/`Rejection` and `rejects(r).because(text)` in framework and lifter; parameterized outcome admitted by the Go reader (early proof) |
-| fn-139.2 | ✅ done | Framework: `from(declarer)` with leading import, `when` case forms, multi-action `on`, overlap across blocks, beside the old forms |
-| fn-139.3 | ✅ done | Lifter reads `from`/`when`/multi-action `on`; block-form rule in the model gate |
-| fn-139.4 | ✅ done | Standalone activity: one action per RPC with a `Failure` enum; every consumer on the new actions |
-| fn-139.5 | ✅ done | Activity product and System rules in `from` blocks, grouped by meaning; activity on the shared `Outcome` |
-| fn-139.6 | ✅ done | Nexus and the shared worker on the shared `Outcome`; `alreadyCompleted` becomes `rejected(failedPrecondition)` |
-| fn-139.7 | ✅ done | `in` → `when` and block form across every Model and fixture; rule-case `in` retired; block-form lint on; docs |
-| fn-139.8 | ✅ done | Exhaustive rejection-to-RPC-code table, realization IR export and Go reader (before regeneration) |
-| fn-139.9 | ⬜ todo | Conformance checks observed instruction codes against rejecting Model steps (after regeneration) |
+| fn-129.1 | ⬜ todo | Heartbeat action and retryable heartbeat timeout; realized |
+| fn-129.2 | ⬜ todo | Respond by ID as a `service` actor; realized |
+| fn-129.3 | ⬜ todo | Reset with `keepPaused` and deferred apply; precedence Property extended; realized |
+| fn-129.4 | ⬜ todo | Exploration on the activity's `find` Queries |
+| fn-129.5 | ⬜ todo | New Cases listed, live run (the batch's live run); close |
 
 ### fn-140: One-sentence witness Queries with explicit live expectations
 
-Gate: after the DSL batch closes. It depends on fn-134 and rewrites the `properties` and `queries` sections of the Model files the batch edits, and its R5 renames Definition IDs, which the batch's diff check does not list. Captured 2026-10-06 and marked ready; not yet planned, so the spec has no tasks.
+Runs next. It rewrites the Models' `properties` and `queries` sections and its R5 renames Definition
+IDs. Captured 2026-10-06 and marked ready; not yet planned, so the spec has no tasks.
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
 
+### fn-123: Declare faults as the environment's actions
+
+Ready 2026-10-07. Starts after fn-140 and is written against the names it leaves (`when` blocks,
+`.live`, the shared `Outcome`, the fault instruction and typed `perform`). It runs before fn-141,
+because fn-141 keeps the IR schema unchanged and fn-123 adds to it. Tasks run in order; 6 and 7 need
+only 5. Task 3 is the proof: Go derives crash rows equal to `crashDetail`'s from a durability
+classification, or the work stops for the owner. Planning took defaults for six owner questions,
+listed in the spec's Open Questions.
+
+A fault is declared once with its kind, budget and whether it can be realized; a machine classifies
+its fields as durable or in-memory, and Go derives the crash. The explorer half of R7 and the P clause
+of R8 were dropped, since neither tool exists.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-123.1 | ⬜ todo | Fault kinds and `modelOnly` on the `fault` actor's actions; IR `Fault` record; spellings settled |
+| fn-123.2 | ⬜ todo | Durability classification and `crashes(…)` in the DSL and lifter, on fixtures |
+| fn-123.3 | ⬜ todo | Go derives the crash row; `SEMANTICS.md` Faults section (proof) |
+| fn-123.4 | ⬜ todo | Task-queue providers converted; `fault-overridden` lint; derived storage-loss assumption |
+| fn-123.5 | ⬜ todo | Budgets: `budgetedBy`, four table rules in Go, `LostStartAnswer` bound to `lossAvailable` |
+| fn-123.6 | ⬜ todo | Choice-level fault performance; lowering refuses model-only faults and unperformed choices |
+| fn-123.7 | ⬜ todo | Trace output and Quint export of derived crashes and budgets |
+| fn-123.8 | ⬜ todo | `umpire-faults` report, docs; close |
+
+### fn-141: Shrink the IR generator: one description of each DSL construct
+
+Ready 2026-10-07. Starts after fn-123; fn-140, the completed DSL work and fn-123 are its baseline.
+Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.
+Tasks run in order; 1 and 2 depend on nothing, and 6 and 7 need only them. Task 5 is the proof for the
+export part and task 8 its size proof; either can stop tasks 9 to 13, and tasks 1 to 4 stand without
+them. Source: a full read of `model/irgen` on 2026-10-06 (8,242 lines, of which about 10% lifts
+function bodies and types and 1,479 are lints that emit no IR).
+
+Each DSL construct is described once. Four parts, in this order: the declaration-order lint, the
+structure lint and the marker checks leave `model/irgen` for their own gate step; spellings no Model
+or kit uses are retired; a sugar's definition becomes its only lowering, so the lifter knows core
+constructs and types alone; and declarations are exported from the constructed Models, one kind at
+a time with realizations first, so the lifter lifts function bodies and types only. Declaration-level
+Scala becomes free and function bodies stay in the liftable subset, so the IR schema, the Go consumers
+and the Quint export do not change, and every step leaves `model/ir` and `model/cases` byte-identical.
+It revises `.plans/DSL_OPERATORS.md` rule 5 and fn-113 R15: the framework uses `inline` and macros at
+its capture points only. Proof point: the realization step stops the work unless it removes at least
+half of the realization lifter's lines net of what it adds.
+
+| Task | Status | What |
+| --- | --- | --- |
+| fn-141.1 | ⬜ todo | Order lint, structure lint and marker checks out of `model/irgen` into their own gate step |
+| fn-141.2 | ⬜ todo | Spellings no Model or kit uses retired, after a recount the owner confirms |
+| fn-141.3 | ⬜ todo | Generic sugar expansion; `enter`, `stay`, `reject`, `disabled`, `in`, `implies`, `records` lifted from their definitions (proof for the sugar part) |
+| fn-141.4 | ⬜ todo | Claim patterns and sticky monitors by definition; lifter's sugar file gone; syntax lint holds the lifter to core |
+| fn-141.5 | ⬜ todo | Capture points (name, ID, position; function span and captured values) and lifting a function by span (proof for the export part) |
+| fn-141.6 | ⬜ todo | Refusal ledger: one outcome per refusal kind (deleted, kept and where, left to Go) |
+| fn-141.7 | ⬜ todo | Realization factories keep everything they are given |
+| fn-141.8 | ⬜ todo | Exporter; realizations exported; two-run determinism; init-order refusal; size proof with stop |
+| fn-141.9 | ⬜ todo | Signature exported: actions, inputs, channels, assumptions, holes, Limits; `codeOf` gone |
+| fn-141.10 | ⬜ todo | Machines exported: header, rules, monitors, refinement, derivations |
+| fn-141.11 | ⬜ todo | Compositions and syncs exported; `sync` and `replaces` record what they pair |
+| fn-141.12 | ⬜ todo | Properties, Scenarios, Queries and progress exported; the lifter's fold deleted; comprehension fixture |
+| fn-141.13 | ⬜ todo | Capability expansions exported, in the shape the current framework leaves |
+| fn-141.14 | ⬜ todo | Dead lifter code, rules of record, docs, backends check, size report; close |
+
 ### fn-142: Split `model/temporal/shared` into `foundations` and `actors`
 
-Gate: after the DSL batch closes. Mechanical move: the task queue goes to `foundations/taskqueue`, the worker to `actors/worker`, `Client.scala` to `actors/client/`, and `Bounds.scala` to `model/temporal/`; the IR differs only in paths and positions.
+Mechanical move: the task queue goes to `foundations/taskqueue`, the worker to `actors/worker`,
+`Client.scala` to `actors/client/`, and `Bounds.scala` to `model/temporal/`; the IR differs only in
+paths and positions.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -216,8 +204,8 @@ Gate: after fn-142. Folder and package both become `framework`; product names (`
 ### IR schema research: fn-145 → fn-146 → fn-147 → fn-148
 
 Planned 2026-10-06 from [Umpire IR schema research](.plans/UMPIRE_IR_SCHEMA_RESEARCH.md) and
-[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Gate: the DSL batch and fn-142/fn-143
-close before fn-145; each following spec waits for its predecessor. These are separate migrations,
+[Testpilot schema research](.plans/TESTPILOT_SCHEMA_RESEARCH.md). Gate: fn-142/fn-143 close before
+fn-145; each following spec waits for its predecessor. These are separate migrations,
 each with its own baseline, regeneration and full gates, not another DSL batch. Serialize fn-140,
 fn-131 and any revived fn-141/fn-144 or Model batch against these migrations; re-anchor their tasks
 to the schema and vocabulary left by completed work. Deferred specs do not block this chain.
@@ -291,45 +279,7 @@ prior-state transitions, and projection result order stays explicit. Tasks run i
 
 ## Deferred
 
-Specs the owner deferred as not needed for the current code deliverable (the DSL and its execution).
-They keep their tasks so they can be revived as planned.
-
-### fn-128: Close the activity's precision gaps
-
-Deferred 2026-10-06 so the DSL batch runs first. When revived, fn-128, fn-138 and fn-129 run as one batch after the DSL batch closes, by the same rules: one regeneration, one gate run, and one live run serving fn-128.6 and fn-129.5. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Tasks run in order; each declares its IR change, checked at the batch regeneration.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-128.1 | ⏸️ deferred | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
-| fn-128.2 | ⏸️ deferred | Rejections as rows (`failedPrecondition`, `invalidArgument`); repeated RequestCancel; `silent-rejection` acceptances removed |
-| fn-128.3 | ⏸️ deferred | Retry policy: `maxAttempts` input, `retriesRemaining`, retryable start-to-close timeout |
-| fn-128.4 | ⏸️ deferred | Stutter facts checked: `visible` on `ActivitySystem`'s refinement |
-| fn-128.5 | ⏸️ deferred | `cancelIsNotUndone` Property; attempt count in every Case; time-window `because` |
-| fn-128.6 | ⏸️ deferred | Evidence map, live Cases run once (the deferred batch's live run); close |
-
-### fn-138: Retries and Deadline capabilities
-
-Deferred 2026-10-06 with fn-128. When revived, runs after fn-128.5 (fn-128.1 replaces the `backingOff` phase and fn-128.3 adds the retry policy, both of which Retries reads). Open questions for the owner are in the spec; tasks .1 and .2 ask them before writing Properties.
-
-Retries (a retryable failure of a `Held` attempt lands in `Waiting`, a non-retryable one in `Failed`, attempts never exceed the bound) and Deadline capabilities, declared by the activity and Nexus workflow systems; their timer windows become role tests.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-138.1 | ⏸️ deferred | Retries capability: kit Properties and lifter refusals (owner question first) |
-| fn-138.2 | ⏸️ deferred | Deadline capability: kit Properties, per-declaration names and lifter refusals |
-| fn-138.3 | ⏸️ deferred | Activity and Nexus workflow systems declare Retries and Deadlines; timer windows as role tests; docs |
-
-### fn-129: Activity coverage
-
-Deferred 2026-10-06 with fn-128. When revived, runs after fn-138. Tasks run in order; each declares its IR change, checked at the batch regeneration.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-129.1 | ⏸️ deferred | Heartbeat action and retryable heartbeat timeout; realized |
-| fn-129.2 | ⏸️ deferred | Respond by ID as a `service` actor; realized |
-| fn-129.3 | ⏸️ deferred | Reset with `keepPaused` and deferred apply; precedence Property extended; realized |
-| fn-129.4 | ⏸️ deferred | Exploration on the activity's `find` Queries |
-| fn-129.5 | ⏸️ deferred | New Cases listed, live run (the deferred batch's live run); close |
+Specs the owner deferred keep their tasks here so they can be revived as planned.
 
 ### fn-119: Show one Go SDK workflow driven end to end from the IRs
 
@@ -343,23 +293,6 @@ Deferred 2026-10-04.
 | fn-119.4 | ⏸️ deferred | Activity workflow example modeled; its Queries run live from the gate |
 | fn-119.5 | ⏸️ deferred | Faulty variant and the zero-Go check |
 | fn-119.6 | ⏸️ deferred | Walkthrough, one-command entry point; close |
-
-### fn-123: Declare faults as the environment's actions
-
-Deferred 2026-10-04; tasks planned 2026-10-06 so it can be revived as planned. When revived, starts after the DSL batch and fn-140 close and is written against the names they leave (`when` blocks, `.live`, the shared `Outcome`, fn-133's fault instruction and typed `perform`). Order against fn-141 is the owner's: fn-141 keeps the IR schema unchanged, and fn-123 adds to it. Tasks run in order; 6 and 7 need only 5. Task 3 is the proof: Go derives crash rows equal to `crashDetail`'s from a durability classification, or the work stops for the owner. Planning took defaults for six owner questions, listed in the spec's Open Questions.
-
-A fault is declared once with its kind, budget and whether it can be realized; a machine classifies its fields as durable or in-memory, and Go derives the crash. The explorer half of R7 and the P clause of R8 were dropped, since neither tool exists.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-123.1 | ⏸️ deferred | Fault kinds and `modelOnly` on the `fault` actor's actions; IR `Fault` record; spellings settled |
-| fn-123.2 | ⏸️ deferred | Durability classification and `crashes(…)` in the DSL and lifter, on fixtures |
-| fn-123.3 | ⏸️ deferred | Go derives the crash row; `SEMANTICS.md` Faults section (proof) |
-| fn-123.4 | ⏸️ deferred | Task-queue providers converted; `fault-overridden` lint; derived storage-loss assumption |
-| fn-123.5 | ⏸️ deferred | Budgets: `budgetedBy`, four table rules in Go, `LostStartAnswer` bound to `lossAvailable` |
-| fn-123.6 | ⏸️ deferred | Choice-level fault performance; lowering refuses model-only faults and unperformed choices |
-| fn-123.7 | ⏸️ deferred | Trace output and Quint export of derived crashes and budgets |
-| fn-123.8 | ⏸️ deferred | `umpire-faults` report, docs; close |
 
 ### fn-125: Represent dynamic configuration in the Models
 
@@ -385,41 +318,14 @@ Deferred 2026-10-05 before task planning; the spec has no tasks yet. When revive
 
 Rendered views per Model (signature, phase diagram, refinement, compositions, derived-design diff, witness paths), checked in as `.d2` plus `.svg` under `model/views/` and gated; D2 as a Go library with ELK; no DSL declaration.
 
-### fn-141: Shrink the IR generator: one description of each DSL construct
-
-Deferred 2026-10-06. When revived, starts after the DSL batch and fn-140 close, since they rewrite the same framework and lifter files; the tasks were planned against the tree before that batch, so each re-reads its files and recounts first. Tasks run in order; 1 and 2 depend on nothing, and 6 and 7 need only them. Task 5 is the proof for the export part and task 8 its size proof; either can stop tasks 9 to 13, and tasks 1 to 4 stand without them. Source: a full read of `model/irgen` on 2026-10-06 (8,242 lines, of which about 10% lifts function bodies and types and 1,479 are lints that emit no IR).
-
-Each DSL construct is described once. Four parts, in this order: the declaration-order lint, the structure lint and the marker checks leave `model/irgen` for their own gate step; spellings no Model or kit uses are retired; a sugar's definition becomes its only lowering, so the lifter knows core constructs and types alone; and declarations are exported from the constructed Models, one kind at a time with realizations first, so the lifter lifts function bodies and types only. Declaration-level Scala becomes free and function bodies stay in the liftable subset, so the IR schema, the Go consumers and the Quint export do not change, and every step leaves `model/ir` and `model/cases` byte-identical. It revises `.plans/DSL_OPERATORS.md` rule 5 and fn-113 R15: the framework uses `inline` and macros at its capture points only. Proof point: the realization step stops the work unless it removes at least half of the realization lifter's lines net of what it adds.
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-141.1 | ⏸️ deferred | Order lint, structure lint and marker checks out of `model/irgen` into their own gate step |
-| fn-141.2 | ⏸️ deferred | Spellings no Model or kit uses retired, after a recount the owner confirms |
-| fn-141.3 | ⏸️ deferred | Generic sugar expansion; `enter`, `stay`, `reject`, `disabled`, `in`, `implies`, `records` lifted from their definitions (proof for the sugar part) |
-| fn-141.4 | ⏸️ deferred | Claim patterns and sticky monitors by definition; lifter's sugar file gone; syntax lint holds the lifter to core |
-| fn-141.5 | ⏸️ deferred | Capture points (name, ID, position; function span and captured values) and lifting a function by span (proof for the export part) |
-| fn-141.6 | ⏸️ deferred | Refusal ledger: one outcome per refusal kind (deleted, kept and where, left to Go) |
-| fn-141.7 | ⏸️ deferred | Realization factories keep everything they are given |
-| fn-141.8 | ⏸️ deferred | Exporter; realizations exported; two-run determinism; init-order refusal; size proof with stop |
-| fn-141.9 | ⏸️ deferred | Signature exported: actions, inputs, channels, assumptions, holes, Limits; `codeOf` gone |
-| fn-141.10 | ⏸️ deferred | Machines exported: header, rules, monitors, refinement, derivations |
-| fn-141.11 | ⏸️ deferred | Compositions and syncs exported; `sync` and `replaces` record what they pair |
-| fn-141.12 | ⏸️ deferred | Properties, Scenarios, Queries and progress exported; the lifter's fold deleted; comprehension fixture |
-| fn-141.13 | ⏸️ deferred | Capability expansions exported, in the shape fn-134 leaves |
-| fn-141.14 | ⏸️ deferred | Dead lifter code, rules of record, docs, backends check, size report; close |
-
 ### Other deferred items
 
-- fn-122.7 (Pausable on fn-119's example) waits for fn-119; fn-122 itself is closed.
+- fn-122.7 (the Pausable capability Property on fn-119's example) waits for fn-119.
 - `make umpire-check-backends` in CI; it runs locally after `make umpire-install-backends`.
 - The IR explorer (fn-120.4) was removed. fn-112, fn-114, fn-118, fn-120, fn-121, fn-122 and fn-127 are closed.
 
 ## Open for the owner
 
-- The matching ShutdownWorker race (`service/matching/matching_engine.go`, upstream #9424) makes the Cases
-  that stop a worker INCONCLUSIVE under both Nexus implementations; with
-  `frontend.enableMatchingFanOutForPollCancellation=false` they pass. The planned `workerStop` precondition
-  (fn-125.6) is deferred with fn-125, so these Cases stay INCONCLUSIVE until the server is fixed or fn-125 resumes.
 - 691 lint findings accepted with reasons in `model/ir/*.lint.json` (fn-120.3); review the H2 reasons first.
 - Behavior-freeze follow-ups from fn-112: the witness-only Properties `terminated` and
   `cancelRequestedWhileStarted`, and seven pause/unpause rows the server rejects. fn-140 deletes
