@@ -1,5 +1,5 @@
-// Rules that name phases of no projection (fn-126 R16): `in` reads the projection the rules declare,
-// `Rules(_.phase)`, and rules that declare none name no phase.
+// Rules on a machine that is not Phased (fn-137 R5): `in` needs the machine's projection,
+// `Phased[State, Phase](_.phase)`, and rules on a plain machine name no phase.
 package fixture.crossed
 
 import umpire.*

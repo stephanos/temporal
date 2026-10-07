@@ -433,8 +433,7 @@ object Phased extends Inherited.Unphased:
 
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
-// (`Rules(_.phase)`, which names the projection itself, still reads in its place where it is
-// written): blocks of an action or action class,
+// through its given: blocks of an action or action class,
 // `on(clerk.ship) { in(placed) ~> effects.send }`, whose cases each say where the action fires,
 // `in(...)` or `when(...)` of phases or of a named set of them, `where(g)` of the state,
 // `when(...).where(g)` of both or `always`, and what it does there, `~> effects.x`; and the actions
@@ -459,8 +458,8 @@ object Phased extends Inherited.Unphased:
 abstract class Rules[S, O, F, P](using
     owner: Owner[S, O, F],
     phasing: Phasing[S, ? <: P]
-)(phase: S => P = phasing.projection)
-    extends RuleBook[S, O, F]:
+) extends RuleBook[S, O, F]:
+  private val phase: S => P = phasing.projection
   private val written = mutable.ArrayBuffer.empty[Rule[S, O, F]]
   private val never = mutable.ArrayBuffer.empty[ActionDecl]
   private val order = mutable.LinkedHashSet.empty[ActionDecl]
@@ -610,13 +609,13 @@ abstract class Rules[S, O, F, P](using
     phases(set, codeOf(set), "when")
 
   // A case that holds in the phases with the role `R` (model/umpire/Roles.scala), as the projection
-  // of `Rules(_.phase)` reads them: `when[Closed] ~> effects.notFound`; rules that declare no
-  // projection name no role. Core form:
+  // of the machine's `Phased` reads them: `when[Closed] ~> effects.notFound`; a machine that is
+  // not `Phased` names no role. Core form:
   // `List(<the cases of R, in declaration order>).contains(s.phase)`.
   def when[R](using
       role: TypeTest[P, R],
       named: ClassTag[R],
-      @unused projected: ProjectsPhases[P]
+      @unused projected: PhasesOf[P, P]
   ): Case[S, O, F] =
     Case(s"when[${named.runtimeClass.getSimpleName}]", s => role.unapply(phase(s)).nonEmpty)
 
@@ -660,20 +659,6 @@ object PhasesOf:
   // takes a role, `case done extends Phase, Succeeded`, is a `Phase & Succeeded`. Core form:
   // `List(p1, p2).contains(s.phase)`, whose phases are of the type of `s.phase`.
   given [P, Q <: P](using NotGiven[P =:= Nothing]): PhasesOf[P, Q] = PhasesOf()
-
-// Evidence that the rules read a projection, the machine's `Phased[State, Phase](_.phase)` or
-// `Rules(_.phase)`: rules that read none project the state onto `Nothing`, and name no phase.
-// Core form: none of its own; `when[Closed]` is `List(<the cases of Closed>).contains(s.phase)`.
-@implicitNotFound(
-  "when names the phases of a role, and these rules read no phase projection: mix the projection " +
-    "the phases are of into the machine, `Phased[State, Phase](_.phase)`"
-)
-final class ProjectsPhases[P] private ()
-
-// Every projection but none. Core form: `List(p1, p2).contains(s.phase)`, which reads `s.phase`.
-object ProjectsPhases:
-  // A projection of a type other than `Nothing`. Core form: `s.phase`.
-  given [P](using NotGiven[P =:= Nothing]): ProjectsPhases[P] = ProjectsPhases()
 
 // The rules of one action a derivation binds in its source's place:
 // `rebind(on(clerk.ship) { always ~> OrderRecord.effects.send })`, each case `where(g)` or

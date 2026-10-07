@@ -1,6 +1,6 @@
-// fn-137.2: a lamp whose rules name their projection, `Rules(_.light)`. phasedMixin/Phased.scala
-// is the same lamp with its projection mixed into the machine, `Phased[Bulb, Light](_.light)`, on
-// the same lines, and the lifter's tests hold the two lifts equal byte for byte (expected.json).
+// A lamp with a typed projection lambda in Phased. phasedMixin/Phased.scala is the same lamp
+// with explicit Phased type arguments, on the same lines, and the lifter's tests hold the two
+// lifts equal byte for byte (expected.json).
 package fixture.phased
 
 import umpire.*
@@ -19,7 +19,7 @@ object hand extends Actor:
   val press = action(this)
   val drop = action(this)
 
-object Switch extends Machine[Bulb, Outcome, Nothing]:
+object Switch extends Machine[Bulb, Outcome, Nothing], Phased((s: Bulb) => s.light):
   val init = Bulb(Light.off)
   def end(s: State) = s.light == Light.broken
   object states:
@@ -28,7 +28,7 @@ object Switch extends Machine[Bulb, Outcome, Nothing]:
     def light(s: Bulb) = enter[Bulb, Outcome, Nothing](s.copy(light = Light.on))
     def dark(s: Bulb) = enter[Bulb, Outcome, Nothing](s.copy(light = Light.off))
     def keep(s: Bulb) = stay[Bulb, Outcome, Nothing](s)
-  object rules extends Rules(_.light):
+  object rules extends Rules:
     on(hand.press) {
       in(Light.on) ~> effects.dark
       in(states.dark).where(_.light != Light.broken) ~> effects.light

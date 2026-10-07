@@ -6,7 +6,7 @@ import java.nio.file.{Files, Path}
 class BlockFormRuleSuite extends munit.FunSuite:
   test("an on whose cases are in parentheses is found at its line, and a block is not"):
     val source =
-      """object rules extends Rules(_.phase):
+      """object rules extends Rules:
         |  on(client.pause)(when(started) ~> effects.pause)
         |  on(client.unpause) {
         |    when(paused) ~> effects.unpause

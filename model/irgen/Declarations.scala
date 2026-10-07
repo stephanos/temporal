@@ -236,7 +236,7 @@ private[irgen] trait Declarations:
     from(cls, Set.empty)
 
   // The rules each machine's `Phased` projection is read by, which its lifted reads are placed at
-  // (Context.placing): where `Rules(_.phase)` writes the projection.
+  // (Context.placing): the rules' declaration.
   private val phaseReaders = mutable.Map.empty[Term, Tree]
 
   // Records the phase projection `cls` reads, where it reads one, under its name.
@@ -473,20 +473,18 @@ private[irgen] trait Declarations:
   // four actions, or classes of them, each given its cases, and holds its cases alone; the blocks
   // of a `from` follow its declarer's import. An action, or a class of it, may sit in several
   // blocks: the framework refuses cases of one class that overlap.
-  // A case's phases read the machine's `Phased[State, Phase](_.phase)`, or the projection its rules
-  // name, `Rules(_.phase)`, which is read in its place where it is written.
+  // A case's phases read the machine's `Phased[State, Phase](_.phase)`, placed at the rules'
+  // declaration.
   def ruleSteps(
       machine: String,
       state: ir.TypeRef,
       rules: ClassDef,
       owner: Symbol
   ): Seq[ir.StepBinding] =
-    val projection = parentArguments(rules).flatten
-      .find(a => lambda(a).nonEmpty)
-      .orElse(phaseProjection(owner, rules).map { p =>
-        phaseReaders(p) = rules
-        p
-      })
+    val projection = phaseProjection(owner, rules).map { p =>
+      phaseReaders(p) = rules
+      p
+    }
     recordPhase(owner, machine, rules)
     val written = mutable.ArrayBuffer.empty[LiftedRule]
     val order = mutable.LinkedHashMap.empty[String, Tree]

@@ -1035,13 +1035,13 @@ object bulbHand extends Actor:
   val twist = action(this)
 
 // A machine whose squeeze brightens a dim bulb and dims a bright one: two rules of squeeze.
-object Ruled extends Machine[Bulb, Outcome, Nothing]:
+object Ruled extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
   object effects:
     def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
     def darken(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.dim))
-  object rules extends Rules(_.glow):
+  object rules extends Rules:
     on(bulbHand.squeeze) {
       in(Glow.dim) ~> effects.brighten
       in(Glow.bright) ~> effects.darken
@@ -1073,34 +1073,34 @@ object Unheaded extends Machine[Bulb, Outcome, Nothing]:
     bulbHand.squeeze ~> Ruled.effects.brighten
 
 // A block in a block.
-object BlockTwice extends Machine[Bulb, Outcome, Nothing]:
+object BlockTwice extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
-  object rules extends Rules(_.glow):
+  object rules extends Rules:
     on(bulbHand.squeeze) {
       on(bulbHand.twist)(in(Glow.dim) ~> Ruled.effects.brighten)
     }
 
 // A from whose first statement is no import of its declarer.
-object FromStatement extends Machine[Bulb, Outcome, Nothing]:
+object FromStatement extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
-  object rules extends Rules(_.glow):
+  object rules extends Rules:
     from(bulbHand)(disabled(bulbHand.twist))
     on(bulbHand.squeeze)(in(Glow.bright) ~> Ruled.effects.darken)
 
 // A set of phases written as a lambda, which names no def of the machine's states.
-object PhaseLambda extends Machine[Bulb, Outcome, Nothing]:
+object PhaseLambda extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
-  object rules extends Rules(_.glow):
+  object rules extends Rules:
     on(bulbHand.squeeze)(in((g: Glow) => g == Glow.dim) ~> Ruled.effects.brighten)
 
 // An action both disabled and fired by a rule.
-object DisabledFired extends Machine[Bulb, Outcome, Nothing]:
+object DisabledFired extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
-  object rules extends Rules(_.glow):
+  object rules extends Rules:
     disabled(bulbHand.squeeze)
     on(bulbHand.squeeze)(in(Glow.dim) ~> Ruled.effects.brighten)
 
@@ -1178,12 +1178,12 @@ object dialHand extends Actor:
   val turn = action(this).input(turnTo)
 
 // Two rules of one class of `turn`, each with an effect of its own.
-object ClassRuled extends Machine[Bulb, Outcome, Nothing]:
+object ClassRuled extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
   object effects:
     def set(s: Bulb, g: Glow) = enter[Bulb, Outcome, Nothing](s.copy(glow = g))
-  object rules extends Rules(_.glow):
+  object rules extends Rules:
     on(dialHand.turn(Glow.bright)) {
       in(Glow.dim) ~> Ruled.effects.brighten
       in(Glow.bright) ~> Ruled.effects.darken

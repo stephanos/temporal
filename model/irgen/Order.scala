@@ -32,8 +32,8 @@ import scala.collection.mutable
 // A read inside a def, a lambda, a by-name argument or a lazy val of the owner itself, and an object
 // declared but not read, initializes nothing. A context function the DSL applies at once is read
 // as written, and so are a rule block's cases and their conditions, and the phase projection,
-// which the rules' disjointness check calls while they initialize: `Rules(_.phase)`'s, read as the
-// rules' constructor runs, or the machine's `Phased[State, Phase](_.phase)`, a constructor argument
+// which the rules' disjointness check calls while they initialize: the machine's
+// `Phased[State, Phase](_.phase)`, a constructor argument
 // of the machine object, initialized before its rules and read as they initialize. A def called
 // while its owner initializes is not followed, so a val it reads is not checked.
 //
@@ -252,7 +252,7 @@ final private[irgen] class Order(index: Index):
   // A call that runs its function arguments while it is made: a rule block, `on(a) { ... }` of
   // `rules` or of a derivation, or a `from` of them, whose cases run at once; a case, `in(set)`,
   // `when(set)`, `when[R]`, `where(g)` or `.where(g)`, whose condition the disjointness check calls;
-  // and `Rules`'s constructor, whose phase projection the conditions of `in` and `when` call.
+  // and the machine's `Phased` projection, which the conditions of `in` and `when` call.
   private def appliesAtOnce(s: Symbol): Boolean =
     s.exists && {
       val owner = s.maybeOwner

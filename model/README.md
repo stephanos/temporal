@@ -414,7 +414,8 @@ IR generator needs it; the IR generator reads an inferred type as it reads a wri
 
 The IR generator reads what an author wrote, as written:
 
-- **Declarations:** machine objects, `object M extends Machine[S, O, F]`, with their header members
+- **Declarations:** machine objects, `object M extends Machine[S, O, F]`, with an optional
+  `Phased[S, P](projection)` parent naming their phase, their header members
   (`init`, `end`, `entity`, `evidence`, `unobservable`) and their sections (`states`,
   `refinement`, `effects`, `monitors`, `rules`, `properties`, `implements`, `queries`); derived
   machines, `object D extends Derived(m.op(…))`, of the derivations `restrict`, `rebind`,
@@ -715,7 +716,10 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
 (`umpire.Machine`), in the `product` package that owns those types, named after its object with the first letter lowered
 (`activityProduct`). It reads in this order:
 
-1. its header: `val init`, the state it starts in (`init` as Quint and TLA+ name it, its fields by
+1. its header: where its rules name phases, the parent `Phased[State, Phase](_.phase)` names the
+   projection once; a composition may name a nested phase, `Phased[OverQueue, Phase](_.activity.phase)`,
+   and a derived object inherits its source's projection and phase type. Then `val init`, the state
+   it starts in (`init` as Quint and TLA+ name it, its fields by
    name, `system.State(phase = unstarted, attempts = UpTo(0), …)`), `def end(s)`, the states it
    may end in, and where declared `val entity`, `val evidence` and, for a machine that refines
    nothing, `val unobservable`, its timers whose step records nothing a Run can read. A machine's
@@ -742,10 +746,12 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
 5. `object monitors`: the monitors that watch it and the assumptions it makes; an assumption no
    machine makes of its own, which a derivation adds with `assuming` or a progress claim names with
    `under`, sits in the feature's signature;
-6. `object rules extends Rules(_.phase)` (`umpire.Rules`): when each action fires, one block per
+6. `object rules extends Rules` (`umpire.Rules`), reading the machine's `Phased` projection:
+   when each action fires, one block per
    action, or per class of one, each case a line, `on(client.control(Control.pause)) { in(scheduled,
    backingOff) ~> effects.pause; in(started) ~> effects.requestPause }`. A case says where the action
    fires: `in(…)` of phases or of a named set of them from `states`, `in(states.terminal)`;
+   both require `Phased[State, Phase](_.phase)` on the machine;
    `where(g)` of the state; `in(…).where(g)`, a condition beyond the phase; or `always`. An effect
    that takes arguments beyond the state binds them in place, `~> (effects.timeOut(_,
    system.TimeoutType.scheduleToClose))`. Where no case holds the action is disabled, and
@@ -963,7 +969,8 @@ def queueLaws(m: Machine[QueueDetail, QueueOutcome, QueueFact]): QueueLaws = Que
 ```
 
 Sugar is kept apart from the core. The core is what the IR needs declared: `Machine`, `Derived`
-and `Composition`, the derivations `rebind`, `extend`, `refining`, `assuming` and `unmonitored`,
+and `Composition`, the phase projection `Phased`, the derivations `rebind`, `extend`, `refining`,
+`assuming` and `unmonitored`,
 `Actor`, `action` and its classes (`start()` among them), `input`, `UpTo`, `Bindings` and `~>`,
 `Step` and `because`, `Declares[S]`, `property` with `holds`, `holdsAcross` and `when`, `monitor`,
 `leadsTo`, `Syncs` with `sync` (named or after its first member's action), `synced`, `own` and

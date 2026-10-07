@@ -31,7 +31,7 @@ object RulesFixture:
   object Trace:
     val initialized = mutable.ArrayBuffer.empty[String]
 
-  object Switch extends Machine[Lamp, Said, Nothing]:
+  object Switch extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     Trace.initialized += "Switch"
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = s.light == Lit.broken
@@ -48,7 +48,7 @@ object RulesFixture:
         enter[Lamp, Said, Nothing](s.copy(light = if k == Knob.up then Lit.on else Lit.off))
       def wear(s: Lamp) = enter[Lamp, Said, Nothing](s.copy(light = Lit.broken))
 
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       Trace.initialized += "Switch.rules"
       on(hand.press) {
         in(Lit.off) ~> effects.light
@@ -68,10 +68,10 @@ object RulesFixture:
   // The switch whose press fires everywhere, under one rule.
   object Loose extends Derived(Switch.rebind(on(hand.press)(always ~> Switch.effects.wear)))
 
-  object Overlapping extends Machine[Lamp, Said, Nothing]:
+  object Overlapping extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       on(hand.turn(Knob.up))(in(Lit.off, Lit.on) ~> Switch.effects.light)
       on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
 
@@ -82,19 +82,24 @@ object RulesFixture:
       on(hand.press)(always ~> Switch.effects.light)
       disabled(clock.tick)
 
-  // One lamp's rules twice: its projection named by the rules, `Rules(_.light)`, and mixed into the
-  // machine, `Phased[Lamp, Lit](_.light)`, which argument-less `Rules` reads.
+  // One lamp's rules twice: step functions bound in the core, and argument-less `Rules` reading
+  // the machine's `Phased[Lamp, Lit](_.light)`.
   object Projected extends Machine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
     object states:
       def dark(l: Lit) = l != Lit.on
-    object rules extends Rules(_.light):
-      on(hand.press) {
-        in(Lit.on) ~> Switch.effects.dark
-        in(states.dark) ~> Switch.effects.light
-      }
-      on(hand.turn)(in(Lit.off, Lit.broken) ~> Switch.effects.refuse)
+    object rules
+        extends Bindings(
+          hand.press ~> ((s: Lamp) =>
+            if s.light == Lit.on then Switch.effects.dark(s)
+            else if states.dark(s.light) then Switch.effects.light(s)
+            else Nil
+          ),
+          hand.turn ~> ((s: Lamp, k: Knob) =>
+            if List(Lit.off, Lit.broken).contains(s.light) then Switch.effects.refuse(s, k) else Nil
+          )
+        )
 
   object PhasedLamp extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
@@ -129,13 +134,13 @@ object RulesFixture:
         Phased[Lamp, Lit](_.light)
   // The lamp on the shared outcomes: a press of a lit lamp is rejected with the server's reason,
   // and of a broken one as not found.
-  object Guarded extends Machine[Lamp, outcomes.Outcome, Nothing]:
+  object Guarded extends Machine[Lamp, outcomes.Outcome, Nothing], Phased[Lamp, Lit](_.light):
     import outcomes.Rejection
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
     object effects:
       def light(s: Lamp) = enter[Lamp, Outcome, Nothing](s.copy(light = Lit.on))
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       on(hand.press) {
         in(Lit.off) ~> effects.light
         in(Lit.on) ~> rejects(Rejection.failedPrecondition).because("the lamp is lit")
@@ -148,10 +153,10 @@ object RulesFixture:
 
   // One machine in the grouped forms, `from` with its import, `when` and an `on` of two classes,
   // and in the plain forms, `on` and `in`, rule for rule.
-  object Grouped extends Machine[Lamp, Said, Nothing]:
+  object Grouped extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = s.light == Lit.broken
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       from(hand) {
         import hand.*
         on(press) {
@@ -167,10 +172,10 @@ object RulesFixture:
         on(tick)(when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear)
       }
 
-  object Plain extends Machine[Lamp, Said, Nothing]:
+  object Plain extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = s.light == Lit.broken
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       on(hand.press) {
         in(Lit.off) ~> Switch.effects.light
         in(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
@@ -180,58 +185,58 @@ object RulesFixture:
       on(clock.tick)(in(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear)
 
   // One action in several blocks whose cases hold in no common state.
-  object Spread extends Machine[Lamp, Said, Nothing]:
+  object Spread extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       on(hand.press)(when(Lit.off) ~> Switch.effects.light)
       on(hand.press, clock.tick)(when(Lit.broken) ~> Switch.effects.wear)
       on(hand.press)(when(Lit.on) ~> Switch.effects.dark)
 
   // The rules each of these declares are refused as its rules construct.
-  object Nested extends Machine[Lamp, Said, Nothing]:
+  object Nested extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       on(hand.press) {
         on(clock.tick)(always ~> Switch.effects.wear)
       }
 
-  object NestedFrom extends Machine[Lamp, Said, Nothing]:
+  object NestedFrom extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       from(hand) {
         from(clock) {
           on(clock.tick)(always ~> Switch.effects.wear)
         }
       }
 
-  object Foreign extends Machine[Lamp, Said, Nothing]:
+  object Foreign extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       from(hand) {
         on(clock.tick)(always ~> Switch.effects.wear)
       }
 
-  object NamedTwice extends Machine[Lamp, Said, Nothing]:
+  object NamedTwice extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       on(hand.press, clock.tick, hand.press)(always ~> Switch.effects.wear)
 
-  object DisabledTarget extends Machine[Lamp, Said, Nothing]:
+  object DisabledTarget extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       disabled(clock.tick)
       on(hand.press, clock.tick)(always ~> Switch.effects.wear)
 
-  object AcrossBlocks extends Machine[Lamp, Said, Nothing]:
+  object AcrossBlocks extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
-    object rules extends Rules(_.light):
+    object rules extends Rules:
       on(hand.turn)(when(Lit.off) ~> Switch.effects.turned)
       on(hand.turn(Knob.down)) {
         when(Lit.on) ~> Switch.effects.dark
@@ -330,7 +335,7 @@ class RulesTest extends munit.FunSuite:
   }
 
   test(
-    "argument-less rules read the machine's Phased projection as Rules(projection) reads its own"
+    "argument-less rules read Phased as the core step functions read the phase"
   ) {
     val knobs = Knob.values.toList
     for s <- Finite[Lamp].values do
@@ -354,6 +359,17 @@ class RulesTest extends munit.FunSuite:
         "rule 2, where: the rules of one action class hold in no common state, so write " +
         "alternatives as one effect that names each with `choose`"
     )
+  }
+
+  test("Rules takes its projection only from Phased") {
+    val refused = compileErrors(
+      "object Old extends Machine[Lamp, Said, Nothing]:\n" +
+        "  val init = Lamp(Lit.off, UpTo(0))\n" +
+        "  def end(s: Lamp) = true\n" +
+        "  object rules extends " + "Rules(_.light):\n" +
+        "    on(hand.press)(in(Lit.on) ~> Switch.effects.dark)"
+    )
+    assert(refused.nonEmpty, "Rules still accepts a projection argument")
   }
 
   test("in and when name no phase in the rules of a machine that is not Phased") {
@@ -572,7 +588,7 @@ class RulesTest extends munit.FunSuite:
     )
     assert(
       refused.contains(
-        "when names the phases of a role, and these rules read no phase projection: mix the " +
+        "in and when name phases of Nothing, and these rules read phases of Nothing: mix the " +
           "projection the phases are of into the machine, `Phased[State, Phase](_.phase)`"
       ),
       refused
@@ -591,13 +607,13 @@ object RoleRulesFixture:
 
   final case class Door(stage: Stage) derives Finite
 
-  object Gate extends Machine[Door, Said, Nothing]:
+  object Gate extends Machine[Door, Said, Nothing], Phased[Door, Stage](_.stage):
     type Press = Door => List[Step[Door, Said, Nothing]]
     val init = Door(Stage.unstarted)
     def end(s: Door) = s.stage.in[Closed]
     object effects:
       def open(s: Door) = stay[Door, Said, Nothing](s)
-    object rules extends Rules(_.stage):
+    object rules extends Rules:
       on(hand.press) {
         when[Waiting] ~> effects.open
         when[Closed] ~> effects.open

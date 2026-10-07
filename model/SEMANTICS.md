@@ -82,7 +82,7 @@ A role test is not an IR expression. A role is a trait the cases of a phase enum
 (`umpire/Roles.scala`), and the IR generator lowers a test of a phase against a role `R` to the
 cases of the phase's enum that have `R`, directly or through a narrower role that extends it, listed
 in declaration order: `p.in[R]` on a phase value (or `isInstanceOf[R]`) is `p in list(C1, …, Cn)`, a
-rule case `when[R]` is that membership of the rules' projection, and a type pattern against `R`,
+rule case `when[R]` is that membership of the machine's `Phased` projection, and a type pattern against `R`,
 `case _: R` or `case q: R`, is the alternatives of the literals `C1 | … | Cn`. So a role test means
 exactly what the hand-written membership of those cases means, and the IR carries no role.
 
@@ -181,11 +181,16 @@ The IR binds each action to one step function; a Model writes when it fires and 
 apart, and the IR generator lowers the two to that function (`model/umpire/Syntax.scala`, `Rules`).
 A machine object's `rules` holds one block per action, `on(a) { … }`, or per class of one,
 `on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`: the
-case `in(p1, …)` holds while the rules' phase projection, `Rules(_.phase)`, is one of the phases
+case `in(p1, …)` holds while the machine's phase projection, `Phased[State, Phase](_.phase)`, is one of the phases
 listed, `in(set)` while it is in the named set `set`, `where(g)` while the guard `g` of the state
 holds, `in(…).where(g)` while both do and `always` in every state; `e` is an effect of the machine's
 `effects`, which says what happens and never whether: it gives at least one step. `disabled(a)`
 binds an action no state enables.
+
+`object rules extends Rules` takes no argument and reads the machine's `Phased` given. A derived
+machine or composition inherits its source's projection and phase type. A machine without
+`Phased` may use `where(g)` and `always`, but its rules cannot name phases or phase sets with `in`
+or `when`.
 
 The rules of one action lower, in the order written, to the step function
 `<machine>.rules.<action>`: `if g1(s) then e1(s, i) else if g2(s) then e2(s, i) else Nil`, where

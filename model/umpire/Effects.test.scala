@@ -27,7 +27,7 @@ object EffectsFixture:
   object hand extends Actor:
     val press = action(this)
 
-  object Worker extends Machine[Job, Said, Note]:
+  object Worker extends Machine[Job, Said, Note], Phased[Job, Phase](_.phase):
     val init = Job(Phase.idle, UpTo(0))
     def end(s: Job) = true
 
@@ -51,7 +51,7 @@ object EffectsFixture:
       val keep = effect {}
       val missing = effect(reject(Said.notFound))
 
-    object rules extends Rules(_.phase):
+    object rules extends Rules:
       on(hand.press) {
         where(states.busy) ~> effects.pause
         in(Phase.idle) ~> effects.start
@@ -74,7 +74,7 @@ object EffectsFixture:
   def attempts(using v: View[Task]): UpTo[2] = v.get(_.attempts)
   def attempts_=(a: UpTo[2])(using d: Draft[Task, ?, Status]): Unit = d.set(_.copy(attempts = a))
 
-  object Tasker extends Machine[Task, Said, Status]:
+  object Tasker extends Machine[Task, Said, Status], Phased[Task, Stage](_.stage):
     val init = Task(Stage.waiting, UpTo(0))
     def end(s: Task) = true
 
@@ -87,7 +87,7 @@ object EffectsFixture:
       }
       val missing = effect(reject(Said.notFound))
 
-    object rules extends Rules(_.stage):
+    object rules extends Rules:
       on(hand.press)(in(Stage.waiting) ~> effects.work)
 
 class EffectsTest extends munit.FunSuite:

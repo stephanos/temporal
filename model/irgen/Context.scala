@@ -279,8 +279,7 @@ final private[irgen] class Context(val index: Index):
 
   // The position the expressions lifted now are recorded at in place of their own, where one is
   // set: a machine's `Phased[State, Phase](_.phase)`, read by its rules' cases, is placed at its
-  // rules' declaration, where `Rules(_.phase)` writes the projection, so the IR is the same either
-  // way. A refusal still names where its tree is written.
+  // rules' declaration. A refusal still names where its tree is written.
   private var placedAt: Option[ir.Position] = None // scalafix:ok DisableSyntax.var
 
   // `body`, its expressions placed at `at`.

@@ -46,7 +46,7 @@ object user extends Actor:
   val start = action(this)
   val stop = action(this)
 
-object Roled extends Machine[Job, Outcome, Fact]:
+object Roled extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, Solo.over, Bare.unstarted)
   def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
 
@@ -70,14 +70,14 @@ object Roled extends Machine[Job, Outcome, Fact]:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.started)
     def stop(s: Job) = enter(s.copy(phase = Phase.done))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.start)(in(states.waiting) ~> effects.start)
     on(user.stop) {
       in(states.live).where(states.stopping) ~> effects.stop
       in(states.settled) ~> effects.stop
     }
 
-object Listed extends Machine[Job, Outcome, Fact]:
+object Listed extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, Solo.over, Bare.unstarted)
   def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
 
@@ -98,7 +98,7 @@ object Listed extends Machine[Job, Outcome, Fact]:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.started)
     def stop(s: Job) = enter(s.copy(phase = Phase.done))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.start)(in(states.waiting) ~> effects.start)
     on(user.stop) {
       in(states.live).where(states.stopping) ~> effects.stop
@@ -108,7 +108,7 @@ object Listed extends Machine[Job, Outcome, Fact]:
 // fn-136.4: the short spellings, `when[R]` in rules and `p.in[R]` elsewhere, beside the cases
 // `Written` names by hand. The lifter's tests require one IR of the two, but for names and
 // positions.
-object Shortened extends Machine[Job, Outcome, Fact]:
+object Shortened extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, Solo.over, Bare.unstarted)
   def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
 
@@ -122,14 +122,14 @@ object Shortened extends Machine[Job, Outcome, Fact]:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.started)
     def stop(s: Job) = enter(s.copy(phase = Phase.done))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.start)(when[Waiting] ~> effects.start)
     on(user.stop) {
       when[Live].where(states.stopping) ~> effects.stop
       when[Closed] ~> effects.stop
     }
 
-object Written extends Machine[Job, Outcome, Fact]:
+object Written extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, Solo.over, Bare.unstarted)
   def end(s: State) = states.closed(s.phase) && states.over(s) || states.expiring(s.phase)
 
@@ -143,7 +143,7 @@ object Written extends Machine[Job, Outcome, Fact]:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.started)
     def stop(s: Job) = enter(s.copy(phase = Phase.done))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.start)(in(Phase.queued, Phase.backingOff) ~> effects.start)
     on(user.stop) {
       in(Phase.queued, Phase.backingOff, Phase.running, Phase.paused)

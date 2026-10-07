@@ -41,7 +41,7 @@ object Sealed extends CapabilityKind:
 val two = Limits(steps = 2, actions = 2, search = 256)
 
 // The core spelling: each rejection an effect of its own.
-object DoorProduct extends Machine[Door, Outcome, Fact]:
+object DoorProduct extends Machine[Door, Outcome, Fact], Phased[Door, Phase](_.phase):
   val init = Door(Phase.shut)
   def end(d: State) = Doors.gone(d)
 
@@ -52,7 +52,7 @@ object DoorProduct extends Machine[Door, Outcome, Fact]:
     def locked(d: Door) = reject(Outcome.rejected(Rejection.failedPrecondition), d)
     def missing(d: Door) = reject(Outcome.rejected(Rejection.notFound), d)
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(visitor.open) {
       in(Phase.shut) ~> effects.open
       in(Phase.locked) ~> effects.locked
@@ -65,7 +65,7 @@ object DoorProduct extends Machine[Door, Outcome, Fact]:
     on(visitor.ring)(always ~> effects.missing)
 
 // The same rules with `rejects`, a refinement of the product it spells.
-object DoorSystem extends Machine[Door, Outcome, Fact]:
+object DoorSystem extends Machine[Door, Outcome, Fact], Phased[Door, Phase](_.phase):
   val init = Door(Phase.shut)
   def end(d: State) = Doors.gone(d)
 
@@ -77,7 +77,7 @@ object DoorSystem extends Machine[Door, Outcome, Fact]:
     def close(d: Door) = enter(d.copy(phase = Phase.shut), Fact.closed)
     def keep(d: Door) = stay[Door, Outcome, Fact](d)
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(visitor.open) {
       in(Phase.shut) ~> effects.open
       in(Phase.locked) ~> rejects(Rejection.failedPrecondition).because("the door is locked")

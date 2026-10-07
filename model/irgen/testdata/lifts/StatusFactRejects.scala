@@ -11,7 +11,7 @@ import fixture.statusfacts.{phase, phase_=, user, Fact, Job, Outcome, Phase, giv
 def stage(using v: View[Job]): Phase = v.get(_.phase)
 def stage_=(p: Phase)(using d: Draft[Job, ?, ?]): Unit = d.set(_.copy(phase = p))
 
-object ExplicitStatus extends Machine[Job, Outcome, Fact]:
+object ExplicitStatus extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, UpTo(0))
   def end(s: State) = true
   object effects:
@@ -19,23 +19,23 @@ object ExplicitStatus extends Machine[Job, Outcome, Fact]:
       phase = Phase.paused
       record(Fact.attempted, Fact.statusPaused)
     }
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.pause)(always ~> effects.pause)
 
-object ComputedStatus extends Machine[Job, Outcome, Fact]:
+object ComputedStatus extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, UpTo(0))
   def end(s: State) = true
   object effects:
     val pause = effect {
       phase = if phase == Phase.running then Phase.paused else Phase.running
     }
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.pause)(always ~> effects.pause)
 
-object PlainStatusSetter extends Machine[Job, Outcome, Fact]:
+object PlainStatusSetter extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, UpTo(0))
   def end(s: State) = true
   object effects:
     val pause = effect { stage = Phase.paused }
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.pause)(always ~> effects.pause)

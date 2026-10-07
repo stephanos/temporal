@@ -48,7 +48,7 @@ object Pausable extends CapabilityKind:
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 
-object Blocked extends Machine[Job, Outcome, Fact]:
+object Blocked extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
   def end(s: State) = states.over(s)
 
@@ -77,7 +77,7 @@ object Blocked extends Machine[Job, Outcome, Fact]:
     val keep = effect {}
     val refuse = effect(reject(Outcome.refused))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.start)(where(states.paused) ~> effects.start)
     on(user.pause)(in(Phase.running).where(states.busy) ~> effects.pause)
     on(user.finish)(in(Phase.running) ~> effects.finish)
@@ -96,7 +96,7 @@ object Blocked extends Machine[Job, Outcome, Fact]:
     val starting = scenario.actions(user.start)
     val blockedKept = query verify properties.pausedKept in starting limits two
 
-object Defined extends Machine[Job, Outcome, Fact]:
+object Defined extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
   def end(s: State) = states.over(s)
 
@@ -114,7 +114,7 @@ object Defined extends Machine[Job, Outcome, Fact]:
     def keep(s: Job) = enter(s)
     def refuse(s: Job) = reject(Outcome.refused, s)
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.start)(where(states.paused) ~> effects.start)
     on(user.pause)(in(Phase.running).where(states.busy) ~> effects.pause)
     on(user.finish)(in(Phase.running) ~> effects.finish)

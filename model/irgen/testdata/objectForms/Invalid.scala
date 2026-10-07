@@ -19,12 +19,12 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 object hand extends Actor:
   val push = action(this)
 
-object Lit extends Machine[Bulb, Outcome, Nothing]:
+object Lit extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):
   val init = Bulb(Glow.dim)
   def end(s: Bulb) = true
   object effects:
     def brighten(s: Bulb) = enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
-  object rules extends Rules(_.glow):
+  object rules extends Rules:
     on(hand.push)(in(Glow.dim) ~> effects.brighten)
 
 // No init.

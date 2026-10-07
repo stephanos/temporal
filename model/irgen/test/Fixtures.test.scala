@@ -904,13 +904,12 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
-  // fn-137.2: the phase projection a machine mixes in, `Phased[Bulb, Light](_.light)`, which its
-  // argument-less rules read (testdata/phasedMixin), and the one its rules name, `Rules(_.light)`
-  // (testdata/phasedRules), lift to one IR, byte for byte (phasedRules/expected.json). Both are
-  // lifted at phasedRules' positions, whose lines the Phased spelling keeps.
+  // The phase projection a machine mixes in, with explicit Phased type arguments
+  // (testdata/phasedMixin) or a typed lambda (testdata/phasedRules), lifts to one IR, byte for byte
+  // (phasedRules/expected.json). Both are lifted at phasedRules' positions on the same lines.
   private lazy val phasedMixinJar = packaged("phasedMixin", materialize("phasedMixin"))
 
-  concurrently("a Phased machine's argument-less rules lift as Rules(projection)'s, byte for byte"):
+  concurrently("Phased with type arguments or a typed lambda lifts byte for byte"):
     val at = stored("phasedRules")
     def switchOf(fixture: String, jar: Path): String =
       val out = scratch.resolve(s"$fixture-out.json")

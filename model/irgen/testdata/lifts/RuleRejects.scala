@@ -5,10 +5,10 @@ package fixture.rulerejects
 import umpire.*
 import fixture.grouped.{clock, cook, Kettle, Mode, Outcome, Plain}
 
-object NestedFrom extends Machine[Kettle, Outcome, Nothing]:
+object NestedFrom extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
   def end(s: State) = true
-  object rules extends Rules(_.mode):
+  object rules extends Rules:
     from(cook) {
       import cook.*
       from(clock) {
@@ -18,20 +18,20 @@ object NestedFrom extends Machine[Kettle, Outcome, Nothing]:
       on(fill)(always ~> Plain.effects.heat)
     }
 
-object Foreign extends Machine[Kettle, Outcome, Nothing]:
+object Foreign extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
   def end(s: State) = true
-  object rules extends Rules(_.mode):
+  object rules extends Rules:
     from(cook) {
       import cook.*
       on(fill)(always ~> Plain.effects.heat)
       on(clock.cool)(always ~> Plain.effects.rest)
     }
 
-object ImportedTwice extends Machine[Kettle, Outcome, Nothing]:
+object ImportedTwice extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
   def end(s: State) = true
-  object rules extends Rules(_.mode):
+  object rules extends Rules:
     from(cook) {
       import cook.*
       on(fill)(always ~> Plain.effects.heat)

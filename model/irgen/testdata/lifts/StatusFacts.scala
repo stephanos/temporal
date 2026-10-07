@@ -39,7 +39,7 @@ object user extends Actor:
   val pause = action(this)
   val refuse = action(this)
 
-object Derived extends Machine[Job, Outcome, Fact]:
+object Derived extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, UpTo(0))
   def end(s: State) = s.phase == Phase.paused
 
@@ -53,14 +53,14 @@ object Derived extends Machine[Job, Outcome, Fact]:
     }
     val refuse = effect(reject(Outcome.refused))
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.start)(in(Phase.idle) ~> effects.start)
     on(user.resume)(in(Phase.running) ~> effects.resume)
     on(user.retry)(in(Phase.running) ~> effects.retry)
     on(user.pause)(in(Phase.running) ~> effects.pause)
     on(user.refuse)(in(Phase.paused) ~> effects.refuse)
 
-object Written extends Machine[Job, Outcome, Fact]:
+object Written extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, UpTo(0))
   def end(s: State) = s.phase == Phase.paused
 
@@ -71,7 +71,7 @@ object Written extends Machine[Job, Outcome, Fact]:
     def pause(s: Job) = enter(s.copy(phase = Phase.paused), Fact.attempted, Fact.statusPaused)
     def refuse(s: Job) = reject(Outcome.refused, s)
 
-  object rules extends Rules(_.phase):
+  object rules extends Rules:
     on(user.start)(in(Phase.idle) ~> effects.start)
     on(user.resume)(in(Phase.running) ~> effects.resume)
     on(user.retry)(in(Phase.running) ~> effects.retry)

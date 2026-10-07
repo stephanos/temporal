@@ -30,7 +30,7 @@ object clock:
 object Modes:
   def working(m: Mode) = m != Mode.halted
 
-object Grouped extends Machine[Kettle, Outcome, Nothing]:
+object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
   def end(s: State) = s.mode == Mode.halted
 
@@ -40,7 +40,7 @@ object Grouped extends Machine[Kettle, Outcome, Nothing]:
     def halt(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.halted))
     def refuse(s: Kettle) = List(Step[Kettle, Outcome, Nothing](Outcome.refused, s))
 
-  object rules extends Rules(_.mode):
+  object rules extends Rules:
     from(cook) {
       import cook.*
       on(fill) {
@@ -56,7 +56,7 @@ object Grouped extends Machine[Kettle, Outcome, Nothing]:
       on(cool)(when(Mode.busy, Mode.halted) ~> effects.rest)
     }
 
-object Plain extends Machine[Kettle, Outcome, Nothing]:
+object Plain extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0))
   def end(s: State) = s.mode == Mode.halted
 
@@ -66,7 +66,7 @@ object Plain extends Machine[Kettle, Outcome, Nothing]:
     def halt(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.halted))
     def refuse(s: Kettle) = List(Step[Kettle, Outcome, Nothing](Outcome.refused, s))
 
-  object rules extends Rules(_.mode):
+  object rules extends Rules:
     on(cook.fill) {
       in(Mode.idle) ~> effects.heat
       in(Mode.busy).where(_.boils == 2) ~> effects.halt

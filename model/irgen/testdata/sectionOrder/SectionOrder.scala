@@ -38,7 +38,7 @@ object Holder:
 
 object implements
 
-object Switch extends Machine[Lamp, Outcome, Nothing]:
+object Switch extends Machine[Lamp, Outcome, Nothing], Phased[Lamp, Boolean](_.lit):
   val init = Lamp(false)
   def end(s: Lamp) = true
 
@@ -53,7 +53,7 @@ object Switch extends Machine[Lamp, Outcome, Nothing]:
   object monitors:
     val staysLit = sticky[Lamp, Outcome, Nothing](after => after.state.lit)
 
-  object rules extends Rules(_.lit):
+  object rules extends Rules:
     on(hand.flip)(in(false, true) ~> effects.flipped)
     on(clock.tick)(where(s => !states.lit(s)) ~> effects.kept)
 

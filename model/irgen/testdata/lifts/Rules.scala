@@ -38,7 +38,7 @@ object clock:
   val rest = timer
   val dim = timer
 
-object Switch extends Machine[Lamp, Outcome, Fact]:
+object Switch extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light):
   val init = Lamp(Light.off, UpTo(0))
   def end(s: State) = states.broken(s)
   val evidence: PartialFunction[Fact, String] = { case Fact.worn => "wear" }
@@ -63,7 +63,7 @@ object Switch extends Machine[Lamp, Outcome, Fact]:
   object monitors:
     val neverWorn = sticky[Lamp, Outcome, Fact](after => !after.records(Fact.worn))
 
-  object rules extends Rules(_.light):
+  object rules extends Rules:
     on(hand.press) {
       in(Light.off) ~> effects.light
       in(Light.on) ~> effects.dark
@@ -132,13 +132,13 @@ object CoreSwitch extends Machine[Lamp, Outcome, Fact]:
       )
 
 // A lamp that reads as the switch it refines, state for state, and whose rest is unobservable.
-object Mirror extends Machine[Lamp, Outcome, Fact]:
+object Mirror extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light):
   val init = Lamp(Light.off, UpTo(0))
   def end(s: Lamp) = Switch.states.brokenLamp(s)
   object refinement extends Refinement(Switch):
     def toProduct(s: Lamp) = s
     val unobservable = List(clock.rest)
-  object rules extends Rules(_.light):
+  object rules extends Rules:
     on(hand.press) {
       in(Light.off) ~> Switch.effects.light
       in(Light.on) ~> Switch.effects.dark
@@ -173,10 +173,10 @@ object Unbending extends Derived(Steady.unmonitored)
 object Unequal extends Composition(Twins.withMember(_.right -> Unbending))
 
 // A knob whose two classes fire with effects of their own.
-object Dial extends Machine[Lamp, Outcome, Fact]:
+object Dial extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light):
   val init = Lamp(Light.off, UpTo(0))
   def end(s: State) = Switch.states.broken(s)
-  object rules extends Rules(_.light):
+  object rules extends Rules:
     on(hand.turn(Knob.up))(in(Light.off, Light.on) ~> Switch.effects.light)
     on(hand.turn(Knob.down))(in(Light.off, Light.on) ~> Switch.effects.dark)
 
