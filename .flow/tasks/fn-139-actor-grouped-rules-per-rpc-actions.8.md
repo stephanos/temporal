@@ -27,9 +27,24 @@ Required investigation already established:
 - [ ] `closedAnswer` and every equivalent hand-written rejection-answer string are gone. Composition capability bindings derive the shared rejected outcome key without inlining its encoded string, and existing Query assessments remain unchanged.
 - [ ] Focused Scala framework/lifter tests and Go realization reader tests pass. No checked IR, fixture golden, or Cases regeneration occurs; the schema and metadata delta is declared for the batch regeneration.
 ## Done summary
-TBD
+Implemented the shared Temporal rejection-to-gRPC-code table end to end: the Scala kit owns and attaches it, generic realization lifting emits it, generated IR carries it, and Go validates it from generated enum metadata. Replaced the hand-written composed rejection string with a typed `Composition.composedOutcome` helper and proved both runtime behavior and the actual `RecordOverQueue.capabilities` lift.
 
+Focused verification:
+
+- `go test -tags test_dep ./tools/umpire/realization -run '^TestRejectionCodesAreReadAndAdmittedAsAUniqueCompleteTable$'` — green.
+- `mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only 'temporal.realize.RejectionsTest'` — green.
+- `mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only 'temporal.capabilities.CapabilityPropertiesTest'` — green.
+- Separate actual-root lifts for activity standalone, Nexus workflow, and Nexus standalone — green; every emitted realization carried the exact four-entry table.
+- Actual `temporal.features.activity.standalone.system.RecordOverQueue$.capabilities` lift — green, exercising the typed composed-outcome fold.
+- `mise exec -- scala-cli test model/irgen` — all behavioral tests green, with only the five approved regeneration-deferred artifacts stale: `taskqueue.json`, `hints.json`, `rejections.json`, `hintsRefused.json`, and `rejects.txt`.
+- Targeted Scalafmt check, `gofmt -d`, and `git diff --check` — green.
+
+Expected batch deltas: the later single regeneration adds `rejectionCodes` to every checked Temporal realization IR and refreshes the five named fixture artifacts (including queued source-position/type deltas from the batch). This task intentionally changed no checked `model/ir`, Cases, expected lifter fixtures, or `MILESTONES.md`.
+
+stage: impl-review - skipped(policy: parallel-wave - conductor owns the gate)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3ff210b307757bf44d9ab0cc7ab3b883e14f489d
+- Tests: go test -tags test_dep ./tools/umpire/realization -run '^TestRejectionCodesAreReadAndAdmittedAsAUniqueCompleteTable$', mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only 'temporal.realize.RejectionsTest', mise exec -- scala-cli test --server=false --suppress-outdated-dependency-warning model/project.scala model/umpire model/temporal --test-only 'temporal.capabilities.CapabilityPropertiesTest', three separate actual-root lifter invocations: activity standalone; Nexus workflow; Nexus standalone, actual capability-root lift: temporal.features.activity.standalone.system.RecordOverQueue$.capabilities, mise exec -- scala-cli test model/irgen (expected nonzero only for regeneration-deferred taskqueue.json, hints.json, rejections.json, hintsRefused.json, rejects.txt), mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check <10 changed Scala files>, gofmt -d tools/umpire/realization/rejection_codes.go tools/umpire/realization/rejection_codes_test.go tools/umpire/realization/validate_realization.go, git diff --check
 - PRs:
