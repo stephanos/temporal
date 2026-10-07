@@ -1644,7 +1644,7 @@ class Fixtures extends munit.FunSuite:
         case o: ObjectNode => o.remove("position"): Unit
         case _             => ()
       n.elements().asScala.foreach(strip)
-    def realization(name: String): JsonNode =
+    def realization(name: String): ObjectNode =
       val r = model
         .path("realizations")
         .elements()
@@ -1655,7 +1655,7 @@ class Fixtures extends munit.FunSuite:
       r.remove(java.util.List.of("id", "name"))
       strip(r)
       r
-    val helpers = realization("helpers").asInstanceOf[ObjectNode]
+    val helpers = realization("helpers")
     // This comparison is about the script helper surface. The Temporal kit now adds its shared
     // rejection metadata centrally, while the core-record spelling intentionally does not.
     helpers.remove("rejectionCodes")
