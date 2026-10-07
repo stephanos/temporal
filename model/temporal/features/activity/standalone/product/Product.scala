@@ -12,16 +12,29 @@ import temporal.capabilities.{given, *}
 import shared.Bounds.three
 import shared.worker.worker as process
 
-// What DescribeActivityExecution shows.
-enum Phase derives Finite:
-  case scheduled, started, paused, cancelRequested
-  case completed, failed, canceled, terminated, timedOut
+// What DescribeActivityExecution shows. Each case declares the status fact a step that enters it
+// records.
+enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
+  case scheduled extends Phase(Fact.statusScheduled)
+  case started extends Phase(Fact.statusStarted)
+  case paused extends Phase(Fact.statusPaused)
+  case cancelRequested extends Phase(Fact.statusCancelRequested)
+  case completed extends Phase(Fact.statusCompleted)
+  case failed extends Phase(Fact.statusFailed)
+  case canceled extends Phase(Fact.statusCanceled)
+  case terminated extends Phase(Fact.statusTerminated)
+  case timedOut extends Phase(Fact.statusTimedOut)
 
 final case class State(phase: Phase) derives Finite
 
 enum Fact derives Finite:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut
+
+// The accessors the blocks of ActivityProduct read and assign a state's phase by: the setter hands
+// the draft the phase it assigns, whose status the step records.
+def phase(using v: View[State]): Phase = v.get(_.phase)
+def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))
 
 // ### The product machine: what DescribeActivityExecution shows, with no account of how. A retry
 // reads as scheduled again, a pause of a running attempt as started until the worker yields.
@@ -34,28 +47,27 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
   def end(s: State) = states.over(s)
 
   object states:
-    def phase(s: State) = s.phase
+    def status(s: State) = s.phase
     def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
-    def over(s: State) = terminal(s.phase)
-    def paused(s: State) = s.phase == Phase.paused
-    def running(s: State) = s.phase == started
-    def held(s: State) = s.phase.in(started, cancelRequested)
-    def pausable(s: State) = s.phase.in(scheduled, started)
+    val over = is(terminal(phase))
+    val paused = is(phase == Phase.paused)
+    val running = is(phase == started)
+    val held = is(phase.in(started, cancelRequested))
+    val pausable = is(phase.in(scheduled, started))
     val notFoundCode = "chasm/lib/activity/activity.go"
 
   object effects:
-    import Fact.*
-    def startAttempt(s: State) = enter(s.copy(phase = started), statusStarted)
-    def complete(s: State) = enter(s.copy(phase = completed), statusCompleted)
-    def fail(s: State) = enter(s.copy(phase = failed), statusFailed)
-    def retry(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
-    def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
-    def pause(s: State) = enter(s.copy(phase = Phase.paused), statusPaused)
-    def resume(s: State) = enter(s.copy(phase = scheduled), statusScheduled)
-    def requestCancel(s: State) = enter(s.copy(phase = cancelRequested), statusCancelRequested)
-    def terminate(s: State) = enter(s.copy(phase = terminated), statusTerminated)
-    def timeOut(s: State) = enter(s.copy(phase = timedOut), statusTimedOut)
-    def notFound(s: State) = reject(Outcome.notFound, s)
+    val startAttempt = effect { phase = started }
+    val complete = effect { phase = completed }
+    val fail = effect { phase = failed }
+    val retry = effect { phase = scheduled }
+    val cancel = effect { phase = canceled }
+    val pause = effect { phase = Phase.paused }
+    val resume = effect { phase = scheduled }
+    val requestCancel = effect { phase = cancelRequested }
+    val terminate = effect { phase = terminated }
+    val timeOut = effect { phase = timedOut }
+    val notFound = effect(reject(Outcome.notFound))
 
   object rules extends Rules(_.phase):
     on(worker.poll)(in(scheduled) ~> effects.startAttempt)
@@ -90,7 +102,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact]:
   object implements
       extends Implements(limits = three)(
         Closable(
-          status = states.phase,
+          status = states.status,
           terminal = states.terminal,
           rejected = cited(Outcome.notFound, states.notFoundCode)
         ),

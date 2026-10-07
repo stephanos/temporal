@@ -442,7 +442,10 @@ The IR generator reads what an author wrote, as written:
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
   `given Finite[Int] = Finite.upTo(…)` beside the state's `Finite`, which Models not yet migrated
-  keep.
+  keep. A phase enum may declare, on each case, the status fact a step that enters it records:
+  `enum Phase(val status: Fact) extends Recorded[Fact]`, `case started extends
+  Phase(Fact.statusStarted)`. The parameter is named `status` and has no default, so a case without
+  one does not compile; the enum lifts as the same enum with no fields.
 - **Phase roles** (`umpire/Roles.scala`): a case of a phase enum takes roles in its own extends
   clause, `case backingOff extends Phase, Retrying`; Scala 3 makes each such case name its enum and
   refuses grouped cases with an extends clause. The roles are `Live`, which `Waiting`, `Held` and
@@ -522,6 +525,25 @@ The IR generator reads what an author wrote, as written:
   each value's protobuf kind read from its field, a nested message written in the scope after its
   field, `field(_.info) { … }`; and `read(path, cardinality).into(targets…)`, in a call's scope,
   lifts as a `ResponseRead.typed(…)` of the call's reads.
+- **Blocks** (sugar, the same files): a section `val` of a machine object may declare a predicate
+  as `val held = is { phase.in(started, cancelRequested) }` and a step function of the state alone
+  as `val pause = effect { phase = Phase.paused; record(Fact.attempted) }`, beside the method forms
+  `def held(s: State) = s.phase.in(…)` and `def pause(s: State) = enter(s.copy(phase = …), …)`, which
+  stay valid. A block reads a field by its name and an `effect` block assigns it by name; each lifts
+  as the function its method form gives, with a parameter `s` of the machine's state type. An
+  `effect` block holds only straight-line field assignments, each field assigned at most once and
+  not read after it, `record(facts*)`, which appends in call order, or a lone
+  `reject(Outcome.notFound)`, which lifts as `reject(Outcome.notFound, s)`; a block that records
+  nothing enters the assigned state with no fact. Assigning a field whose values declare their
+  status (the enum declaration above) records that case's status after the block's own facts,
+  even when the value is the one the step starts in, and recording it again with `record` is
+  refused; a rejecting block records none. The fields are read and assigned by accessors the level
+  file declares after its types, each of one fixed shape: `def phase(using v: View[State]): Phase =
+  v.get(_.phase)`, `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase =
+  p))`, and for a field whose values declare their status `def phase_=(p: Phase)(using d:
+  Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))`. The IR generator refuses an accessor
+  of another shape and every other statement in an `effect` block, naming it and its position, and
+  a block written anywhere but as a section `val`. `ActivityProduct` is written in these forms.
 - **Claim patterns** (sugar, the same files): `once(over).keeps(_.x)`, `never(to)`,
   `never(to).from(before)`, `stays(p)` and `stays(p).unless(release)` on a Property builder, each
   lifted to the Property its lambda declares: `holdsAcross((before, after) => !over(before) ||
@@ -617,7 +639,7 @@ features/
     standalone/
       Standalone.scala         the form's types and signature, worker bindings; exports
       product/
-        Product.scala          Product Phase, State and Fact; ActivityProduct
+        Product.scala          Product Phase, State and Fact, the phase accessors; ActivityProduct
       system/
         System.scala           System Phase, State and Fact; ActivitySystem, ActivityWorker, StandaloneActivity
         Record.scala           the record and its designs: ActivityRecord, TrustingActivityRecord, HeldDispatch, LostStartAnswer
@@ -683,7 +705,8 @@ A feature file reads in this order:
 2. its types: every enum, state case class and type alias, at the top level, each named in the IR
    after its package, `pkg.Type`;
 3. its signature: entities, inputs, the actor objects and the objects that group its other actions
-   and timers, observations, choices, bounds and the top-level `given`s;
+   and timers, observations, choices, bounds, the top-level `given`s and the field accessors its
+   `is { }` and `effect { }` blocks read and assign by;
 4. one object per machine or composition, in dependency order: a refined machine before the one that
    refines it, a base machine before those derived from it, the members of a composition before it;
 5. `object exports`, its `irFile` roots.
@@ -699,8 +722,12 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    entity is the one entity its actions are `on` or create; one whose actions name several, or none,
    names its own with `val entity`;
 2. `object states`, its vocabulary: the named state sets and projections its guards, effects and
-   claims read (`states.terminal`, `states.held`) and its constants; a set that is exactly the
-   phases of a role is a role test, `def terminal(p: Phase) = p.in[Closed]`;
+   claims read (`states.terminal`, `states.held`) and its constants. A yes/no question about the
+   state is a def of it, `def held(s: State) = s.phase.in(started, cancelRequested)`, or a block,
+   `val held = is { phase.in(started, cancelRequested) }`; a predicate of the phase, a projection
+   (`def status(s: State) = s.phase`) and a constant keep their own forms. A member named after a
+   state field shadows the field a block reads, so a projection takes another name. A set that is
+   exactly the phases of a role is a role test, `def terminal(p: Phase) = p.in[Closed]`;
 3. `object refinement extends Refinement(ActivityProduct)`, where it refines another machine:
    `toProduct`, the map onto the refined machine's states, and where declared `visible`,
    `visibleOutcomes` and `unobservable`. Where both machines' phases take roles, a model test
@@ -709,7 +736,9 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
 4. `object effects`: what each action does, plain defs named for it (`startAttempt`, `complete`),
    which never give `disabled` or `Nil`, and need no result type: `enter(…)`, `stay(s)` and
    `reject(Outcome.notFound, s)`, a step that keeps the state with another outcome, say what each
-   gives;
+   gives. An effect of the state alone may be a block instead, `val startAttempt = effect { phase =
+   started }`, `val notFound = effect { reject(Outcome.notFound) }`, which a rule binds as it binds
+   a def, `~> effects.startAttempt`; an effect that takes arguments beyond the state stays a def;
 5. `object monitors`: the monitors that watch it and the assumptions it makes; an assumption no
    machine makes of its own, which a derivation adds with `assuming` or a progress claim names with
    `under`, sits in the feature's signature;
@@ -1099,7 +1128,7 @@ import temporal.capabilities.{given, *}
 
 // In ActivityProduct:
 object implements extends Implements(limits = three)(
-  Closable(status = states.phase, terminal = states.terminal, rejected = cited(Outcome.notFound, states.notFoundCode)),
+  Closable(status = states.status, terminal = states.terminal, rejected = cited(Outcome.notFound, states.notFoundCode)),
   Pausable(pause = client.control(Control.pause), unpause = client.control(Control.unpause), paused = states.paused),
   Pollable(dispatch = worker.poll, running = states.running)
 )

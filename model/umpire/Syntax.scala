@@ -1,6 +1,10 @@
 // Sugar: definitions whose meaning a core declaration already expresses, kept for readability. Each
 // names the core form it stands for, and the IR generator (model/irgen/Syntax.scala) lowers it to
-// the IR that core form lifts to. No other file of the framework uses them.
+// the IR that core form lifts to. No other file of the framework uses them. Among them are the
+// block forms a machine object's section `val`s are written in, `is { }` for a predicate of the
+// state and `effect { }` for a step function of it, with an effect block's `record` and
+// `reject(outcome)` statements, the `View` and `Draft` the field accessors of the state read and
+// assign through, and `Recorded`, the status fact a phase enum's case declares.
 package umpire
 
 import scala.annotation.{implicitNotFound, targetName, unused}

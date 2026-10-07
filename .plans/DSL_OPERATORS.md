@@ -155,6 +155,14 @@ No operator. `stay(s).recording(fact)` (fn-120 sketch) and `enter(state, facts*)
 sentences; they lower to the `Step` construct the lifter already builds. Keep `disabled` a `val`
 (not `disabled()`), as the spec writes it. fn-127 renamed two of these words; see Words renamed.
 
+fn-135 adds two block words beside them: `is { … }`, a predicate of the state, and
+`effect { … }`, a step function of the state alone whose statements assign fields by name and
+`record(...)` facts or `reject(outcome)`. Each is a section `val` and lowers to the function its
+method form gives. A phase enum's case declares the status fact a step that enters it records,
+`case started extends Phase(Fact.statusStarted)` on `enum Phase(val status: Fact) extends
+Recorded[Fact]`, so an effect block records only facts the phase does not determine.
+`ActivityProduct` is written so.
+
 ### Words renamed (fn-127, 2026-10-05)
 
 A word the DSL shares with Temporal's own vocabulary, or with an operator this note reserves, is

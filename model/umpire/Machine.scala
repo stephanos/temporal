@@ -312,6 +312,12 @@ private[umpire] def writtenAction(code: String): String =
 // action's rules lower to: `rules` is the one section the machine itself reads, through the member
 // it implements, so no section is found by reflection, and a section object, which initializes on
 // its first use, is never read while the machine initializes.
+//
+// A member of `states` or `effects` is a def of the state, `def held(s: OrderState) =
+// s.phase.in(…)`, `def ship(s: OrderState) = enter(s.copy(phase = shipped), Fact.statusShipped)`,
+// or a `val` written as a block that reads, and in an effect assigns, the state's fields by name
+// (model/umpire/Syntax.scala): `val held = is { phase.in(…) }`, `val ship = effect { phase =
+// shipped }`, which records the status the assigned case declares, where its enum declares one.
 abstract class Machine[S, O, F](using
     private[umpire] val fs: Finite[S],
     private[umpire] val fo: Finite[O],

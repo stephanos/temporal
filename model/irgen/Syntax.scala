@@ -16,7 +16,10 @@ import scalapb.descriptors.{
 
 // The lifting of the framework's sugar (model/umpire/Syntax.scala). The lifter does not inline a
 // framework body, so each sugar form is matched here by its definition and lowered to the IR its core
-// form lifts to; the lifter's tests lift both spellings and require the same IR.
+// form lifts to; the lifter's tests lift both spellings and require the same IR. The block forms
+// lift as the functions their method forms give: an `is { ... }` section val as its predicate
+// (`blockFunction`, Expressions.scala) and an `effect { ... }` one as its steps (`effectSteps`),
+// which record the status a phase's case declares when the block assigns it.
 private[irgen] trait Syntax:
   self: Lifting =>
   import ctx.*
@@ -51,7 +54,8 @@ private[irgen] trait Syntax:
   // `disabled` as `Nil`, `x.in(a, b)` as `List(a, b).contains(x)`, `x.in[Closed]` as
   // `x.isInstanceOf[Closed]`, `a implies b` as `!a || b`,
   // `after.records(f)` as `after.facts.contains(f)` and a composition's `after.records(_.member, f)`
-  // as `after.facts.contains("member_f")`.
+  // as `after.facts.contains("member_f")`. The blocks `is { ... }` and `effect { ... }` are not
+  // lifted here but as section vals, by `blockFunction` and `effectSteps`.
   def sugar(t: Term): ir.Expr = sugarCall(t) match
     case Some(("enter", List(List(state, facts), List(ok)))) =>
       list(Seq(step(outcomeOf(ok, "enter"), lift(state), lift(facts), text("", t), t)), t)
