@@ -1,0 +1,254 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.48",
+  "verdict": "SOURCE_PROGRESS_ACCEPTED",
+  "ready_for_verified_progress_commit": true,
+  "qualification_complete": false,
+  "formal_implementation_review_complete": false,
+  "ship_authorized": false,
+  "review_scope": "Fresh independent source/evidence review of seven patch-regeneration cleanup sites, additive public regressions, and task21 Description/direct-dependency delta.",
+  "requested_reviewer": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "same_family_as_writer": true
+  },
+  "base": "101b14f882195422c31f35afc259cb25050b31e3",
+  "head": "101b14f882195422c31f35afc259cb25050b31e3",
+  "branch": "gomad",
+  "host": {
+    "os": "linux",
+    "architecture": "arm64",
+    "uname": "Linux aarch64",
+    "uid": 1000,
+    "stock_go": "1.27.1",
+    "patched_go": "absent"
+  },
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "source_hashes": {
+    "base_patch_regenerate": "fa5ca13df47c5a07f7976bb6bfd694c175274669243e16d27517e4d96749441a",
+    "candidate_patch_regenerate": "68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174",
+    "initial_patch_cleanup_test": "b907fb02f97c664c48a704866b430ff96c4221cbad0149d3f64415f2cb42f9f0",
+    "final_patch_cleanup_test": "290bce62401e74dc42a3289bef80a1f3874ab9808d59ee3b55fb1fdfd9b8dfd4",
+    "unchanged_patch_test": "02ae15958aa4d30513ea573cf6ad591b49d41719e73c4bad3838b6373fe7ac72",
+    "unchanged_maintainer_output_patch_test": "d2d0e49ca8eb598d2939a03008bb46187863ec6002793591463fd2afd86ff283"
+  },
+  "exact_base_overlay": {
+    "path": ".flow/tmp/next-gate-101b14f882/reviewer/base-overlay.json",
+    "sha256": "a0dbeb952a90c98aebe267f03264829d7fcfb05564778fc8e08c4a9b51feed65",
+    "snapshot_matches_git_blob": true,
+    "checkout_source_never_replaced": true
+  },
+  "preservation": {
+    "task21_acceptance_through_EOF_sha256": "244837d75f8cb29005d38e463af06b58d33d63c5211b51cca5c1250c16fa8330",
+    "acceptance_identical": true,
+    "old_dependencies_preserved": 25,
+    "only_new_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.48",
+    "description_lines_added": 4,
+    "existing_test_assertions_changed": 0,
+    "git_diff_check_exit": 0
+  },
+  "findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "resolved_findings": [
+    {
+      "severity": "minor",
+      "file": "tools/gomad3/toolchain/patch_cleanup_test.go:125",
+      "evidence_file": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-48/handover.md:11",
+      "issue": "errors.As proves discoverability of PathError, not the direct sole-cleanup-error return contract.",
+      "resolution": "Five additive lines assert the direct *os.PathError type on the sole post-publication work cleanup error. Handover distinguishes initial errors.As evidence from final direct-type evidence; production is unchanged.",
+      "verified": true
+    }
+  ],
+  "independent_commands": [
+    {
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./toolchain -run '^Test(PatchCleanup|Regenerate)'",
+      "exit_code": 0,
+      "elapsed_seconds": 0.652367667,
+      "log": ".flow/tmp/next-gate-101b14f882/reviewer/final-public.log",
+      "log_sha256": "a3c4377cb938a55bfdc6418004e3b99c6da902c6c83dcf9e5b5989810c75b953",
+      "production_sha256": "68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174",
+      "test_sha256": "b907fb02f97c664c48a704866b430ff96c4221cbad0149d3f64415f2cb42f9f0",
+      "source": "candidate",
+      "diagnostic_only": false
+    },
+    {
+      "command": "go -C tools/gomad3 test -overlay=../../.flow/tmp/next-gate-101b14f882/reviewer/base-overlay.json -tags test_dep -count=1 -v ./toolchain -run '^TestPatchCleanupRegenerate$/(missing-temporary|nonempty-temporary|work-after-cancel|work-after-publication)$'",
+      "exit_code": 1,
+      "elapsed_seconds": 0.285599875,
+      "log": ".flow/tmp/next-gate-101b14f882/reviewer/base-red.log",
+      "log_sha256": "2d8a406e36b3323a389b077aa626de0c2f02ab732c5bcffd0dcfbe6c1e3c67ba",
+      "production_sha256": "68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174",
+      "test_sha256": "b907fb02f97c664c48a704866b430ff96c4221cbad0149d3f64415f2cb42f9f0",
+      "source": "exact_BASE_overlay",
+      "diagnostic_only": false
+    },
+    {
+      "command": "go -C tools/gomad3 test -overlay=../../.flow/tmp/next-gate-101b14f882/reviewer/base-overlay.json -tags test_dep -count=1 -v ./toolchain -run '^TestPatchCleanupRegenerate$/(healthy|cancel)$|^TestRegenerate'",
+      "exit_code": 1,
+      "elapsed_seconds": 0.342828834,
+      "log": ".flow/tmp/next-gate-101b14f882/reviewer/base-controls-overselected.log",
+      "log_sha256": "b75e3e6859c47115b9682627e2a9c8a0be74c2ff08823b022439db9ebbd3bd5a",
+      "production_sha256": "68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174",
+      "test_sha256": "b907fb02f97c664c48a704866b430ff96c4221cbad0149d3f64415f2cb42f9f0",
+      "source": "exact_BASE_overlay",
+      "diagnostic_only": true
+    },
+    {
+      "command": "go -C tools/gomad3 test -overlay=../../.flow/tmp/next-gate-101b14f882/reviewer/base-overlay.json -tags test_dep -count=1 -v ./toolchain -run '^TestPatchCleanupRegenerate$/^(healthy|cancel)$'",
+      "exit_code": 0,
+      "elapsed_seconds": 0.234178417,
+      "log": ".flow/tmp/next-gate-101b14f882/reviewer/base-controls.log",
+      "log_sha256": "bb330c1059b75e851dd8609ccc4e53f091369bb7a982a9db7803b0d4e75c49d3",
+      "production_sha256": "68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174",
+      "test_sha256": "b907fb02f97c664c48a704866b430ff96c4221cbad0149d3f64415f2cb42f9f0",
+      "source": "exact_BASE_overlay",
+      "diagnostic_only": false
+    },
+    {
+      "command": "go -C tools/gomad3 test -overlay=../../.flow/tmp/next-gate-101b14f882/reviewer/base-overlay.json -tags test_dep -count=1 -v ./toolchain -run '^TestRegenerate'",
+      "exit_code": 0,
+      "elapsed_seconds": 0.238074334,
+      "log": ".flow/tmp/next-gate-101b14f882/reviewer/base-regenerate.log",
+      "log_sha256": "a475ed28bd56cd1ffb122457a8e88087b998330c3c39da5e1839e33c0b762072",
+      "production_sha256": "68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174",
+      "test_sha256": "b907fb02f97c664c48a704866b430ff96c4221cbad0149d3f64415f2cb42f9f0",
+      "source": "exact_BASE_overlay",
+      "diagnostic_only": false
+    },
+    {
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./toolchain -run '^TestPatchCleanup'",
+      "exit_code": 0,
+      "elapsed_seconds": 0.312783458,
+      "log": ".flow/tmp/next-gate-101b14f882/reviewer/final-assertion.log",
+      "log_sha256": "c470a84ea2a4a9b877c11f3fb4edeb5f49cbe8944416d7d63957da9d59c2c02f",
+      "production_sha256": "68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174",
+      "test_sha256": "290bce62401e74dc42a3289bef80a1f3874ab9808d59ee3b55fb1fdfd9b8dfd4",
+      "source": "candidate",
+      "diagnostic_only": false
+    }
+  ],
+  "independent_final_results": {
+    "top_level_tests": 1,
+    "subtests": 6,
+    "passed_records": 7,
+    "skipped": 0,
+    "real_causes": [
+      "ENOENT",
+      "ENOTEMPTY",
+      "EACCES"
+    ],
+    "privilege_cases_executed": true,
+    "sole_cleanup_direct_path_error": true,
+    "primary_first_join": true,
+    "previous_output_and_0600_preserved": true,
+    "published_patch_and_0644_preserved": true,
+    "healthy_retry": true
+  },
+  "diagnostic_attempt": "Reviewer initial union regexp overselected work-after-cancel during the intended BASE controls, producing expected exit1. Corrected anchored controls and separate existing regeneration controls both exit0; the failed attempt remains retained.",
+  "root_retained_checks": [
+    {
+      "name": "architecture",
+      "log": ".flow/tmp/next-gate-101b14f882/root-architecture.log",
+      "exit_code": 0,
+      "seconds": 23.12,
+      "sha256": "885baebfaf1b3bcded9470e9189d13382d35e377f018342b1b06e137f9664805"
+    },
+    {
+      "name": "validation",
+      "log": ".flow/tmp/next-gate-101b14f882/root-validate.log",
+      "exit_code": 0,
+      "seconds": 2.11,
+      "sha256": "513e9e53bce949a45670ce4ae288b9ca38a8f4cf7e163634243924dfac67a561"
+    },
+    {
+      "name": "final_test_BASE_RED",
+      "log": ".flow/tmp/next-gate-101b14f882/root-reviewfix-base-overlay.log",
+      "exit_code": 1,
+      "seconds": 0.49,
+      "sha256": "e55749b0851483c1ffc5e5b5e4c52a19bd4feec220cd33e2ab9769e1443ccd60"
+    },
+    {
+      "name": "final_public_regressions",
+      "log": ".flow/tmp/next-gate-101b14f882/root-reviewfix-focused-public.log",
+      "exit_code": 0,
+      "seconds": 0.49,
+      "sha256": "042feeb3c3422a511d0f9639ff6a0e761a12c132a1e708f8ba2f9a08f0c65d9e"
+    },
+    {
+      "name": "final_fast_lint",
+      "log": ".flow/tmp/next-gate-101b14f882/root-reviewfix-fast-lint.log",
+      "exit_code": 0,
+      "seconds": 2.62,
+      "sha256": "f41ce4f9cef49a2f447cded7c7a64312efb4965cc8bfd4543ef7147d76c63858",
+      "host_packages": 55,
+      "errortype_reached": true
+    },
+    {
+      "name": "final_full_lint",
+      "log": ".flow/tmp/next-gate-101b14f882/root-reviewfix-full-lint.log",
+      "exit_code": 2,
+      "seconds": 1.33,
+      "sha256": "750a018cf9228cd6a377c0364e2aee5580847698b46e431347afe2a4ff4423ab",
+      "errortype_reached": false
+    },
+    {
+      "name": "baseline_full_lint",
+      "log": ".flow/tmp/next-gate-101b14f882/base-full-lint.log",
+      "exit_code": 2,
+      "seconds": 1.45,
+      "sha256": "13d603ea5285e3092a8f5656f2675d829125cfa4e618af74c795b2df1c67fb0b",
+      "errortype_reached": false
+    }
+  ],
+  "lint": {
+    "scoped": {
+      "base": 23,
+      "final": 16,
+      "residual_blocks_identical": true,
+      "residual_sha256": "74eff6f7da7f0572f15bb973c8caf743f83604e62495656c6ee31b895186b5f5"
+    },
+    "full": {
+      "base": 273,
+      "final": 266,
+      "removed": 7,
+      "added_or_changed": 0,
+      "classes": {
+        "errcheck": 209,
+        "exhaustive": 2,
+        "forbidigo": 11,
+        "staticcheck": 44
+      },
+      "normalization": "Diagnostic header line/column positions only; source and caret bytes retained. Multiset comparison preserves multiplicities."
+    }
+  },
+  "reviewed_worker_metadata": {
+    "handover_sha256": "01bfa01eb44195e9578bb09355f6cec9cd9116a6e3792e64ca6ddfc0b5cdaf4a",
+    "observations_sha256": "721f96ec98ae2f47e56051c1943fef02b86cc0008a27cbda92bae183cae3e00b",
+    "worker_command_table_rows_hash_and_duration_verified": 13,
+    "initial_vs_final_test_freezes_disclosed": true
+  },
+  "unexecuted_faults": [
+    "VERSION reader Close failure",
+    "copy input Close failure",
+    "three early temporary Close failures",
+    "multiple-cleanup combinations",
+    "post-publication temporary Remove failure",
+    "post-publication directory durability failure"
+  ],
+  "original_acceptance_open": [
+    "native Darwin full-host/builder/full/default/integration/functional and affected consumers",
+    "matched-first-baseline",
+    "bounded 10/100 measurements",
+    "formal implementation review",
+    "predecessor acceptance",
+    "pinned native source archive regeneration/materialization"
+  ],
+  "native_linux": {
+    "owner": "fn-128",
+    "state": "deferred_unverified"
+  },
+  "go_lane": "terminal_released",
+  "mutations": "Review wrote only its two durable artifacts and authorized verification snapshots/logs. No source/index/HEAD/task state/staging/commit/push/history mutation."
+}

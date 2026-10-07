@@ -92,6 +92,10 @@ Task46 owns the 17 unchecked maintainer-command stdout reports identified at `a6
 
 Task47 owns the eleven source-archive cleanup omissions and redundant legacy tar selector identified at `4a5f2cf2f84332727b44ddbc14b4844490ea9ef8`. Consume its direct dependency's real cleanup errors, primary-error/retry/publication preservation, raw legacy-header controls and actual lint delta under task-47. This task still implements nothing. Keep original native Darwin/full/formal/affected, matched-first-baseline, bounded-measurement and predecessor acceptance unchanged and open wherever unproved; Linux remains deferred and unverified under fn128. The [source audit](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/next-gate-source-audit-4a5f2cf2f8.md) records the bounded implementation recommendation.
 
+### Patch regeneration correction evidence owner, 2026-10-07
+
+Task48 owns the seven unchecked patch-regeneration cleanup sites identified at `101b14f882195422c31f35afc259cb25050b31e3`. Consume its direct dependency's public failure controls, retained output and callback lifetimes, and actual lint delta under task-48. This task still implements nothing. Keep every original qualification, preservation, measurement and predecessor requirement open wherever unproved; Linux remains deferred and unverified under fn128. Fn110 retains patch minimization and native regeneration qualification ownership.
+
 ## Acceptance
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
 

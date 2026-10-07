@@ -26,7 +26,7 @@ func RegeneratePatch(ctx context.Context, config PatchSpec) error {
 // regeneratePatch emits the patch with contextLines unchanged lines around
 // each change. Only tests choose a context other than canonicalPatchContext,
 // to compare representations of the same candidate.
-func regeneratePatch(ctx context.Context, config PatchSpec, contextLines int) error {
+func regeneratePatch(ctx context.Context, config PatchSpec, contextLines int) (retErr error) {
 	root, err := filepath.Abs(config.Root)
 	if err != nil || root == string(filepath.Separator) {
 		return errors.Join(errors.New("patch set root must be an absolute non-root directory"), err)
@@ -65,7 +65,15 @@ func regeneratePatch(ctx context.Context, config PatchSpec, contextLines int) er
 	if err != nil {
 		return fmt.Errorf("create patch regeneration work directory: %w", err)
 	}
-	defer os.RemoveAll(work)
+	defer func() {
+		if err := os.RemoveAll(work); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	extracted := filepath.Join(work, "source")
 	if err := ExtractSource(ctx, archivePath, extracted); err != nil {
 		return err
@@ -109,7 +117,7 @@ func regeneratePatch(ctx context.Context, config PatchSpec, contextLines int) er
 	return publishRegeneratedPatch(ctx, config.Root, pristineRoot, output, patch, descriptor)
 }
 
-func validateCandidateVersion(root, want string) error {
+func validateCandidateVersion(root, want string) (retErr error) {
 	info, err := os.Lstat(root)
 	if err != nil || info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
 		return errors.Join(errors.New("gomad3 patch candidate is not a real directory"), err)
@@ -118,7 +126,15 @@ func validateCandidateVersion(root, want string) error {
 	if err != nil {
 		return fmt.Errorf("gomad3 patch candidate must be %s: %w", want, err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	if info.Size() <= 0 || info.Size() > 128 {
 		return fmt.Errorf("gomad3 patch candidate must be %s", want)
 	}
@@ -247,12 +263,20 @@ func prepareDiffTree(ctx context.Context, pristineRoot, candidateRoot, gofmt str
 	return nil
 }
 
-func copyFile(source, destination string) error {
+func copyFile(source, destination string) (retErr error) {
 	input, _, err := hostfs.OpenPath(source)
 	if err != nil {
 		return fmt.Errorf("open patch candidate file: %w", err)
 	}
-	defer input.Close()
+	defer func() {
+		if err := input.Close(); err != nil {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	output, err := os.OpenFile(destination, os.O_WRONLY|os.O_TRUNC, 0)
 	if err != nil {
 		return fmt.Errorf("open pristine patch file: %w", err)
@@ -265,7 +289,7 @@ func copyFile(source, destination string) error {
 	return nil
 }
 
-func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output string, patch []byte, descriptor gomadversion.Descriptor) error {
+func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output string, patch []byte, descriptor gomadversion.Descriptor) (retErr error) {
 	output, err := filepath.Abs(output)
 	if err != nil || output == string(filepath.Separator) {
 		return errors.Join(errors.New("regenerated patch output must be an absolute file path"), err)
@@ -279,18 +303,39 @@ func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output str
 		return fmt.Errorf("create regenerated patch: %w", err)
 	}
 	temporaryPath := temporary.Name()
-	defer os.Remove(temporaryPath)
+	published := false
+	defer func() {
+		if err := os.Remove(temporaryPath); err != nil && (!published || !errors.Is(err, os.ErrNotExist)) {
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	if err := temporary.Chmod(0o644); err != nil {
-		temporary.Close()
-		return fmt.Errorf("set regenerated patch mode: %w", err)
+		closeErr := temporary.Close()
+		retErr = fmt.Errorf("set regenerated patch mode: %w", err)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		return retErr
 	}
 	if _, err := temporary.Write(patch); err != nil {
-		temporary.Close()
-		return fmt.Errorf("write regenerated patch: %w", err)
+		closeErr := temporary.Close()
+		retErr = fmt.Errorf("write regenerated patch: %w", err)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		return retErr
 	}
 	if err := temporary.Sync(); err != nil {
-		temporary.Close()
-		return fmt.Errorf("sync regenerated patch: %w", err)
+		closeErr := temporary.Close()
+		retErr = fmt.Errorf("sync regenerated patch: %w", err)
+		if closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+		return retErr
 	}
 	if err := temporary.Close(); err != nil {
 		return fmt.Errorf("close regenerated patch: %w", err)
@@ -304,6 +349,7 @@ func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output str
 	if err := os.Rename(temporaryPath, output); err != nil {
 		return fmt.Errorf("publish regenerated patch: %w", err)
 	}
+	published = true
 	directoryFile, err := os.Open(directory)
 	if err != nil {
 		return err

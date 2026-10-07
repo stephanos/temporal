@@ -1,0 +1,22 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.48",
+  "status": "source_frozen_acceptance_open",
+  "base": "101b14f882195422c31f35afc259cb25050b31e3",
+  "branch": "gomad",
+  "go_lane": "terminal_released",
+  "production_sha256": "68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174",
+  "initial_test_sha256": "b907fb02f97c664c48a704866b430ff96c4221cbad0149d3f64415f2cb42f9f0",
+  "test_sha256": "290bce62401e74dc42a3289bef80a1f3874ab9808d59ee3b55fb1fdfd9b8dfd4",
+  "review_refinement": "Five-line direct *os.PathError assertion; source unchanged. Worker commands cover initial test; root final checks and reviewer follow-up cover final test.",
+  "handover": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-48/handover.md",
+  "red_exit": 1,
+  "green_exit": 0,
+  "scoped_findings": {"base": 23, "final": 16, "added": 0, "changed_residuals": 0},
+  "regression_causes": ["ENOENT", "ENOTEMPTY", "EACCES"],
+  "publication_survives_cleanup_failure": true,
+  "native_qualification": "unverified",
+  "review": "conductor_deferred_source_evidence_only",
+  "commits": [],
+  "tests": ["focused public/source selection exit 0", "CLI patch consumer selection exit 0", "vet exit 0", "direct errortype exit 0", "configured scoped lint exit 1: 16 unchanged residual findings"],
+  "prs": []
+}

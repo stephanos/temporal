@@ -1,0 +1,52 @@
+{
+  "base": "101b14f882195422c31f35afc259cb25050b31e3",
+  "scope": "Seven patch-regeneration cleanup sites. Verified source progress only; original qualification remains incomplete.",
+  "host": "linux/arm64, uid1000, stock Go1.27.1; patched toolchain absent",
+  "command_environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "log_directory": ".flow/tmp/next-gate-101b14f882/",
+  "baseline": {
+    "command": "make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "log": "base-full-lint.log", "exit_code": 2, "shell_real_seconds": 1.45,
+    "sha256": "13d603ea5285e3092a8f5656f2675d829125cfa4e618af74c795b2df1c67fb0b",
+    "findings": 273, "classes": {"errcheck":216,"exhaustive":2,"forbidigo":11,"staticcheck":44},
+    "errortype_stage_reached": false
+  },
+  "admission": {
+    "predecessor47": "Integrated and independently reviewed at101b; acceptance blocked and dependency retained.",
+    "task21_acceptance_through_EOF_sha256": "244837d75f8cb29005d38e463af06b58d33d63c5211b51cca5c1250c16fa8330",
+    "task21_old_dependencies_preserved": 25,
+    "task21_only_new_dependency": "fn-109-gomad-deepen-modules-and-tool-interfaces.48",
+    "validation": "valid;48tasks",
+    "tracker_bridge_active": false,
+    "requested_implementer": "gpt-6.1-sol high", "judge": "unavailable(no_key); explicit project routing authoritative",
+    "actual_model_metadata": "not exposed"
+  },
+  "initial_frozen_files": [
+    {"path":"tools/gomad3/toolchain/patch_regenerate.go","sha256":"68135e1865312126898ec578613c1717f9524400e3d8c79d6a747b0a0d99b174"},
+    {"path":"tools/gomad3/toolchain/patch_cleanup_test.go","sha256":"b907fb02f97c664c48a704866b430ff96c4221cbad0149d3f64415f2cb42f9f0"}
+  ],
+  "initial_checks": [
+    {"name":"focused-public","command":"go -C tools/gomad3 test -tags test_dep -count=1 -json ./toolchain -run '^TestPatchCleanup'","log":"root-focused-public.log","exit_code":0,"shell_real_seconds":0.32,"sha256":"f83e9891b094c24e251e59a0ac1029dd8162ee64d543d5105b5d1e2800c33f6c"},
+    {"name":"architecture","command":"go -C tools/gomad3 test -tags test_dep -count=1 -json . -run 'Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases|DomainModulesDoNotExportWireFraming|RunnerExecutionInjectionIsPrivate)$'","log":"root-architecture.log","exit_code":0,"shell_real_seconds":23.12,"sha256":"885baebfaf1b3bcded9470e9189d13382d35e377f018342b1b06e137f9664805"},
+    {"name":"validate","command":"make -C tools/gomad3 validate","log":"root-validate.log","exit_code":0,"shell_real_seconds":2.11,"sha256":"513e9e53bce949a45670ce4ae288b9ca38a8f4cf7e163634243924dfac67a561"},
+    {"name":"fast-lint","command":"make --trace lint-code-fast GOLANGCI_LINT_BASE_REV=101b14f882195422c31f35afc259cb25050b31e3 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep","log":"root-fast-lint.log","exit_code":0,"shell_real_seconds":2.55,"sha256":"a3c40f727b9129ee5b30c3677c30f925cc6ca2d602ddf8255dd80cfb52c5a880","host_packages":55,"errortype_stage_reached":true},
+    {"name":"full-lint","command":"Same full-gate command as baseline","log":"root-full-lint.log","exit_code":2,"shell_real_seconds":1.37,"sha256":"fcb036567ccf08a5233b52628457fc3c7dbaf84da557bd310cb22d3fd64153e8","host_packages":55,"errortype_stage_reached":false}
+  ],
+  "full_lint_delta": {"baseline":273,"final":266,"removed":7,"added_or_changed_residual_blocks":0,"comparison":"Normalize only diagnostic header line/column positions; all266 residual blocks including source/caret bytes match.","classes":{"errcheck":209,"exhaustive":2,"forbidigo":11,"staticcheck":44}},
+  "review_refinement": {
+    "change":"Five-line direct sole *os.PathError test assertion. Production, imports and generator inputs unchanged.",
+    "final_test_sha256":"290bce62401e74dc42a3289bef80a1f3874ab9808d59ee3b55fb1fdfd9b8dfd4",
+    "rerun_reason":"New test assertion requires fresh exact-BASE/final regression proof and configured lint. Architecture, validation and existing consumer results retain unchanged production/import/input scope.",
+    "checks": [
+      {"name":"base-overlay","command":"go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/next-gate-101b14f882/reviewer/base-overlay.json ./toolchain -run '^TestPatchCleanup'","log":"root-reviewfix-base-overlay.log","exit_code":1,"shell_real_seconds":0.49,"sha256":"e55749b0851483c1ffc5e5b5e4c52a19bd4feec220cd33e2ab9769e1443ccd60","passed_control_records":2,"expected_failed_subtests":4,"failed_records_including_parent":5,"skips":0},
+      {"name":"focused-public","command":"Same focused-public command as initial_checks","log":"root-reviewfix-focused-public.log","exit_code":0,"shell_real_seconds":0.49,"sha256":"042feeb3c3422a511d0f9639ff6a0e761a12c132a1e708f8ba2f9a08f0c65d9e","top_level_tests":1,"passing_records":7,"failures":0,"skips":0},
+      {"name":"fast-lint","command":"Same fast-lint command as initial_checks","log":"root-reviewfix-fast-lint.log","exit_code":0,"shell_real_seconds":2.62,"sha256":"f41ce4f9cef49a2f447cded7c7a64312efb4965cc8bfd4543ef7147d76c63858","errortype_stage_reached":true},
+      {"name":"full-lint","command":"Same full-gate command as baseline","log":"root-reviewfix-full-lint.log","exit_code":2,"shell_real_seconds":1.33,"sha256":"750a018cf9228cd6a377c0364e2aee5580847698b46e431347afe2a4ff4423ab","findings":266,"errortype_stage_reached":false}
+    ]
+  },
+  "worker_log_integrity":{"checked":13,"mismatches":0,"final_focused":{"top_level_passes":28,"passing_records":73,"failures":0,"unchanged_missing_archive_skips":2},"final_cli_consumers":{"top_level_passes":3,"passing_records":5,"failures":0,"skips":0}},
+  "review":{"verdict":"SOURCE_PROGRESS_ACCEPTED","unresolved_findings":0,"source_review":"source-review.md","observations":"review-observations.json","requested_reviewer":"gpt-6.1-sol high, same GPT family as writer; actual model metadata not exposed","final_independent_regressions":{"exit_code":0,"tool_elapsed_seconds":0.312783458,"passing_records":7,"skips":0}},
+  "flow_final":{"task48_status":"blocked","task21_status":"blocked","predecessor47_status":"blocked","validation":"valid;48tasks","progress_summary_stage_counts":{"impl_review":1,"plan_sync":1}},
+  "final_integrity":{"retained_command_logs_verified":29,"hash_mismatches":0,"task21_original_acceptance_exact":true,"task21_old_dependencies_preserved":25,"task48_description_acceptance_quick_evidence_exact":true,"git_diff_check_exit":0},
+  "pending": "Original native Darwin/full/formal/affected-consumer, matched-first-baseline, bounded10/100 and predecessor acceptance remain open wherever unproved. VERSION/input/three early temporary Close, multiple-cleanup and post-publication temporary-removal/directory-durability faults remain unexecuted. Linux stays deferred and unverified under fn128."
+}

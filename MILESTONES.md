@@ -230,6 +230,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.45](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.45.md) | ⛔ Blocked | Seven mechanical lint findings repaired; full lint and qualification remain open |
 | [fn-109.46](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.46.md) | ⛔ Blocked | Stdout reports repaired; full lint and original qualification remain open |
 | [fn-109.47](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.47.md) | ⛔ Blocked | Archive cleanup repaired; full lint and original qualification remain open |
+| [fn-109.48](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.48.md) | ⛔ Blocked | Patch cleanup repaired; full lint and original qualification remain open |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
