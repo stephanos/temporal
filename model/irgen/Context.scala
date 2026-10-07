@@ -201,7 +201,7 @@ final private[irgen] class Context(val index: Index):
       boundValues = vs
       boundPhasings = ps
 
-  // While a capability declaration's law is folded: the name `<machine>.<law>` its Property takes,
+  // While a capability Property is expanded: the generated `<machine>.<property>` name it takes,
   // whatever name its body writes or its val would give it.
   var generatedName: Option[String] = None // scalafix:ok DisableSyntax.var
 
@@ -212,7 +212,7 @@ final private[irgen] class Context(val index: Index):
     try body
     finally generatedName = was
 
-  // The name the Property being declared takes from a law's expansion, used once.
+  // The generated name the Property being declared takes, used once.
   def takeGenerated(): Option[String] =
     val name = generatedName
     generatedName = None
@@ -243,10 +243,6 @@ final private[irgen] class Context(val index: Index):
 
   // Where each machine declared each of its capabilities, by kind: a machine declares each once.
   val capabilityKinds = mutable.Map.empty[(String, String), String]
-  // What each capability declaration expanded into, for the law sidecar beside the IR file.
-  val lawClaims = mutable.ArrayBuffer.empty[LawClaim]
-  val lawWaivers = mutable.ArrayBuffer.empty[LawWaiver]
-  val lawCatalog = mutable.LinkedHashMap.empty[String, LawEntry]
   // The machines whose `capabilities` sections were lifted, and each waiver they state, as
   // `(machine, <machine>.<property>, reason)`, which the model gate writes into the accepted
   // findings beside the IR file.

@@ -45,9 +45,6 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
   // The Model of each IR file lifted, by the file's name; a lift of roots has one, named "".
   val models = mutable.LinkedHashMap.empty[String, ir.Model]
 
-  // The law sidecar of each IR file lifted that declares capabilities, by the file's name.
-  val sidecars = mutable.LinkedHashMap.empty[String, org.json4s.JValue]
-
   // The waivers of each IR file lifted with a `capabilities` section, by the file's name.
   val waivers = mutable.LinkedHashMap.empty[String, org.json4s.JValue]
 
@@ -141,7 +138,6 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
       realizations = sorted(realizations)
     )
     phases ++= concerns.phases
-    for laws <- lawSidecar(ctx) do sidecars(file) = laws
     for stated <- sectionWaivers(ctx) do waivers(file) = stated
 
 // The refusal of two declarations of one package that derive one ID across the IR files of a run:
@@ -254,23 +250,18 @@ private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftErro
     sys.exit(1)
   def json(value: org.json4s.JValue) =
     JsonMethods.mapper.writer(Pretty()).writeValueAsString(JsonMethods.asJsonNode(value)) + "\n"
-  // Each IR file's law sidecar, where it declares capabilities, is written beside it as
-  // `<file>.laws.json`, and the waivers of its `capabilities` sections as `<file>.waivers.json`,
+  // The waivers of each IR file's `capabilities` sections are written as `<file>.waivers.json`,
   // which the model gate reads and never checks in.
   target match
     case Target.Roots(_) =>
       val model = lifter.models.get("").getOrElse(sys.error("lift: nothing was lifted"))
       Files.writeString(Paths.get(out), json(Printer().toJson(model)))
-      for laws <- lifter.sidecars.get("") do
-        Files.writeString(Paths.get(out.stripSuffix(".json") + ".laws.json"), json(laws))
       for stated <- lifter.waivers.get("") do
         Files.writeString(Paths.get(out.stripSuffix(".json") + ".waivers.json"), json(stated))
     case Target.IrFiles(_) =>
       val directory = Files.createDirectories(Paths.get(out))
       for (file, model) <- lifter.models do
         Files.writeString(directory.resolve(s"$file.json"), json(Printer().toJson(model)))
-      for (file, laws) <- lifter.sidecars do
-        Files.writeString(directory.resolve(s"$file.laws.json"), json(laws))
       for (file, stated) <- lifter.waivers do
         Files.writeString(directory.resolve(s"$file.waivers.json"), json(stated))
 

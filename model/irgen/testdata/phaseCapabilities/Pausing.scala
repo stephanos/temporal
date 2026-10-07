@@ -5,21 +5,21 @@ import temporal.capabilities.*
 
 val bounds = Limits(steps = 2, actions = 3, search = 64)
 
-enum Phase derives Finite:
-  case waiting extends Phase, Waiting
-  case paused extends Phase, Suspended
-  case pausedWhileHeld extends Phase, Held
-  case started extends Phase, Held
-  case done extends Phase, Succeeded
+enum WorkflowPhase derives Finite:
+  case waiting extends WorkflowPhase, Waiting
+  case paused extends WorkflowPhase, Suspended
+  case pausedWhileHeld extends WorkflowPhase, Held
+  case started extends WorkflowPhase, Held
+  case done extends WorkflowPhase, Succeeded
 
-enum Answer derives Finite:
+enum Result derives Finite:
   case accepted
 
-final case class Snapshot(phase: Phase) derives Finite
-final case class OtherSnapshot(phase: Phase) derives Finite
-final case class Pair(left: Snapshot, right: OtherSnapshot)
+final case class WorkState(phase: WorkflowPhase) derives Finite
+final case class OtherWorkState(phase: WorkflowPhase) derives Finite
+final case class Pair(left: WorkState, right: OtherWorkState)
 
-given Ok[Answer] = Ok(Answer.accepted)
+given Ok[Result] = Ok(Result.accepted)
 
 object user extends Actor:
   val pause = action(this)
@@ -28,10 +28,12 @@ object user extends Actor:
 object worker extends Actor:
   val poll = action(this)
 
-object Direct extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
-  val init = Snapshot(Phase.waiting)
+object Direct
+    extends Machine[WorkState, Result, Nothing],
+      Phased[WorkState, WorkflowPhase](_.phase):
+  val init = WorkState(WorkflowPhase.waiting)
   object effects:
-    def keep(s: State) = stay[Snapshot, Answer, Nothing](s)
+    def keep(s: State) = stay[WorkState, Result, Nothing](s)
   object rules extends Rules:
     on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
   object capabilities extends Capabilities:
@@ -41,11 +43,11 @@ object Direct extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase
     capabilities.bound(bounds)
 
 object OtherDirect
-    extends Machine[OtherSnapshot, Answer, Nothing],
-      Phased[OtherSnapshot, Phase](_.phase):
-  val init = OtherSnapshot(Phase.waiting)
+    extends Machine[OtherWorkState, Result, Nothing],
+      Phased[OtherWorkState, WorkflowPhase](_.phase):
+  val init = OtherWorkState(WorkflowPhase.waiting)
   object effects:
-    def keep(s: State) = stay[OtherSnapshot, Answer, Nothing](s)
+    def keep(s: State) = stay[OtherWorkState, Result, Nothing](s)
   object rules extends Rules:
     on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
   object capabilities extends Capabilities:
@@ -63,7 +65,7 @@ object DirectDerived extends Derived(Direct.unmonitored):
 
 abstract class PairCapabilities(c: Composition[Pair])(using
     Declaring[Pair, String, String],
-    Phasing[Pair, Phase]
+    Phasing[Pair, WorkflowPhase]
 ) extends Capabilities:
   val pausable: Capability = Pausable(
     pause = c.own(_.left, user.pause),
@@ -73,7 +75,7 @@ abstract class PairCapabilities(c: Composition[Pair])(using
 
 object DirectPair
     extends Composition[Pair](_.left -> Direct, _.right -> OtherDirect),
-      Phased[Pair, Phase](_.left.phase):
+      Phased[Pair, WorkflowPhase](_.left.phase):
   object syncs extends Syncs
   object capabilities extends PairCapabilities(this)
   object queries:
@@ -92,11 +94,11 @@ enum NoPausedPhase derives Finite:
 final case class NoPaused(phase: NoPausedPhase) derives Finite
 
 object MissingSuspended
-    extends Machine[NoPaused, Answer, Nothing],
+    extends Machine[NoPaused, Result, Nothing],
       Phased[NoPaused, NoPausedPhase](_.phase):
   val init = NoPaused(NoPausedPhase.waiting)
   object effects:
-    def keep(s: State) = stay[NoPaused, Answer, Nothing](s)
+    def keep(s: State) = stay[NoPaused, Result, Nothing](s)
   object rules extends Rules:
     on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
   object capabilities extends Capabilities:
@@ -111,10 +113,10 @@ enum NoHeldPhase derives Finite:
 
 final case class NoHeld(phase: NoHeldPhase) derives Finite
 
-object MissingHeld extends Machine[NoHeld, Answer, Nothing], Phased[NoHeld, NoHeldPhase](_.phase):
+object MissingHeld extends Machine[NoHeld, Result, Nothing], Phased[NoHeld, NoHeldPhase](_.phase):
   val init = NoHeld(NoHeldPhase.waiting)
   object effects:
-    def keep(s: State) = stay[NoHeld, Answer, Nothing](s)
+    def keep(s: State) = stay[NoHeld, Result, Nothing](s)
   object rules extends Rules:
     on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
   object capabilities extends Capabilities:

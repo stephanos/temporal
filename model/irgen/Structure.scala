@@ -24,8 +24,8 @@ import scala.jdk.CollectionConverters.*
 //     declaration: this lint reads a source's package, the order lint its path, and the two must
 //     agree.
 //   - (c) in a machine or composition object, a nested object whose name is none of the sections',
-//     `states`, `refinement`, `effects`, `monitors`, `rules`, `syncs`, `properties`, `implements`,
-//     `capabilities` and `queries`: the name is what makes it a section. The signature's actor
+//     `states`, `refinement`, `effects`, `monitors`, `rules`, `syncs`, `properties`, `capabilities`
+//     and `queries`: the name is what makes it a section. The signature's actor
 //     objects and the objects that group its actions, at the top level of a file, are named
 //     freely. And an
 //     `object exports` anywhere but the root feature file; under `features`, a root feature file
@@ -585,7 +585,6 @@ object Structure:
     "monitors",
     "rules",
     "properties",
-    "implements",
     "capabilities",
     "queries"
   )

@@ -131,8 +131,8 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
 
   test("Pausable and Pollable refuse phases missing their owned roles"):
     for (root, line, role, phase) <- Seq(
-        ("MissingSuspended", 96, "Suspended", "NoPausedPhase"),
-        ("MissingHeld", 114, "Held", "NoHeldPhase")
+        ("MissingSuspended", 98, "Suspended", "NoPausedPhase"),
+        ("MissingHeld", 116, "Held", "NoHeldPhase")
       )
     do
       val (ran, _) = lift(s"$root$$.capabilities")

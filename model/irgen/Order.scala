@@ -19,7 +19,7 @@ import scala.collection.mutable
 //   - (e) in a feature file, R17's section rules: in a machine or composition object
 //     (`umpire.Machine`, `Derived`, `Composition`), its header and sections out of the order
 //     states, refinement, effects, monitors, rules (a composition's syncs), properties,
-//     implements, capabilities, queries; a declaration in a section other than its kind's,
+//     capabilities, queries; a declaration in a section other than its kind's,
 //     vocabulary outside `states`, a refinement's member outside `refinement`, an effect outside
 //     `effects` and a monitor outside `monitors`; a step function bound by hand, `action ~> step`,
 //     outside a derivation's `rebind`; a machine's section outside its object, or in another
@@ -315,8 +315,6 @@ final private[irgen] class Order(index: Index):
     case Watch extends Kind("a monitor, assumption, hole or channel", "its machine's object itself")
     case Machine extends Kind("a machine or composition", "an object of its own")
     case Claim extends Kind("a Property", "the `properties` object of its machine's object")
-    case Laws
-        extends Kind("a capabilities declaration", "the `laws` object of its machine's object")
     case Scenario extends Kind("a Scenario", "the `queries` object of its machine's object")
     case Query extends Kind("a Query", "the `queries` object of its machine's object")
     case File extends Kind("an IR file", "`object exports`")
@@ -336,7 +334,6 @@ final private[irgen] class Order(index: Index):
             Some(Kind.Watch)
           case "umpire.Machine" | "umpire.Composition" => Some(Kind.Machine)
           case "umpire.Property" | "umpire.Progress"   => Some(Kind.Claim)
-          case "umpire.LawDeclaration"                 => Some(Kind.Laws)
           case "umpire.Scenario"                       => Some(Kind.Scenario)
           case "umpire.Query"                          => Some(Kind.Query)
           case "umpire.IrFile"                         => Some(Kind.File)
@@ -370,7 +367,6 @@ final private[irgen] class Order(index: Index):
   // The place a kind belongs in: in an object form, a monitor's is the `monitors` section.
   private def belongs(k: Kind, inObjectForm: Boolean): String = k match
     case Kind.Watch if inObjectForm => "the `monitors` object of its machine's object"
-    case Kind.Laws if inObjectForm  => "the `implements` object of its machine's object"
     case _                          => k.belongs
 
   // The sections of a machine or composition object, in R2's order (Structure.formSections).
@@ -676,7 +672,6 @@ final private[irgen] class Order(index: Index):
       case "monitors"              => Set(Kind.Watch)
       case "rules"                 => Set.empty // statements alone, or a composition's syncs
       case "properties"            => Set(Kind.Claim)
-      case "implements"            => Set(Kind.Laws)
       case "capabilities"          => Set.empty // capabilities and waivers
       case "states" | "refinement" => Set.empty // vocabulary, and the machine's refinement
       case _                       => Set(Kind.Scenario, Kind.Query)
@@ -741,8 +736,6 @@ final private[irgen] class Order(index: Index):
         t match
           case Select(m, "property")                    => machine(m, ".properties")
           case Select(m, "scenario") if !samePackage(m) => machine(m, ".queries")
-          case Apply(fn, (m: Ref) :: _) if fn.symbol.name == "capabilities" =>
-            machine(m, ".implements")
           case r: Ref
               if kindOf(d).contains(Kind.Query) && declared(r, Kind.Scenario) &&
                 r.symbol.maybeOwner != section =>

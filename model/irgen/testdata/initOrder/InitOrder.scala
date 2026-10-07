@@ -4,8 +4,8 @@
 // Property at the top level, in its machine's object rather than its `properties`, or over another
 // object's machine; a machine in a type's companion or in an object of the signature; a Property in
 // an object of a machine object that is none of its sections; a Query over another object's
-// Scenario; a val in exports that is no IR file. (b): Switch's `implements` reads the realization
-// (Realization.scala), which reads it back, and so does Dimmer's `capabilities`, through its base.
+// Scenario; a val in exports that is no IR file. (b): Dimmer's `capabilities` reads the realization
+// (Realization.scala), which reads it back through its base class.
 package fixture.features.initorder
 
 import umpire.*
@@ -49,8 +49,8 @@ object Switch extends Machine[Lamp, Outcome, Nothing]:
   object properties:
     val turnsOn = property holds (after => after.state.lit)
 
-  object implements:
-    val reported = SwitchRealization.reported
+  // The removed legacy section occupied these lines; keep later fixture locations
+  // stable so their diagnostics remain easy to compare.
 
   object queries:
     val flipped = scenario.actions(flip)

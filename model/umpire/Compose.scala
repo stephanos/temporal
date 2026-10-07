@@ -22,7 +22,7 @@ import scala.deriving.Mirror
 //     sync(_.order -> clerk.dispatch, _.queue -> queue.enqueue)
 // }}}
 //
-// then its `states`, `properties`, `implements` and `queries` sections. A composition with one member replaced is an
+// then its `states`, `properties`, `capabilities` and `queries` sections. A composition with one member replaced is an
 // object too, `object LateOverQueue extends Composition(OrderOverQueue.withMember(_.order ->
 // LateRecord))`, and declares only its own sections. `end` and `syncs` are not members a declared
 // composition must implement, since a derived one keeps its source's: the IR generator requires them
@@ -61,7 +61,7 @@ abstract class Composition[S <: Product] private (
   // The owner its `syncs` read the composed state type from.
   protected given compositionOwner: Composer[S] = Composer(this)
 
-  // What its `implements` or `capabilities` declares the capabilities of: this composition.
+  // What its `capabilities` section declares the capabilities of: this composition.
   protected given declaring: Declaring[S, String, String] = Declaring(this)
 
   // The members, each constructed: the machines and compositions it composes.
@@ -149,11 +149,11 @@ final class Composed private[umpire] (val composition: Model, val selected: Any)
 
 // A member's def read from the composed state: `through(_.order, Order.held)` is
 // `s => Order.held(s.order)`. A composition's capability field or a declaring function's
-// function-valued argument names it where it would name a def, so a law reads a member's status
+// function-valued argument names it where it would name a def, so a Property reads a member's status
 // set without a def that restates it for the composition. The IR generator lifts it as one function
 // of the composed state, named after the state, the path and the def, and refuses a selector that is
 // not a field path and a `read` that is not a def of the lifted sources, as it refuses a lambda.
 //
-// Core: it says which member a law reads, which no def of the lifted sources says. Its two arguments
+// Core: it says which member a Property reads, which no def of the lifted sources says. Its arguments
 // share one parameter list so that the composed state is inferred from where it is passed.
 def through[S, M, A](select: S => M, read: M => A): S => A = s => read(select(s))

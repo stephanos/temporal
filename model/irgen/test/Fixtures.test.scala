@@ -132,16 +132,6 @@ class Fixtures extends munit.FunSuite:
     ),
     "taskqueue" -> Seq("queueQueries", "matchingQueries", "forgetfulQueries")
       .map("fixture.taskqueue.TaskQueue$package$." + _),
-    "capabilities" -> Seq(
-      "jobCapabilities",
-      "legacyCapabilities",
-      "pairCapabilities",
-      "keptCapabilities",
-      "killedWhileQueued",
-      "rogueCapabilities",
-      "rightNeverHeld"
-    )
-      .map("fixture.capabilities.Capabilities$package$." + _),
     // fn-134.2: capabilities sections, a shared set among them, and a Query reading a generated
     // Property (lifts/CapabilitySections.scala).
     "capabilitySections" -> (Seq("Task", "Chore", "TaskPair", "MirrorPair")
@@ -205,8 +195,6 @@ class Fixtures extends munit.FunSuite:
     ).map("fixture.hints.Hints$package$." + _)
   )
 
-  // fn-122.2: the fixtures whose capability declarations write a law sidecar beside their IR.
-  private val sidecars: Seq[String] = Seq("capabilities")
   // fn-134.2: the fixtures whose capabilities sections write the waivers they state beside their
   // IR, which the model gate writes into the accepted findings.
   private val waived: Seq[String] = Seq("capabilitySections", "rejections")
@@ -337,29 +325,6 @@ class Fixtures extends munit.FunSuite:
   private val realizationObjectRejects: Seq[String] =
     Seq("Unordered", "Doubled", "Foreign", "Restated", "Replaced").map("fixture.scriptrejects." + _)
 
-  // The refusals of fn-122.2's capability declarations, fn-122.5's citations and fn-127.2's
-  // `through` (lifts/CapabilityRejects.scala).
-  private val capabilityRejects: Seq[String] = Seq(
-    "unboundAction",
-    "lambdaField",
-    "declaredTwice",
-    "againFirst",
-    "againSecond",
-    "notBrought",
-    "noReason",
-    "otherSignature",
-    "waivedClaim",
-    "unkinded",
-    "sameName",
-    "lambdaQuery",
-    "uncited",
-    "computedCitation",
-    "unknownParameter",
-    "throughComputed",
-    "throughLambda",
-    "overridingThrough"
-  ).map("fixture.capabilityrejects.CapabilityRejects$package$." + _)
-
   // The refusals of fn-134.2's capabilities sections, each a machine's section
   // (lifts/CapabilitySectionRejects.scala).
   private val sectionRejects: Seq[String] = Seq(
@@ -371,8 +336,7 @@ class Fixtures extends munit.FunSuite:
     "EmptyReason",
     "Unbounded",
     "OverrideUnbrought",
-    "OverrideWaived",
-    "BothForms"
+    "OverrideWaived"
   ).map(o => s"fixture.capabilitysectionrejects.$o$$.capabilities")
 
   // The refusals of fn-139.3's `from` blocks, each a machine object (lifts/RuleRejects.scala).
@@ -521,7 +485,7 @@ class Fixtures extends munit.FunSuite:
     "valComposition",
     "UnobservedRefiner",
     "IndexedQueries$.queries"
-  ).map(rejectsRoot) ++ scriptRejects ++ realizationObjectRejects ++ capabilityRejects ++
+  ).map(rejectsRoot) ++ scriptRejects ++ realizationObjectRejects ++
     sectionRejects ++ hintRejects ++ markerRejects ++ blockRejects ++ statusRejects ++ roleRejects ++
     ruleRejects
 
@@ -544,11 +508,6 @@ class Fixtures extends munit.FunSuite:
     assert(!lift.failed, s"the $name fixture did not lift:\n${lift.diagnostics}")
     Files.readString(lifted(name))
 
-  // The law sidecar a fixture's capability declarations wrote beside its IR.
-  private def laws(name: String): String =
-    ir(name): Unit
-    Files.readString(scratch.resolve(s"$name.laws.json"))
-
   // The waivers a fixture's capabilities sections wrote beside its IR.
   private def waivers(name: String): String =
     ir(name): Unit
@@ -570,8 +529,7 @@ class Fixtures extends munit.FunSuite:
       try stream.iterator.asScala.map(_.getFileName.toString).toList.sorted
       finally stream.close()
     held.diff(
-      fixtures.map(_._1 + ".json") ++ sidecars.map(_ + ".laws.json") ++
-        waived.map(_ + ".waivers.json") :+ "rejects.txt"
+      fixtures.map(_._1 + ".json") ++ waived.map(_ + ".waivers.json") :+ "rejects.txt"
     )
 
   // An update rewrites the expected files only once every fixture lifted, every rejected
@@ -579,7 +537,6 @@ class Fixtures extends munit.FunSuite:
   // run's. The gate holds model/ir to the same rule.
   private lazy val everyLift: Unit =
     fixtures.foreach((name, _) => ir(name))
-    sidecars.foreach(laws)
     waived.foreach(waivers)
     rejections(): Unit
     assertEquals(leftOver(), Nil, s"${root.relativize(expected)} holds files no fixture lifts to")
@@ -613,10 +570,6 @@ class Fixtures extends munit.FunSuite:
       refusals("crossed").sorted,
       Seq(
         "ActionInput.scala:15:28",
-        "Capabilities.scala:19:85",
-        "Capabilities.scala:22:16",
-        "Capabilities.scala:25:17",
-        "Capabilities.scala:30:87",
         "Crossed.scala:38:41",
         "Crossed.scala:41:24",
         "Crossed.scala:49:82",
@@ -625,11 +578,10 @@ class Fixtures extends munit.FunSuite:
         "NamedInput.scala:24:27",
         "NamedInput.scala:27:49",
         "NamedInput.scala:30:31",
-        "NoCatalog.scala:7:98",
         "OneChoice.scala:18:62",
         "Rejections.scala:17:60",
         "Rejections.scala:24:33",
-        "Rules.scala:16:30",
+        "Rules.scala:16:32",
         "Sections.scala:22:46",
         "Sections.scala:23:51",
         "Sections.scala:24:45",
@@ -969,7 +921,7 @@ class Fixtures extends munit.FunSuite:
         s"${root.relativize(shared)} is stale; UMPIRE_LIFTER_UPDATE=1 rewrites it"
       )
 
-  concurrently("in names phases no projection reads, refused at its line"):
+  concurrently("when names phases no projection reads, refused at its line"):
     val out = scratch.resolve("phasedNone-out.json")
     val result = lift(
       s"$phasedMixinJar=${stored("phasedMixin")},$modelJar=model/",
@@ -980,7 +932,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       refused(result),
       Seq(
-        s"lift: ${stored("phasedMixin")}Phased.scala:61: in names phases, and unprojected reads no " +
+        s"lift: ${stored("phasedMixin")}Phased.scala:61: when names phases, and unprojected reads no " +
           "phase projection: mix it into the machine, `Phased[State, Phase](_.phase)`"
       )
     )
@@ -1077,22 +1029,17 @@ class Fixtures extends munit.FunSuite:
         s"lift: $feature:32: Inner holds a Model declaration inside Holder, an object of the " +
           "signature: a machine object sits at the top level of a feature file, and its " +
           "sections directly in it",
-        // (b)
-        s"lift: $feature:53: an initialization cycle: Switch.implements -> SwitchRealization -> " +
-          "Switch.implements, each read while the one before it initializes, so one of them is " +
-          "read half made: read it in a def, a lambda or a lazy val, or move what is read into " +
-          "an object of its own",
         // (c)
         s"lift: $feature:68: properties belongs before queries at $feature:65: object Backwards " +
           "reads its header, then states, then refinement, then effects, then monitors, then " +
-          "rules, then properties, then implements, then capabilities, then queries",
+          "rules, then properties, then capabilities, then queries",
         s"lift: $feature:71: Late belongs before Backwards at $feature:59: a feature file reads " +
           "its header, then its types, then its signature, then its machine and composition " +
           "objects, then object exports",
         // (d)
         s"lift: $feature:77: extras holds a Model declaration in Misplaced, and is none of its " +
-          "sections, states, refinement, effects, monitors, rules, properties, implements, " +
-          "capabilities, queries: its declarations belong in them",
+          "sections, states, refinement, effects, monitors, rules, properties, capabilities, " +
+          "queries: its declarations belong in them",
         s"lift: $feature:82: lit is a Property, and belongs in the `properties` object of its " +
           "machine's object, not in Misplaced",
         s"lift: $feature:85: switchLit is declared over Switch, a machine object: it belongs in " +
@@ -1123,13 +1070,13 @@ class Fixtures extends munit.FunSuite:
     assertEquals(listed(out), Nil)
     val f = s"${at}SectionOrder.scala"
     val order = "object Backwards reads its header, then states, then refinement, then effects, " +
-      "then monitors, then rules, then properties, then implements, then capabilities, then queries"
+      "then monitors, then rules, then properties, then capabilities, then queries"
     val handBound = "a machine object says when each action fires in its `rules`, " +
       "`on(action) { when(p) ~> effects.x }`, and a derivation binds one in `rebind`"
     assertEquals(
       refused(result),
       Seq(
-        s"lift: $f:39: the section implements sits at the top level of a feature file: a " +
+        s"lift: $f:39: the section capabilities sits at the top level of a feature file: a " +
           "machine's sections sit directly in its machine or composition object",
         s"lift: $f:101: states belongs before effects at $f:98: $order",
         s"lift: $f:107: rules belongs before properties at $f:104: $order",
@@ -2236,10 +2183,6 @@ class Fixtures extends munit.FunSuite:
     test(s"the $name fixture lifts to its expected IR"):
       expect(s"$name.json", ir(name))
 
-  for name <- sidecars do
-    test(s"the $name fixture writes its expected law sidecar"):
-      expect(s"$name.laws.json", laws(name))
-
   for name <- waived do
     test(s"the $name fixture writes the waivers its capabilities sections state"):
       expect(s"$name.waivers.json", waivers(name))
@@ -2896,7 +2839,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(listed(out), Nil)
     val product = s"${at}kiln/product/Product.scala"
     val none = "and none of its sections, states, refinement, effects, monitors, rules, syncs, " +
-      "properties, implements, capabilities, queries: a section of another name sits at the top " +
+      "properties, capabilities, queries: a section of another name sits at the top " +
       "level of the " +
       "file, in the signature, and anything else in one of these"
     assertEquals(

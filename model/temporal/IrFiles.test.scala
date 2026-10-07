@@ -26,7 +26,7 @@ class IrFilesTest extends munit.FunSuite:
     try
       stream.iterator.asScala
         .map(_.getFileName.toString)
-        .filter(n => n.endsWith(".json") && !n.endsWith(".laws.json") && !n.endsWith(".lint.json"))
+        .filter(n => n.endsWith(".json") && !n.endsWith(".lint.json"))
         .map(_.stripSuffix(".json"))
         .toSet
     finally stream.close()

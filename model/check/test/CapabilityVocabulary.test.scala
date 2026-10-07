@@ -4,8 +4,8 @@ import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 
 // The framework and the lifter keep the capability mechanism and name no capability of a feature
-// kit's (fn-122.8): Temporal's kinds, their laws and their catalog live in
-// model/temporal/capabilities. The lifter's fixtures, which lift Temporal's laws, are not its sources.
+// kit's (fn-122.8): Temporal's kinds and their Properties live in model/temporal/capabilities. The
+// lifter's fixtures, which lift capability Properties, are not its sources.
 class CapabilityVocabularySuite extends munit.FunSuite:
   private val kinds =
     Seq("Closable", "Terminable", "Pausable", "Cancelable", "Pollable", "Describable")
@@ -18,8 +18,7 @@ class CapabilityVocabularySuite extends munit.FunSuite:
   test("model/umpire and the lifter's sources name no Temporal capability kind") {
     val root = Tools.here.directory
     val files = scala(root.resolve("model/umpire"), recursive = true) ++
-      scala(root.resolve("model/irgen"), recursive = false) ++
-      scala(root.resolve("model/irgen/test"), recursive = true)
+      scala(root.resolve("model/irgen"), recursive = false)
     val named = for
       file <- files
       (line, i) <- Files.readAllLines(file).asScala.zipWithIndex

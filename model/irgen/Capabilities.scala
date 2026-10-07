@@ -4,109 +4,6 @@ import scala.collection.mutable
 import io.temporal.server.api.umpire.v1 as ir
 import org.json4s.JsonAST.*
 
-// A claim a capability declaration generated, as the law sidecar records it: with the action class
-// each action field of the capabilities that brought it names, keyed `<capability>.<field>` and
-// spelled as Umpire keys a class, its bindings, by the law's parameter names, and the server code
-// each binding written with `cited` names. The table view reads the actions as the cells a law pins.
-final private[irgen] case class LawClaim(
-    machine: String,
-    name: String,
-    law: String,
-    by: Seq[String],
-    actions: Seq[(String, String)],
-    bindings: Seq[(String, String)],
-    cites: Seq[(String, Seq[String])],
-    overriddenBy: Option[String],
-    position: String
-)
-
-// A law a capability declaration waives, with its reason and where it says so.
-final private[irgen] case class LawWaiver(
-    machine: String,
-    law: String,
-    kind: String,
-    by: Option[String],
-    because: String,
-    position: String
-)
-
-// A law of the catalog the capability declarations of one IR file read: what it says, the
-// parameters each entity backs with a citation, each machine that declares the capabilities bringing
-// it, with the state type it owns, and where the catalog names it.
-final private[irgen] case class LawEntry(
-    law: String,
-    by: Seq[String],
-    cites: Seq[String],
-    promises: String,
-    doesNotPromise: String,
-    parameters: Seq[String],
-    instantiating: Vector[(String, String)],
-    position: String
-)
-
-// The law sidecar of one IR file (`model/ir/<file>.laws.json`), or none where no capability
-// declaration was lifted: each generated claim with its law, bindings and their citations, each
-// waiver with its reason, and the catalog's laws, each with what it says and its instantiating
-// machines with their state types, one machine per state type, since a machine derived from another
-// shares its state type. A composition is no instantiating entity: it reads its members'
-// capabilities through their projections.
-private[irgen] def lawSidecar(ctx: Context): Option[JValue] =
-  def text(s: String) = JString(s)
-  def texts(ss: Seq[String]) = JArray(ss.map(text).toList)
-  if ctx.lawClaims.isEmpty && ctx.lawWaivers.isEmpty then None
-  else
-    val claims = ctx.lawClaims.sortBy(c => (c.machine, c.name)).map { c =>
-      JObject(
-        List(
-          "machine" -> text(c.machine),
-          "name" -> text(c.name),
-          "law" -> text(c.law),
-          "capabilities" -> texts(c.by),
-          "actions" -> JObject(c.actions.map((k, v) => k -> text(v)).toList),
-          "bindings" -> JObject(c.bindings.map((k, v) => k -> text(v)).toList),
-          "cites" -> JObject(c.cites.map((k, vs) => k -> texts(vs)).toList)
-        ) ++ c.overriddenBy.map("overriddenBy" -> text(_)) :+ ("position" -> text(c.position))
-      )
-    }
-    val waivers = ctx.lawWaivers.sortBy(w => (w.machine, w.law)).map { w =>
-      JObject(
-        List(
-          "machine" -> text(w.machine),
-          "law" -> text(w.law),
-          "waiver" -> text(w.kind)
-        ) ++ w.by.map("by" -> text(_)) ++ List(
-          "because" -> text(w.because),
-          "position" -> text(w.position)
-        )
-      )
-    }
-    val catalog = ctx.lawCatalog.values.toSeq.sortBy(_.law).map { e =>
-      val machines = e.instantiating
-        .groupBy(_._2)
-        .map((state, ms) => ms.map(_._1).min -> state)
-        .toSeq
-        .sorted
-      JObject(
-        "law" -> text(e.law),
-        "capabilities" -> texts(e.by),
-        "cites" -> texts(e.cites),
-        "promises" -> text(e.promises),
-        "doesNotPromise" -> text(e.doesNotPromise),
-        "parameters" -> texts(e.parameters),
-        "instantiating" -> JArray(
-          machines.map((m, state) => JObject("machine" -> text(m), "state" -> text(state))).toList
-        ),
-        "position" -> text(e.position)
-      )
-    }
-    Some(
-      JObject(
-        "claims" -> JArray(claims.toList),
-        "waivers" -> JArray(waivers.toList),
-        "catalog" -> JArray(catalog.toList)
-      )
-    )
-
 // The waivers the `capabilities` sections of one IR file state, which the model gate writes into
 // the accepted findings beside it (`<file>.lint.json`), or none where no section was lifted: the
 // machines whose sections were lifted, whose waivers it holds the accepted findings to, and each
@@ -130,39 +27,20 @@ private[irgen] trait Capabilities:
   import ctx.*
   import ctx.quotes.reflect.*
 
-  // ### Capabilities: a declaration expanded through its catalog into generated claims
-
-  // A law of a catalog: its object's name, its `apply`, what it says, the parameters each entity
-  // backs with a citation, and where it is named.
-  final private case class LawRef(
-      name: String,
-      statement: DefDef,
-      cites: Seq[String],
-      promises: String,
-      doesNotPromise: String,
-      parameters: Seq[String],
-      at: Term
-  )
-
-  // A capability kind: `key`, its companion's full name, is what the catalog and a declaration
-  // match by, so two kits' same-named kinds stay apart; `name` is what messages and the sidecar say.
-  final private case class Kind(key: String, name: String)
-
-  // A declared capability: its kind's name and key, each field's argument and type, the citations
-  // of each field written with `cited`, and its type arguments.
+  // A declared capability: its kind's name and key, each field's argument and type, and its type
+  // arguments.
   final private case class Declared(
       kind: String,
       key: String,
       fields: Map[String, Term],
       fieldTypes: Map[String, TypeRepr],
-      cites: Map[String, Seq[String]],
       types: Map[String, TypeRepr],
       at: Term,
       companion: Symbol
   )
 
-  // A waiver chained onto a declaration: `except(law, because)` or `overriding(law -> def, …)`.
-  final private case class Waived(kind: String, law: Term, by: Option[Term], because: Term)
+  // A capability Property waiver: `except(property, because)` or `overriding(property -> def, …)`.
+  final private case class Waived(kind: String, property: Term, by: Option[Term], because: Term)
 
   // Whether a field's type is an action class: a class, an action with no input or a composed one,
   // alone or in a union. A capability names the actions it is about by such fields.
@@ -171,12 +49,12 @@ private[irgen] trait Capabilities:
     case other        =>
       Seq("umpire.Class", "umpire.Action", "umpire.Composed").contains(other.typeSymbol.fullName)
 
-  // Whether a field's type is a list of action classes: the path a functional law's find takes.
+  // Whether a field's type is a list of action classes: the path a functional Property's find takes.
   private def pathType(tpe: TypeRepr): Boolean =
     val t = tpe.dealias
     isList(t.typeSymbol) && t.typeArgs.headOption.exists(actionType)
 
-  // Whether a field's type is the Run a functional law's find expects of a server.
+  // Whether a field's type is the Run a functional Property's find expects of a server.
   private def expectationType(tpe: TypeRepr): Boolean =
     isNamed(tpe, "umpire.realize.RunExpectation")
 
@@ -184,72 +62,17 @@ private[irgen] trait Capabilities:
   private def fieldOf(d: Declared, is: TypeRepr => Boolean): Option[Term] =
     d.fieldTypes.collectFirst { case (field, tpe) if is(tpe) => d.fields(field) }
 
-  // Whether a module, a capability's companion or a catalog's key, is a capability kind.
+  // Whether a module or a capability's companion is a capability kind.
   private def capabilityKind(module: Symbol): Boolean =
     !module.isNoSymbol && module.moduleClass.typeRef.baseClasses
       .exists(_.fullName == "umpire.CapabilityKind")
 
-  // Whether a declaration is a capability declaration or a waiver chained onto one.
+  // Whether a term reads a Property generated by a capabilities section.
   def capable(t: Term): Boolean = t match
     case _: Apply =>
       val sym = t.symbol
-      (sym.name == "capabilities" && (sym.maybeOwner.fullName.startsWith(
-        "umpire.Capabilities$package"
-      ) || sym.maybeOwner.fullName == "umpire.Declares")) ||
-      (sym.maybeOwner.fullName == "umpire.LawDeclaration" &&
-        Set("except", "overriding", "claim")(sym.name)) ||
-      (Set("umpire.Implements", "umpire.Capabilities")(sym.maybeOwner.fullName) &&
-        sym.name == "claim")
+      sym.maybeOwner.fullName == "umpire.Capabilities" && sym.name == "claim"
     case _ => false
-
-  // Whether a symbol names an `implements` section, `object implements extends Implements(...)`.
-  def implementsObject(sym: Symbol): Boolean =
-    val cls = moduleClassOf(sym)
-    !cls.isNoSymbol && cls.typeRef.derivesFrom(implementsClass)
-
-  private lazy val implementsClass = Symbol.requiredClass("umpire.Implements")
-
-  // An `implements` section, `object implements extends Implements(limits = three)(...)`: the
-  // capability declaration of the machine or composition object it sits in, with the waivers its
-  // body states, `except(law, because = ...)` and `overriding(law -> def, because = ...)`.
-  def implementsOf(sym: Symbol, at: Tree): Decl =
-    val cls = moduleClassOf(sym)
-    val c = objectBody(cls, at)
-    val owner = cls.maybeOwner
-    if !objectForm(owner) || cls.name.stripSuffix("$") != "implements" then
-      fail(
-        c,
-        s"${cls.name.stripSuffix("$")} extends Implements outside a machine or composition " +
-          "object: a machine's capabilities are its `object implements`"
-      )
-    for
-      section <- sectionOf(objectBody(owner, at), "capabilities")
-      if capabilitiesObject(section.symbol)
-    do
-      fail(
-        c,
-        s"${objectFormName(owner)} declares its capabilities in its implements section here and " +
-          s"in its capabilities section at ${where(section)}: a machine declares them in one " +
-          "capabilities section"
-      )
-    val (limits, items, catalog) = parentArguments(c) match
-      case List(_, List(limits), items, List(catalog)) => (limits, items.flatMap(varargs), catalog)
-      case _ => fail(c, "implements is `object implements extends Implements(limits = ...)(...)`")
-    val waivers = statements(c).flatMap {
-      case _: Definition => None
-      case t: Term       =>
-        waiverOf(t).orElse(
-          fail(
-            t,
-            s"not a waiver: ${t.show}; implements states `except(law, because = ...)` and " +
-              "`overriding(law -> def, because = ...)` alone"
-          )
-        )
-      case other => fail(other, s"not a waiver: ${other.show}")
-    }
-    declare(This(owner), limits, items, catalog, waivers, Map.empty)
-
-  // ### Capabilities sections: the Properties a machine's capabilities bring from their companions
 
   private lazy val capabilitiesClass = Symbol.requiredClass("umpire.Capabilities")
   private lazy val capabilityOfClass = Symbol.requiredClass("umpire.CapabilityOf")
@@ -290,12 +113,6 @@ private[irgen] trait Capabilities:
           "object: a machine's capabilities are its `object capabilities`"
       )
     val machine = modelName(fold(This(owner), Map.empty), c)
-    for old <- sectionOf(objectBody(owner, at), "implements") if implementsObject(old.symbol) do
-      fail(
-        c,
-        s"$machine declares its capabilities in its implements section at ${where(old)} and in " +
-          "its capabilities section here: a machine declares them in one capabilities section"
-      )
     val members = membersOf(c, Map.empty)
     declareSection(machine, This(owner), cls, members)
     Decl.Capable(machine)
@@ -380,6 +197,9 @@ private[irgen] trait Capabilities:
         s"$machine declares ${twice(1)._2.kind} twice, at ${where(twice(0)._1)} and at " +
           s"${where(twice(1)._1)}: a machine declares each capability once, with one binding"
       )
+    val ds = declared.map(_._2)
+    val at = declared.map((v, d) => d.key -> v).toMap
+    val brought = broughtBy(machine, ds)
     for (v, d) <- declared do
       for other <- capabilityKinds.get(machine -> d.key) if other != where(v) do
         fail(
@@ -387,17 +207,22 @@ private[irgen] trait Capabilities:
           s"$machine declares ${d.kind} here and at $other: a machine declares each capability " +
             "once, with one binding"
         )
-      checked(machine, d, env)
-    val ds = declared.map(_._2)
-    val at = declared.map((v, d) => d.key -> v).toMap
-    val brought = broughtBy(machine, ds)
+      val used = brought
+        .filter(_.bringing.contains(d))
+        .flatMap(p => fieldParameters(p.property).drop(1).map(_.name))
+        .filter(d.fields.contains)
+        .toSet
+      checked(machine, d, used, env)
 
     val excepted = mutable.Set.empty[String]
     val overridden = mutable.Map.empty[String, (Symbol, Term)]
     for w <- members.waivers do
       val p = waivedProperty(machine, w, ds, brought)
       if excepted(p.name) || overridden.contains(p.name) then
-        fail(w.law, s"$machine waives ${p.written} twice: a capability Property is waived once")
+        fail(
+          w.property,
+          s"$machine waives ${p.written} twice: a capability Property is waived once"
+        )
       val because = constString(plain(w.because))
       if because.trim.isEmpty then
         fail(
@@ -412,7 +237,7 @@ private[irgen] trait Capabilities:
           val sym = etaDef(by).getOrElse(
             fail(by, s"overriding ${p.written} names a def of the lifted sources, not ${by.show}")
           )
-          sameSignature(p.written, law = false, p.property, sym, by)
+          sameSignature(p.written, p.property, sym, by)
           overridden(p.name) = sym -> by
       capabilityWaivers += ((machine, s"$machine.${p.name}", because))
 
@@ -562,16 +387,16 @@ private[irgen] trait Capabilities:
       ds: Seq[Declared],
       brought: Seq[Brought]
   ): Brought =
-    val sym = etaDef(w.law).getOrElse(
+    val sym = etaDef(w.property).getOrElse(
       fail(
-        w.law,
-        s"${w.kind} names a capability Property, `<Capability>.<property>`, not ${w.law.show}"
+        w.property,
+        s"${w.kind} names a capability Property, `<Capability>.<property>`, not ${w.property.show}"
       )
     )
     brought.find(_.property.symbol == sym).getOrElse {
       val kind = sym.maybeOwner.name.stripSuffix("$")
       fail(
-        w.law,
+        w.property,
         s"$machine is brought no $kind.${sym.name} to waive: its capabilities " +
           s"${ds.map(_.kind).mkString(", ")} bring " +
           Some(brought.map(_.written)).filter(_.nonEmpty).fold("none")(_.mkString(", "))
@@ -682,185 +507,26 @@ private[irgen] trait Capabilities:
     case Block(Nil, e)      => plain(e)
     case _                  => t
 
-  // A capability declaration: each law the catalog brings for its capabilities and their pairs,
-  // waived or not, as a Property, a Scenario and a Query named `<machine>.<law>`, and what the law
-  // sidecar says of each.
+  // A generated capability Property read through its machine's capabilities section.
   def capabilitiesOf(t: Term, env: Map[Symbol, Decl]): Decl = arguments(plain(t)) match
     case c @ Apply(Select(section, "claim"), List(property))
         if c.symbol.maybeOwner == capabilitiesClass =>
       sectionClaim(section, property, env)
-    case Apply(Select(declared, "claim"), List(law)) => generatedClaim(declared, law, env)
-    case _                                           => declaration(t, env)
+    case _ => fail(t, s"claim reads a capabilities section, not ${t.show}")
 
-  // `declared.claim(law)`: the Property the declaration generated for `law`, which a Query of the
-  // entity's own reads; refused for a law the declaration is not brought or waives.
-  private def generatedClaim(declared: Term, law: Term, env: Map[Symbol, Decl]): Decl =
-    val machine = fold(declared, env) match
-      case Decl.Capable(machine) => machine
-      case other => fail(declared, s"claim reads a capability declaration, not $other")
-    val name = s"$machine.${lawOf(law).name}"
-    if !properties.contains((machine, name)) then
-      fail(
-        law,
-        s"$machine generates no ${lawOf(law).name}: its capabilities do not bring it, or it waives it"
-      )
-    Decl.Claim(claim(machine, name))
-
-  private def declaration(t: Term, env: Map[Symbol, Decl]): Decl =
-    val (base, waivers) = peel(t, Nil)
-    // Inside a machine or composition object, `capabilities(limits = ...)(...)` declares its own.
-    def receiver(t: Term): Term = t match
-      case Apply(fn, _)     => receiver(fn)
-      case TypeApply(fn, _) => receiver(fn)
-      case Select(r, _)     => r
-      case i: Ident         => receiver(onThis(i))
-      case other            => other
-    val (m, limits, items, catalogTerm) = call(arguments(base)) match
-      case Some(("capabilities", List(List(m, limits), items, List(catalog)))) =>
-        (m, limits, items.flatMap(varargs), catalog)
-      case Some(("capabilities", List(List(limits), items, List(catalog))))
-          if base.symbol.maybeOwner.fullName == "umpire.Declares" =>
-        (receiver(arguments(base)), limits, items.flatMap(varargs), catalog)
-      case _ =>
-        fail(
-          base,
-          "capabilities are declared as `capabilities(m, limits)(capability, ...)` with a given " +
-            s"Catalog, not ${base.show}"
-        )
-    declare(m, limits, items, catalogTerm, waivers, env)
-
-  // The declaration of the capabilities `items` of the machine or composition `m`, whose laws'
-  // Queries run under `limits`, with the laws `catalogTerm` brings and the waivers stated.
-  private def declare(
-      m: Term,
-      limits: Term,
-      items: List[Term],
-      catalogTerm: Term,
-      waivers: List[Waived],
-      env: Map[Symbol, Decl]
-  ): Decl =
-    val machine = modelName(fold(plain(m), env), m)
-    val state = machineNamed(machine)
-      .map(_.stateType)
-      .orElse(compositions.values.find(_.name == machine).map(_.stateType))
-      .getOrElse(fail(m, s"$machine is no lifted machine or composition"))
-    val bounds = fold(plain(limits), env) match
-      case Decl.Bounds(l) => l
-      case other          => fail(limits, s"expected Limits, got $other")
-    val catalog = catalogOf(catalogTerm)
-    val declared = items.map(declaredOf)
-    for (_, twice) <- declared.groupBy(_.key) if twice.size > 1 do
-      fail(
-        twice(1).at,
-        s"$machine declares ${twice(1).kind} twice: a machine declares each capability once, with one binding"
-      )
-    for d <- declared do
-      for other <- capabilityKinds.get(machine -> d.key) if other != where(d.at) do
-        fail(
-          d.at,
-          s"$machine declares ${d.kind} here and at $other: a machine declares each capability " +
-            "once, with one binding"
-        )
-      checked(machine, d, env)
-
-    val held = declared.map(_.key).toSet
-    val brought = catalog.filter((by, _) => by.map(_.key).subsetOf(held))
-    for (by, law) <- brought do
-      val entry = lawCatalog.getOrElseUpdate(
-        law.name,
-        LawEntry(
-          law.name,
-          by.toSeq.map(_.name).sorted,
-          law.cites,
-          law.promises,
-          law.doesNotPromise,
-          law.parameters,
-          Vector(),
-          where(law.at)
-        )
-      )
-      // An instantiating entity is a machine with its own state type: a composition reading its
-      // members' capabilities through their projections is not one again.
-      if machineNamed(machine).nonEmpty then
-        lawCatalog(law.name) = entry.copy(instantiating = entry.instantiating :+ (machine -> state))
-
-    // The waivers, each of a law the catalog brings, with a reason; a law waived once.
-    val excepted = mutable.Set.empty[String]
-    val overridden = mutable.Map.empty[String, (Symbol, Term)]
-    for w <- waivers do
-      val law = lawOf(w.law)
-      if !brought.exists(_._2.name == law.name) then
-        fail(
-          w.law,
-          s"$machine is brought no law ${law.name} to waive: for ${declared.map(_.kind).sorted.mkString(", ")} " +
-            s"the catalog brings it ${Some(brought.map(_._2.name)).filter(_.nonEmpty).fold("none")(_.mkString(", "))}"
-        )
-      if excepted(law.name) || overridden.contains(law.name) then
-        fail(w.law, s"$machine waives ${law.name} twice: a law is waived once")
-      val because = constString(plain(w.because))
-      if because.trim.isEmpty then
-        fail(
-          w.because,
-          s"${w.kind} of ${law.name} is refused without a reason: say why $machine differs from " +
-            "the law, citing the server code"
-        )
-      val position = where(w.law)
-      w.by match
-        case None =>
-          excepted += law.name
-          lawWaivers += LawWaiver(machine, law.name, "except", None, because, position)
-        case Some(by) =>
-          val sym = etaDef(by).getOrElse(
-            fail(by, s"overriding ${law.name} names a def of the lifted sources, not ${by.show}")
-          )
-          sameSignature(law.name, law = true, law.statement, sym, by)
-          overridden(law.name) = sym -> by
-          lawWaivers += LawWaiver(
-            machine,
-            law.name,
-            "overriding",
-            Some(sym.fullName),
-            because,
-            position
-          )
-
-    for (by, law) <- brought if !excepted(law.name) do
-      val bringing = declared.filter(d => by.exists(_.key == d.key))
-      val overriding = overridden.get(law.name)
-      val bound = expand(machine, m, bounds, law.name, law.statement, bringing, overriding, env)
-      lawClaims += LawClaim(
-        machine,
-        s"$machine.${law.name}",
-        law.name,
-        bringing.map(_.kind).sorted,
-        actionsOf(machine, bringing, env),
-        bound.map((p, a, _) => p.name -> bindingText(a)),
-        bound.collect { case (p, _, Some(cites)) => p.name -> cites },
-        overriding.map(_._1.fullName),
-        where(bringing.head.at)
-      )
-    for d <- declared do capabilityKinds(machine -> d.key) = where(d.at)
-    Decl.Capable(machine)
-
-  // The waivers chained onto a declaration, in the order written, and the declaration under them.
-  private def peel(t: Term, waived: List[Waived]): (Term, List[Waived]) = arguments(plain(t)) match
-    case Apply(Select(base, "except" | "overriding"), List(_, _)) if capable(t) =>
-      peel(base, waiverOf(t).get :: waived)
-    case other => (other, waived)
-
-  // A waiver, `except(law, because)` or `overriding(law -> def, because)`, as written.
+  // A waiver, `except(property, because)` or `overriding(property -> def, because)`, as written.
   private def waiverOf(t: Term): Option[Waived] = arguments(plain(t)) match
-    case w @ Apply(_, List(law, because)) if w.symbol.name == "except" =>
-      Some(Waived("except", law, None, because))
+    case w @ Apply(_, List(property, because)) if w.symbol.name == "except" =>
+      Some(Waived("except", property, None, because))
     case w @ Apply(_, List(pair, because)) if w.symbol.name == "overriding" =>
-      val (law, by) = plain(pair) match
+      val (property, by) = plain(pair) match
         case Apply(TypeApply(Select(arrow, "->"), _), List(by)) =>
           plain(arrow) match
-            case Apply(_, List(law)) => (law, by)
-            case other => fail(other, s"overriding names `law -> def`, not ${pair.show}")
-        case Apply(_, List(law, by)) => (law, by)
-        case other => fail(other, s"overriding names `law -> def`, not ${pair.show}")
-      Some(Waived("overriding", law, Some(by), because))
+            case Apply(_, List(property)) => (property, by)
+            case other => fail(other, s"overriding names `property -> def`, not ${pair.show}")
+        case Apply(_, List(property, by)) => (property, by)
+        case other => fail(other, s"overriding names `property -> def`, not ${pair.show}")
+      Some(Waived("overriding", property, Some(by), because))
     case _ => None
 
   // A capability, from its constructor's call: its kind, its fields' arguments and its type arguments.
@@ -871,53 +537,32 @@ private[irgen] trait Capabilities:
       fail(
         t,
         s"${cls.name} is no capability kind: a capability's companion object extends " +
-          "umpire.CapabilityKind, which the catalog keys its laws by"
+          "umpire.CapabilityKind, which keys its Properties"
       )
     val args = call(term) match
       case Some((_, clauses)) if clauses.nonEmpty => clauses.head.map(plain)
       case _ => fail(term, s"a capability is built by its constructor, not ${term.show}")
     val names = cls.caseFields.map(_.name)
     val typeParams = cls.primaryConstructor.paramSymss.headOption.toList.flatten.filter(_.isType)
-    // A field written with `cited` binds its value alone, so the law and the IR read the same term
-    // as without it; its citations go to the sidecar only.
-    val written = names.zip(args).map((field, a) => (field, a, citedOf(a)))
     Declared(
       cls.name,
       cls.companionModule.fullName,
-      written.map((field, a, c) => field -> c.fold(a)(_._1)).toMap,
+      names.zip(args).toMap,
       fieldTypes(cls).toMap,
-      written.collect { case (field, _, Some((_, cites))) => field -> cites }.toMap,
       typeParams.map(_.name).zip(term.tpe.widen.dealias.typeArgs).toMap,
       t,
       cls.companionModule
     )
 
-  // `cited(value, cites*)`: the value a field binds and the server code it cites, each citation a
-  // string literal or a val of one; refused at its call without one.
-  private def citedOf(a: Term): Option[(Term, Seq[String])] = arguments(a) match
-    case c: Apply
-        if c.symbol.name == "cited" &&
-          c.symbol.maybeOwner.fullName.startsWith("umpire.Capabilities$package") =>
-      def citation(t: Term): String = resolve(plain(t)) match
-        case Literal(StringConstant(s)) => s
-        case _                          =>
-          fail(t, s"cited names its server code as a string literal or a val of one, not ${t.show}")
-      val (value, cites) = c.args match
-        case List(value, cites) => (value, varargs(plain(cites)).map(citation))
-        case List(value)        => (value, Nil)
-        case _                  => fail(c, s"cited takes a value and its citations, not ${c.show}")
-      if cites.isEmpty || cites.exists(_.trim.isEmpty) then
-        fail(
-          c,
-          "cited names the server code that answers the value so, as a path from the " +
-            "repository's root: cite at least one, and none blank"
-        )
-      Some(plain(value) -> cites)
-    case _ => None
-
-  // Refuses a capability whose function-valued field is not a def of the lifted sources, and one
-  // whose action the machine does not bind, each at its argument.
-  private def checked(machine: String, d: Declared, env: Map[Symbol, Decl]): Unit =
+  // Refuses a field read by a brought Property when its function is not a def of the lifted
+  // sources, or its action is not bound by the machine, each at its argument. A path supports a
+  // Property that reads another action field, so its classes are checked with that field.
+  private def checked(
+      machine: String,
+      d: Declared,
+      used: Set[String],
+      env: Map[Symbol, Decl]
+  ): Unit =
     val roles = ownedRoles(d.companion, d.at)
     if roles.nonEmpty then
       val projection = phasingOf(machine, d.at).getOrElse(
@@ -929,7 +574,7 @@ private[irgen] trait Capabilities:
       val phase = lambda(projection).get._2.tpe
       for role <- roles.toSeq.sorted do
         roleSet(phase, Symbol.requiredClass(role).typeRef, projection, Some(machine)): Unit
-    for (field, a) <- d.fields do
+    for (field, a) <- d.fields if used(field) do
       if d.fieldTypes.get(field).exists(_.dealias.isFunctionType) && forwardedDef(a).isEmpty then
         fail(
           a,
@@ -938,7 +583,8 @@ private[irgen] trait Capabilities:
         )
       val tpe = d.fieldTypes.get(field)
       if tpe.exists(actionType) then boundAction(machine, a, s"$field of ${d.kind}", env)
-      if tpe.exists(pathType) then
+    if used.exists(field => d.fieldTypes.get(field).exists(actionType)) then
+      for (field, a) <- d.fields if d.fieldTypes.get(field).exists(pathType) do
         for step <- reached(a) do boundAction(machine, step, s"$field of ${d.kind}", env)
 
   private def reached(a: Term): List[Term] = call(plain(a)) match
@@ -971,77 +617,6 @@ private[irgen] trait Capabilities:
             "among its steps"
         )
 
-  // A catalog as data: `Catalog.single(capability)(law, ...)`, `Catalog.pair(c, d)(law, ...)`, their
-  // `++`, and the vals and givens of the lifted sources that hold one.
-  private def catalogOf(t: Term): Vector[(Set[Kind], LawRef)] = arguments(plain(t)) match
-    case Apply(Select(a, "++"), List(b)) => catalogOf(a) ++ catalogOf(b)
-    case c @ Apply(Apply(Select(_, "single" | "pair"), capabilities), laws)
-        if c.symbol.maybeOwner.fullName == "umpire.Catalog$" =>
-      val by = capabilities.map(kindOf).toSet
-      laws.flatMap(varargs).map(l => by -> lawOf(l)).toVector
-    case r: Ref =>
-      defs.get(r.symbol) match
-        case Some(ValDef(_, _, Some(rhs)))                              => catalogOf(rhs)
-        case Some(d: DefDef) if d.termParamss.isEmpty && d.rhs.nonEmpty => catalogOf(d.rhs.get)
-        case _ => fail(t, s"${r.symbol.fullName} is no catalog of the lifted sources")
-    case other =>
-      fail(
-        other,
-        s"a catalog is built with Catalog.single, Catalog.pair and ++, not ${other.show}"
-      )
-
-  private def kindOf(t: Term): Kind = plain(t) match
-    case r: Ref if r.symbol.flags.is(Flags.Module) && capabilityKind(r.symbol) =>
-      Kind(r.symbol.fullName, r.symbol.name)
-    case other =>
-      fail(other, s"expected a capability kind, an umpire.CapabilityKind, not ${other.show}")
-
-  // A law, from the object that is one: its `apply` and what its `Law` arguments say.
-  private def lawOf(t: Term): LawRef =
-    val sym = plain(t).symbol
-    val cls = if sym.flags.is(Flags.Module) then sym.moduleClass else Symbol.noSymbol
-    val parent = cls.tree match
-      case c: ClassDef =>
-        c.parents.collectFirst { case p: Term if isNamed(p.tpe, "umpire.Law") => p }
-      case _ => None
-    val args = parent match
-      case Some(Apply(_, args)) => args
-      case _ => fail(t, s"${t.show} is no law: a law is an object that extends umpire.Law")
-    val byName = args.collect { case NamedArg(n, v) => n -> v }.toMap
-    def arg(name: String, i: Int) = byName.getOrElse(name, args(i))
-    val cites = call(plain(arg("cites", 0))) match
-      case Some((_, as)) if as.nonEmpty => as.last.flatMap(varargs).map(lawText)
-      case _ => fail(t, s"${sym.name} cites its server code as `Seq(...)`")
-    val apply = cls.declaredMethod("apply").flatMap(defs.get).collectFirst {
-      case d: DefDef if d.rhs.nonEmpty => d
-    }
-    val statement =
-      apply.getOrElse(fail(t, s"${sym.name} states no law: write it as the object's `apply`"))
-    // Left out, `parameters` is the constructor's default getter: no parameter is cited.
-    val parameters = byName.get("parameters").orElse(args.lift(3)).map(plain) match
-      case None                                                                     => Nil
-      case Some(p) if p.symbol.name.contains("$default$") || p.symbol.name == "Nil" => Nil
-      case Some(p)                                                                  =>
-        call(p) match
-          case Some((_, as)) if as.nonEmpty => as.last.flatMap(varargs).map(lawText)
-          case _ => fail(p, s"${sym.name} names its cited parameters as `Seq(...)`")
-    val takes = statement.termParamss.flatMap(_.params).drop(1).map(_.name)
-    for p <- parameters if !takes.contains(p) do
-      fail(
-        arg("parameters", 3),
-        s"${sym.name} names $p among its cited parameters, which its apply does not take: it " +
-          s"takes ${takes.mkString(", ")}"
-      )
-    LawRef(
-      sym.name,
-      statement,
-      cites,
-      lawText(arg("promises", 1)),
-      lawText(arg("doesNotPromise", 2)),
-      parameters,
-      t
-    )
-
   // The def a curried function value names: the def eta-expanded, each of its parameter clauses a
   // lambda of its own, and the innermost body calling the def with every parameter in order.
   private def etaDef(t: Term): Option[Symbol] =
@@ -1054,20 +629,26 @@ private[irgen] trait Capabilities:
           case TypeApply(fn, _) => applied(fn)
           case r: Ref           => Some(r.symbol -> Nil)
           case _                => None
-        applied(t).collect { case (f, args) if args == params && isFunction(f) => f }
+        applied(t).collect {
+          case (f, args) if isFunction(f) && defs.get(f).exists {
+                case d: DefDef =>
+                  val formal = d.termParamss.flatMap(_.params)
+                  val explicit = formal.zip(args).collect {
+                    case (p, a)
+                        if !p.symbol.flags.is(Flags.Given) &&
+                          !p.symbol.flags.is(Flags.Implicit) =>
+                      a
+                  }
+                  formal.size == args.size && explicit == params
+                case _ => false
+              } =>
+            f
+        }
     forwardedDef(t).orElse(unwound(t, Nil))
 
-  // A law's text: a string literal, or literals joined with `+`.
-  private def lawText(t: Term): String = plain(t) match
-    case Apply(Select(a, "+"), List(b)) => lawText(a) + lawText(b)
-    case other                          => constString(other)
-
-  // Refuses an overriding def whose parameters are not those of `replaced`, the def it overrides,
-  // named `name`: the model, then the capability's fields it takes, by name, in its clauses. A
-  // law's refusal says so, `the law <name>`.
+  // Refuses an overriding def whose parameters are not those of the capability Property it replaces.
   private def sameSignature(
       name: String,
-      law: Boolean,
       replaced: DefDef,
       sym: Symbol,
       at: Term
@@ -1080,57 +661,55 @@ private[irgen] trait Capabilities:
       )
       .filter(_.nonEmpty)
     def shown(clauses: List[List[String]]) = clauses.map(_.mkString("(", ", ", ")")).mkString
-    val (what, whose) =
-      if law then (s"the law $name", "law's") else (name, "capability Property's")
     defs.get(sym) match
       case Some(d: DefDef) if shape(d) == shape(replaced) => ()
       case Some(d: DefDef)                                =>
         fail(
           at,
-          s"${sym.name} takes ${shown(shape(d))}, and $what it overrides takes " +
-            s"${shown(shape(replaced))}: an overriding def takes the $whose parameters"
+          s"${sym.name} takes ${shown(shape(d))}, and $name it overrides takes " +
+            s"${shown(shape(replaced))}: an overriding def takes the capability Property's parameters"
         )
       case _ if throughOf.contains(sym) =>
         fail(
           at,
-          s"overriding $name names a def that takes the $whose parameters, not a member's " +
+          s"overriding $name names a def that takes the capability Property's parameters, not a member's " +
             s"def read with through: ${at.show}"
         )
       case _ => fail(at, s"${functionName(sym)} is not a def of the lifted sources")
 
-  // One law expanded on `machine`: its Property, folded from the law's `apply` (or the def that
-  // overrides it) with the model and the fields of the capabilities that bring it bound by name;
-  // a Scenario and a Query, `verify` over the free Scenario from the declared start under `bounds`,
-  // or for a law of one action class, `find` from the start through the capability's path field
-  // and that class; each named `<machine>.<law>`, the Query with its static combination total.
+  // One capability Property expanded on `machine`, with its parameters bound from the declared
+  // capabilities. It also receives a generated Scenario and bounded Query of the same name.
   private def expand(
       machine: String,
       model: Term,
       bounds: ir.Limits,
-      lawName: String,
+      propertyName: String,
       replaced: DefDef,
       bringing: Seq[Declared],
       overriding: Option[(Symbol, Term)],
       env: Map[Symbol, Decl]
-  ): List[(ValDef, Term, Option[Seq[String]])] =
+  ): Unit =
     val statement = overriding
       .flatMap((sym, _) => defs.get(sym))
       .collect { case d: DefDef => d }
       .getOrElse(replaced)
     val at = bringing.head.at
-    val name = s"$machine.$lawName"
+    val name = s"$machine.$propertyName"
     val params = fieldParameters(statement)
     val modelParam = params.headOption.getOrElse(
-      fail(at, s"$lawName takes no model: a law takes the model, then the capability's fields")
+      fail(
+        at,
+        s"$propertyName takes no model: a capability Property takes the model, then capability fields"
+      )
     )
     val bound = params.tail.map { p =>
       val holders = bringing.filter(_.fields.contains(p.name))
       holders match
-        case Seq(d) => (p, d.fields(p.name), d.cites.get(p.name))
+        case Seq(d) => (p, d.fields(p.name))
         case Seq()  =>
           fail(
             at,
-            s"$lawName takes ${p.name}, which no capability that brings it binds: " +
+            s"$propertyName takes ${p.name}, which no capability that brings it binds: " +
               bringing
                 .map(_.kind)
                 .mkString(", ") + s" bind ${bringing.flatMap(_.fields.keys).sorted.mkString(", ")}"
@@ -1138,7 +717,7 @@ private[irgen] trait Capabilities:
         case _ =>
           fail(
             at,
-            s"$lawName takes ${p.name}, which ${holders.map(_.kind).mkString(" and ")} both bind"
+            s"$propertyName takes ${p.name}, which ${holders.map(_.kind).mkString(" and ")} both bind"
           )
     }
     val projection = phasingOf(machine, at)
@@ -1148,13 +727,13 @@ private[irgen] trait Capabilities:
     val types = statement.leadingTypeParams.flatMap { tp =>
       bringing.flatMap(_.types.get(tp.name)).headOption.map(tp.symbol -> _)
     }.toMap
-    val bindings = (modelParam -> model) :: bound.map((p, a, _) => p -> a)
+    val bindings = (modelParam -> model) :: bound.map((p, a) => p -> a)
     generating(name)(bodyOf(statement, bindings, types, env, None, phasings)) match
       case Decl.Claim(ref) if ref.machine == machine && ref.name == name => ()
       case other                                                         =>
         fail(
           at,
-          s"$lawName states no Property of $machine but $other: a law returns its Property"
+          s"$propertyName states no Property of $machine but $other: a capability Property returns its Property"
         )
     val property = properties((machine, name))
     val start = declaredStart(machine, name, at)
@@ -1162,14 +741,17 @@ private[irgen] trait Capabilities:
       case None         => ir.Scenario(machine, name, Some(pos(at)), Some(start), free = true)
       case Some(class_) =>
         if machineNamed(machine).isEmpty then
-          fail(at, s"$lawName is asked of one class, which a composition's Scenario keys apart")
+          fail(
+            at,
+            s"$propertyName is asked of one class, which a composition's Scenario keys apart"
+          )
         val reach = bringing
           .flatMap(fieldOf(_, pathType))
           .headOption
           .getOrElse(
             fail(
               at,
-              s"$lawName is asked from a live state, and nothing that brings it declares the path to one"
+              s"$propertyName is asked from a live state, and nothing that brings it declares the path to one"
             )
           )
         ir.Scenario(
@@ -1187,34 +769,6 @@ private[irgen] trait Capabilities:
     if !scenario.free then
       for expected <- bringing.flatMap(fieldOf(_, expectationType)).headOption do
         expectedRun(name, expected)
-    bound
-
-  // The action class each action field of the capabilities names, keyed `<capability>.<field>` and
-  // spelled as tools/umpire/interp keys a class: the action's name, then each input's key, or a
-  // composition's class as its Scenarios key one. A bare action with inputs is its name alone.
-  private def actionsOf(
-      machine: String,
-      bringing: Seq[Declared],
-      env: Map[Symbol, Decl]
-  ): Seq[(String, String)] =
-    val named = for
-      d <- bringing
-      (field, tpe) <- d.fieldTypes.toSeq
-      if actionType(tpe)
-    yield
-      val a = d.fields(field)
-      val key =
-        if composed(a) then composedKey(a, machine, env, classes = true)
-        else
-          val cls = classOf(a)
-          actions(cls.action).name + cls.inputs.map("-" + valueKey(_)).mkString
-      s"${d.kind}.$field" -> key
-    named.sortBy(_._1)
-
-  // How the sidecar shows what a field is bound to: the def it names, or the value as written.
-  private def bindingText(a: Term): String = forwardedDef(a) match
-    case Some(sym) => functionName(sym)
-    case None      => plain(a).show
 
   // The total a Query that asserts none takes: its static combination count, which Go holds it to as
   // it holds an author's. A Query whose states the lifter cannot count, such as one of a state that

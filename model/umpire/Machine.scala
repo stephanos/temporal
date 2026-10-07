@@ -45,8 +45,7 @@ def choose[S, O, F](
 trait Model:
   def name: String
 
-// The name an object form takes from its object: `object OrderProduct` is `orderProduct`. A
-// law is named the same way (umpire.Law), and the lifter reads the same name from the source.
+// The name an object form takes from its object: `object OrderProduct` is `orderProduct`.
 private[umpire] def objectName(of: AnyRef): String =
   val n = of.getClass.getSimpleName.stripSuffix("$")
   n.take(1).toLowerCase + n.drop(1)
@@ -79,21 +78,6 @@ trait Declares[S] extends Model:
   def property(name: String): PropertyBuilder[S, Outcome, Fact] = PropertyBuilder(name, this, None)
   def scenario: ScenarioBuilder[S] = ScenarioBuilder("", this, None)
   def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, this, None)
-
-  // Declares this machine's or composition's capabilities, whose generated `verify` Queries run under
-  // `limits`: `capabilities(limits = three)(...)`, which is `capabilities(this, limits)(...)`. A
-  // machine or composition object declares its own in `object implements extends Implements(...)`;
-  // this form serves a function that declares them for several designs.
-  def capabilities(limits: Limits)(declared: CapabilityOf[S, Outcome, Fact]*)(using
-      Catalog
-  ): LawDeclaration[S] = umpire.capabilities(this, limits)(declared*)
-
-  // Declares the capabilities of another machine or composition `m`, as the top-level
-  // `capabilities(m, limits)(...)` does, from inside an object form, whose own `capabilities` hides
-  // that one.
-  def capabilities[T](m: Declares[T], limits: Limits)(
-      declared: CapabilityOf[T, m.Outcome, m.Fact]*
-  )(using Catalog): LawDeclaration[T] = umpire.capabilities(m, limits)(declared*)
 
 // What a derivation binds in its source's place: one action's step function, `action ~> f`, or the
 // rules of one action, `on(action) { where(g) ~> effect }` (model/umpire/Syntax.scala).
@@ -210,7 +194,7 @@ object Inherited extends Inherited.Unphased:
         _ => _ => throw IllegalStateException("this derivation declares no phased stopping point")
       )
 
-// What an `implements` or `capabilities` section declares the capabilities of: the machine or
+// What a `capabilities` section declares the capabilities of: the machine or
 // composition whose object it sits in, with the outcomes and facts its steps answer and record.
 final class Declaring[S, O, F] private[umpire] (val model: Declares[S])
 
@@ -327,13 +311,13 @@ private[umpire] def writtenAction(code: String): String =
 // where it declares them, `entity` and `evidence`; then its sections, objects named after what they
 // hold, in this order: `states`, its vocabulary (the named sets and projections of its states);
 // `refinement`, where it refines another machine (umpire.Refinement); `effects`; `monitors`;
-// `rules`, which it must declare; `properties`; `implements` or `capabilities`, its capabilities
-// (umpire.Implements, umpire.Capabilities); and `queries`. Its `entity` is the one entity its
+// `rules`, which it must declare; `properties`; `capabilities`, its capabilities
+// `umpire.Capabilities`; and `queries`. Its `entity` is the one entity its
 // actions are `on`, or create, unless it names another. The IR generator (model/irgen) reads them
 // from the source, and names each of its declarations after where it is declared: its package and
 // the objects it sits in. At run time a machine is its init, its end and the step function each
 // action's rules lower to: `rules` is the one section the machine itself reads, through the member
-// it implements, so no section is found by reflection, and a section object, which initializes on
+// it mixes in, so no section is found by reflection, and a section object, which initializes on
 // its first use, is never read while the machine initializes.
 //
 // A member of `states` or `effects` is a def of the state, `def held(s: OrderState) =
@@ -364,7 +348,7 @@ abstract class Machine[S, O, F](using
   // The owner its `rules` and other sections read its types from.
   protected given machineOwner: Owner[S, O, F] = Owner(this)
 
-  // What its `implements` or `capabilities` declares the capabilities of: this machine.
+  // What its `capabilities` section declares the capabilities of: this machine.
   protected given declaring: Declaring[S, O, F] = Declaring(this)
 
   // What each action is bound to, in the order its first rule names it.
@@ -452,7 +436,7 @@ abstract class Machine[S, O, F](using
 // `object LateRecord extends Derived(OrderRecord.rebind(...))`, named after the object. The
 // derivation is an expression of the core operations `rebind`, `extend`, `restrict`, `refining`,
 // `assuming` and `unmonitored`; the object adds only the sections that are its own, `states`,
-// `properties`, `implements` and `queries`, and reuses its source's effects by name. It mixes in no
+// `properties`, `capabilities` and `queries`, and reuses its source's effects by name. It mixes in no
 // `Phased` of its own: its sections read its source's phase projection, with its phase type.
 //
 // Its phase type `P` is its source's, read off the derivation's static type, `Nothing` where the

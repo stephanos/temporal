@@ -5,7 +5,7 @@ import umpire.{Capabilities, CapabilityKind, CapabilityOf, Machine, Property}
 import temporal.features.activity.standalone.{product, system}
 import temporal.features.nexus.standalone.system.NexusSystem
 
-class CatalogTest extends munit.FunSuite:
+class CapabilityPropertiesTest extends munit.FunSuite:
   final case class Brought(name: String, by: Set[CapabilityKind])
   final case class Declared(machine: String, state: String, capabilities: Set[String])
 

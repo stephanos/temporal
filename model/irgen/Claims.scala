@@ -252,7 +252,7 @@ private[irgen] trait Claims:
     case Apply(TypeApply(Select(Ident("Vector" | "List"), "apply"), _), List(items)) =>
       Decl.Items(varargs(items).map(fold(_, env)))
 
-    // A law a capability declaration expands names its Property `<machine>.<law>`, whatever its
+    // A capability Property expansion names its Property `<machine>.<property>`, whatever its
     // body writes.
     case Apply(Select(m, "property"), List(name)) if declared(t) =>
       val machine = modelName(fold(m, env), m)
@@ -292,7 +292,7 @@ private[irgen] trait Claims:
     // `once(...).keeps(...)`, `never(...)`, `never(...).from(...)`, `stays(...)` and
     // `stays(...).unless(...)`, as the Properties they stand for.
     case _ if patterned(t) => pattern(t, env, named)
-    // `capabilities(m, limits)(…)`, with its `except` and `overriding`: the laws the catalog brings.
+    // `capabilities.claim(property)`: the Property a capabilities section generated.
     case _ if capable(t) => capabilitiesOf(t, env)
 
     case Apply(Select(m, "scenario"), List(name)) if declared(t) =>
@@ -395,7 +395,6 @@ private[irgen] trait Claims:
         sym,
         valDef(sym, r, "a declaration") match
           case _ if objectForm(sym)         => Decl.Model(modelOfObject(moduleClassOf(sym), r))
-          case _ if implementsObject(sym)   => implementsOf(sym, r)
           case _ if capabilitiesObject(sym) => capabilitiesSectionOf(sym, r)
           case d if isNamed(d.tpt.tpe, "umpire.Machine")     => Decl.Model(machineOf(sym, r).name)
           case d if isNamed(d.tpt.tpe, "umpire.Composition") =>
@@ -493,7 +492,7 @@ private[irgen] trait Claims:
   // function-valued argument to the def of the lifted sources it names, and each type parameter to
   // the type the call applies it to, so a claim written once over `Declares[S]` and its predicates
   // reads the machine's own. A declaration the body ends in takes its name from `named`, the val
-  // that declares the call, as a law's instance does: `val terminalStays = terminalStatesAreFinal(…)`.
+  // that declares the call.
   def declaring(d: DefDef, t: Term, env: Map[Symbol, Decl], named: Option[Symbol]): Decl =
     def parts(t: Term): (List[TypeTree], List[Term]) = t match
       case Apply(fn, args) =>
@@ -550,7 +549,7 @@ private[irgen] trait Claims:
   // The value argument `a` of the parameter `p` of `d`, folded: an integer parameter, such as the
   // total of a Query the def declares, takes a literal the author computed, or a parameter of the
   // declaring def around the call bound to one.
-  // A declaring def's name as written: a law's `apply` by its object's.
+  // A declaring def's name as written: an `apply` by its object's.
   def declaringName(d: DefDef): String =
     val owner = d.symbol.maybeOwner
     if d.name == "apply" && owner.flags.is(Flags.Module) then owner.name.stripSuffix("$")

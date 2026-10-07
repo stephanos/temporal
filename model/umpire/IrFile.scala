@@ -13,8 +13,8 @@ import umpire.realize.Realization
 //
 // The IR generator (model/irgen) reads every such val and writes each file, in one run, from its
 // roots and everything they reach, as it lifts the roots named on its command line. A root is a
-// machine or composition object, a Query, a list of Queries, a progress claim, a realization, an
-// `implements` or `capabilities` section, which declares its object's capabilities, or a `queries`
+// machine or composition object, a Query, a list of Queries, a progress claim, a realization, a
+// `capabilities` section, which declares its object's capabilities, or a `queries`
 // section, which roots every Query it declares; the generator refuses anything else. A declaration
 // may be a root of several files and is lifted into each; one no file names stays out of model/ir,
 // so a design can be kept out of the checked files. The file's `source` lists its roots' fully
@@ -44,8 +44,6 @@ final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot]):
       case qs: Seq[?]               => qs.foreach { case q: Query => query(q); case _ => () }
       case p: Progress[?]           => model(p.machine)
       case r: Realization           => model(r.machine)
-      case c: LawDeclaration[?]     => model(c.model)
-      case i: Implements[?, ?, ?]   => model(i.capabilities.model)
       case c: Capabilities[?, ?, ?] => model(c.model)
       case section: AnyRef          => IrFile.queriesOf(section).foreach(root)
     roots.foreach(root)
@@ -71,8 +69,8 @@ object IrFile:
       .map(_.invoke(section))
 
 // What an IR file names as a root: a machine, a composition, a Query, a list of Queries, a progress
-// claim, a realization, a capability declaration with the laws it brings, an `implements` or
-// `capabilities` section, or a `queries` section. A section is no class of the framework, so the
+// claim, a realization, a `capabilities` section, or a `queries` section. A section is no class of
+// the framework, so the
 // type admits any object, and the IR generator refuses one that is none of these.
 type IrRoot = AnyRef
 

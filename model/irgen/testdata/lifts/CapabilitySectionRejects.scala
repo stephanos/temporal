@@ -2,8 +2,7 @@
 // that reads no field of its own capability, one taking a parameter no capability binds, one whose
 // parameter two declared capabilities both bind, a kind declared twice, a waiver of a Property
 // no declared capability brings, a waiver with an empty reason, a machine whose brought Property no
-// `queries` section bounds, a bound override of a Property not brought and of one waived, and a
-// machine declaring its capabilities in both an `implements` and a `capabilities` section.
+// `queries` section bounds, and a bound override of a Property not brought and of one waived.
 package fixture.capabilitysectionrejects
 
 import umpire.*
@@ -126,15 +125,3 @@ object OverrideWaived extends Machine[TaskState, Answer, Note]:
     except(Sealable.sealedIsRefused, because = "a fixture's waiver")
   object queries:
     capabilities.bound(three, Sealable.sealedIsRefused -> three)
-
-// No law is brought: the catalog is empty, and the machine declares its capabilities twice.
-given Catalog = Catalog(Vector())
-
-object BothForms extends Machine[TaskState, Answer, Note]:
-  val init = TaskState(Phase.queued)
-  def end(t: State) = Tasks.over(t)
-  object rules extends Bindings(take ~> Tasks.take)
-  object implements
-      extends Implements(limits = three)(Takeable(take = take, working = Tasks.working))
-  object capabilities extends Capabilities:
-    val takeable: Capability = Takeable(take = take, working = Tasks.working)

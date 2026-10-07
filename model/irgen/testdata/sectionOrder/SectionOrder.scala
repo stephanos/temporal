@@ -36,7 +36,7 @@ object Holder:
   object spare:
     val bell = timer
 
-object implements
+object capabilities
 
 object Switch extends Machine[Lamp, Outcome, Nothing], Phased[Lamp, Boolean](_.lit):
   val init = Lamp(false)
