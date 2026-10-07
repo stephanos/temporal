@@ -1,0 +1,98 @@
+{
+  "base": "0f0ad9b35451056c85788efd12dbda8ec2bdf60f",
+  "purpose": "Current integrated portable maintenance regression after independently reviewed fn113 source checkpoints. Not native/full/formal acceptance.",
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "checks": [
+    {
+      "name": "adapterregen-and-pinimpact",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -skip '^Test(FixtureBumpMatchesBuildRejections|SameVersionWithChangedSum|ReplacedModules)$' ./upgrade/adapterregen ./upgrade/pinimpact",
+      "log": ".flow/tmp/maintenance-integrated-0f0ad9b354/adapterregen-and-pinimpact.jsonl",
+      "exit_code": 0,
+      "timing": "Bash time -p in log",
+      "counts": {
+        "top_level_tests": 47,
+        "passing_records": 116,
+        "terminal_leaves": 103,
+        "failures": 0,
+        "skips": [],
+        "package_passes": [
+          "go.temporal.io/server/tools/gomad3/upgrade/pinimpact",
+          "go.temporal.io/server/tools/gomad3/upgrade/adapterregen"
+        ]
+      },
+      "shell_real_seconds": 12.78,
+      "log_sha256": "846667dcb2c3b8288ba855efc477b76b9b6cb20d5a8d2dc0aca3d64b1e3e83c8"
+    },
+    {
+      "name": "cli-packs-and-authoring",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^Test(RunPinImpact|RunCompatibilityPack|CompatibilityPack|CompatibilityPath|SavedReport|Refresh|CheckedInWorkingDirectories|CheckWorkingDirectories|Generate|Regenerate|Discover|RenderReview|Approval|Decode|Validate|RequestAdmission|Governance|HostPacks|StaleProfile|PackAdmission|Select|Verify|External|LoadPack|Evaluate|RunAdapterRegenerateInputStatuses|RunBuildKey|RunRejects|RunPatch|RunScript|RunToolchainBuildRejects|RunTestRejects|Bootstrap|SoakRejects|DiagnosticDiff|GitFile)' ./cmd/gomadtool ./internal/compatibilitypack/...",
+      "log": ".flow/tmp/maintenance-integrated-0f0ad9b354/cli-packs-and-authoring.jsonl",
+      "exit_code": 0,
+      "timing": "Bash time -p in log",
+      "counts": {
+        "top_level_tests": 83,
+        "passing_records": 477,
+        "terminal_leaves": 443,
+        "failures": 0,
+        "skips": [
+          {
+            "Package": "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+            "Test": "TestHostPacksBindCurrentProfile"
+          }
+        ],
+        "package_passes": [
+          "go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring",
+          "go.temporal.io/server/tools/gomad3/internal/compatibilitypack",
+          "go.temporal.io/server/tools/gomad3/cmd/gomadtool"
+        ]
+      },
+      "shell_real_seconds": 1,
+      "log_sha256": "fbb5afbc035e19f6e65595787a43d86707f280fa034953f2f8406adafc046f42"
+    },
+    {
+      "name": "adapter-verifier-cleanup",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^TestVerifyRegisteredAdapterScratchCleanup$' ./deterministicio",
+      "log": ".flow/tmp/maintenance-integrated-0f0ad9b354/adapter-verifier-cleanup.jsonl",
+      "exit_code": 0,
+      "timing": "Bash time -p in log",
+      "counts": {
+        "top_level_tests": 1,
+        "passing_records": 11,
+        "terminal_leaves": 8,
+        "failures": 0,
+        "skips": [],
+        "package_passes": [
+          "go.temporal.io/server/tools/gomad3/deterministicio"
+        ]
+      },
+      "shell_real_seconds": 1.33,
+      "log_sha256": "861a5f08e50b575dba56f2a487a75b124f673a46782731fdabd034521137a0ab"
+    }
+  ],
+  "counts": {
+    "passing_top_level_tests": 131,
+    "passing_test_records": 604,
+    "passing_terminal_leaves": 554,
+    "failed_test_records": 0,
+    "runtime_skips": 1,
+    "package_passes": 6
+  },
+  "limits": {
+    "excluded_native_comparators": [
+      "TestFixtureBumpMatchesBuildRejections",
+      "TestSameVersionWithChangedSum",
+      "TestReplacedModules"
+    ],
+    "CLI_selection": "Explicit -run family regex retained in command; not the whole CLI test package. No patched-driver fixture was selected.",
+    "deterministicio_selection": "Only the public scratch cleanup matrix; not the full deterministicio test suite.",
+    "host_profile_skip": "TestHostPacksBindCurrentProfile: no deterministic profile for linux/arm64",
+    "native_Darwin_full_default_functional_affected_consumer_formal": "open wherever unproved",
+    "Linux": "deferred and unverified under fn128",
+    "task_done": false,
+    "formal_ship": false
+  },
+  "stability": "HEAD remained 0f0ad9b35451056c85788efd12dbda8ec2bdf60f and git status retained only two pre-existing unrelated untracked .turbo files throughout the batch.",
+  "setup_notes": [
+    "Artifact lookup initially used nonexistent observations.json/evidence.json under refresh-output-progress; read-only failure, corrected by rg --files to actual checks.json. No check result came from failed lookup."
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "purpose": "Fresh read-only fn113.1 R2 source-progress review; no formal SHIP or task completion",
+  "base_commit": "0f0ad9b35451056c85788efd12dbda8ec2bdf60f",
+  "reviewer": {"model": "gpt-6.1-sol", "effort": "high", "same_family_as_writer": true},
+  "source_sha256": {
+    "tools/gomad3/upgrade/pinimpact/pinimpact.go": "1074264ad34cf64d31b018872fbc5f5af5a25d3e763d4e1faa5c40dc8baba7b5",
+    "tools/gomad3/upgrade/pinimpact/rule_sums_test.go": "cefcc8cd089e1ceecc7df233bb54e25e484f04f65ef151f7a3d68bee0fec33b5",
+    "tools/gomad3/cmd/gomadtool/pin_impact_test.go": "d1d4f8ac8cdbdad5ce848980079171f8a8eef56a49749489caf64b7b70ddfb41",
+    "tools/gomad3/internal/compatibilitypack/packs/golang-x-sys-v047-darwin-arm64.json": "ca263b36199b7159742f513e709d1d354171346c43d00d00410737a8f8221c99"
+  },
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "independent_checks": [
+    {
+      "stage": "GREEN",
+      "command": "bash -c \"time -p go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestRunPinImpactMissingPackRuleSumIsUnknown|TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason|TestRunPinImpactMissingPackSumIsUnknown)$' ./upgrade/pinimpact ./cmd/gomadtool\"",
+      "exit": 0,
+      "timer_footer": "real 4.18\nuser 2.79\nsys 1.08",
+      "top_level_tests": 9,
+      "passing_test_and_subtest_records": 89,
+      "terminal_leaves": 70,
+      "failures": 0,
+      "skips": 0,
+      "log": ".flow/tmp/pack-rule-sum-progress/reviewer-focused-green.log",
+      "log_sha256": "82356f82b8de29ca920ae2cc801cdc5dde6b35d9fcdcc3cac7239bb06d2908cc"
+    },
+    {
+      "stage": "exact-base production overlay RED",
+      "command": "bash -c \"time -p go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/pack-rule-sum-progress/base-overlay.json -run '^(TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestRunPinImpactMissingPackRuleSumIsUnknown|TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason|TestRunPinImpactMissingPackSumIsUnknown)$' ./upgrade/pinimpact ./cmd/gomadtool\"",
+      "exit": 1,
+      "timer_footer": "real 3.98\nuser 2.57\nsys 0.67",
+      "passing_top_level_tests": 7,
+      "passing_test_and_subtest_records": 79,
+      "failed_top_level_tests": 2,
+      "failed_subcases": 8,
+      "skips": 0,
+      "log": ".flow/tmp/pack-rule-sum-progress/reviewer-base-red.log",
+      "log_sha256": "b9bd75f3d0ade9960a41648a694d2c290fca8497d4b4a0d52bf0545e71a9644f",
+      "overlay_maps_only_production_file": true,
+      "base_production_sha256": "f948c266c891ce0a04af14b109b98503df6518c422877fbcb1e3e9c0472c154e"
+    },
+    {
+      "stage": "control-byte parity",
+      "command": "diff <(jq -Rr 'fromjson? | select(.Output != null and (.Output | contains(\"resolved canonical=\"))) | .Output' .flow/tmp/pack-rule-sum-progress/reviewer-base-red.log) <(jq -Rr 'fromjson? | select(.Output != null and (.Output | contains(\"resolved canonical=\"))) | .Output' .flow/tmp/pack-rule-sum-progress/reviewer-focused-green.log)",
+      "exit": 0,
+      "canonical_and_human_pairs": 43,
+      "jq_output_sha256": "c29b55f70d4d0c616a001ca618dbc0de2ecc5a7ebdccd35af2432c3478d4d1c6"
+    }
+  ],
+  "setup_failures": [
+    {
+      "attempt": "Same GREEN selection using /usr/bin/time -p instead of bash time",
+      "exit": 127,
+      "reason": "env: '/usr/bin/time': No such file or directory",
+      "go_executed": false,
+      "behavioral_red": false,
+      "log": ".flow/tmp/pack-rule-sum-progress/reviewer-focused.log",
+      "log_sha256": "7017714f7f6ecec227f9ba6515378a4cefc928bdbf06322729aa68291f113221"
+    }
+  ],
+  "task_preservation_checks": {
+    "pre_final_Flow_snapshot": "Original Acceptance and complete historical Done summary/Evidence tail compared byte-identical to base during source review",
+    "final_conductor_updates": "Progress added before Done; new Blocked reason appended before Evidence",
+    "receipt_only_followup": {
+      "original_Acceptance_byte_identical": true,
+      "complete_historical_Done_payload_byte_identical_prefix": true,
+      "original_Evidence_byte_identical": true,
+      "actual_task_state": "blocked",
+      "production_tests_unchanged": true,
+      "additional_Go_or_source_review": false
+    }
+  },
+  "findings": [],
+  "conductor_standards_evidence": "conductor-proof.json; expanded lint remains red at 129 unchanged diagnostics, pinimpact findings zero, fast changed-line lint passes",
+  "excluded_and_unproved_native_comparators": ["TestFixtureBumpMatchesBuildRejections", "TestSameVersionWithChangedSum", "TestReplacedModules"],
+  "native_Darwin_full_formal_acceptance": "open",
+  "Linux": "deferred and unverified under fn128",
+  "formal_ship": false,
+  "task_done": false,
+  "source_tests_index_HEAD_Flow_mutated_by_reviewer": false,
+  "go_lane": "free"
+}

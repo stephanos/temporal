@@ -291,6 +291,11 @@ func (evaluation *evaluation) evaluatePacks(packs []compatibility.ValidatedPack,
 				evaluation.record(pin)
 				continue
 			}
+			if candidateActivation.ok && match.unknown {
+				pin.Status, pin.Reason = StatusUnknown, match.reason
+				evaluation.record(pin)
+				continue
+			}
 			if !baselineSelected || !evaluation.packModule(evaluation.baseline, rule.Module).ok {
 				pin.Status = StatusNotSelected
 				// A pack whose activation modules the candidate still requires,

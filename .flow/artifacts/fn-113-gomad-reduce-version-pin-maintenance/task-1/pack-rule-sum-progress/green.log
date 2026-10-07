@@ -1,0 +1,13 @@
+--- PASS: TestMissingPackActivationSumIsUnknown (0.03s)
+--- PASS: TestPackActivationSumControls (0.04s)
+--- PASS: TestKnownPackActivationExclusionWinsOverMissingSum (0.26s)
+--- PASS: TestPackRuleExclusionWinsOverUnknownActivation (0.02s)
+--- PASS: TestPackActivationGraphUnknownRetainsReason (0.01s)
+--- PASS: TestMissingPackRuleSumIsUnknown (0.07s)
+--- PASS: TestPackRuleSumControls (0.19s)
+ok  	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.617s
+--- PASS: TestRunPinImpactMissingPackRuleSumIsUnknown (0.06s)
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.063s
+real 0.76
+user 1.14
+sys 0.30

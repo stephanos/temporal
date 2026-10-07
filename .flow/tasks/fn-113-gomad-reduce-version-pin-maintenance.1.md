@@ -64,6 +64,16 @@ Validated packs may bind a rule module separately from their activation modules.
 
 Run focused and portable package tests with test_dep, unfiltered scoped lint, vet/errortype, check-only validate, relevant architecture checks and mandatory make lint-code-fast with fixes disabled. Retain RED/GREEN, final source-bound commands and a fresh same-family source-progress review, then commit verified progress separately. Preserve every original Acceptance, Done summary and Evidence entry.
 
+## Source correction: missing rule-only pack sums
+
+fn-113 R2 requires unresolved pin identities to report unknown and count as invalidated. The shipped golang-x-sys-v047-darwin-arm64 pack activates on x/sys but has an x/term rule. An otherwise exact activation with the rule's zip sum missing in both baseline and candidate currently reaches the baseline filter and hides that unknown as not-selected.
+
+**Touches:** [tools/gomad3/upgrade/pinimpact/pinimpact.go, tools/gomad3/upgrade/pinimpact/*_test.go, tools/gomad3/cmd/gomadtool/pin_impact_test.go, .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-rule-sum-progress/**]
+
+Retain actual RED through public Evaluate/Encode/Render and the real CLI offline resolver before production edits. Use the unchanged checked-in x/sys pack and real immutable module files. Omit only x/term's zip sum, retaining its /go.mod checksum and the exact x/sys activation identity. Candidate rule uncertainty with known matching activation must be actionable independent of baseline rule selection. Keep known activation exclusions ahead of that uncertainty, existing activation-unknown and graph-reason precedence, baseline validation, exact resolved report bytes, rule absence/version/sum/replacement exclusions, repaired candidates, input snapshots and status mappings.
+
+Repair only evaluation ordering and existing reason propagation if the premise reproduces. Add no dependency, platform rewrite, schema, policy, pin, generated-input or native-guard change. Run focused and portable package controls with test_dep, scoped lint/errortype/vet, check-only validation, relevant architecture checks and make lint-code-fast with fixes disabled. Retain compact source-bound receipts and a fresh same-family source-progress review; commit verified progress separately. This does not complete original native comparator, Darwin/full or formal acceptance. Linux remains deferred under fn128. Preserve original Acceptance, historical Done summary and Evidence.
+
 ## Acceptance
 
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
@@ -121,6 +131,19 @@ stage: worker - ran (model: gpt-6.1-sol at high)
 stage: impl-review - skipped(policy: original task Quick/native/full acceptance remains red or unavailable; source-progress review grants no formal SHIP)
 stage: plan-sync - skipped(empty: no completed task; planSync.enabled=false)
 
+## Source progress - missing rule-only pack sums (2026-10-07)
+
+Pin-impact now keeps an unresolved x/term rule visible when the shipped x/sys pack's activation matches, even if the baseline rule sum is missing, absent or bumped. The five-line ordering guard returns the existing module_sum_missing reason and makes the real CLI return status 1 in text and JSON. Actual pre-edit and exact-base-overlay RED reproduce eight failing subcases; the same frozen tests pass after the guard. Forty-three canonical/human control pairs retain their base bytes, including known exclusions and repaired candidates.
+
+Portable pinimpact and all RunPinImpact CLI tests pass 32 top-level tests and 131 test/subtest records with zero failures or skips. The conductor and fresh same-family Codex reviewer each independently pass nine focused tests, 89 records and 70 leaves. Expanded scoped lint remains red at 129 identical baseline/final diagnostic blocks; pinimpact has zero scoped findings. Mandatory fast lint passes changed lines while filtering 302 configured findings. Vet, errortype, check-only validation, four architecture checks, formatting, diff and Flow validation pass. The reviewer's timer setup failure and the conductor's corrected task-admission/read-only lookup errors remain disclosed and earn no behavioral proof.
+
+See [handover](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-rule-sum-progress/handover.md), [conductor proof](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-rule-sum-progress/conductor-proof.json) and [source review](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-rule-sum-progress/review.md). Earlier receipts remain historical source progress. Original native comparator, Darwin/full and formal acceptance remains open. Linux remains deferred and unverified under fn128. Original Acceptance, historical Done summary and Evidence retain their meaning.
+
+stage: worker - ran (model: gpt-6.1-sol at high)
+stage: impl-review - skipped(policy: original task Quick/native/full acceptance remains red or unavailable; source-progress review grants no formal SHIP)
+stage: plan-sync - skipped(empty: no completed task; planSync.enabled=false)
+Tracker sync: n/a (bridge inactive)
+
 ## Done summary
 The retained rebased-source baseline measures1044 runtime patch lines in20 files,61 overlay files/18437 lines,15 adapters/135 SHA256 anchors,12 packs/54 rules/19 module-version pins,131 interceptions/132 fingerprints, and25 clock references. MILESTONES maintenance counts are corrected; baseline.json includes the historical fn-110 baseline, source hashes and per-bump commands/hand edits.
 
@@ -151,6 +174,14 @@ Portable selection passes 29 top-level tests and 82 test/subtest records, with z
 Evidence is retained under .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-sum-unknown-progress/. This checkpoint preserves the earlier explicit-root path correction and its evidence. The fresh source-progress review is neither formal SHIP nor task completion.
 
 Original TestFixtureBumpMatchesBuildRejections, TestSameVersionWithChangedSum and TestReplacedModules remain unchanged and unproved, along with required native Darwin/full/formal gates. The developmental linux/arm64 host and absent patched driver cannot supply them. Do not repeat unchanged unsupported-host failures. Linux remains deferred and unverified under fn128 and does not block this source correction. Historical acceptance receipts remain historical evidence, not current-candidate native proof.
+
+Blocked:
+The rule-only checksum correction has verified source progress. Candidate rule uncertainty with a known matching activation is now unknown and actionable independently of baseline selection. The shipped x/sys pack and real offline CLI prove the missing x/term sum changes status 0 to status 1 without changing either input module. Frozen exact-base RED reproduces eight failing subcases; final GREEN and 43 canonical/human control pairs preserve known exclusions and repaired-candidate bytes.
+
+Portable selection passes 32 top-level tests and 131 records with zero failures or skips. Conductor and independent fresh same-family Codex review each pass nine focused tests, 89 records and 70 leaves. Scoped pinimpact lint stays clean; expanded CLI/pinimpact lint remains red at 129 byte-identical diagnostic blocks, and full lint remains red with 302 configured findings. Mandatory fast lint passes changed lines. Vet, errortype, check-only validation, architecture, formatting, diff and Flow checks pass. Setup mistakes are disclosed separately.
+
+Evidence is under .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/pack-rule-sum-progress/. Source-progress review is neither formal SHIP nor task completion. Original TestFixtureBumpMatchesBuildRejections, TestSameVersionWithChangedSum and TestReplacedModules remain unchanged and unproved. Required native Darwin/full/formal gates remain open. Do not repeat unchanged unsupported-host or missing-driver checks. Linux remains deferred and unverified under fn128 and does not block this source correction. Historical receipts remain historical, not current-candidate native proof.
+
 ## Evidence
 - Commits:
 - Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./upgrade/..., make -C tools/gomad3 validate, gomadtool pin-impact --format json on current rebased root, go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/...

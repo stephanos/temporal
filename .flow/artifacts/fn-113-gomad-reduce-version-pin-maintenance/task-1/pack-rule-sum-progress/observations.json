@@ -1,0 +1,153 @@
+{
+  "schema": "gomad3.source-progress-observations/v1",
+  "task": "fn-113.1",
+  "date": "2026-10-07",
+  "purpose": "Bounded R2 missing rule-only pack checksum correction; no task completion or SHIP claim.",
+  "base_commit": "0f0ad9b35451056c85788efd12dbda8ec2bdf60f",
+  "writer": {
+    "model": "gpt-6.1-sol",
+    "effort": "high"
+  },
+  "environment": {
+    "PATH_prefix": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOWORK": "off",
+    "GOENV": "off"
+  },
+  "source_sha256": {
+    "tools/gomad3/upgrade/pinimpact/pinimpact.go": "1074264ad34cf64d31b018872fbc5f5af5a25d3e763d4e1faa5c40dc8baba7b5",
+    "tools/gomad3/upgrade/pinimpact/rule_sums_test.go": "cefcc8cd089e1ceecc7df233bb54e25e484f04f65ef151f7a3d68bee0fec33b5",
+    "tools/gomad3/cmd/gomadtool/pin_impact_test.go": "d1d4f8ac8cdbdad5ce848980079171f8a8eef56a49749489caf64b7b70ddfb41",
+    "tools/gomad3/internal/compatibilitypack/packs/golang-x-sys-v047-darwin-arm64.json": "ca263b36199b7159742f513e709d1d354171346c43d00d00410737a8f8221c99"
+  },
+  "base_production_sha256": "f948c266c891ce0a04af14b109b98503df6518c422877fbcb1e3e9c0472c154e",
+  "commands": [
+    {
+      "stage": "actual RED before production edit",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./upgrade/pinimpact ./cmd/gomadtool -run '^(TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestRunPinImpactMissingPackRuleSumIsUnknown)$'",
+      "exit": 1,
+      "seconds": {
+        "real": 0.6,
+        "user": 1.59,
+        "sys": 0.63
+      },
+      "source": "base production and final frozen tests",
+      "log": ".flow/tmp/pack-rule-sum-progress/red.log",
+      "log_sha256": "dc424bf3b456debf7858e54523bb43d777237d83e1d2a06e9a50500b15e96551"
+    },
+    {
+      "stage": "initial focused GREEN",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./upgrade/pinimpact ./cmd/gomadtool -run '^(TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestRunPinImpactMissingPackRuleSumIsUnknown|TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason)$'",
+      "exit": 0,
+      "seconds": {
+        "real": 0.99,
+        "user": 2.43,
+        "sys": 0.65
+      },
+      "log": ".flow/tmp/pack-rule-sum-progress/green-focused.log",
+      "log_sha256": "2687c12f061c2e0d38437b48a6be505b61fba73fead9e40ebbae52aea1a6ba78"
+    },
+    {
+      "stage": "frozen tests RED against exact base production overlay",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/pack-rule-sum-progress/base-overlay.json ./upgrade/pinimpact ./cmd/gomadtool -run '^(TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestRunPinImpactMissingPackRuleSumIsUnknown|TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason)$'",
+      "exit": 1,
+      "seconds": {
+        "real": 0.78,
+        "user": 1.12,
+        "sys": 0.33
+      },
+      "expected_failing_top_level": 2,
+      "expected_failing_subcases": 8,
+      "log": ".flow/tmp/pack-rule-sum-progress/red-frozen-base.log",
+      "log_sha256": "e53207233d9c280066620e56e02306234190d59ed0f73424b1e080bdd7f7a0bc",
+      "excerpt": "red.log",
+      "excerpt_sha256": "32bc9f81586073422f49c7650f0f755727fe1e82c462acdd5bb426edb62051c0"
+    },
+    {
+      "stage": "frozen final GREEN",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./upgrade/pinimpact ./cmd/gomadtool -run '^(TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestRunPinImpactMissingPackRuleSumIsUnknown|TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason)$'",
+      "exit": 0,
+      "seconds": {
+        "real": 0.76,
+        "user": 1.14,
+        "sys": 0.3
+      },
+      "top_level_tests": 8,
+      "passing_test_and_subtest_records": 88,
+      "failures": 0,
+      "skips": 0,
+      "log": ".flow/tmp/pack-rule-sum-progress/green-frozen.log",
+      "log_sha256": "275cbe48a28f1244a46a66c438dcc3ffd4bf3f1cce8501aec6a84a1488c6072a",
+      "excerpt": "green.log",
+      "excerpt_sha256": "fba5a11cf77c0c2239d64ce462500c5a7db40303180c4ba222250a937ae525c7"
+    },
+    {
+      "stage": "portable pinimpact",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./upgrade/pinimpact -skip '^(TestFixtureBumpMatchesBuildRejections|TestSameVersionWithChangedSum|TestReplacedModules)$'",
+      "exit": 0,
+      "seconds": {
+        "real": 0.98,
+        "user": 1.07,
+        "sys": 0.2
+      },
+      "top_level_tests": 24,
+      "passing_test_and_subtest_records": 117,
+      "failures": 0,
+      "skips": 0,
+      "log": ".flow/tmp/pack-rule-sum-progress/green-portable-pinimpact.jsonl",
+      "log_sha256": "e6d6aa5435b1460cc5042f4b37ad8adfc8c4150ce3e7a4f73affd51c07663e66"
+    },
+    {
+      "stage": "all pinimpact CLI",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool -run '^TestRunPinImpact'",
+      "exit": 0,
+      "seconds": {
+        "real": 0.47,
+        "user": 0.53,
+        "sys": 0.24
+      },
+      "top_level_tests": 8,
+      "passing_test_and_subtest_records": 14,
+      "failures": 0,
+      "skips": 0,
+      "log": ".flow/tmp/pack-rule-sum-progress/green-cli.jsonl",
+      "log_sha256": "661f18aa02831beca2a9aaa3e84b6129686d6a5a0734d641c015f88a90e5d3dd"
+    },
+    {
+      "stage": "control bytes preservation",
+      "command": "diff <(rg 'resolved canonical=' .flow/tmp/pack-rule-sum-progress/red-frozen-base.log) <(rg 'resolved canonical=' .flow/tmp/pack-rule-sum-progress/green-frozen.log)",
+      "exit": 0,
+      "pairs": 43,
+      "new_pairs": 24,
+      "existing_pairs": 19,
+      "digest_line_sequence_sha256": "16a47ee938f18b511015e30659f278f262ba4a202bee12d38b002fa1c0d0482d"
+    },
+    {
+      "stage": "diff check",
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "observed_red": "Baseline rule missing/absent/bumped hides candidate x/term unknown as not-selected in IncludeAll and suppresses it by default. Real CLI text and JSON both return status0, Invalidated=false and no pins.",
+  "observed_green": "Exactly one actionable unknown x/term rule, existing module_sum_missing reason, Invalidated=true and CLI status1; other x/sys rules unaffected and absent x/crypto unselected. Immutable baseline/candidate snapshots.",
+  "test_freeze": "No test edits after actual initial RED; same test hashes used for exact-base overlay RED and all final GREEN runs.",
+  "setup_failures": [],
+  "not_attempted": [
+    "Native Darwin/full/patched-driver comparator gates (unchanged unavailable environment)",
+    "Native linux/amd64 qualification; fn128 stays deferred"
+  ],
+  "exact_exclusions": [
+    "TestFixtureBumpMatchesBuildRejections",
+    "TestSameVersionWithChangedSum",
+    "TestReplacedModules"
+  ],
+  "conductor_owns": [
+    "mandatory make lint-code-fast and scoped lint/vet/errortype",
+    "check-only validation and architecture",
+    "fresh source-progress review",
+    "Flow updates and verified-progress commit"
+  ],
+  "go_lane": "released after final verification; no running Go command"
+}

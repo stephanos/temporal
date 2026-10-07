@@ -1,0 +1,129 @@
+{
+  "base": "0f0ad9b35451056c85788efd12dbda8ec2bdf60f",
+  "purpose": "Verified source progress for fn113 R2; original native/full/formal acceptance remains open.",
+  "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+  "worker": "observations.json",
+  "checks": [
+    {
+      "name": "focused",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestRunPinImpactMissingPackRuleSumIsUnknown|TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason|TestRunPinImpactMissingPackSumIsUnknown)$' ./upgrade/pinimpact ./cmd/gomadtool",
+      "log": ".flow/tmp/pack-rule-sum-progress/conductor-focused.log",
+      "exit_code": 0,
+      "shell_real_seconds": 0.79,
+      "log_sha256": "43c9731fd114ca8674ec20dc1a103220aad6751d579c9e5563224c3fbfe3d516"
+    },
+    {
+      "name": "vet",
+      "command": "go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool",
+      "log": ".flow/tmp/pack-rule-sum-progress/conductor-vet.log",
+      "exit_code": 0,
+      "shell_real_seconds": 0.14,
+      "log_sha256": "d8792a4af836f23075b40c4cd930893fa4a1abc3d071bd9a424cdac481c27b3d"
+    },
+    {
+      "name": "errortype",
+      "command": "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/pinimpact ./cmd/gomadtool",
+      "log": ".flow/tmp/pack-rule-sum-progress/conductor-errortype.log",
+      "exit_code": 0,
+      "shell_real_seconds": 0.14,
+      "log_sha256": "ca59946435d10a46bfe12c0372bb704a7b6fd06e0815dc325b3e24af765bed61"
+    },
+    {
+      "name": "lint-base",
+      "command": "GOFLAGS=-overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/pack-rule-sum-progress/base-overlay.json bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/pinimpact ./cmd/gomadtool'",
+      "log": ".flow/tmp/pack-rule-sum-progress/conductor-lint-base.log",
+      "exit_code": 1,
+      "shell_real_seconds": 1.09,
+      "log_sha256": "6d4ea2b5588c86b5f91648e27ee6c169c40c83bda5774ac99fea821b0a849d7e"
+    },
+    {
+      "name": "lint-final",
+      "command": "bash -c 'cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/pinimpact ./cmd/gomadtool'",
+      "log": ".flow/tmp/pack-rule-sum-progress/conductor-lint-final.log",
+      "exit_code": 1,
+      "shell_real_seconds": 0.28,
+      "log_sha256": "ca752ae2134d0d87d69d968ea0e38607b7f32b1284e281faad256fb88e6f8150"
+    },
+    {
+      "name": "fast-lint",
+      "command": "make lint-code-fast GOLANGCI_LINT_BASE_REV=0f0ad9b35451056c85788efd12dbda8ec2bdf60f GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+      "log": ".flow/tmp/pack-rule-sum-progress/conductor-fast-lint.log",
+      "exit_code": 0,
+      "shell_real_seconds": 2.38,
+      "log_sha256": "1d6fec2db04d073bc06b3f16eadf9a775c293265ebddb0cd20b1702b7212b55b"
+    },
+    {
+      "name": "validate",
+      "command": "make -C tools/gomad3 validate",
+      "log": ".flow/tmp/pack-rule-sum-progress/conductor-validate.log",
+      "exit_code": 0,
+      "shell_real_seconds": 2.17,
+      "log_sha256": "5da58d1273ffcbfb8ec196cce50b1d60f17841d9487c5c940d0d5cf7a27c735d"
+    },
+    {
+      "name": "architecture",
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases)$' .",
+      "log": ".flow/tmp/pack-rule-sum-progress/conductor-architecture.log",
+      "exit_code": 0,
+      "shell_real_seconds": 25.88,
+      "log_sha256": "02f354445418ea395e70da0abb43a2f0b11f712ca6c4436a4d93a81aa71be5e0"
+    }
+  ],
+  "focused": {
+    "top_level_tests": 9,
+    "passing_records": 89,
+    "terminal_leaves": 70,
+    "failures": 0,
+    "skips": 0
+  },
+  "expanded_lint": {
+    "base": 129,
+    "final": 129,
+    "diagnostic_bytes_equal_without_timer": true,
+    "pinimpact_findings": 0
+  },
+  "fast_lint": {
+    "configured_findings_before_diff": 302,
+    "changed_line_findings": 0,
+    "full_lint_clean": false
+  },
+  "flow_validation": {
+    "command": "/home/agent/.codex/scripts/flowctl validate --all --json",
+    "exit_code": 0,
+    "specs": 21,
+    "tasks": 190,
+    "errors": 0,
+    "inherited_warning_groups": 2
+  },
+  "formatting_and_diff": {
+    "gofmt_unformatted_files": 0,
+    "git_diff_check_exit": 0
+  },
+  "source_sha256": {
+    "tools/gomad3/upgrade/pinimpact/pinimpact.go": "1074264ad34cf64d31b018872fbc5f5af5a25d3e763d4e1faa5c40dc8baba7b5",
+    "tools/gomad3/upgrade/pinimpact/rule_sums_test.go": "cefcc8cd089e1ceecc7df233bb54e25e484f04f65ef151f7a3d68bee0fec33b5",
+    "tools/gomad3/cmd/gomadtool/pin_impact_test.go": "d1d4f8ac8cdbdad5ce848980079171f8a8eef56a49749489caf64b7b70ddfb41"
+  },
+  "review": "review.md (fresh same-family Codex source-progress review; no formal SHIP)",
+  "admission": {
+    "original_acceptance_unchanged": true,
+    "original_done_summary_unchanged": true,
+    "original_evidence_unchanged": true
+  },
+  "final_task_preservation": {"actual_file_matches_expected":true,"original_acceptance_unchanged":true,"original_done_payload_retained_as_prefix":true,"original_evidence_unchanged":true,"actual_status":"blocked"},
+  "worker_evidence_verification": {"six_full_log_hashes": true, "two_excerpt_hashes": true, "base_production_matches_git": true, "43_control_pairs_equal": true, "portable_top_level": 32, "portable_records": 131, "failures": 0, "skips": 0},
+  "setup_notes": [
+    "read-only task lookup fn-113.1.md absent corrected fullslug",
+    "task comparison used truncated tool output; false comparison discarded, full-output comparison rerun",
+    "set-description demoted/duplicated previous correction subsections; corrected via exact original full-body set-spec before implementation; original Acceptance/Done/Evidence retained",
+    "read-only rg asked for worker receipt directories before creation; no check executed or result inferred",
+    "read-only lookup of observations.json occurred before worker finished its receipt; corrected to wait for worker handover, no test result inferred"
+  ],
+  "limits": {
+    "native_comparators": "Three unchanged patched-driver comparisons remain unproved; exact names in worker observations.",
+    "Darwin_full_and_formal": "open",
+    "Linux": "deferred and unverified under fn128",
+    "task_done": false,
+    "formal_ship": false
+  }
+}

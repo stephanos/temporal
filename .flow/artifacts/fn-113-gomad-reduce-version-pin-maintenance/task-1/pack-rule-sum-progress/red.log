@@ -1,0 +1,23 @@
+    rule_sums_test.go:76: reported pins = map[], want map[pack-rule golang-x-sys-v047-darwin-arm64 golang.org/x/term:unknown]
+    rule_sums_test.go:76: reported pins = map[], want map[pack-rule golang-x-sys-v047-darwin-arm64 golang.org/x/term:unknown]
+    rule_sums_test.go:76: reported pins = map[], want map[pack-rule golang-x-sys-v047-darwin-arm64 golang.org/x/term:unknown]
+--- FAIL: TestMissingPackRuleSumIsUnknown (0.07s)
+    --- FAIL: TestMissingPackRuleSumIsUnknown/baseline=missing/all=false (0.01s)
+    --- FAIL: TestMissingPackRuleSumIsUnknown/baseline=missing/all=true (0.01s)
+    --- FAIL: TestMissingPackRuleSumIsUnknown/baseline=absent/all=false (0.01s)
+    --- FAIL: TestMissingPackRuleSumIsUnknown/baseline=absent/all=true (0.01s)
+    --- FAIL: TestMissingPackRuleSumIsUnknown/baseline=bumped/all=false (0.01s)
+    --- FAIL: TestMissingPackRuleSumIsUnknown/baseline=bumped/all=true (0.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.626s
+    pin_impact_test.go:185: status=0, want 1:
+    pin_impact_test.go:185: status=0, want 1:
+--- FAIL: TestRunPinImpactMissingPackRuleSumIsUnknown (0.06s)
+    --- FAIL: TestRunPinImpactMissingPackRuleSumIsUnknown/json=false (0.01s)
+    --- FAIL: TestRunPinImpactMissingPackRuleSumIsUnknown/json=true (0.04s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.066s
+FAIL
+real 0.78
+user 1.12
+sys 0.33
