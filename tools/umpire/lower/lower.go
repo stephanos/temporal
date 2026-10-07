@@ -875,6 +875,7 @@ var realizationFields = map[protoreflect.Name]func(*accounting) error{
 	"required_settings": (*accounting).requiredSettings,
 	"behavior":          (*accounting).behavior,
 	"server_steps":      (*accounting).serverSteps,
+	"rejection_codes":   (*accounting).rejectionCodes,
 }
 
 var correlationFields = map[protoreflect.Name]func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error{
@@ -1102,6 +1103,13 @@ func (a *accounting) behavior() error {
 func (a *accounting) serverSteps() error {
 	for _, s := range a.l.a.r.GetServerSteps() {
 		a.read("server_steps", a.l.adapter.classKey(s.GetStep()), s.GetPosition())
+	}
+	return nil
+}
+
+func (a *accounting) rejectionCodes() error {
+	for _, code := range a.l.a.r.GetRejectionCodes() {
+		a.read("rejection_codes", code.GetRejection().String(), a.l.a.r.GetPosition())
 	}
 	return nil
 }

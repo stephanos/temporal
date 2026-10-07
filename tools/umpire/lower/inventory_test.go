@@ -42,6 +42,10 @@ func declared(t *testing.T, m *umpirespb.Model, r *umpirespb.Realization) [][2]s
 					out = append(out, [2]string{name, classKey(step.GetStep())})
 					continue
 				}
+				if code, ok := element.Interface().(*umpirespb.RejectionCode); ok {
+					out = append(out, [2]string{name, code.GetRejection().String()})
+					continue
+				}
 				id := element.Descriptor().Fields().ByName("id")
 				if id == nil {
 					// A required setting is named by its key.
@@ -165,7 +169,7 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 					}
 				case "realization":
 					require.Equal(t, slices.Contains([]string{"id", "name"}, e.ID), e.Disposition == Names, e.ID)
-				case "behavior", "server_steps":
+				case "behavior", "server_steps", "rejection_codes":
 					require.Contains(t, []Disposition{InCase, Unread}, e.Disposition, e.ID)
 					if slices.Contains([]string{"attemptNumbering", "instructionDefaults", "runOrderIsCausal"}, e.ID) {
 						// The rest of the behavior is in the Program's part that carries it.

@@ -37,7 +37,8 @@ const (
 		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}],` +
 		`"attemptNumbering":{"position":{"file":"f"},"first":"1","oneRun":true},` +
 		`"instructionDefaults":{"position":{"file":"f"},"timeoutMs":"1","attempts":"1"},"runOrderIsCausal":true},` +
-		`"serverSteps":[{"position":{"file":"f"},"step":{"action":"a"},"kind":"CAUSE_KIND_TIMER","deadlineMs":"2"}]}]}`
+		`"serverSteps":[{"position":{"file":"f"},"step":{"action":"a"},"kind":"CAUSE_KIND_TIMER","deadlineMs":"2"}],` +
+		`"rejectionCodes":[{"rejection":"REJECTION_NOT_FOUND","grpcCode":"NOT_FOUND"}]}]}`
 )
 
 // schemaAddedField is a field the schema gained after the capture: the message it was added to, by its
@@ -142,6 +143,8 @@ var (
 		// How the APIs a realization calls behave between calls, and its server steps (fn-118.2).
 		{message: "Realization", field: schemaFieldOf("behavior", 16, schemaOptional, schemaMessage, "ApiBehavior", "behavior")},
 		{message: "Realization", field: schemaFieldOf("server_steps", 17, schemaRepeated, schemaMessage, "ServerStep", "serverSteps")},
+		// The shared rejection reasons and the gRPC status codes a realization returns (fn-139.8).
+		{message: "Realization", field: schemaFieldOf("rejection_codes", 18, schemaRepeated, schemaMessage, "RejectionCode", "rejectionCodes")},
 		// How an expected Run ends and how its cleanup ends, declared (fn-124.5).
 		{message: "RunExpectation", field: schemaFieldOf("disposition", 6, schemaOptional, schemaEnum, "RunExpectation.Disposition", "disposition")},
 		{message: "RunExpectation", field: schemaFieldOf("cleanup", 7, schemaOptional, schemaEnum, "RunExpectation.Cleanup", "cleanup")},
@@ -224,6 +227,15 @@ var (
 			schemaFieldOf("name", 1, schemaOptional, schemaString, "", "name"),
 			schemaFieldOf("position", 2, schemaOptional, schemaMessage, "Position", "position"),
 		}}},
+		// Realization.rejection_codes' entry (fn-139.8).
+		{after: "ProtoEntry", message: &descriptorpb.DescriptorProto{Name: proto.String("RejectionCode"),
+			Field: []*descriptorpb.FieldDescriptorProto{
+				schemaFieldOf("rejection", 1, schemaOptional, schemaEnum, "RejectionCode.Rejection", "rejection"),
+				schemaFieldOf("grpc_code", 2, schemaOptional, schemaString, "", "grpcCode"),
+			},
+			EnumType: []*descriptorpb.EnumDescriptorProto{schemaEnumOf("Rejection", "REJECTION_UNSPECIFIED", "REJECTION_NOT_FOUND",
+				"REJECTION_ALREADY_EXISTS", "REJECTION_FAILED_PRECONDITION", "REJECTION_INVALID_ARGUMENT")},
+		}},
 	}
 	schemaAddedEnums = []schemaAddedEnum{
 		// The kinds of asynchronous cause a CauseBound, a Visibility and a ServerStep name (fn-118.2).
