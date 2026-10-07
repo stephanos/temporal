@@ -327,7 +327,7 @@ func sortedKeys[V any](values map[string]V) []string {
 // module source in moduleDirectory: the registered identity from the version
 // descriptor, every pinned digest the preparation checks, and each platform's
 // prepared source-set pin, recomputed from the prepared replacement.
-func VerifyRegisteredAdapter(ctx context.Context, module, moduleDirectory, goCommand string) error {
+func VerifyRegisteredAdapter(ctx context.Context, module, moduleDirectory, goCommand string) (retErr error) {
 	if module == libcModulePath {
 		return verifyLibcAdapter(ctx, moduleDirectory, goCommand)
 	}
@@ -345,7 +345,15 @@ func VerifyRegisteredAdapter(ctx context.Context, module, moduleDirectory, goCom
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(scratch)
+	defer func() {
+		if cleanupErr := os.RemoveAll(scratch); cleanupErr != nil {
+			if retErr == nil {
+				retErr = cleanupErr
+			} else {
+				retErr = errors.Join(retErr, cleanupErr)
+			}
+		}
+	}()
 	local := spec
 	local.cacheElements = []string{moduleDirectory}
 	prepared, err := prepareRewrittenModule("", scratch, identity, local)

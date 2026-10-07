@@ -1,0 +1,48 @@
+=== RUN   TestCopyAdapterModuleAppliesReplacementsAndAdditions
+--- PASS: TestCopyAdapterModuleAppliesReplacementsAndAdditions (0.00s)
+=== RUN   TestCopyAdapterModuleRejectsSymlink
+--- PASS: TestCopyAdapterModuleRejectsSymlink (0.00s)
+=== RUN   TestCopyAdapterModuleRejectsSpecialFile
+--- PASS: TestCopyAdapterModuleRejectsSpecialFile (0.00s)
+=== RUN   TestCopyAdapterModuleReturnsTypedFileCapacityError
+--- PASS: TestCopyAdapterModuleReturnsTypedFileCapacityError (0.00s)
+=== RUN   TestCopyAdapterModuleReturnsTypedByteCapacityError
+--- PASS: TestCopyAdapterModuleReturnsTypedByteCapacityError (0.00s)
+=== RUN   TestVersionReferencesNeverMatchInsideAnotherModulePath
+--- PASS: TestVersionReferencesNeverMatchInsideAnotherModulePath (0.00s)
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/success
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/primary
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/primary-and-cleanup
+    adapter_verify_cleanup_test.go:60: permission probe confirmed: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanupsentryprimary-and-cle1831071636/001/denied: permission denied
+    adapter_verify_cleanup_test.go:137: observed real cleanup permission failure: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanupsentryprimary-and-cle1831071636/002/gomad3-adapter-verify-3977370601/sentry-go/.cleanup-denied: permission denied
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/cleanup
+    adapter_verify_cleanup_test.go:60: permission probe confirmed: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanupsentrycleanup3213120908/001/denied: permission denied
+    adapter_verify_cleanup_test.go:137: observed real cleanup permission failure: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanupsentrycleanup3213120908/002/gomad3-adapter-verify-2762403189/sentry-go/.cleanup-denied: permission denied
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/success
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/primary
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/primary-and-cleanup
+    adapter_verify_cleanup_test.go:60: permission probe confirmed: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanuplibcprimary-and-clean2035603030/001/denied: permission denied
+    adapter_verify_cleanup_test.go:137: observed real cleanup permission failure: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanuplibcprimary-and-clean2035603030/002/gomad3-libc-verify-2111216745/modernc-libc/.cleanup-denied: permission denied
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/cleanup
+    adapter_verify_cleanup_test.go:60: permission probe confirmed: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanuplibccleanup1369377572/001/denied: permission denied
+    adapter_verify_cleanup_test.go:137: observed real cleanup permission failure: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanuplibccleanup1369377572/002/gomad3-libc-verify-1631376140/modernc-libc/.cleanup-denied: permission denied
+--- PASS: TestVerifyRegisteredAdapterScratchCleanup (1.15s)
+    --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry (0.10s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry/success (0.03s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry/primary (0.02s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry/primary-and-cleanup (0.02s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry/cleanup (0.03s)
+    --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc (1.05s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc/success (0.27s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc/primary (0.20s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc/primary-and-cleanup (0.20s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc/cleanup (0.22s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	1.158s
+
+real	0m1.511s
+user	0m1.396s
+sys	0m1.030s

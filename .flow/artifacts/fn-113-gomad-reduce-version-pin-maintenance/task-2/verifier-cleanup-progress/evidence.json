@@ -1,0 +1,100 @@
+{
+  "task_id": "fn-113-gomad-reduce-version-pin-maintenance.2",
+  "status": "in_progress",
+  "scope": "independent verifier cleanup source progress only",
+  "base_commit": "ce126fe8d308da268fecf14e57dc7832a46c5084",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "go -C tools/gomad3 test -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/verifier-cleanup/base-overlay.json -tags test_dep -count=1 -v -run '^TestVerifyRegisteredAdapterScratchCleanup$' ./deterministicio",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestVerifyRegisteredAdapterScratchCleanup|TestCopyAdapterModule.*|TestVersionReferencesNeverMatchInsideAnotherModulePath)$' ./deterministicio",
+    "go -C tools/gomad3 vet -tags test_dep ./deterministicio",
+    "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./deterministicio",
+    "make -C tools/gomad3 validate",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases)$' .",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags test_dep --timeout 10m --fix=false --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml ./deterministicio",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=ce126fe8d308da268fecf14e57dc7832a46c5084 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "gofmt -l tools/gomad3/deterministicio/adapter_regenerate.go tools/gomad3/deterministicio/libc_regenerate.go tools/gomad3/deterministicio/adapter_verify_cleanup_test.go",
+    "git diff --check"
+  ],
+  "execution": {
+    "platform": "linux/arm64 developmental host",
+    "uid": 1000,
+    "go_version": "go1.27.1",
+    "go_path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "module_cache": "/home/agent/go/pkg/mod",
+    "environment": "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+    "suite_capture": "One foreground timeout600 invocation per observation, output captured once, exit observed separately. Bash time supplies elapsed durations.",
+    "all_commands_terminal": true,
+    "go_lane_released": true,
+    "actual_permission_faults_in_final_green": 4,
+    "final_verifier_leaf_controls": 8,
+    "final_existing_portable_leaf_controls": 6,
+    "final_skips": 0,
+    "formal_review_verdict": null
+  },
+  "source_sha256": {
+    "tools/gomad3/deterministicio/adapter_regenerate.go": "f0264bc3f57d72278d689d9b1c36f861196bf1c111095c66a4fc1533c510596e",
+    "tools/gomad3/deterministicio/libc_regenerate.go": "fb3996a626541f737746c9477f932cd5d08b3b2b21e724dfd20956034c9c0a5f",
+    "tools/gomad3/deterministicio/adapter_verify_cleanup_test.go": "9449dfd22e7c4aa9c01a148a1448035d36d37ff86683a92eab501db12c14db10"
+  },
+  "preserved_input_sha256": {
+    "tools/gomad3/deterministicio/adapter_rewrite.go": "85f4101937d8f4dc580ea5d9c48c8d6eee3681eb02fe8747ace3309017052e06",
+    "tools/gomad3/deterministicio/adapter_copy.go": "d296c328d80697e7808f95841a88f0b20bc4e167e38844e689765e669679a0a1",
+    "tools/gomad3/deterministicio/adapter_registry.go": "657ea0a8b44726ea13baaa4b65dcafcb210f450a5bf60f319bcc1914027401c4",
+    "tools/gomad3/deterministicio/sentry_adapter.go": "0c2f69da758faffbae427817435e6d577d4cc5597e1fe12f556dcb819c1d3157",
+    "tools/gomad3/deterministicio/libc_adapter.go": "cc445478612c235837ceb2702645496cea0ac47ee7d457291bde1fd82f5d6d6a",
+    "tools/gomad3/target/adapter_source_set.go": "cceeb09d76033404ff684bb9c57efd648dd909b230f0656da7a818173f3cd31d",
+    "tools/gomad3/target/internal/build/context.go": "c998794068b981697124b63a8a8c544bc678d08bdb94e6873ae6cfc5356febed",
+    "tools/gomad3/toolchain/version/version.json": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+    "tools/gomad3/deterministicio/boundary/manifest.json": "ed31376341a80158276b89925f7f7289a86a8276198ee1427e42ffd738127e75",
+    "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+    "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+  },
+  "tool_config_sha256": {
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+    "Makefile": "e9cc7d891eaa5fcedc5a3009db524d011471703f1a3d07debf89e5437ecd965c",
+    "tools/gomad3/Makefile": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+  },
+  "base_overlay_sha256": {
+    ".flow/tmp/verifier-cleanup/base-adapter_regenerate.go": "49421f7636e8d16b9ba64c93f2a5696b9588fe4a4a561b027045a15271129ccd",
+    ".flow/tmp/verifier-cleanup/base-libc_regenerate.go": "641672b5ad94fa87a25631a1f5482a072ae212942b005b0b984f60d1f427b9eb",
+    ".flow/tmp/verifier-cleanup/base-overlay.json": "c0136ea4f049984b8c2df9efeee660acbd494f472de603fd97d6aa9f46f09203"
+  },
+  "observations": [
+    {"name": "baseline check-only validate", "exit": 0, "elapsed_seconds": 2.608, "raw_log": "baseline-validate-run.log", "sha256": "84816ba109b51b11e851a69590a4d47d1119b405732dba9d3aebca8231381b7e"},
+    {"name": "unchanged production success/primary controls", "exit": 0, "elapsed_seconds": 9.8, "raw_log": "base-controls.log", "sha256": "3e5632059cd18d3c55effb9dc487a8eb14bbff390983a2b2a2dc927a594fe003", "leaf_pass": 4},
+    {"name": "pre-edit real-fault RED", "exit": 1, "elapsed_seconds": 7.363, "raw_log": "red.log", "sha256": "cf8296ef5228f48de9cfd35bc8bd6b75a3d7bbc69d28f45ef5fd021f09af1f73", "real_fault_failures": 4, "skips": 0},
+    {"name": "final-test exact-base RED", "exit": 1, "elapsed_seconds": 2.128, "raw_log": "proof-base-red.log", "sha256": "12b8467b8b3137da3015313a2bf0c1c934e741a5d469952fa67b89e590c2ea79", "leaf_pass": 4, "real_fault_failures": 4, "skips": 0},
+    {"name": "final matched GREEN plus existing portable controls", "exit": 0, "elapsed_seconds": 1.511, "raw_log": "proof-green.log", "sha256": "f6d484a857925858cc19647212e000c480dd370b2a03d8242eeafb21fbada618", "leaf_pass": 14, "real_fault_pass": 4, "skips": 0},
+    {"name": "unfiltered scoped lint baseline", "exit": 1, "elapsed_seconds": 0.508, "raw_log": "baseline-lint.log", "sha256": "1776dc0a43cbecdc44059611ac983b76f37179b21e449efaeaac52da0fce3877", "diagnostics": 4},
+    {"name": "unfiltered scoped lint final", "exit": 1, "elapsed_seconds": 1.61, "raw_log": "proof-lint.log", "sha256": "d0fb0a590fdc8d049f9739a5935f293bf828511874db9c7b0352408a7b36758d", "diagnostics": 2, "removed_owned": ["adapter_regenerate.go:348 errcheck", "libc_regenerate.go:174 errcheck"], "unchanged_residual": ["adapter_registry.go:390 errcheck", "profile.go:211 forbidigo"], "added": []},
+    {"name": "final scoped vet", "exit": 0, "elapsed_seconds": 0.405, "raw_log": "proof-vet.log", "sha256": "13c3e55319566e62b7761868d7a5ee8155296bc7187fdb2b3af1d242541a0c21"},
+    {"name": "final scoped errortype", "exit": 0, "elapsed_seconds": 0.304, "raw_log": "proof-errortype.log", "sha256": "3133b018b885b1e6f7164a8c7a879b947dd9ddeb5139a5d147229415a5d01e53"},
+    {"name": "final check-only validate", "exit": 0, "elapsed_seconds": 2.31, "raw_log": "proof-validate.log", "sha256": "582044a74b555cb4926e709aabf662d52aac91f3db634b1cea7068aef7a19f74"},
+    {"name": "final four architecture checks", "exit": 0, "elapsed_seconds": 25.391, "raw_log": "proof-architecture.log", "sha256": "2b104c3130c6fa48ab5fc586ca17fd60b2429d5cf083a8cafd16115e219f3f6b", "top_level_pass": 4},
+    {"name": "mandatory fast lint final", "exit": 0, "elapsed_seconds": 1.815, "raw_log": "proof-fast-lint.log", "sha256": "ec9c7fd3a23140c9f6e18b6d719fa9f858b8c1bd8f705527413fe43a7c360958", "configured_residual_before_changed_line_filter": 308, "changed_line_diagnostics": 0}
+  ],
+  "raw_log_directory": ".flow/tmp/verifier-cleanup",
+  "retained_compact_logs": ["base-controls.log", "red.log", "proof-base-red.log", "proof-green.log", "baseline-lint.log", "proof-lint.log"],
+  "log_rendering": "Only blank-line trailing whitespace normalized in retained copies. Untouched raw inputs remain under raw_log_directory with recorded hashes. All six retained copies have identical hashes to their raw inputs.",
+  "setup_and_inherited_observations": [
+    {"name": "initial timing wrapper", "exit": 127, "status": "inconclusive before gate execution", "reason": "/usr/bin/time unavailable; replaced by Bash time", "raw_log": "baseline-validate.log", "sha256": "d2b8980b0088552cc287e4be04f54ec94ea0599880d41e33f2d9b5f5cd98fb90"},
+    {"name": "initial overly broad portable selector", "exit": 1, "elapsed_seconds": 0.406, "status": "inherited missing-driver fixture failures", "portable_leaf_pass": 6, "unavailable_families": ["TestRewrittenModulesRejectChangedIdentity", "TestRewriteAdapterSourceRejectsDrift", "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift"], "reason": "These selected fixtures invoke absent tools/gomad3/.toolchain/bin/go; none retried and no native guard changed", "raw_log": "baseline-portable.log", "sha256": "aa79ee85277dd6128275de459c7e7a83c3735cc811e4d079fca6189e135878d1"},
+    {"name": "temporary deprecated test resolver", "scoped_lint_exit": 1, "fast_lint_exit": 2, "reason": "runtime.GOROOT SA1019 corrected using exec.LookPath with local release query; no suppressions", "scoped_raw_log": "final-lint.log", "scoped_sha256": "92fdbc3047016301bbc8e285d4f0b62bd07551ae00f2144856d1a6806e0f71f7", "fast_raw_log": "fast-lint.log", "fast_sha256": "607c7f541f9d949c727d7e3f7321f304081bc739d26198991ec3e4a7f6a0a580"},
+    {"name": "prior external fix searches", "exit": 1, "reason": "gh PR and issue searches each returned HTTP401 bad credentials", "raw_logs": ["prior-prs.log", "prior-issues.log"], "each_sha256": "eab0fd70f3d8870d443e678e6c66ccd87a9ec0d5e887a6b082c032276370531d"}
+  ],
+  "open_acceptance": [
+    "task1 dependency and native/full/build-pin comparator requirements",
+    "original task2 R3 regeneration and source reconciliation acceptance",
+    "original deterministicio default and native patched-driver suite",
+    "native Darwin workload/full-host/functional/affected-consumer qualification",
+    "formal original task/spec review gates",
+    "full lint remains inherited red, now308 residual configured findings",
+    "Linux remains deferred and unverified under fn128"
+  ],
+  "commit_ownership": "conductor; no worker staging, commit, push or lifecycle mutation"
+}

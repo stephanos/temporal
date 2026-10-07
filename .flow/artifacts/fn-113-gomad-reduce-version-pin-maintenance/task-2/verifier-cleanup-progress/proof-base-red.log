@@ -1,0 +1,37 @@
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/success
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/primary
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/primary-and-cleanup
+    adapter_verify_cleanup_test.go:60: permission probe confirmed: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanupsentryprimary-and-cle372460190/001/denied: permission denied
+    adapter_verify_cleanup_test.go:120: real cleanup denial at /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanupsentryprimary-and-cle372460190/002/gomad3-adapter-verify-3342406278/sentry-go/.cleanup-denied was discarded: decode prepared package github.com/getsentry/sentry-go listing: unexpected end of JSON input
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/cleanup
+    adapter_verify_cleanup_test.go:60: permission probe confirmed: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanupsentrycleanup3635139429/001/denied: permission denied
+    adapter_verify_cleanup_test.go:120: real cleanup denial at /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanupsentrycleanup3635139429/002/gomad3-adapter-verify-197999588/sentry-go/.cleanup-denied was discarded: <nil>
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/success
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/primary
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/primary-and-cleanup
+    adapter_verify_cleanup_test.go:60: permission probe confirmed: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanuplibcprimary-and-clean1364223398/001/denied: permission denied
+    adapter_verify_cleanup_test.go:120: real cleanup denial at /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanuplibcprimary-and-clean1364223398/002/gomad3-libc-verify-2841079235/modernc-libc/.cleanup-denied was discarded: decode prepared package modernc.org/libc listing: unexpected end of JSON input
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/cleanup
+    adapter_verify_cleanup_test.go:60: permission probe confirmed: openfdat /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanuplibccleanup3041573237/001/denied: permission denied
+    adapter_verify_cleanup_test.go:120: real cleanup denial at /home/agent/.cache/codex-build/tmp/TestVerifyRegisteredAdapterScratchCleanuplibccleanup3041573237/002/gomad3-libc-verify-2987217082/modernc-libc/.cleanup-denied was discarded: <nil>
+--- FAIL: TestVerifyRegisteredAdapterScratchCleanup (1.67s)
+    --- FAIL: TestVerifyRegisteredAdapterScratchCleanup/sentry (0.15s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry/success (0.04s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry/primary (0.03s)
+        --- FAIL: TestVerifyRegisteredAdapterScratchCleanup/sentry/primary-and-cleanup (0.02s)
+        --- FAIL: TestVerifyRegisteredAdapterScratchCleanup/sentry/cleanup (0.03s)
+    --- FAIL: TestVerifyRegisteredAdapterScratchCleanup/libc (1.52s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc/success (0.43s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc/primary (0.27s)
+        --- FAIL: TestVerifyRegisteredAdapterScratchCleanup/libc/primary-and-cleanup (0.23s)
+        --- FAIL: TestVerifyRegisteredAdapterScratchCleanup/libc/cleanup (0.22s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio	1.669s
+FAIL
+
+real	0m2.128s
+user	0m1.454s
+sys	0m1.776s

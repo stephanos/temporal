@@ -1,0 +1,19 @@
+tools/gomad3/deterministicio/adapter_regenerate.go:348:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(scratch)
+	                  ^
+tools/gomad3/deterministicio/adapter_registry.go:390:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(work)
+	                  ^
+tools/gomad3/deterministicio/libc_regenerate.go:174:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(scratch)
+	                  ^
+tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Errorf("encode deterministic I/O inventory: %w", err))
+		^
+4 issues:
+* errcheck: 3
+* forbidigo: 1
+
+real	0m0.508s
+user	0m0.348s
+sys	0m0.265s

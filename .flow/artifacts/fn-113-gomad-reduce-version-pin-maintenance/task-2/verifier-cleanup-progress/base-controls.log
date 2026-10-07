@@ -1,0 +1,20 @@
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/success
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/sentry/primary
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/success
+=== RUN   TestVerifyRegisteredAdapterScratchCleanup/libc/primary
+--- PASS: TestVerifyRegisteredAdapterScratchCleanup (7.93s)
+    --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry (0.49s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry/success (0.16s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/sentry/primary (0.08s)
+    --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc (7.41s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc/success (1.30s)
+        --- PASS: TestVerifyRegisteredAdapterScratchCleanup/libc/primary (1.11s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	7.941s
+
+real	0m9.800s
+user	0m2.231s
+sys	0m2.606s

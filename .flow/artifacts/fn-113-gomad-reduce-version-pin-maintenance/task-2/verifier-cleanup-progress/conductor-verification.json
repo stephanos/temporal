@@ -1,0 +1,27 @@
+{
+  "base_commit": "ce126fe8d308da268fecf14e57dc7832a46c5084",
+  "scope": "source progress only",
+  "host": "linux/arm64, unprivileged uid 1000",
+  "source_sha256": {
+    "tools/gomad3/deterministicio/adapter_regenerate.go": "f0264bc3f57d72278d689d9b1c36f861196bf1c111095c66a4fc1533c510596e",
+    "tools/gomad3/deterministicio/libc_regenerate.go": "fb3996a626541f737746c9477f932cd5d08b3b2b21e724dfd20956034c9c0a5f",
+    "tools/gomad3/deterministicio/adapter_verify_cleanup_test.go": "9449dfd22e7c4aa9c01a148a1448035d36d37ff86683a92eab501db12c14db10"
+  },
+  "checks": [
+    {
+      "command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^TestVerifyRegisteredAdapterScratchCleanup$' ./deterministicio",
+      "environment": "pinned stock Go 1.27.1, GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOWORK=off GOENV=off",
+      "exit_code": 0,
+      "passed_leaf_controls": 8,
+      "passed_test_records": 11,
+      "runtime_skips": 0,
+      "actual_permission_failures_observed": 4,
+      "observations": "Sentry and libc success, primary-only, primary-and-cleanup and sole-cleanup controls passed; permission probes and verifier residuals each demonstrated real EACCES"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "open_acceptance": "Task1 dependency and original task2/native-Darwin/full/default/functional/affected-consumer/formal acceptance remain open. Linux qualification is deferred and unverified under fn128."
+}

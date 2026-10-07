@@ -1,0 +1,13 @@
+tools/gomad3/deterministicio/adapter_registry.go:390:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(work)
+	                  ^
+tools/gomad3/deterministicio/profile.go:211:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Errorf("encode deterministic I/O inventory: %w", err))
+		^
+2 issues:
+* errcheck: 1
+* forbidigo: 1
+
+real	0m1.610s
+user	0m2.065s
+sys	0m1.039s

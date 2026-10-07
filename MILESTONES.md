@@ -271,7 +271,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ⛔ Blocked | Explicit pack-root reports are path-free; native build-pin proof remains pending |
-| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⬜ Todo | Regenerate adapter anchors for a new module version behind an approval digest |
+| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⛔ Blocked | Verifier cleanup failures checked; regeneration and native acceptance remain open |
 | [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ⛔ Blocked | Selected v041 restored; current R4 and Darwin/full qualification pending |
 | [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Document the bump procedure, measure it against the baseline, and run Darwin gates |
 

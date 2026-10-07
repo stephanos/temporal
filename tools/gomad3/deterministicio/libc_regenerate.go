@@ -162,7 +162,7 @@ func replaceLibcLiteral(contents []byte, old, next string) ([]byte, error) {
 	return bytes.Replace(contents, before, after, 1), nil
 }
 
-func verifyLibcAdapter(ctx context.Context, moduleDirectory, goCommand string) error {
+func verifyLibcAdapter(ctx context.Context, moduleDirectory, goCommand string) (retErr error) {
 	rewrites, _, err := rewriteLibcModule(moduleDirectory)
 	if err != nil {
 		return err
@@ -171,7 +171,15 @@ func verifyLibcAdapter(ctx context.Context, moduleDirectory, goCommand string) e
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(scratch)
+	defer func() {
+		if cleanupErr := os.RemoveAll(scratch); cleanupErr != nil {
+			if retErr == nil {
+				retErr = cleanupErr
+			} else {
+				retErr = errors.Join(retErr, cleanupErr)
+			}
+		}
+	}()
 	replacement := filepath.Join(scratch, "modernc-libc")
 	if _, err := copyLibcModule(moduleDirectory, replacement, rewrites); err != nil {
 		return err
