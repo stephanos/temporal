@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-02T04:33:05.225145Z",
   "depends_on": [
     "fn-114-gomad-correct-search-path-defects-and.10",
@@ -15,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md",
   "status": "todo",
   "title": "Qualify the combined toolchain and Runner on Darwin and update the docs",
-  "updated_at": "2026-10-08T03:51:44.583007Z"
+  "updated_at": "2026-10-08T05:28:25.212354Z"
 }

@@ -153,9 +153,9 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | --- | --- | --- |
 | [fn-105.1](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.1.md) | ✅ Done | D1: shared completed-execution assessment owner |
 | [fn-105.2](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.2.md) | ✅ Done | D2: shared retention policy without merging strategy transactions |
-| [fn-105.3](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.3.md) | ⛔ Blocked | D3: move public executor injection behind private dependencies |
-| [fn-105.4](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.4.md) | ⛔ Blocked | D4: architecture fitness checks for package coverage, purity, and signature visibility |
-| [fn-105.5](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.5.md) | ⛔ Blocked | D5: reconcile architecture, platform, and determinism documentation |
+| [fn-105.3](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.3.md) | ⬜ Todo | D3: move public executor injection behind private dependencies |
+| [fn-105.4](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.4.md) | ⬜ Todo | D4: architecture fitness checks for package coverage, purity, and signature visibility |
+| [fn-105.5](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.5.md) | ⬜ Todo | D5: reconcile architecture, platform, and determinism documentation |
 | [fn-105.6](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.6.md) | ⬜ Todo | D6: seeded and fixed virtual-clock tick policies |
 | [fn-105.7](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.7.md) | ✅ Done | D7: add required macOS functional smoke CI |
 | [fn-105.8](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.8.md) | 🚧 In progress | D8: closure-mode support for downstream targets |
@@ -182,7 +182,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-105.29](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.29.md) | ✅ Done | D20: make heartbeat rejection deadlines explicit and remove skip |
 | [fn-105.30](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.30.md) | ✅ Done | D17: deliver explicit target environment and enable the two-cluster Nexus test |
 | [fn-105.31](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.31.md) | 🚧 In progress | D26: put forward clock ticks on the virtual clock and remove the D16 skip |
-| [fn-105.32](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.32.md) | ⛔ Blocked | D27: state, pin, and remedy host-clock reporting escapes |
+| [fn-105.32](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.32.md) | ⬜ Todo | D27: state, pin, and remedy host-clock reporting escapes |
 
 <a id="deep-modules-and-tool-interfaces-fn-109"></a>
 
@@ -191,54 +191,54 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-109.1](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.1.md) | ✅ Done | Carry simulation bounds through real isolated execution. |
-| [fn-109.2](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.2.md) | ⛔ Blocked | Give local and isolated campaigns one normalized options owner |
+| [fn-109.2](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.2.md) | ⬜ Todo | Give local and isolated campaigns one normalized options owner |
 | [fn-109.3](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.3.md) | ⬜ Todo | Give the seed controller one atomic completion transition |
 | [fn-109.4](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.4.md) | ⬜ Todo | Resolve CLI installation and private child modes through one application construction path |
 | [fn-109.5](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md) | ⬜ Todo | Share plan and explore parsing directly and move semantic normalization to Runner |
 | [fn-109.6](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md) | ⬜ Todo | Move public executor injection behind private dependencies (D3). |
 | [fn-109.7](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.7.md) | ⬜ Todo | Introduce the complete preparation owner and migrate explore and portable planning |
-| [fn-109.8](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.8.md) | ⛔ Blocked | Move analysis and compatibility review onto the preparation owner's inspection operation |
-| [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⛔ Blocked | Bounded adapter listing integrated; original acceptance gates remain open |
-| [fn-109.10](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.10.md) | ⛔ Blocked | Supply build, cache and adapter locations from one validated installation description |
-| [fn-109.11](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md) | ⛔ Blocked | Capability/source-inventory owners integrated; inventory lint fixed, qualification pending |
-| [fn-109.12](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md) | ⛔ Blocked | Separate detached Artifact references from owned opened handles |
-| [fn-109.13](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.13.md) | ⛔ Blocked | Generate host and runtime simulation-time codecs from one versioned definition |
-| [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | ⛔ Blocked | Hide generic model-wire slots behind typed network and volume commands |
-| [fn-109.15](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.15.md) | ⛔ Blocked | Characterize simulation progress ordering and choose the lifecycle interface from two designs |
-| [fn-109.16](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.16.md) | ⛔ Blocked | Implement the simulation progress lifecycle owner and remove caller-side accounting |
-| [fn-109.17](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.17.md) | ⛔ Blocked | Select backend-specific network listener and connection implementations at creation |
-| [fn-109.18](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md) | ⛔ Blocked | Select backend-specific filesystem handle and mapping implementations at creation |
-| [fn-109.19](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md) | ⛔ Blocked | Architecture checks; two World lint findings repaired, qualification pending |
-| [fn-109.20](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.20.md) | ⛔ Blocked | Reconcile architectural guidance with delivered owners and interfaces (D5). |
-| [fn-109.21](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md) | ⛔ Blocked | Run final qualification and retain the finding completion matrix |
+| [fn-109.8](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.8.md) | ⬜ Todo | Move analysis and compatibility review onto the preparation owner's inspection operation |
+| [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⬜ Todo | Bounded adapter listing integrated; original acceptance gates remain open |
+| [fn-109.10](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.10.md) | ⬜ Todo | Supply build, cache and adapter locations from one validated installation description |
+| [fn-109.11](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md) | ⬜ Todo | Capability/source-inventory owners integrated; inventory lint fixed, qualification pending |
+| [fn-109.12](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md) | ⬜ Todo | Separate detached Artifact references from owned opened handles |
+| [fn-109.13](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.13.md) | ⬜ Todo | Generate host and runtime simulation-time codecs from one versioned definition |
+| [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | ⬜ Todo | Hide generic model-wire slots behind typed network and volume commands |
+| [fn-109.15](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.15.md) | ⬜ Todo | Characterize simulation progress ordering and choose the lifecycle interface from two designs |
+| [fn-109.16](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.16.md) | ⬜ Todo | Implement the simulation progress lifecycle owner and remove caller-side accounting |
+| [fn-109.17](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.17.md) | ⬜ Todo | Select backend-specific network listener and connection implementations at creation |
+| [fn-109.18](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md) | ⬜ Todo | Select backend-specific filesystem handle and mapping implementations at creation |
+| [fn-109.19](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md) | ⬜ Todo | Architecture checks; two World lint findings repaired, qualification pending |
+| [fn-109.20](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.20.md) | ⬜ Todo | Reconcile architectural guidance with delivered owners and interfaces (D5). |
+| [fn-109.21](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md) | ⬜ Todo | Run final qualification and retain the finding completion matrix |
 | [fn-109.22](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.22.md) | ✅ Done | Repair the simulation-exploration target path so a real campaign completes |
-| [fn-109.23](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.23.md) | ⛔ Blocked | Repair module-aware lint routing and supply the nested host gates |
-| [fn-109.24](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md) | ⛔ Blocked | Restore repository-relative lint exclusion matching |
-| [fn-109.25](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.25.md) | ⛔ Blocked | Preserve lifecycle fault resolution while repairing exhaustive lint |
-| [fn-109.26](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.26.md) | ⛔ Blocked | Restore Runner semantic ownership in CLI callers |
-| [fn-109.27](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.27.md) | ⛔ Blocked | Correct current R18 preservation disclosures |
-| [fn-109.28](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.28.md) | ⛔ Blocked | Preserve campaign policies while checking cleanup errors |
-| [fn-109.29](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.29.md) | ⛔ Blocked | Preserve private artifact payload cleanup and error identity |
-| [fn-109.30](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.30.md) | ⛔ Blocked | Preserve public artifact copy cleanup and handle lifetime |
-| [fn-109.31](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md) | ⛔ Blocked | Preserve artifact directory and shared-verifier cleanup |
-| [fn-109.32](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.32.md) | ⛔ Blocked | Preserve concrete error callback provenance in architecture checks |
-| [fn-109.33](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.33.md) | ⛔ Blocked | Preserve artifact reflection helper coverage and clone isolation |
-| [fn-109.34](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.md) | ⛔ Blocked | Check CLI private-mode fixture reader cleanup |
-| [fn-109.35](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md) | ⛔ Blocked | Preserve corpus reader cleanup and publication failures |
-| [fn-109.36](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.36.md) | ⛔ Blocked | Preserve Choice Exploration stopping predicates and round identities |
-| [fn-109.37](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md) | ⛔ Blocked | Qualification cleanup and import lint clean; original qualification open |
-| [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⛔ Blocked | Target and pure-policy lint clean; original qualification remains open |
-| [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⛔ Blocked | Cleanup lint repaired; fault, pin and original qualification remain open |
-| [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | ⛔ Blocked | Bounded commands and cleanup reviewed; lint clean, original qualification open |
-| [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⛔ Blocked | Canonical JSON exhaustive lint repaired; original qualification remains open |
-| [fn-109.42](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md) | ⛔ Blocked | Exact-pack exhaustive lint repaired; original qualification remains open |
-| [fn-109.43](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md) | ⛔ Blocked | Five-import admission repaired; original qualification remains open |
-| [fn-109.44](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.44.md) | ⛔ Blocked | Four mechanical lint findings repaired; original qualification remains open |
-| [fn-109.45](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.45.md) | ⛔ Blocked | Seven mechanical lint findings repaired; full lint and qualification remain open |
-| [fn-109.46](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.46.md) | ⛔ Blocked | Stdout reports repaired; full lint and original qualification remain open |
-| [fn-109.47](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.47.md) | ⛔ Blocked | Archive cleanup repaired; full lint and original qualification remain open |
-| [fn-109.48](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.48.md) | ⛔ Blocked | Patch cleanup repaired; full lint and original qualification remain open |
-| [fn-109.49](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.49.md) | ⛔ Blocked | Adapter cache cleanup repaired; full lint and original qualification remain open |
+| [fn-109.23](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.23.md) | ⬜ Todo | Repair module-aware lint routing and supply the nested host gates |
+| [fn-109.24](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md) | ⬜ Todo | Restore repository-relative lint exclusion matching |
+| [fn-109.25](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.25.md) | ⬜ Todo | Preserve lifecycle fault resolution while repairing exhaustive lint |
+| [fn-109.26](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.26.md) | ⬜ Todo | Restore Runner semantic ownership in CLI callers |
+| [fn-109.27](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.27.md) | ⬜ Todo | Correct current R18 preservation disclosures |
+| [fn-109.28](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.28.md) | ⬜ Todo | Preserve campaign policies while checking cleanup errors |
+| [fn-109.29](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.29.md) | ⬜ Todo | Preserve private artifact payload cleanup and error identity |
+| [fn-109.30](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.30.md) | ⬜ Todo | Preserve public artifact copy cleanup and handle lifetime |
+| [fn-109.31](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md) | ⬜ Todo | Preserve artifact directory and shared-verifier cleanup |
+| [fn-109.32](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.32.md) | ⬜ Todo | Preserve concrete error callback provenance in architecture checks |
+| [fn-109.33](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.33.md) | ⬜ Todo | Preserve artifact reflection helper coverage and clone isolation |
+| [fn-109.34](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.md) | ⬜ Todo | Check CLI private-mode fixture reader cleanup |
+| [fn-109.35](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md) | ⬜ Todo | Preserve corpus reader cleanup and publication failures |
+| [fn-109.36](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.36.md) | ⬜ Todo | Preserve Choice Exploration stopping predicates and round identities |
+| [fn-109.37](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md) | ⬜ Todo | Qualification cleanup and import lint clean; original qualification open |
+| [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⬜ Todo | Target and pure-policy lint clean; original qualification remains open |
+| [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⬜ Todo | Cleanup lint repaired; fault, pin and original qualification remain open |
+| [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | ⬜ Todo | Bounded commands and cleanup reviewed; lint clean, original qualification open |
+| [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⬜ Todo | Canonical JSON exhaustive lint repaired; original qualification remains open |
+| [fn-109.42](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md) | ⬜ Todo | Exact-pack exhaustive lint repaired; original qualification remains open |
+| [fn-109.43](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md) | ⬜ Todo | Five-import admission repaired; original qualification remains open |
+| [fn-109.44](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.44.md) | ⬜ Todo | Four mechanical lint findings repaired; original qualification remains open |
+| [fn-109.45](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.45.md) | ⬜ Todo | Seven mechanical lint findings repaired; full lint and qualification remain open |
+| [fn-109.46](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.46.md) | ⬜ Todo | Stdout reports repaired; full lint and original qualification remain open |
+| [fn-109.47](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.47.md) | ⬜ Todo | Archive cleanup repaired; full lint and original qualification remain open |
+| [fn-109.48](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.48.md) | ⬜ Todo | Patch cleanup repaired; full lint and original qualification remain open |
+| [fn-109.49](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.49.md) | ⬜ Todo | Adapter cache cleanup repaired; full lint and original qualification remain open |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
@@ -247,9 +247,9 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-110.1](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.1.md) | ✅ Done | Record the patch, overlay, and qualification baseline |
-| [fn-110.2](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md) | ⛔ Blocked | Move the three scheduler implementations into the runtime overlay |
-| [fn-110.3](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md) | ⛔ Blocked | Relocate crypto initialization and syscall declarations to overlays |
-| [fn-110.4](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md) | ⛔ Blocked | Emit the canonical one-context-line patch and pin regeneration to the descriptor |
+| [fn-110.2](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md) | 🚧 In progress | Move the three scheduler implementations into the runtime overlay |
+| [fn-110.3](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md) | ⬜ Todo | Relocate crypto initialization and syscall declarations to overlays |
+| [fn-110.4](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md) | ⬜ Todo | Emit the canonical one-context-line patch and pin regeneration to the descriptor |
 | [fn-110.5](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.5.md) | ⬜ Todo | Qualify the final candidate and publish measurements and guidance |
 
 <a id="quality-assessment-2026-10-01"></a>
@@ -262,18 +262,18 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-112.2](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.2.md) | ✅ Done | Run the orphaned simulation, overlay, and choice-replay tests in a gate |
 | [fn-112.3](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.3.md) | ✅ Done | Record a runtime-state digest at each choice point in a diagnostic trace |
 | [fn-112.4](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.4.md) | ✅ Done | Plumb diagnostics through the Runner and add the trace differ |
-| [fn-112.5](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md) | ⛔ Blocked | Inventory seeded-stream draw sites and check host-timed paths at runtime |
+| [fn-112.5](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md) | ⬜ Todo | Inventory seeded-stream draw sites and check host-timed paths at runtime |
 | [fn-112.6](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.6.md) | ✅ Done | Add conformance fixtures for unverified channels and state the closure-mode limit |
 | [fn-112.7](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md) | ✅ Done | Compare the filesystem and TCP models with the host OS on generated sequences |
 | [fn-112.8](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md) | ✅ Done | Drive explore, replay, and kill-then-resume through the built CLI |
-| [fn-112.9](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md) | ⛔ Blocked | Consolidate the change-detector tests with a retained mapping |
-| [fn-112.10](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md) | ⛔ Blocked | Add the scheduled determinism soak gate and update the docs to the delivered state |
+| [fn-112.9](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md) | ⬜ Todo | Consolidate the change-detector tests with a retained mapping |
+| [fn-112.10](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md) | ⬜ Todo | Add the scheduled determinism soak gate and update the docs to the delivered state |
 | [fn-112.11](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.11.md) | ✅ Done | Preserve watchdog classification when a killed target has no I/O terminal |
 | [fn-112.12](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.12.md) | ✅ Done | Resolve the native model compiler from the standard host-test entrypoint |
 | [fn-112.13](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.13.md) | ✅ Done | Execute watchdog diagnostic replay without requiring an exact I/O transcript |
 | [fn-112.14](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.14.md) | ✅ Done | Preserve parent cancellation classification when an exploration round finishes |
 | [fn-112.15](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.15.md) | ✅ Done | Make TestWatchdogDiagnosticReplayUsesCapturedInputs reliable |
-| [fn-112.16](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.16.md) | ⛔ Blocked | Keep two retained successes with one outcome signature as distinct artifacts |
+| [fn-112.16](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.16.md) | ⬜ Todo | Keep two retained successes with one outcome signature as distinct artifacts |
 
 <a id="maintenance-cost"></a>
 
@@ -281,9 +281,9 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ⛔ Blocked | Path-free pack-root reports; finish retained source build-pin acceptance |
-| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⛔ Blocked | Verifier cleanup checked; finish retained source regeneration acceptance |
-| [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ⛔ Blocked | Selected v041 restored; finish retained R4 source acceptance |
+| [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ⬜ Todo | Path-free pack-root reports; finish retained source build-pin acceptance |
+| [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⬜ Todo | Verifier cleanup checked; finish retained source regeneration acceptance |
+| [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ⬜ Todo | Selected v041 restored; finish retained R4 source acceptance |
 | [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Bump procedure and matched baseline measurement; native gates moved to fn-149/fn-128 |
 
 <a id="search-path-findings-fn-114"></a>
@@ -304,8 +304,8 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-114.10](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.10.md) | ✅ Done | Account, prune, and merge shared targets and measure retained bytes |
 | [fn-114.11](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md) | ✅ Done | Record select readiness in the runtime and the Choice Trace |
 | [fn-114.12](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md) | ✅ Done | Check the select-poll reduction for soundness and stop expanding no-op decisions |
-| [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ⛔ Blocked | Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives |
-| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ⛔ Blocked | Combined toolchain/Runner source acceptance; native qualification moved to fn-149/fn-128 |
+| [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ⬜ Todo | Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives |
+| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ⬜ Todo | Combined toolchain/Runner source acceptance; native qualification moved to fn-149/fn-128 |
 | [fn-114.15](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.15.md) | ✅ Done | Scope minimizer workspace state per parent artifact |
 | [fn-114.16](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.16.md) | ✅ Done | Finish shared-target byte accounting inside a campaign and in merged-record validation |
 

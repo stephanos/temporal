@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-04T16:02:44.830579Z",
   "depends_on": [],
   "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.30",
@@ -10,5 +7,5 @@
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.30.md",
   "status": "todo",
   "title": "Preserve public artifact copy cleanup and handle lifetime",
-  "updated_at": "2026-10-08T03:51:29.070525Z"
+  "updated_at": "2026-10-08T05:28:07.896096Z"
 }

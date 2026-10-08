@@ -1,0 +1,12 @@
+{
+  "historical_source": "bc548110b9321df59d757d0e0e5c0fea464c002b",
+  "source_tasks_resumed": 58,
+  "todo": 57,
+  "in_progress": [
+    "fn-110-gomad-minimize-the-runtime-patch.2"
+  ],
+  "all_original_dependencies_preserved": true,
+  "all_historical_done_summary_and_evidence_sections_preserved": true,
+  "native_tasks_still_blocked": 11,
+  "source_acceptance_complete_claimed": false
+}

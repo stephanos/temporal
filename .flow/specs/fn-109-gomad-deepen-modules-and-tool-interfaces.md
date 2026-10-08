@@ -1,5 +1,10 @@
 # Gomad deep modules and tool interfaces
 
+## Owner-approved preservation reconciliation (2026-10-07)
+
+The owner explicitly approved recognizing only the already-approved fn-114.11 Choice Trace v3/v2-refusal and fn-114.12 controller/select-poll and controller-v2-journal-refusal migrations within R18. Verify their actual owner contracts and refusal/identity controls; retain matched-first-baseline, fixed-identity and feature/default/error/API/CLI preservation for every unaffected behavior. This is no blanket preservation waiver and authorizes no decoder restoration, new migration, golden rewrite or default change. The selected v041 retirement is not waived; reconcile its restored source. The owner also approved fn-109.28's lint exception limited to its two exact existing pre-mutation invariant-panic sites, preserving their behavior and all other lint rules. See [the bounded decisions](../artifacts/source-unblocking-20261007/owner-decisions.md).
+
+
 ## Native qualification ownership amendment (2026-10-07)
 
 The owner approved deferring remaining native Darwin qualification to [fn-149](fn-149-gomad-deferred-darwin-qualification.md). The [native transfer manifest](../artifacts/native-scope-transfer-2026-10-07.md) maps every affected open task, requirement slice and exact command ledger. Linux qualification and Linux CI work remain deferred under fn-128; the owner explicitly instructed "no PR for Lnux CI; defer that work". Missing transferred native proof no longer blocks this spec or its mapped source tasks.

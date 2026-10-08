@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-01T01:09:58.149243Z",
   "depends_on": [
     "fn-109-gomad-deepen-modules-and-tool-interfaces.10"
@@ -12,5 +9,5 @@
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md",
   "status": "todo",
   "title": "Separate capability collection, pure evaluation and linked projection, with one source-inventory owner",
-  "updated_at": "2026-10-08T03:51:20.606471Z"
+  "updated_at": "2026-10-08T05:27:57.541956Z"
 }
