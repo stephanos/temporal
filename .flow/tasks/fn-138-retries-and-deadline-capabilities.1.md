@@ -8,7 +8,7 @@ Implement R1's companion-defined Retries binding and the narrow reader support f
 
 **Size:** M
 **Files:** `model/temporal/capabilities/Retries.scala` (new) and its focused tests; `model/irgen/Capabilities.scala`; `model/irgen/testdata/lifts/CapabilitySections.scala`, `CapabilitySectionRejects.scala` and scoped `expected/*`; `model/irgen/test/Fixtures.test.scala`; `tools/umpire/check/claims.go`, `checking_test.go` and the existing reader type facade if its key-transition signature changes; `tools/umpire/internal/engine/keyclaims.go`, `keyclaims_test.go`; `tools/umpire/export/quint_test.go` and selector agreement tests; `tools/umpire/ir/framework_test.go`; `model/SEMANTICS.md`.
-**Touches:** [model/temporal/capabilities/Retries.scala, model/temporal/capabilities/Retries.test.scala, model/irgen/Capabilities.scala, model/irgen/testdata/lifts/**, model/irgen/test/Fixtures.test.scala, tools/umpire/check/**, tools/umpire/internal/engine/keyclaims.go, tools/umpire/internal/engine/keyclaims_test.go, tools/umpire/export/*test.go, tools/umpire/ir/framework_test.go, model/SEMANTICS.md]
+**Touches:** [model/temporal/capabilities/Retries.scala, model/temporal/capabilities/Retries.test.scala, model/irgen/Capabilities.scala, model/irgen/testdata/lifts/**, model/irgen/test/Fixtures.test.scala, model/check/test/CapabilityVocabulary.test.scala, tools/umpire/check/**, tools/umpire/internal/engine/keyclaims.go, tools/umpire/internal/engine/keyclaims_test.go, tools/umpire/export/*test.go, tools/umpire/ir/framework_test.go, model/SEMANTICS.md]
 **Source gate:** Start implementation only after fn-128.5 is DONE and integrated, the conductor has persisted the refreshed plan and its independent plan review has passed. This draft does not bypass the gate.
 **Batch:** Focused Scala/Go/reader/export fixture proof and scoped lifter fixture golden updates run in this task. Production IR/Cases/mirrors, complete regeneration, full gates and live runs wait for the shared fn-128.6/fn-129.5 boundary. The worker records focused commands and commits its own task; the conductor owns Flow state and boundary evidence.
 
@@ -38,6 +38,10 @@ Implement R1's companion-defined Retries binding and the narrow reader support f
 - Completed post-fn-128.5 `model/temporal/features/activity/standalone/system/System.scala` and Nexus workflow `system/System.scala` for exact supplied defs/classes; re-anchor their final names before implementation.
 
 ### Key context
+
+Use `Retries[S, P, N <: Int]` and `maximumAttempts: S => Option[UpTo[N]]`, with `attemptCountIsWithinPolicy[S, N <: Int]` carrying the same bounded optional projection. Retain the initial located `Option[Int]` finite-catalog refusal as red evidence. `N` bounds the policy-value catalog independently of the count representation; Some(maximum1) with count2 remains the non-vacuous counterexample. None alone denotes explicit unlimited. Use only the existing finite Option/UpTo lifting; no expression/schema widening.
+
+The existing Scala kind-vocabulary gate at `model/check/test/CapabilityVocabulary.test.scala` must list Retries alongside the Go framework gate. Add only the new name and run its focused test; no new scanner or framework mechanism.
 
 Nexus increments attempts on failure while Activity increments on poll. Eligibility must read before-state. Nexus handlerError classes and network.fault originate in Waiting and declare neither Pollable nor pending pause. Activity fatal failure is Failed even with cancellation pending; retryable cancel settlement is Canceled, including exhaustion. fn-128.3 owns these decisions. An actual conformance failure requires a human under AGENTS.md, not a change to the independent Model.
 ## Acceptance

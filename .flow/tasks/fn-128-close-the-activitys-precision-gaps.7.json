@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-08T07:37:38.279193Z",
+  "depends_on": [
+    "fn-128-close-the-activitys-precision-gaps.5"
+  ],
+  "id": "fn-128-close-the-activitys-precision-gaps.7",
+  "priority": 51,
+  "spec": "fn-128-close-the-activitys-precision-gaps",
+  "spec_path": ".flow/tasks/fn-128-close-the-activitys-precision-gaps.7.md",
+  "status": "todo",
+  "title": "Observe accepted fatal settlement through typed public evidence",
+  "updated_at": "2026-10-08T07:37:38.279193Z"
+}

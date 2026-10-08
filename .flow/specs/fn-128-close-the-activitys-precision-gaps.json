@@ -17,9 +17,109 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-08T07:44:39.320824Z",
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "24e175dfda7dae88652c5d23a6d2416003fac3fff53815e037d2ebbebca2865e",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d6cd5656481c188bb0b314d91cde05ee",
+            "classification": "introduced",
+            "findingId": "finding-d6cd5656481c188bb0b314d91cde05ee",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4e5eeeb29d435264006d03a7b3f1a966b744b03d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 641417,
+      "output_sha256": "11e713f8fba511097a3c0c282fa5d6870fd4b59cf884fcbd96fcd3d5cb648dd1",
+      "reservation_id": "411c2d66d36043db96a24d17d53d8bbe",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T07:42:33.662594Z",
+      "tool_calls": 27,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "88a8fab5347059708bb23d93df766a567a8b4dd72c2362fba49e72d603fef2d0",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d6cd5656481c188bb0b314d91cde05ee",
+            "classification": "introduced",
+            "findingId": "finding-d6cd5656481c188bb0b314d91cde05ee",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4e5eeeb29d435264006d03a7b3f1a966b744b03d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 774,
+      "output_sha256": "9646f9aaa0c7ecdadeeac106589c414952f86868658e539c119fbe41a7d063bd",
+      "reservation_id": "572b5ffc44f54313b114c0e1f30d7934",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T07:44:39.317090Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-128-close-the-activitys-precision-gaps.md",
   "status": "open",
   "title": "Close the activity's precision gaps",
@@ -34,5 +134,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T05:42:50.593980Z"
+  "updated_at": "2026-10-08T07:50:48.664244Z"
 }

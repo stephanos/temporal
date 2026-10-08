@@ -14,7 +14,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-10-08T06:40:59.470342Z",
+  "plan_reviewed_at": "2026-10-08T07:43:38.404496Z",
   "ready": true,
   "review_attempts": [
     {
@@ -193,10 +193,54 @@
       "task": null,
       "timestamp": "2026-10-08T06:40:59.465811Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c18518fae60811062ef8c876e555c9723804b65535d18ec13aabf6e697dd6f16",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a19d6c39a47ebf1d908de6eaa7ed0b27",
+            "classification": "introduced",
+            "findingId": "finding-a19d6c39a47ebf1d908de6eaa7ed0b27",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "4e5eeeb29d435264006d03a7b3f1a966b744b03d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 797,
+      "output_sha256": "9eb264d1f528299b349d6c6ed933a51adedda5662d18d0aa8ee66db0bf768c61",
+      "reservation_id": "59cce1563db04bf68e2eb597adf00f5c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-08T07:43:38.399230Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 2,
+    "plan": 3,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -218,5 +262,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T06:40:59.470937Z"
+  "updated_at": "2026-10-08T07:43:38.405243Z"
 }

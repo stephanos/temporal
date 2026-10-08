@@ -6,6 +6,8 @@ The generator is intentionally generation-only for now. Its focused and golden t
 
 ## Prior requests
 
+- 2026-10-08 - Planned fn-128's shared activity closure. Preserve its existing focused IR/Case generation, fixture, replay and artifact-identity checks; broad generated API drift verification and new CI coverage remain excluded.
+
 - 2026-10-06 — Planned the Umpire IR and Testpilot schema research action items; preserve focused schema-closure generation, descriptor, regeneration, replay and artifact-identity checks without adding broad generated API drift verification or new CI coverage.
 
 - 2026-10-02 — Planning fn-115's layout and archive migration; preserve focused generation checks and repair the existing Umpire CI job as the spec requires, without adding broad generated Lean API drift verification or new CI coverage.

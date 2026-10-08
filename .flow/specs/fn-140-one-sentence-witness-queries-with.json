@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-134-capabilities-own-their-properties",
-    "fn-129-activity-coverage"
+    "fn-129-activity-coverage",
+    "fn-143-rename-modelumpire-to-modelframework"
   ],
   "id": "fn-140-one-sentence-witness-queries-with",
   "impl_review_rounds": {},
@@ -131,5 +132,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T03:53:01.973806Z"
+  "updated_at": "2026-10-08T07:45:40.576499Z"
 }
