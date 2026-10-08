@@ -46,3 +46,12 @@ class Inputs extends munit.FunSuite:
     intercept[IllegalArgumentException](
       start(scheduleToStart := Timeout.unset, scheduleToStart := Timeout.expires): Unit
     )
+
+  test("a fourth input keeps its type and position in positional and named calls"):
+    val enabled = input[Boolean]
+    val four = start.input(enabled)
+    assertEquals(
+      four(startToClose := Timeout.expires, enabled := true),
+      four(Timeout.unset, Timeout.unset, Timeout.expires, true)
+    )
+    assertEquals(four().values, List(Timeout.unset, Timeout.unset, Timeout.unset, false))

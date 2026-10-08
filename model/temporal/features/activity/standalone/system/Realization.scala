@@ -143,6 +143,7 @@ object Standalone extends Realizes(ActivitySystem):
           duration(deadlineSeconds),
           unset = Some(startToClose -> startUnreached)
         )(
+          startDelay.sets(_.getStartDelay),
           scheduleToStart.sets(_.getScheduleToStartTimeout),
           startToClose.sets(_.getStartToCloseTimeout)
         ),

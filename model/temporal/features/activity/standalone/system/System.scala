@@ -23,7 +23,6 @@ import Timeout.expires
 enum Phase derives Finite:
   case unstarted
   case scheduled extends Phase, Waiting
-  case backingOff extends Phase, Retrying
   case started extends Phase, Held
   case paused extends Phase, Suspended
   case pauseRequested extends Phase, Held
@@ -34,9 +33,14 @@ enum Phase derives Finite:
   case terminated extends Phase, Terminated
   case timedOut extends Phase, TimedOut
 
-// 12 phases, 3 attempt counts and 3 deadline flags: 288 states.
+// Whether a waiting attempt can be dispatched, independent of its status (model.go:239-244).
+enum Dispatch derives Finite:
+  case now, startDelay, backoff
+
+// 11 phases, 3 dispatch values, 3 attempt counts and 3 deadline flags: 792 states.
 final case class State(
     phase: Phase,
+    dispatch: Dispatch,
     attempts: UpTo[2],
     scheduleToClose: Timeout,
     scheduleToStart: Timeout,
@@ -62,6 +66,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   // Where every path begins: before the activity exists, with every deadline at its first value.
   val init = system.State(
     phase = Phase.unstarted,
+    dispatch = Dispatch.now,
     attempts = UpTo(0),
     scheduleToClose = Timeout.unset,
     scheduleToStart = Timeout.unset,
@@ -83,11 +88,11 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
   // The System refines the product: what each of its states reads as there.
   object refinement extends Refinement(ActivityProduct):
-    // Unstarted and backing off read as scheduled. A pause request reads as started: the worker
-    // still holds the attempt, its every answer is a product row from started, and the request
-    // stutters.
+    // Every waiting state reads as scheduled, whatever its dispatch. A pause request reads as
+    // started: the worker still holds the attempt, its every answer is a product row from started,
+    // and the request stutters.
     def toProduct(s: State): product.State = s.phase match
-      case Phase.unstarted | Phase.scheduled | Phase.backingOff =>
+      case Phase.unstarted | Phase.scheduled =>
         product.State(product.Phase.scheduled)
       case Phase.started | Phase.pauseRequested => product.State(product.Phase.started)
       case Phase.paused                         => product.State(product.Phase.paused)
@@ -98,8 +103,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       case Phase.terminated                     => product.State(product.Phase.terminated)
       case Phase.timedOut                       => product.State(product.Phase.timedOut)
 
-    // The backoff timer records nothing a Run can read.
-    val unobservable = List(timers.backoff)
+    // Dispatch-delay timers record nothing a Run can read.
+    val unobservable = List(timers.startDelay, timers.backoff)
 
   object effects:
     import Fact.*
@@ -109,11 +114,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         @unused s: State,
         scheduleToClose: Timeout,
         scheduleToStart: Timeout,
-        startToClose: Timeout
+        startToClose: Timeout,
+        startDelay: Timeout
     ) =
       enter(
         system.State(
           phase = scheduled,
+          dispatch = if startDelay == Timeout.expires then Dispatch.startDelay else Dispatch.now,
           attempts = UpTo(0),
           scheduleToClose = scheduleToClose,
           scheduleToStart = scheduleToStart,
@@ -136,8 +143,16 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
     // A retryable failure backs a started attempt off: read as scheduled again, one attempt higher.
     def backOff(s: State) =
-      enter(s.copy(phase = backingOff), statusScheduled, Fact.attemptCount)
+      enter(
+        s.copy(phase = scheduled, dispatch = Dispatch.backoff),
+        statusScheduled,
+        Fact.attemptCount
+      )
         .because("a retryable failure backs off; the client reads scheduled again")
+
+    // A pause requested during the attempt takes effect on its delayed retry (model.go:130-137).
+    def backOffPaused(s: State) =
+      enter(s.copy(phase = paused, dispatch = Dispatch.backoff), statusPaused, Fact.attemptCount)
 
     def cancel(s: State) = enter(s.copy(phase = canceled), statusCanceled)
 
@@ -162,8 +177,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // Keeps the state and records nothing; the next step's evidence confirms it, a Known Gap.
     def keep(s: State) = stay(s)
 
-    // The backoff timer. A retry writes nothing the client can read.
-    def retry(s: State) = enter(s.copy(phase = scheduled))
+    // A delay expires without changing status, including while paused (model.go:355-376).
+    def dispatchNow(s: State) = enter(s.copy(dispatch = Dispatch.now))
 
     def timeOut(s: State, t: TimeoutType) =
       enter(s.copy(phase = timedOut), statusTimedOut(t))
@@ -178,7 +193,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
       // A control on an activity that is over is not found; an unstarted one has no control. A pause
       // is disabled in paused and pauseRequested (already paused, or asked to be) and cancelRequested
-      // (a cancel request is not pausable), an unpause in scheduled, backingOff, started and
+      // (a cancel request is not pausable), an unpause in scheduled, started and
       // cancelRequested (not paused): the server answers FailedPrecondition ("activity is in
       // non-pausable state", "... non-unpausable state", chasm/lib/activity/operator_commands.go), and
       // a rejecting row would add rows to the table, so they stay disabled until the behavior freeze
@@ -187,7 +202,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when[Closed] ~> rejects(Rejection.notFound)
       }
       on(pause) {
-        when(scheduled, backingOff) ~> effects.pause
+        when(scheduled) ~> effects.pause
         when(started) ~> effects.requestPause
       }
       on(unpause) {
@@ -206,7 +221,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       import temporal.features.activity.standalone.worker.*
 
       on(poll) {
-        when(scheduled) ~> effects.startAttempt
+        when(scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt
       }
 
       // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
@@ -223,7 +238,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       on(respondFailed(Failure.retryable)) {
         when(started) ~> effects.backOff
         when(cancelRequested) ~> effects.cancel
-        when(pauseRequested) ~> effects.pause
+        when(pauseRequested) ~> effects.backOffPaused
       }
       on(respondCanceled) {
         when(cancelRequested) ~> effects.cancel
@@ -241,8 +256,11 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     from(timers) {
       import timers.*
 
+      on(startDelay) {
+        when[Live].where(_.dispatch == Dispatch.startDelay) ~> effects.dispatchNow
+      }
       on(backoff) {
-        when(backingOff) ~> effects.retry
+        when[Live].where(_.dispatch == Dispatch.backoff) ~> effects.dispatchNow
       }
     }
 
@@ -251,14 +269,18 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
       // Started and not over: the phases a deadline can fire in.
       on(scheduleToClose) {
-        when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
+        when[Live].where(s =>
+          s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay
+        ) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToClose
         ))
       }
       // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
       on(scheduleToStart) {
-        when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
+        when[Waiting].where(s =>
+          s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now
+        ) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToStart
         ))
@@ -275,6 +297,18 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   // What the System promises of its own: the settlement claims. The cross-entity claim of the
   // activity and its worker is the composition's, and the history record's are Record.scala's.
   object properties:
+    // A dispatch delay remains pending across pause/unpause (model.go:239-244,355-376).
+    val dispatchRequiresReady = property.holdsAcross { (before, after) =>
+      (before.phase == Phase.scheduled && after.records(Fact.statusStarted)) implies
+        (before.dispatch == Dispatch.now)
+    }
+
+    // Schedule-to-start counts from dispatch, after either delay (model.go:312-322).
+    val scheduleToStartRequiresDispatch = property.holdsAcross { (before, after) =>
+      after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) implies
+        (before.phase == Phase.scheduled && before.dispatch == Dispatch.now)
+    }
+
     val completes =
       property when worker.respondCompleted holds { s =>
         s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
@@ -289,6 +323,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val completedOnRetry =
       system.State(
         phase = Phase.completed,
+        dispatch = Dispatch.now,
         attempts = UpTo(states.attemptBound),
         scheduleToClose = Timeout.unset,
         scheduleToStart = Timeout.unset,
@@ -363,6 +398,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
   object queries:
     capabilities.bound(three)
 
+    val any = scenario.free
+    val delayedAttemptsAreNotDispatched =
+      query verify properties.dispatchRequiresReady in any limits eight
+    val scheduleToStartWaitsForDispatch =
+      query verify properties.scheduleToStartRequiresDispatch in any limits eight
+
     val cancelRequestedThenCanceled = scenario.actions(
       client.start(),
       worker.poll,
@@ -371,6 +412,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     )
     val completed = scenario.actions(
       client.start(),
+      worker.poll,
+      worker.respondCompleted
+    )
+    val delayedThenCompleted = scenario.actions(
+      client.start(startDelay := expires),
+      timers.startDelay,
       worker.poll,
       worker.respondCompleted
     )
@@ -413,6 +460,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // One Query per side effect that settles the activity, apart from the Properties they find.
     val completion =
       (query find properties.completes in completed limits three).expect(satisfied)
+    val startDelayedCompletion =
+      (query find properties.completes in delayedThenCompleted limits four).expect(satisfied)
     val nonRetryableFailure =
       (query find properties.nonRetryableFails in nonRetryable limits three).expect(satisfied)
     val retry =

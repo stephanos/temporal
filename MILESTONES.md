@@ -80,7 +80,7 @@ Tasks run in order.
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-128.1 | ⬜ todo | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
+| fn-128.1 | ✅ done | Dispatch as a field replacing the `backingOff` phase; start delay; unpause-after-backoff and schedule-to-start-in-backoff fixed |
 | fn-128.2 | ⬜ todo | Rejections as rows (`failedPrecondition`, `invalidArgument`); repeated RequestCancel; `silent-rejection` acceptances removed |
 | fn-128.3 | ⬜ todo | Retry policy: `maxAttempts` input, `retriesRemaining`, retryable start-to-close timeout |
 | fn-128.4 | ⬜ todo | Stutter facts checked: `visible` on `ActivitySystem`'s refinement |

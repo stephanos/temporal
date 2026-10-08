@@ -45,6 +45,7 @@ val activity = Entity(key = "activityId")
 val scheduleToClose = input[Timeout]
 val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
+val startDelay = input[Timeout]
 
 // Who acts, and on what: each action is declared in the object of who takes it, and named after
 // where it is declared, `temporal.features.activity.standalone.client.start`.
@@ -55,6 +56,7 @@ object client extends Client:
     .input(scheduleToClose)
     .input(scheduleToStart)
     .input(startToClose)
+    .input(startDelay)
     .creates(activity)
 
   // Each public control is its own RPC. They share a result: on an activity that is over, each is

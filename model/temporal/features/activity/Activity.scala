@@ -39,9 +39,10 @@ object worker:
     .example(Failure.retryable, "ApplicationFailureRetryable")
   val respondCanceled = action(process)
 
-// One of the activity's deadlines firing, as the product machine sees it, and the backoff.
+// One of the activity's deadlines firing, as the product machine sees it, and its dispatch delays.
 object timers:
   val timeout = timer
+  val startDelay = timer
   val backoff = timer
 
 // The System's three deadlines, each armed by the start's input of its name.
