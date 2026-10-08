@@ -1,0 +1,69 @@
+{
+  "task_id": "fn-113-gomad-reduce-version-pin-maintenance.2",
+  "base_commit": "ca6fd855868fac364b69cb31394c87ad2912e623",
+  "commits": [
+    "8f292989713ff55b97016e5156eb92667b29102d"
+  ],
+  "tests": [
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool ./upgrade/adapterregen ./toolchain/version ./internal/compatibilitypack/...",
+    "TMPDIR=/dev/shm/gomad-fn1132-cleanup-3pOD0l3j go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^TestAdapterCacheCleanup(OwnerErrors|RegistryPublicationReuseRetry|ValidationControls|RegistryPrimary)$' ./deterministicio",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestAdapterModuleSumRecords|TestAdapterPreparedSourceSetPinsReproduceOnEveryHost|TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration|TestAdapterRegistryPortablePinDecisions|TestAdapterRegistryPublishesReplacementAtStableToolchainLocation|TestAdapterRegistryUsesExactVersionReplacement|TestAdapterReplacementUsesExplicitModuleRoot|TestCopyAdapterModuleAppliesReplacementsAndAdditions|TestCopyAdapterModuleRejectsSpecialFile|TestCopyAdapterModuleRejectsSymlink|TestCopyAdapterModuleReturnsTypedByteCapacityError|TestCopyAdapterModuleReturnsTypedFileCapacityError|TestDecodeSemanticCoverageRejectsUnknownAndDuplicateProbes|TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes|TestDefaultProfile|TestDefaultReturnsAnImmutableProfileSpecification|TestDetectModuleVersionRejectsDuplicateRequirements|TestDeterministicProfileCompatibilityGolden|TestLibcRegenerationKeepsExactSourceAndPreparedPins|TestManifestInterceptsBeforeHostDispatch|TestMemberlistSuppliedTCPConsumer|TestMissingRequiredSemanticProbesValidatesNames|TestModerncLibcAdapterTemplateHasPinnedIdentity|TestNewAdapterRegistryAllowsNoAdapters|TestNewAdapterRegistryRejectsDuplicateImplementations|TestNewAdapterRegistryRequiresAnImplementationForEveryIdentity|TestPortableAdapterConfigurationRefusals|TestPortableAdapterPreparedSourcePins|TestPortableAdapterRegenerationRefusals|TestPortableAdapterRegenerationSourceEdits|TestPortableAdapterSourcePreservation|TestPortableBootstrapFrameIdentity|TestPortableBootstrapPlatformGoldens|TestPortableLibcPreparedContract|TestPortableLibcRegeneration|TestPortableLibcSelectionConfiguration|TestPortableMetricsConsumer|TestPortablePreparedTargetShape|TestPortableProfilePublicGuardsRemainFirst|TestPortableRequirementsProjection|TestPortableRewrittenModuleConsumers|TestPortableSelectedAdapterIdentities|TestPortableServerGraphPreparedSourceIdentities|TestPrepareGRPCReturnsTypedInventoryCapacityError|TestProfileOwnsIdentityProjectionAndVerification|TestRegenerateAdapterRefusesCustomPreparation|TestRejectLibcHostImportsRejectsForbiddenImports|TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity|TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs|TestSessionCollectTerminal|TestSummarizeSemanticProbesCanonicalizesAUnion|TestValidatePreparedTargetRejectsIdentityMismatch|TestVerifyGRPCModuleRejectsInventoryDrift|TestVerifyRegisteredAdapterScratchCleanup|TestVersionReferencesNeverMatchInsideAnotherModulePath)$' ./deterministicio",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json ./deterministicio/internal/...",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json .",
+    "go run .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/retained_overlay.go",
+    "go -C tools/gomad3 list -tags test_dep -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/retained-assertions-overlay.json -json ./deterministicio",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/retained-assertions-overlay.json -run '^TestPortableRetained' ./deterministicio",
+    "go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+    "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+    "GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go -C tools/gomad3 list -deps -test -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version && GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+    "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go -C tools/gomad3 list -deps -test -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/... ./deterministicio/... ./internal/compatibilitypack/... ./toolchain/version",
+    "make -C tools/gomad3 validate",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./toolchain/version",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=ca6fd855868fac364b69cb31394c87ad2912e623 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/source-acceptance-20261008/release-counterfactual-overlay.json -run '^TestRegenerationLockReleaseComposition$' ./upgrade/adapterregen"
+  ],
+  "prs": [],
+  "source_tree_sha256": "1ea646fc66ac63aa0d2dde38e434f8b5529c28ac9040b55b7a04c56c4ebc0f3f",
+  "worker_evidence": "../source-acceptance-20261008/evidence.json",
+  "worker_evidence_sha256": "d22fe4291cebad09bee558821c16c68d4a4e096fc61cd3ecebfbe1e3261b9aa0",
+  "root_audit": "integrated-candidate-audit.md",
+  "root_cache_verification": "independent-cache-controls.md",
+  "review": {
+    "verdict": "SHIP",
+    "receipt": "review-receipt.json",
+    "receipt_sha256": "b1ba71919ceb10382a313e9a6dbd745fd82fb38d27be30827092dc9387c35cbc",
+    "rid": "da905dbf868046d8b3c94d9119200035",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "base": "ca6fd855868fac364b69cb31394c87ad2912e623",
+    "head": "8f292989713ff55b97016e5156eb92667b29102d",
+    "backend_evidence": "review-backend-evidence.json",
+    "backend_evidence_sha256": "61613538e0c794b149b47fc5a34b8fbc6501f1336271477354873410210f62d5",
+    "same_requested_family": true,
+    "reviewer_fresh_test_execution": "blocked before execution by read-only sandbox; retained command/source evidence independently verified",
+    "findings": [],
+    "unaddressed": []
+  },
+  "native_qualification": "deferred and unverified under fn-149/fn-128",
+  "lint": {
+    "baseline": 100,
+    "owned_resolved": 14,
+    "unchanged_other": 86,
+    "global_clean": false
+  },
+  "memory_capture": "skipped(policy: no NEEDS_WORK to SHIP fix transition)",
+  "plan_sync": "skipped(config: planSync.enabled=false)",
+  "tracker_active": false,
+  "no_pr_push_ci": true,
+  "user_files": [
+    {
+      "file": ".turbo/plans/gomad3-glossary-update.md",
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188"
+    },
+    {
+      "file": ".turbo/technical-debt.md",
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+    }
+  ]
+}
