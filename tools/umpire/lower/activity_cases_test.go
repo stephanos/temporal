@@ -203,6 +203,9 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 	require.NoError(t, err)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
+	// A second, independent read of the Model, built once: each Query lowers again on it.
+	again, err := NewProducer(loaded(t, "activity-standalone"))
+	require.NoError(t, err)
 
 	cases := maps.Clone(activityCases)
 	for query := range activityByIDCases {
@@ -262,8 +265,6 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, proto.Equal(source, prepared.Snapshot()), "preparation carries the Case unchanged")
 
-			again, err := NewProducer(loaded(t, "activity-standalone"))
-			require.NoError(t, err)
 			second, err := again.Lower(query, activityIdentity(query))
 			require.NoError(t, err)
 			first, err := proto.MarshalOptions{Deterministic: true}.Marshal(c)
