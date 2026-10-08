@@ -391,7 +391,9 @@ Ordinary guidance must exclude answered requested seeds without substituting oth
 
 Choice Exploration must expand observed alternative runtime Choices in deterministic bounded rounds. It must preserve every distinct forced prefix within the declared depth, execution, and memory limits, even when Outcomes deduplicate to the same Evidence.
 
-The frozen plan may limit expansion to a start ordinal while retaining earlier decisions in each forced prefix. Select polls with fewer than two ready cases must remain trace evidence without expanding the Frontier, and omitted alternatives must be reported separately.
+The frozen plan may limit expansion to a start ordinal while retaining earlier decisions in each forced prefix. Select polls of the proven two-case shapes with fewer than two ready cases must remain trace evidence without expanding the Frontier, and omitted alternatives must be reported separately. The seven shapes in `choice.NoOpSelectShapes` are the current proof boundary; unknown readiness and unlisted shapes must remain expanded.
+
+A forced-prefix candidate divergence must commit as typed candidate evidence alongside completed siblings, preserve the divergence ordinal and reason, and remain inspectable and resumable. It is a search-confidence failure rather than a target failure, and the Campaign failure policy controls whether search continues.
 
 ### [CAMPAIGN.COMBINED.FRONTIER] Combined Exploration
 
@@ -407,7 +409,7 @@ Every completed Execution must produce a canonical, versioned, bounded Record co
 
 Retained failures and retained successes must be published as immutable content-addressed Artifacts. Partial or interrupted publication must never appear complete, and existing content may be reused only after full validation.
 
-Stores may share a prepared binary through content-addressed hard links without changing payload manifests or replay validation. Retained-byte limits must count a shared binary once per pool and each private fallback copy separately.
+Stores may share a prepared binary through content-addressed hard links without changing payload manifests or replay validation. Corpus limits must count actual shared pool links once and private fallback copies separately. Merged Campaign limits count each target hash once as one hypothetical evidence store; merge copies no shard payloads. Individual Artifact stored bytes and Campaign byte limits must retain standalone-copy accounting, including every target, to preserve recorded per-Execution byte totals and validation.
 
 ### [EVIDENCE.INSPECTION] Inspection
 

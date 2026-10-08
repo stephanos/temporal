@@ -24,27 +24,35 @@ The [vision note](../docs/research/gomad/2026-10-01-gomad-vision.md) orders the 
 No experiment ran for the extension. Statements marked *inferred* come from reading
 code and have no execution behind them.
 
-## Delivery update (2026-10-02)
+## Source delivery update (2026-10-08)
 
-The historical findings below are now tracked by fn-114. Their implementation status is:
+The historical findings below are tracked by fn-114. These dispositions describe
+retained source delivery. Historical native results keep their original candidate
+identities; current native qualification remains deferred.
 
-| ID | State on darwin/arm64 | Delivered behavior |
+| ID | Source disposition | Delivered behavior and retained evidence |
 | --- | --- | --- |
-| C1 | Delivered | Corpus identity binds target environment and clock-tick policy; changed identities fail closed. |
-| C2 | Delivered; predicted same-seed prefix failure narrowed by counterexamples | Timer callbacks use creation-bound identities; the parentless inventory records exceptions. |
-| C3 | Delivered | Forced-prefix divergence and completed siblings survive round commit and resume as typed evidence. |
-| C4 | Delivered | Prepare, provenance validation, and replay reject coverage-instrumented binaries. |
-| E1 | Delivered | Ordinary guidance skips answered corpus seeds; regression mode and resume/shard selection are explicit and frozen. |
-| E2 | Delivered | Stores share prepared targets, count their bytes once, and retain a self-contained private-copy fallback. |
-| E3 | Delivered | Select readiness is recorded; fewer than two ready cases create no frontier alternatives, while replay validation retains their polls. |
-| E4 | Delivered; historical two-user premise refuted | Runtime-owned local queue heads follow a fixed class rule; only user goroutines are choice alternatives. |
-| E5 | Delivered | Choice exploration expands from the recorded start ordinal. |
-| E6 | Delivered | Per-parent minimizer state persists the accepted artifact and attempt budget; explicit resume validates them before continuing. |
+| C1 | Delivered | Corpus identity binds target environment and clock-tick policy; changed identities and the old schema fail closed ([task 3](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.3.md)). |
+| C2 | Delivered; predicted same-seed prefix failure narrowed by counterexamples | Timer callbacks use creation-bound identities; the parentless inventory records exceptions ([task 5](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md), [task 2 counterexamples](../.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/search-reproduction.json)). |
+| C3 | Delivered | Forced-prefix divergence and completed siblings survive round commit and resume as typed evidence ([task 4](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md)). |
+| C4 | Delivered | Prepare, provenance validation, and replay reject coverage-instrumented binaries ([task 3](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.3.md)). |
+| E1 | Delivered | Ordinary guidance skips answered corpus seeds; regression mode and resume/shard selection are explicit and frozen ([task 7](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.7.md)). |
+| E2 | Delivered with campaign accounting limit | Stores share prepared targets with self-contained private-copy fallback. Corpus limits count actual shared links once; merge counts one target hash without copying evidence. Campaign byte limits still charge every standalone Artifact ([tasks 9](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.9.md), [10](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.10.md), [16](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.16.md), [historical retained bytes](../.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/retained-bytes.md)). |
+| E3 | Delivered for seven proven shapes; other shapes remain expanded | Select readiness is recorded; the seven proven two-case shapes with fewer than two ready cases create no frontier alternatives while keeping their polls for replay ([tasks 11](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md), [12](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md)). |
+| E4 | Delivered; historical two-user premise refuted | Runtime-owned local queue heads follow the head-class rule; only queued user goroutines are choice alternatives ([current task 13 source proof](../.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/source-proof.json), [source review](../.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/source-review.json)). |
+| E5 | Delivered | Choice exploration expands from the recorded replay-plan start ordinal ([task 6](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.6.md)). |
+| E6 | Delivered; typed scenario shrinking remains open | Per-parent minimizer state persists accepted artifacts and consumed budgets; explicit resume validates them before continuing ([tasks 8](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.8.md), [15](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.15.md)). |
 
-All implementation tasks in fn-114 are recorded done; task 14 and R12 remain open.
-The implementation review and Darwin host/runtime gates do not replace combined-candidate
-qualification or the missing native linux/amd64 evidence. Stream-isolation work in fn-112
-will be included before that qualification. Typed scenario shrinking remains open on the roadmap.
+fn-114.13's current source acceptance is recorded Done. Task 14 owns R12
+documentation and source acceptance; its current status and reviewed evidence are
+in [the task record](../.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md).
+Other source owners in fn-109, fn-110, fn-112 and fn-113 remain open wherever their
+retained acceptance is incomplete. Current-candidate native runtime controls,
+cause/count measurements, full-host, core/smoke/representative qualification and
+required exact replay belong to fn-149 and fn-128 under the
+[native transfer manifest](../.flow/artifacts/native-scope-transfer-2026-10-07.md).
+These source dispositions supply no new native pass or soak bound. Typed scenario
+shrinking remains open on the roadmap.
 
 [MILESTONES.md](../MILESTONES.md#search-path-findings-fn-114) retains the delivery order,
 platform limits, and links to the reviewed task evidence.

@@ -153,8 +153,10 @@ failure remains expandable while the selected failure policy permits it.
 forced prefix but expands alternatives only at N and later. The default is 0;
 use `inspect --choices` to find the replay-plan ordinals. This option is valid
 only for Choice Exploration and is frozen in the Campaign plan for resume.
-Select polls with fewer than two ready cases remain in the Choice Trace but
-do not create frontier branches. The result reports their omitted alternatives
+Select polls of the seven proven two-case shapes with fewer than two ready
+cases remain in the Choice Trace but do not create frontier branches. Unknown
+readiness and shapes outside [the proven list](choice/no_op_select.go) stay
+expanded. The result reports their omitted alternatives
 separately from execution, depth, and byte bounds.
 
 Each completed round is an immutable, hash-linked transaction below the Campaign.
@@ -176,6 +178,13 @@ and bounds continues the recorded attempt order and budget. The state binds
 the parent, implementation, accepted artifacts, and replay evidence; changed
 inputs, corrupt state, or a concurrent writer fail closed. Target-declared
 scenario shrinking is not yet implemented.
+
+For the CLI, state lives in
+`ARTIFACTS/minimized/.minimize/sha256-<parent record hash>/`, with its lock
+beside that directory as `sha256-<parent record hash>.lock`. Different parents
+can minimize into the same root independently. A plain run refuses existing
+state for its parent; resume refuses a parent without state. Empty lock files
+remain after completion.
 
 `gomad analyze` defaults to `--capability-mode=closure`, which reviews a
 `go-run` or `go-test` target without compiling or executing it. Explicit
@@ -357,10 +366,13 @@ same statuses as `qualify-set`.
 
 By default every Campaign a set run produces stays under `--artifacts`.
 Campaign, corpus, and minimizer stores share each prepared binary through a
-content-addressed target pool and hard links. Retained-byte limits count that
-binary once per pool; artifact payloads and replay validation remain complete.
-When hard links are unavailable, publication uses private copies and counts
-each copy. `--prune-qualified-artifacts`
+content-addressed target pool and hard links. The corpus counts each pool target
+once and private fallback copies separately. Merge counts a target SHA-256 once
+as if all evidence occupied one store; it copies no evidence, so separate shard
+roots still hold separate pool copies. Each Artifact's stored bytes and a
+Campaign's byte limits include its full target, even when linked. Those limits
+bound standalone copies and can exceed physical shared storage. Artifact
+payloads and replay validation remain complete. `--prune-qualified-artifacts`
 (`GOMAD3_QUALIFICATION_PRUNE=1` for the Make targets) bounds that to one seed:
 once a seed is `qualified`, its successful repetitions were replayed exactly,
 and the set report holds its evidence, the run deletes that seed's retained
@@ -373,6 +385,13 @@ deleted, and a pruning failure stops the run with status 3. A run also stops,
 with status 3 and the remaining workloads recorded as infrastructure failures,
 before a seed would start on an artifact volume with less than
 `--min-free-bytes` (2 GiB by default) free, so it never fills a shared disk.
+
+The [historical task 10 measurement](../../.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/retained-bytes.md)
+at `b12b15b1c` on 2026-10-02 retained 1,177,358,336 bytes on disk for the
+unpruned representative set, versus 11,442,111,182 bytes counting those same
+files as private copies. The report's standalone `artifact_bytes` sum remained
+11,421,193,338. These are that candidate's measurements, not a current-candidate
+qualification or a storage bound for other workloads.
 
 Preparing a go target retains the built binary under
 `.toolchain/builds/<key>/prepared-targets/<identity>`, where the identity binds
@@ -498,6 +517,8 @@ interface. Trusted repository tooling preparing an `exec` target must use
 provenance for the exact binary. Runner revalidates its package policy, pinned
 standard-library membership, module closure, build information, and binary
 identity; arbitrary binaries are rejected.
+Build information must record cgo disabled, an executable build mode, and no
+race detector, shared-library linking, external linking, or plugin linking.
 Coverage-instrumented targets are rejected during preparation, provenance
 validation, and replay: host coverage-counter flushing is outside the
 deterministic-I/O contract. Semantic and choice coverage use Gomad's bounded

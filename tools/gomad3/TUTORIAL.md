@@ -392,6 +392,13 @@ goroutine selection and `select` polling; the trace also observes the final
 `select` result. Alternatives use logical identities rather than physical queue
 positions, pointers, or goroutine IDs.
 
+The local queue preserves its head's class on each dispatch. A runtime-owned
+head runs without a choice; a user head chooses only among queued users and
+records a decision when at least two exist. Both classes advance through the
+queue. Finalizer and cleanup goroutines executing user callbacks count as
+users. Run-next, global-queue and timer rules retain their separate behavior,
+and tapes from the preceding controller are refused.
+
 When Replay opens an Artifact with a complete v3 Choice Trace, it projects the
 branching decision records into an identity-bound **Decision Tape**. Observations
 such as the final `select` result remain trace evidence rather than forced
@@ -451,6 +458,13 @@ diagnostic timestamps are kept out of stable record identities.
 Publication uses a private staging area and writes the manifest last. A crash
 can leave explicit partial state, but it cannot make an incomplete directory
 look like a valid replay artifact.
+
+Campaign, corpus, and minimizer stores can share targets through hard links
+while each Artifact remains self-contained. An Artifact's stored bytes and
+Campaign byte limits include the full target for every Artifact. Corpus
+limits count an actual shared pool target once; merge counts a target hash
+once without copying shard evidence. These accounting totals are distinct
+from physical disk use.
 
 Successful Executions are discarded by default. You can retain all successes, or only
 ones that add semantic or choice coverage, but you must provide explicit count
@@ -549,8 +563,7 @@ transitions. Novel-success retention keeps examples that add semantic probes or
 choice features.
 
 Guided exploration stores replay-verified interesting cases in a bounded private
-corpus, then mixes useful prior seeds with fresh requested seeds in later
-campaigns:
+corpus, then excludes answered requested seeds from later campaigns:
 
 ```sh
 tools/gomad3/.bin/gomad explore \
@@ -561,8 +574,14 @@ tools/gomad3/.bin/gomad explore \
   go-test ./path/to/package -- '-test.run=^TestSomethingConcurrent$'
 ```
 
-Guidance still runs realized seeds and transcripts. It prioritizes known-useful
-areas of the search; it does not turn seed sampling into exhaustive exploration.
+Ordinary guidance runs the requested selection minus answered seeds and
+substitutes nothing. A fully answered request runs zero seeds and exits 0;
+the result reports requested, answered, guided, and new execution counts.
+Add `--guide-regression` to re-run prior cases while reserving at least one
+quarter of the selection for requested seeds. The corpus binds explicit
+environment and clock-tick policy, and resume uses the frozen mode and
+selection. A changed identity is refused. Guidance still uses realized seeds
+and transcripts rather than mutating scenarios or forcing runtime choices.
 
 ## Follow concrete alternatives within explicit bounds
 
@@ -585,7 +604,12 @@ because the search cannot trust that candidate. Ordinary seeded and World replay
 divergence retain status 1.
 
 This strategy implies Choice recording and explores forced prefixes in
-breadth-first rounds. **Combined Exploration**, selected with
+breadth-first rounds. `--choice-start-ordinal=N` keeps earlier decisions in
+each prefix while expanding only decisions at N and later; its default is 0.
+Find replay-plan ordinals with `inspect --choices`. The frozen plan retains
+the start for resume. The seven proven two-case select shapes with fewer than
+two ready cases keep their trace records but add no Frontier alternatives;
+unknown readiness and unlisted shapes stay expanded. **Combined Exploration**, selected with
 `--strategy=simulation-exploration`, also follows declared Scenario, network,
 storage, fault, and crash-state alternatives for a Simulation target. It requires
 explicit positive bounds for all six dimensions; see the [CLI guide](CLI.md).
@@ -601,6 +625,13 @@ fresh processes and accepts only candidates that reproduce the normalized
 failure under exact replay. It preserves the original Artifact and records the
 parent and accepted reductions. Minimization currently supports only these
 combined-simulation failures.
+After interruption, repeat the command with `--resume`, the same parent,
+`--artifacts` root, and bounds. Each parent's state lives under
+`ARTIFACTS/minimized/.minimize/sha256-<parent record hash>/`; its sibling lock
+file remains after completion. Resume preserves consumed attempts and fails
+closed for missing or corrupt state, changed inputs, or a concurrent writer.
+Different parents can use the same root independently. Typed scenario-input
+shrinking remains roadmap work.
 
 ## Qualification checks the checker
 

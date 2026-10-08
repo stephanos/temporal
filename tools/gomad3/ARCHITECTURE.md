@@ -298,6 +298,9 @@ status 1. Its pure controller
 orders candidates by prefix length and identity in bounded breadth-first
 rounds. Runner executes candidates in fresh processes and commits completed
 results in candidate order; host completion order cannot alter the frontier.
+Forced-prefix divergence is a typed candidate result, committed with completed
+siblings and retained divergence evidence. The failure policy controls whether
+the search continues; divergence consumes no target-failure signature budget.
 Each completed round is an immutable, hash-linked transaction. Resume archives
 an interrupted round and reruns it in full, keeping recovery attempts separate
 from completed logical work. Outcome deduplication affects retained evidence
@@ -305,8 +308,11 @@ without pruning distinct prefixes.
 
 The plan's start ordinal limits expansion to later replay-plan decisions while
 preserving earlier decisions in forced prefixes. Select readiness is trace
-evidence: polls with fewer than two ready cases do not expand the frontier,
-and the controller counts their omitted alternatives separately. Resume keeps
+evidence. Polls of the seven proven two-case shapes with fewer than two ready
+cases do not expand the frontier; unknown readiness and unlisted shapes stay
+expanded. `choice.NoOpSelectShapes` lists blocking zero/one-ready, nonblocking
+default, timer not due, timer due, closed-channel, and nil-channel cases.
+The controller counts their omitted alternatives separately. Resume keeps
 both decisions under the frozen plan and controller identity.
 
 Combined Exploration keeps runtime, scenario, network, storage, fault, and
@@ -422,6 +428,10 @@ embedded build information before accepting the binary. The provenance remains
 a declaration made by trusted build tooling; its binary hash binds that
 declaration to the exact supplied bytes. Runner validates and hashes the
 prepared bytes before execution and again before publication.
+Preparation, provenance validation and replay reject coverage instrumentation,
+whose host counter flushing lies outside deterministic I/O. Build-info checks
+also refuse cgo, the race detector, non-executable modes, shared-library,
+external and plugin linking.
 
 The target environment starts empty. Runner adds only its activation values,
 UTC, and explicitly supplied validated entries; runtime, toolchain, and dynamic
@@ -519,8 +529,12 @@ available. Publication still returns a detached reference.
 Campaign, corpus, and minimizer stores keep a content-addressed target pool
 outside staged Campaign directories. Artifacts hard-link their prepared binary
 from the pool, retain ordinary payload manifests, and validate the same bytes
-on open and replay. Retained-byte accounting charges a shared target once per
-pool; a host that cannot hard-link uses and counts private copies.
+on open and replay. Corpus accounting charges an actual shared pool target
+once and each private fallback in full. Merge charges each target hash once
+as one hypothetical store and copies no payloads, so separate shard roots keep
+separate copies. Each Artifact's stored bytes and a Campaign's byte limits
+continue to charge the full target per Artifact. The Campaign's recorded
+success-byte sum and record-only validation require that standalone accounting.
 
 `runner/internal/campaign` owns the durable Campaign state machine: planned,
 prepared, running, committing, published, and recoverable-failure state;
@@ -561,6 +575,10 @@ attempt order, budget, implementation, and accepted artifacts. Resume validates
 that state and its replay evidence before continuing; it preserves consumed
 attempts and never mutates the parent. Exclusive ownership prevents concurrent
 minimizers from advancing the same parent.
+The CLI output root is `ARTIFACTS/minimized`; state is under
+`.minimize/sha256-<parent record hash>/` and the lock is its sibling `.lock`
+file. Completion removes that parent's state but keeps the empty lock file.
+State belonging to another parent cannot block a new run or satisfy resume.
 
 ### Guided semantic exploration
 

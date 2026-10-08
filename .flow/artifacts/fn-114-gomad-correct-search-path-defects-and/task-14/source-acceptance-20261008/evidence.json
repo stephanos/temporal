@@ -1,0 +1,272 @@
+{
+  "task_id": "fn-114-gomad-correct-search-path-defects-and.14",
+  "status": "in_progress",
+  "base_commit": "ea2c16ae62165222d92838540e3f2e08060e6ebf",
+  "observed_head": "ea2c16ae62165222d92838540e3f2e08060e6ebf",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "make -C tools/gomad3 validate",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestResolveExploreStrategy.*|TestResolveExploreGuidance.*|TestGuideRegressionRequiresGuidance|TestFullyAnsweredGuidance.*|TestGuidanceReports.*|TestResumeGuidanceMode.*|TestRunMinimizeForwardsFlags|TestRunResumeForwardsCampaignAndClassifiesResult)$' ./cmd/gomad/internal/cli",
+    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/audit-docs.py",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestCharacterize(InputRejection|ByteSizeAndFlagValueRejection|ExploreRequestDefaultsAndWiring)|TestWorkspace(Resume.*|KeepsStatePerParentArtifact|RejectsSymbolicLinkStateRoot|StateGatesInitialRunsAndResumes)|TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles|TestCorpusRejects(IdentityChangesAndNonMatchingReplay|PreviousAndFutureSchemaBeforeChangedIdentity|CaseWithChangedEnvironment)|TestPinnedCoverageBuildSettingsRejectInstrumentation|TestValidateProvenanceRejectsUnsupportedBuildModes)$' ./cmd/gomad/internal/cli ./runner/internal/minimizer ./runner/internal/corpus ./target",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestValidateProvenanceRejectsUnsupportedBuildModes|TestReplayBuildInfoRejectsMatchingCoverageInstrumentation)$' ./target ./runner",
+    "git diff --check",
+    "/usr/bin/python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/audit-docs.py",
+    "git diff --check",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestCharacterize(InputRejection|ByteSizeAndFlagValueRejection|ExploreRequestDefaultsAndWiring)|TestWorkspace(Resume.*|KeepsStatePerParentArtifact|RejectsSymbolicLinkStateRoot|StateGatesInitialRunsAndResumes)|TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles|TestCorpusRejects(IdentityChangesAndNonMatchingReplay|PreviousAndFutureSchemaBeforeChangedIdentity|CaseWithChangedEnvironment)|TestValidateProvenanceRejectsUnsupportedBuildModes|TestReplayBuildInfoRejectsMatchingCoverageInstrumentation)$' ./cmd/gomad/internal/cli ./runner/internal/minimizer ./runner/internal/corpus ./target ./runner",
+    "make -C tools/gomad3 validate",
+    "git diff --check"
+  ],
+  "recorded_at": "2026-10-08T07:31:49.994358+00:00",
+  "tier": "explicit implementer gpt-6.1-sol at high retained by conductor after judge no_key",
+  "execution_metadata": "Host execution model unavailable; no actual_model inferred.",
+  "check_tier": "doc-only; no executable or generator inputs changed",
+  "review": "deferred to conductor; no writer review verdict",
+  "command_receipts": [
+    {
+      "receipt": {
+        "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/baseline-checks.json",
+        "sha256": "d28aca4db7c2c3bae4085d578e0909b616f46abf4810c572a1aa5bc5a41594dc"
+      },
+      "observations": [
+        {
+          "name": "generated-source-validation",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 0,
+            "pass": 0,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 0
+        },
+        {
+          "name": "option-contract-tests",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 10,
+            "pass": 10,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 24
+        }
+      ]
+    },
+    {
+      "receipt": {
+        "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/final-checks.json",
+        "sha256": "834605eab11700ed25633b58a4e0cc355d9c9ef260e959985b30f93733bf1415"
+      },
+      "observations": [
+        {
+          "name": "documentation-source-audit",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 0,
+            "pass": 0,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 0
+        },
+        {
+          "name": "documented-error-and-identity-tests",
+          "exit": 1,
+          "executed_top_level_tests": {
+            "run": 16,
+            "pass": 15,
+            "fail": 1,
+            "skip": 0
+          },
+          "nested_passes": 82
+        }
+      ]
+    },
+    {
+      "receipt": {
+        "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/portable-completion-checks.json",
+        "sha256": "9e9fa25a471341de2c1c184d07b84572309d0573ecfe4a164f4540f0e7d0c14c"
+      },
+      "observations": [
+        {
+          "name": "portable-provenance-and-replay-refusal",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 2,
+            "pass": 2,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 6
+        },
+        {
+          "name": "whitespace",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 0,
+            "pass": 0,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 0
+        }
+      ]
+    },
+    {
+      "receipt": {
+        "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/freeze-checks.json",
+        "sha256": "0534bc1cb80831480d174846e5bb509966b6cb70b66ebb5938d6919fa66b9708"
+      },
+      "observations": [
+        {
+          "name": "documentation-source-audit",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 0,
+            "pass": 0,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 0
+        },
+        {
+          "name": "whitespace",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 0,
+            "pass": 0,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 0
+        }
+      ]
+    },
+    {
+      "receipt": {
+        "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/conductor-checks.json",
+        "sha256": "e6dc475df76ac44dd789634ff59fee2063944358e0741aa00437b44c598a42ed"
+      },
+      "observations": [
+        {
+          "name": "portable-documentation-contracts",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 16,
+            "pass": 16,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 82
+        },
+        {
+          "name": "generated-source-validation",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 0,
+            "pass": 0,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 0
+        },
+        {
+          "name": "documentation-whitespace",
+          "exit": 0,
+          "executed_top_level_tests": {
+            "run": 0,
+            "pass": 0,
+            "fail": 0,
+            "skip": 0
+          },
+          "nested_passes": 0
+        }
+      ]
+    }
+  ],
+  "final_source_audit": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/final-docs.json",
+    "sha256": "5b173c49c9f11ba1207a2639eef3e595f58bfee1e531a03f563b20e3fd50e165"
+  },
+  "baseline_source_audit": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/baseline-docs.json",
+    "sha256": "d2d90d81b084cc0fc9efd2049c07f999970936b6e9c5c3217bdba3115fd9cec8"
+  },
+  "changed_product_hashes": {
+    "tools/gomad3/README.md": "89ff193fab86327dbbb21c4951f6a5ba9aec372576fbd9abaf38f6955912c6d2",
+    "tools/gomad3/CLI.md": "ec6cfa998091381ac68aee5058d5cd29f62d5302f7a0f26e8aced1d6bde34a2d",
+    "tools/gomad3/SPEC.md": "b921913c28c6d7b3fcb282cf7ceb3a2e088f33661d31e2bb020747d9b1f13d49",
+    "tools/gomad3/ARCHITECTURE.md": "a1346d4b7f596abf41967299b3c728c431fb2442d4a9b3be826a7a7540c57345",
+    "tools/gomad3/TUTORIAL.md": "bf332c802e364d4c3db0811da03958c131cafe86766d87a4a2b32b1d4b6384d1",
+    ".plans/GOMAD_CMP.md": "a97fdc5147a074f7573930bf8c5d2451f8f55ae0aee58eefa10da2fd031a198b"
+  },
+  "evidence_tools": [
+    {
+      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/run-checks.py",
+      "sha256": "80abd84e188e8383c31d6de27ead8c700e8395e6a213f0a7f9cfd4afdc5debae"
+    },
+    {
+      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/audit-docs.py",
+      "sha256": "46bd8c9478ff2e9aaf97d5e90f1804dacd6310597f911e8445859f5bd66e7b95"
+    },
+    {
+      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/build-evidence.py",
+      "sha256": "eec08528d1fc9bf352dceb3374d6a26527447a5b7627306a66b0edf19f51c3ca"
+    }
+  ],
+  "handover": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/handover.md",
+    "sha256": "fc2e3007d76ff45957380a8e896a7f72f97b96541807a5183f3a0854b80ee500"
+  },
+  "milestone_recommendations": {
+    "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/milestone-recommendations.md",
+    "sha256": "276808d5cc7f66dcde86e4d07f34d8cb503f37e373ba7b8e0682c64136daa9c4"
+  },
+  "source_preservation": {
+    "receipt": {
+      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/source-acceptance-20261007/source-proof.json",
+      "sha256": "c866b14d96ad95d0538cb52b15c2d393dd44bd7d92e17709aa0b7f08e4e98fc1"
+    },
+    "unchanged_scoped_inputs": 87,
+    "retained_raw": {
+      "files": 72,
+      "bytes": 521317
+    },
+    "reuse_limit": "Only unchanged named code/runtime/identity inputs. The historical full-module snapshot is not current documentation evidence.",
+    "qualification_manifests_unchanged": 6
+  },
+  "native_observation": {
+    "state": "inconclusive before native fixture execution",
+    "receipt": {
+      "path": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-14/source-acceptance-20261008/final-checks.json",
+      "sha256": "834605eab11700ed25633b58a4e0cc355d9c9ef260e959985b30f93733bf1415"
+    },
+    "test": "TestPinnedCoverageBuildSettingsRejectInstrumentation",
+    "cause": "Absent tools/gomad3/.toolchain/bin/go; selected native-dependent fixture did not run.",
+    "native_credit": false,
+    "owners": [
+      "fn-149-gomad-deferred-darwin-qualification",
+      "fn-128-gomad-deferred-linux-qualification-and"
+    ],
+    "transfer": {
+      "path": ".flow/artifacts/native-scope-transfer-2026-10-07.md",
+      "sha256": "3647d958da0a9d8c1a7fd1399e886d5b9a2cae90bf520b8364e1c38090a11fb5"
+    }
+  },
+  "audit_calibrations": [
+    "Initial helper omitted patch-materialize alias; corrected helper, no product/parser edit.",
+    "Expanded helper first named nonexistent corpus/guide.go; corrected to corpus/corpus.go.",
+    "Raw-chain helper first used manifest name instead of retained_name and failed before completing. Corrected exact utf8-json-string container/decoded-byte handling; final audit passes. The freeze receipt was replaced by the final frozen observation; calibration receives no green credit."
+  ],
+  "limits": [
+    "No native runtime/cause/count/build-key/full-host/core/smoke/representative/replay/soak qualification.",
+    "No current whole-tree/module blanket reuse of fn-114.13 historical snapshot.",
+    "No new whole-module/full-project lint pass; fn-109 aggregate lint remains open.",
+    "No worker Git, Flow/lifecycle, review/completion, PR/push/CI or native actions.",
+    "Conductor must bind its later commits and lifecycle status before final task receipt."
+  ],
+  "owned_commands_terminal": true,
+  "go_cache_lane": "released"
+}

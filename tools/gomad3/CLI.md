@@ -55,6 +55,8 @@ tools/gomad3/.bin/gomad explore exec --provenance ./target.provenance.json -- ./
 
 `--` ends Gomad's target description and begins the target's arguments. The `exec` form is for a trusted prebuilt binary with exact Gomad provenance; it is not an escape hatch for an arbitrary executable. `analyze` accepts only `go-run` and `go-test`, because its job is to derive and review the Go dependency boundary.
 
+Provenance must bind the binary, reviewed closure and build information. Validation refuses cgo, the race detector, non-executable build modes, shared-library linking, external linking, plugin linking and coverage instrumentation. Coverage refusal reports `exec provenance uses unsupported coverage instrumentation`; semantic and choice coverage do not enable Go code coverage.
+
 Place Gomad flags before the target kind. `go-test` accepts one package and passes the arguments after `--` to the compiled test binary; use `-test.run`, not the `go test` driver's `-run`. Repeat `--build-tag=TAG` for each required build tag. Public `go-test` commands add no implicit `test_dep` tag; Temporal's root wrapper selects it explicitly.
 
 The qualified hosts are `darwin/arm64` and `linux/amd64`. Targets compile with `CGO_ENABLED=0` and execute with `TZ=UTC`; toolchain, platform, reviewed boundary, and inputs are part of the recorded identity.
@@ -187,6 +189,8 @@ tools/gomad3/.bin/gomad explore \
 
 Guidance excludes seeds answered by replay-verified, matching cases in one immutable corpus snapshot. It executes the requested selection minus those seeds, substitutes nothing, and reports requested, answered, guided, and new execution counts. With no unanswered corpus seed to prioritize, guidance selects none. A fully answered request executes zero seeds and exits 0. Add `--guide-regression` to re-run corpus cases; this mode reserves at least one quarter of the selection, rounded up, for the requested seed pool. Resume preserves the recorded selection and mode; an explicit conflicting `resume --guide-regression=true|false` is rejected.
 
+`--guide-regression` defaults to false on `explore` and `plan` and requires `--guide`; omission on `resume` preserves the recorded mode. Guidance requires `--corpus` and enables semantic coverage by default. Explicit `--coverage=none`, a corpus without guidance, and guidance with either forced-prefix strategy are invalid input (status 2). A corpus binds the target, explicit environment and clock-tick policy; a changed identity or pre-change schema is refused.
+
 ### Move from sampling to Choice Exploration
 
 Seed exploration samples schedules. When one execution exposes concrete runnable or `select` alternatives, Choice Exploration follows those alternatives in deterministic breadth-first rounds:
@@ -203,7 +207,7 @@ tools/gomad3/.bin/gomad explore \
 
 The strategy requires one base seed and explicit positive bounds. It implies choice recording and does not combine with `--count` or guided exploration.
 
-`--choice-start-ordinal=N` expands only replay-plan decisions at ordinal N or later, while retaining earlier decisions in each forced prefix. The default is 0. Find the ordinals with `inspect --choices`; resume restores the recorded start ordinal. Using this flag with seed or Combined Exploration is invalid input. Select polls with fewer than two ready cases are recorded but do not expand the Frontier; results report their omitted alternatives separately.
+`--choice-start-ordinal=N` expands only replay-plan decisions at ordinal N or later, while retaining earlier decisions in each forced prefix. The default is 0. Find the ordinals with `inspect --choices`; resume restores the recorded start ordinal. Negative, malformed, or overflowing uint64 values are rejected. Using this flag with seed or Combined Exploration, including an explicit zero, is invalid input (status 2). Select polls of the seven proven two-case shapes with fewer than two ready cases are recorded but do not expand the Frontier; unknown readiness and other shapes remain expanded. Results report omitted alternatives separately; [the source list](choice/no_op_select.go) fixes the covered shapes.
 
 For a Gomad simulation target, Combined Exploration coordinates runtime, scenario, network, storage, fault, and crash-state alternatives through `--strategy=simulation-exploration`. Every dimension is explicit so “complete” always means complete within the declared bounds:
 
@@ -244,6 +248,8 @@ tools/gomad3/.bin/gomad inspect \
 
 `inspect` validates before reporting. For a Campaign it shows lifecycle, selection, journal, limits, exploration state, failures, retained successes, and replay commands. For an Artifact it shows the exact Target, outcome, output hashes, transcript, captured mounts, World and simulation evidence, and choice trace.
 
+An Artifact's target reports `sharing=shared|private` in text and `target.sharing` in JSON where link counts are available. This reports the target's link count, not whether it belongs to a particular pool. An Artifact's stored bytes include its whole target. Campaign byte limits, including `--success-bytes`, charge those standalone bytes for each Artifact. The corpus counts an actual pool link once; merge counts a target hash once as a hypothetical single store without copying shard evidence. Qualification report `artifact_bytes` sums standalone Artifact sizes and is not a disk measurement.
+
 Before executing anything, you can verify that the Artifact is internally complete and compatible:
 
 ```sh
@@ -278,6 +284,8 @@ tools/gomad3/.bin/gomad minimize \
 `minimize --max-bytes=SIZE` bounds the stored bytes of a newly published final minimized Artifact, including its manifest, target, and other payloads. Omission uses the parent Artifact's stored bytes plus 1 MiB, saturating at uint64 maximum. An explicit value must be a positive decimal byte count, optionally suffixed by case-sensitive `KiB`, `MiB`, or `GiB`; zero, leading zeros, malformed values, and overflow are rejected. Exceeding the final publication bound returns status 3. Intermediate candidates use their own parent-derived capacity, so this flag does not cap the entire minimizer workspace. If no reduction is accepted, the result references the unchanged parent without publishing a new Artifact.
 
 To continue an interrupted minimization, repeat the command with `--resume`, the same parent Artifact, `--artifacts` root, and bounds. The parent has its own persisted checkpoint under that root, including attempt order, consumed budget, accepted reductions, and replay evidence. Missing or corrupt state, changed identities or bounds, and concurrent writers are refused; resume does not reset the attempt budget.
+
+`--resume` defaults to false. State is `ARTIFACTS/minimized/.minimize/sha256-<parent record hash>/`, and its sibling `.lock` file remains after completion. Different parents can use the same output root independently. A plain run with state for its parent reports `minimize output directory already holds minimizer state for this parent artifact`; resume without that parent's state reports `minimize output directory holds no minimizer state to resume for this parent artifact`, even if another parent has state. Checkpoint, changed-bound, corrupt-state, and same-parent lock failures return status 3; parent Artifact preflight incompatibility returns status 2. State from the unreleased root-wide checkpoint layout is ignored.
 
 ## Step 5: turn a reproduction into a support claim
 
