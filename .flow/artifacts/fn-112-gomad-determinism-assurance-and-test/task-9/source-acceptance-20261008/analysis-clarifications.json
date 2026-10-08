@@ -1,0 +1,15 @@
+{
+  "base_execution_analysis": "final-execution-analysis.json",
+  "cache_classification_override": {
+    "supersedes_label": "transient stock Go cache lookup",
+    "current_classification": "Actual stock Go srcfiles cache-entry lookup failure in unchanged fixture code; persistence and cause not established",
+    "evidence": "sealed-root.json, sealed-root.stdout, sealed-disk-space.json, sealed-disk-space.stdout",
+    "resource_causality": "The shared overlay reports 0 available. Cache exhaustion/corruption is a likely explanation, explicitly inference until conductor independent isolated-cache diagnosis.",
+    "no_current_pass_from_earlier_recheck": true
+  },
+  "assertion_source_binding": "terminal-failure-bindings.json is authoritative for Go-overlay source paths, exact error continuations and original/current counterfactual input hashes; earlier generic current-line projection is not an overlay source identity",
+  "accounting_current_links": "final-accounting-analysis.json is current; earlier accounting-analysis.json labels named older receipts while its reads selected sealed files. Current metadata explicitly names sealed-final-size.json and sealed-size-detail.json.",
+  "proof_history": "source-proof.json, final-source-proof.json and frozen-source-proof.json are historical pre-restoration/pre-cause/pre-World checkpoints. sealed-source-proof.json binds final three-file sources. No prior checkpoint was overwritten.",
+  "review_verdict": null,
+  "native": false
+}

@@ -225,22 +225,29 @@ func TestRewrittenModuleInventoriesMatchPinnedModules(t *testing.T) {
 // a changed sum and, where the template names them, a changed module path and
 // version, before it reads the module cache.
 func TestRewrittenModulesRejectChangedIdentity(t *testing.T) {
-	moduleCache := pinnedModuleCache(t)
-	for _, adapter := range rewrittenModuleAdapters {
-		if adapter.outsideServerGraph {
-			downloadPinnedModule(t, adapter.module, adapter.version)
-		}
-		identities := []gomadversion.AdapterIdentity{{Module: adapter.module, Version: adapter.version, Sum: "h1:changed"}}
-		if adapter.otherModule != "" {
-			identities = append(identities,
-				gomadversion.AdapterIdentity{Module: adapter.otherModule, Version: adapter.version, Sum: adapter.sum},
-				gomadversion.AdapterIdentity{Module: adapter.module, Version: adapter.otherVersion, Sum: adapter.sum})
-		}
-		for _, identity := range identities {
-			if _, err := adapter.prepare(moduleCache, t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), "identity mismatch") {
-				t.Fatalf("%s changed identity %#v: %v", adapter.name, identity, err)
+	for _, cache := range []string{"empty", "populated"} {
+		t.Run(cache, func(t *testing.T) {
+			moduleCache := t.TempDir()
+			if cache == "populated" {
+				moduleCache = pinnedModuleCache(t)
 			}
-		}
+			for _, adapter := range rewrittenModuleAdapters {
+				if cache == "populated" && adapter.outsideServerGraph {
+					downloadPinnedModule(t, adapter.module, adapter.version)
+				}
+				identities := []gomadversion.AdapterIdentity{{Module: adapter.module, Version: adapter.version, Sum: "h1:changed"}}
+				if adapter.otherModule != "" {
+					identities = append(identities,
+						gomadversion.AdapterIdentity{Module: adapter.otherModule, Version: adapter.version, Sum: adapter.sum},
+						gomadversion.AdapterIdentity{Module: adapter.module, Version: adapter.otherVersion, Sum: adapter.sum})
+				}
+				for _, identity := range identities {
+					if _, err := adapter.prepare(moduleCache, t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), "identity mismatch") {
+						t.Fatalf("%s changed identity %#v: %v", adapter.name, identity, err)
+					}
+				}
+			}
+		})
 	}
 }
 

@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "verdict": "REVIEW",
+  "mode": "triage_review",
+  "reason": "no changed files (empty diff \u2014 refusing to skip)",
+  "source": "deterministic",
+  "base": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "changed_file_count": 0
+}

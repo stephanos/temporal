@@ -1,0 +1,16 @@
+{"Time":"2026-10-08T14:58:10.582936162Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3"}
+{"Time":"2026-10-08T14:58:10.586816953Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures"}
+{"Time":"2026-10-08T14:58:10.586893745Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures","Output":"=== RUN   TestArchitectureEffectFixtures\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:58:10.587211912Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures/stored-callback"}
+{"Time":"2026-10-08T14:58:10.587227995Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures/stored-callback","Output":"=== RUN   TestArchitectureEffectFixtures/stored-callback\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:58:11.136901495Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures/stored-callback","Output":"--- PASS: TestArchitectureEffectFixtures/stored-callback (0.55s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:58:11.136937745Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures/stored-callback","Elapsed":0.55}
+{"Time":"2026-10-08T14:58:11.137058704Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures/local-location"}
+{"Time":"2026-10-08T14:58:11.13707837Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures/local-location","Output":"=== RUN   TestArchitectureEffectFixtures/local-location\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:58:11.673103579Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures/local-location","Output":"--- PASS: TestArchitectureEffectFixtures/local-location (0.54s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:58:11.673133412Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures/local-location","Elapsed":0.54}
+{"Time":"2026-10-08T14:58:11.673258162Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures","Output":"--- PASS: TestArchitectureEffectFixtures (1.09s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:58:11.673283912Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitectureEffectFixtures","Elapsed":1.09}
+{"Time":"2026-10-08T14:58:11.673303287Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:58:11.67503787Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"ok  \tgo.temporal.io/server/tools/gomad3\t1.092s\n"}
+{"Time":"2026-10-08T14:58:11.675050829Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Elapsed":1.092}

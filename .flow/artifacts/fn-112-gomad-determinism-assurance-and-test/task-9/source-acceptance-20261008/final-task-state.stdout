@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "created_at": "2026-10-02T03:43:38.436219Z",
+  "depends_on": [
+    "fn-112-gomad-determinism-assurance-and-test.2"
+  ],
+  "id": "fn-112-gomad-determinism-assurance-and-test.9",
+  "priority": null,
+  "spec": "fn-112-gomad-determinism-assurance-and-test",
+  "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md",
+  "status": "in_progress",
+  "title": "Consolidate the change-detector tests with a retained mapping",
+  "updated_at": "2026-10-08T14:22:43.528522Z",
+  "assignee": "stephanos@users.noreply.github.com",
+  "claimed_at": "2026-10-08T14:22:43.528537Z",
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
+}

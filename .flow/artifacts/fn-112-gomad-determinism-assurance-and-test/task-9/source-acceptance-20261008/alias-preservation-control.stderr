@@ -1,0 +1,2 @@
+../../../../../../tools/gomad3/internal/gomadtool/architecture/architecture.go:14:2: missing go.sum entry for module providing package golang.org/x/mod/modfile (imported by go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture); to add:
+	go get go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture@v0.0.0

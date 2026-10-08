@@ -1,0 +1,1241 @@
+{
+  "task_id": "fn-112-gomad-determinism-assurance-and-test.9",
+  "status": "in_progress",
+  "base_commit": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "head": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "commits": [],
+  "tests": [
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-current-overlay.json -run '^TestRewrittenModulesRejectChangedIdentity$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-original-overlay.json -run '^Test(Sprig|Validator|Pebble|CactusStatsD|Memberlist|Sentry|HashicorpMetrics)RejectsChangedIdentity$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-original-unmodified-overlay.json -run '^Test(Sprig|Validator|Pebble|CactusStatsD|Memberlist|Sentry|HashicorpMetrics)RejectsChangedIdentity$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-control run -tags test_dep -mod=readonly .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-control run -tags test_dep -mod=readonly .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json ./cmd/gomad/internal/cli",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json ./runner",
+    "make -C tools/gomad3 validate",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 build -trimpath -o /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad ./cmd/gomad",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad analyze --format=json --timeout 10s go-run ./tools/gomad3/testdata/helloworld",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad doctor --json --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-doctor-artifacts",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad explore --json --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-explore-artifacts --seeds 1 go-run ./tools/gomad3/testdata/helloworld",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad minimize --json --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-minimize-artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/missing-artifact",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad qualify --json --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-qualify-artifacts --seeds 1 --repeat 0 go-run ./tools/gomad3/testdata/helloworld",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad resume --json /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/missing-campaign",
+    "python3 -B .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -c -tags test_dep -o /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/architecture-test .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-current-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-original-normal-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-original-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/current-identity-derive.mjs --source-ref=worktree",
+    "sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/runtime-identities.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/runtime-identities.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/accounting-analysis.mjs",
+    "python3 -B /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json ./cmd/gomad/internal/cli",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^Test(RunRejectsSuccessfulRetentionWithoutReplayTranscript|AssessCompletionProjectsCoverageInOrderAndClassifies|CompletionFaultsKeepReasonPrecedenceAndEvidence|AssessWorldValidatesTheRecordAgainstItsSeed|IsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput)$' ./runner",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analyze-evidence.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analyze-evidence.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/failure-bindings.mjs",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' env -json",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-links.mjs",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-links.mjs",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestArchitecturePublicSignatureFixtures/private-storage$' .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestCannedCoordinatorHelper|TestCampaignOptionsLegacyCharacterization|TestCancellationIsAHostFailure|TestIsolatedRunnerPreservesCoordinatorResponse|TestReplayDoesNotStartTarget|TestRunPreparationFailureLeavesClassifiedPartial|TestRunResumeRejectsChangedEvidence|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput|TestRunRetainsSuccessesOnlyWithinExplicitBounds)$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/source-proof.mjs --final",
+    "/home/agent/.codex/scripts/flowctl show fn-112-gomad-determinism-assurance-and-test.9 --json",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV= LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...'",
+    "make -C tools/gomad3 validate",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/verify.mjs",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-world-current-mutant-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad analyze --format=json --timeout 10s --toolchain-root /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain go-run ./tools/gomad3/cmd/gomad/testdata/seedfree",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad explore --json --working-dir /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-valid-explore-artifacts --seeds 1 go-run ./cmd/gomad/testdata/seedfree",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/gomad qualify --json --working-dir /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 --artifacts /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-valid-qualify-artifacts --seed 1 --repeat 2 go-run ./cmd/gomad/testdata/seedfree",
+    "python3 -B /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json ./cmd/gomad/internal/cli",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestCannedCoordinatorHelper|TestCampaignOptionsLegacyCharacterization|TestCancellationIsAHostFailure|TestIsolatedRunnerPreservesCoordinatorResponse|TestReplayDoesNotStartTarget|TestRunPreparationFailureLeavesClassifiedPartial|TestRunResumeRejectsChangedEvidence|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput|TestRunRetainsSuccessesOnlyWithinExplicitBounds)$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV= LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...'",
+    "make -C tools/gomad3 validate",
+    "uname -a",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-current-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt' -l tools/gomad3/architecture_test.go tools/gomad3/deterministicio/adapter_rewrite_test.go tools/gomad3/runner/completion_test.go",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestArchitectureEffectFixtures/(stored-callback|local-location)$' .",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "env SIZE_COUNT_DETAIL=1 sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/source-proof.mjs --final --output=frozen-source-proof.json",
+    "/home/agent/.codex/scripts/flowctl show fn-112-gomad-determinism-assurance-and-test.9 --json",
+    "id",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-fixture-run.mjs exported-alias",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-fixture-run.mjs valid",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestRewrittenModulesRejectChangedIdentity$/^empty$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-current-overlay.json -run '^TestRewrittenModulesRejectChangedIdentity$/^empty$' ./deterministicio",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/accounting-analysis.mjs",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-current-mutant-overlay.json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^TestAssessCompletionProjectsCoverageInOrderAndClassifies$' ./runner",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/map-current-status.mjs",
+    "df -h /home/agent/.cache/go-build /Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analyze-evidence.mjs --freeze",
+    "python3 -B /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json ./cmd/gomad/internal/cli",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV=59ca3d17395be5501906586006e2539d33bea28c",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=3m -json ./deterministicio",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs focused",
+    "node /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs nested",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -run '^(TestCompletionFaultsKeepReasonPrecedenceAndEvidence|TestCannedCoordinatorHelper|TestCampaignOptionsLegacyCharacterization|TestCancellationIsAHostFailure|TestIsolatedRunnerPreservesCoordinatorResponse|TestReplayDoesNotStartTarget|TestRunPreparationFailureLeavesClassifiedPartial|TestRunResumeRejectsChangedEvidence|TestAssessWorldValidatesTheRecordAgainstItsSeed|TestAssessCompletionProjectsCoverageInOrderAndClassifies|TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput|TestRunRetainsSuccessesOnlyWithinExplicitBounds)$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 vet -tags test_dep . ./deterministicio ./cmd/gomad/internal/cli ./runner",
+    "sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep GOLANGCI_LINT_BASE_REV= LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...'",
+    "make -C tools/gomad3 validate",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=5m -json .",
+    "env SIZE_COUNT_DETAIL=1 sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/source-proof.mjs --final --output=sealed-source-proof.json",
+    "/home/agent/.codex/scripts/flowctl show fn-112-gomad-determinism-assurance-and-test.9 --json",
+    "make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV= GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 'LINT_CODE_TARGETS=. ./deterministicio/... ./runner/... ./cmd/gomad/...' ALL_TEST_TAGS=test_dep",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-world-current-mutant-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-completion-original-normal-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner",
+    "'/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go' -C tools/gomad3 test -tags test_dep -count=1 -timeout=2m -json -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-world-original-mutant-overlay.json -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$' ./runner"
+  ],
+  "prs": [],
+  "tier": "Tier: session (jev-unavailable(no_key)); project implementer pin retained.",
+  "review_mode": "host-deferred",
+  "review_verdict": null,
+  "stage_impl_review": "skipped(policy: host-deferred - conductor owns the gate)",
+  "delegated": {
+    "count": 2,
+    "requested_models": [
+      "gpt-6-astra at high",
+      "gpt-6-astra at high"
+    ],
+    "terminal": 2,
+    "read_only": true,
+    "actual_model_metadata_unavailable": true
+  },
+  "baseline": {
+    "classification": "red",
+    "root_first_attempt": "PASS18top59sub before restoration",
+    "cli": "FAIL3missing-driver",
+    "deterministicio": "FAIL58top/48sub actual prerequisites",
+    "runner": "FAIL77top149sub plus five-minute timeout; incomplete, not full-suite pass"
+  },
+  "restorations": {
+    "scope": "Only three admitted test files; four concrete lost conditions restored",
+    "files": [
+      "tools/gomad3/architecture_test.go",
+      "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "tools/gomad3/runner/completion_test.go"
+    ],
+    "diff": "62 insertions, 21 deletions; no production, fixture, unrelated comment or original artifact edit"
+  },
+  "final_gates": {
+    "root": {
+      "exit": 1,
+      "top": {
+        "pass": 17,
+        "fail": 2,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 53,
+        "fail": 6,
+        "skip": 0
+      },
+      "failure": "stock cache srcfiles entries absent in unchanged fixture tests; earlier bounded rechecks kept separate"
+    },
+    "deterministicio": {
+      "exit": 1,
+      "top": {
+        "pass": 36,
+        "fail": 58,
+        "skip": 4
+      },
+      "subtests": {
+        "pass": 47,
+        "fail": 49,
+        "skip": 0
+      }
+    },
+    "cli": {
+      "exit": 1,
+      "top": {
+        "pass": 90,
+        "fail": 3,
+        "skip": 0
+      },
+      "subtests": {
+        "pass": 281,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    "runner_bounded_mapping_selector": {
+      "exit": 1,
+      "top": {
+        "pass": 6,
+        "fail": 4,
+        "skip": 1
+      },
+      "subtests": {
+        "pass": 150,
+        "fail": 65,
+        "skip": 0
+      },
+      "not_full_suite": true
+    },
+    "validate": 0,
+    "scoped_stock_vet": 0,
+    "configured_errortype": 0,
+    "scoped_format": 0,
+    "unfiltered_scoped_lint": {
+      "exit": 2,
+      "findings": 92,
+      "waived": false
+    },
+    "configured_fast_lint": {
+      "exit": 2,
+      "findings": 3,
+      "waived": false
+    },
+    "nested_format": {
+      "exit": 1,
+      "raw_gofmt_exit": 0,
+      "printed_path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "inherited": true,
+      "waived": false
+    }
+  },
+  "preservation": {
+    "mapping_edges": 282,
+    "housekeeping_individual_reasons": 11,
+    "unaffected_functions": 165,
+    "current_shared_bodies": 22,
+    "blocked_unreached_adapter_children": 104,
+    "all_statuses_separate": true,
+    "task6_accepted_named": 403,
+    "task6_current_bodies_exact": 383,
+    "task3_accepted_bodies_exact": 4
+  },
+  "size": {
+    "before_current_code_lines": 76587,
+    "after_current_code_lines": 76627,
+    "delta": 40,
+    "before_top_level_tests": 1799,
+    "after_top_level_tests": 1800,
+    "delta_top_level": 1,
+    "historical_minus1398_lines_minus88_tests_not_current": true
+  },
+  "proofs": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-source-proof.json",
+      "sha256": "e2cda9d6122449c9bb5001110909878ba69942019bcbc8ad258f06f441c5e449",
+      "bytes": 1255861
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-restoration-analysis.json",
+      "sha256": "7ab9271f52c967402c2df6a10a3ac0f236690d7ce4464bdaac590d57aae428a1",
+      "bytes": 13984
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-current-mapping-analysis.json",
+      "sha256": "4de3c1e84c7ea8864f7893df1743e2c0456f9a31b452459c59c462338e3160a4",
+      "bytes": 416455
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-static-bindings.json",
+      "sha256": "305a2443e90ac619c3ef07b805f828b6a9445ea17990ae053f116ed71aaa08f1",
+      "bytes": 827122
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-execution-analysis.json",
+      "sha256": "ca5773d9b1085895869393ee682e6b318a4e5764fe1a0ce516418c66917cf340",
+      "bytes": 1428292
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/terminal-failure-bindings.json",
+      "sha256": "6affa4844a74c5a9adbd5f65c41a627e6cd62a9ae8d3993667d3a0ce9e9edb07",
+      "bytes": 866541
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analysis-clarifications.json",
+      "sha256": "cb52e018244336a849e2b22722b60a814492a1954dc05d69db16a5aa872bc268",
+      "bytes": 1487
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-accounting-analysis.json",
+      "sha256": "8b41cff0904c144c5eedb862dc1d045ce75c3fcc472a186f979cee2af6ea9a61",
+      "bytes": 39245
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-diagnostic-fixture-binding.json",
+      "sha256": "12babd45f28743262268aede22c25b12fead92fcd54f8f94990c5423ad4db737",
+      "bytes": 13004
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/built-cli-process-bindings.json",
+      "sha256": "5022487382f52d4af0ea13e14a61ba32adccefd73494cd87168612f74b42f3dd",
+      "bytes": 19374
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/preservation-notes.md",
+      "sha256": "f6b99cb695b51eff96c521ea1d68ef3b95caa6b488d2761e9820adc0ff6d4455",
+      "bytes": 13984
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-verification-preflight.json",
+      "sha256": "87514dea08f02d67fc64781e71c235931565950e73ba0d8d0aca831d9c734a5e",
+      "bytes": 3026
+    }
+  ],
+  "receipts": [
+    {
+      "label": "adapter-current-mutant-control",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/adapter-current-mutant-control.json",
+      "sha256": "f821368a77c904034b6a62ae69f0bb2653c56aab85059c639f4d375cb908ebdc",
+      "started": "2026-10-08T14:34:21.599Z",
+      "ended": "2026-10-08T14:34:22.275Z"
+    },
+    {
+      "label": "adapter-original-mutant-control",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/adapter-original-mutant-control.json",
+      "sha256": "74428502b578faf6cf10b80cc02c3188c6e1d1231b201e9fe0ce14c9821825d4",
+      "started": "2026-10-08T14:35:12.779Z",
+      "ended": "2026-10-08T14:35:14.080Z"
+    },
+    {
+      "label": "adapter-original-portable-control",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/adapter-original-portable-control.json",
+      "sha256": "a53b6ecbce93d7ca487970920a08bf31ed2e0115d22d5b6977436f27c4e7cb6f",
+      "started": "2026-10-08T14:35:02.779Z",
+      "ended": "2026-10-08T14:35:03.544Z"
+    },
+    {
+      "label": "alias-actual-condition-control",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-actual-condition-control.json",
+      "sha256": "c396e7ac42a74d0a6b8a62b7a48824c99e107ae34fbeab326c3722df06a1bfad",
+      "started": "2026-10-08T14:34:10.495Z",
+      "ended": "2026-10-08T14:34:10.763Z"
+    },
+    {
+      "label": "alias-preservation-control",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-preservation-control.json",
+      "sha256": "10b0b1d9fe051131a5d465c4cc373e0306bbf254e4741ce98698be9c13396576",
+      "started": "2026-10-08T14:29:10.547Z",
+      "ended": "2026-10-08T14:29:10.681Z"
+    },
+    {
+      "label": "baseline-cli",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/baseline-cli.json",
+      "sha256": "4c662e26b96ccda7dab3f45c8ea4803a789de25f339d4f6e2b81200c732c8412",
+      "started": "2026-10-08T14:27:53.152Z",
+      "ended": "2026-10-08T14:27:55.149Z"
+    },
+    {
+      "label": "baseline-deterministicio",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/baseline-deterministicio.json",
+      "sha256": "1aab6d9cee42b5f6aa02467c88dad676bfba368337d5abbca4b5407ca38c363a",
+      "started": "2026-10-08T14:34:31.705Z",
+      "ended": "2026-10-08T14:34:47.975Z"
+    },
+    {
+      "label": "baseline-root",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/baseline-root.json",
+      "sha256": "c222c654d41b6067b7b5834fe16c3704fdbb9c243170644b2fc3aa5d0070dd04",
+      "started": "2026-10-08T14:26:40.383Z",
+      "ended": "2026-10-08T14:27:30.722Z"
+    },
+    {
+      "label": "baseline-runner",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/baseline-runner.json",
+      "sha256": "a81c41481f461559bb785c2769130f0f6015f2fa8dbe1b703f44754b25bac113",
+      "started": "2026-10-08T14:28:31.205Z",
+      "ended": "2026-10-08T14:33:31.663Z"
+    },
+    {
+      "label": "baseline-validate",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/baseline-validate.json",
+      "sha256": "6e39f58bd8974604e6687eee21d6c70eec125963d8b8cc3acab8ec363024ec7d",
+      "started": "2026-10-08T14:26:18.622Z",
+      "ended": "2026-10-08T14:26:21.030Z"
+    },
+    {
+      "label": "build-current-cli",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/build-current-cli.json",
+      "sha256": "c3043d01bfaa861266b353ec7cec79695d1f235e377d99f2853ce9982229cbfb",
+      "started": "2026-10-08T14:37:17.514Z",
+      "ended": "2026-10-08T14:37:23.468Z"
+    },
+    {
+      "label": "built-cli-analyze",
+      "exit": 3,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/built-cli-analyze.json",
+      "sha256": "b2d06eb275cf85123f1993677a0b648b7dbf292b7e289dda2e802dff861ac5cb",
+      "started": "2026-10-08T14:46:50.043Z",
+      "ended": "2026-10-08T14:46:50.192Z"
+    },
+    {
+      "label": "built-cli-doctor",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/built-cli-doctor.json",
+      "sha256": "3dfb9d880c1a57fa9112e3f5fd1b7da6b5ea2b889fcfbf6a53a127507566e4de",
+      "started": "2026-10-08T14:46:49.456Z",
+      "ended": "2026-10-08T14:46:49.598Z"
+    },
+    {
+      "label": "built-cli-explore",
+      "exit": 3,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/built-cli-explore.json",
+      "sha256": "f42a68035991fa267ac76b55fb30d6a09bbb4853e6366c0760a8bf2c1b86725e",
+      "started": "2026-10-08T14:46:50.487Z",
+      "ended": "2026-10-08T14:46:51.036Z"
+    },
+    {
+      "label": "built-cli-minimize",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/built-cli-minimize.json",
+      "sha256": "de59dfd7aac15ef0d16b287eb8df28b26f31e8279cac800bf0697d05c44b4c64",
+      "started": "2026-10-08T14:46:52.084Z",
+      "ended": "2026-10-08T14:46:52.192Z"
+    },
+    {
+      "label": "built-cli-qualify",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/built-cli-qualify.json",
+      "sha256": "6603a8e76a908e1c80c9ce25286d043a8da51e4405cedced9acbce7a816797b5",
+      "started": "2026-10-08T14:46:51.310Z",
+      "ended": "2026-10-08T14:46:51.419Z"
+    },
+    {
+      "label": "built-cli-resume",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/built-cli-resume.json",
+      "sha256": "5397b3069381680c30e2fca74db8eead0c2c640777d1868eb140f1536ddaa6a4",
+      "started": "2026-10-08T14:46:51.703Z",
+      "ended": "2026-10-08T14:46:51.824Z"
+    },
+    {
+      "label": "checker-controls",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.json",
+      "sha256": "f81af60aeb3d873979517a29f63370ed1ee170985a30f9a99a3f86bfbd15fe74",
+      "started": "2026-10-08T14:27:43.623Z",
+      "ended": "2026-10-08T14:27:43.747Z"
+    },
+    {
+      "label": "compile-restored-architecture-tests",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/compile-restored-architecture-tests.json",
+      "sha256": "7be3a78b42f5bb99cb42404b9ff8df3f29b369fbf276ca53ab6ae0f93217b06c",
+      "started": "2026-10-08T14:40:00.934Z",
+      "ended": "2026-10-08T14:40:01.511Z"
+    },
+    {
+      "label": "completion-current-cause-mutant",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/completion-current-cause-mutant.json",
+      "sha256": "25a5e8cdfe25eb19f827df21b73b641fc978d24992b94b88f8423b59358c076c",
+      "started": "2026-10-08T14:52:33.583Z",
+      "ended": "2026-10-08T14:52:35.205Z"
+    },
+    {
+      "label": "completion-original-cause-baseline",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/completion-original-cause-baseline.json",
+      "sha256": "8d03aefe3fc6cad4a38984454fb201d57c2b1b01fa2b213a318da31aae917aed",
+      "started": "2026-10-08T14:52:29.612Z",
+      "ended": "2026-10-08T14:52:31.413Z"
+    },
+    {
+      "label": "completion-original-cause-mutant",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/completion-original-cause-mutant.json",
+      "sha256": "7e03b669694b342b25caa6a74952b5ba903ad79ac61cf2c251788afe6e01fd9e",
+      "started": "2026-10-08T14:52:31.694Z",
+      "ended": "2026-10-08T14:52:33.336Z"
+    },
+    {
+      "label": "configured-fast-lint",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/configured-fast-lint.json",
+      "sha256": "182d3681d5c573ac0b52a97beb7b0d49700b83a67060547bf112df2502c23898",
+      "started": "2026-10-08T14:36:46.859Z",
+      "ended": "2026-10-08T14:36:51.759Z"
+    },
+    {
+      "label": "current-diagnostic-identity-derivation",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/current-diagnostic-identity-derivation.json",
+      "sha256": "c935a8b81a0843e03f963aab86f63f2b92f3358fd085664a3ac6df4e3b955d21",
+      "started": "2026-10-08T14:48:44.952Z",
+      "ended": "2026-10-08T14:48:45.247Z"
+    },
+    {
+      "label": "current-size",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/current-size.json",
+      "sha256": "498358fc306e99fbdab128e08d075b33672ede37f3a57a4f0d9ebd2754a004d2",
+      "started": "2026-10-08T14:27:54.321Z",
+      "ended": "2026-10-08T14:27:55.529Z"
+    },
+    {
+      "label": "execution-tool-input-identities-corrected",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/execution-tool-input-identities-corrected.json",
+      "sha256": "a2d768f0c44d558c124fa282a03a6c7d7bba5d074c4226db16d068732b4b006f",
+      "started": "2026-10-08T15:16:15.970Z",
+      "ended": "2026-10-08T15:16:16.251Z"
+    },
+    {
+      "label": "execution-tool-input-identities",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/execution-tool-input-identities.json",
+      "sha256": "6d3c459269c7df0e849fb59a2d9fd39c0cdc637e9feb908394c4670530eceb8a",
+      "started": "2026-10-08T15:15:37.845Z",
+      "ended": "2026-10-08T15:15:38.181Z"
+    },
+    {
+      "label": "final-accounting-links",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-accounting-links.json",
+      "sha256": "2e2a5ce0587d8a3976cfaedc908683e4451c56bd8b65deb9666ddaf887a911a9",
+      "started": "2026-10-08T15:14:13.315Z",
+      "ended": "2026-10-08T15:14:16.194Z"
+    },
+    {
+      "label": "final-checker-controls",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-checker-controls.json",
+      "sha256": "e5df2176ba2ff876bef9bfd803ec30ddfb03fd85484312dcfde8383ca6e4f2f0",
+      "started": "2026-10-08T14:46:49.075Z",
+      "ended": "2026-10-08T14:46:49.202Z"
+    },
+    {
+      "label": "final-cli",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-cli.json",
+      "sha256": "c2d589f16aaa4630d4bb40eba910762f8938d854caa2a933ee36ecf45c43fb1f",
+      "started": "2026-10-08T14:46:31.074Z",
+      "ended": "2026-10-08T14:46:32.947Z"
+    },
+    {
+      "label": "final-completion-preservation",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-completion-preservation.json",
+      "sha256": "d30cf0664e7a88410b042804ac3c1e436556af27797f473165a5f1670a4338fc",
+      "started": "2026-10-08T14:49:09.896Z",
+      "ended": "2026-10-08T14:49:11.337Z"
+    },
+    {
+      "label": "final-configured-fast-lint",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-configured-fast-lint.json",
+      "sha256": "c9eb1afbd1a7200fd7c3eb892f9062d0adfce0a0a1bdb0282e72506c71701a27",
+      "started": "2026-10-08T14:46:40.686Z",
+      "ended": "2026-10-08T14:46:45.759Z"
+    },
+    {
+      "label": "final-deterministicio",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-deterministicio.json",
+      "sha256": "8b9ea0f7ff641c69bc9fb2dcab7adcf36a294d02e19e29230023b93520bcc52f",
+      "started": "2026-10-08T14:46:13.455Z",
+      "ended": "2026-10-08T14:46:30.751Z"
+    },
+    {
+      "label": "final-evidence-analysis-corrected",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-evidence-analysis-corrected.json",
+      "sha256": "341bc5dbc6afae49bbbcc6091d2ac9e29c565853eeb74727ee48c6aa92547e00",
+      "started": "2026-10-08T14:56:41.663Z",
+      "ended": "2026-10-08T14:57:04.062Z"
+    },
+    {
+      "label": "final-evidence-analysis",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-evidence-analysis.json",
+      "sha256": "e70c7b1b88760ea5ce4fa6f2e9f5ffce22ba8d93f38802112a50bd1cd991826b",
+      "started": "2026-10-08T14:54:31.035Z",
+      "ended": "2026-10-08T14:54:31.290Z"
+    },
+    {
+      "label": "final-failure-source-bindings",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-failure-source-bindings.json",
+      "sha256": "a6a2f15c2610cb98064fad67be57067329dc3ed5558c32598e2378b38162e75e",
+      "started": "2026-10-08T15:12:51.208Z",
+      "ended": "2026-10-08T15:12:51.729Z"
+    },
+    {
+      "label": "final-focused-format",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-focused-format.json",
+      "sha256": "59ca062841979d939365a00dda8c1eaf8460b0419786600746a8f5d1ebc7e192",
+      "started": "2026-10-08T14:46:46.075Z",
+      "ended": "2026-10-08T14:46:46.443Z"
+    },
+    {
+      "label": "final-go-env",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-go-env.json",
+      "sha256": "bbaab0546c402f078cf5cd1bf291f916c0c903ecab471e96b3f960abe2d54e54",
+      "started": "2026-10-08T14:46:52.438Z",
+      "ended": "2026-10-08T14:46:52.562Z"
+    },
+    {
+      "label": "final-nested-format",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-nested-format.json",
+      "sha256": "83d08acefa883c307ed81f424dc7d9973abd5a163ae0f5881648d5aa43f06c18",
+      "started": "2026-10-08T14:46:46.738Z",
+      "ended": "2026-10-08T14:46:47.333Z"
+    },
+    {
+      "label": "final-proof-links-corrected",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-proof-links-corrected.json",
+      "sha256": "864b37d2d2069faf05a0d6d0db95c7a614b5f571b4a2f085c3878f46088a5e16",
+      "started": "2026-10-08T15:09:04.859Z",
+      "ended": "2026-10-08T15:09:05.270Z"
+    },
+    {
+      "label": "final-proof-links",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-proof-links.json",
+      "sha256": "dd6b1ba2e918db28b6882d91246f16d4f87dfc2643dcddc746619449d2fabec5",
+      "started": "2026-10-08T15:08:23.856Z",
+      "ended": "2026-10-08T15:08:24.179Z"
+    },
+    {
+      "label": "final-root-fixture-recheck",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-root-fixture-recheck.json",
+      "sha256": "eec79aabd413c7744b43853312b5908e150d47639871cfd1a1a0357ee5b9dcba",
+      "started": "2026-10-08T14:44:54.103Z",
+      "ended": "2026-10-08T14:44:54.431Z"
+    },
+    {
+      "label": "final-root-recheck",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-root-recheck.json",
+      "sha256": "f73af8d18e2e420087b785b90945146e309518e2b0910029dcaed46975d55d9d",
+      "started": "2026-10-08T14:45:03.248Z",
+      "ended": "2026-10-08T14:45:51.412Z"
+    },
+    {
+      "label": "final-root",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-root.json",
+      "sha256": "37a9dcfa9fef828ed8519cd4d335f68f111635b51af7b2da29cfc13841190b80",
+      "started": "2026-10-08T14:40:31.918Z",
+      "ended": "2026-10-08T14:41:23.915Z"
+    },
+    {
+      "label": "final-runner-focused",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-runner-focused.json",
+      "sha256": "f7f33fb0d2e11cf4c99997f9882c3056e5d26cd29203f3d423e53c8d4078c76a",
+      "started": "2026-10-08T14:46:33.290Z",
+      "ended": "2026-10-08T14:46:34.343Z"
+    },
+    {
+      "label": "final-scoped-errortype",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-scoped-errortype.json",
+      "sha256": "d6bfe06e6aae90bc888b38e613a5767c45d12dc023e1c77a663de46c15d962ce",
+      "started": "2026-10-08T14:46:37.965Z",
+      "ended": "2026-10-08T14:46:38.282Z"
+    },
+    {
+      "label": "final-scoped-vet",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-scoped-vet.json",
+      "sha256": "054c7b3a0036363ca5546ae7d40a5865d16c7c616fa4b149a7086eca7edd04ed",
+      "started": "2026-10-08T14:46:37.374Z",
+      "ended": "2026-10-08T14:46:37.694Z"
+    },
+    {
+      "label": "final-size",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-size.json",
+      "sha256": "1a31d4ca4d3f3e6961a416e442360d2f19a7a5d3a45b4ab90e5ee7469c713828",
+      "started": "2026-10-08T14:46:47.660Z",
+      "ended": "2026-10-08T14:46:48.796Z"
+    },
+    {
+      "label": "final-source-binding",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-source-binding.json",
+      "sha256": "14bce305370720ac4ea9e1378c63f0d2aad4cfd001c9a40271040c1d868ca13a",
+      "started": "2026-10-08T14:48:35.785Z",
+      "ended": "2026-10-08T14:48:37.962Z"
+    },
+    {
+      "label": "final-task-state",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-task-state.json",
+      "sha256": "095d5274f9e3ee59897535ad0559c67725bc40a14a014aa2d62343b834b3b843",
+      "started": "2026-10-08T14:46:52.808Z",
+      "ended": "2026-10-08T14:46:53.168Z"
+    },
+    {
+      "label": "final-unfiltered-scoped-lint",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-unfiltered-scoped-lint.json",
+      "sha256": "ae52656bea211c7e84e650e5ea69449a9b5801ba9fd13883fd4680a9206404ac",
+      "started": "2026-10-08T14:46:38.537Z",
+      "ended": "2026-10-08T14:46:40.432Z"
+    },
+    {
+      "label": "final-validate",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-validate.json",
+      "sha256": "05e103de3e1bf6c1196ef0a277485d2cf52e5c6f11a5ffbdadda11bceba060a9",
+      "started": "2026-10-08T14:46:34.648Z",
+      "ended": "2026-10-08T14:46:37.083Z"
+    },
+    {
+      "label": "final-verification-preflight",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-verification-preflight.json",
+      "sha256": "87514dea08f02d67fc64781e71c235931565950e73ba0d8d0aca831d9c734a5e",
+      "started": "2026-10-08T15:10:23.994Z",
+      "ended": "2026-10-08T15:10:30.665Z"
+    },
+    {
+      "label": "final-world-restored-mutant",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-world-restored-mutant.json",
+      "sha256": "dfd6c4d73ca16e16cd546b33f001762e2ddb88fe049fade4d4e568455db3ae32",
+      "started": "2026-10-08T15:02:21.296Z",
+      "ended": "2026-10-08T15:02:22.829Z"
+    },
+    {
+      "label": "final-world-restored-normal",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-world-restored-normal.json",
+      "sha256": "0470a0b5034bbb116cb5f7cb86104d85186a3499dde43c4334122236f5881495",
+      "started": "2026-10-08T15:01:31.090Z",
+      "ended": "2026-10-08T15:01:32.739Z"
+    },
+    {
+      "label": "focused-format",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/focused-format.json",
+      "sha256": "9bf48a21883e6fba46ff640a5fe541ee3cfdf018e5df80f29ab506ce50f1db60",
+      "started": "2026-10-08T14:36:36.037Z",
+      "ended": "2026-10-08T14:36:36.355Z"
+    },
+    {
+      "label": "frozen-built-cli-valid-analyze",
+      "exit": 3,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-built-cli-valid-analyze.json",
+      "sha256": "edb6cf58a528d5d42aab6f9bd335878939aa50422da1674096ea21e5c2dc63f7",
+      "started": "2026-10-08T14:58:13.456Z",
+      "ended": "2026-10-08T14:58:13.595Z"
+    },
+    {
+      "label": "frozen-built-cli-valid-explore",
+      "exit": 3,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-built-cli-valid-explore.json",
+      "sha256": "86b1477c2b7b451044a81c676b37e07ce006ca6deb8c6761112befc28ab92270",
+      "started": "2026-10-08T14:58:12.093Z",
+      "ended": "2026-10-08T14:58:12.711Z"
+    },
+    {
+      "label": "frozen-built-cli-valid-qualify",
+      "exit": 3,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-built-cli-valid-qualify.json",
+      "sha256": "228ef0bf021ddcb84be0476536bad99a4a3d4ab73d65bf85a5dc15dfd0cb0105",
+      "started": "2026-10-08T14:58:12.988Z",
+      "ended": "2026-10-08T14:58:13.180Z"
+    },
+    {
+      "label": "frozen-final-checker-controls",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-checker-controls.json",
+      "sha256": "77df556d2439b138d72cd29bcc4b63fd962fe4c4bd60988ac59f5f94140d00c1",
+      "started": "2026-10-08T14:57:14.205Z",
+      "ended": "2026-10-08T14:57:14.329Z"
+    },
+    {
+      "label": "frozen-final-cli",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-cli.json",
+      "sha256": "4c8ca309d9035bc6baa7edf3eaf37a5d2256fe430b2c34deb48d332dbe8fb919",
+      "started": "2026-10-08T14:56:56.463Z",
+      "ended": "2026-10-08T14:56:57.658Z"
+    },
+    {
+      "label": "frozen-final-configured-fast-lint",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-configured-fast-lint.json",
+      "sha256": "ca56122d01f3e6a26bda9c10cb519d0b7e24536b5fee4bf19cfbc40a61634902",
+      "started": "2026-10-08T14:57:06.851Z",
+      "ended": "2026-10-08T14:57:11.292Z"
+    },
+    {
+      "label": "frozen-final-deterministicio",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-deterministicio.json",
+      "sha256": "bcc5dc54955c0f57c9fb8019926d3ac22aba392358ec1855c69fbbca9197aff1",
+      "started": "2026-10-08T14:56:38.908Z",
+      "ended": "2026-10-08T14:56:56.187Z"
+    },
+    {
+      "label": "frozen-final-focused-format",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-focused-format.json",
+      "sha256": "491fc58300211d74aa28062f2f429dce2d33b7fc666d0e247e7f089b1aa6ce04",
+      "started": "2026-10-08T14:57:11.535Z",
+      "ended": "2026-10-08T14:57:11.824Z"
+    },
+    {
+      "label": "frozen-final-nested-format",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-nested-format.json",
+      "sha256": "fa1d4d1f4c14328bc16f69a7ed38a0f2188e6adb29cbf6b90d846eabb43f3113",
+      "started": "2026-10-08T14:57:12.106Z",
+      "ended": "2026-10-08T14:57:12.638Z"
+    },
+    {
+      "label": "frozen-final-runner-focused",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-runner-focused.json",
+      "sha256": "43389fc9d83bdf882da86691800451193f65218bb1e2ea7b0407cb29aa0ac5bc",
+      "started": "2026-10-08T14:56:57.916Z",
+      "ended": "2026-10-08T14:57:00.235Z"
+    },
+    {
+      "label": "frozen-final-scoped-errortype",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-scoped-errortype.json",
+      "sha256": "20c22c0930bf49803c74ce7647da1fadbd3131cc1a5473b2a8b98b7d94a3beb0",
+      "started": "2026-10-08T14:57:03.525Z",
+      "ended": "2026-10-08T14:57:03.942Z"
+    },
+    {
+      "label": "frozen-final-scoped-vet",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-scoped-vet.json",
+      "sha256": "3a8476edd2bf26b669780af13c73c817a5553142d0da5e2ef2e217c53bbd75e2",
+      "started": "2026-10-08T14:57:02.980Z",
+      "ended": "2026-10-08T14:57:03.265Z"
+    },
+    {
+      "label": "frozen-final-size",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-size.json",
+      "sha256": "7738c8e1f879ceb1732f22352e191d378ce79b1f4d61dd698e0212a1b16d5b0d",
+      "started": "2026-10-08T14:57:12.887Z",
+      "ended": "2026-10-08T14:57:13.959Z"
+    },
+    {
+      "label": "frozen-final-unfiltered-scoped-lint",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-unfiltered-scoped-lint.json",
+      "sha256": "1bf66e43d3bb3d149789f15485e9ff60b2321e3a2e56c67c05fb825e2a13a39e",
+      "started": "2026-10-08T14:57:04.211Z",
+      "ended": "2026-10-08T14:57:06.596Z"
+    },
+    {
+      "label": "frozen-final-validate",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-final-validate.json",
+      "sha256": "1cd60032d6adab0d49821bf584e692b7fcc79043ac50be2988c15b61759db7f4",
+      "started": "2026-10-08T14:57:00.490Z",
+      "ended": "2026-10-08T14:57:02.722Z"
+    },
+    {
+      "label": "frozen-host-identity",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-host-identity.json",
+      "sha256": "19de99e4f36ce3eeea7a8eee1d25b7b99fbe7334d95c1ba97f194a5e6c38cf22",
+      "started": "2026-10-08T14:58:16.043Z",
+      "ended": "2026-10-08T14:58:16.160Z"
+    },
+    {
+      "label": "frozen-restored-causes-mutant",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-restored-causes-mutant.json",
+      "sha256": "4aece349a6383807ea849d35f362d2e217e03e5d1f8aadc37d0e4b7bab465297",
+      "started": "2026-10-08T14:58:08.490Z",
+      "ended": "2026-10-08T14:58:10.181Z"
+    },
+    {
+      "label": "frozen-restored-causes-normal",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-restored-causes-normal.json",
+      "sha256": "7c320c043dbea1ca53a2791f016dbf81b323190f0db8665b8cb431a713114f83",
+      "started": "2026-10-08T14:58:07.765Z",
+      "ended": "2026-10-08T14:58:08.182Z"
+    },
+    {
+      "label": "frozen-restored-files-format",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-restored-files-format.json",
+      "sha256": "5970d25a4649562a5ee398c458261387613651a0d021e9b4f42df50f0f1c16c6",
+      "started": "2026-10-08T14:59:42.930Z",
+      "ended": "2026-10-08T14:59:43.024Z"
+    },
+    {
+      "label": "frozen-root-failed-fixtures-recheck",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-root-failed-fixtures-recheck.json",
+      "sha256": "bbf6f58a41b482207cab0dc9276c941c129b73b0f90dd6edb3408a5e6ec765d3",
+      "started": "2026-10-08T14:58:10.444Z",
+      "ended": "2026-10-08T14:58:11.793Z"
+    },
+    {
+      "label": "frozen-root",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-root.json",
+      "sha256": "971b72b24b1d5731bd4fecf31fab50332cff30a988d995de3a980392b386e79d",
+      "started": "2026-10-08T14:55:52.054Z",
+      "ended": "2026-10-08T14:56:38.637Z"
+    },
+    {
+      "label": "frozen-size-detail",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-size-detail.json",
+      "sha256": "57e55d6a34dea63034b04dcf4e2402a33dc359562a54c3a4045daff7ffd3beef",
+      "started": "2026-10-08T14:58:13.864Z",
+      "ended": "2026-10-08T14:58:14.974Z"
+    },
+    {
+      "label": "frozen-source-binding",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-source-binding.json",
+      "sha256": "fb552094e7502e99f9ce4cc86a55b6c19d9827c1aba3493bf9abc805191db0a2",
+      "started": "2026-10-08T14:58:40.524Z",
+      "ended": "2026-10-08T14:58:42.453Z"
+    },
+    {
+      "label": "frozen-task-state",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-task-state.json",
+      "sha256": "5ff0de08972d306bf6b282f9a8bb2bd9883fd32de439d6b73ad3d10b817b8044",
+      "started": "2026-10-08T14:58:15.235Z",
+      "ended": "2026-10-08T14:58:15.724Z"
+    },
+    {
+      "label": "frozen-user-identity",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/frozen-user-identity.json",
+      "sha256": "fc948b22310ed8347f5d9dda90b9677588317d98f411886a5e6d94945baa1283",
+      "started": "2026-10-08T14:58:16.437Z",
+      "ended": "2026-10-08T14:58:16.570Z"
+    },
+    {
+      "label": "nested-format",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/nested-format.json",
+      "sha256": "579767dad1dbdb622a3d14482e5180226c4b3da3147c0237db5514673f45d4f5",
+      "started": "2026-10-08T14:36:40.546Z",
+      "ended": "2026-10-08T14:36:41.081Z"
+    },
+    {
+      "label": "restored-alias-rejects-input",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/restored-alias-rejects-input.json",
+      "sha256": "acb72db1637d8b67d159f652f4f5c53cb4d2a15e5d6bf2e69a0de0b74063f891",
+      "started": "2026-10-08T14:40:31.099Z",
+      "ended": "2026-10-08T14:40:31.299Z"
+    },
+    {
+      "label": "restored-alias-valid-input",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/restored-alias-valid-input.json",
+      "sha256": "4f1555f6a0a56ac4b5c096972ecb9a5fe87c4eedecd833f7178eaa436efcb915",
+      "started": "2026-10-08T14:40:29.968Z",
+      "ended": "2026-10-08T14:40:30.406Z"
+    },
+    {
+      "label": "restored-empty-cache",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/restored-empty-cache.json",
+      "sha256": "527341793560b5112d5c16e41474c8e492be5640b2f96ab4124873c7cdd869c3",
+      "started": "2026-10-08T14:38:23.513Z",
+      "ended": "2026-10-08T14:38:24.315Z"
+    },
+    {
+      "label": "restored-empty-mutant-control",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/restored-empty-mutant-control.json",
+      "sha256": "1245e9f6d7e97a658cb47a39d044f3923531d41462c8cda0c56f0fd55c769883",
+      "started": "2026-10-08T14:39:03.357Z",
+      "ended": "2026-10-08T14:39:04.607Z"
+    },
+    {
+      "label": "scoped-errortype",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/scoped-errortype.json",
+      "sha256": "bfb3b75cb0b07615a160f4c02484eb880245bbae0e051625f9d1f85f9e796777",
+      "started": "2026-10-08T14:35:53.127Z",
+      "ended": "2026-10-08T14:35:53.496Z"
+    },
+    {
+      "label": "scoped-vet",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/scoped-vet.json",
+      "sha256": "05fa2706fd8226d4b46c1a8a3cda9d5190151f7489e6939b39c36f32f858f62e",
+      "started": "2026-10-08T14:35:14.066Z",
+      "ended": "2026-10-08T14:35:14.383Z"
+    },
+    {
+      "label": "sealed-accounting-analysis",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-accounting-analysis.json",
+      "sha256": "b8f45307eb68b10f543a6f61b1cc6940c1a4f5f6bdc05842a3a5a238c5023b33",
+      "started": "2026-10-08T15:05:46.911Z",
+      "ended": "2026-10-08T15:05:49.303Z"
+    },
+    {
+      "label": "sealed-causes-mutant",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-causes-mutant.json",
+      "sha256": "5e2beaf064981aaa5206772186b8d429d777799f35e8307cc952426b032d746f",
+      "started": "2026-10-08T15:07:53.255Z",
+      "ended": "2026-10-08T15:07:54.901Z"
+    },
+    {
+      "label": "sealed-causes-normal",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-causes-normal.json",
+      "sha256": "26cf1f70977a80295267c42b9cf72d7d86b750375216e4e2c7c96b86c15ffeb7",
+      "started": "2026-10-08T15:07:52.259Z",
+      "ended": "2026-10-08T15:07:52.977Z"
+    },
+    {
+      "label": "sealed-current-mapping",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-current-mapping.json",
+      "sha256": "cefc718159162818da085c6a42b1aae2c1c2c76ef98554019b5947b7f2617853",
+      "started": "2026-10-08T15:05:34.253Z",
+      "ended": "2026-10-08T15:05:34.547Z"
+    },
+    {
+      "label": "sealed-disk-space",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-disk-space.json",
+      "sha256": "f99efa8c5a926457004db5c29e5cebf60eef94a9431374b03b47e8d34ca8f41b",
+      "started": "2026-10-08T15:07:55.150Z",
+      "ended": "2026-10-08T15:07:55.243Z"
+    },
+    {
+      "label": "sealed-evidence-analysis",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-evidence-analysis.json",
+      "sha256": "abbd5da1142f3f99e42a4585ff06dd3acb3e60d58ce573487fa62b2727a18d73",
+      "started": "2026-10-08T15:05:34.807Z",
+      "ended": "2026-10-08T15:05:49.640Z"
+    },
+    {
+      "label": "sealed-final-checker-controls",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-checker-controls.json",
+      "sha256": "64155f0a3baf354d0051ad0743ebc26869cbbd42489f7d133f2f98236cf6507a",
+      "started": "2026-10-08T15:04:28.557Z",
+      "ended": "2026-10-08T15:04:28.683Z"
+    },
+    {
+      "label": "sealed-final-cli",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-cli.json",
+      "sha256": "1901b32a31830d377d20e245224d2f9c8c194dc26f6ff1003f78735e082fb949",
+      "started": "2026-10-08T15:04:12.461Z",
+      "ended": "2026-10-08T15:04:14.486Z"
+    },
+    {
+      "label": "sealed-final-configured-fast-lint",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-configured-fast-lint.json",
+      "sha256": "c42bee2411145e15ae8b0f5605bebf2e19ae36991f6d7268d16fb9c954c9741f",
+      "started": "2026-10-08T15:04:21.925Z",
+      "ended": "2026-10-08T15:04:25.465Z"
+    },
+    {
+      "label": "sealed-final-deterministicio",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-deterministicio.json",
+      "sha256": "1d597f03bddc9e7b2663055f75307fd4220c80c3cae43881641e9f7c761b0624",
+      "started": "2026-10-08T15:03:47.251Z",
+      "ended": "2026-10-08T15:04:12.214Z"
+    },
+    {
+      "label": "sealed-final-focused-format",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-focused-format.json",
+      "sha256": "c02dfccd430670190c3d2a8ca210774946e032710cab7c9aa61bb13d5f3c35bb",
+      "started": "2026-10-08T15:04:25.722Z",
+      "ended": "2026-10-08T15:04:26.116Z"
+    },
+    {
+      "label": "sealed-final-nested-format",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-nested-format.json",
+      "sha256": "f04c11fee5272fe93212607d29b0c3d695aeccda4c1d808aae53879b3b685d08",
+      "started": "2026-10-08T15:04:26.375Z",
+      "ended": "2026-10-08T15:04:26.924Z"
+    },
+    {
+      "label": "sealed-final-runner-focused",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-runner-focused.json",
+      "sha256": "fb2db324c3d4133fceb776164ae95286514be0ce29f327192cdb9eb0bd9e6095",
+      "started": "2026-10-08T15:04:14.735Z",
+      "ended": "2026-10-08T15:04:15.768Z"
+    },
+    {
+      "label": "sealed-final-scoped-errortype",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-scoped-errortype.json",
+      "sha256": "fda6ea4605758512b58c34b67815166eed5827e0663649ea04b8990d9c5e3a3f",
+      "started": "2026-10-08T15:04:18.712Z",
+      "ended": "2026-10-08T15:04:19.101Z"
+    },
+    {
+      "label": "sealed-final-scoped-vet",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-scoped-vet.json",
+      "sha256": "141f47162bcc3ae0146ca1f5bd6ec4eca00db191cccfb1143e57340ed986584b",
+      "started": "2026-10-08T15:04:18.159Z",
+      "ended": "2026-10-08T15:04:18.436Z"
+    },
+    {
+      "label": "sealed-final-size",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-size.json",
+      "sha256": "51fcc13186eaddc7d8872981baff445bc1e5b5bd1472a80fc082e151949a2e1f",
+      "started": "2026-10-08T15:04:27.184Z",
+      "ended": "2026-10-08T15:04:28.286Z"
+    },
+    {
+      "label": "sealed-final-unfiltered-scoped-lint",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-unfiltered-scoped-lint.json",
+      "sha256": "52176c4ff875effca68f0a672158983710a835847809d626bd3ab01da3d73cb5",
+      "started": "2026-10-08T15:04:19.381Z",
+      "ended": "2026-10-08T15:04:21.676Z"
+    },
+    {
+      "label": "sealed-final-validate",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-final-validate.json",
+      "sha256": "3ec4141fad7b9982abb8eed58ddf3091410f94f979dc4876cc4439b38b8d55f8",
+      "started": "2026-10-08T15:04:16.030Z",
+      "ended": "2026-10-08T15:04:17.894Z"
+    },
+    {
+      "label": "sealed-root",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-root.json",
+      "sha256": "2f6ca17b54f02e93a93991d1b9c2dcc7fb83afad27df24e78f99a61c3e4c17d8",
+      "started": "2026-10-08T15:03:00.039Z",
+      "ended": "2026-10-08T15:03:46.894Z"
+    },
+    {
+      "label": "sealed-size-detail",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-size-detail.json",
+      "sha256": "517e78cd44c348540c1c9ff0c75bc5b6c08356790493beaf3003c54a8ceaa46f",
+      "started": "2026-10-08T15:05:32.855Z",
+      "ended": "2026-10-08T15:05:33.962Z"
+    },
+    {
+      "label": "sealed-source-binding",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-source-binding.json",
+      "sha256": "1dbb44cb0487b9a760c0c0167d4e75a6162e461e833d0e05577d510c2a520cb1",
+      "started": "2026-10-08T15:04:02.425Z",
+      "ended": "2026-10-08T15:04:04.937Z"
+    },
+    {
+      "label": "sealed-task-state",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/sealed-task-state.json",
+      "sha256": "5bfbbb9b8819cd2f4d1f5af14b7c2a046c56068eff54710ca610b4e370ca1fd7",
+      "started": "2026-10-08T15:07:55.500Z",
+      "ended": "2026-10-08T15:07:55.905Z"
+    },
+    {
+      "label": "unfiltered-scoped-lint",
+      "exit": 2,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/unfiltered-scoped-lint.json",
+      "sha256": "c195776cdc74055f5146aa932a2b9495ef13cbed3778724efb246789c9aff418",
+      "started": "2026-10-08T14:36:00.002Z",
+      "ended": "2026-10-08T14:36:01.078Z"
+    },
+    {
+      "label": "world-current-seed-mutant",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/world-current-seed-mutant.json",
+      "sha256": "634dd0680ca7476fc55eb206a7d5b1e6c4fd1d9eb552a74aab6d983b2d0de675",
+      "started": "2026-10-08T14:59:11.586Z",
+      "ended": "2026-10-08T14:59:13.183Z"
+    },
+    {
+      "label": "world-original-seed-baseline",
+      "exit": 0,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/world-original-seed-baseline.json",
+      "sha256": "87a0b09ce4d93e3a660798a125e45da7622daf130427208e4dcaf5290d0e7bdd",
+      "started": "2026-10-08T14:59:09.124Z",
+      "ended": "2026-10-08T14:59:09.514Z"
+    },
+    {
+      "label": "world-original-seed-mutant",
+      "exit": 1,
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/world-original-seed-mutant.json",
+      "sha256": "9e3405449f6d8c331ba90f2f399358126e9b705916b0f378a1ed07943cc0ddd9",
+      "started": "2026-10-08T14:59:09.769Z",
+      "ended": "2026-10-08T14:59:11.341Z"
+    }
+  ],
+  "source_admission": {
+    "path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md",
+    "sha256": "c525dfc3b8b85d8d0591652d8eae957153de77ee48e7b07297b72e3ac1fc0bfc",
+    "bytes": 21178
+  },
+  "manifest": "manifest.json",
+  "terminal_seal": "terminal-seal.json",
+  "worker_lane": "RELEASED at terminal seal; conductor may acquire only after explicit release message",
+  "commands_running_at_handoff": 0,
+  "native": false,
+  "full_host_pass": false,
+  "global_lint_pass": false,
+  "user_documents_unchanged_untracked_unstaged": true,
+  "next_authority": "Conductor owns independent cache diagnosis, review, Git, Flow lifecycle and final acceptance; native fn128/fn149 remain deferred."
+}

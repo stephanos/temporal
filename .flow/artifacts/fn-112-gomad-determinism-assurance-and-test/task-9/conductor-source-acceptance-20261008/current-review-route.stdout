@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "type": "review_route",
+  "task_id": "fn-112-gomad-determinism-assurance-and-test.9",
+  "standalone": false,
+  "scope_id": "fn-112-gomad-determinism-assurance-and-test.9",
+  "receipt_path": "/tmp/impl-review-receipt-657da2bc4466-fn-112-gomad-determinism-assurance-and-test.9.json",
+  "receipt_state": "absent",
+  "receipt_verdict": null,
+  "rotated_to": null,
+  "force": false,
+  "pending": 0,
+  "rounds": 0,
+  "last_verdict": "SHIP",
+  "unjournaled_reservation": null,
+  "live_reservation": null,
+  "expired_reservation": null,
+  "phase_lease": null,
+  "action": "fanout",
+  "reason": "first_round",
+  "message": "fresh first round: fan out (stale/foreign receipt rotated aside when --rotate-stale is set)."
+}

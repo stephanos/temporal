@@ -1,0 +1,1 @@
+note: .flow/config.json still carries removed key(s): land.release, land.reviewSignal, land.automatedReviewers, land.reviewTrigger, land.ciFixBudget, land.cleanReviewCommentPattern, land.requestReviewers, land.patienceMinutesAfterReview; flowctl ignores them. See docs/flowctl.md#landing-upgrade for landing replacements. Remove these keys from .flow/config.json.

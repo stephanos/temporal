@@ -1,0 +1,543 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+... Skipped lines
+
+  'package gomad3_test\n' +
+    '\n' +
+    'import (\n' +
+    '\t"encoding/json"\n' +
+    '\t"go/ast"\n' +
+...
+    '\t\tt.Run(platform.OS+"/"+platform.Arch, func(t *testing.T) {\n' +
++   '\t\t\tinventory, findings, err := architect'... 12998 more characters
+-   '\t\t\tinventory, findings, err := architect'... 12999 more characters
+
+    at file:///Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analyze-evidence.mjs:10:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'package gomad3_test\n' +
+    '\n' +
+    'import (\n' +
+    '\t"encoding/json"\n' +
+    '\t"go/ast"\n' +
+    '\t"go/parser"\n' +
+    '\t"go/token"\n' +
+    '\t"os"\n' +
+    '\t"os/exec"\n' +
+    '\t"path/filepath"\n' +
+    '\t"regexp"\n' +
+    '\t"runtime"\n' +
+    '\t"slices"\n' +
+    '\t"strings"\n' +
+    '\t"testing"\n' +
+    '\n' +
+    '\t"go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture"\n' +
+    ')\n' +
+    '\n' +
+    'const modulePath = "go.temporal.io/server/tools/gomad3"\n' +
+    '\n' +
+    'func TestArchitectureInventoryFixtures(t *testing.T) {\n' +
+    '\tfor _, fixture := range []struct{ name, category, path, source string }{\n' +
+    '\t\t{"root-production", "ownerless", "main.go", "package fitness\\n"},\n' +
+    '\t\t{"hidden-production", "uncovered-source", ".hidden/source.go", "package hidden\\n"},\n' +
+    '\t\t{"underscore-production", "uncovered-source", "_hidden/source.go", "package hidden\\n"},\n' +
+    '\t\t{"unclassified-testdata", "uncovered-source", "record/testdata/source.go", "package hidden\\n"},\n' +
+    '\t\t{"overlay-prefix", "package-error", "toolchain/runtime/overlayextra/source.go", "package overlayextra\\nimport _ \\"example.invalid/missing\\"\\n"},\n' +
+    '\t\t{"hidden-module", "unclassified-module", ".hidden/go.mod", "module example.invalid/hidden\\n\\ngo 1.27.1\\n"},\n' +
+    '\t\t{"excluded-root-module", "unclassified-module", "deterministicio/testdata/extra/go.mod", "module example.invalid/extra\\n\\ngo 1.27.1\\n"},\n' +
+    '\t\t{"included-list-error", "package-error", "record/source.go", "package record\\nimport _ \\"example.invalid/missing\\"\\n"},\n' +
+    '\t\t{"owner-edge", "owner-edge", "record/source.go", "package record\\nimport _ \\"example.invalid/fitness/runner\\"\\n"},\n' +
+    '\t\t{"required-facade-edge", "required-edge", "target/source.go", "package target\\n"},\n' +
+    '\t} {\n' +
+    '\t\tt.Run(fixture.name, func(t *testing.T) {\n' +
+    '\t\t\troot := t.TempDir()\n' +
+    '\t\t\tfiles := map[string]string{"go.mod": "module example.invalid/fitness\\n\\ngo 1.27.1\\n", "runner/source.go": "package runner\\n", fixture.path: fixture.source}\n' +
+    '\t\t\tfor _, path := range []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"} {\n' +
+    '\t\t\t\tfiles[path+"/fixture.go"] = "package fixture\\n"\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor _, path := range []string{"deterministicio/testdata/cactusstatsd", "deterministicio/testdata/hashicorpmetrics", "deterministicio/testdata/memberlist", "deterministicio/testdata/pebble", "deterministicio/testdata/sentry", "deterministicio/testdata/sockaddr", "deterministicio/testdata/sprig", "deterministicio/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "internal/gomadtool/conformance/testdata", "internal/gomadtool/conformance/testdata/libc_adapter", "internal/gomadtool/conformance/testdata/sqlite_adapter", "qualification/corpus"} {\n' +
+    '\t\t\t\tfiles[path+"/go.mod"] = "module example.invalid/fixture\\n\\ngo 1.27.1\\n"\n' +
+    '\t\t\t\tfiles[path+"/fixture.go"] = "package fixture\\n"\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor name, source := range files {\n' +
+    '\t\t\t\tpath := filepath.Join(root, name)\n' +
+    '\t\t\t\tif err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\tif err := os.WriteFile(path, []byte(source), 0600); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\t_, findings, err := architecture.Discover(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})\n' +
+    '\t\t\tif err != nil {\n' +
+    '\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor _, finding := range findings {\n' +
+    '\t\t\t\tif finding.Category == fixture.category {\n' +
+    '\t\t\t\t\treturn\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\tt.Fatalf("missing %s for %s: %v", fixture.category, fixture.path, findings)\n' +
+    '\t\t})\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func TestArchitecturePublicSignatureFixtures(t *testing.T) {\n' +
+    '\tfor _, fixture := range []struct {\n' +
+    '\t\tname, source string\n' +
+    '\t\tleaks        bool\n' +
+    '\t}{\n' +
+    '\t\t{"nested-container", "type Report struct{ Values map[string][]*leaf.Value }", true},\n' +
+    '\t\t{"alias", "type Report = leaf.Value", true},\n' +
+    '\t\t{"defined-rhs", "type Report leaf.Value", true},\n' +
+    '\t\t{"interface-result", "type Report interface{ Value() leaf.Value }", true},\n' +
+    '\t\t{"generic-constraint", "type Report[T interface{~[]leaf.Value}] struct{ Value T }", true},\n' +
+    '\t\t{"foreign-generic-argument", "type Report struct{ Value atomic.Pointer[leaf.Value] }", true},\n' +
+    '\t\t{"promoted-method", "type hidden struct{};func(hidden)Value()leaf.Value{return leaf.Value{}};type Report struct{hidden}", true},\n' +
+    '\t\t{"private-storage", "type Report struct{value leaf.Value}", false},\n' +
+    '\t\t{"private-defined-graph", "type hidden struct{Text string};type Report hidden", false},\n' +
+    '\t\t{"recursive-public-graph", "type Report struct{Next *Report;Values []string}", false},\n' +
+    '\t} {\n' +
+    '\t\tt.Run(fixture.name, func(t *testing.T) {\n' +
+    '\t\t\troot := t.TempDir()\n' +
+    '\t\t\tfiles := map[string]string{\n' +
+    '\t\t\t\t"go.mod":                 "module example.invalid/fitness\\n\\ngo 1.27.1\\n",\n' +
+    '\t\t\t\t"internal/leaf/value.go": "package leaf\\ntype Value struct{Child Child};type Child struct{Text string}\\n",\n' +
+    '\t\t\t\t"report/value.go":        "package report\\nimport(\\"example.invalid/fitness/internal/leaf\\";\\"sync/atomic\\");var _ leaf.Value;var _ atomic.Pointer[int]\\n" + fixture.source,\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor name, source := range files {\n' +
+    '\t\t\t\tpath := filepath.Join(root, name)\n' +
+    '\t\t\t\tif err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\tif err := os.WriteFile(path, []byte(source), 0600); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\tprogram, err := architecture.Load(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})\n' +
+    '\t\t\tif err != nil {\n' +
+    '\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfindings := program.PublicSignatures("example.invalid/outside-consumer")\n' +
+    '\t\t\tif (len(findings) != 0) != fixture.leaks {\n' +
+    '\t\t\t\tt.Fatalf("leaks=%t findings=%v", fixture.leaks, findings)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tif legal := program.PublicSignatures("example.invalid/fitness/consumer"); len(legal) != 0 {\n' +
+    '\t\t\t\tt.Fatalf("same-parent consumer rejected: %v", legal)\n' +
+    '\t\t\t}\n' +
+    '\t\t})\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func TestArchitectureEffectFixtures(t *testing.T) {\n' +
+    '\tdata, err := os.ReadFile("testdata/architecture/effects.json")\n' +
+    '\tif err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tvar fixtures []struct {\n' +
+    '\t\tName, Category, Detail string\n' +
+    '\t\tFiles                  map[string]string\n' +
+    '\t}\n' +
+    '\tif err := json.Unmarshal(data, &fixtures); err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tif len(fixtures) == 0 {\n' +
+    '\t\tt.Fatal("no effect fixtures")\n' +
+    '\t}\n' +
+    '\tfor _, fixture := range fixtures {\n' +
+    '\t\tt.Run(fixture.Name, func(t *testing.T) {\n' +
+    '\t\t\troot := t.TempDir()\n' +
+    '\t\t\tif err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.invalid/fitness\\n\\ngo 1.27.1\\n"), 0600); err != nil {\n' +
+    '\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor name, path := range fixture.Files {\n' +
+    '\t\t\t\tsource, err := os.ReadFile(path)\n' +
+    '\t\t\t\tif err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\ttarget := filepath.Join(root, name)\n' +
+    '\t\t\t\tif err := os.MkdirAll(filepath.Dir(target), 0700); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\tif err := os.WriteFile(target, source, 0600); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\tprogram, err := architecture.Load(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})\n' +
+    '\t\t\tif err != nil {\n' +
+    '\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfindings := program.Effects()\n' +
+    '\t\t\tif fixture.Category == "" {\n' +
+    '\t\t\t\tif len(findings) != 0 {\n' +
+    '\t\t\t\t\tt.Fatalf("pure fixture rejected: %v", findings)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\treturn\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor _, finding := range findings {\n' +
+    '\t\t\t\tif finding.Category == fixture.Category && strings.Contains(finding.Detail, fixture.Detail) {\n' +
+    '\t\t\t\t\treturn\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\tt.Fatalf("missing %s (%s): %v", fixture.Category, fixture.Detail, findings)\n' +
+    '\t\t})\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'type listedPackage struct {\n' +
+    '\tImportPath string\n' +
+    '\tImports    []string\n' +
+    '}\n' +
+    '\n' +
+    'func TestPackageArchitecture(t *testing.T) {\n' +
+    '\tpackages := listHostPackages(t)\n' +
+    '\towners := map[string]bool{}\n' +
+    '\tfor _, pkg := range packages {\n' +
+    '\t\towner := packageOwner(pkg.ImportPath)\n' +
+    '\t\tif owner == "" {\n' +
+    '\t\t\tt.Errorf("package %s has no architectural owner", pkg.ImportPath)\n' +
+    '\t\t\tcontinue\n' +
+    '\t\t}\n' +
+    '\t\towners[owner] = true\n' +
+    '\t\tfor _, imported := range pkg.Imports {\n' +
+    '\t\t\tif !strings.HasPrefix(imported, modulePath+"/") {\n' +
+    '\t\t\t\tcontinue\n' +
+    '\t\t\t}\n' +
+    '\t\t\timportedOwner := packageOwner(imported)\n' +
+    '\t\t\tif importedOwner == "" {\n' +
+    '\t\t\t\tt.Errorf("package %s imports ownerless package %s", pkg.ImportPath, imported)\n' +
+    '\t\t\t\tcontinue\n' +
+    '\t\t\t}\n' +
+    '\t\t\tif !ownerMayImport(owner, importedOwner, pkg.ImportPath, imported) {\n' +
+    '\t\t\t\tt.Errorf("owner %s package %s imports forbidden owner %s package %s", owner, pkg.ImportPath, importedOwner, imported)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tif !moduleMayImport(pkg.ImportPath, imported) {\n' +
+    '\t\t\t\tt.Errorf("package %s imports forbidden module edge %s", pkg.ImportPath, imported)\n' +
+    '\t\t\t}\n' +
+    '\t\t}\n' +
+    '\t}\n' +
+    '\tfor _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "hostexec", "hostfs", "sourceinventory"} {\n' +
+    '\t\tif !owners[owner] {\n' +
+    '\t\t\tt.Errorf("architectural owner %s has no package", owner)\n' +
+    '\t\t}\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {\n' +
+    '\troot, err := os.Getwd()\n' +
+    '\tif err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tfor _, platform := range qualifiedSourcePlatforms() {\n' +
+    '\t\tprogram, err := architecture.Load(root, "go", platform)\n' +
+    '\t\tif err != nil {\n' +
+    '\t\t\tt.Fatal(err)\n' +
+    '\t\t}\n' +
+    '\t\tfor _, finding := range program.PublicSignatures("example.com/gomad-runner-consumer") {\n' +
+    '\t\t\tt.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)\n' +
+    '\t\t}\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func qualifiedSourcePlatforms() []architecture.Platform {\n' +
+    '\treturn []architecture.Platform{{OS: "darwin", Arch: "arm64"}, {OS: "linux", Arch: "amd64"}}\n' +
+    '}\n' +
+    '\n' +
+    'func TestPureModulesHaveNoHostEffects(t *testing.T) {\n' +
+    '\troot, err := os.Getwd()\n' +
+    '\tif err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tfor _, platform := range qualifiedSourcePlatforms() {\n' +
+    '\t\tprogram, err := architecture.Load(root, "go", platform)\n' +
+    '\t\tif err != nil {\n' +
+    '\t\t\tt.Fatal(err)\n' +
+    '\t\t}\n' +
+    '\t\tfor _, finding := range program.Effects() {\n' +
+    '\t\t\tt.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)\n' +
+    '\t\t}\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func TestHostPackageVet(t *testing.T) {\n' +
+    '\troot, err := os.Getwd()\n' +
+    '\tif err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tplatforms := qualifiedSourcePlatforms()\n' +
+    '\thost := architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}\n' +
+    '\tif !slices.Contains(platforms, host) {\n' +
+    '\t\tplatforms = append(platforms, host)\n' +
+    '\t}\n' +
+    '\tfor _, platform := range platforms {\n' +
+    '\t\tt.Run(platform.OS+"/"+platform.Arch, func(t *testing.T) {\n' +
+    '\t\t\tinventory, findings, err := architect'... 12998 more characters,
+  expected: 'package gomad3_test\n' +
+    '\n' +
+    'import (\n' +
+    '\t"encoding/json"\n' +
+    '\t"go/ast"\n' +
+    '\t"go/parser"\n' +
+    '\t"go/token"\n' +
+    '\t"os"\n' +
+    '\t"os/exec"\n' +
+    '\t"path/filepath"\n' +
+    '\t"regexp"\n' +
+    '\t"runtime"\n' +
+    '\t"slices"\n' +
+    '\t"strings"\n' +
+    '\t"testing"\n' +
+    '\n' +
+    '\t"go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture"\n' +
+    ')\n' +
+    '\n' +
+    'const modulePath = "go.temporal.io/server/tools/gomad3"\n' +
+    '\n' +
+    'func TestArchitectureInventoryFixtures(t *testing.T) {\n' +
+    '\tfor _, fixture := range []struct{ name, category, path, source string }{\n' +
+    '\t\t{"root-production", "ownerless", "main.go", "package fitness\\n"},\n' +
+    '\t\t{"hidden-production", "uncovered-source", ".hidden/source.go", "package hidden\\n"},\n' +
+    '\t\t{"underscore-production", "uncovered-source", "_hidden/source.go", "package hidden\\n"},\n' +
+    '\t\t{"unclassified-testdata", "uncovered-source", "record/testdata/source.go", "package hidden\\n"},\n' +
+    '\t\t{"overlay-prefix", "package-error", "toolchain/runtime/overlayextra/source.go", "package overlayextra\\nimport _ \\"example.invalid/missing\\"\\n"},\n' +
+    '\t\t{"hidden-module", "unclassified-module", ".hidden/go.mod", "module example.invalid/hidden\\n\\ngo 1.27.1\\n"},\n' +
+    '\t\t{"excluded-root-module", "unclassified-module", "deterministicio/testdata/extra/go.mod", "module example.invalid/extra\\n\\ngo 1.27.1\\n"},\n' +
+    '\t\t{"included-list-error", "package-error", "record/source.go", "package record\\nimport _ \\"example.invalid/missing\\"\\n"},\n' +
+    '\t\t{"owner-edge", "owner-edge", "record/source.go", "package record\\nimport _ \\"example.invalid/fitness/runner\\"\\n"},\n' +
+    '\t\t{"required-facade-edge", "required-edge", "target/source.go", "package target\\n"},\n' +
+    '\t} {\n' +
+    '\t\tt.Run(fixture.name, func(t *testing.T) {\n' +
+    '\t\t\troot := t.TempDir()\n' +
+    '\t\t\tfiles := map[string]string{"go.mod": "module example.invalid/fitness\\n\\ngo 1.27.1\\n", "runner/source.go": "package runner\\n", fixture.path: fixture.source}\n' +
+    '\t\t\tfor _, path := range []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"} {\n' +
+    '\t\t\t\tfiles[path+"/fixture.go"] = "package fixture\\n"\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor _, path := range []string{"deterministicio/testdata/cactusstatsd", "deterministicio/testdata/hashicorpmetrics", "deterministicio/testdata/memberlist", "deterministicio/testdata/pebble", "deterministicio/testdata/sentry", "deterministicio/testdata/sockaddr", "deterministicio/testdata/sprig", "deterministicio/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "internal/gomadtool/conformance/testdata", "internal/gomadtool/conformance/testdata/libc_adapter", "internal/gomadtool/conformance/testdata/sqlite_adapter", "qualification/corpus"} {\n' +
+    '\t\t\t\tfiles[path+"/go.mod"] = "module example.invalid/fixture\\n\\ngo 1.27.1\\n"\n' +
+    '\t\t\t\tfiles[path+"/fixture.go"] = "package fixture\\n"\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor name, source := range files {\n' +
+    '\t\t\t\tpath := filepath.Join(root, name)\n' +
+    '\t\t\t\tif err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\tif err := os.WriteFile(path, []byte(source), 0600); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\t_, findings, err := architecture.Discover(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})\n' +
+    '\t\t\tif err != nil {\n' +
+    '\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor _, finding := range findings {\n' +
+    '\t\t\t\tif finding.Category == fixture.category {\n' +
+    '\t\t\t\t\treturn\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\tt.Fatalf("missing %s for %s: %v", fixture.category, fixture.path, findings)\n' +
+    '\t\t})\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func TestArchitecturePublicSignatureFixtures(t *testing.T) {\n' +
+    '\tfor _, fixture := range []struct {\n' +
+    '\t\tname, source string\n' +
+    '\t\tleaks        bool\n' +
+    '\t}{\n' +
+    '\t\t{"nested-container", "type Report struct{ Values map[string][]*leaf.Value }", true},\n' +
+    '\t\t{"alias", "type Report = leaf.Value", true},\n' +
+    '\t\t{"defined-rhs", "type Report leaf.Value", true},\n' +
+    '\t\t{"interface-result", "type Report interface{ Value() leaf.Value }", true},\n' +
+    '\t\t{"generic-constraint", "type Report[T interface{~[]leaf.Value}] struct{ Value T }", true},\n' +
+    '\t\t{"foreign-generic-argument", "type Report struct{ Value atomic.Pointer[leaf.Value] }", true},\n' +
+    '\t\t{"promoted-method", "type hidden struct{};func(hidden)Value()leaf.Value{return leaf.Value{}};type Report struct{hidden}", true},\n' +
+    '\t\t{"private-storage", "type Report struct{value leaf.Value}", false},\n' +
+    '\t\t{"private-defined-graph", "type hidden struct{Text string};type Report hidden", false},\n' +
+    '\t\t{"recursive-public-graph", "type Report struct{Next *Report;Values []string}", false},\n' +
+    '\t} {\n' +
+    '\t\tt.Run(fixture.name, func(t *testing.T) {\n' +
+    '\t\t\troot := t.TempDir()\n' +
+    '\t\t\tfiles := map[string]string{\n' +
+    '\t\t\t\t"go.mod":                 "module example.invalid/fitness\\n\\ngo 1.27.1\\n",\n' +
+    '\t\t\t\t"internal/leaf/value.go": "package leaf\\ntype Value struct{Child Child};type Child struct{Text string}\\n",\n' +
+    '\t\t\t\t"report/value.go":        "package report\\nimport(\\"example.invalid/fitness/internal/leaf\\";\\"sync/atomic\\");var _ leaf.Value;var _ atomic.Pointer[int]\\n" + fixture.source,\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor name, source := range files {\n' +
+    '\t\t\t\tpath := filepath.Join(root, name)\n' +
+    '\t\t\t\tif err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\tif err := os.WriteFile(path, []byte(source), 0600); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\tprogram, err := architecture.Load(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})\n' +
+    '\t\t\tif err != nil {\n' +
+    '\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfindings := program.PublicSignatures("example.invalid/outside-consumer")\n' +
+    '\t\t\tif (len(findings) != 0) != fixture.leaks {\n' +
+    '\t\t\t\tt.Fatalf("leaks=%t findings=%v", fixture.leaks, findings)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tif legal := program.PublicSignatures("example.invalid/fitness/consumer"); len(legal) != 0 {\n' +
+    '\t\t\t\tt.Fatalf("same-parent consumer rejected: %v", legal)\n' +
+    '\t\t\t}\n' +
+    '\t\t})\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func TestArchitectureEffectFixtures(t *testing.T) {\n' +
+    '\tdata, err := os.ReadFile("testdata/architecture/effects.json")\n' +
+    '\tif err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tvar fixtures []struct {\n' +
+    '\t\tName, Category, Detail string\n' +
+    '\t\tFiles                  map[string]string\n' +
+    '\t}\n' +
+    '\tif err := json.Unmarshal(data, &fixtures); err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tif len(fixtures) == 0 {\n' +
+    '\t\tt.Fatal("no effect fixtures")\n' +
+    '\t}\n' +
+    '\tfor _, fixture := range fixtures {\n' +
+    '\t\tt.Run(fixture.Name, func(t *testing.T) {\n' +
+    '\t\t\troot := t.TempDir()\n' +
+    '\t\t\tif err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.invalid/fitness\\n\\ngo 1.27.1\\n"), 0600); err != nil {\n' +
+    '\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor name, path := range fixture.Files {\n' +
+    '\t\t\t\tsource, err := os.ReadFile(path)\n' +
+    '\t\t\t\tif err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\ttarget := filepath.Join(root, name)\n' +
+    '\t\t\t\tif err := os.MkdirAll(filepath.Dir(target), 0700); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\tif err := os.WriteFile(target, source, 0600); err != nil {\n' +
+    '\t\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\tprogram, err := architecture.Load(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})\n' +
+    '\t\t\tif err != nil {\n' +
+    '\t\t\t\tt.Fatal(err)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfindings := program.Effects()\n' +
+    '\t\t\tif fixture.Category == "" {\n' +
+    '\t\t\t\tif len(findings) != 0 {\n' +
+    '\t\t\t\t\tt.Fatalf("pure fixture rejected: %v", findings)\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t\treturn\n' +
+    '\t\t\t}\n' +
+    '\t\t\tfor _, finding := range findings {\n' +
+    '\t\t\t\tif finding.Category == fixture.Category && strings.Contains(finding.Detail, fixture.Detail) {\n' +
+    '\t\t\t\t\treturn\n' +
+    '\t\t\t\t}\n' +
+    '\t\t\t}\n' +
+    '\t\t\tt.Fatalf("missing %s (%s): %v", fixture.Category, fixture.Detail, findings)\n' +
+    '\t\t})\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'type listedPackage struct {\n' +
+    '\tImportPath string\n' +
+    '\tImports    []string\n' +
+    '}\n' +
+    '\n' +
+    'func TestPackageArchitecture(t *testing.T) {\n' +
+    '\tpackages := listHostPackages(t)\n' +
+    '\towners := map[string]bool{}\n' +
+    '\tfor _, pkg := range packages {\n' +
+    '\t\towner := packageOwner(pkg.ImportPath)\n' +
+    '\t\tif owner == "" {\n' +
+    '\t\t\tt.Errorf("package %s has no architectural owner", pkg.ImportPath)\n' +
+    '\t\t\tcontinue\n' +
+    '\t\t}\n' +
+    '\t\towners[owner] = true\n' +
+    '\t\tfor _, imported := range pkg.Imports {\n' +
+    '\t\t\tif !strings.HasPrefix(imported, modulePath+"/") {\n' +
+    '\t\t\t\tcontinue\n' +
+    '\t\t\t}\n' +
+    '\t\t\timportedOwner := packageOwner(imported)\n' +
+    '\t\t\tif importedOwner == "" {\n' +
+    '\t\t\t\tt.Errorf("package %s imports ownerless package %s", pkg.ImportPath, imported)\n' +
+    '\t\t\t\tcontinue\n' +
+    '\t\t\t}\n' +
+    '\t\t\tif !ownerMayImport(owner, importedOwner, pkg.ImportPath, imported) {\n' +
+    '\t\t\t\tt.Errorf("owner %s package %s imports forbidden owner %s package %s", owner, pkg.ImportPath, importedOwner, imported)\n' +
+    '\t\t\t}\n' +
+    '\t\t\tif !moduleMayImport(pkg.ImportPath, imported) {\n' +
+    '\t\t\t\tt.Errorf("package %s imports forbidden module edge %s", pkg.ImportPath, imported)\n' +
+    '\t\t\t}\n' +
+    '\t\t}\n' +
+    '\t}\n' +
+    '\tfor _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "hostexec", "hostfs", "sourceinventory"} {\n' +
+    '\t\tif !owners[owner] {\n' +
+    '\t\t\tt.Errorf("architectural owner %s has no package", owner)\n' +
+    '\t\t}\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {\n' +
+    '\troot, err := os.Getwd()\n' +
+    '\tif err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tfor _, platform := range qualifiedSourcePlatforms() {\n' +
+    '\t\tprogram, err := architecture.Load(root, "go", platform)\n' +
+    '\t\tif err != nil {\n' +
+    '\t\t\tt.Fatal(err)\n' +
+    '\t\t}\n' +
+    '\t\tfor _, finding := range program.PublicSignatures("example.com/gomad-runner-consumer") {\n' +
+    '\t\t\tt.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)\n' +
+    '\t\t}\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func qualifiedSourcePlatforms() []architecture.Platform {\n' +
+    '\treturn []architecture.Platform{{OS: "darwin", Arch: "arm64"}, {OS: "linux", Arch: "amd64"}}\n' +
+    '}\n' +
+    '\n' +
+    'func TestPureModulesHaveNoHostEffects(t *testing.T) {\n' +
+    '\troot, err := os.Getwd()\n' +
+    '\tif err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tfor _, platform := range qualifiedSourcePlatforms() {\n' +
+    '\t\tprogram, err := architecture.Load(root, "go", platform)\n' +
+    '\t\tif err != nil {\n' +
+    '\t\t\tt.Fatal(err)\n' +
+    '\t\t}\n' +
+    '\t\tfor _, finding := range program.Effects() {\n' +
+    '\t\t\tt.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)\n' +
+    '\t\t}\n' +
+    '\t}\n' +
+    '}\n' +
+    '\n' +
+    'func TestHostPackageVet(t *testing.T) {\n' +
+    '\troot, err := os.Getwd()\n' +
+    '\tif err != nil {\n' +
+    '\t\tt.Fatal(err)\n' +
+    '\t}\n' +
+    '\tplatforms := qualifiedSourcePlatforms()\n' +
+    '\thost := architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}\n' +
+    '\tif !slices.Contains(platforms, host) {\n' +
+    '\t\tplatforms = append(platforms, host)\n' +
+    '\t}\n' +
+    '\tfor _, platform := range platforms {\n' +
+    '\t\tt.Run(platform.OS+"/"+platform.Arch, func(t *testing.T) {\n' +
+    '\t\t\tinventory, findings, err := architect'... 12999 more characters,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

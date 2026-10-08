@@ -1,0 +1,1060 @@
+{
+  "label": "frozen-final-deterministicio",
+  "argv": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-timeout=3m",
+    "-json",
+    "./deterministicio"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "head": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "executable_identity": {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+  },
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOBIN",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T14:56:38.908Z",
+  "ended": "2026-10-08T14:56:56.187Z",
+  "elapsed_seconds": 17.262867925,
+  "sources_before_sha256": "bdb67afcfe768014c92d4760483dfeefd800a541b2bbf211f630c656b981f49b",
+  "sources_after_sha256": "bdb67afcfe768014c92d4760483dfeefd800a541b2bbf211f630c656b981f49b",
+  "source_changes": [],
+  "stdout_bytes": 230798,
+  "stderr_bytes": 0,
+  "stdout_sha256": "70cc141bf695cad4724712d0563e6fe6504ad275ddef75cc9bed0202745b3960",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_identities": {
+    "go": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    "gofmt": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    "golangci_lint": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    "errortype": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  },
+  "tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupOwnerErrors/healthy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupOwnerErrors/exact-primary",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupOwnerErrors/sole-cleanup",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupOwnerErrors/primary-and-cleanup",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupOwnerErrors",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupRegistryPublicationReuseRetry/publication-retry",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupRegistryPublicationReuseRetry/reuse-retry",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupRegistryPublicationReuseRetry/healthy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupRegistryPublicationReuseRetry",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupValidationControls/root",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupValidationControls/inventory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupValidationControls/corrupt-cache",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupValidationControls/non-directory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupValidationControls",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupRegistryPrimary/exact-primary",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupRegistryPrimary/primary-and-cleanup",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterCacheCleanupRegistryPrimary",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestCopyAdapterModuleAppliesReplacementsAndAdditions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestCopyAdapterModuleRejectsSymlink",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestCopyAdapterModuleRejectsSpecialFile",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestCopyAdapterModuleReturnsTypedFileCapacityError",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestCopyAdapterModuleReturnsTypedByteCapacityError",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterPreparedSourceSetPinsReproduceOnEveryHost",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterDerivesAnchorsForChangedUpstreamSource",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterRederivesBaseRewrites",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/moved",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce/twice",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterFailsWithoutWritingWhenAnchorsDoNotMatchOnce",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterFailsWhenARewrittenFileIsDeletedUpstream",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterRejectsAPreviousModuleThatIsNotThePin",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRegenerateAdapterRefusesCustomPreparation",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterSourceEditsReplaceEveryAnchor",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterSourceEditsRejectAnAnchorThatIsNotALiteral",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterChecksEveryPin",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVersionReferencesNeverMatchInsideAnotherModulePath",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterModuleSumRecords/exact",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterModuleSumRecords/go.mod_is_separate",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterModuleSumRecords/identical_duplicate",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterModuleSumRecords/changed_duplicate",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterModuleSumRecords/missing_zip_sum",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterModuleSumRecords",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterReplacementUsesExplicitModuleRoot",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestNewAdapterRegistryAllowsNoAdapters",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareBuildAdaptersClassifiesInvalidTargetConfiguration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterRegistryClassifiesMissingTargetModuleSumsAsInvalidConfiguration",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterRegistryUsesExactVersionReplacement",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDetectModuleVersionRejectsDuplicateRequirements",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileVerifiesSelectedAdapterIdentities",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestNewAdapterRegistryRequiresAnImplementationForEveryIdentity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestNewAdapterRegistryRejectsDuplicateImplementations",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestAdapterRegistryPublishesReplacementAtStableToolchainLocation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleInventoriesMatchPinnedModules",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectChangedIdentity/empty",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectChangedIdentity/populated",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectChangedIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteAdapterSourceRejectsDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulePreparedPackageSourceSetIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsSentryAdapter",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/version",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/replacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/version-replacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/replacement-block",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/sum",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/missing-sum",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/sentry/build-modfile",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/version-replacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/replacement-block",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/sum",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/missing-sum",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/hashicorp-metrics/build-modfile",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/version",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/replacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/version-replacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/replacement-block",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/sum",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/missing-sum",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift/grpc/build-modfile",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsAdapterConfigurationDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sprig",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/validator",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/pebble",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/cactusstatsd",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/memberlist",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/sentry",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift/hashicorp-metrics",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleRewritesPreserveCommentsAndRejectDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/sprig",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/validator",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/pebble",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/cactusstatsd",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/memberlist",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/sentry",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift/hashicorp-metrics",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModulesRejectUnrewrittenInventoryDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/sprig",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/validator",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/pebble",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/cactusstatsd",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/memberlist",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers/sentry",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewrittenModuleConsumers",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/sentry/success",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/sentry/primary",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/sentry/primary-and-cleanup",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/sentry/cleanup",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/sentry",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/libc/success",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/libc/primary",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/libc/primary-and-cleanup",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/libc/cleanup",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup/libc",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyRegisteredAdapterScratchCleanup",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestToolchainLeavesFD5ForProcessesWithoutIOProfile",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/sprig",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/validator",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/pebble",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/cactusstatsd",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters/memberlist",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileSelectsDownstreamAdapters",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPinnedAdapterModuleInventories",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareGRPCRecordsExactPrivateReplacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareGRPCRejectsChangedIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareGRPCReturnsTypedInventoryCapacityError",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestVerifyGRPCModuleRejectsInventoryDrift",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestGRPCDNSRewrite",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestGRPCDNSConsumer",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestHashicorpMetricsAdapterConsumer",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestManifestInterceptsBeforeHostDispatch/filesystem_profile_operations",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestManifestInterceptsBeforeHostDispatch/concrete_TCP_methods",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestManifestInterceptsBeforeHostDispatch",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestModerncLibcAdapterTemplateHasPinnedIdentity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfilePreparesPinnedModerncLibcAdapter",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRejectLibcHostImportsRejectsForbiddenImports",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileRejectsUnsupportedModerncLibcVersion",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileWithoutModerncLibcNeedsNoAdapter",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestLibcRegenerationKeepsExactSourceAndPreparedPins",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestMemberlistSuppliedTCPConsumer",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteModerncMemoryRejectsSourceIdentityDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestModerncMemoryRewriteRejectsAnchorDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareModerncMemoryRejectsModuleDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestModerncMemoryRejectsChangedReplacementInventory",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareModerncMemoryRecordsExactPrivateReplacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareModerncMemoryRejectsChangedIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestModerncMemoryPreparedPackageSourceSetIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDeterministicProfileCompatibilityGolden",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDefaultProfile",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDefaultReturnsAnImmutableProfileSpecification",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileOwnsIdentityProjectionAndVerification/name",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileOwnsIdentityProjectionAndVerification/implementation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileOwnsIdentityProjectionAndVerification/inventory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestProfileOwnsIdentityProjectionAndVerification",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDeterministicProfileAcceptsArbitraryTargetArguments",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestValidatePreparedTargetRejectsIdentityMismatch/kind",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestValidatePreparedTargetRejectsIdentityMismatch/source",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestValidatePreparedTargetRejectsIdentityMismatch/argument",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestValidatePreparedTargetRejectsIdentityMismatch/platform",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestValidatePreparedTargetRejectsIdentityMismatch",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestBootstrapFrameBindsLaunchIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRequirementsProjectsKnownInventoryDomainsConservatively",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRequirementsRejectsUnselectedAdapterIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRequirementsIgnoresSelectedAdapterOutsideTargetClosure",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestDecodeSemanticCoverageRejectsUnknownAndDuplicateProbes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestMissingRequiredSemanticProbesValidatesNames",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSummarizeSemanticProbesCanonicalizesAUnion",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/absent",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/truncated",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/malformed",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/checksum",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/digest",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/overflow",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/capacity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/complete",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal/replay_divergence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSessionCollectTerminal",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSockaddrBoundaryConsumer",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSockaddrBoundaryRewritesRejectDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestSockaddrBoundaryPreservesOriginalComments",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteXNetSocketDeniesRawSocketOptions",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestRewriteXNetSocketRejectsSourceIdentityDrift",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareXNetRecordsExactPrivateReplacement",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestPrepareXNetRejectsChangedIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "test": "TestXNetPreparedPackageSourceSetIdentity",
+      "action": "fail"
+    }
+  ],
+  "top_level_counts": {
+    "pass": 36,
+    "fail": 58,
+    "skip": 4
+  },
+  "subtest_counts": {
+    "pass": 47,
+    "fail": 49,
+    "skip": 0
+  },
+  "package_results": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/deterministicio",
+      "action": "fail"
+    }
+  ],
+  "native": false
+}

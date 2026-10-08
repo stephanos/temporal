@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {readdirSync} from 'node:fs';
+import {out,root,read,write as writeOriginal,sha,git,environment} from './capture.mjs';
+const write=(n,v)=>writeOriginal(n,{...v,environment:{env:Object.fromEntries(Object.entries(v.environment.env).filter(([k])=>/^(GO|GOMAD|TMPDIR|PATH)/.test(k))),removed:v.environment.removed}});
+const python=spawnSync('python3',['-c','import json, sys; print(json.dumps({"path": sys.executable, "version": sys.version}))'],{cwd:root,env:environment().env,encoding:'utf8'});assert.equal(python.status,0);
+const paths=spawnSync('sh',['-c','command -v git; command -v make; command -v node'],{cwd:root,env:environment().env,encoding:'utf8'});assert.equal(paths.status,0);
+const tools=[process.execPath,JSON.parse(python.stdout).path,...paths.stdout.trim().split('\n')];
+const configurations=['AGENTS.md','tools/gomad3/README.md','tools/gomad3/Makefile','Makefile','.github/.golangci.yml','tools/gomad3/go.mod','tools/gomad3/go.sum'];
+const names=readdirSync(out).filter(n=>/\.(mjs|py)$/.test(n));
+write('execution-identities.json',{host:'actual Linux/aarch64 UID1000; raw uname/id receipts retained',node_version:process.version,python:JSON.parse(python.stdout),tools:[...new Set(tools)].map(path=>({path,sha256:sha(read(path))})),configurations:configurations.map(path=>({path,sha256:sha(read(path))})),final_worker_helpers:names.map(name=>({path:out+'/'+name,sha256:sha(read(out+'/'+name))})),environment:environment(),tool_hash_scope:'Final installed tools/configuration/helper bytes; historical changed worker-helper versions are not falsely claimed identical. Per-command Go/gofmt/lint/errortype hashes and raw argv are independently retained.',source_diff_sha256:sha(git(['diff','--no-ext-diff','--','tools/gomad3'])),source_diff_check:'Actual git diff --check exit0',native:false,review_verdict:null});
+console.log(JSON.stringify({tools:[...new Set(tools)].length,helpers:names.length}));

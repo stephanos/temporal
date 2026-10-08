@@ -1,0 +1,20 @@
+{
+  "original_commit": "59ca3d17395be5501906586006e2539d33bea28c",
+  "production": {
+    "path": "tools/gomad3/runner/completion.go",
+    "sha256": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5"
+  },
+  "current_test": {
+    "path": "tools/gomad3/runner/completion_test.go",
+    "sha256": "de7def8ec106a6e5ac8ae5036498f1645134387d069f511729ef147215ba37e0"
+  },
+  "original_test": {
+    "path": "tools/gomad3/runner/completion_test.go",
+    "sha256": "eeda8706c88f8331d208f4e266d8b7e731d85357e467700a4b7f6d27c06fc63f"
+  },
+  "mutant_sha256": "60e418f50a98338cbd1441d0b8411d6afd72e4a98d17b9460042afaa4d42b25a",
+  "condition": "Only Err text changes, only CoverageSemanticChoice choice failure or CoverageSemanticChoice watchdog semantic failure; original reasons, inputs and all other branches unchanged.",
+  "original_assertion": "hostError.Err.Error() != test.cause",
+  "current_assertion": "hostError.Err == nil",
+  "native": false
+}

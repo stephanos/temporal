@@ -1,0 +1,1 @@
+{"campaign_id":"campaign-20261008T144650.501822796Z-236c504fbae0e073a6d955a800f839d2","detail":"deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64","last_stable_state":"planned","reason":"runner_failure","schema":"gomad3.campaign-lifecycle/v1","schema_version":1,"state":"recoverable-failure"}

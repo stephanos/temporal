@@ -1,0 +1,193 @@
+package deterministicio
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+)
+
+// sourceRewrite pins one module source file together with the anchored edits
+// that turn it into its deterministic replacement. Every anchor must occur
+// exactly once, and both the input and the output are bound to exact digests
+// so an upstream edit fails the build instead of shifting the rewrite.
+//
+// When base is set, the anchors edit the module file at base instead, and the
+// result replaces the file at path, which must still match sourceSHA256: the
+// adapter substitutes one platform's implementation for another's.
+type sourceRewrite struct {
+	path                            string
+	sourceSHA256, replacementSHA256 string
+	base, baseSHA256                string
+	rewrites                        []anchorRewrite
+}
+
+type anchorRewrite struct {
+	anchor      []byte
+	replacement []byte
+}
+
+// rewrittenModule describes an adapter that copies a pinned module and
+// replaces a fixed set of its files. The first rewrite is the one the build
+// evidence names as the adapter's source. The prepared source set is pinned
+// per qualified platform because each platform compiles its own file set.
+type rewrittenModule struct {
+	module, version, sum          string
+	cacheElements                 []string
+	replacementDirectory          string
+	originalInventorySHA256       string
+	replacementInventorySHA256    string
+	preparedPackage               string
+	preparedSourceSetSHA256ByHost map[string]string
+	rewrites                      []sourceRewrite
+}
+
+func prepareRewrittenModule(moduleCache, root string, identity gomadversion.AdapterIdentity, spec rewrittenModule) (adapterPreparation, error) {
+	if _, err := os.Stat(filepath.Join(append([]string{moduleCache}, spec.cacheElements...)...)); err != nil {
+		return adapterPreparation{}, err
+	}
+	if identity.Module != spec.module || identity.Version != spec.version || identity.Sum != spec.sum {
+		return adapterPreparation{}, fmt.Errorf("%s adapter identity mismatch", spec.module)
+	}
+	if len(spec.rewrites) == 0 {
+		return adapterPreparation{}, fmt.Errorf("%s adapter has no rewrites", spec.module)
+	}
+	moduleSource, err := filepath.EvalSymlinks(filepath.Join(append([]string{moduleCache}, spec.cacheElements...)...))
+	if err != nil {
+		return adapterPreparation{}, fmt.Errorf("resolve pinned %s module: %w", spec.module, err)
+	}
+	if err := verifyAdapterModuleInventory(spec.module, moduleSource, spec.originalInventorySHA256); err != nil {
+		return adapterPreparation{}, err
+	}
+	replacements := make(map[string][]byte, len(spec.rewrites))
+	for _, rewrite := range spec.rewrites {
+		replacements[rewrite.path], err = rewriteModuleSource(spec.module, moduleSource, rewrite)
+		if err != nil {
+			return adapterPreparation{}, err
+		}
+	}
+	moduleReplacement := filepath.Join(root, spec.replacementDirectory)
+	if err := copyAdapterModule(moduleSource, moduleReplacement, replacements, defaultAdapterCopyLimits); err != nil {
+		return adapterPreparation{}, fmt.Errorf("copy %s adapter module: %w", spec.module, err)
+	}
+	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
+	if err != nil {
+		return adapterPreparation{}, fmt.Errorf("hash %s replacement inventory: %w", spec.module, err)
+	}
+	if replacementInventory != spec.replacementInventorySHA256 {
+		return adapterPreparation{}, fmt.Errorf("%s replacement inventory identity mismatch: got %s, want %s", spec.module, replacementInventory, spec.replacementInventorySHA256)
+	}
+	primary := spec.rewrites[0]
+	return adapterPreparation{
+		replacement: moduleReplacement,
+		evidence: BuildAdapter{
+			Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
+			Source: filepath.Join(moduleSource, filepath.FromSlash(primary.path)), ReplacementRoot: moduleReplacement, Replacement: filepath.Join(moduleReplacement, filepath.FromSlash(primary.path)),
+			PreparedPackage:                  spec.preparedPackage,
+			SourceSHA256:                     primary.sourceSHA256,
+			ReplacementSHA256:                primary.replacementSHA256,
+			OriginalSourceInventorySHA256:    spec.originalInventorySHA256,
+			ReplacementSourceInventorySHA256: replacementInventory,
+			PreparedSourceSetSHA256:          hostPin(spec.preparedSourceSetSHA256ByHost),
+		},
+	}, nil
+}
+
+func adapterIdentity(spec rewrittenModule) gomadversion.AdapterIdentity {
+	return gomadversion.AdapterIdentity{Module: spec.module, Version: spec.version, Sum: spec.sum}
+}
+
+func verifyAdapterModuleInventory(module, moduleRoot, want string) error {
+	inventory, err := digestAdapterSourceInventory(moduleRoot)
+	if err != nil {
+		return fmt.Errorf("hash pinned %s source inventory: %w", module, err)
+	}
+	if inventory != want {
+		return fmt.Errorf("pinned %s source inventory identity mismatch: got %s, want %s", module, inventory, want)
+	}
+	return nil
+}
+
+func readAdapterSource(module, moduleRoot, relative string) ([]byte, error) {
+	path := filepath.Join(moduleRoot, filepath.FromSlash(relative))
+	info, err := os.Lstat(path)
+	if err != nil || !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("pinned %s source is not a regular file: %s", module, relative)
+	}
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read pinned %s source %s: %w", module, relative, err)
+	}
+	return contents, nil
+}
+
+// rewriteModuleSource reads the files rewrite names in the module at
+// moduleRoot and returns the pinned replacement for its path.
+func rewriteModuleSource(module, moduleRoot string, rewrite sourceRewrite) ([]byte, error) {
+	contents, err := readAdapterSource(module, moduleRoot, rewrite.path)
+	if err != nil {
+		return nil, err
+	}
+	if rewrite.base == "" {
+		return rewriteAdapterSource(module, rewrite, contents)
+	}
+	if digestBytes(contents) != rewrite.sourceSHA256 {
+		return nil, fmt.Errorf("pinned %s source identity mismatch for %s", module, rewrite.path)
+	}
+	base, err := readAdapterSource(module, moduleRoot, rewrite.base)
+	if err != nil {
+		return nil, err
+	}
+	derived := rewrite
+	derived.path, derived.sourceSHA256 = rewrite.base, rewrite.baseSHA256
+	result, err := rewriteAdapterSource(module, derived, base)
+	if err != nil {
+		return nil, fmt.Errorf("%w (replacing %s)", err, rewrite.path)
+	}
+	return result, nil
+}
+
+func rewriteAdapterSource(module string, rewrite sourceRewrite, contents []byte) ([]byte, error) {
+	if digestBytes(contents) != rewrite.sourceSHA256 {
+		return nil, fmt.Errorf("pinned %s source identity mismatch for %s", module, rewrite.path)
+	}
+	result, err := applyAdapterAnchors(module, rewrite.path, rewrite.rewrites, contents)
+	if err != nil {
+		return nil, err
+	}
+	if got := digestBytes(result); got != rewrite.replacementSHA256 {
+		return nil, fmt.Errorf("%s replacement identity mismatch for %s: got %s, want %s", module, rewrite.path, got, rewrite.replacementSHA256)
+	}
+	return result, nil
+}
+
+// applyAdapterAnchors applies each anchored edit in order. An anchor that does
+// not occur exactly once in the text it edits fails, so a changed upstream
+// file never shifts an edit to another occurrence.
+func applyAdapterAnchors(module, path string, anchors []anchorRewrite, contents []byte) ([]byte, error) {
+	if len(anchors) == 0 {
+		return nil, errors.New("adapter source rewrite has no anchors")
+	}
+	result := append([]byte(nil), contents...)
+	for _, step := range anchors {
+		if count := bytes.Count(result, step.anchor); count != 1 {
+			return nil, &AnchorMismatchError{Module: module, Path: path, Anchor: string(step.anchor), Count: count}
+		}
+		result = bytes.Replace(result, step.anchor, step.replacement, 1)
+	}
+	return result, nil
+}
+
+// AnchorMismatchError reports an adapter rewrite anchor that does not occur
+// exactly once in the source it edits.
+type AnchorMismatchError struct {
+	Module, Path, Anchor string
+	Count                int
+}
+
+func (err *AnchorMismatchError) Error() string {
+	return fmt.Sprintf("pinned %s rewrite anchor mismatch for %s: %q occurs %d times, want exactly once", err.Module, err.Path, err.Anchor, err.Count)
+}

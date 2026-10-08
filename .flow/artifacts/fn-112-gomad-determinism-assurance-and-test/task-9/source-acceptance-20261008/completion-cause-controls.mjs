@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {resolve} from 'node:path';
+import {out,root,read,write,git,sha} from './capture.mjs';
+const production='tools/gomad3/runner/completion.go',test='tools/gomad3/runner/completion_test.go',base='59ca3d17395be5501906586006e2539d33bea28c';
+const original=git(['show',base+':'+test]),source=read(production).toString();
+const semantic='\tif err != nil {\n\t\treturn completedExecution{}, &HostError{Reason: "semantic_coverage", Err: err}\n\t}';
+const choices='\t\tif err != nil {\n\t\t\treturn completedExecution{}, &HostError{Reason: "choice_coverage", Err: err}\n\t\t}';
+assert.equal(source.split(semantic).length,2);assert.equal(source.split(choices).length,2);
+const mutant=source.replace(semantic,'\tif err != nil {\n\t\tif mode == CoverageSemanticChoice && result.WatchdogTimeout {\n\t\t\terr = fmt.Errorf("control changed semantic cause")\n\t\t}\n\t\treturn completedExecution{}, &HostError{Reason: "semantic_coverage", Err: err}\n\t}').replace(choices,'\t\tif err != nil {\n\t\t\tif mode == CoverageSemanticChoice {\n\t\t\t\terr = fmt.Errorf("control changed choice cause")\n\t\t\t}\n\t\t\treturn completedExecution{}, &HostError{Reason: "choice_coverage", Err: err}\n\t\t}');
+write('control-completion-cause.go',mutant);write('control-original-completion_test.go',original);
+const prodReplace={[resolve(root,production)]:resolve(out,'control-completion-cause.go')},testReplace={[resolve(root,test)]:resolve(out,'control-original-completion_test.go')};
+write('control-completion-current-mutant-overlay.json',{Replace:prodReplace});
+write('control-completion-original-mutant-overlay.json',{Replace:{...prodReplace,...testReplace}});
+write('control-completion-original-normal-overlay.json',{Replace:testReplace});
+write('completion-cause-control-inputs.json',{original_commit:base,production:{path:production,sha256:sha(source)},current_test:{path:test,sha256:sha(read(test))},original_test:{path:test,sha256:sha(original)},mutant_sha256:sha(mutant),condition:'Only Err text changes, only CoverageSemanticChoice choice failure or CoverageSemanticChoice watchdog semantic failure; original reasons, inputs and all other branches unchanged.',original_assertion:'hostError.Err.Error() != test.cause',current_assertion:'hostError.Err == nil',native:false});

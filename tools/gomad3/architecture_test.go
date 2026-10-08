@@ -556,3 +556,35 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 func moduleMayImport(importing, imported string) bool {
 	return architecture.ModuleMayImport(modulePath, importing, imported)
 }
+
+func TestPublicPackagesDoNotExportForwardingAliases(t *testing.T) {
+	for _, directory := range []string{"artifact", "choice", "deterministicio", "qualification", "record", "runner", "target", "toolchain", "upgrade", "world"} {
+		entries, err := os.ReadDir(directory)
+		if err != nil {
+			t.Fatalf("read package directory %s: %v", directory, err)
+		}
+		files := token.NewFileSet()
+		for _, entry := range entries {
+			if entry.IsDir() || filepath.Ext(entry.Name()) != ".go" || strings.HasSuffix(entry.Name(), "_test.go") {
+				continue
+			}
+			path := filepath.Join(directory, entry.Name())
+			file, err := parser.ParseFile(files, path, nil, 0)
+			if err != nil {
+				t.Fatalf("parse %s: %v", path, err)
+			}
+			for _, declaration := range file.Decls {
+				generic, ok := declaration.(*ast.GenDecl)
+				if !ok {
+					continue
+				}
+				for _, specification := range generic.Specs {
+					typeSpec, ok := specification.(*ast.TypeSpec)
+					if ok && typeSpec.Name.IsExported() && typeSpec.Assign.IsValid() {
+						t.Errorf("public package %s exports forwarding alias %s", directory, typeSpec.Name.Name)
+					}
+				}
+			}
+		}
+	}
+}

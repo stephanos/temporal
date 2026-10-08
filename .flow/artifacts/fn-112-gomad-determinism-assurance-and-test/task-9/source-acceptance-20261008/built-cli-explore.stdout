@@ -1,0 +1,2 @@
+{"schema":"gomad3.explore-event/v3","type":"progress","phase":"preparing","campaign_path":"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/cli-explore-artifacts/v1/campaign-20261008T144650.501822796Z-236c504fbae0e073a6d955a800f839d2","selected":1}
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64"}

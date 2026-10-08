@@ -1,0 +1,41 @@
+{
+  "manifest_sha256": "25358815c9030c72348f560c6e17c646a8173bbb2e2c490c571ba3cab5accbe7",
+  "manifest_files": 448,
+  "terminal_files": [
+    {
+      "path": "manifest-freeze.json",
+      "sha256": "856581442e9257c0106b842821bdd0a008f58c32e19ca86eafc99c3fa7e182e3",
+      "bytes": 3011
+    },
+    {
+      "path": "manifest-freeze.stdout",
+      "sha256": "dd5e784f099e76a9dabc46eaef0085a4e53543835199a64d9846b4f43badc454",
+      "bytes": 107
+    },
+    {
+      "path": "manifest-freeze.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "terminal-verification.json",
+      "sha256": "5342aa35f4a7ee450af6652146c86bcd9f3599908152d40546478b27d568930d",
+      "bytes": 3018
+    },
+    {
+      "path": "terminal-verification.stdout",
+      "sha256": "b1fd5675c0a83bde05382950c43821ce4c778db2e316aef4d1f141d73b0e3578",
+      "bytes": 560
+    },
+    {
+      "path": "terminal-verification.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "lane": "RELEASED",
+  "commands_running": 0,
+  "delegates_running": 0,
+  "review_verdict": null,
+  "native": false
+}

@@ -1,0 +1,9 @@
+{"Time":"2026-10-08T14:34:22.168547064Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/deterministicio"}
+{"Time":"2026-10-08T14:34:22.172070647Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity"}
+{"Time":"2026-10-08T14:34:22.172120272Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity","Output":"=== RUN   TestRewrittenModulesRejectChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:34:22.172361564Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity","Output":"    adapter_rewrite_test.go:228: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n","OutputType":"error"}
+{"Time":"2026-10-08T14:34:22.17237323Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity","Output":"--- FAIL: TestRewrittenModulesRejectChangedIdentity (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:34:22.172380397Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity","Elapsed":0}
+{"Time":"2026-10-08T14:34:22.17239073Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:34:22.172565022Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Output":"FAIL\tgo.temporal.io/server/tools/gomad3/deterministicio\t0.004s\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:34:22.172578897Z","Action":"fail","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Elapsed":0.004}

@@ -1,0 +1,1 @@
+read Gomad toolchain identity: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation

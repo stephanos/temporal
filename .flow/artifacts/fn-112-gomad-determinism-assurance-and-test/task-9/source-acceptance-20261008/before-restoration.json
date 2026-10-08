@@ -1,0 +1,17 @@
+{
+  "head": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "files": [
+    {
+      "path": "tools/gomad3/architecture_test.go",
+      "sha256": "2c3cd6b7b0b818a5776be1df46361da1c5f2d4a70c89b692559252bdf2e17924"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "sha256": "85bb7e9ced9dcdeb7a14815b51a9b02d4895f72285509ed704aa95599d2237f4"
+    }
+  ],
+  "admission": {
+    "path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md",
+    "sha256": "4b4d6c52f0f2ada9b07c4228e49a83844421c68f54b4a25fe35663e9effcd967"
+  }
+}

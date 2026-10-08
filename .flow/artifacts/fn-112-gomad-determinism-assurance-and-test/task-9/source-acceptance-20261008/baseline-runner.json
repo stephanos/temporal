@@ -1,0 +1,2561 @@
+{
+  "label": "baseline-runner",
+  "argv": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-timeout=5m",
+    "-json",
+    "./runner"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "head": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOBIN",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T14:28:31.205Z",
+  "ended": "2026-10-08T14:33:31.663Z",
+  "elapsed_seconds": 300.449121976,
+  "sources_before_sha256": "8c138a970cc59b0b5d26b7dc7ddcf17248e4c61ae7abe972de2fa54592e7e3e0",
+  "sources_after_sha256": "8c138a970cc59b0b5d26b7dc7ddcf17248e4c61ae7abe972de2fa54592e7e3e0",
+  "source_changes": [],
+  "stdout_bytes": 611122,
+  "stderr_bytes": 0,
+  "stdout_sha256": "1e9180fd73e2d6ca67885be32bb09cb619226f447e0696f555c538eab0c35e56",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_identities": {
+    "go": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    "gofmt": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    "golangci_lint": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    "errortype": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  },
+  "tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsCharacterization",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestParseSingleBaseSeedSharesRunnerStrategyRule",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionErrorsPreserveKindThroughWrapping",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionNormalizationAndValidation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_default_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_explicit_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_budget_policy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_first_policy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_observation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_strict_clock_tick",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_read-only_mounts",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_read-only_mount_limits",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_keep_all_successes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_keep_novel_successes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_execution_evidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/guided",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/sharded",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/sharded_frozen_guidance",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_exploration",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_exploration",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/resume",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/resume_explicit_regression_override",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/resume_missing_campaign",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/isolated_injected_executor",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/isolated_injected_preparer",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/isolated_empty_coordinator_command",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/isolated_empty_coordinator_command_after_invalid_request",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/resume_with_preparer",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/resume_without_Runner_build",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/resume_without_supervisor",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/resume_ignores_fresh_request_faults",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/malformed_seeds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/empty_seeds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/shard_index_outside_count",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/shard_without_plan_identity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/shard_malformed_plan_identity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/shard_choice_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/shard_guidance_without_frozen_plan",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/shard_first_failure_policy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_max_executions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_choice_depth",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_choice_start_ordinal",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_forced_decisions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_exploration_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_exploration_result_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/seed_dimension_limits",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_forced_decisions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_result_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_dimension_limits",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_multiple_seeds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_guidance",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_without_trace",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_without_max_executions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_without_depth",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_without_exploration_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_multiple_seeds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_guidance",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_trace",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_max_executions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_choice_depth",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_choice_start_ordinal",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_forced_decisions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_exploration_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_result_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_runtime_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_scenario_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_network_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_storage_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_fault_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_crash_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/simulation_without_any_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/unknown_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/zero_parallelism",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/zero_execution_timeout",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/zero_overall_timeout",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/negative_termination_grace",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/termination_grace_beyond_execution_timeout",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/zero_output_limit",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/zero_World_transition_limit",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/invalid_I/O_transcript_limit",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/diagnostics_without_choice_trace",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/diagnostics_with_choice_exploration",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_trace_below_minimum",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_trace_above_maximum",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/probes_without_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/unknown_required_probe",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/probes_with_choice_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/unknown_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/choice_coverage_without_trace",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/execution_evidence_with_multiple_seeds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/execution_evidence_without_semantic_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/invalid_clock_tick",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/disabled_retention_with_count",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/disabled_retention_with_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/novel_retention_without_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/novel_retention_without_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/all_retention_without_count",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/all_retention_without_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/unknown_retention",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/empty_artifact_root",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/empty_Runner_build",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/guidance_without_corpus",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/guidance_without_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/regression_without_guidance",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/corpus_without_guidance",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/snapshot_without_guidance",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/all_policy_with_budget",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/first_policy_with_budget",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/zero_budget",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/unknown_failure_policy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/no_supervisor_command",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/injected_executor_without_supervisor_command",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/mounts_without_working_directory",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/malformed_mount",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/missing_mount_source",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/invalid_mount_limits",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/malformed_environment_entry",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/reserved_environment_name",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/reserved_environment_prefix",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/duplicate_environment_name",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/clock_tick_as_target_environment",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_seeds_before_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_shard_before_strategy_bounds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_strategy_before_limits",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_limits_before_identity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_coverage_before_retention",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_policy_before_supervisor",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_mounts_before_environment",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_environment_before_clock_tick",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization/precedence_transcript_before_clock_tick",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignOptionsLegacyCharacterization",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignRequestNormalizesTheRequest",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorConfigNormalizesDecodedOptions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorConfigCarriesTheNormalizedOptions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestParseStrategyAndCoverageModeAreTheOneReading",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignShardPartitionsCanonicalOrdinals",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCampaignShardRejectsInvalidAssignments",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestPendingJobsRetainsGlobalOrdinalsForShard",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationDivergencePoliciesAndInspection/first",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationDivergencePoliciesAndInspection/budget",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationDivergencePoliciesAndInspection/all",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationDivergencePoliciesAndInspection",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/normal_error",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/cancelled",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_cancelled",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/overflow",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_trace",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/unterminated_trace",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/missing_identity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/duplicate_identity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/alternative_capacity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/tape_exhaustion",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_watchdog",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/wrong_prefix",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_observed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/joined_failure",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestProcessExplorationCompletionKeepsRunnerDomainFallback",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationResumePreservesDivergenceIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/kind",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/site",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternatives",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/selected",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternative_set",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/tape_unconsumed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/observation",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestChoiceExplorationDivergenceCrashHelper",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunChoiceExplorationKilledAfterDivergenceResumesSameState",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestValidateConfigRecordsOnlyTheForwardClockTick",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionFaultsKeepReasonPrecedenceAndEvidence",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCancellationIsAHostFailure/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCancellationIsAHostFailure/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCancellationIsAHostFailure/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCancellationIsAHostFailure",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessWorldValidatesTheRecordAgainstItsSeed/no_record",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessWorldValidatesTheRecordAgainstItsSeed/valid_record",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessWorldValidatesTheRecordAgainstItsSeed/transition_limit",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessWorldValidatesTheRecordAgainstItsSeed/malformed_record_before_seed_mismatch",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessWorldValidatesTheRecordAgainstItsSeed",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/no_coverage_ignores_malformed_evidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/unset_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/semantic_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/choice_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/semantic_and_choice_coverage_with_a_World_terminal",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/malformed_semantic_coverage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/malformed_semantic_coverage_before_malformed_choices",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/malformed_choices",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/malformed_semantic_coverage_of_a_watchdog_kill",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/watchdog_kill_projects_no_choices",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies/cancellation_projects_no_choices",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestAssessCompletionProjectsCoverageInOrderAndClassifies",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance/present",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance/denied",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance/gone",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance/unknown",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesForwardsProgressAndFinalResponse",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesRejectsProgressAfterResult",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecodeCoordinatorMessagesPreservesDrainFailure",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestExploreRejectsPrivateExecutionForIsolatedCampaign",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportCoversEveryCampaignSpecField",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportRoundTripsEveryTransportedField/distinct_nonzero_values",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportRoundTripsEveryTransportedField/zero_values",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportRoundTripsEveryTransportedField/explicit_false_regression_override",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorTransportRoundTripsEveryTransportedField",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestIsolatedRunnerExecutesSeedStrategyWithSuppliedLimits",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestIsolatedRunnerExecutesChoiceStrategyWithSuppliedLimits",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_forced_decisions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/missing_forced_decisions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_result_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/missing_result_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/missing_dimension_bounds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_executions",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_exploration_bytes",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/choice_depth_with_simulation_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/forced_decisions_with_choice_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/result_bytes_with_choice_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/dimension_bound_with_choice_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_choice_depth",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/simulation_bounds_with_seed_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/unknown_strategy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_runtime_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_scenario_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_network_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_storage_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_fault_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_crash_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/malformed_JSON",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/wrong_field_type",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/unknown_field",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/unknown_dimension",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests/trailing_data",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCoordinatorRejectsMalformedRequests",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayBuildInfoRejectsMatchingCoverageInstrumentation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayAndMinimizeRejectRetainedCoverageBinary",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestChoiceTraceObservedExcludesWatchdogAndCancellation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDiagnosticsOffPreservesExistingCanonicalIdentities",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDiagnosticsRetainedWhenSuccessArtifactsAreDiscarded",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDiagnosticsPlanShardAndGuidanceKeepTheProfile",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDiagnosticArtifactReplaysWithoutCollectingSidecar",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDiagnosticsResumeRestoresTheRecordedProfile",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays/empty",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays/explicit",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDirectTargetEnvironmentPreservesSeededScrubbingAndDisabledBehavior",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestIsCapacityErrorFindsTypedCapacityThroughHostFailure",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationSimulationRoleKeysOnTheProcessExecutor",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationReplayRequiresSupervisorOnlyForTheProcessExecutor",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationMinimizeRequiresSupervisorOnlyForTheProcessExecutor",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationMinimizeDefaultReplayerUsesItsExecutor",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationShardChecksToolchainOnlyForTheProcessExecutor",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationResumeChecksToolchainAndSupervisorOnlyForTheProcessExecutor",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationIsolatedExploreRejectsEverySubstitution/replayer",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationIsolatedExploreRejectsEverySubstitution/executor",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationIsolatedExploreRejectsEverySubstitution/preparer",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInjectionCharacterizationIsolatedExploreRejectsEverySubstitution",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundClassifiesAParentEndIndependentOfReceiveOrder/cancelled/final_completion_first",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundClassifiesAParentEndIndependentOfReceiveOrder/cancelled/parent_end_first",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundClassifiesAParentEndIndependentOfReceiveOrder/overall_timeout/final_completion_first",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundClassifiesAParentEndIndependentOfReceiveOrder/overall_timeout/parent_end_first",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundClassifiesAParentEndIndependentOfReceiveOrder",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundKeepsCandidateOutcomesUnderALiveParent/supervision_failure",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundKeepsCandidateOutcomesUnderALiveParent/ordinal_before_the_round",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundKeepsCandidateOutcomesUnderALiveParent/ordinal_after_the_round",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundKeepsCandidateOutcomesUnderALiveParent/repeated_ordinal",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRoundKeepsCandidateOutcomesUnderALiveParent",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/same_configuration_across_seeds",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/changed_environment",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/strict_to_forward",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/forward_to_strict",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/same_configuration_across_seeds",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/changed_environment",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/strict_to_forward",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/forward_to_strict",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedCorpusSeedReproducesRetainedExecution",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedSelectionExcludesAnsweredRequestedSeeds/partial",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedSelectionExcludesAnsweredRequestedSeeds/all",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedSelectionExcludesAnsweredRequestedSeeds/outside",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedSelectionExcludesAnsweredRequestedSeeds",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus/new",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus/regression",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedResumeRejectsChangedRegressionModeAndCountsNewExecutions",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedRegressionEarlyFailureCountsOnlyAttemptedNewExecutions",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestExcludeAnsweredSeedsPreservesMaximumRangesAndInputOrder",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRegressionGuidanceReservesRoundedUnguidedQuarter",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidanceRegressionModeChangesPortablePlanIdentity",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInspectionCapacityProjectionPreservesReports",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestInspectReportsArtifactIdentityWithoutPresentation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenReportsSimulationExplorationEvidence",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenReportsMinimizationLineageAndBounds",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenWithOptionsProjectsValidatedChoiceTrace",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenWithOptionsRejectsBatch",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenReportsValidatedBatchRuns",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenReportsSimulationExplorationBoundsAndRemainingWork",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenReportsInterruptedBatchLifecycle",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenReportsInterruptedSimulationExplorationPendingAndStagedWork",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenReportsAndValidatesRetainedSuccessfulRuns",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizePublishesLinkedExactScheduleAndFaultReduction",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizeRejectsSimulationArtifactWithoutExactChoiceTape",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizeResumeRejectsStateOfAnotherRun",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizeResumeFailsClosedOnDamagedAcceptedArtifact",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizeResumeAfterFinalPublicationValidatesWithoutPublishingAgain",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMinimizeResumeAfterUnrecordedFinalPublicationDoesNotPublishAgain",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunCampaignShardResumePreservesItsPlanAndAssignment",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestMergeCampaignShardsDeduplicatesSharedFailureEvidence",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/incomplete_object",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/trailing_whitespace",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/trailing_data",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/unknown_field",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/malformed",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/invalid_protocol_identity",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestLegacyPreparationFixedInputSnapshot",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestLegacyAdapterPreparationFixedInputSnapshot",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestIOProfileFailureArtifactReplaysExactly",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestIOReplaySupervisorHelper",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestIOReplayBootstrapHelper",
+      "action": "skip"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayEnvironmentExcludesChoiceControlVariables",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayAutomaticallySuppliesExactChoiceTape",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayAutomaticallySuppliesExactSimulationExplorationTape",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayReportsChangedSimulationExplorationRecord",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayReportsTypedChoiceDivergenceBeforeOrdinaryComparison",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayPreservesInfrastructureErrorJoinedWithChoiceDivergence",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/verify_only",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/unavailable_compatibility_pack",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/changed_payload",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/damaged_shared_target/altered/verify-only=false",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/damaged_shared_target/altered/verify-only=true",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/damaged_shared_target/truncated/verify-only=false",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/damaged_shared_target/truncated/verify-only=true",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/damaged_shared_target/missing/verify-only=false",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget/damaged_shared_target/missing/verify-only=true",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayDoesNotStartTarget",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayRunsAnArtifactCopiedOutOfItsStore",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayExecutesMatchingWorldPlanThroughChildTransport",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestWorldReplayDivergentTarget",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestWorldReplayMatchingTarget",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayReportsFirstObservableDivergence",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayReportsIOTranscriptOrdinalBeforeOutcome",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayReportsFinalChoiceTraceMismatch",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayRejectsUnexpectedWorldRecord",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestReplayPreflightValidatesConnectedWorldRecord",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/seed",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/choice-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/simulation-exploration",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestGuidedAdmissionReplaysBeforeTheCorpusAdvances",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/discard",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/unset_policy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/discard_an_unreplayable_success_beyond_the_bounds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/all",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/all_needs_a_complete_transcript",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/novel_probe",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/novel_choice",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/probes_and_choices_are_judged_against_their_own_committed_sets",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/novel_values_keep_their_observed_order",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/nothing_novel_is_not_kept,_whatever_the_transcript_and_the_bounds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/novel_needs_a_complete_transcript",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/count_used_up",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/count_exceeded",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/bytes_used_up",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/bytes_exceeded",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/last_count_and_byte",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds/transcript_before_bounds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestSuccessRetentionAnnotatesTheJournalRecord/all",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestSuccessRetentionAnnotatesTheJournalRecord/novel",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestSuccessRetentionAnnotatesTheJournalRecord",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestSuccessPublicationFailureSeparatesCapacityFromPublication",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestExecutionArtifactInputCarriesTheCapturedEvidence",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunEnforcesBatchModesIndependentOfUmask",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "test": "TestRunReportsPreparationProgressAndCompletedCounts",
+      "action": "fail"
+    }
+  ],
+  "top_level_counts": {
+    "pass": 55,
+    "fail": 77,
+    "skip": 5
+  },
+  "subtest_counts": {
+    "pass": 209,
+    "fail": 149,
+    "skip": 0
+  },
+  "package_results": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3/runner",
+      "action": "fail"
+    }
+  ],
+  "native": false
+}

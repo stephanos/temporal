@@ -1,0 +1,8 @@
+{"Time":"2026-10-08T15:19:46.174885488Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli"}
+{"Time":"2026-10-08T15:19:46.182545904Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Test":"TestRunRecoverRepairsPublishedBatchPrivateState"}
+{"Time":"2026-10-08T15:19:46.182584029Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Test":"TestRunRecoverRepairsPublishedBatchPrivateState","Output":"=== RUN   TestRunRecoverRepairsPublishedBatchPrivateState\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:19:46.194210154Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Test":"TestRunRecoverRepairsPublishedBatchPrivateState","Output":"--- PASS: TestRunRecoverRepairsPublishedBatchPrivateState (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:19:46.194227363Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Test":"TestRunRecoverRepairsPublishedBatchPrivateState","Elapsed":0.01}
+{"Time":"2026-10-08T15:19:46.194235446Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:19:46.195705988Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Output":"ok  \tgo.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli\t0.021s\n"}
+{"Time":"2026-10-08T15:19:46.195728238Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli","Elapsed":0.021}

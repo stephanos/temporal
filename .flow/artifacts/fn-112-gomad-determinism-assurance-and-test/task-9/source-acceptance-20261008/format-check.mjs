@@ -1,0 +1,11 @@
+import {spawnSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {sources,read,stock,root} from './capture.mjs';
+const mode=process.argv[2];assert(['focused','nested'].includes(mode));
+const all=Object.keys(sources()).filter(p=>p.startsWith('tools/gomad3/')&&p.endsWith('.go'));
+const proof=JSON.parse(read('.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/source-proof.json'));
+const files=mode==='nested'?all:[...new Set([...proof.histories.filter(h=>h.current_sha256&&h.path.endsWith('.go')).map(h=>h.path),...Object.keys(sources()).filter(p=>p.endsWith('.go')&&p==='tools/gomad3/runner/completion_test.go')])];
+assert(files.length>0);
+const argv=[stock+'/gofmt','-l',...files],result=spawnSync(argv[0],argv.slice(1),{cwd:root,maxBuffer:8<<20});
+console.log(JSON.stringify({argv,raw_exit:result.status,stdout:result.stdout.toString(),stderr:result.stderr.toString(),checked_files:files.length,formatted:result.status===0&&result.stdout.length===0}));
+process.exitCode=result.status!==0?result.status:result.stdout.length?1:0;

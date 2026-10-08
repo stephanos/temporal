@@ -1,0 +1,11 @@
+import {spawnSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {resolve} from 'node:path';
+import {out,read,sha} from './capture.mjs';
+const kind=process.argv[2];assert(['valid','exported-alias'].includes(kind));
+const binary=resolve(out,'architecture-test'),argv=[binary,'-test.run=^TestPublicPackagesDoNotExportForwardingAliases$','-test.v'];
+const cwd=resolve(out,'alias-fixtures',kind),inputs=JSON.parse(read(resolve(out,'alias-fixture-inputs.json'))).files.filter(e=>e.path.includes('/'+kind+'/'));
+for(const e of inputs)assert.equal(sha(read(e.path)),e.sha256);
+const started=new Date(),result=spawnSync(argv[0],argv.slice(1),{cwd,env:process.env,timeout:60000,maxBuffer:8<<20});
+console.log(JSON.stringify({argv,cwd,binary_sha256:sha(read(binary)),inputs,started:started.toISOString(),ended:new Date().toISOString(),exit:result.status,stdout:result.stdout.toString(),stderr:result.stderr.toString(),signal:result.signal,error:result.error?.message??null}));
+process.exitCode=result.status??1;

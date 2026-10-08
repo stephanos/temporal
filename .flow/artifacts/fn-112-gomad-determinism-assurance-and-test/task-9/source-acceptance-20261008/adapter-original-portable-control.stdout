@@ -1,0 +1,32 @@
+{"Time":"2026-10-08T14:35:03.419362667Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/deterministicio"}
+{"Time":"2026-10-08T14:35:03.425349Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestSprigRejectsChangedIdentity"}
+{"Time":"2026-10-08T14:35:03.425406667Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestSprigRejectsChangedIdentity","Output":"=== RUN   TestSprigRejectsChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.426833875Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestSprigRejectsChangedIdentity","Output":"--- PASS: TestSprigRejectsChangedIdentity (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.426860583Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestSprigRejectsChangedIdentity","Elapsed":0}
+{"Time":"2026-10-08T14:35:03.426876667Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestValidatorRejectsChangedIdentity"}
+{"Time":"2026-10-08T14:35:03.426882167Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestValidatorRejectsChangedIdentity","Output":"=== RUN   TestValidatorRejectsChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.428062125Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestValidatorRejectsChangedIdentity","Output":"--- PASS: TestValidatorRejectsChangedIdentity (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.428092667Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestValidatorRejectsChangedIdentity","Elapsed":0}
+{"Time":"2026-10-08T14:35:03.428101333Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestPebbleRejectsChangedIdentity"}
+{"Time":"2026-10-08T14:35:03.428106792Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestPebbleRejectsChangedIdentity","Output":"=== RUN   TestPebbleRejectsChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.429191375Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestPebbleRejectsChangedIdentity","Output":"--- PASS: TestPebbleRejectsChangedIdentity (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.429201375Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestPebbleRejectsChangedIdentity","Elapsed":0}
+{"Time":"2026-10-08T14:35:03.429204834Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestCactusStatsDRejectsChangedIdentity"}
+{"Time":"2026-10-08T14:35:03.429206667Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestCactusStatsDRejectsChangedIdentity","Output":"=== RUN   TestCactusStatsDRejectsChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.430506375Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestCactusStatsDRejectsChangedIdentity","Output":"--- PASS: TestCactusStatsDRejectsChangedIdentity (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.430527167Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestCactusStatsDRejectsChangedIdentity","Elapsed":0}
+{"Time":"2026-10-08T14:35:03.430531875Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestMemberlistRejectsChangedIdentity"}
+{"Time":"2026-10-08T14:35:03.43053425Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestMemberlistRejectsChangedIdentity","Output":"=== RUN   TestMemberlistRejectsChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.431464792Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestMemberlistRejectsChangedIdentity","Output":"--- PASS: TestMemberlistRejectsChangedIdentity (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.431483042Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestMemberlistRejectsChangedIdentity","Elapsed":0}
+{"Time":"2026-10-08T14:35:03.431485459Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestSentryRejectsChangedIdentity"}
+{"Time":"2026-10-08T14:35:03.431487667Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestSentryRejectsChangedIdentity","Output":"=== RUN   TestSentryRejectsChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.432309625Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestSentryRejectsChangedIdentity","Output":"--- PASS: TestSentryRejectsChangedIdentity (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.432327Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestSentryRejectsChangedIdentity","Elapsed":0}
+{"Time":"2026-10-08T14:35:03.432330792Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestHashicorpMetricsRejectsChangedIdentity"}
+{"Time":"2026-10-08T14:35:03.432337459Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestHashicorpMetricsRejectsChangedIdentity","Output":"=== RUN   TestHashicorpMetricsRejectsChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.433008584Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestHashicorpMetricsRejectsChangedIdentity","Output":"--- PASS: TestHashicorpMetricsRejectsChangedIdentity (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.433018625Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestHashicorpMetricsRejectsChangedIdentity","Elapsed":0}
+{"Time":"2026-10-08T14:35:03.433055542Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:35:03.433253917Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Output":"ok  \tgo.temporal.io/server/tools/gomad3/deterministicio\t0.014s\n"}
+{"Time":"2026-10-08T14:35:03.433265042Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Elapsed":0.014}

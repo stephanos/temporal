@@ -1,0 +1,480 @@
+{
+  "label": "sealed-root",
+  "argv": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-timeout=5m",
+    "-json",
+    "."
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "head": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "executable_identity": {
+    "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+  },
+  "environment": {
+    "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+  },
+  "removed_environment": [
+    "GOROOT",
+    "GOBIN",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ],
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T15:03:00.039Z",
+  "ended": "2026-10-08T15:03:46.894Z",
+  "elapsed_seconds": 46.837944439,
+  "sources_before_sha256": "076ec3da6c89fa929ba71ba2dc68aa5c0c5775e2c13e8a8b8bf788b2a4e43eed",
+  "sources_after_sha256": "076ec3da6c89fa929ba71ba2dc68aa5c0c5775e2c13e8a8b8bf788b2a4e43eed",
+  "source_changes": [],
+  "stdout_bytes": 383310,
+  "stderr_bytes": 0,
+  "stdout_sha256": "eea6a5c4ef6d25bc5e9baf6547ec9345c49d065c36f8720b6a686730770701af",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_identities": {
+    "go": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    "gofmt": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    "golangci_lint": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    },
+    "errortype": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    }
+  },
+  "tests": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/root-production",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/hidden-production",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/underscore-production",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/unclassified-testdata",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/overlay-prefix",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/hidden-module",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/excluded-root-module",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/included-list-error",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/owner-edge",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures/required-facade-edge",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureInventoryFixtures",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/nested-container",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/alias",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/defined-rhs",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/interface-result",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/generic-constraint",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/foreign-generic-argument",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/promoted-method",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/private-storage",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/private-defined-graph",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures/recursive-public-graph",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitecturePublicSignatureFixtures",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/indirect-clock",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/environment",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/filesystem",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/process",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/network",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/timer",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/entropy",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/goroutine",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/stored-callback",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/method-value",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/generic-callback",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/recursive-cycle",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/nested-json",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/nested-text",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/json-file-writer",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/json-file-reader",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/fmt-stringer",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/fmt-formatter",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/fmt-gostring",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/unknown-callback",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/unknown-location",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/local-location",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/utc-location",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/pure-callback",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/pure-recursive-cycle",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/pure-nested-json",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/pure-memory-stream",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/pure-fmt-type",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/effectful-unrelated-sibling",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/copy-callback",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/insert-callback",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/clone-callback",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/pointer-callback",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/range-iterator",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/slice-pointer-json",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures/blank-import-init",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestArchitectureEffectFixtures",
+      "action": "fail"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPackageArchitecture",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPublicPackagesDoNotExportTypeAliases",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPureModulesHaveNoHostEffects",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestHostPackageVet/darwin/arm64",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestHostPackageVet/linux/amd64",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestHostPackageVet/linux/arm64",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestHostPackageVet",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestRunnerExecutionInjectionIsPrivate",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestRunnerRequestsCompileInExternalModule",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestCurrentVocabularyHasNoLegacyCampaignBoundary",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestMakeTargetsMatchTheirOwnership",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestExactModuleEdges",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestDomainModulesDoNotExportWireFraming",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestPublicPackagesDoNotExportForwardingAliases",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestFilesystemHandlesOwnOneImplementation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestNetworkHandlesOwnOneImplementation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestProcessCommandsOwnModelWireTranslation",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestRunnerExternalConsumerCompiles",
+      "action": "pass"
+    },
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "test": "TestSimulationGateSelectsProcessNetworkHandles",
+      "action": "pass"
+    }
+  ],
+  "top_level_counts": {
+    "pass": 17,
+    "fail": 2,
+    "skip": 0
+  },
+  "subtest_counts": {
+    "pass": 53,
+    "fail": 6,
+    "skip": 0
+  },
+  "package_results": [
+    {
+      "package": "go.temporal.io/server/tools/gomad3",
+      "action": "fail"
+    }
+  ],
+  "native": false
+}

@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {resolve} from 'node:path';
+import {out,root,read,write,git,sha} from './capture.mjs';
+const original=git(['rev-parse','97f221c7ea^']).toString().trim();
+const adapters=[['sprig','Sprig'],['validator','Validator'],['pebble','Pebble'],['cactusstatsd','CactusStatsD'],['memberlist','Memberlist'],['sentry','Sentry'],['hashicorpmetrics','HashicorpMetrics']];
+const functions=adapters.map(([stem,adapter])=>{
+ const path=`tools/gomad3/deterministicio/${stem}_adapter_test.go`,source=git(['show',original+':'+path]).toString(),name=`Test${adapter}RejectsChangedIdentity`;
+ const start=source.indexOf('func '+name+'('),end=source.indexOf('\n}',start)+3;assert(start>=0&&end>start);const body=source.slice(start,end);
+ assert(body.includes('(t.TempDir(), t.TempDir(), identity)'));return {path,name,body,sha256:sha(body+'\n')};
+});
+const production='tools/gomad3/deterministicio/adapter_rewrite.go',source=read(production).toString();
+const anchor='func prepareRewrittenModule(moduleCache, root string, identity gomadversion.AdapterIdentity, spec rewrittenModule) (adapterPreparation, error) {\n';assert.equal(source.split(anchor).length,2);
+const mutant=source.replace(anchor,anchor+'\tif _, err := os.Stat(filepath.Join(append([]string{moduleCache}, spec.cacheElements...)...)); err != nil {\n\t\treturn adapterPreparation{}, err\n\t}\n');
+write('control-adapter-cache-before-identity.go',mutant);
+const test='tools/gomad3/deterministicio/adapter_rewrite_test.go';
+write('control-adapter-original-empty-cache-tests.go',read(test).toString()+'\n'+functions.map(f=>f.body).join('\n\n')+'\n');
+const replacement=resolve(out,'control-adapter-cache-before-identity.go');
+write('control-adapter-current-overlay.json',{Replace:{[resolve(root,production)]:replacement}});
+write('control-adapter-original-overlay.json',{Replace:{[resolve(root,production)]:replacement,[resolve(root,test)]:resolve(out,'control-adapter-original-empty-cache-tests.go')}});
+write('control-inputs.json',{original_parent:original,original_functions:functions,production:{path:production,sha256:sha(source)},current_test:{path:test,sha256:sha(read(test))},mutant:{path:resolve(out,'control-adapter-cache-before-identity.go'),sha256:sha(mutant)},transformation:'Only a cache-existence read is inserted before the original identity check. Counterfactual control input, never a product source edit.'});

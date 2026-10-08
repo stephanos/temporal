@@ -1,0 +1,180 @@
+{
+  "host": "actual Linux/aarch64 UID1000; raw uname/id receipts retained",
+  "node_version": "v22.22.1",
+  "python": {
+    "path": "/usr/bin/python3",
+    "version": "3.14.4 (main, Jun 18 2026, 14:25:02) [GCC 15.2.0]"
+  },
+  "tools": [
+    {
+      "path": "/usr/bin/node",
+      "sha256": "7142be834142d58bca93f8acac61e3bdf4ed8c7b40392f2e99fd9f685fa5f90a"
+    },
+    {
+      "path": "/usr/bin/python3",
+      "sha256": "fd82483aa72498a59e905cdba1ad7a5a2aea2592e7ebc6398cebdaf1dee4adac"
+    },
+    {
+      "path": "/usr/bin/git",
+      "sha256": "89fbabe92d1e190036a9b15e8e30efc16643beb7562329592855e622c59c3e00"
+    },
+    {
+      "path": "/usr/bin/make",
+      "sha256": "b12eeb672d64e798b84f297c116651ccbb3ca726a108c74ffe9a60d85547315d"
+    }
+  ],
+  "configurations": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "8d634df5cbbbffd7dbada06e32b4d20d879707273f8be07bdf253b387211e6f3"
+    },
+    {
+      "path": "tools/gomad3/README.md",
+      "sha256": "e9949e64f4e2df0cb8c230af5629a78f4f4e892862ca4a44c300ba583766acdb"
+    },
+    {
+      "path": "tools/gomad3/Makefile",
+      "sha256": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd"
+    },
+    {
+      "path": "Makefile",
+      "sha256": "e9cc7d891eaa5fcedc5a3009db524d011471703f1a3d07debf89e5437ecd965c"
+    },
+    {
+      "path": ".github/.golangci.yml",
+      "sha256": "692a0839444d1d26a23541897c633229ad8ccc572cecdc0498baef290f7a253c"
+    },
+    {
+      "path": "tools/gomad3/go.mod",
+      "sha256": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f"
+    },
+    {
+      "path": "tools/gomad3/go.sum",
+      "sha256": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+    }
+  ],
+  "final_worker_helpers": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/accounting-analysis.mjs",
+      "sha256": "b49be51031789cdcdf697690543d4e729809bf56e1905f31a5187d15fc80045a"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-fixture-run.mjs",
+      "sha256": "1fdff4547814a57884f591cf6951ff8ffd6ae944ea21372d14d794c072fe5c37"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/alias-fixtures.mjs",
+      "sha256": "c24ad15f44a44adb1022f4218e00e0d35edb6c7781d0e8ddd632759c9c33cd63"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/analyze-evidence.mjs",
+      "sha256": "cb9e64cafd987dc5a08b30d4b96fe351b9c5f2bafe2c090b44a0aa38d567eabb"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/before-restoration.mjs",
+      "sha256": "350f2d203072ae615ae21d785d309d4118c9e54ccb20901e0ee0ab162b7619b2"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/capture.mjs",
+      "sha256": "99093222557e2f0333a7062e9647047999eaf2f81782d4bc6635545f2fbcd2d5"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/checker-controls.py",
+      "sha256": "487ec019511da778852e2fb17ba5b92faf1d2e79d992445f6744b9d3b589f5fb"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/closing-gates.mjs",
+      "sha256": "39137ad4f2c8bbd6ac1d1dc24e11d90288fca08f8929bf270fb5af19ba57e171"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/completion-cause-controls.mjs",
+      "sha256": "ced4c50ac7b8fd883966a028ec3cf684a5082702c6865016597f1b539d670a01"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/completion-cause-run.mjs",
+      "sha256": "ce5951032affb55d553eebfde4e62924298f2dcc490dd8115b61af9f8f97f161"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-inputs.mjs",
+      "sha256": "c5c2414f12560eb203d74c6599316a8dea2bbb0a7945f41a64885fd378d32043"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/current-identity-derive.mjs",
+      "sha256": "9919e152dd3e94d9780db25a12199466439ae644e093aa320ad3c63c59afd126"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/failure-bindings.mjs",
+      "sha256": "fbecd47975e50119e43c64ae39faed71b4b14894107fba0842af590ea5f5c3ab"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-gates.mjs",
+      "sha256": "d44db674b098f0dff4d2da7923368404b14ce76d1d3124640643eb9322cf2299"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/final-links.mjs",
+      "sha256": "eeb9ef06c13f535eb6db8b4551054a2cc2315ddfa4f3b7be017c5310da2d759c"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/finish-controls.mjs",
+      "sha256": "b8e3524910949eff5153f9feb7799d7ac295d6716b2b817ff27083ffa93808ec"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/format-check.mjs",
+      "sha256": "e5a39198c6fa077553f8748eccff3740bf909ec7ddaef8caa323c4251c5e9a72"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/map-current-status.mjs",
+      "sha256": "ea9db344248970fed59ef82e236a91a0ef64df60ee72c50daaad262644b01821"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/runtime-identities.mjs",
+      "sha256": "89813c93447bbc14bf46fbb458a0148c345072031b9dd3c45d20f275d162c172"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/seal.mjs",
+      "sha256": "6adb5039408e515c40077e5438b36c71c476b14888b9c940513bbde7cf5d034a"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/source-proof.mjs",
+      "sha256": "1ab8cbb081c1f302e92394f8ca190e05f9af79a428cd34981641f74b318d41e2"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/verify.mjs",
+      "sha256": "e891ea7685cc10704f8f7e4ca78178459fc6b1644024f70cc20a6c30aebfd927"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/world-seed-controls.mjs",
+      "sha256": "24bcab370cda232ac8662523e58abdecfbc842ba31a03c68219c30d5c18d0b8b"
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/write-handover.mjs",
+      "sha256": "6fe651dbc88427b6dcb50714f34e40b049f696f23a3080520e066e0d15a73b91"
+    }
+  ],
+  "environment": {
+    "env": {
+      "TMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX",
+      "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "GOENV": "off",
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "GOFLAGS": "",
+      "GOEXPERIMENT": "nogreenteagc",
+      "GOMAXPROCS": "2",
+      "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "GOTMPDIR": "/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX"
+    },
+    "removed": [
+      "GOROOT",
+      "GOBIN",
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED"
+    ]
+  },
+  "tool_hash_scope": "Final installed tools/configuration/helper bytes; historical changed worker-helper versions are not falsely claimed identical. Per-command Go/gofmt/lint/errortype hashes and raw argv are independently retained.",
+  "source_diff_sha256": "af3400cc5a522cd4869b2b58fe5e73a9aa5fe833a40bc8635787d17de5da85db",
+  "source_diff_check": "Actual git diff --check exit0",
+  "native": false,
+  "review_verdict": null
+}

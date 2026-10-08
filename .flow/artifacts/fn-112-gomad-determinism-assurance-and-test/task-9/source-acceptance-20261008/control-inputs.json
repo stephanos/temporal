@@ -1,0 +1,60 @@
+{
+  "original_parent": "f144997bda76ee2cd57730a97ee35a0555b09b7a",
+  "original_functions": [
+    {
+      "path": "tools/gomad3/deterministicio/sprig_adapter_test.go",
+      "name": "TestSprigRejectsChangedIdentity",
+      "body": "func TestSprigRejectsChangedIdentity(t *testing.T) {\n\tfor _, identity := range []gomadversion.AdapterIdentity{\n\t\t{Module: \"github.com/Masterminds/sprig/v3/other\", Version: sprigVersion, Sum: sprigSum},\n\t\t{Module: sprigModulePath, Version: \"v0.0.0\", Sum: sprigSum},\n\t\t{Module: sprigModulePath, Version: sprigVersion, Sum: \"h1:changed\"},\n\t} {\n\t\tif _, err := prepareSprig(t.TempDir(), t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), \"identity mismatch\") {\n\t\t\tt.Fatalf(\"changed Sprig identity %#v: %v\", identity, err)\n\t\t}\n\t}\n}\n",
+      "sha256": "ea428459ecfbb264a99b9e63c033663d9b1fb005a4fe0aef81b8362b56b93d9b"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/validator_adapter_test.go",
+      "name": "TestValidatorRejectsChangedIdentity",
+      "body": "func TestValidatorRejectsChangedIdentity(t *testing.T) {\n\tfor _, identity := range []gomadversion.AdapterIdentity{\n\t\t{Module: \"github.com/go-playground/validator/v10/other\", Version: validatorVersion, Sum: validatorSum},\n\t\t{Module: validatorModulePath, Version: \"v0.0.0\", Sum: validatorSum},\n\t\t{Module: validatorModulePath, Version: validatorVersion, Sum: \"h1:changed\"},\n\t} {\n\t\tif _, err := prepareValidator(t.TempDir(), t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), \"identity mismatch\") {\n\t\t\tt.Fatalf(\"changed Validator identity %#v: %v\", identity, err)\n\t\t}\n\t}\n}\n",
+      "sha256": "61598d8e82a0d8f54670b1d1435dab9224c2133363da63048c5558f74b02af1f"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/pebble_adapter_test.go",
+      "name": "TestPebbleRejectsChangedIdentity",
+      "body": "func TestPebbleRejectsChangedIdentity(t *testing.T) {\n\tfor _, identity := range []gomadversion.AdapterIdentity{\n\t\t{Module: \"github.com/cockroachdb/other\", Version: pebbleVersion, Sum: pebbleSum},\n\t\t{Module: pebbleModulePath, Version: \"v0.0.0-other\", Sum: pebbleSum},\n\t\t{Module: pebbleModulePath, Version: pebbleVersion, Sum: \"h1:changed\"},\n\t} {\n\t\tif _, err := preparePebble(t.TempDir(), t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), \"identity mismatch\") {\n\t\t\tt.Fatalf(\"changed Pebble identity %#v: %v\", identity, err)\n\t\t}\n\t}\n}\n",
+      "sha256": "46111fccfb992bccea29c13397ede2cd06535d69f2c8476a4e683f3fe0dbc5e3"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/cactusstatsd_adapter_test.go",
+      "name": "TestCactusStatsDRejectsChangedIdentity",
+      "body": "func TestCactusStatsDRejectsChangedIdentity(t *testing.T) {\n\tfor _, identity := range []gomadversion.AdapterIdentity{\n\t\t{Module: \"github.com/cactus/other\", Version: cactusStatsDVersion, Sum: cactusStatsDSum},\n\t\t{Module: cactusStatsDModulePath, Version: \"v5.0.0\", Sum: cactusStatsDSum},\n\t\t{Module: cactusStatsDModulePath, Version: cactusStatsDVersion, Sum: \"h1:changed\"},\n\t} {\n\t\tif _, err := prepareCactusStatsD(t.TempDir(), t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), \"identity mismatch\") {\n\t\t\tt.Fatalf(\"changed StatsD identity %#v: %v\", identity, err)\n\t\t}\n\t}\n}\n",
+      "sha256": "ddf7a1076864501a1540da999821c7e0da8b2b87b3edbaf7da99a1703d9bb50c"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/memberlist_adapter_test.go",
+      "name": "TestMemberlistRejectsChangedIdentity",
+      "body": "func TestMemberlistRejectsChangedIdentity(t *testing.T) {\n\tfor _, identity := range []gomadversion.AdapterIdentity{\n\t\t{Module: \"github.com/hashicorp/other\", Version: memberlistVersion, Sum: memberlistSum},\n\t\t{Module: memberlistModulePath, Version: \"v0.5.3\", Sum: memberlistSum},\n\t\t{Module: memberlistModulePath, Version: memberlistVersion, Sum: \"h1:changed\"},\n\t} {\n\t\tif _, err := prepareMemberlist(t.TempDir(), t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), \"identity mismatch\") {\n\t\t\tt.Fatalf(\"changed Memberlist identity %#v: %v\", identity, err)\n\t\t}\n\t}\n}\n",
+      "sha256": "fed39aa0401f30b492aa23b5c7559320c7cca189915a5608051a94d61fbddbb7"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/sentry_adapter_test.go",
+      "name": "TestSentryRejectsChangedIdentity",
+      "body": "func TestSentryRejectsChangedIdentity(t *testing.T) {\n\tfor _, identity := range []gomadversion.AdapterIdentity{\n\t\t{Module: \"github.com/getsentry/other\", Version: sentryVersion, Sum: sentrySum},\n\t\t{Module: sentryModulePath, Version: \"v0.45.0\", Sum: sentrySum},\n\t\t{Module: sentryModulePath, Version: sentryVersion, Sum: \"h1:changed\"},\n\t} {\n\t\tif _, err := prepareSentry(t.TempDir(), t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), \"identity mismatch\") {\n\t\t\tt.Fatalf(\"changed Sentry identity %#v: %v\", identity, err)\n\t\t}\n\t}\n}\n",
+      "sha256": "79b3b1cced279d8c82c7726d66f9f37918a0db77beef39ed4f044e15bc2ce4c5"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go",
+      "name": "TestHashicorpMetricsRejectsChangedIdentity",
+      "body": "func TestHashicorpMetricsRejectsChangedIdentity(t *testing.T) {\n\tfor _, identity := range []gomadversion.AdapterIdentity{\n\t\t{Module: \"github.com/armon/go-metrics\", Version: hashicorpMetricsVersion, Sum: hashicorpMetricsSum},\n\t\t{Module: hashicorpMetricsModulePath, Version: \"v0.5.3\", Sum: hashicorpMetricsSum},\n\t\t{Module: hashicorpMetricsModulePath, Version: hashicorpMetricsVersion, Sum: \"h1:changed\"},\n\t} {\n\t\tif _, err := prepareHashicorpMetrics(t.TempDir(), t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), \"identity mismatch\") {\n\t\t\tt.Fatalf(\"changed identity %#v: %v\", identity, err)\n\t\t}\n\t}\n}\n",
+      "sha256": "2443f348946a47d1b375677550c5f23e7350d2495a58aa643de8442371f504ed"
+    }
+  ],
+  "production": {
+    "path": "tools/gomad3/deterministicio/adapter_rewrite.go",
+    "sha256": "85f4101937d8f4dc580ea5d9c48c8d6eee3681eb02fe8747ace3309017052e06"
+  },
+  "current_test": {
+    "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+    "sha256": "85bb7e9ced9dcdeb7a14815b51a9b02d4895f72285509ed704aa95599d2237f4"
+  },
+  "mutant": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/control-adapter-cache-before-identity.go",
+    "sha256": "d5d892d91177702582cef19d8dab50fe305c2ec8ebd3245e87d3c81025b474e2"
+  },
+  "transformation": "Only a cache-existence read is inserted before the original identity check. Counterfactual control input, never a product source edit."
+}

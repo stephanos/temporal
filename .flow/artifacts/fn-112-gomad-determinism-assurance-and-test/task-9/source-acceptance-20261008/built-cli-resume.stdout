@@ -1,0 +1,1 @@
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"inspect campaign lifecycle directory: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-9/source-acceptance-20261008/missing-campaign: no such file or directory"}

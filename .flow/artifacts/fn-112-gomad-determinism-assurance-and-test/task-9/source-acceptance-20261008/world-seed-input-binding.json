@@ -1,0 +1,9 @@
+{
+  "production": "tools/gomad3/runner/completion.go",
+  "production_sha256": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5",
+  "mutant_sha256": "68a5edfa9342c7cc3865bcfab7ba78491404e287039450335837d7a1fea54894",
+  "condition": "Only World mismatch error text changes when expected seed 8 and decoded initial seed 7. Decode failures and seed7 expectations remain unchanged.",
+  "original_file_sha256": "eeda8706c88f8331d208f4e266d8b7e731d85357e467700a4b7f6d27c06fc63f",
+  "current_file_sha256": "c5d862594c7223f4a56c4b73a544eaeb1141d6c16f190cd3ad0e493c1727ff09",
+  "native": false
+}

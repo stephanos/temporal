@@ -1,0 +1,45 @@
+{
+  "verified": true,
+  "timestamp": "2026-10-08T15:02:11.710Z",
+  "base": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "head": "a7d99f4e64990839f81df4acd9bc150b842f8ea6",
+  "changed_test_files": [
+    {
+      "path": "tools/gomad3/architecture_test.go",
+      "sha256": "47520b50536baecd25aac7e75c62325ea256ffd96266707e3f4fbd5267920453"
+    },
+    {
+      "path": "tools/gomad3/deterministicio/adapter_rewrite_test.go",
+      "sha256": "10cb62ab41392a7acd78782c204ec93da2869c65fbd20a27099e11d2d961d8ef"
+    },
+    {
+      "path": "tools/gomad3/runner/completion_test.go",
+      "sha256": "daafa0f019c31857edd46210e1608d8ef7a7bfa61ac9760784e77fe64034f93a"
+    }
+  ],
+  "original_alias_guard_exact_except_additive_name": true,
+  "existing_signature_guard_byte_exact": true,
+  "existing_populated_cache_assertions_exact_after_inverting_only_admitted_wrapper": true,
+  "private_completion_delta_exactly_original_four_causes_plus_comparison_and_message": true,
+  "private_completion_nil_error_guard_preserved": true,
+  "all_off_function_completion_bytes_exact": true,
+  "private_world_delta_exactly_one_original_seed_mismatch_row": true,
+  "all_other_world_rows_and_assertions_byte_exact": true,
+  "all_off_function_adapter_bytes_exact": true,
+  "all_existing_architecture_bytes_exact": true,
+  "user_files": [
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+    }
+  ],
+  "production_changes": [],
+  "new_exceptions": [],
+  "native": false,
+  "imported_assertion_helper_sha256": "398aae2a1d2fa6ccc567fd26a3f78ca2572ef04c87c324d4af919c9675745f4a",
+  "current_audit_sha256": "54849222c5742c3f2b5457734651d50e3e8dea17d18c0164f4aa0fb7bd30f5b4"
+}

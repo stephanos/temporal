@@ -1,0 +1,12 @@
+{"Time":"2026-10-08T15:21:01.438257586Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/deterministicio"}
+{"Time":"2026-10-08T15:21:01.442183419Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity"}
+{"Time":"2026-10-08T15:21:01.442220669Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity","Output":"=== RUN   TestRewrittenModulesRejectChangedIdentity\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:21:01.442249294Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity/empty"}
+{"Time":"2026-10-08T15:21:01.442256086Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity/empty","Output":"=== RUN   TestRewrittenModulesRejectChangedIdentity/empty\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:21:01.97264317Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity/empty","Output":"--- PASS: TestRewrittenModulesRejectChangedIdentity/empty (0.53s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:21:01.97267242Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity/empty","Elapsed":0.53}
+{"Time":"2026-10-08T15:21:01.97269242Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity","Output":"--- PASS: TestRewrittenModulesRejectChangedIdentity (0.53s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:21:01.972695711Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Test":"TestRewrittenModulesRejectChangedIdentity","Elapsed":0.53}
+{"Time":"2026-10-08T15:21:01.972744836Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T15:21:01.97301017Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Output":"ok  \tgo.temporal.io/server/tools/gomad3/deterministicio\t0.535s\n"}
+{"Time":"2026-10-08T15:21:01.97302142Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/deterministicio","Elapsed":0.535}

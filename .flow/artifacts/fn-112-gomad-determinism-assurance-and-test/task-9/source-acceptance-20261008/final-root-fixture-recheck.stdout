@@ -1,0 +1,12 @@
+{"Time":"2026-10-08T14:44:54.289367615Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3"}
+{"Time":"2026-10-08T14:44:54.29420599Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitecturePublicSignatureFixtures"}
+{"Time":"2026-10-08T14:44:54.294266324Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitecturePublicSignatureFixtures","Output":"=== RUN   TestArchitecturePublicSignatureFixtures\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:44:54.294324157Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitecturePublicSignatureFixtures/private-storage"}
+{"Time":"2026-10-08T14:44:54.294333074Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitecturePublicSignatureFixtures/private-storage","Output":"=== RUN   TestArchitecturePublicSignatureFixtures/private-storage\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:44:54.307368199Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitecturePublicSignatureFixtures/private-storage","Output":"--- PASS: TestArchitecturePublicSignatureFixtures/private-storage (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:44:54.307392657Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitecturePublicSignatureFixtures/private-storage","Elapsed":0.01}
+{"Time":"2026-10-08T14:44:54.307456532Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitecturePublicSignatureFixtures","Output":"--- PASS: TestArchitecturePublicSignatureFixtures (0.01s)\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:44:54.307471657Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestArchitecturePublicSignatureFixtures","Elapsed":0.01}
+{"Time":"2026-10-08T14:44:54.30748699Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-08T14:44:54.307625115Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"ok  \tgo.temporal.io/server/tools/gomad3\t0.018s\n"}
+{"Time":"2026-10-08T14:44:54.307643157Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Elapsed":0.018}
