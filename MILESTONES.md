@@ -273,7 +273,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-112.13](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.13.md) | ✅ Done | Execute watchdog diagnostic replay without requiring an exact I/O transcript |
 | [fn-112.14](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.14.md) | ✅ Done | Preserve parent cancellation classification when an exploration round finishes |
 | [fn-112.15](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.15.md) | ✅ Done | Make TestWatchdogDiagnosticReplayUsesCapturedInputs reliable |
-| [fn-112.16](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.16.md) | 🚧 In progress | Keep two retained successes with one outcome signature as distinct artifacts |
+| [fn-112.16](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.16.md) | ✅ Done | Keep two retained successes with one outcome signature as distinct artifacts |
 
 <a id="maintenance-cost"></a>
 

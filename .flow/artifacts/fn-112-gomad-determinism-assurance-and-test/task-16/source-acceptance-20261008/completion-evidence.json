@@ -1,0 +1,15 @@
+{
+  "commits": ["aa9b3d347f43bcef63349c7043048b4e60ba72a9"],
+  "tests": [
+    "stock go1.27.1: go -C tools/gomad3 test -tags test_dep -count=1 -json ./artifact ./record ./runner/internal/campaign: 155 pass, 0 fail, 0 skip; exact argv and environment in conductor-portable.json",
+    "make -C tools/gomad3 validate: exit 0; conductor-generated-validation.json",
+    "node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/source-acceptance-20261008/conductor-audit.mjs: exit 0; 22 command receipts, 84 worker files, original test bodies and source/lint bindings verified",
+    "configured make lint-code for ./runner/internal/campaign including errortype vet: exit 0, 0 issues; final-campaign-lint.json retains exact argv",
+    "configured six-package errortype vet: exit 0; configured-vet.json",
+    "configured make lint-code-fast at original implementation base: exit 2, 68 unrelated findings; configured-fast-lint.json",
+    "expanded six-package configured make lint-code: exit 2, 12 unrelated findings; task-source-lint.json",
+    "two source-bound overlay mutants: actual default-key and execution-key collision failures; collapse-default-sensitivity.json and collapse-sensitivity.json",
+    "flowctl codex impl-review-fanout and finalize d4faab7b6b2448109753cdfc40887c69: three actual SHIP draws, R9 source met, native unverified; lossless source-review.json"
+  ],
+  "prs": []
+}
