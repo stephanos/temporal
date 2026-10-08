@@ -1,0 +1,89 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.7",
+  "finding_id": "finding-97545ddf2f4a7566a3ebfbe1a81e06ce",
+  "scope": "R19 documentation-only mutation coverage correction",
+  "candidate_head": "34b398ecdadc9d79c64dec8d30dd9999b29ed66f",
+  "review_receipt": "../conductor-source-acceptance-20261008/review-receipt.json",
+  "commands": [
+    {
+      "command": "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/source-acceptance-20261008/aggregate-evidence.mjs",
+      "phase": "before correction",
+      "exit_code": 1,
+      "tool_wall_time_seconds": 0.08306325,
+      "raw_log": "review-fix-aggregation-guard.log",
+      "reason": "Historical aggregation accepted only the original b460 admission, whereas root had committed the supplied 34b398 candidate. No evidence output was written before this guard failure."
+    },
+    {
+      "command": "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/source-acceptance-20261008/aggregate-evidence.mjs",
+      "phase": "after correction and root-admitted exact HEAD guard",
+      "exit_code": 0,
+      "tool_wall_time_seconds": 0.571772083,
+      "output": "{\"commands\":40,\"final_coverage_groups\":20,\"task8_source_gaps\":10,\"frozen_source_tree\":\"c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9\"}\n"
+    },
+    {
+      "command": "node --input-type=module (read-only verification heredoc retained in worker tool transcript)",
+      "phase": "preservation and exact evidence comparison",
+      "exit_code": 0,
+      "tool_wall_time_seconds": 7.015971379,
+      "assertions": {
+        "head": "34b398ecdadc9d79c64dec8d30dd9999b29ed66f",
+        "immutable_artifact_count": 120,
+        "immutable_artifact_set_sha256": "358d70bb00b98aa6c86f1b662888d49e003f13376fe53a8cf7106b0f71b3997b",
+        "frozen_source_tree_sha256": "c8bfba0aed3ba328aae4ffb7ad317b3cd051e379a66b54dabc6701676ac335e9",
+        "source_manifest_entries": 1034,
+        "current_control_manifest": "controls-45a2f73c3e6e5b8ef6e8a0963509548537a906d8ae7414848f7eb73d33a97d8c.json",
+        "current_control_entries": 820,
+        "evidence_changes": "exactly two command dispositions",
+        "mutation_names": [
+          "TestPrepareCompositionOrderAndCleanupIsolation",
+          "TestPrepareCustomPreparerSkipsAdaptersAndValidates"
+        ],
+        "independent_portable_receipts": [
+          "source-existing-owner",
+          "current-callers-owned-cache",
+          "source-runner-portable-final"
+        ],
+        "summary_hashes": [
+          {
+            "file": "aggregate-evidence.mjs",
+            "original_sha256": "669cc462e047bc54789ce2aee7e44c9cb0e764c83f1c3f1370487ce0d060fd31",
+            "updated_sha256": "de336c4c6e470f2c693b0bb8004128e54c6990c0b4874f16ffff795a2485cb27"
+          },
+          {
+            "file": "evidence.json",
+            "original_sha256": "315e46d5295909fd242750f1441769b43c727b79e92d616ba6a1367a36ac2f71",
+            "updated_sha256": "f4714243602954d6c5bb8689366ce31aa3838d3f75199d92ac058c00b856e812"
+          },
+          {
+            "file": "handover.md",
+            "original_sha256": "829041504aeabb382f755449fbbbe46fe25b5b63232b473331f6c21b538c7eb2",
+            "updated_sha256": "b6f2310d5ac3540fc6daf6dadbfa01ce1f3a324c01c6ba3e8647754ba08fa43d"
+          }
+        ],
+        "processes_running": []
+      }
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "tool_wall_time_seconds": 0.002804042,
+      "output": ""
+    },
+    {
+      "command": "git diff --check",
+      "phase": "redundant final read-only check",
+      "exit_code": 143,
+      "elapsed_seconds": null,
+      "observed_running_seconds": 66,
+      "session_id": 66926,
+      "pid": 1703759,
+      "observed_cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "observed_wait": "futex_wait",
+      "disposition": "Hung after the earlier successful identical check. Worker terminated only this owned read-only process with SIGTERM and observed terminal exit143; no retry or source mutation.",
+      "output": ""
+    }
+  ],
+  "go_build_lint_generator_commands_run": [],
+  "processes_running": [],
+  "formal_review_or_lifecycle_actions": "none; conductor owns fix commit and single-session re-review"
+}

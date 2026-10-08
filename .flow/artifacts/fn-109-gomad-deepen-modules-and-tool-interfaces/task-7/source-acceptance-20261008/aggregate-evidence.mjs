@@ -18,8 +18,8 @@ const explanations = {
   'source-runner-portable-final': ['final-source-green', 'Current failure selector, mutation, portable plans, mounts and document validation on the frozen graph.'],
   'source-existing-owner': ['final-source-green', 'Unchanged existing preparation/portable-root assertion bodies plus new source controls. Source profile and test-only pinned-driver inputs are separately bound.'],
   'adapter-attachment-mutation-red': ['compile-red', 'Test-only fault overlay left selectedAdapters unused. No assertion executed. Retained before corrected fault input.'],
-  'adapter-attachment-mutation-assertion-red': ['assertion-red', 'Corrected test-only missing-attachment fault failed both real composition and portable-plan assertions. Production source unchanged.'],
-  'adapter-attachment-final-green': ['final-source-green', 'Same two attachment assertions passed with frozen production source and no fault overlay.'],
+  'adapter-attachment-mutation-assertion-red': ['assertion-red', 'Corrected test-only missing-attachment fault failed TestPrepareCompositionOrderAndCleanupIsolation and TestPrepareCustomPreparerSkipsAdaptersAndValidates in ./internal/preparation. Production source unchanged. Independent portable-plan coverage is recorded in source-existing-owner, current-callers-owned-cache and source-runner-portable-final, without this mutation.'],
+  'adapter-attachment-final-green': ['final-source-green', 'TestPrepareCompositionOrderAndCleanupIsolation and TestPrepareCustomPreparerSkipsAdaptersAndValidates in ./internal/preparation passed with frozen production source and no fault overlay.'],
   'original-callers-first': ['compile-red', 'Comparison harness imported an installation API absent from coherent original dependencies. Zero named outcomes.'],
   'original-callers-corrected': ['compile-red', 'Corrected identical harness exposed two original syscall.Dup2 references unavailable on ARM64. Zero named outcomes.'],
   'original-callers-compatible': ['fixture-environment-red', 'Original caller compiled with approved fail-closed standard-library-only overlays. Adapter cases failed because sanitized subprocesses used full HOME source cache. Two named passes and three named failures retained.'],
@@ -116,11 +116,11 @@ const qualificationGaps = receipt('qualification-ordinary').observations.filter(
 if (qualificationGaps.length !== 10) throw new Error('Expected exact ten analysis gaps');
 const inventory = read('static-inventories.json').map(i => ({platform: i.platform, package_count: i.package_count, inventory_sha256: i.inventory_sha256, list_command: i.list_command, list_execution: i.platform.os === 'linux' && i.platform.arch === 'arm64' ? 'inventory discovery inside HostPackageVet; no separate expanded list command claimed' : 'new explicit enumerated list command', vet: i.vet}));
 const head = execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim();
-if (head !== 'b4602685b3184387cf2d713178095247f0c11d8f') throw new Error('Unexpected root history change');
+if (!['b4602685b3184387cf2d713178095247f0c11d8f', '34b398ecdadc9d79c64dec8d30dd9999b29ed66f'].includes(head)) throw new Error('Unexpected root history change');
 if (read('task-status-read.log').status !== 'in_progress') throw new Error('Unexpected task state');
 const evidence = {
   task: 'fn-109-gomad-deepen-modules-and-tool-interfaces.7', status: 'in_progress', tier: 'session (jev-unavailable(no_key))',
-  workspace: root, branch: 'gomad', base_commit: head, root_review_base: 'f73e83c9d3a33931e3a28d0b1ba5f39a5af07370', commits: [], prs: [],
+  workspace: root, branch: 'gomad', base_commit: 'b4602685b3184387cf2d713178095247f0c11d8f', root_review_base: 'f73e83c9d3a33931e3a28d0b1ba5f39a5af07370', commits: [], prs: [],
   tests: commands.map(c => c.command),
   ownership: 'Root alone commits, conducts independent formal review and mutates Flow/milestones. Worker source is coherent and uncommitted; no acceptance or review verdict issued.',
   frozen_candidate: {source_tree_sha256: frozen, manifest: `source-${frozen}.json`, preservation: 'preservation.json', tools_environment: 'tool-environment-final-receipt.json'},
