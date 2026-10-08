@@ -309,7 +309,7 @@ CI, PR, or push authority.
 | [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ✅ Done | Pin-impact source acceptance; [current inventory](.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/current-inventory.json) and [bump steps](.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/source-acceptance-20261008/manual-steps.md) |
 | [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ✅ Done | Retained R3 source acceptance and three-draw SHIP; native qualification deferred |
 | [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ✅ Done | Retained R4 source acceptance verified; native qualification deferred |
-| [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Bump procedure and matched baseline measurement; native gates moved to fn-149/fn-128 |
+| [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | 🚧 In progress | Bump procedure and matched baseline measurement; native gates moved to fn-149/fn-128 |
 
 <a id="search-path-findings-fn-114"></a>
 
