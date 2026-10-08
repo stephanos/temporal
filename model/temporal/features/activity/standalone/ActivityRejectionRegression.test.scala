@@ -38,8 +38,16 @@ class ActivityRejectionRegression extends munit.FunSuite:
     for
       s <- summon[Finite[system.State]].values
       (action, forbidden) <- List(
-        client.pause -> Set[system.Phase](system.Phase.paused, system.Phase.pauseRequested, system.Phase.cancelRequested),
-        client.unpause -> Set[system.Phase](system.Phase.scheduled, system.Phase.started, system.Phase.cancelRequested)
+        client.pause -> Set[system.Phase](
+          system.Phase.paused,
+          system.Phase.pauseRequested,
+          system.Phase.cancelRequested
+        ),
+        client.unpause -> Set[system.Phase](
+          system.Phase.scheduled,
+          system.Phase.started,
+          system.Phase.cancelRequested
+        )
       )
       if forbidden(s.phase)
     do rejectsUnchanged(ActivitySystem, s, action, Rejection.failedPrecondition)
@@ -48,7 +56,11 @@ class ActivityRejectionRegression extends munit.FunSuite:
       s <- summon[Finite[product.State]].values
       (action, forbidden) <- List(
         client.pause -> Set[product.Phase](product.Phase.paused, product.Phase.cancelRequested),
-        client.unpause -> Set[product.Phase](product.Phase.scheduled, product.Phase.started, product.Phase.cancelRequested)
+        client.unpause -> Set[product.Phase](
+          product.Phase.scheduled,
+          product.Phase.started,
+          product.Phase.cancelRequested
+        )
       )
       if forbidden(s.phase)
     do rejectsUnchanged(ActivityProduct, s, action, Rejection.failedPrecondition)
@@ -57,7 +69,10 @@ class ActivityRejectionRegression extends munit.FunSuite:
   test("Product started carries both concrete pause responses without losing acceptance") {
     val before = product.State(product.Phase.started)
     val rows = take(ActivityProduct, before, client.pause)
-    assertEquals(rows.map(_.outcome), List(Outcome.accepted, Outcome.rejected(Rejection.failedPrecondition)))
+    assertEquals(
+      rows.map(_.outcome),
+      List(Outcome.accepted, Outcome.rejected(Rejection.failedPrecondition))
+    )
     assertEquals(rows.head.state, product.State(product.Phase.paused))
     assertEquals(rows.head.facts, List(product.Fact.statusPaused))
     assertEquals(rows.last.state, before)
@@ -65,16 +80,26 @@ class ActivityRejectionRegression extends munit.FunSuite:
     for s <- summon[Finite[system.State]].values if s.phase == system.Phase.pauseRequested do
       val result = take(ActivitySystem, s, client.pause).head
       assertEquals(ActivitySystem.refinement.toProduct(s), before)
-      assert(rows.exists(r =>
-        r.outcome == result.outcome && r.state == ActivitySystem.refinement.toProduct(result.state)
-      ))
+      assert(
+        rows.exists(r =>
+          r.outcome == result.outcome && r.state == ActivitySystem.refinement.toProduct(
+            result.state
+          )
+        )
+      )
   }
 
   test("a worker cannot answer canceled before cancellation is requested (model.go:171)") {
-    for s <- summon[Finite[system.State]].values
-        if s.phase == system.Phase.started || s.phase == system.Phase.pauseRequested do
-      rejectsUnchanged(ActivitySystem, s, worker.respondCanceled, Rejection.invalidArgument)
-    rejectsUnchanged(ActivityProduct, product.State(product.Phase.started), worker.respondCanceled, Rejection.invalidArgument)
+    for
+      s <- summon[Finite[system.State]].values
+      if s.phase == system.Phase.started || s.phase == system.Phase.pauseRequested
+    do rejectsUnchanged(ActivitySystem, s, worker.respondCanceled, Rejection.invalidArgument)
+    rejectsUnchanged(
+      ActivityProduct,
+      product.State(product.Phase.started),
+      worker.respondCanceled,
+      Rejection.invalidArgument
+    )
   }
 
   test("a repeated RequestCancel rejects without recording another request (model.go:201-202)") {
@@ -85,13 +110,27 @@ class ActivityRejectionRegression extends munit.FunSuite:
     assertEquals(requested.state.phase, system.Phase.cancelRequested)
     for s <- summon[Finite[system.State]].values if s.phase == system.Phase.cancelRequested do
       rejectsUnchanged(ActivitySystem, s, client.requestCancel, Rejection.failedPrecondition)
-    rejectsUnchanged(ActivitySystem, requested.state, client.requestCancel, Rejection.failedPrecondition)
-    rejectsUnchanged(ActivityProduct, product.State(product.Phase.cancelRequested), client.requestCancel, Rejection.failedPrecondition)
+    rejectsUnchanged(
+      ActivitySystem,
+      requested.state,
+      client.requestCancel,
+      Rejection.failedPrecondition
+    )
+    rejectsUnchanged(
+      ActivityProduct,
+      product.State(product.Phase.cancelRequested),
+      client.requestCancel,
+      Rejection.failedPrecondition
+    )
   }
 
   test("closed controls still satisfy closedIsRejectedUniformly with notFound") {
-    val property = Closable.closedIsRejectedUniformly[product.State, product.Phase, Outcome](ActivityProduct)(Outcome.rejected(Rejection.notFound))
-    val holds = property.decl.holds2.get.asInstanceOf[(product.State, Step[product.State, Outcome, product.Fact]) => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
+    val property = Closable.closedIsRejectedUniformly[product.State, product.Phase, Outcome](
+      ActivityProduct
+    )(Outcome.rejected(Rejection.notFound))
+    val holds = property.decl.holds2.get.asInstanceOf[
+      (product.State, Step[product.State, Outcome, product.Fact]) => Boolean
+    ] // scalafix:ok DisableSyntax.asInstanceOf
     val controls = List(client.pause, client.unpause, client.requestCancel, client.terminate)
     for
       s <- summon[Finite[product.State]].values if s.phase.in[Closed]
@@ -104,5 +143,9 @@ class ActivityRejectionRegression extends munit.FunSuite:
     for
       s <- summon[Finite[system.State]].values if s.phase.in[Closed]
       action <- controls
-    do assertEquals(take(ActivitySystem, s, action), List(Step(Outcome.rejected(Rejection.notFound), s)))
+    do
+      assertEquals(
+        take(ActivitySystem, s, action),
+        List(Step(Outcome.rejected(Rejection.notFound), s))
+      )
   }

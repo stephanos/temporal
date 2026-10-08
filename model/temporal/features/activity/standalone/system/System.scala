@@ -191,26 +191,26 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(Phase.unstarted) ~> effects.schedule
       }
 
-      // A control on an activity that is over is not found; an unstarted one has no control. A pause
-      // is disabled in paused and pauseRequested (already paused, or asked to be) and cancelRequested
-      // (a cancel request is not pausable), an unpause in scheduled, started and
-      // cancelRequested (not paused): the server answers FailedPrecondition ("activity is in
-      // non-pausable state", "... non-unpausable state", chasm/lib/activity/operator_commands.go), and
-      // a rejecting row would add rows to the table, so they stay disabled until the behavior freeze
-      // lifts.
+      // Closed controls answer NotFound before the live-state checks (operator_commands.go:249-254).
       on(pause, unpause, requestCancel, terminate) {
         when[Closed] ~> rejects(Rejection.notFound)
       }
       on(pause) {
         when(scheduled) ~> effects.pause
         when(started) ~> effects.requestPause
+        when(paused, pauseRequested, cancelRequested) ~> rejects(Rejection.failedPrecondition)
+          .because("already paused or cancellation pending (chasm/lib/activity/model/model.go:232)")
       }
       on(unpause) {
         when(paused) ~> effects.resume
         when(pauseRequested) ~> effects.withdrawPause
+        when(scheduled, started, cancelRequested) ~> rejects(Rejection.failedPrecondition)
+          .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
       }
       on(requestCancel) {
-        when[Live] ~> effects.requestCancel
+        when(scheduled, started, paused, pauseRequested) ~> effects.requestCancel
+        when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
+          .because("cancellation already requested (chasm/lib/activity/model/model.go:201-202)")
       }
       on(terminate) {
         when[Live] ~> effects.terminate
@@ -242,6 +242,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       }
       on(respondCanceled) {
         when(cancelRequested) ~> effects.cancel
+        when(started, pauseRequested) ~> rejects(Rejection.invalidArgument)
+          .because("cancellation was not requested (chasm/lib/activity/model/model.go:171)")
       }
     }
 

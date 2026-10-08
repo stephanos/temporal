@@ -50,15 +50,22 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
   object states:
     def status(s: State) = s.phase
     val paused = is(phase == Phase.paused)
-    val pausable = is(phase.in(scheduled, started))
 
   object effects:
+    val pauseApplied = choice
+    val pauseAlreadyRequested = choice
     val startAttempt = effect { phase = started }
     val complete = effect { phase = completed }
     val fail = effect { phase = failed }
     val retry = effect { phase = scheduled }
     val cancel = effect { phase = canceled }
     val pause = effect { phase = Phase.paused }
+    // started also reads a held attempt whose pause is pending (System.refinement.toProduct).
+    def pauseHeld(s: State) = choose(
+      pauseApplied -> pause(s),
+      pauseAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
+        .because("pause already requested (chasm/lib/activity/model/model.go:232)")
+    )
     val resume = effect { phase = scheduled }
     val requestCancel = effect { phase = cancelRequested }
     val terminate = effect { phase = terminated }
@@ -68,19 +75,25 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     from(client) {
       import client.*
 
-      // A control on an activity that is over is not found. A pause of a paused or cancel-requested
-      // activity, or an unpause of one not paused, is FailedPrecondition; the System lists them.
+      // Closed controls answer NotFound before the live-state checks (operator_commands.go:249-254).
       on(pause, unpause, requestCancel, terminate) {
         when[Closed] ~> rejects(Rejection.notFound)
       }
       on(pause) {
-        where(states.pausable) ~> effects.pause
+        when(scheduled) ~> effects.pause
+        when(started) ~> effects.pauseHeld
+        when(paused, cancelRequested) ~> rejects(Rejection.failedPrecondition)
+          .because("already paused or cancellation pending (chasm/lib/activity/model/model.go:232)")
       }
       on(unpause) {
         where(states.paused) ~> effects.resume
+        when(scheduled, started, cancelRequested) ~> rejects(Rejection.failedPrecondition)
+          .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
       }
       on(requestCancel) {
-        when(scheduled, started, paused, cancelRequested) ~> effects.requestCancel
+        when(scheduled, started, paused) ~> effects.requestCancel
+        when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
+          .because("cancellation already requested (chasm/lib/activity/model/model.go:201-202)")
       }
       on(terminate) {
         when(scheduled, started, paused, cancelRequested) ~> effects.terminate
@@ -110,6 +123,8 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       }
       on(respondCanceled) {
         when(cancelRequested) ~> effects.cancel
+        when(started) ~> rejects(Rejection.invalidArgument)
+          .because("cancellation was not requested (chasm/lib/activity/model/model.go:171)")
       }
     }
 

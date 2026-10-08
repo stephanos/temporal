@@ -40,6 +40,13 @@ class StandaloneActivityPins extends munit.FunSuite:
   private def rejectedNotFound[S, F](state: S): List[ExpectedStep[S, F]] =
     List(ExpectedStep("rejected(notFound)", state))
 
+  private def rejectedBecause[S, F](
+      state: S,
+      why: String,
+      because: String
+  ): List[ExpectedStep[S, F]] =
+    List(ExpectedStep(s"rejected($why)", state, because = because))
+
   private def observed[S, O, F](steps: List[Step[S, O, F]]): List[ExpectedStep[S, F]] =
     steps.map(s => ExpectedStep(s.outcome.toString, s.state, s.facts, s.because))
 
@@ -133,6 +140,17 @@ class StandaloneActivityPins extends munit.FunSuite:
         s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
       ),
       ExpectedRule(
+        worker.respondCanceled.decl,
+        None,
+        _.phase == started,
+        s =>
+          rejectedBecause(
+            s,
+            "invalidArgument",
+            "cancellation was not requested (chasm/lib/activity/model/model.go:171)"
+          )
+      ),
+      ExpectedRule(
         client.pause.decl,
         None,
         s => closedProduct(s.phase),
@@ -159,8 +177,31 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.pause.decl,
         None,
-        s => s.phase == scheduled || s.phase == started,
+        _.phase == scheduled,
         s => accepted(s.copy(phase = paused), Fact.statusPaused)
+      ),
+      ExpectedRule(
+        client.pause.decl,
+        None,
+        _.phase == started,
+        s =>
+          accepted(s.copy(phase = paused), Fact.statusPaused) ++
+            rejectedBecause(
+              s,
+              "failedPrecondition",
+              "pause already requested (chasm/lib/activity/model/model.go:232)"
+            )
+      ),
+      ExpectedRule(
+        client.pause.decl,
+        None,
+        s => s.phase == paused || s.phase == cancelRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "already paused or cancellation pending (chasm/lib/activity/model/model.go:232)"
+          )
       ),
       ExpectedRule(
         client.unpause.decl,
@@ -169,10 +210,32 @@ class StandaloneActivityPins extends munit.FunSuite:
         s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
       ),
       ExpectedRule(
+        client.unpause.decl,
+        None,
+        s => s.phase == scheduled || s.phase == started || s.phase == cancelRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "activity is not paused (chasm/lib/activity/model/model.go:251)"
+          )
+      ),
+      ExpectedRule(
         client.requestCancel.decl,
         None,
-        s => productLive(s.phase),
+        s => s.phase == scheduled || s.phase == started || s.phase == paused,
         s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
+      ),
+      ExpectedRule(
+        client.requestCancel.decl,
+        None,
+        _.phase == cancelRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "cancellation already requested (chasm/lib/activity/model/model.go:201-202)"
+          )
       ),
       ExpectedRule(
         client.terminate.decl,
@@ -258,6 +321,17 @@ class StandaloneActivityPins extends munit.FunSuite:
         _.phase == cancelRequested,
         s => accepted(s.copy(phase = canceled), Fact.statusCanceled)
       ),
+      ExpectedRule(
+        worker.respondCanceled.decl,
+        None,
+        s => s.phase == started || s.phase == pauseRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "invalidArgument",
+            "cancellation was not requested (chasm/lib/activity/model/model.go:171)"
+          )
+      ),
       ExpectedRule(client.pause.decl, None, s => closedSystem(s.phase), rejectedNotFound),
       ExpectedRule(client.unpause.decl, None, s => closedSystem(s.phase), rejectedNotFound),
       ExpectedRule(client.requestCancel.decl, None, s => closedSystem(s.phase), rejectedNotFound),
@@ -280,6 +354,17 @@ class StandaloneActivityPins extends munit.FunSuite:
           )
       ),
       ExpectedRule(
+        client.pause.decl,
+        None,
+        s => s.phase == paused || s.phase == pauseRequested || s.phase == cancelRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "already paused or cancellation pending (chasm/lib/activity/model/model.go:232)"
+          )
+      ),
+      ExpectedRule(
         client.unpause.decl,
         None,
         _.phase == paused,
@@ -292,10 +377,32 @@ class StandaloneActivityPins extends munit.FunSuite:
         s => accepted(s.copy(phase = started), Fact.statusStarted)
       ),
       ExpectedRule(
+        client.unpause.decl,
+        None,
+        s => s.phase == scheduled || s.phase == started || s.phase == cancelRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "activity is not paused (chasm/lib/activity/model/model.go:251)"
+          )
+      ),
+      ExpectedRule(
         client.requestCancel.decl,
         None,
-        s => liveSystem(s.phase),
+        s => liveSystem(s.phase) && s.phase != cancelRequested,
         s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
+      ),
+      ExpectedRule(
+        client.requestCancel.decl,
+        None,
+        _.phase == cancelRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "cancellation already requested (chasm/lib/activity/model/model.go:201-202)"
+          )
       ),
       ExpectedRule(
         client.terminate.decl,

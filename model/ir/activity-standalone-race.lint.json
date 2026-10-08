@@ -12,22 +12,13 @@
       "kind": "silent-rejection",
       "owner": "activityProduct",
       "subjects": [
-        "respondCanceled in scheduled, started, paused",
+        "respondCanceled in scheduled, paused",
         "respondCompleted in scheduled, paused",
         "respondFailed-fatal in scheduled, paused",
         "respondFailed-retryable in scheduled, paused",
         "poll in started, paused, cancelRequested"
       ],
       "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
-    },
-    {
-      "kind": "silent-rejection",
-      "owner": "activityProduct",
-      "subjects": [
-        "pause in paused, cancelRequested",
-        "unpause in scheduled, started, cancelRequested"
-      ],
-      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
     },
     {
       "kind": "silent-rejection",
