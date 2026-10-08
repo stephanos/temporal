@@ -1,0 +1,61 @@
+{
+  "argv": [
+    "timeout",
+    "600",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+    "-l",
+    "tools/gomad3/toolchain/draw_inventory_test.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+    "tools/gomad3/runner/internal/execution/draw_check_toolchain_test.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_bootstrap.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_clock_tick.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_clocks.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_compatibility.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_linking.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_load.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_owned.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_test.go",
+    "tools/gomad3/choice/internal/wire/wire_generated.go",
+    "tools/gomad3/target/internal/livecap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-08T08:21:16.159Z",
+  "ended": "2026-10-08T08:21:16.266Z",
+  "elapsed_seconds": 0.107,
+  "source_count": 5089,
+  "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+  "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+  "source_changes": [],
+  "stdout_sha256": "ee1d4868ccb75c63fcfa3a867077117cbc47a81174b529b177a853842f8bbf0b",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  },
+  "tests": [],
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  }
+}

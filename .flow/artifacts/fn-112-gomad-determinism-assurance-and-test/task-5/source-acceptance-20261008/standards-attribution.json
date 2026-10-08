@@ -1,0 +1,62 @@
+{
+  "scope": "Actual configured lint-code and errortype over task five host packages, original task source base d5330bb779c55f1b9af57c5845ec195275df0276; task-file attribution only",
+  "lint_exit": 2,
+  "issue_count": 2,
+  "issues": [
+    {
+      "path": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+      "line": 15,
+      "column": 21,
+      "message": "Error return value of `syscall.Close` is not checked",
+      "linter": "errcheck"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+      "line": 16,
+      "column": 21,
+      "message": "Error return value of `syscall.Close` is not checked",
+      "linter": "errcheck"
+    }
+  ],
+  "task_owned_path_predicate": {
+    "exact": [
+      "tools/gomad3/toolchain/draw_inventory_test.go",
+      "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+      "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "tools/gomad3/runner/internal/execution/draw_check_toolchain_test.go",
+      "tools/gomad3/choice/internal/wire/wire_generated.go",
+      "tools/gomad3/target/internal/livecap/protocol_generated.go",
+      "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+      "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+      "tools/gomad3/Makefile",
+      "Makefile",
+      "tools/gomad3/runner/testdata/diagnostic-identity-choices.json"
+    ],
+    "runtime_glob": "tools/gomad3/internal/gomadtool/conformance/runtime*.go",
+    "fixture_prefix": "tools/gomad3/internal/gomadtool/conformance/testdata/draw_check/"
+  },
+  "task_owned_findings": [],
+  "inherited_non_task_file": {
+    "path": "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+    "sha256": "ad735b20323c5a4d17c0759d9509506e44cf7313b31149f1cf3632c40e16bd24",
+    "introduced_commit": "70bb38e5ddec2d271c12f0e8c2489855f08eb0ef",
+    "historical_receipt": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/original-base-fast-lint.stdout",
+    "historical_sha256": "582880469267b07a07fcd691ae1de156dfc37a1a392288f05eab8d7d5bdfa13e"
+  },
+  "configuration_sha256": "692a0839444d1d26a23541897c633229ad8ccc572cecdc0498baef290f7a253c",
+  "lint_tools": {
+    "golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "configured_errortype_exit": 0,
+  "aggregate_green": false,
+  "formatting": {
+    "observation": "one inherited missing blank line before response-buffer comment at runtime/gomad.go:108; all other selected files clean",
+    "actual_format_clean": false,
+    "task_introduced_format_changes": 0,
+    "source_sha256": "90c7831f647bc3fd1019329b0b1c9c1904c9e0de7f98240b8d3d39dc25c73836",
+    "formatted_sha256": "e7d6f3a1b78f18e31779cf51ecbad9329bf87727a9c6fbd0bcda2d729a5c89b9",
+    "same_raw_source_as_compact": true,
+    "matches_retained_normalized_preservation_hash": true
+  }
+}

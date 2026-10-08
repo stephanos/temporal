@@ -1,0 +1,637 @@
+{
+  "base_commit": "8778c75d1cd5b41aa69f4abab987922ae65256cb",
+  "commits": [],
+  "tests": [
+    "timeout 600 make -C tools/gomad3 validate",
+    "timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 -json -run ^(TestDrawInventoryRejectsUnclassifiedReference|TestSeededDrawInventoryRejectsUnclassifiedReference|TestRuntimeCampaignCollectorProfile|TestPackageArchitecture|TestChoiceWire.*|Test(ProjectFindings|LookupBoundarySymbol|IsGuardSymbol|Extract(MachO|ELF)Record|Decode).*)$ ./toolchain ./internal/gomadtool/conformance ./choice/internal/wire ./target/internal/livecap .",
+    "timeout 600 make lint-code GOLANGCI_LINT_BASE_REV=d5330bb779c55f1b9af57c5845ec195275df0276 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3 LINT_CODE_TARGETS=./toolchain ./internal/gomadtool/conformance ./choice/internal/wire ./target/internal/livecap ./runner/internal/execution ALL_TEST_TAGS=test_dep [exit 2; see retained receipt]",
+    "timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./toolchain ./internal/gomadtool/conformance ./choice/internal/wire ./target/internal/livecap ./runner/internal/execution",
+    "timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3/toolchain/draw_inventory_test.go tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go tools/gomad3/runner/internal/execution/draw_check_toolchain_test.go tools/gomad3/internal/gomadtool/conformance/runtime_bootstrap.go tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go tools/gomad3/internal/gomadtool/conformance/runtime_choice.go tools/gomad3/internal/gomadtool/conformance/runtime_clock_tick.go tools/gomad3/internal/gomadtool/conformance/runtime_clocks.go tools/gomad3/internal/gomadtool/conformance/runtime_compatibility.go tools/gomad3/internal/gomadtool/conformance/runtime_linking.go tools/gomad3/internal/gomadtool/conformance/runtime_load.go tools/gomad3/internal/gomadtool/conformance/runtime_owned.go tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go tools/gomad3/internal/gomadtool/conformance/runtime_test.go tools/gomad3/choice/internal/wire/wire_generated.go tools/gomad3/target/internal/livecap/protocol_generated.go tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+    "timeout 600 make -C tools/gomad3 generate validate",
+    "timeout 600 node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/bind-source.mjs [exit 1; see retained receipt]",
+    "timeout 600 node .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/bind-source.mjs"
+  ],
+  "prs": [],
+  "task": "fn-112-gomad-determinism-assurance-and-test.5",
+  "worker_status": "in_progress; conductor owns review, commit and completion",
+  "current_source_head": "8778c75d1cd5b41aa69f4abab987922ae65256cb",
+  "review_source_base": "1b0bc277589d141aca8b534b03135ab3e57fc050",
+  "original_task_source_base": "d5330bb779c55f1b9af57c5845ec195275df0276",
+  "baseline": "applicable validate green; source unchanged; configured lint red for two inherited non-task findings; aggregate native gates transferred and not run",
+  "source_binding": {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.json",
+    "sha256": "78ca24a19fbb1df331dc2c63221ac17c625686ce59d62b3e63c104b3f015a152"
+  },
+  "standards": {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/standards-attribution.json",
+    "sha256": "badd0aa50863a31b0840e2534486f87d0fced6e9b0552651440c67b7dc7f8267"
+  },
+  "commands": [
+    {
+      "receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/baseline-validate.json",
+      "receipt_sha256": "13983177e8f324a70074b0d49a53590daf41b787e8eeadd0ad978339b8fe1f06",
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "environment": {
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOMAXPROCS": "2",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T08:15:41.453Z",
+      "ended": "2026-10-08T08:15:43.772Z",
+      "elapsed_seconds": 2.319,
+      "source_count": 5089,
+      "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "source_changes": [],
+      "stdout_sha256": "14f0f6898d1f2f53f9554d007882d37feccca09025cfa71566ed9c8e482d019e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool_sha256": {
+        "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+      },
+      "tests": [],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/portable-source-controls.json",
+      "receipt_sha256": "42e464bbf3662e0c39ba59ef02f964603a2b9361781cc6bba468a49d3dad6e45",
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-json",
+        "-run",
+        "^(TestDrawInventoryRejectsUnclassifiedReference|TestSeededDrawInventoryRejectsUnclassifiedReference|TestRuntimeCampaignCollectorProfile|TestPackageArchitecture|TestChoiceWire.*|Test(ProjectFindings|LookupBoundarySymbol|IsGuardSymbol|Extract(MachO|ELF)Record|Decode).*)$",
+        "./toolchain",
+        "./internal/gomadtool/conformance",
+        "./choice/internal/wire",
+        "./target/internal/livecap",
+        "."
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "environment": {
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOMAXPROCS": "2",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T08:16:22.610Z",
+      "ended": "2026-10-08T08:16:24.540Z",
+      "elapsed_seconds": 1.93,
+      "source_count": 5089,
+      "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "source_changes": [],
+      "stdout_sha256": "933d5e4bf40d4ba4dbcd2e2b298faf3448db43ca7b3a32dc50d07b22c5b692d8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool_sha256": {
+        "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+      },
+      "tests": [
+        {
+          "package": "go.temporal.io/server/tools/gomad3/toolchain",
+          "test": "TestDrawInventoryRejectsUnclassifiedReference",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/toolchain",
+          "test": "TestSeededDrawInventoryRejectsUnclassifiedReference",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance",
+          "test": "TestRuntimeCampaignCollectorProfile",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/choice/internal/wire",
+          "test": "TestChoiceWireRecordRoundTrip",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/choice/internal/wire",
+          "test": "TestChoiceWireRejectsInvalidSelectionReadinessAndOrigin",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/choice/internal/wire",
+          "test": "TestChoiceWireTapeHeaderRoundTrip",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/choice/internal/wire",
+          "test": "TestChoiceWireHeaderAndTerminalRoundTrip",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/choice/internal/wire",
+          "test": "TestChoiceWireDiagnosticHeaderRoundTrip",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/choice/internal/wire",
+          "test": "TestChoiceWireDiagnosticRecordRoundTrip",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestLookupBoundarySymbolMatchesLinkerNames",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestIsGuardSymbolMatchesCompilerABINames",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestExtractMachORecordRequiresOneReadOnlyInBoundsSymbol",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestExtractELFRecordRequiresOneReadOnlyAllocatedSection",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestDecodeValidatesCanonicalManifestAndHeaderIdentity",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestDecodeRejectsUnsortedFactsAndHeaderCountMismatch",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestDecodeValidatesGuardFactsAndIdentity",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestProjectFindingsUsesOnlyNonstandardLiveCapabilities",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestProjectFindingsTreatsUnknownOwnersAsLive",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestProjectFindingsReturnsNonstandardDeniedBoundaries",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3/target/internal/livecap",
+          "test": "TestProjectFindingsSeparatesExactGuardedAndActiveOwners",
+          "action": "pass"
+        },
+        {
+          "package": "go.temporal.io/server/tools/gomad3",
+          "test": "TestPackageArchitecture",
+          "action": "pass"
+        }
+      ],
+      "test_counts": {
+        "pass": 21,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-source-lint.json",
+      "receipt_sha256": "8a76f871f9deb62a01c7dce5684c67cea99efd91489744325a5aaa80300bbf30",
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "lint-code",
+        "GOLANGCI_LINT_BASE_REV=d5330bb779c55f1b9af57c5845ec195275df0276",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "LINT_CODE_DIR=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+        "LINT_CODE_TARGETS=./toolchain ./internal/gomadtool/conformance ./choice/internal/wire ./target/internal/livecap ./runner/internal/execution",
+        "ALL_TEST_TAGS=test_dep"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "environment": {
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOMAXPROCS": "2",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "exit": 2,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T08:17:29.153Z",
+      "ended": "2026-10-08T08:17:32.703Z",
+      "elapsed_seconds": 3.55,
+      "source_count": 5089,
+      "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "source_changes": [],
+      "stdout_sha256": "e59214f6c9734381271b9dee85ffbe1afd22436b6cbe850f7b790e40a1ae2e72",
+      "stderr_sha256": "14d7eded9234ef5df15f3ea6d4be42a1a37daafa86e5c98784115632fba2c147",
+      "tool_sha256": {
+        "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+      },
+      "tests": [],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/configured-vet.json",
+      "receipt_sha256": "2950fd98188028cde358c4ce492de9541806825650b2e82f50f86f5a549fb26b",
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-style-check=false",
+        "./toolchain",
+        "./internal/gomadtool/conformance",
+        "./choice/internal/wire",
+        "./target/internal/livecap",
+        "./runner/internal/execution"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "environment": {
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOMAXPROCS": "2",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T08:19:53.420Z",
+      "ended": "2026-10-08T08:19:54.331Z",
+      "elapsed_seconds": 0.911,
+      "source_count": 5089,
+      "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "source_changes": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool_sha256": {
+        "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+      },
+      "tests": [],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-owned-format.json",
+      "receipt_sha256": "9210108bd0727b03e11c8e5191e819440507c6316c76655c907d4406839ab8f0",
+      "argv": [
+        "timeout",
+        "600",
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+        "-l",
+        "tools/gomad3/toolchain/draw_inventory_test.go",
+        "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+        "tools/gomad3/runner/internal/execution/draw_check_toolchain_test.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_bootstrap.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_clock_tick.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_clocks.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_compatibility.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_linking.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_load.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_owned.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_test.go",
+        "tools/gomad3/choice/internal/wire/wire_generated.go",
+        "tools/gomad3/target/internal/livecap/protocol_generated.go",
+        "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+        "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "environment": {
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOMAXPROCS": "2",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T08:21:16.159Z",
+      "ended": "2026-10-08T08:21:16.266Z",
+      "elapsed_seconds": 0.107,
+      "source_count": 5089,
+      "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "source_changes": [],
+      "stdout_sha256": "ee1d4868ccb75c63fcfa3a867077117cbc47a81174b529b177a853842f8bbf0b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool_sha256": {
+        "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+      },
+      "tests": [],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/generated-source-validation.json",
+      "receipt_sha256": "d55238e17a35af6bbda673f3a25d617d18a24d3ed7558ab796c3784f319ffb64",
+      "argv": [
+        "timeout",
+        "600",
+        "make",
+        "-C",
+        "tools/gomad3",
+        "generate",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "environment": {
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOMAXPROCS": "2",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T08:21:22.781Z",
+      "ended": "2026-10-08T08:21:28.484Z",
+      "elapsed_seconds": 5.703,
+      "source_count": 5089,
+      "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "source_changes": [],
+      "stdout_sha256": "184f7bfdc240e5e120db0d91dd05e0729190f67cded68e51d27f3a12fa8b56c8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool_sha256": {
+        "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+      },
+      "tests": [],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding-encoded-raw.json",
+      "receipt_sha256": "ea68908b2dbe54907f31738d0f30b4529f8751055b7f1b8d5041e72721a542dd",
+      "argv": [
+        "timeout",
+        "600",
+        "node",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/bind-source.mjs"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "environment": {
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOMAXPROCS": "2",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T08:20:13.080Z",
+      "ended": "2026-10-08T08:20:16.712Z",
+      "elapsed_seconds": 3.632,
+      "source_count": 5089,
+      "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "source_changes": [],
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a804861d9b2bccf29ef52ebe8a64209ba0b6eaedbce872ba527bb1f03e701ffb",
+      "tool_sha256": {
+        "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+      },
+      "tests": [],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding-final.json",
+      "receipt_sha256": "d2055184c39c694f114f9095500420489377df9bfe90a8155fb8a67e3792632b",
+      "argv": [
+        "timeout",
+        "600",
+        "node",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/bind-source.mjs"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "environment": {
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "",
+        "GOEXPERIMENT": "nogreenteagc",
+        "GOMAXPROCS": "2",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0XSaEmo:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "started": "2026-10-08T08:20:40.558Z",
+      "ended": "2026-10-08T08:20:43.976Z",
+      "elapsed_seconds": 3.418,
+      "source_count": 5089,
+      "sources_before_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "sources_after_sha256": "0a0b2074ae6aa1d09e9283414a10a4f37d3254019db277bee5ce337386bfc8d9",
+      "source_changes": [],
+      "stdout_sha256": "fd08fff08b256db83b3b9325ccf8bfdb06b6beb7ac008d14679aba69d171ee18",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool_sha256": {
+        "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+      },
+      "tests": [],
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    }
+  ],
+  "retained_proof": {
+    "exact_current_bindings": 87,
+    "reused_input_closure_files": 1218,
+    "excluded_changed_documents": 5,
+    "original_raw_files_verified": 72,
+    "original_raw_bytes_verified": 521317,
+    "positive_inventory": {
+      "receipt": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/source-inventories-pinned.json",
+      "receipt_sha256": "d467060c7b6af8b4eb05f1d353854c32d76442fa72088031caaa149726cd97d0",
+      "log_sha256": "e5db8479e0f26b36dcac62da353bd3141aab8747b246d6c031efd6e056260635",
+      "draw_rows": 273,
+      "seeded_rows": 86,
+      "clock_rows": 48,
+      "goroutine_rows": 10,
+      "platforms": [
+        "darwin/arm64",
+        "linux/amd64"
+      ],
+      "kind": "materialized supported source sets; no built/native runtime"
+    },
+    "canonical": {
+      "U1": {
+        "bytes": 24117,
+        "lines": 692,
+        "sha256": "4b13066eeacc5e9d33a5ada7d3924ff346786ccaf578b9856e1be5f41a94c6f9"
+      },
+      "U3": {
+        "bytes": 33294,
+        "lines": 1026,
+        "sha256": "ce45f4c0bcd45cd24ee4598e3ba18fb8106f50a705a2f2652067964305572516"
+      }
+    },
+    "identity": {
+      "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/source-acceptance-20261007/raw/independent-identity.stdout",
+      "sha256": "6eca2b50a210213f8dff0a09a9dbe94ffc952a4b4e6166519992a26a5917b9d2",
+      "unchanged_current_source_bindings": 17,
+      "pointers": 7,
+      "bytes": 13271
+    },
+    "preservation": {
+      "path": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/preservation.json",
+      "sha256": "28748d20ea5faa43ac34f4fc6f48f6d5277fbc42040260cc47b6561e9c5bc500",
+      "files": 21,
+      "full_alpha_chain_sites": 30,
+      "exact_input_bindings": 87
+    }
+  },
+  "runtime_boundary": {
+    "host_guard_pre_mutation_source_checks": 8,
+    "collector": "runtime/mgcpacer.go:gcControllerState.enlistWorker; prohibited collector edit, retained explicit task acceptance alternative",
+    "numeric_fault": "retained target draw/localization control",
+    "host_fault": "host:N checks per-M gomadHostDraw before seeded mutations",
+    "host_timed_fault": "host-timed:N arms next bracketed host draw; retained exit125 fixture"
+  },
+  "native_qualification": {
+    "darwin_arm64": "unverified; deferred fn-149.1/.2/.4",
+    "linux_amd64": "unverified; deferred fn-128.1/.4/.7",
+    "linux_arm64": "unsupported; no native proof, build-key or host spoof",
+    "native_quick_commands": "make -C tools/gomad3 test/test-toolchain/test-runtime and actual runtime/core/smoke/replay/full controls transferred; no receipt skip/pass claim"
+  },
+  "product_edits": [],
+  "user_files": [
+    {
+      "path": ".turbo/plans/gomad3-glossary-update.md",
+      "bytes": 16567,
+      "sha256": "97868a86c0a263fbea61c336bd9557e4d71cf43ae4390e9a2449e6f7cd815188"
+    },
+    {
+      "path": ".turbo/technical-debt.md",
+      "bytes": 42239,
+      "sha256": "c219247c01fb305592f0314ec46971cee30f00e5985dbd280c1c9e3aafe60287"
+    }
+  ],
+  "commands_running": [],
+  "conductor_receipts": [
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-portable-source-controls.json",
+      "sha256": "b58a8741549ac0972069b2ce0ceb9b6b60d7bdda3bf4968ed768dff5db030091",
+      "exit": 0,
+      "test_counts": {
+        "pass": 21,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-generated-validation.json",
+      "sha256": "9a1a86251c6d56887803daabda8fd718088092ec3098d43f62cd9af772a367f7",
+      "exit": 0,
+      "test_counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      }
+    }
+  ],
+  "calibration_observations": {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/calibration-observations.json",
+    "sha256": "84ea34a4127ffac377f8f0f1a6093a0bb53631663e3b0734125900904a484045"
+  }
+}

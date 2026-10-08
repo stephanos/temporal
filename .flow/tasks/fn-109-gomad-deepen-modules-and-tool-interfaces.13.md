@@ -57,6 +57,10 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
+### Current source standards handback (2026-10-08)
+
+fn-112.5 current-source acceptance identified one unchanged gofmt observation in runtime/overlay/src/runtime/gomad.go, the missing separator immediately before the simulation-time response-buffer comment. It traces to this task's generated simulation-time extraction at 58b718565044, predates the private-field compactions, and is not a new fn-112.5 change. Reconcile this producer-owned formatting obligation during this task's source acceptance, preserving comments, semantics, generated closure and fixed-identity attribution. The raw overlay remains nonclean; no formatting waiver or full standards pass follows from source-evidence reuse. See ../artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/handover.md and its retained format/lint receipts. All existing scope, acceptance and historical evidence remain unchanged.
+
 ## Acceptance
 
 

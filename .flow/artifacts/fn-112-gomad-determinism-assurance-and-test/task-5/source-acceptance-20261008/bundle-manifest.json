@@ -1,0 +1,207 @@
+[
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/base_commit",
+    "bytes": 41,
+    "sha256": "b0dedf70f4cbbb55b84584e48fb15af9d2d262c443648853e8e697c2e1e84fa6"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/baseline-validate.json",
+    "bytes": 1834,
+    "sha256": "13983177e8f324a70074b0d49a53590daf41b787e8eeadd0ad978339b8fe1f06"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/baseline-validate.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/baseline-validate.stdout",
+    "bytes": 2162,
+    "sha256": "14f0f6898d1f2f53f9554d007882d37feccca09025cfa71566ed9c8e482d019e"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/bind-source.mjs",
+    "bytes": 10279,
+    "sha256": "d3d2eac3bd882066d50cae5f1afeee0629d60643561e446d5e4badd96008501e"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/calibration-observations.json",
+    "bytes": 1123,
+    "sha256": "84ea34a4127ffac377f8f0f1a6093a0bb53631663e3b0734125900904a484045"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/capture.mjs",
+    "bytes": 3584,
+    "sha256": "aa225937db6a711ce0755649c4a49e973225f88e74007bf40d75a15e59a05641"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-generated-validation.json",
+    "bytes": 1809,
+    "sha256": "9a1a86251c6d56887803daabda8fd718088092ec3098d43f62cd9af772a367f7"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-generated-validation.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-generated-validation.stdout",
+    "bytes": 2162,
+    "sha256": "ea9d99d1301c2d0f2b4cd736f9f45d945565ee631d462778e185ca9517e057d9"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-portable-source-controls.json",
+    "bytes": 6022,
+    "sha256": "b58a8741549ac0972069b2ce0ceb9b6b60d7bdda3bf4968ed768dff5db030091"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-portable-source-controls.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-portable-source-controls.stdout",
+    "bytes": 22535,
+    "sha256": "65ca6297e754d83d8ff9afc98195b68a5dfb552e64bf13b8303686777c53cec0"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/conductor-verify.mjs",
+    "bytes": 3624,
+    "sha256": "c2fbc775ae05039570afdc0af2942b0b5fecd20b66214418b314fdba0d5387d3"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/configured-vet.json",
+    "bytes": 2172,
+    "sha256": "2950fd98188028cde358c4ce492de9541806825650b2e82f50f86f5a549fb26b"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/configured-vet.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/configured-vet.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/evidence.json",
+    "bytes": 33507,
+    "sha256": "38960f199ab2f945c33663d224463850452305f9fc13831600ebbcb722919946"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/finish-evidence.mjs",
+    "bytes": 10309,
+    "sha256": "4ce795489d0168d9d908c38c3285ee6c16b1de93558186406c931ce2411837da"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/generated-source-validation.json",
+    "bytes": 1850,
+    "sha256": "d55238e17a35af6bbda673f3a25d617d18a24d3ed7558ab796c3784f319ffb64"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/generated-source-validation.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/generated-source-validation.stdout",
+    "bytes": 3570,
+    "sha256": "184f7bfdc240e5e120db0d91dd05e0729190f67cded68e51d27f3a12fa8b56c8"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/portable-source-controls.json",
+    "bytes": 6046,
+    "sha256": "42e464bbf3662e0c39ba59ef02f964603a2b9361781cc6bba468a49d3dad6e45"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/portable-source-controls.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/portable-source-controls.stdout",
+    "bytes": 22501,
+    "sha256": "933d5e4bf40d4ba4dbcd2e2b298faf3448db43ca7b3a32dc50d07b22c5b692d8"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding-encoded-raw.json",
+    "bytes": 1905,
+    "sha256": "ea68908b2dbe54907f31738d0f30b4529f8751055b7f1b8d5041e72721a542dd"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding-encoded-raw.stderr",
+    "bytes": 721,
+    "sha256": "a804861d9b2bccf29ef52ebe8a64209ba0b6eaedbce872ba527bb1f03e701ffb"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding-encoded-raw.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding-final.json",
+    "bytes": 1905,
+    "sha256": "d2055184c39c694f114f9095500420489377df9bfe90a8155fb8a67e3792632b"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding-final.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding-final.stdout",
+    "bytes": 1267,
+    "sha256": "fd08fff08b256db83b3b9325ccf8bfdb06b6beb7ac008d14679aba69d171ee18"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.json",
+    "bytes": 437408,
+    "sha256": "78ca24a19fbb1df331dc2c63221ac17c625686ce59d62b3e63c104b3f015a152"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.stderr",
+    "bytes": 1220,
+    "sha256": "c046f2dc1c7e8d05d8ccae1a4bafb667cef14fa57a75c1a04355e2c3c5269976"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/source-binding.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/standards-attribution.json",
+    "bytes": 3059,
+    "sha256": "badd0aa50863a31b0840e2534486f87d0fced6e9b0552651440c67b7dc7f8267"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-owned-format.json",
+    "bytes": 3306,
+    "sha256": "9210108bd0727b03e11c8e5191e819440507c6316c76655c907d4406839ab8f0"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-owned-format.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-owned-format.stdout",
+    "bytes": 60,
+    "sha256": "ee1d4868ccb75c63fcfa3a867077117cbc47a81174b529b177a853842f8bbf0b"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-source-lint.json",
+    "bytes": 2300,
+    "sha256": "8a76f871f9deb62a01c7dce5684c67cea99efd91489744325a5aaa80300bbf30"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-source-lint.stderr",
+    "bytes": 6308,
+    "sha256": "14d7eded9234ef5df15f3ea6d4be42a1a37daafa86e5c98784115632fba2c147"
+  },
+  {
+    "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/task-source-lint.stdout",
+    "bytes": 447,
+    "sha256": "e59214f6c9734381271b9dee85ffbe1afd22436b6cbe850f7b790e40a1ae2e72"
+  }
+]

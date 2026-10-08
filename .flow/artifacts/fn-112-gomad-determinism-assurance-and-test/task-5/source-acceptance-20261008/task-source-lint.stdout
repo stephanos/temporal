@@ -1,0 +1,9 @@
+[1;36mLinting code...[0m
+tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go:15:21: Error return value of `syscall.Close` is not checked (errcheck)
+	defer syscall.Close(descriptors[0])
+	                   ^
+tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go:16:21: Error return value of `syscall.Close` is not checked (errcheck)
+	defer syscall.Close(descriptors[1])
+	                   ^
+2 issues:
+* errcheck: 2

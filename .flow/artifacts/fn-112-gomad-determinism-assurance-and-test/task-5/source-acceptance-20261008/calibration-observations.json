@@ -1,0 +1,21 @@
+{
+  "initial_binding": {
+    "argv": ["timeout", "600", "node", ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/source-acceptance-20261008/bind-source.mjs"],
+    "exit": 1,
+    "elapsed_seconds": 0.105,
+    "stdout": "source-binding.stdout",
+    "stderr": "source-binding.stderr",
+    "reason": "Evidence helper initially ignored raw-manifest retained_name and utf8-json-string encoding; no product source changed.",
+    "receipt_collision": "capture originally wrote source-binding.json; the successful proof later wrote this same name. Initial command JSON is superseded, not counted as an intact command receipt. Raw stderr and host-observed exit/time remain."
+  },
+  "second_binding": {
+    "receipt": "source-binding-encoded-raw.json",
+    "exit": 1,
+    "reason": "New helper incorrectly required SPEC to repeat README's individual collector names instead of checking the actual SPEC collector-prohibition contract. No product source or existing test assertion changed."
+  },
+  "final_binding": {
+    "receipt": "source-binding-final.json",
+    "proof": "source-binding.json",
+    "exit": 0
+  }
+}
