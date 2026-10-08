@@ -2,8 +2,8 @@
 // no workflow around it, grounded in chasm/lib/activity/statemachine.go. The product machine says
 // what DescribeActivityExecution reports, the System how the server gets there. No history
 // event is written, so every evidence line names an observation: a status read through
-// DescribeActivityExecution or a result read through PollActivityExecution. Reset is deferred, like
-// cancellation in the Nexus client Model.
+// DescribeActivityExecution or a result read through PollActivityExecution. A reset of a held attempt
+// is deferred until the attempt ends, like a pause request.
 //
 // Update this Model independently of the implementation. When conformance fails, ask a human
 // rather than fitting the Model to the code.
@@ -45,6 +45,10 @@ object MaxAttempts:
   type Bound = 2
   val bound: Bound = 2
 
+// Whether a reset leaves a paused activity paused: ResetActivityExecutionRequest.keep_paused.
+enum ResetPause derives Finite:
+  case resume, keepPaused
+
 // Named by the id the client chose: every read carries it, so no run id or event id is needed.
 val activity = Entity(key = "activityId")
 
@@ -55,6 +59,7 @@ val startToClose = input[Timeout]
 val heartbeat = input[Timeout]
 val startDelay = input[Timeout]
 val maxAttempts = input[MaxAttempts]
+val pausing = input[ResetPause]
 
 // Who acts, and on what: each action is declared in the object of who takes it, and named after
 // where it is declared, `temporal.features.activity.standalone.client.start`.
@@ -76,6 +81,7 @@ object client extends Client:
   val unpause = action(this).on(activity).results("Delivery")
   val requestCancel = action(this).on(activity).results("Delivery")
   val terminate = action(this).on(activity).results("Delivery")
+  val reset = action(this).input(pausing).on(activity).results("Delivery")
 
 object service extends Client:
   val respondCompletedByID = action(this).on(activity)
@@ -123,6 +129,9 @@ object exports:
     system.ByIDCompletion.queries,
     system.ByIDFailure.queries,
     system.ByIDCancellation.queries,
+    system.ResetSettlement.queries,
+    system.ResetKeepingPause.queries,
+    system.DeferredReset.queries,
     StandaloneActivity.queries,
     system.Standalone,
     system.RetryAfterTimeout,
@@ -131,7 +140,9 @@ object exports:
     system.ExhaustAfterHeartbeat,
     system.ScheduledCompletionByID,
     system.HeldFailureByID,
-    system.HeldCancellationByID
+    system.HeldCancellationByID,
+    system.ResetKeepingPausedActivity,
+    system.ResetAfterHeartbeat
   )
 
   // Its history record, the admission designs, and the shared task queue's providers it composes.

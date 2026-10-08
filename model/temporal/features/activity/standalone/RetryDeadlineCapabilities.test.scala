@@ -212,7 +212,38 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         )
   }
 
+  // The laws the Activity keeps: its own reset-aware failure laws, and Retries' cancellation law.
   private def activityRetries(retryable: Boolean): Seq[Property[activity.State]] =
+    import activity.ActivitySystem.given
+    val machine = activity.ActivitySystem
+    val own = machine.properties
+    val failure = worker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
+    Seq(
+      own.resetFailureReturnsToWaiting(machine)(
+        failure,
+        retryable,
+        machine.states.retriesRemaining,
+        machine.states.pendingPause,
+        machine.states.pendingCancel
+      ),
+      own.resetFailureEndsFailed(machine)(
+        failure,
+        retryable,
+        machine.states.retriesRemaining,
+        machine.states.pendingCancel
+      ),
+      own.resetFailurePauses(machine)(
+        failure,
+        retryable,
+        machine.states.retriesRemaining,
+        machine.states.pendingPause,
+        machine.states.pendingCancel
+      ),
+      Retries.failureCancels(machine)(failure, retryable, machine.states.pendingCancel)
+    )
+
+  // Retries' companion failure laws as the capability states them.
+  private def companionRetries(retryable: Boolean): Seq[Property[activity.State]] =
     import activity.ActivitySystem.given
     val machine = activity.ActivitySystem
     val failure = worker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
@@ -240,7 +271,44 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       Retries.failureCancels(machine)(failure, retryable, machine.states.pendingCancel)
     )
 
+  // The laws the Activity keeps for a deadline: its own reset-aware laws for the per-attempt
+  // deadlines a reset changes, Deadline's companion laws for the others.
   private def activityDeadlineSettlement(
+      timer: ClassRef,
+      timeout: activity.Fact,
+      retryable: Boolean
+  ): Seq[Property[activity.State]] =
+    val machine = activity.ActivitySystem
+    val own = machine.properties
+    if !retryable then companionDeadlineSettlement(timer, timeout, retryable)
+    else
+      Seq(
+        own.resetDeadlineTimesOut(machine)(
+          timer,
+          true,
+          timeout,
+          machine.states.retriesRemaining,
+          machine.states.pendingCancel
+        ),
+        own.resetDeadlineReturnsToWaiting(machine)(
+          timer,
+          true,
+          machine.states.retriesRemaining,
+          machine.states.timeoutFacts,
+          machine.states.pendingPause,
+          machine.states.pendingCancel
+        ),
+        own.resetDeadlinePauses(machine)(
+          timer,
+          true,
+          machine.states.retriesRemaining,
+          machine.states.pendingPause,
+          machine.states.timeoutFacts,
+          machine.states.pendingCancel
+        )
+      )
+
+  private def companionDeadlineSettlement(
       timer: ClassRef,
       timeout: activity.Fact,
       retryable: Boolean
@@ -286,7 +354,9 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       phase <- Seq(
         activity.Phase.started,
         activity.Phase.pauseRequested,
-        activity.Phase.cancelRequested
+        activity.Phase.cancelRequested,
+        activity.Phase.resetRequested,
+        activity.Phase.resetKeepingPause
       )
     do
       val before = activity.ActivitySystem.init.copy(
@@ -304,6 +374,57 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
           !holds(properties, before, after.copy(state = after.state.copy(phase = landing))),
           s"wrong landing before=$before landing=$landing"
         )
+  }
+
+  test("the Activity's own laws equal the companions without a pending reset and differ with one") {
+    import activity.ActivitySystem.given
+    val pending = activity.ActivitySystem.states.pendingReset
+    val failures = Seq(false, true).map(retryable =>
+      (
+        worker.respondFailed(if retryable then Failure.retryable else Failure.fatal),
+        activityRetries(retryable).take(3),
+        companionRetries(retryable).take(3)
+      )
+    )
+    val deadlines = Seq(
+      activityDeadline.startToClose() -> TimeoutType.startToClose,
+      activityDeadline.heartbeat() -> TimeoutType.heartbeat
+    ).map((timer, kind) =>
+      (
+        timer,
+        activityDeadlineSettlement(timer, activity.Fact.statusTimedOut(kind), true),
+        companionDeadlineSettlement(timer, activity.Fact.statusTimedOut(kind), true)
+      )
+    )
+    val rows = for
+      before <- summon[Finite[activity.State]].values.toSeq
+      (action, own, companion) <- failures ++ deadlines
+      after <- take(activity.ActivitySystem, before, action)
+    yield (before, action, own, companion, after)
+    for (before, action, own, companion, after) <- rows do
+      val landings = summon[Finite[activity.Phase]].values.map(p =>
+        after.copy(state = after.state.copy(phase = p))
+      ) :+ after.copy(facts = after.facts :+ activity.Fact.statusTimedOut(TimeoutType.startToClose))
+      if pending(before) then
+        assert(holds(own, before, after), s"$action before=$before after=$after")
+        for wrong <- landings if wrong.state != after.state || wrong.facts != after.facts do
+          assert(!holds(own, before, wrong), s"$action before=$before wrong=$wrong")
+      else
+        for candidate <- after +: landings do
+          assertEquals(holds(own, before, candidate), holds(companion, before, candidate))
+    val resets = rows.filter((before, _, _, _, _) => pending(before))
+    assert(resets.nonEmpty)
+    // A fatal failure, an exhausted policy and a kept pause each break a companion law; an eligible
+    // retryable failure or timeout of a plain pending reset lands where the companion expects.
+    val refused =
+      resets.filter((before, _, _, companion, after) => !holds(companion, before, after))
+    assert(refused.exists((_, action, _, _, _) => action == worker.respondFailed(Failure.fatal)))
+    assert(
+      refused.exists((before, _, _, _, _) =>
+        !activity.ActivitySystem.states.retriesRemaining(before)
+      )
+    )
+    assert(refused.exists((before, _, _, _, _) => before.phase == activity.Phase.resetKeepingPause))
   }
 
   test("Nexus handler and network retry bindings remain unlimited at represented saturation") {

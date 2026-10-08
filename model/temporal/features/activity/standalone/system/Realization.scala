@@ -874,6 +874,219 @@ object HeldCancellationByID
       )
   object serverSteps extends ServerSteps(canceledExternalSettlement)
 
+// ### Reset
+// A reset with keep_paused of an activity paused before a worker took it: the reset's answer, then
+// the unpause's, which a paused activity alone accepts, then the attempt completes.
+private val resetKeepingPaused = rpc(calls, METHOD_RESET_ACTIVITY_EXECUTION) {
+  field(_.identity) := Operand.text("reset-controller")
+  field(_.keepPaused) := Operand.flag(true)
+  field(_.requestId) := run
+}
+private val resetKeptPaused = "statusPausedAfterReset"
+
+object ResetKeepingPausedActivity
+    extends Realizes(ResetKeepingPause, observations = Vector(correlated, publicAttemptCount)):
+  object controller
+      extends Controller(
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.unlimited),
+          startUnlimited,
+          duration(deadlineSeconds),
+          unset = Some(startToClose -> startUnreached)
+        )(
+          startDelay.sets(_.getStartDelay),
+          scheduleToStart.sets(_.getScheduleToStartTimeout),
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
+        ),
+        onPath(client.pause)(holdDispatchBeforePause),
+        perform(client.pause -> pauseActivity),
+        onPath(client.pause)(described.await(system.Fact.statusPaused)),
+        perform(client.reset(ResetPause.keepPaused) -> resetKeepingPaused),
+        perform(client.unpause -> unpauseActivity),
+        onPath(client.unpause)(releaseDispatchAfterPause),
+        onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
+        everyCase(readAttemptCount)
+      )
+  object workers extends Workers(attempts)
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startActivity),
+        described(system.Fact.statusPaused),
+        answeredAs(
+          kind = resetKeptPaused,
+          records = system.Fact.statusPaused,
+          call = resetKeepingPaused,
+          Taking(client.reset(ResetPause.keepPaused), 1)
+        ),
+        answeredAs(
+          kind = scheduledAgain,
+          records = system.Fact.statusScheduled,
+          call = unpauseActivity,
+          Taking(client.unpause, 1)
+        ),
+        delivered(
+          system.Fact.statusStarted,
+          attempts,
+          attempt = 1,
+          after = startActivity,
+          Taking(worker.poll, 1)
+        ),
+        described(system.Fact.statusCompleted)
+      )
+  object controls extends Controls(unstartedDispatch)
+
+// A reset of a held attempt, deferred until its heartbeat deadline ends it. The first attempt
+// publishes the SDK's pending record before the controller reads it held and resets it; the
+// server's next delivery is a first attempt again, which completes under a one-attempt policy.
+private val startResetOne = startOne.withFields {
+  read(Field[StartActivityExecutionResponse, String](_.runId), Cardinality.one)
+    .into(Target.Bind(activityExecutionRun.id))
+}
+private val startResetOneUnreached = startResetOne.withFields {
+  field(_.getStartToCloseTimeout) := duration(unreachedDeadlineSeconds)
+}
+private val resetHeldActivity = rpc(byIDCalls, METHOD_RESET_ACTIVITY_EXECUTION) {
+  field(_.identity) := Operand.text("reset-controller")
+  field(_.keepPaused) := Operand.flag(false)
+  field(_.requestId) := run
+}
+private val resetPublication = ActivityPublication("reset-pending")
+private val awaitResetPublication = awaitActivityPublication(resetPublication)
+private val resetStarted =
+  externalRead("resetStarted", system.Fact.statusStarted, Taking(worker.poll, 1))
+private val awaitResetHeld = await(resetStarted, calls)(heldStarted) {
+  field(_.runId) := executionRun
+}
+private val resetCompleted = externalRead(
+  "resetCompleted",
+  system.Fact.statusCompleted,
+  Taking(worker.respondCompleted, 1)
+)
+private val awaitResetCompleted = await(resetCompleted, calls)(
+  terminalExternal(ACTIVITY_EXECUTION_STATUS_COMPLETED)
+) {
+  field(_.runId) := executionRun
+}
+private val resetAttempts = script(
+  "reset-attempts",
+  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+)(
+  onPath(deadline.heartbeat)(attemptPending),
+  perform(worker.respondCompleted -> completeAttempt)
+)
+
+// The record of one attempt group of the reset script, told apart by what its worker offered: the
+// fresh first attempt's completion, not the held group's pending sentinel. Both are the server's
+// attempt 1, as the reset declares, and each names its own delivery.
+private def resetDelivered(
+    number: Long,
+    response: ActivityAttemptResponse,
+    id: String,
+    records: RealizationFact,
+    confirms: Taking*
+) = Evidence.runEvent(
+  id = evidenceId(id),
+  records = records,
+  source = runRecord,
+  from = Recorded.runEvent[InstructionOutcome](
+    EventKind.diagnostic,
+    controllerScript,
+    startResetOne,
+    key = Operand.runKey(),
+    guard = Some(
+      Condition.all(
+        Condition.present(Field[InstructionOutcome, Option[ActivityAttempt]](_.activityAttempt)),
+        Condition.not(
+          Condition.equal(
+            Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
+            Operand.text("")
+          )
+        ),
+        Condition.equal(
+          Field[InstructionOutcome, ActivityAttemptResponse](_.getActivityAttempt.response),
+          Operand.enumValue(response)
+        )
+      )
+    ),
+    attempt = Some(AttemptOf(resetAttempts, number))
+  ),
+  commitment = Commitment.reported,
+  fields = Vector(
+    attemptField(Field(_.getActivityAttempt.sdkAttempt)),
+    deliveryField(Field(_.getActivityAttempt.deliveryId)),
+    activityRunField(Field(_.getActivityAttempt.activityRunId))
+  ),
+  confirms = Vector(confirms*)
+)
+
+private val deferredResetSettlement = ActivityResetSettlement(
+  carrier = startResetOne,
+  activity = resetAttempts,
+  attempt = 1,
+  pending = resetPublication,
+  held = awaitResetHeld,
+  resetRequest = resetHeldActivity,
+  timer = deadline.heartbeat,
+  freshAttempt = 2,
+  settlement = awaitResetCompleted,
+  cleanup = externalCleanup
+)
+
+object ResetAfterHeartbeat
+    extends Realizes(
+      DeferredReset,
+      learned = Vector(activityExecutionRun),
+      observations = Vector(correlated, publicAttemptCount)
+    ):
+  object controller
+      extends Controller(
+        deadlines[StartActivityExecutionRequest](
+          client.start(maxAttempts := MaxAttempts.one),
+          startResetOne,
+          duration(deadlineSeconds),
+          unset = Some(startToClose -> startResetOneUnreached)
+        )(
+          startDelay.sets(_.getStartDelay),
+          scheduleToStart.sets(_.getScheduleToStartTimeout),
+          startToClose.sets(_.getStartToCloseTimeout),
+          heartbeat.sets(_.getHeartbeatTimeout)
+        ),
+        everyCase(awaitResetPublication),
+        everyCase(awaitResetHeld),
+        perform(client.reset(ResetPause.resume) -> resetHeldActivity),
+        everyCase(awaitResetCompleted),
+        everyCase(readExternalAttemptCount)
+      )
+  object workers extends Workers(resetAttempts)
+  object evidence
+      extends Evidences(
+        answered(system.Fact.statusScheduled, startResetOne),
+        resetStarted,
+        answeredAs(
+          kind = "resetRequested",
+          records = system.Fact.statusStarted,
+          call = resetHeldActivity,
+          Taking(client.reset(ResetPause.resume), 1)
+        ),
+        resetDelivered(
+          2,
+          ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+          "attemptCount",
+          system.Fact.attemptCount,
+          Taking(deadline.heartbeat, 1),
+          Taking(worker.poll, 2)
+        ),
+        resetDelivered(
+          2,
+          ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+          "resetHeartbeatTimedOut",
+          system.Fact.heartbeatTimedOut
+        ),
+        resetCompleted
+      )
+  object serverSteps extends ServerSteps(deferredResetSettlement)
+
 // ### The held race
 // A controller starts one activity on a queue no worker polls, holds its dispatch between
 // history's validated dispatch task and matching, pauses it, reads the pause back, and releases the

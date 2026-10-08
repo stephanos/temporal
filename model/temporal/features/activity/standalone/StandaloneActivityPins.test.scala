@@ -2,7 +2,7 @@ package umpire
 // What the standalone activity Model's effects do, run as Scala.
 
 import temporal.features.activity.{failure, Failure}
-import temporal.features.activity.standalone.{activity, client, service, system, worker}
+import temporal.features.activity.standalone.{activity, client, service, system, worker, ResetPause}
 import temporal.features.activity.{deadline, timers, Timeout, TimeoutType}
 import temporal.features.activity.standalone.product
 import temporal.shared.worker.worker as process
@@ -148,7 +148,16 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         worker.respondFailed.decl,
         Some(List(Failure.fatal)),
-        s => s.phase == started || s.phase == cancelRequested,
+        _.phase == started,
+        s =>
+          accepted(s.copy(phase = failed), Fact.statusFailed) ++
+            accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
+            accepted(s.copy(phase = paused), Fact.statusPaused)
+      ),
+      ExpectedRule(
+        worker.respondFailed.decl,
+        Some(List(Failure.fatal)),
+        _.phase == cancelRequested,
         s => accepted(s.copy(phase = failed), Fact.statusFailed)
       ),
       ExpectedRule(
@@ -157,6 +166,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         _.phase == started,
         s =>
           accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
+            accepted(s.copy(phase = paused), Fact.statusPaused) ++
             accepted(s.copy(phase = failed), Fact.statusFailed)
       ),
       ExpectedRule(
@@ -328,7 +338,58 @@ class StandaloneActivityPins extends munit.FunSuite:
         _.phase == cancelRequested,
         s => accepted(s.copy(phase = timedOut), Fact.statusTimedOut, Fact.heartbeatTimedOut)
       )
-    ) ++ productServiceRules
+    ) ++ productServiceRules ++ productResetRules
+
+  private def productResetRules: List[ExpectedRule[product.State, product.Fact]] =
+    import product.{Fact, Phase, State}
+    import Phase.*
+    val pending = "a reset is already pending (operator_commands.go:460-464)"
+    List[ExpectedRule[State, Fact]](
+      ExpectedRule(client.reset.decl, None, s => closedProduct(s.phase), rejectedNotFound),
+      ExpectedRule(
+        client.reset.decl,
+        None,
+        _.phase == scheduled,
+        s => accepted(s, Fact.statusScheduled)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        None,
+        _.phase == cancelRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "cannot reset an activity with a pending cancellation (operator_commands.go:458)"
+          )
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.resume)),
+        _.phase == paused,
+        s => accepted(s.copy(phase = scheduled), Fact.statusScheduled)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.resume)),
+        _.phase == started,
+        s => accepted(s, Fact.statusStarted) ++ rejectedBecause(s, "failedPrecondition", pending)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.keepPaused)),
+        _.phase == paused,
+        s => accepted(s, Fact.statusPaused)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.keepPaused)),
+        _.phase == started,
+        s =>
+          accepted(s, Fact.statusStarted) ++ accepted(s, Fact.statusPaused) ++
+            rejectedBecause(s, "failedPrecondition", pending)
+      )
+    )
 
   private def productServiceRules: List[ExpectedRule[product.State, product.Fact]] =
     import product.{Fact, Phase, State}
@@ -357,7 +418,16 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         service.respondFailedByID.decl,
         Some(List(Failure.fatal)),
-        s => s.phase == started || s.phase == cancelRequested,
+        _.phase == started,
+        s =>
+          accepted(s.copy(phase = failed), Fact.statusFailed) ++
+            accepted(s.copy(phase = scheduled), Fact.statusScheduled) ++
+            accepted(s.copy(phase = paused), Fact.statusPaused)
+      ),
+      ExpectedRule(
+        service.respondFailedByID.decl,
+        Some(List(Failure.fatal)),
+        _.phase == cancelRequested,
         s => accepted(s.copy(phase = failed), Fact.statusFailed)
       ),
       ExpectedRule(
@@ -415,7 +485,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         worker.respondCompleted.decl,
         None,
-        s => heldSystem(s.phase),
+        s => heldSystem(s.phase) || resetSystem(s.phase),
         s => accepted(s.copy(phase = completed), Fact.statusCompleted)
       ),
       ExpectedRule(
@@ -468,7 +538,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         worker.respondCanceled.decl,
         None,
-        s => s.phase == started || s.phase == pauseRequested,
+        s => s.phase == started || s.phase == pauseRequested || resetSystem(s.phase),
         s =>
           rejectedBecause(
             s,
@@ -500,12 +570,14 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.pause.decl,
         None,
-        s => s.phase == paused || s.phase == pauseRequested || s.phase == cancelRequested,
+        s =>
+          s.phase == paused || s.phase == pauseRequested || s.phase == cancelRequested ||
+            resetSystem(s.phase),
         s =>
           rejectedBecause(
             s,
             "failedPrecondition",
-            "already paused or cancellation pending (chasm/lib/activity/model/model.go:232)"
+            "already paused, or a cancellation or reset pending (chasm/lib/activity/model/model.go:232)"
           )
       ),
       ExpectedRule(
@@ -523,7 +595,9 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.unpause.decl,
         None,
-        s => s.phase == scheduled || s.phase == started || s.phase == cancelRequested,
+        s =>
+          s.phase == scheduled || s.phase == started || s.phase == cancelRequested ||
+            resetSystem(s.phase),
         s =>
           rejectedBecause(
             s,
@@ -540,7 +614,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         client.requestCancel.decl,
         None,
-        s => s.phase == started || s.phase == pauseRequested,
+        s => s.phase == started || s.phase == pauseRequested || resetSystem(s.phase),
         s => accepted(s.copy(phase = cancelRequested), Fact.statusCancelRequested)
       ),
       ExpectedRule(
@@ -642,10 +716,15 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         worker.heartbeat.decl,
         None,
-        s => heldSystem(s.phase),
+        s => heldSystem(s.phase) || resetSystem(s.phase),
         s => accepted(s, Fact.heartbeatReceived)
       ),
-      ExpectedRule(worker.heartbeat.decl, None, s => !heldSystem(s.phase), rejectedNotFound),
+      ExpectedRule(
+        worker.heartbeat.decl,
+        None,
+        s => !heldSystem(s.phase) && !resetSystem(s.phase),
+        rejectedNotFound
+      ),
       ExpectedRule(
         deadline.heartbeat.decl,
         None,
@@ -686,7 +765,121 @@ class StandaloneActivityPins extends munit.FunSuite:
             Fact.heartbeatTimedOut
           )
       )
-    ) ++ startRules ++ systemServiceRules
+    ) ++ startRules ++ systemServiceRules ++ systemResetRules
+
+  // A reset applies at once to a waiting or paused activity, is recorded until a held attempt ends,
+  // and then applies on its failure or its own deadline (operator_commands.go:428-563).
+  private def systemResetRules: List[ExpectedRule[system.State, system.Fact]] =
+    import system.{Fact, Phase, State}
+    import Phase.*
+    val learns = "the worker learns of the reset on its next heartbeat"
+    val ends = "the deferred reset applies as the attempt ends"
+    def cleared(s: State, phase: Phase) = s.copy(
+      phase = phase,
+      attempts = UpTo(0),
+      dispatch = if s.dispatch == Dispatch.backoff then Dispatch.now else s.dispatch
+    )
+    def restarted(s: State) =
+      s.copy(
+        phase = if s.phase == resetKeepingPause then paused else scheduled,
+        attempts = UpTo(0),
+        dispatch = Dispatch.now
+      )
+    def landingFact(s: State) =
+      if s.phase == resetKeepingPause then Fact.statusPaused else Fact.statusScheduled
+    List[ExpectedRule[State, Fact]](
+      ExpectedRule(
+        client.reset.decl,
+        None,
+        s => s.phase == unstarted || closedSystem(s.phase),
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        None,
+        _.phase == scheduled,
+        s => accepted(cleared(s, scheduled), Fact.statusScheduled)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        None,
+        _.phase == started,
+        s => acceptedBecause(s.copy(phase = resetRequested), learns, Fact.statusStarted)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        None,
+        _.phase == cancelRequested,
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "cannot reset an activity with a pending cancellation (operator_commands.go:458)"
+          )
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        None,
+        s => resetSystem(s.phase),
+        s =>
+          rejectedBecause(
+            s,
+            "failedPrecondition",
+            "cannot reset an activity with a pending reset (operator_commands.go:460-464)"
+          )
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.resume)),
+        _.phase == paused,
+        s => accepted(cleared(s, scheduled), Fact.statusScheduled)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.resume)),
+        _.phase == pauseRequested,
+        s => acceptedBecause(s.copy(phase = resetRequested), learns, Fact.statusStarted)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.keepPaused)),
+        _.phase == paused,
+        s => accepted(cleared(s, paused), Fact.statusPaused)
+      ),
+      ExpectedRule(
+        client.reset.decl,
+        Some(List(ResetPause.keepPaused)),
+        _.phase == pauseRequested,
+        s => acceptedBecause(s.copy(phase = resetKeepingPause), learns, Fact.statusPaused)
+      )
+    ) ++ List(worker.respondFailed, service.respondFailedByID).map(a =>
+      ExpectedRule[State, Fact](
+        a.decl,
+        None,
+        s => resetSystem(s.phase),
+        s => acceptedBecause(restarted(s), ends, landingFact(s), Fact.attemptCount)
+      )
+    ) ++ List[ExpectedRule[State, Fact]](
+      ExpectedRule(
+        deadline.startToClose.decl,
+        None,
+        s => resetSystem(s.phase) && s.startToClose == Timeout.expires,
+        s => acceptedBecause(restarted(s), ends, landingFact(s), Fact.attemptCount)
+      ),
+      ExpectedRule(
+        deadline.heartbeat.decl,
+        None,
+        s => resetSystem(s.phase) && s.heartbeat == Timeout.expires,
+        s =>
+          acceptedBecause(
+            restarted(s),
+            nominalTimeWindow,
+            landingFact(s),
+            Fact.attemptCount,
+            Fact.heartbeatTimedOut
+          )
+      )
+    )
 
   private def systemServiceRules: List[ExpectedRule[system.State, system.Fact]] =
     import system.{Fact, Phase, State}
@@ -767,7 +960,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         service.respondCanceledByID.decl,
         None,
-        s => s.phase == started || s.phase == pauseRequested,
+        s => s.phase == started || s.phase == pauseRequested || resetSystem(s.phase),
         s => rejectedBecause(s, "invalidArgument", "cancellation was not requested")
       )
     )
@@ -808,7 +1001,10 @@ class StandaloneActivityPins extends munit.FunSuite:
   private def liveSystem(p: system.Phase): Boolean =
     import system.Phase.*
     p == scheduled || p == started || p == paused ||
-    p == pauseRequested || p == cancelRequested
+    p == pauseRequested || p == cancelRequested || resetSystem(p)
+
+  private def resetSystem(p: system.Phase): Boolean =
+    p == system.Phase.resetRequested || p == system.Phase.resetKeepingPause
 
   private def waitingSystem(p: system.Phase): Boolean =
     p == system.Phase.scheduled
@@ -860,6 +1056,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.unpause,
         client.requestCancel,
         client.terminate,
+        client.reset,
         worker.poll,
         worker.heartbeat,
         worker.respondCompleted,
@@ -881,6 +1078,7 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.unpause,
         client.requestCancel,
         client.terminate,
+        client.reset,
         worker.poll,
         worker.heartbeat,
         worker.respondCompleted,

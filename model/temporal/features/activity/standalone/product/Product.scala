@@ -72,10 +72,6 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     val retry = effect { phase = scheduled }
     val retryScheduled = choice
     val retryExhausted = choice
-    def retryOrFail(s: State) = choose(
-      retryScheduled -> retry(s),
-      retryExhausted -> fail(s)
-    )
     val retryPaused = choice
     def serviceRetry(s: State) = choose(
       retryScheduled -> retry(s),
@@ -100,6 +96,34 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
         .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
     )
     val requestCancel = effect { phase = cancelRequested }
+    // A reset of a waiting activity applies at once; of a held attempt it waits for the attempt to
+    // end, which Describe still reads as started, or as pause-requested where a pause is kept.
+    def resetWaiting(s: State) = enter(s, Fact.statusScheduled)
+    def resetKeepsPaused(s: State) = enter(s, Fact.statusPaused)
+    val resetPending = choice
+    val resetPausePending = choice
+    val resetAlreadyRequested = choice
+    def resetHeld(s: State) = choose(
+      resetPending -> enter(s, Fact.statusStarted),
+      resetAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
+        .because("a reset is already pending (operator_commands.go:460-464)")
+    )
+    def resetHeldKeepingPause(s: State) = choose(
+      resetPending -> enter(s, Fact.statusStarted),
+      resetPausePending -> enter(s, Fact.statusPaused),
+      resetAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
+        .because("a reset is already pending (operator_commands.go:460-464)")
+    )
+    // A held attempt's failure ends the activity, or applies a pending reset whatever the
+    // failure's retryability: the activity is scheduled again, or paused where a pause was kept.
+    val failureFatal = choice
+    val resetApplied = choice
+    val resetAppliedPaused = choice
+    def failOrReset(s: State) = choose(
+      failureFatal -> fail(s),
+      resetApplied -> retry(s),
+      resetAppliedPaused -> enter(s.copy(phase = Phase.paused), Fact.statusPaused)
+    )
     val terminate = effect { phase = terminated }
     val timeOut = effect { phase = timedOut }
     def heartbeat(s: State) = enter(s, Fact.heartbeatReceived)
@@ -155,6 +179,22 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
       on(terminate) {
         when(scheduled, started, paused, cancelRequested) ~> effects.terminate
       }
+      on(reset) {
+        when[Closed] ~> rejects(Rejection.notFound)
+        when(scheduled) ~> effects.resetWaiting
+        when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
+          .because(
+            "cannot reset an activity with a pending cancellation (operator_commands.go:458)"
+          )
+      }
+      on(reset(ResetPause.resume)) {
+        where(states.paused) ~> effects.resume
+        when(started) ~> effects.resetHeld
+      }
+      on(reset(ResetPause.keepPaused)) {
+        where(states.paused) ~> effects.resetKeepsPaused
+        when(started) ~> effects.resetHeldKeepingPause
+      }
     }
 
     from(temporal.features.activity.standalone.worker) {
@@ -176,11 +216,12 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
         when[Held] ~> effects.complete
       }
       on(respondFailed(Failure.fatal)) {
-        when[Held] ~> effects.fail
+        when(started) ~> effects.failOrReset
+        when(cancelRequested) ~> effects.fail
       }
 
       on(respondFailed(Failure.retryable)) {
-        when(started) ~> effects.retryOrFail
+        when(started) ~> effects.serviceRetry
         when(cancelRequested) ~> effects.cancel
       }
       on(respondCanceled) {
@@ -200,7 +241,8 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
         when[Live] ~> effects.complete
       }
       on(respondFailedByID(Failure.fatal)) {
-        when[Held] ~> effects.fail
+        when(started) ~> effects.failOrReset
+        when(cancelRequested) ~> effects.fail
       }
       on(respondFailedByID(Failure.retryable)) {
         when(started) ~> effects.serviceRetry

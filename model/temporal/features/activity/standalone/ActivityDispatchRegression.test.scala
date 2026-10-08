@@ -115,7 +115,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
   }
 
   test("every waiting dispatch maps to the Product's scheduled state") {
-    assertEquals(summon[Finite[system.State]].values.size, 4752)
+    assertEquals(summon[Finite[system.State]].values.size, 5616)
     for dispatch <- system.Dispatch.values do
       val waiting = ActivitySystem.init.copy(phase = system.Phase.scheduled, dispatch = dispatch)
       assertEquals(

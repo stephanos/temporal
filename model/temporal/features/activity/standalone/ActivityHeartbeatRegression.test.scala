@@ -57,7 +57,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     assertEquals(ActivitySystem.init.productElementNames.toList.count(_ == "heartbeat"), 1)
     assertEquals(
       summon[Finite[temporal.features.activity.standalone.system.State]].values.size,
-      4752
+      5616
     )
   }
 
@@ -78,7 +78,24 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       val steps = take(before, deadline.heartbeat())
       val enabled = before.heartbeat == Timeout.expires && before.phase.in[Held]
       assertEquals(steps.nonEmpty, enabled)
-      for after <- steps do
+      for after <- steps if ActivitySystem.states.pendingReset(before) do
+        val landing =
+          if before.phase == system.Phase.resetKeepingPause then system.Phase.paused
+          else system.Phase.scheduled
+        assertEquals(
+          after.state,
+          before.copy(phase = landing, attempts = UpTo(0), dispatch = system.Dispatch.now)
+        )
+        assertEquals(
+          after.facts,
+          List(
+            if landing == system.Phase.paused then system.Fact.statusPaused
+            else system.Fact.statusScheduled,
+            system.Fact.attemptCount,
+            system.Fact.heartbeatTimedOut
+          )
+        )
+      for after <- steps if !ActivitySystem.states.pendingReset(before) do
         val retry = before.phase != system.Phase.cancelRequested &&
           (before.maxAttempts == MaxAttempts.unlimited ||
             (before.maxAttempts == MaxAttempts.two && before.attempts < 2) ||
@@ -201,7 +218,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       assertEquals(query.form, QueryForm.find)
       assert(!query.scenario.free)
       assertEquals(query.scenario.actions.size, length)
-      assertEquals(query.total, Some(4752L * length))
+      assertEquals(query.total, Some(5616L * length))
       assertEquals(query.expectedRun, Some(temporal.realize.satisfied))
   }
 
@@ -226,7 +243,27 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     val rows = summon[Finite[system.State]].values.flatMap(before =>
       take(before, deadline.heartbeat()).map(after => before -> after)
     )
-    for (before, after) <- rows do
+    // A pending reset applies as the deadline ends the attempt, whatever the policy left: the
+    // frame restarts the count, so eligibility holds after the step even where it did not before.
+    val resets = rows.filter((before, _) => ActivitySystem.states.pendingReset(before))
+    for (before, after) <- resets do
+      assertEquals(after.state.attempts: Int, 0)
+      assertEquals(after.state.maxAttempts, before.maxAttempts)
+      assert(ActivitySystem.states.retriesRemaining(after.state))
+      assert(holds(before, after), s"legitimate reset row: $before -> $after")
+      assert(after.records(system.Fact.heartbeatTimedOut))
+      assert(
+        !holds(
+          before,
+          after.copy(facts = after.facts.filterNot(_ == system.Fact.heartbeatTimedOut))
+        )
+      )
+    assertEquals(resets.size, 432)
+    assertEquals(
+      resets.count((before, _) => !ActivitySystem.states.retriesRemaining(before)),
+      144
+    )
+    for (before, after) <- rows if !ActivitySystem.states.pendingReset(before) do
       assertEquals(after.state.attempts, before.attempts)
       assertEquals(after.state.maxAttempts, before.maxAttempts)
       assertEquals(
@@ -264,10 +301,15 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
           ),
           "an exhausted policy cannot authorize this retry landing"
         )
-    assertEquals(rows.count((before, _) => !ActivitySystem.states.retriesRemaining(before)), 216)
-    assertEquals(rows.size, 648)
+    val ordinary = rows.filterNot((before, _) => ActivitySystem.states.pendingReset(before))
     assertEquals(
-      rows.count((before, _) =>
+      ordinary.count((before, _) => !ActivitySystem.states.retriesRemaining(before)),
+      216
+    )
+    assertEquals(ordinary.size, 648)
+    assertEquals(rows.size, 1080)
+    assertEquals(
+      ordinary.count((before, _) =>
         ActivitySystem.states.retriesRemaining(
           before
         ) && before.phase != system.Phase.cancelRequested

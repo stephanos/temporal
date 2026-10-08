@@ -66,7 +66,10 @@ class ActivityByIDRegression extends munit.FunSuite:
           (before.phase == system.Phase.unstarted && source == target && visible.isEmpty),
         s"service refinement $before -> $after"
       )
-      assertEquals(after.state.attempts, before.attempts)
+      // A failure answer applies a pending reset, which restarts the count; nothing else moves it.
+      val restarts = ActivitySystem.states.pendingReset(before) &&
+        c.decl == service.respondFailedByID.decl
+      assertEquals(after.state.attempts: Int, if restarts then 0 else before.attempts)
       assertEquals(after.state.scheduleToClose, before.scheduleToClose)
       assertEquals(after.state.scheduleToStart, before.scheduleToStart)
       assertEquals(after.state.startToClose, before.startToClose)
@@ -108,7 +111,7 @@ class ActivityByIDRegression extends munit.FunSuite:
     assertEquals(query.scenario.machine, ByIDCancellation)
     assertEquals(query.form, QueryForm.find)
     assertEquals(query.scenario.actions, ByIDCancellation.queries.heldCanceledByID.scenario.actions)
-    assertEquals(query.total, Some(19008L))
+    assertEquals(query.total, Some(22464L))
     assertEquals(
       query.expectedRun,
       Some(temporal.realize.inconclusive(umpire.realize.Reason.explanationsDisagree))
@@ -160,7 +163,7 @@ class ActivityByIDRegression extends munit.FunSuite:
       assertEquals(query.form, QueryForm.find)
       assert(!query.scenario.free)
       assertEquals(query.scenario.actions, actions)
-      assertEquals(query.total, Some(4752L * actions.size))
+      assertEquals(query.total, Some(5616L * actions.size))
       assertEquals(
         query.expectedRun,
         Some(temporal.realize.inconclusive(umpire.realize.Reason.explanationsDisagree))

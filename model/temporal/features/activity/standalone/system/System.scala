@@ -27,6 +27,10 @@ enum Phase derives Finite:
   case paused extends Phase, Suspended
   case pauseRequested extends Phase, Held
   case cancelRequested extends Phase, Held
+  // A reset of a held attempt waits for the attempt to end; the second keeps a requested pause
+  // (operator_commands.go:485-519).
+  case resetRequested extends Phase, Held
+  case resetKeepingPause extends Phase, Held
   case completed extends Phase, Succeeded
   case failed extends Phase, Failed
   case canceled extends Phase, Canceled
@@ -37,7 +41,7 @@ enum Phase derives Finite:
 enum Dispatch derives Finite:
   case now, startDelay, backoff
 
-// 11 phases, 3 dispatch values, 3 attempt counts, 4 deadline flags and 3 retry policies: 4752 states.
+// 13 phases, 3 dispatch values, 3 attempt counts, 4 deadline flags and 3 retry policies: 5616 states.
 final case class State(
     phase: Phase,
     dispatch: Dispatch,
@@ -106,6 +110,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
     def pendingPause(s: State): Boolean = s.phase == pauseRequested
     def pendingCancel(s: State): Boolean = s.phase == cancelRequested
+    def pendingReset(s: State): Boolean = s.phase.in(resetRequested, resetKeepingPause)
+
+    // A reset discards a retry backoff but keeps a start delay (operator_commands.go:410-416).
+    def resetDispatch(d: Dispatch): Dispatch = if d == Dispatch.backoff then Dispatch.now else d
+
+    // A pending reset applied: a first attempt, dispatched at once, paused only where it was kept.
+    def resetApplied(before: State, after: State): Boolean =
+      after.attempts == 0 && after.dispatch == Dispatch.now &&
+        after.phase == (if before.phase == resetKeepingPause then paused else scheduled)
 
     def scheduleToCloseArmed(s: State): Boolean =
       s.scheduleToClose == Timeout.expires && s.dispatch != Dispatch.startDelay
@@ -134,14 +147,15 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     def toProduct(s: State): product.State = s.phase match
       case Phase.unstarted | Phase.scheduled =>
         product.State(product.Phase.scheduled)
-      case Phase.started | Phase.pauseRequested => product.State(product.Phase.started)
-      case Phase.paused                         => product.State(product.Phase.paused)
-      case Phase.cancelRequested                => product.State(product.Phase.cancelRequested)
-      case Phase.completed                      => product.State(product.Phase.completed)
-      case Phase.failed                         => product.State(product.Phase.failed)
-      case Phase.canceled                       => product.State(product.Phase.canceled)
-      case Phase.terminated                     => product.State(product.Phase.terminated)
-      case Phase.timedOut                       => product.State(product.Phase.timedOut)
+      case Phase.started | Phase.pauseRequested | Phase.resetRequested | Phase.resetKeepingPause =>
+        product.State(product.Phase.started)
+      case Phase.paused          => product.State(product.Phase.paused)
+      case Phase.cancelRequested => product.State(product.Phase.cancelRequested)
+      case Phase.completed       => product.State(product.Phase.completed)
+      case Phase.failed          => product.State(product.Phase.failed)
+      case Phase.canceled        => product.State(product.Phase.canceled)
+      case Phase.terminated      => product.State(product.Phase.terminated)
+      case Phase.timedOut        => product.State(product.Phase.timedOut)
 
     def visible(f: Fact) = f match
       case Fact.statusScheduled | Fact.statusStarted | Fact.statusPaused |
@@ -244,6 +258,60 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
     def terminate(s: State) = enter(s.copy(phase = terminated), statusTerminated)
 
+    // A reset of a waiting or paused activity applies at once: its independent count restarts at
+    // zero and a retry backoff is discarded (operator_commands.go:521-563).
+    def resetWaiting(s: State) =
+      enter(
+        s.copy(phase = scheduled, attempts = UpTo(0), dispatch = states.resetDispatch(s.dispatch)),
+        statusScheduled
+      )
+    def resetPaused(s: State) =
+      enter(
+        s.copy(phase = paused, attempts = UpTo(0), dispatch = states.resetDispatch(s.dispatch)),
+        statusPaused
+      )
+
+    // A reset of a held attempt is recorded until the attempt ends; Describe still reads the
+    // attempt as started, or pause-requested when the pause is kept (responses.go:55-62).
+    def requestReset(s: State) =
+      enter(s.copy(phase = resetRequested), statusStarted)
+        .because("the worker learns of the reset on its next heartbeat")
+    def requestResetKeepingPause(s: State) =
+      enter(s.copy(phase = resetKeepingPause), statusPaused)
+        .because("the worker learns of the reset on its next heartbeat")
+
+    // A pending reset applies when the held attempt fails or one of its own deadlines ends it,
+    // whatever the failure's retryability or the policy left: the next attempt is a first one,
+    // dispatched at once (attempt.go:201-216, statemachine.go:317-345).
+    def applyReset(s: State) =
+      enter(
+        s.copy(phase = scheduled, attempts = UpTo(0), dispatch = Dispatch.now),
+        statusScheduled,
+        Fact.attemptCount
+      )
+        .because("the deferred reset applies as the attempt ends")
+    def applyResetPaused(s: State) =
+      enter(
+        s.copy(phase = paused, attempts = UpTo(0), dispatch = Dispatch.now),
+        statusPaused,
+        Fact.attemptCount
+      )
+        .because("the deferred reset applies as the attempt ends")
+    def applyResetOnHeartbeat(s: State) =
+      enter(
+        s.copy(phase = scheduled, attempts = UpTo(0), dispatch = Dispatch.now),
+        statusScheduled,
+        Fact.attemptCount,
+        heartbeatTimedOut
+      ).because(states.nominalTimeWindow)
+    def applyResetPausedOnHeartbeat(s: State) =
+      enter(
+        s.copy(phase = paused, attempts = UpTo(0), dispatch = Dispatch.now),
+        statusPaused,
+        Fact.attemptCount,
+        heartbeatTimedOut
+      ).because(states.nominalTimeWindow)
+
     // Keeps the state and records nothing; the next step's evidence confirms it, a Known Gap.
     def keep(s: State) = stay(s)
 
@@ -270,18 +338,44 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       on(pause) {
         when(scheduled) ~> effects.pause
         when(started) ~> effects.requestPause
-        when(paused, pauseRequested, cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because("already paused or cancellation pending (chasm/lib/activity/model/model.go:232)")
+        when(paused, pauseRequested, cancelRequested, resetRequested, resetKeepingPause) ~>
+          rejects(Rejection.failedPrecondition)
+            .because(
+              "already paused, or a cancellation or reset pending (chasm/lib/activity/model/model.go:232)"
+            )
       }
       on(unpause) {
         when(paused) ~> effects.resume
         when(pauseRequested) ~> effects.withdrawPause
-        when(scheduled, started, cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
+        when(scheduled, started, cancelRequested, resetRequested, resetKeepingPause) ~>
+          rejects(Rejection.failedPrecondition)
+            .because("activity is not paused (chasm/lib/activity/model/model.go:251)")
+      }
+      // Cancel > Reset > Pause: a cancellation replaces a pending reset, a reset a requested
+      // pause, and neither a pause nor a reset undoes a cancellation (model.go:156-158).
+      on(reset) {
+        when(unstarted) ~> rejects(Rejection.notFound)
+        when[Closed] ~> rejects(Rejection.notFound)
+        when(scheduled) ~> effects.resetWaiting
+        when(started) ~> effects.requestReset
+        when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
+          .because(
+            "cannot reset an activity with a pending cancellation (operator_commands.go:458)"
+          )
+        when(resetRequested, resetKeepingPause) ~> rejects(Rejection.failedPrecondition)
+          .because("cannot reset an activity with a pending reset (operator_commands.go:460-464)")
+      }
+      on(reset(ResetPause.resume)) {
+        when(paused) ~> effects.resetWaiting
+        when(pauseRequested) ~> effects.requestReset
+      }
+      on(reset(ResetPause.keepPaused)) {
+        when(paused) ~> effects.resetPaused
+        when(pauseRequested) ~> effects.requestResetKeepingPause
       }
       on(requestCancel) {
         when(scheduled, paused) ~> effects.cancel
-        when(started, pauseRequested) ~> effects.requestCancel
+        when(started, pauseRequested, resetRequested, resetKeepingPause) ~> effects.requestCancel
         when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
           .because("cancellation already requested (chasm/lib/activity/model/model.go:201-202)")
       }
@@ -309,8 +403,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       on(respondCompleted) {
         when[Held] ~> effects.complete
       }
+      // A pending reset applies on either failure, before its retryability is read.
+      on(respondFailed) {
+        when(resetRequested) ~> effects.applyReset
+        when(resetKeepingPause) ~> effects.applyResetPaused
+      }
       on(respondFailed(Failure.fatal)) {
-        when[Held] ~> effects.fail
+        when(started, pauseRequested, cancelRequested) ~> effects.fail
       }
 
       on(respondFailed(Failure.retryable)) {
@@ -321,8 +420,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       }
       on(respondCanceled) {
         when(cancelRequested) ~> effects.cancel
-        when(started, pauseRequested) ~> rejects(Rejection.invalidArgument)
-          .because("cancellation was not requested (chasm/lib/activity/model/model.go:171)")
+        when(started, pauseRequested, resetRequested, resetKeepingPause) ~>
+          rejects(Rejection.invalidArgument)
+            .because("cancellation was not requested (chasm/lib/activity/model/model.go:171)")
       }
     }
 
@@ -336,8 +436,12 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       on(respondCompletedByID) {
         when[Live] ~> effects.complete
       }
+      on(respondFailedByID) {
+        when(resetRequested) ~> effects.applyReset
+        when(resetKeepingPause) ~> effects.applyResetPaused
+      }
       on(respondFailedByID(Failure.fatal)) {
-        when[Held] ~> effects.fail
+        when(started, pauseRequested, cancelRequested) ~> effects.fail
       }
       on(respondFailedByID(Failure.retryable)) {
         when(started).where(states.retriesRemaining) ~> effects.backOff
@@ -350,8 +454,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       }
       on(respondCanceledByID) {
         when(cancelRequested) ~> effects.cancel
-        when(started, pauseRequested) ~> rejects(Rejection.invalidArgument)
-          .because("cancellation was not requested")
+        when(started, pauseRequested, resetRequested, resetKeepingPause) ~>
+          rejects(Rejection.invalidArgument)
+            .because("cancellation was not requested")
       }
     }
 
@@ -402,7 +507,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(pauseRequested).where(s =>
           s.startToClose == Timeout.expires && states.retriesRemaining(s)
         ) ~> effects.backOffPausedAfterDeadline
-        when[Held]
+        when(started, pauseRequested, cancelRequested)
           .where(s =>
             s.startToClose == Timeout.expires &&
               (s.phase == cancelRequested || !states.retriesRemaining(s))
@@ -410,6 +515,8 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
           _,
           TimeoutType.startToClose
         ))
+        when(resetRequested).where(_.startToClose == Timeout.expires) ~> effects.applyReset
+        when(resetKeepingPause).where(_.startToClose == Timeout.expires) ~> effects.applyResetPaused
       }
       on(heartbeat) {
         when(started).where(s => s.heartbeat == Timeout.expires && states.retriesRemaining(s)) ~>
@@ -417,10 +524,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(pauseRequested).where(s =>
           s.heartbeat == Timeout.expires && states.retriesRemaining(s)
         ) ~> effects.heartbeatBackOffPaused
-        when[Held].where(s =>
+        when(started, pauseRequested, cancelRequested).where(s =>
           s.heartbeat == Timeout.expires &&
             (s.phase == cancelRequested || !states.retriesRemaining(s))
         ) ~> effects.heartbeatTimeOut
+        when(resetRequested).where(_.heartbeat == Timeout.expires) ~> effects.applyResetOnHeartbeat
+        when(resetKeepingPause).where(_.heartbeat == Timeout.expires) ~>
+          effects.applyResetPausedOnHeartbeat
       }
     }
 
@@ -516,6 +626,170 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     val startToCloseFires = property when deadline.startToClose holds { s =>
       s.state.phase == Phase.timedOut &&
       s.records(Fact.statusTimedOut(TimeoutType.startToClose))
+    }
+
+    // A pending reset ends only as its held attempt does: a completion wins, a cancellation or a
+    // terminate replaces it, schedule-to-close stays terminal, and a failure or one of the
+    // attempt's own deadlines applies it, whatever the policy left. The next attempt is a first
+    // one, dispatched at once, and paused only where the pause was kept; no failure or timeout is
+    // recorded for it. Any other step leaves it as it was. With no reset pending, an existing
+    // attempt's count never goes back but where a waiting or paused activity restarts, with no
+    // backoff left.
+    val resetSettles = property.holdsAcross { (before, after) =>
+      val restarted = after.state.attempts == 0 && after.state.dispatch == Dispatch.now &&
+        after.state.scheduleToClose == before.scheduleToClose &&
+        after.state.scheduleToStart == before.scheduleToStart &&
+        after.state.startToClose == before.startToClose &&
+        after.state.heartbeat == before.heartbeat &&
+        after.state.maxAttempts == before.maxAttempts &&
+        !after.records(Fact.statusFailed) &&
+        states.timeoutFacts.forall(fact => !after.records(fact))
+      if before.phase == Phase.resetRequested then
+        after.state == before ||
+        (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) ||
+        after.state.phase == Phase.cancelRequested ||
+        after.state.phase == Phase.terminated ||
+        (after.state.phase == Phase.timedOut &&
+          after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))) ||
+        (restarted && after.state.phase == Phase.scheduled && after.records(Fact.statusScheduled))
+      else if before.phase == Phase.resetKeepingPause then
+        after.state == before ||
+        (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) ||
+        after.state.phase == Phase.cancelRequested ||
+        after.state.phase == Phase.terminated ||
+        (after.state.phase == Phase.timedOut &&
+          after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))) ||
+        (restarted && after.state.phase == Phase.paused && after.records(Fact.statusPaused))
+      else
+        before.phase == Phase.unstarted || after.state.attempts >= before.attempts ||
+        (before.phase.in(Phase.scheduled, Phase.paused) &&
+          after.state.phase.in(Phase.scheduled, Phase.paused) &&
+          after.state.attempts == 0 && after.state.dispatch != Dispatch.backoff)
+    }
+
+    // A reset of a waiting or paused activity restarts it at once: its count is zero and a retry
+    // backoff is discarded, a start delay kept. Without keep_paused it is scheduled again.
+    val resetResumes = property.when(client.reset(ResetPause.resume)) holdsAcross {
+      (before, after) =>
+        !before.phase.in(Phase.scheduled, Phase.paused) ||
+        (after.state == before.copy(
+          phase = Phase.scheduled,
+          attempts = UpTo(0),
+          dispatch = if before.dispatch == Dispatch.backoff then Dispatch.now else before.dispatch
+        ) && after.records(Fact.statusScheduled))
+    }
+
+    // With keep_paused a paused activity stays paused, and a scheduled one is scheduled again.
+    val resetKeepsPaused =
+      property.when(client.reset(ResetPause.keepPaused)) holdsAcross { (before, after) =>
+        !before.phase.in(Phase.scheduled, Phase.paused) ||
+        (after.state == before.copy(
+          attempts = UpTo(0),
+          dispatch = if before.dispatch == Dispatch.backoff then Dispatch.now else before.dispatch
+        ) && after.records(
+          if before.phase == Phase.paused then Fact.statusPaused else Fact.statusScheduled
+        ))
+      }
+
+    // Retries' and Deadline's laws as the activity keeps them: a pending reset applies first, as
+    // a failure or one of the attempt's own deadlines ends the held attempt, whatever the failure's
+    // retryability or the policy left (attempt.go:201-216, statemachine.go:317-345). With no reset
+    // pending each states its companion's settlement exactly.
+    def resetFailureReturnsToWaiting(m: Declares[State])(
+        failure: ClassRef,
+        retryable: Boolean,
+        retriesRemaining: State => Boolean,
+        pendingPause: State => Boolean,
+        pendingCancel: State => Boolean
+    ): Property[State] =
+      m.property.when(failure) holdsAcross ((before, after) =>
+        if states.pendingReset(before) then states.resetApplied(before, after.state)
+        else
+          !(retryable && !pendingCancel(before) && retriesRemaining(before) &&
+            !pendingPause(before)) || after.state.phase.in[Waiting]
+      )
+
+    def resetFailureEndsFailed(m: Declares[State])(
+        failure: ClassRef,
+        retryable: Boolean,
+        retriesRemaining: State => Boolean,
+        pendingCancel: State => Boolean
+    ): Property[State] =
+      m.property.when(failure) holdsAcross ((before, after) =>
+        if states.pendingReset(before) then states.resetApplied(before, after.state)
+        else
+          !(!retryable || (!pendingCancel(before) && !retriesRemaining(before))) ||
+          after.state.phase.in[Failed]
+      )
+
+    def resetFailurePauses(m: Declares[State])(
+        failure: ClassRef,
+        retryable: Boolean,
+        retriesRemaining: State => Boolean,
+        pendingPause: State => Boolean,
+        pendingCancel: State => Boolean
+    ): Property[State] =
+      m.property.when(failure) holdsAcross ((before, after) =>
+        if states.pendingReset(before) then states.resetApplied(before, after.state)
+        else
+          !(retryable && !pendingCancel(before) && retriesRemaining(before) &&
+            pendingPause(before)) || after.state.phase.in[Suspended]
+      )
+
+    def resetDeadlineTimesOut(m: Declares[State])(
+        timer: ClassRef,
+        retryable: Boolean,
+        timeout: m.Fact,
+        retriesRemaining: State => Boolean,
+        pendingCancel: State => Boolean
+    ): Property[State] =
+      m.property.when(timer) holdsAcross ((before, after) =>
+        if states.pendingReset(before) then
+          states.resetApplied(before, after.state) && !after.records(timeout)
+        else
+          !(pendingCancel(before) || !retryable || !retriesRemaining(before)) ||
+          (after.state.phase.in[TimedOut] && after.records(timeout))
+      )
+
+    def resetDeadlineReturnsToWaiting(m: Declares[State])(
+        timer: ClassRef,
+        retryable: Boolean,
+        retriesRemaining: State => Boolean,
+        timeoutFacts: Seq[m.Fact],
+        pendingPause: State => Boolean,
+        pendingCancel: State => Boolean
+    ): Property[State] =
+      m.property.when(timer) holdsAcross ((before, after) =>
+        if states.pendingReset(before) then
+          states.resetApplied(before, after.state) && timeoutFacts.forall(f => !after.records(f))
+        else
+          !(retryable && !pendingCancel(before) && retriesRemaining(before) &&
+            !pendingPause(before)) ||
+          (after.state.phase.in[Waiting] && timeoutFacts.forall(f => !after.records(f)))
+      )
+
+    def resetDeadlinePauses(m: Declares[State])(
+        timer: ClassRef,
+        retryable: Boolean,
+        retriesRemaining: State => Boolean,
+        pendingPause: State => Boolean,
+        timeoutFacts: Seq[m.Fact],
+        pendingCancel: State => Boolean
+    ): Property[State] =
+      m.property.when(timer) holdsAcross ((before, after) =>
+        if states.pendingReset(before) then
+          states.resetApplied(before, after.state) && timeoutFacts.forall(f => !after.records(f))
+        else
+          !(retryable && !pendingCancel(before) && retriesRemaining(before) &&
+            pendingPause(before)) ||
+          (after.state.phase.in[Suspended] && timeoutFacts.forall(f => !after.records(f)))
+      )
+
+    // Cancel > Reset > Pause: no step makes a reset pending over a pending cancellation, and no
+    // step turns a pending reset back into a pause request or a plain attempt (model.go:156-158).
+    val controlPrecedence = property.holdsAcross { (before, after) =>
+      (before.phase != Phase.cancelRequested || !states.pendingReset(after.state)) &&
+      (!states.pendingReset(before) || !after.state.phase.in(Phase.started, Phase.pauseRequested))
     }
 
   // A terminate settles it, and DescribeActivityExecution reports its status by `activityStatus`.
@@ -667,6 +941,14 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       query verify properties.scheduleToStartRequiresDispatch in any limits eight
     val cancellationKeepsPrecedence =
       query verify properties.cancelIsNotUndone in any limits eight
+    val resetSettlement =
+      query verify properties.resetSettles in any limits eight
+    val directResetResumes =
+      query verify properties.resetResumes in any limits eight
+    val directResetKeepsPaused =
+      query verify properties.resetKeepsPaused in any limits eight
+    val controlsKeepPrecedence =
+      query verify properties.controlPrecedence in any limits eight
 
     // One Query per side effect that settles the activity, apart from the Properties they find.
     val completion =
@@ -760,7 +1042,7 @@ object HeartbeatCompletion extends Derived(ActivitySystem.unmonitored):
     )
     val heartbeatThenCompletes =
       (query find properties.heartbeatCompletes in heartbeatCompleted limits four)
-        .total(19008)
+        .total(22464)
         .expect(satisfied)
 
 object HeartbeatRetry extends Derived(ActivitySystem.unmonitored):
@@ -780,7 +1062,7 @@ object HeartbeatRetry extends Derived(ActivitySystem.unmonitored):
     )
     val heartbeatTimeoutRetriesThenCompletes =
       (query find properties.heartbeatRetryCompletes in heartbeatRetried limits eight)
-        .total(33264)
+        .total(39312)
         .expect(satisfied)
 
 object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
@@ -801,7 +1083,7 @@ object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
     )
     val heartbeatTimeoutExhausts =
       (query find properties.heartbeatExhausts in heartbeatExhausted limits four)
-        .total(19008)
+        .total(22464)
         .expect(satisfied)
 
 // A closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule
@@ -815,7 +1097,7 @@ object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
     val scheduledCompletion = scenario.actions(client.start(), service.respondCompletedByID)
     val scheduledCompletedByID =
       (query find properties.completedByID in scheduledCompletion limits three)
-        .total(9504)
+        .total(11232)
         .expect(inconclusive(Reason.explanationsDisagree))
 
 object ByIDFailure extends Derived(ActivitySystem.unmonitored):
@@ -831,7 +1113,7 @@ object ByIDFailure extends Derived(ActivitySystem.unmonitored):
     )
     val heldFailedByID =
       (query find properties.fatalFailureByID in heldFatalFailure limits three)
-        .total(14256)
+        .total(16848)
         .expect(inconclusive(Reason.explanationsDisagree))
 
 object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
@@ -852,14 +1134,167 @@ object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
     )
     val heldCanceledByID =
       (query find properties.canceledByID in heldCancellation limits four)
-        .total(19008)
+        .total(22464)
         .expect(inconclusive(Reason.explanationsDisagree))
     val cancelIsRequested =
       (query(
         "activitySystem.cancelIsRequested"
       ) find properties.cancelIsRequested in heldCancellation limits four)
-        .total(19008)
+        .total(22464)
         .expect(inconclusive(Reason.explanationsDisagree))
+
+// Model-only witnesses of a pending reset: it applies on a fatal failure, on an exhausted policy
+// and on an attempt's own deadline, keeps a requested pause, loses to a completion, a cancellation
+// and schedule-to-close, and outranks a pause and a repeated reset. No realization runs them.
+object ResetSettlement extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    // A first attempt again, dispatched at once, of an activity with no deadline set.
+    val restarted =
+      system.State(
+        phase = Phase.scheduled,
+        dispatch = Dispatch.now,
+        attempts = UpTo(0),
+        scheduleToClose = Timeout.unset,
+        scheduleToStart = Timeout.unset,
+        startToClose = Timeout.unset,
+        heartbeat = Timeout.unset,
+        maxAttempts = MaxAttempts.unlimited
+      )
+    val resetOnFatal = property when worker.respondFailed(Failure.fatal) holds { s =>
+      s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed)
+    }
+    val resetOnExhaustion = property when worker.respondFailed(Failure.retryable) holds { s =>
+      s.state == restarted.copy(maxAttempts = MaxAttempts.one) && s.records(Fact.statusScheduled)
+    }
+    val resetOnTimeout = property when deadline.startToClose holds { s =>
+      s.state == restarted.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.one) &&
+      s.records(Fact.statusScheduled) &&
+      !s.records(Fact.statusTimedOut(TimeoutType.startToClose))
+    }
+    val resetKeepsPause = property when worker.respondFailed(Failure.retryable) holds { s =>
+      s.state == restarted.copy(phase = Phase.paused) && s.records(Fact.statusPaused)
+    }
+    val completionWins = property when worker.respondCompleted holds { s =>
+      s.state.phase == Phase.completed && s.state.attempts == 1 &&
+      s.records(Fact.statusCompleted)
+    }
+    val scheduleToCloseStaysTerminal = property when deadline.scheduleToClose holds { s =>
+      s.state.phase == Phase.timedOut &&
+      s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
+    }
+    val cancellationReplacesReset = property when client.requestCancel holds { s =>
+      s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
+    }
+    val pauseLeavesResetPending = property when client.pause holds { s =>
+      s.state.phase == Phase.resetRequested && !s.records(Fact.statusPaused)
+    }
+    val resetStaysPending = property when client.reset(ResetPause.resume) holds { s =>
+      s.state.phase == Phase.resetRequested
+    }
+  object queries:
+    val resetThenFatal = scenario.actions(
+      client.start(),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      worker.respondFailed(Failure.fatal)
+    )
+    val resetThenExhausted = scenario.actions(
+      client.start(maxAttempts := MaxAttempts.one),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      worker.respondFailed(Failure.retryable)
+    )
+    val resetThenTimedOut = scenario.actions(
+      client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      deadline.startToClose
+    )
+    val pausedResetThenFailed = scenario.actions(
+      client.start(),
+      worker.poll,
+      client.pause,
+      client.reset(ResetPause.keepPaused),
+      worker.respondFailed(Failure.retryable)
+    )
+    val resetThenCompleted = scenario.actions(
+      client.start(),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      worker.respondCompleted
+    )
+    val resetThenScheduleToClose = scenario.actions(
+      client.start(scheduleToClose := expires),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      deadline.scheduleToClose
+    )
+    val resetThenCanceled = scenario.actions(
+      client.start(),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      client.requestCancel
+    )
+    val resetThenPaused = scenario.actions(
+      client.start(),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      client.pause
+    )
+    val resetTwice = scenario.actions(
+      client.start(),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      client.reset(ResetPause.resume)
+    )
+    val resetFatality = query find properties.resetOnFatal in resetThenFatal limits four
+    val resetExhaustion = query find properties.resetOnExhaustion in resetThenExhausted limits four
+    val resetTimeout = query find properties.resetOnTimeout in resetThenTimedOut limits four
+    val resetKeptPause = query find properties.resetKeepsPause in pausedResetThenFailed limits five
+    val resetCompletion = query find properties.completionWins in resetThenCompleted limits four
+    val resetScheduleToClose =
+      query find properties.scheduleToCloseStaysTerminal in resetThenScheduleToClose limits four
+    val resetCancellation =
+      query find properties.cancellationReplacesReset in resetThenCanceled limits four
+    val resetOutranksPause = query find properties.pauseLeavesResetPending in resetThenPaused limits
+      four
+    val resetRepeated = query find properties.resetStaysPending in resetTwice limits four
+
+// A reset with keep_paused of an activity paused before any worker took it: it stays paused, its
+// count restarted. The pause arms the dispatch hold the pause/resume path uses.
+object ResetKeepingPause extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val resetKeptPaused = property when client.reset(ResetPause.keepPaused) holds { s =>
+      s.state.phase == Phase.paused && s.records(Fact.statusPaused)
+    }
+  object queries:
+    val pausedThenReset = scenario.actions(
+      client.start(),
+      client.pause,
+      client.reset(ResetPause.keepPaused)
+    )
+    val keepPausedReset =
+      (query find properties.resetKeptPaused in pausedThenReset limits three).expect(satisfied)
+
+// A reset of a held attempt, applied when the attempt's heartbeat deadline ends it: the server's
+// next delivery is a first attempt again, which completes, though the policy allowed one attempt.
+object DeferredReset extends Derived(ActivitySystem.unmonitored):
+  object properties:
+    val resetAttemptCompletes = property when worker.respondCompleted holds { s =>
+      s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
+    }
+  object queries:
+    val resetThenHeartbeatTimedOut = scenario.actions(
+      client.start(heartbeat := expires, maxAttempts := MaxAttempts.one),
+      worker.poll,
+      client.reset(ResetPause.resume),
+      deadline.heartbeat,
+      worker.poll,
+      worker.respondCompleted
+    )
+    val deferredResetCompletes =
+      (query find properties.resetAttemptCompletes in resetThenHeartbeatTimedOut limits six)
+        .expect(satisfied)
 
 // ### The worker of the activity's task queue, as the activity sees it: its stop and its serving.
 
