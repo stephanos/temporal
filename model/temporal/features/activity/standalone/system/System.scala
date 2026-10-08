@@ -574,9 +574,9 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       Retries.failureCancels[State, Phase] -> eight,
       Retries.attemptCountIsWithinPolicy[State, MaxAttempts.Bound] -> eight,
       Deadline.firesInWindow[State, Phase, Live] -> eight,
-      Deadline.deadlineTimesOut[State, Phase] -> eight,
-      Deadline.deadlineReturnsToWaiting[State, Phase] -> eight,
-      Deadline.deadlinePauses[State, Phase] -> eight
+      (Deadline.deadlineTimesOut[State, Phase]: AnyRef) -> eight,
+      (Deadline.deadlineReturnsToWaiting[State, Phase]: AnyRef) -> eight,
+      (Deadline.deadlinePauses[State, Phase]: AnyRef) -> eight
     )
 
     val any = scenario.free

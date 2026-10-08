@@ -146,8 +146,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       ActivitySystem.states.pendingCancel
     )
     val holds = property.decl.holds2.get
-      .asInstanceOf[(system.State, Step[system.State, Outcome, system.Fact]) => Boolean]
-    // scalafix:ok DisableSyntax.asInstanceOf
+      .asInstanceOf[
+        (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+      ] // scalafix:ok DisableSyntax.asInstanceOf
     val before = ActivitySystem.init.copy(
       phase = system.Phase.started,
       attempts = UpTo(1),
@@ -171,8 +172,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       ActivitySystem.states.pendingCancel
     )
     val timeoutHolds = typed.decl.holds2.get
-      .asInstanceOf[(system.State, Step[system.State, Outcome, system.Fact]) => Boolean]
-    // scalafix:ok DisableSyntax.asInstanceOf
+      .asInstanceOf[
+        (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+      ] // scalafix:ok DisableSyntax.asInstanceOf
     assert(timeoutHolds(exhausted, terminal))
     assert(
       !timeoutHolds(
@@ -210,12 +212,16 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     assert(declared.holds2.isEmpty, "the pinned FIND must retain a same-step claim")
     val holds = declared.holds2 match
       case Some(predicate) =>
-        predicate.asInstanceOf[(system.State, Step[system.State, Outcome, system.Fact]) => Boolean]
-        // scalafix:ok DisableSyntax.asInstanceOf
+        predicate.asInstanceOf[
+          (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+        ] // scalafix:ok DisableSyntax.asInstanceOf
       case None =>
         val predicate = declared.holds.get
-          .asInstanceOf[Step[system.State, Outcome, system.Fact] => Boolean]
-        // scalafix:ok DisableSyntax.asInstanceOf
+          .asInstanceOf[Step[
+            system.State,
+            Outcome,
+            system.Fact
+          ] => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
         (_: system.State, after: Step[system.State, Outcome, system.Fact]) => predicate(after)
     val rows = summon[Finite[system.State]].values.flatMap(before =>
       take(before, deadline.heartbeat()).map(after => before -> after)
@@ -285,15 +291,17 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         ExhaustAfterHeartbeat.evidence
       )
     do
-      val delivery = declarations.items(1).asInstanceOf[TypedEvidence[InstructionOutcome]]
-      // scalafix:ok DisableSyntax.asInstanceOf
+      val delivery = declarations
+        .items(1)
+        .asInstanceOf[TypedEvidence[InstructionOutcome]] // scalafix:ok DisableSyntax.asInstanceOf
       assertEquals(delivery.evidence.confirms, Vector(Taking(worker.poll, 1)))
       assertEquals(
         delivery.fields.flatMap(_.role).toSet,
         Set(FieldRole.attempt, FieldRole.delivery)
       )
-      val record = delivery.evidence.from.asInstanceOf[Recorded.TypedRunEvent[InstructionOutcome]]
-      // scalafix:ok DisableSyntax.asInstanceOf
+      val record = delivery.evidence.from.asInstanceOf[Recorded.TypedRunEvent[
+        InstructionOutcome
+      ]] // scalafix:ok DisableSyntax.asInstanceOf
       val invoked = record.guard.get.children.last
       assertEquals(invoked.value.get.operand, Operand.Literal(ProtoValue.Flag(true)))
       val absent =
@@ -302,8 +310,10 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         absent.copy(activityAttempt = Some(absent.getActivityAttempt.copy(heartbeatInvoked = true)))
       assertEquals[Any, Any](invoked.field.get.select(absent), false)
       assertEquals[Any, Any](invoked.field.get.select(present), true)
-      val receipt = declarations.items(2).asInstanceOf[EvidenceRef[?, ?]].evidence
-      // scalafix:ok DisableSyntax.asInstanceOf
+      val receipt = declarations
+        .items(2)
+        .asInstanceOf[EvidenceRef[?, ?]]
+        .evidence // scalafix:ok DisableSyntax.asInstanceOf
       assertEquals(receipt.records, system.Fact.heartbeatReceived)
       assert(!receipt.exhaustive)
       assert(receipt.confirms.isEmpty)
@@ -323,8 +333,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       }
       assertEquals(count.size, 1)
       assert(count.head.confirms.isEmpty)
-      val record = count.head.from.asInstanceOf[Recorded.TypedRunEvent[InstructionOutcome]]
-      // scalafix:ok DisableSyntax.asInstanceOf
+      val record = count.head.from.asInstanceOf[Recorded.TypedRunEvent[
+        InstructionOutcome
+      ]] // scalafix:ok DisableSyntax.asInstanceOf
       assertEquals(record.attempt.map(_.number), Some(2L))
       val first = declarations.items
         .collect { case delivery: TypedEvidence[?] =>
@@ -383,10 +394,12 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         ExhaustAfterHeartbeat.evidence -> ACTIVITY_ATTEMPT_RESPONSE_PENDING
       )
     do
-      val delivery = declarations.items(1).asInstanceOf[TypedEvidence[InstructionOutcome]]
-      // scalafix:ok DisableSyntax.asInstanceOf
-      val record = delivery.evidence.from.asInstanceOf[Recorded.TypedRunEvent[InstructionOutcome]]
-      // scalafix:ok DisableSyntax.asInstanceOf
+      val delivery = declarations
+        .items(1)
+        .asInstanceOf[TypedEvidence[InstructionOutcome]] // scalafix:ok DisableSyntax.asInstanceOf
+      val record = delivery.evidence.from.asInstanceOf[Recorded.TypedRunEvent[
+        InstructionOutcome
+      ]] // scalafix:ok DisableSyntax.asInstanceOf
       assertEquals(record.guard.get.children.size, 4)
       val disposition = record.guard.get.children(2)
       assertEquals(disposition.value.get.operand, Operand.enumValue(expected).operand)
@@ -411,8 +424,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         case poll: Instruction.TypedPoll[?, ?] => poll
       }
       assertEquals(polls.size, 2)
-      val timeout = polls.last.asInstanceOf[Instruction.TypedPoll[?, ActivityExecutionInfo]]
-      // scalafix:ok DisableSyntax.asInstanceOf
+      val timeout = polls.last.asInstanceOf[
+        Instruction.TypedPoll[?, ActivityExecutionInfo]
+      ] // scalafix:ok DisableSyntax.asInstanceOf
       val failure = timeout.until.children.last
       assertEquals(failure.value.get.operand, Operand.enumValue(TIMEOUT_TYPE_HEARTBEAT).operand)
       val matching = ActivityExecutionInfo(
@@ -432,8 +446,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       )
       assertEquals[Any, Any](failure.field.get.select(matching), TIMEOUT_TYPE_HEARTBEAT)
       assertEquals[Any, Any](failure.field.get.select(wrongTimer), TIMEOUT_TYPE_START_TO_CLOSE)
-      val receipt = polls.head.asInstanceOf[Instruction.TypedPoll[?, ActivityExecutionInfo]]
-      // scalafix:ok DisableSyntax.asInstanceOf
+      val receipt = polls.head.asInstanceOf[
+        Instruction.TypedPoll[?, ActivityExecutionInfo]
+      ] // scalafix:ok DisableSyntax.asInstanceOf
       assertEquals(receipt.until.children.size, 2)
       assertEquals(
         receipt.until.children.head.value.get.operand,
