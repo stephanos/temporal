@@ -14,88 +14,125 @@
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 50% [paraphrase], 20% [user], 30% [inferred] -->
 
-The owner pointed at patterns that repeat across phases: "like retry, failure, timeout etc." Phase roles (sibling spec fn-136 ("Phase roles on lifecycle enums")) cover what a phase is. Retry and timeout are about how phases change: a retryable failure backs an attempt off and a later timer retries it, and a deadline covers a window of phases and closes the entity as timed out when it fires. The activity system and the Nexus workflow system each write these transitions, and the phase windows each deadline covers, by hand.
+The owner pointed at patterns that repeat across phases, "like retry, failure, timeout etc." Phase roles, introduced by fn-136, describe what a phase is. Retry and timeout describe transitions. The activity system and Nexus workflow system already declare these transitions and the windows their timers cover.
 
-This spec adds two capabilities that state those patterns once, in role terms, so a machine declares them and receives their Properties. The Properties are checked against the machine's own steps. Declaring a capability doesn't write the transitions for the machine.
+Retries and Deadline state the shared promises once. A machine declares their bindings in its capabilities section and receives Properties checked against its own steps. The machine continues to own its transition rules.
+
+The owner approved the adjusted activity work plan and delegated the remaining recommendations. This refresh resolves the earlier planning questions under that authority. It does not attribute new quotations or behavior decisions to a feature owner.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**Retries.** A capability that reads the phase from the machine's `Phased` declaration (fn-137) and binds its attempt count, the attempt bound and the worker's failure answer. Its Properties are stated in roles, without the `Retrying` role: a retryable failure of a `Held` attempt lands in a `Waiting` phase; a failure that is not retryable lands in a `Failed` phase; the attempt count never exceeds the bound. Both models saturate the attempt count at the bound and keep retrying, and after fn-128.1 the activity's back-off is a field rather than a phase, so the Properties name neither a bound-reached failure nor a back-off phase.
+**Retries.** Each binding names one failure action class, whether that class is retryable, the attempt-count projection, the finite policy maximum or explicit unlimited policy, and the before-state retries-remaining predicate. Optional pending-pause and pending-cancel predicates declare control branches. An absent control binding contributes no branch and requires no phase case for that branch. These are classification inputs, not arbitrary predicates that define whether the expected landing happened. Properties obtain the phase from the machine's Phased declaration and check the landing against roles.
 
-**Deadline.** [paraphrase] A capability that reads the phase from the machine's `Phased` declaration (fn-137) and binds the role the deadline covers, whether the deadline is set in a state, and the timeout type it records. Its Properties: the deadline fires only while it is set and the phase has the covered role; a firing lands in a `TimedOut` phase and records its timeout type. [paraphrase] A machine declares one Deadline per timer. The activity's three map to roles as schedule-to-close covering `Live`, schedule-to-start covering `Waiting` and start-to-close covering `Held`.
+The failure settlement contract reads the state before the selected failure.
 
-**Shape.** [inferred] Both capabilities follow fn-134's shape (companion-defined Properties, declared in a machine's `capabilities` section, bounded in its `queries` section) and read roles through the type witnesses of fn-137 ("Capabilities read phase roles").
+| Failure and before-state control | Required after-state role |
+| --- | --- |
+| Fatal, including pending pause or cancel | Failed |
+| Retryable with cancellation pending, including exhausted attempts | Canceled |
+| Retryable with no cancellation pending and no retries remaining | Failed |
+| Retryable with retries remaining and pause pending | Suspended |
+| Retryable with retries remaining and neither control pending | Waiting |
+
+Cancellation has priority over pause for retryable failure. The exhausted-cancellation row preserves the independent activity Model's existing rule. The ordinary and pause rows preserve fn-128.3's policy exhaustion. A retryable failure need not originate in Held. Nexus handler failures and network faults originate in Waiting.
+
+The policy bound compares the count with the declared finite maximum. A policy of one and a representable count of two violates the Property. The finite counter's representation ceiling is not the policy bound. Unlimited explicitly imposes no finite policy maximum, while the count remains in its declared finite domain. This does not claim an unbounded number of represented attempts.
+
+**Deadline.** Each binding names its timer class, covered role, before-state armed predicate, typed terminal timeout fact and whether the timer can retry. A retryable binding also supplies explicit retries-remaining and control predicates. Each selected firing must originate in an armed state whose phase has the covered role, whether or not it records a terminal fact.
+
+| Deadline firing and before-state control | Required after-state role and facts |
+| --- | --- |
+| Cancellation pending | TimedOut and the binding's typed terminal timeout fact |
+| Nonretryable deadline, or exhausted retryable deadline | TimedOut and the binding's typed terminal timeout fact |
+| Eligible retryable deadline with pause pending | Suspended, with no terminal timeout fact |
+| Eligible retryable deadline with neither control pending | Waiting, with no terminal timeout fact |
+
+Deadline cancellation settlement is TimedOut, as fn-128.3 specifies. It differs from retryable worker-failure cancellation settlement. The existing activity statusTimedOut(type) confirms ACTIVITY_EXECUTION_STATUS_TIMED_OUT and remains a terminal fact. The Nexus timeout fact likewise describes terminal timeout. Eligible retries must not emit any value of that terminal timeout fact family. No new fact is needed merely to check the timer window.
+
+Activity schedule-to-close covers Live, schedule-to-start covers Waiting and is armed only while dispatch is now, and start-to-close covers Held and can retry. The Nexus workflow's three deadlines cover Live, Waiting and Held respectively and terminate when they fire. Heartbeat adoption belongs to fn-129 and follows the Deadline contract when that task introduces its timer.
+
+**Checking.** The existing Scala and IR property forms already carry an action selector together with holdsAcross(before, after). The reader's transition verification must retain that selector, evaluate only selected steps and preserve the before-state. Capability-generated transition claims use free verify Queries. The narrow extension keeps transition find refusal and the current Step and protobuf schemas. Check, the private key engine and export agree on selected, skipped and exercised steps.
+
+**Expansion.** Both capabilities follow the existing companion-defined Property shape. New Retries and Deadline instances generate `<machine>.<val>.<property>` names for their Properties, Scenarios and Queries, retaining the companion definition as origin. Their parameter resolution reads the current declaration's own fields first. Cross-capability resolution applies only to fields the current declaration does not bind and retains ambiguity refusal. Existing capability kinds retain their names and IDs. A Property that reads an own binding field does not require Pollable merely because it reads Held or Waiting.
+
+Capability expansion requires an explicit IR root. Task .3 adds `NexusSystem.capabilities` to `exports.nexusWorkflow` in `model/temporal/features/nexus/workflow/Workflow.scala`, preserving its existing roots and their ordering. A machine root or a bound statement in a queries section does not lift the capability declarations. Focused scratch and shared production lifts must contain every expected Nexus Retries and Deadline Property, Scenario and free verify Query; every generated Query must be exercised with a decisive within-limit receipt.
+
+**Equivalence.** Existing Query behavior and the full ordered receipts remain strict against completed post-fn-128.5 source. Additive declarations may mechanically shift existing source positions. Only an explicit closed old-to-new correspondence of the edited source spans may account for those positions, retaining every file, line and column rather than blanking or dropping them. Whole-source Model fingerprints and embedded Case provenance may change because the source adds declarations. Every such difference needs the exact original/new hash-input ledger and independent recomputation from those inputs. Existing semantic IDs, Property truth on applicable rows, Scenario and witness path, Query limits/answers/order, Program and Contract, expected assessment and receipt semantics remain fixed. Unexplained coordinates, hashes or content are differences, not normalization allowances.
 
 ## API Contracts
 <!-- scope: technical -->
 
-- [paraphrase] **Retries**: reads the phase from `Phased`; binds the attempt-count projection, the attempt bound and the failure input with its retryable classification.
-- [paraphrase] **Deadline**: reads the phase from `Phased`; binds the covered role, a set-in-this-state predicate and the timeout type recorded on firing.
+- Retries binds an exact action class, a retryable classification, attempt count, finite policy maximum or explicit unlimited policy, retries remaining and optional pending controls. Each supplied function names a def of the lifted sources. The phase comes from Phased.
+- Deadline binds an exact timer class, a covered role through its type witness, an armed predicate and a typed terminal timeout fact. Retry eligibility and pending controls are explicit when that deadline retries. The phase comes from Phased.
+- Binding a pause branch requires a Suspended case; binding cancellation for failures requires Canceled. An absent branch requires neither that role nor a companion capability declaration. Waiting and Failed are required for Retries, and TimedOut plus the covered role for every Deadline. A retryable Deadline also requires Waiting and any declared pause branch's Suspended role. Held is not a Retries source prerequisite.
+- The same machine may declare several instances of the new capability kinds. Two Deadline declarations with the same terminal timeout type are refused, naming both vals and both positions. Different timeout types retain distinct bindings and generated names.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- [inferred] A Retries declared for a phase with no `Held`, `Waiting` or `Failed` case, or a Deadline for a phase with no `TimedOut` case or no case with its covered role, is refused instead of generating a vacuous Property.
-- [inferred] A machine with more than one deadline of the same timeout type is refused, since the recorded type would not tell them apart.
+- A non-Phased machine, missing required phase role, unbound action class, non-timer Deadline action or malformed binding is refused at its declaration. Required-role refusal names the machine and role. A caller may not pass a lambda where the existing lifter requires a named def.
+- A selected firing from an unarmed state or outside its covered role violates the window Property even if the step records no terminal fact. An unrelated action neither evaluates that Property nor marks it exercised.
+- Checking retries remaining after the failure would misclassify Nexus's incrementing failure and exhaustion boundaries. Eligibility uses the before-state.
+- A wrong retry landing, premature failure, extra retry after exhaustion, wrong control precedence, missing or wrong terminal timeout fact, or a terminal timeout fact on an eligible retry is a counterexample. Resource limits, unknown rows and a never-exercised selector retain the reader's existing separate statuses and evidence.
+- A failed shared Property must be investigated without a silent waiver. A real conformance failure requires a human decision under AGENTS.md. Product behavior remains independently authoritative; matching the Go comparator alone cannot justify changing it.
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** A Retries capability exists whose Properties state that a retryable failure of a `Held` attempt lands in a `Waiting` phase, a non-retryable failure lands in a `Failed` phase, and the attempt count never exceeds the bound. The activity system and the Nexus workflow system declare it and its Properties hold there. Errors: a Retries declared for a phase lacking a `Held`, `Waiting` or `Failed` case is refused by the IR generator, naming the missing role.
-- **R2:** [paraphrase] A Deadline capability exists whose Properties state that the deadline fires only while set and in a phase with its covered role, and that a firing lands in a `TimedOut` phase recording its timeout type. The activity system and the Nexus workflow system declare one per timer, and their Properties hold there. Errors: a Deadline whose covered role no phase case has, or whose phase has no `TimedOut` case, is refused naming the role; two Deadlines of one machine with the same timeout type are refused naming both.
-- **R3:** [inferred] The hand-written phase windows these machines' timer rules read (live, waiting, held) are role tests, and declaring Retries and Deadline changes no existing Query's answer, receipt or Definition ID. Errors: any other difference stops the regeneration.
+- **R1:** Retries checks the control-aware failure settlement table and the finite policy bound, using before-state eligibility. The activity system and Nexus workflow system declare it, including Nexus's retryable handler error and network fault from Waiting, and the generated free verify Queries hold within their declared limits. Unlimited is explicit, and max one with count two refutes the bound. Errors: non-Phased machines, missing Waiting or Failed, missing roles for declared control branches, unbound failure classes and invalid bindings are refused with located diagnostics; wrong ordinary, pause, cancellation, fatal or exhausted landings produce counterexamples. Held and Pollable are not required source declarations.
+- **R2:** Deadline checks every firing's armed predicate and covered role against the before-state and enforces the deadline settlement table. Both systems declare one per existing timer; eligible retries land in Waiting or Suspended without a terminal timeout fact, while exhaustion, a nonretryable deadline or pending cancellation lands in TimedOut with the correct typed terminal fact. Errors: missing covered or required landing roles, non-Phased machines, invalid timer bindings and duplicate timeout types are refused; duplicate-type refusal names both vals and positions; unarmed/out-of-window firings, wrong landings, missing/wrong terminal facts and terminal facts on retries produce counterexamples.
+- **R3:** Remaining live, waiting and held timer windows use role tests. Against completed fn-128.5 source, every existing Query of the adopted machines preserves its Property truth on applicable rows, Scenario/witness path, limits, answer, ordering, full ordered receipt semantics, Definition ID and Case semantics/IDs, including identical Contract, controller/worker Program and expectations. The approved fn-138 delta adds declaration-scoped Properties, Scenarios and free verify Queries plus the equivalent remaining timer-window rewrite. Only actual mechanically shifted source positions may differ through a closed old-to-new edited-span correspondence; additive whole-source Model/Case-provenance hashes require an exact original/new hash-input ledger and recomputation. Errors: any unexplained coordinate/hash or unlisted semantic, receipt, identity or Case difference stops the comparison; blanking positions and arbitrary fingerprint normalization are forbidden. Production comparison waits for the shared activity batch regeneration.
 
 ## Early proof point
 
-Task fn-138-retries-and-deadline-capabilities.1 validates the core approach: a capability that reads roles but whose Properties read its own fields lifts on a machine without Pollable, and its missing-role refusals fire. If it fails, revisit how fn-137's owned-role rule treats a capability that reads a role another capability owns before continuing with .2+.
+Task fn-138-retries-and-deadline-capabilities.1 proves that the existing action-selector IR supports before-state transition verification, that Retries lifts on a Waiting-source machine without Pollable or optional control roles, and that a max-one/count-two mutant fails. Failure of that proof requires revisiting the narrow binding or selector extension before .2 and .3.
 
 ## Quick commands
 
+Focused commands run only after the fn-128.5 source gate and the planning review. Workers use the shared heavy-gate lock for expensive commands.
+
 ```bash
-mise exec -- scala-cli test model/irgen
-mise exec -- scala-cli test model/temporal
+mise exec -- scala-cli test --server=false model/irgen --require-tests
+mise exec -- scala-cli test --server=false model/project.scala model/umpire model/temporal --test-only '*Capability*' --require-tests
+go test -tags test_dep ./tools/umpire/check ./tools/umpire/internal/engine ./tools/umpire/export
 ```
-
-## Open Questions
-
-Found in planning (2026-10-06) against the upstream task shapes. Tasks 1 and 2 ask the owner before writing the Properties.
-
-- **Exhausted attempts (R1).** fn-128.3 makes the activity's retryable failure, and its retryable start-to-close timeout, fail once `retriesRemaining` is false. The Decision Context says both models keep retrying at the bound. Proposed: Retries binds an optional retries-remaining predicate, and a retryable failure lands in `Waiting` only while retries remain.
-- **Source role (R1).** The Nexus workflow's retryable handler error, and `network.fault`, fire from `scheduled`, a `Waiting` phase, not a `Held` one. Proposed: the source is any `Live` phase, or Retries states no source role.
-- **Retryable deadlines (R2).** After fn-128.3 the activity's start-to-close firing lands in `Waiting` while attempts remain, and fn-129.1's heartbeat deadline will do the same. Proposed: an optional retryable flag on Deadline, whose Property defers to Retries while retries remain.
-- **Request phases (R1).** In the activity a retryable failure from `pauseRequested` lands in `paused` (`Suspended`) and from `cancelRequested` in `canceled` (`Closed`). fn-136 makes both request phases `Held`, so no choice of source role makes "lands in `Waiting`" hold. Proposed: the retryable Property promises only "a retryable failure with retries remaining does not land in `Failed`".
-- **Vacuous bound (R1).** "The attempt count never exceeds the bound" can't fail: the activity's `attempts: UpTo[2]` and the Nexus workflow's `Finite.upTo(attemptBound)` already guarantee it by type. Proposed: bound the count against fn-128.3's `maxAttempts` where it is finite, or drop the Property and amend R1.
-- **Expressible forms (R1, R2).** Check answers a transition Property that has a `when` as `unsupported`, and `Step` doesn't carry the action. So a Property must be either a `when … holds` over the state after the step, or a transition Property with no `when`. The Deadline window is the second kind, keyed on the recorded timeout-type fact. That form depends on refusing duplicate timeout types. A Retries condition on the state before the failure has no supported form.
-- **Generated names (R2).** Three Deadlines on one machine would collide under `<machine>.<property>`. Task 2 settles a per-declaration name.
-- **R3 overlap with fn-136.5.** fn-136.5 already retires the `live`, `waiting` and `held` predicates. What is left is the Nexus start-to-close rule's inline `phase == started`. R3's "no Definition ID change" covers existing Queries only: fn-138's own delta adds Properties and Queries.
 
 ## Boundaries
 <!-- scope: business -->
 
-- [paraphrase] Retries and Deadline check the machine's steps. They don't generate the steps.
-- [inferred] Backoff timing, retry policy fields (initial interval, coefficient, maximum interval) and non-retryable error types beyond the retryable classification are not modeled.
+- Retries and Deadline check the machine's own steps. They generate no transition behavior.
+- Backoff durations, retry interval/coefficient/maximum-interval policy and nonretryable error-type lists beyond the bound retryable classes remain outside this spec.
+- The implementation extends existing action-filtered transition verification. It adds no Step action field, protobuf schema, alternate evaluator, generic driver/cache framework or per-landing predicate framework.
+- fn-129 retains heartbeat/reset/by-ID ownership. This refresh does not implement or expand that spec or later schemas.
+- Framework/lifter fixture goldens may be regenerated in a focused task. Production IR, Cases and their mirrors, full gates, review and live execution share the fn-128.6/fn-129.5 batch boundary.
 
 ## Decision Context
 <!-- scope: both -->
 
-Retries reads `Held`, `Waiting` and `Failed` rather than `Retrying` (owner's choice during planning, 2026-10-06): a retryable failure at the bound saturates and keeps retrying in both models, and fn-128.1 turns the activity's back-off into a field, so a `Retrying` phase is not a portable target. The `Retrying` role stays in fn-136 for phases that are backing off, such as the Nexus workflow's.
+The owner's original choice reads Waiting rather than requiring a Retrying phase. The activity's backoff is a dispatch field; Nexus's backingOff phase has the narrower Retrying role and therefore Waiting. The original statement that both models retry at their bound was superseded by fn-128.3's finite activity policy. Nexus retains explicit unlimited policy with a saturating represented count.
 
+The approved work-plan delegation resolves the prior planning proposals. Strong control-aware landing checks replace the proposed weak "not Failed" guarantee. Nexus uses exact failure classes from its Waiting phase. Finite policy maxima replace representation-ceiling checks. The existing selector/transition IR gains narrow reader support rather than fact-keyed timer windows. New instance names are `<machine>.<val>.<property>`, and field resolution begins at that declaration. These are adopted planning recommendations, not fabricated new owner quotations.
 
-[paraphrase] Retry and timeout were first raised as candidate phase classifications, but they describe transitions, not phases: a phase is `Retrying` or `TimedOut`, and the retry or the timeout is the step into it. So they are capabilities that read roles, beside Close and Pause, and not more roles.
+The delegated technical clarification of R3 preserves exact semantic comparisons while accounting for source coordinates and hashes mechanically derived from additive declarations. A closed edited-span correspondence accounts only for actual shifted positions, and exact original/new hash-input ledgers justify changed Model fingerprints or embedded Case provenance. This does not grant a general position or fingerprint ignore list. The existing disk.durableStays framework specimen changing from Unsupported to a supported check is intentional evidence for the reader extension; it is not an exemption for any production Query.
 
-Maintainability (plan review): duplication - task .3 keeps the hand-written timeout Properties (`scheduleToStartFires`, `scheduleToCloseFires`, `startToCloseFires` and the Nexus equivalents) beside Deadline Properties that state the same landing claim, because R3 forbids changing existing Queries; retiring them is an owner decision after this spec; structure - none identified
+Retry and timeout were first raised as candidate phase classifications, but they describe transitions. A phase may be Retrying or TimedOut; the retry or timeout is the step into it. These capabilities sit beside the existing lifecycle capabilities and read roles.
 
-[paraphrase] This spec is one of three split from one conversation. It depends on fn-137 ("Capabilities read phase roles"), which depends on fn-136 ("Phase roles on lifecycle enums"). The approved activity-batch conductor gate starts implementation only after fn-128.5 is done: the precision source and realization work must be available before Retries reads it. Flow cannot express cross-spec task dependencies, so this source gate supplements its metadata rather than waiting for fn-128 to close. fn-128.6 and fn-129.5 share regeneration, review and live-run evidence at the batch boundary; no activity spec closes prematurely.
+Maintainability (existing plan review): task .3 keeps existing hand-written timeout Properties and Queries beside the new Deadline claims because R3 preserves them. Retirement remains separate owner-directed work. No new structural framework is justified.
 
+Maintainability (plan review): duplication - Task .3 retains hand-written timeout settlement checks beside generated Deadline checks; this duplication is explicitly required by R3; structure - none identified.
+
+This spec is one of three split from one conversation. It depends on fn-137, which depends on fn-136. The approved activity-batch conductor starts fn-138 implementation only after fn-128.5 is DONE and integrated. fn-128.5 supplies the final raw attempt-count reads for all four activity Realizes declarations, cancel-monotonicity checking and query/timer explanations; fn-138 must re-anchor those completed sources. Its precision work adds no authorization to change retry settlement behavior. Flow cannot express the cross-spec task gate, so the conductor enforces it alongside existing metadata. This scratch preparation does not satisfy that gate.
+
+Each worker runs focused verification and may update scoped lifter fixture goldens. Production artifacts, full Model/Go/lint/fixture/canary gates, independent implementation review and live proof run at the single shared fn-128.6/fn-129.5 boundary. Activity specs do not close from source-only task evidence. The fn-138 equivalence proof uses the post-fn-128.5 source before fn-138 changes; the wider batch comparison separately retains its recorded activity baseline. A stale DSL-batch baseline cannot stand in for fn-138's R3 proof.
+
+The independent activity Model preserves retryable cancellation-requested worker failure as Canceled. The comparator's Failed response is a known disagreement requiring human judgment if live conformance exposes it. Neither capability adoption nor a regenerated artifact may silently reconcile it.
 
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | A Retries capability exists whose Properties state that a retryable failure of a `Held` attempt lands in a `Waiting` phase, a non-retryable failure lands in a `Failed` phase, and the attempt count never exceeds the bound. The activity system and the Nexus workflow system declare it and its Properties hold there. Errors: a Retries declared for a phase lacking a `Held`, `Waiting` or `Failed` case is refused by the IR generator, naming the missing role. | fn-138-retries-and-deadline-capabilities.1, fn-138-retries-and-deadline-capabilities.3 | — |
-| R2 | [paraphrase] A Deadline capability exists whose Properties state that the deadline fires only while set and in a phase with its covered role, and that a firing lands in a `TimedOut` phase recording its timeout type. The activity system and the Nexus workflow system declare one per timer, and their Properties hold there. Errors: a Deadline whose covered role no phase case has, or whose phase has no `TimedOut` case, is refused naming the role; two Deadlines of one machine with the same timeout type are refused naming both. | fn-138-retries-and-deadline-capabilities.2, fn-138-retries-and-deadline-capabilities.3 | — |
-| R3 | [inferred] The hand-written phase windows these machines' timer rules read (live, waiting, held) are role tests, and declaring Retries and Deadline changes no existing Query's answer, receipt or Definition ID. Errors: any other difference stops the regeneration. | fn-138-retries-and-deadline-capabilities.3 | — |
-
+| R1 | Control-aware failures, before-state eligibility and meaningful finite policy bounds | fn-138-retries-and-deadline-capabilities.1, fn-138-retries-and-deadline-capabilities.3 | Focused proof in .1; production adoption proof at the shared batch boundary |
+| R2 | Every-firing deadline windows and retry/terminal settlement with typed facts | fn-138-retries-and-deadline-capabilities.2, fn-138-retries-and-deadline-capabilities.3 | Focused proof in .2; production adoption proof at the shared batch boundary |
+| R3 | Existing ordered receipts, answers, IDs and Cases preserved; declared additive delta | fn-138-retries-and-deadline-capabilities.3 | The conductor compares completed post-fn-128.5 source at the shared batch boundary |

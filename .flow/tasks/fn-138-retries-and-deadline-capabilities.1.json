@@ -9,6 +9,6 @@
   "spec": "fn-138-retries-and-deadline-capabilities",
   "spec_path": ".flow/tasks/fn-138-retries-and-deadline-capabilities.1.md",
   "status": "todo",
-  "title": "Retries capability: kit Properties and lifter refusals (owner question first)",
-  "updated_at": "2026-10-06T18:05:11.353939Z"
+  "title": "Retries capability and action-filtered transition verification",
+  "updated_at": "2026-10-08T06:20:53.756753Z"
 }

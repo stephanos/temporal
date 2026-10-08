@@ -4,40 +4,46 @@ satisfies: [R2]
 # fn-138-retries-and-deadline-capabilities.2 Deadline capability: kit Properties, per-declaration names and lifter refusals
 
 ## Description
-Framework/kit work only: the Deadline capability, its Properties and refusals, proven on irgen fixtures, following task 1's shape. Split from task 1 so each capability's owner question and refusals are proven on their own; it follows task 1 because both edit the same kit and lifter files.
+Implement R2's Deadline companion Properties, repeated declaration binding and located refusals on fixtures. Reuse task .1's action-filtered transition verification. Task .2 follows .1 because both modify the capability expander and fixture files.
 
 **Size:** M
-**Files:** `model/temporal/capabilities/Deadline.scala` (new), `model/temporal/capabilities/Capabilities.scala`, `model/irgen/Capabilities.scala`, `model/irgen/testdata/lifts/Capabilities.scala` + `lifts/CapabilityRejects.scala` + `lifts/expected/*`, `model/irgen/test/Fixtures.test.scala`, `tools/umpire/ir/framework_test.go`
-**Touches:** [model/temporal/capabilities/**, model/irgen/Capabilities.scala, model/irgen/testdata/lifts/**, model/irgen/test/Fixtures.test.scala, tools/umpire/ir/framework_test.go, .flow/specs/fn-138-retries-and-deadline-capabilities.md]
-**Batch:** deferred Model batch (see MILESTONES.md, Deferred, fn-128). Do not run `make umpire-gen-model`, regenerate fixtures or Cases, or run the full gates in this task; any IR proof or comparison below is checked at that batch's single regeneration against its baseline (the tree at the DSL batch's close), not against a snapshot taken by this task. Framework and lifter fixtures and munit tests still run here. Commit the task on its own.
+**Files:** `model/temporal/capabilities/Deadline.scala` (new) and focused tests; `model/irgen/Capabilities.scala`; `model/irgen/testdata/lifts/CapabilitySections.scala`, `CapabilitySectionRejects.scala`, scoped `expected/*`; `model/irgen/test/Fixtures.test.scala`; `tools/umpire/check/checking_test.go`; `tools/umpire/export/quint_test.go`; `tools/umpire/ir/framework_test.go`.
+**Touches:** [model/temporal/capabilities/Deadline.scala, model/temporal/capabilities/Deadline.test.scala, model/irgen/Capabilities.scala, model/irgen/testdata/lifts/**, model/irgen/test/Fixtures.test.scala, tools/umpire/check/*test.go, tools/umpire/export/*test.go, tools/umpire/ir/framework_test.go]
+**Source gate:** fn-128.5 DONE and integrated, persisted plan reviewed, and fn-138.1 complete. This scratch preparation grants no implementation start.
+**Batch:** Run focused Scala/Go/reader/export proof and regenerate only scoped lifter fixture goldens. Production IR/Cases/mirrors, complete regeneration, full gates and live execution remain at the shared fn-128.6/fn-129.5 boundary. Record focused evidence; the conductor owns Flow and canonical plan writes.
 
 ### Approach
-- **Ask the owner first** (record in the spec's Decision Context; update R2 if it changes): after fn-128.3 the activity's start-to-close timeout retries while attempts remain, so its firing lands in `Waiting`, not `TimedOut`; fn-129.1's heartbeat deadline (later in the same deferred batch) will do the same. Proposed: Deadline binds an optional retryable flag; a retryable Deadline's Property reads "a firing with retries remaining lands where Retries' retryable failure lands, otherwise in `TimedOut` recording its type", reading Retries' retries-remaining field when both are declared (fn-134's multi-capability rule brings it only where both are), and a non-retryable one keeps "lands in `TimedOut`".
-- Fields: the deadline input (`ClassRef`), the covered role (a role type, carried as a type parameter with its `TypeTest` witness, not as a value), a set-in-this-state predicate (`S => Boolean`, e.g. `_.scheduleToClose == Timeout.expires`; after fn-128.1 the activity's schedule-to-start predicate also requires `dispatch = now`), and the timeout type recorded on firing (the fact it records). Phase from `Phased` (fn-137.1).
-- Properties, in forms Check supports (a transition Property with a `when` is `unsupported`; see task 1):
-  - Window: a transition Property with no `when`, keyed on the recorded timeout-type fact. Its shape is: if the step records this Deadline's timeout type, then the state before it was set and in the covered role. Keying on the fact is sound only because duplicate timeout types are refused, so say so in the Scaladoc.
-  - Landing: a `when <deadline> holds` over the state after the step. The phase is `TimedOut` and the fact is recorded, with the retryable variant above if the owner accepts it.
-- Names: one machine declares three Deadlines, and fn-134 names generated Queries `<machine>.<property>`, so three Deadlines would collide. Make the generated Property and Query name include the declaring `val` (e.g. `<machine>.<val>.<property>`, or the property name suffixed by the val) and record the chosen form in the spec; a collision that still occurs is refused naming both declarations. Check this against fn-134.2's naming before writing it.
-- Refusals (lifter, reusing fn-137's missing-role check): covered role no phase case has (names the role); no `TimedOut` case; non-`Phased` machine; two Deadlines on one machine recording the same timeout type, naming both declarations and positions (carry over fn-134's duplicate-capability check: two Deadlines of different types are allowed, so the duplicate rule keys on kind plus timeout type).
-- Add `Deadline(` to `TestFrameworkNamesNoTemporal`. Keep the name distinct from fn-133.4's realization `deadlines(…)` binding and the feature's `deadline` section: say so in the companion's Scaladoc.
+
+- Mirror task .1's typed case class/companion form in `Deadline.scala`. Bind timer class, covered role type and witness, armed predicate and typed terminal timeout fact. Bind explicit retryability, before-state eligibility and any pending control predicates for a retryable timer. Require TimedOut/covered role for every binding and Waiting plus the roles of declared retry-control branches. An omitted pause branch requires no Suspended case.
+- Implement an action-filtered holdsAcross window Property. Every firing reads `armed(before)` and covered-role membership of the before-state. Do not key it on a terminal fact, because an eligible retry records no terminal timeout fact. Implement the landing Property against the same selected timer with before-state eligibility and the R2 settlement table. Pending cancel settles TimedOut; eligible ordinary/pause retries are Waiting/Suspended, while nonretryable and exhausted firings are TimedOut.
+- Terminal settlement requires the exact typed timeout fact of the binding. Eligible retry forbids the terminal timeout fact family, including a differently typed timeout value. The binding supplies the existing typed fact family selection using current finite fact forms; no new schema, Step field or unconditional attempt-timeout fact is required.
+- Retain each val's instance in expansion and own-field/type-parameter resolution. Check at least two Deadlines of different covered roles, armed predicates and typed timeout values. Generate `<machine>.<val>.<property>` names for new kinds only and retain companion origin, free verify form and independent computed totals/bounds. Reuse task .1's bound-override fanout across matching new instances and ambiguous claim/waiver refusal. Keep older kind IDs unchanged.
+- Refuse duplicate Deadline terminal timeout types on one machine, with both val names and both declaration positions. Do not restore the old kind-only duplicate refusal for permitted new instances. Refuse a non-Phased machine, missing covered/landing role, foreign/unbound/non-timer class and invalid binding at the relevant declaration.
+- Extend the existing refusal harness and framework name list with Deadline. Keep the capability name distinct in documentation from the realization helper `deadlines(...)` and the feature's `deadline` signature object.
 
 ### Investigation targets
+
 **Required:**
-- task 1's `model/temporal/capabilities/Retries.scala` (shape to mirror)
-- `model/temporal/features/activity/standalone/system/System.scala:176-177, 215-231, 278-290` (timeOut effect, timer rules, `*Fires` Properties)
-- `model/temporal/features/nexus/workflow/system/System.scala:209-247`
-- `model/irgen/Capabilities.scala` (duplicate-capability check, ~316-353 before fn-134 moves it)
+
+- Task .1's `model/temporal/capabilities/Retries.scala` and revised `model/irgen/Capabilities.scala` for instance bindings and free transition verify generation.
+- Completed post-fn-128.5 Activity `system/System.scala` for start-to-close eligibility, cancellation precedence and statusTimedOut facts; re-anchor the final source before coding.
+- `model/temporal/features/nexus/workflow/system/System.scala:212,234` for the existing typed timeout effect and role windows.
+- `model/irgen/testdata/lifts/CapabilitySections.scala`, `CapabilitySectionRejects.scala` and `model/irgen/test/Fixtures.test.scala:329` for repeated binding/refusal fixtures.
+
 **Optional:**
-- `.flow/tasks/fn-133-lean-typed-realizations.4.md` (`deadlines(…)` naming)
+
+- `tools/umpire/check/checking_test.go`, `tools/umpire/export/quint_test.go` for the selector/transition tests task .1 extends.
+- `model/temporal/realize/Modules.scala` for existing typed deadline realization expansion; it is a read target, not a requested modification.
 
 ### Key context
-- Relies on: task 1, fn-134.2 (shape, duplicate-capability refusal), fn-136.1 (roles), fn-137.1/.6 (`Phased`, witnesses, shared missing-role check), fn-128.1 (dispatch field in the schedule-to-start window), fn-128.3 (retryable start-to-close).
-- The Deadline's covered role is a framework role or a model role extending one (fn-136 R1); `Live` for schedule-to-close includes `Suspended`, matching today's `states.live`.
+
+Activity schedule-to-start's armed predicate includes dispatch now. Start-to-close retries only while policy allows it and cancellation is absent. Its pause retry preserves dispatch backoff. Existing statusTimedOut(type) remains terminal and maps to the TimedOut API status. Nexus deadlines always terminate. Heartbeat integration belongs to fn-129 after it introduces the timer; this task neither adds that timer nor changes its schema.
 ## Acceptance
-- [ ] The owner's answer on retryable deadlines is recorded in the spec, and R2 matches it.
-- [ ] A fixture machine with two Deadlines of different timeout types lifts, each bringing its own Properties with `origin`, bounded from `queries`.
-- [ ] Refusal fixtures: missing covered role, missing `TimedOut`, non-`Phased` machine, duplicate timeout type naming both declarations.
-- [ ] `scala-cli test model/irgen` and `scala-cli test model/temporal` pass with no unchecked warning; `TestFrameworkNamesNoTemporal` lists `Deadline(`.
+- [ ] A fixture with two Deadline vals of different timeout types, covered roles and armed predicates lifts independent own bindings, companion origin, `<machine>.<val>.<property>` names and bounded free verify Queries. Existing capability names/IDs remain unchanged.
+- [ ] Every selected firing checks its before-state armed predicate and covered role, including an eligible retry that emits no terminal timeout fact. Mutants firing unarmed, outside the covered role or during a disallowed dispatch window fail with nonempty replayable counterexamples. Unrelated actions do not evaluate or exercise the window Property.
+- [ ] Eligible ordinary retry is Waiting and eligible pause retry is Suspended with no terminal timeout fact of any type. Exhaustion, nonretryable deadline and cancellation-pending firing are TimedOut with the binding's exact typed timeout fact. Tests refute wrong retry/terminal targets, cancellation-as-retry, missing/wrong typed terminal facts and a terminal fact emitted on an eligible retry.
+- [ ] Refusal fixtures cover missing Phased, covered role, TimedOut, a required retry/control role, foreign/unbound/non-timer classes and malformed bindings. Duplicate timeout-type refusal names both vals and both positions. Different types pass; absent control branches do not require absent control roles.
+- [ ] Scoped Scala/irgen and Go reader/export fixture tests pass with no unchecked warning; selector/before-state export agreement is retained. Scoped fixture golden diffs are reviewed, and the framework name gate lists Deadline. Production regeneration, Cases/full gates and live proof remain deferred to the shared boundary.
 ## Done summary
 TBD
 
