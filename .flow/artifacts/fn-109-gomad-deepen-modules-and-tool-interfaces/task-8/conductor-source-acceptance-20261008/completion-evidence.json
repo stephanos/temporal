@@ -1,0 +1,28 @@
+{
+  "commits": [
+    "1f2a6d1250a2372edc55c762dcb6d8b179fbe17f"
+  ],
+  "tests": [
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/preparation ./target ./cmd/gomad/internal/cli ./cmd/gomadtool -run \"TestInspectSource|TestReviewCapabilitiesSource|TestAnalyzeSource|TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported|TestCompatibilityPackSourceUsagePreservesBytesAndWriteFailure\"",
+    "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-caller-overlay.json' ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run 'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview'",
+    "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-overlay.json' ./cmd/gomad/internal/cli ./qualification/analysis ./cmd/gomadtool -run 'TestAnalyzeSourceActualOwnerConsumer|TestPreparedReviewSourceActualOwnerFailedClose|TestCompatibilityPackSource|TestAnalyzeReviewsTheTargetBeforeBuildingTheClaim|TestBuild|TestDecodeValidatesCanonicalCapabilityReport|TestPrepareCapabilityReview'",
+    "cd '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3' && go test -json -count=1 -tags test_dep -overlay '/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-overlay.json' ./internal/preparation -run 'TestInspectClosureDoesNotBuildOrLaunch|TestInspectRejectsCallerRootAndPreservesReviewClassificationOnCleanupFailure|TestInspectCloseSurfacesCleanupFailure|TestInspectPreservesInvalidAdapterSum|TestInspectRetainsUnsupportedClosureClassification'",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep . -run \"TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet|TestInspectionSourceOwnershipDelegation|TestExactModuleEdges\"",
+    "GOFLAGS=\"-tags=test_dep -count=1\" make -C tools/gomad3 validate GOCACHE=/Users/stephan/Workspace/skunkworks/.gomad-fn1129-cache-EseD1r",
+    "cd tools/gomad3 && go test -json -count=1 -tags test_dep ./internal/compatibilitypack -run \"^TestHostPacksBindCurrentProfile$\"",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=19a66244503cee636607b0449081d31e69cd769a GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config ../../.github/.golangci.yml --build-tags test_dep ./internal/preparation/... ./qualification/analysis/... ./cmd/gomad/internal/cli ./cmd/gomadtool ./target .",
+    "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/original-classification-overlay-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.json\" ./cmd/gomad/internal/cli -run TestAnalyzeSourceActualOwnerClassification",
+    "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-classification-overlay-44c32c0458c3aad97ce94b7be26b44f1d61fdfef1482ba67369197cb80a09367.json\" ./cmd/gomad/internal/cli -run TestAnalyzeSourceActualOwnerClassification",
+    "cd \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current/temporal/tools/gomad3\" && go test -json -count=1 -tags test_dep -overlay \"/Users/stephan/Workspace/skunkworks/.gomad-fn1098-source-NJyCnk/current-caller-overlay.json\" ./cmd/gomad/internal/cli -run \"TestRunAnalyzeForwardsTargetAndClassifiesReport|TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput\"",
+    "test -z \"$(gofmt -l tools/gomad3/architecture_test.go tools/gomad3/cmd/gomad/internal/cli/analyze.go tools/gomad3/cmd/gomad/internal/cli/analyze_source_test.go tools/gomad3/cmd/gomadtool/compatibility_pack.go tools/gomad3/cmd/gomadtool/compatibility_pack_source_test.go tools/gomad3/internal/preparation/inspection.go tools/gomad3/internal/preparation/inspection_source_test.go tools/gomad3/target/capability.go tools/gomad3/target/capability_source_test.go)\" && git diff --check"
+  ],
+  "prs": [],
+  "review_receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/conductor-source-acceptance-20261008/review-receipt.json",
+  "source_evidence": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/source-acceptance-20261008/evidence.json",
+  "audit": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/conductor-source-acceptance-20261008/initial-evidence-audit.md",
+  "native": {
+    "darwin": "deferred/unverified fn149",
+    "linux": "deferred/unverified fn128"
+  }
+}
