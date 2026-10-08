@@ -1,0 +1,40 @@
+{
+  "commits": [
+    "ff46296b533fa072891b5f634729fae1ad7ac021"
+  ],
+  "base_commit": "2c183e6e1d7da96094f08e241e9333e5f27cabb5",
+  "tests": [
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestMissingPackActivationSumIsUnknown|TestPackActivationSumControls|TestKnownPackActivationExclusionWinsOverMissingSum|TestPackRuleExclusionWinsOverUnknownActivation|TestPackActivationGraphUnknownRetainsReason|TestPackRootLoadErrorsArePathFree|TestMissingExplicitPackRootSelectsNoPacks|TestExplicitPackRootOverridesEnvironmentAndRetainsReports|TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport|TestAdapterModuleSumRecords|TestPackOnlyDuplicateSumRemainsSelected|TestAdaptedPackDuplicateSumIsInvalidated|TestUnchangedModuleInvalidatesNothing|TestCommittedBumpKeepsTheStrandedPackInvalidated|TestMissingCandidateModuleSumIsUnknown|TestRemovedModules|TestIndirectOnlyBump|TestUnknownPinsCountAsInvalidated|TestInvalidInputAndResolutionFailures|TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure|TestGoResolverSelectsTheModuleGraphOutsideTheModule|TestGoResolverReportsUnavailableModulesAsInfrastructureFailures|TestMissingPackRuleSumIsUnknown|TestPackRuleSumControls|TestPortableFixturePinDecisions)$' ./upgrade/pinimpact [exit=0; portable-pinimpact]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords)$' ./deterministicio [exit=0; portable-registry]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json ./cmd/gomadtool ./upgrade ./internal/compatibilitypack/... [exit=0; cli-and-upgrade-and-packs]",
+    "make -C tools/gomad3 validate [exit=0; validate]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$' . [exit=0; architecture]",
+    "go -C tools/gomad3 vet -tags test_dep ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; vet]",
+    "go -C tools/gomad3 vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; errortype]",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=1; lint-base]",
+    "cd tools/gomad3 && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=1; lint-final]",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=2c183e6e1d7da96094f08e241e9333e5f27cabb5 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 ERRORTYPE=/tmp/fn109-lint-tools.ZdNe1t50/errortype ALL_TEST_TAGS=test_dep [exit=0; lint-fast]",
+    "test -z \"$(gofmt -l tools/gomad3/deterministicio/adapter_pin_decisions_test.go tools/gomad3/upgrade/pinimpact/portable_fixtures_test.go tools/gomad3/cmd/gomadtool/pin_impact_diagnostics_test.go tools/gomad3/cmd/gomadtool/pin_impact.go)\" [exit=0; format]",
+    "git diff --check [exit=0; diff-check]",
+    "go -C tools/gomad3 list -tags test_dep -json ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; static-darwin-arm64]",
+    "go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; vet-darwin-arm64]",
+    "go -C tools/gomad3 list -tags test_dep -json ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; static-linux-amd64]",
+    "go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; vet-linux-amd64]",
+    "go -C tools/gomad3 list -tags test_dep -json ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; static-linux-arm64]",
+    "go -C tools/gomad3 vet -tags test_dep ./upgrade/pinimpact ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=0; vet-linux-arm64]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-report-adapter-jLX4fM/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact [exit=1; counterfactual-report-adapter]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-version-Z8oukr/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio [exit=1; counterfactual-registry-version]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-replacement-2xiGjn/overlay.json' -run '^TestAdapterRegistryPortablePinDecisions$' ./deterministicio [exit=1; counterfactual-registry-replacement]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-registry-sum-WpLB1J/overlay.json' -run '^(TestAdapterRegistryPortablePinDecisions|TestAdapterModuleSumRecords)$' ./deterministicio [exit=1; counterfactual-registry-sum]",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -json -overlay='/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-pack-replacement-uzc4Az/overlay.json' -run '^TestPortableFixturePinDecisions$' ./upgrade/pinimpact [exit=1; counterfactual-pack-replacement]",
+    "cd '/Users/stephan/Workspace/skunkworks/.gomad-source-gates-UsyTMX/fn1131-base-lint-k0ebNZ/worktree/tools/gomad3' && /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --fix=false --build-tags=test_dep --timeout=10m --config=../../.github/.golangci.yml --path-mode=abs --max-issues-per-linter=0 --max-same-issues=0 ./upgrade/... ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... [exit=1; lint-base-clean-worktree]"
+  ],
+  "prs": [],
+  "files": [
+    "tools/gomad3/cmd/gomadtool/pin_impact.go",
+    "tools/gomad3/cmd/gomadtool/pin_impact_diagnostics_test.go",
+    "tools/gomad3/deterministicio/adapter_pin_decisions_test.go",
+    "tools/gomad3/upgrade/pinimpact/portable_fixtures_test.go",
+    "MILESTONES.md"
+  ]
+}
