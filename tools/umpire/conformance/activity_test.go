@@ -36,6 +36,18 @@ func activityModel(t testing.TB) *umpirespb.Model {
 	return m
 }
 
+// realizationNamed is the realization a Model declares under a name: a Model declares several.
+func realizationNamed(t testing.TB, m *umpirespb.Model, name string) *umpirespb.Realization {
+	t.Helper()
+	for _, r := range m.GetRealizations() {
+		if r.GetName() == name {
+			return r
+		}
+	}
+	require.FailNow(t, "no realization "+name)
+	return nil
+}
+
 // loweredActivity is one Query of the activity Model lowered to its Case, prepared as a black-box
 // consumer prepares it, with the Query's assessment bound to it.
 func loweredActivity(t testing.TB, m *umpirespb.Model, query string) *bound {
@@ -225,7 +237,7 @@ func TestEvidenceOfTheRunsRecordIsReadOnlyFromAnEventItsSourceTakes(t *testing.T
 		// attempt, which is an error at that event, and not a guard that does not hold.
 		"a guard that cannot be evaluated on the event": {
 			model: func(m *umpirespb.Model) {
-				for _, e := range m.GetRealizations()[0].GetEvidence() {
+				for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
 					if e.GetId() == started {
 						e.GetRunEvent().Kind, e.GetRunEvent().Attempt = umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
 						all := e.GetRunEvent().GetGuard().GetAll()

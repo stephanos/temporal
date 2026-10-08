@@ -19,7 +19,7 @@ func activitySource(t testing.TB, kind string) *umpirespb.RunEventSource {
 	t.Helper()
 	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
 	require.NoError(t, err)
-	for _, e := range m.GetRealizations()[0].GetEvidence() {
+	for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
 		if e.GetId() == activityEvidence+kind {
 			require.NotNil(t, e.GetRunEvent(), "%s is the Run's own record", kind)
 			return e.GetRunEvent()

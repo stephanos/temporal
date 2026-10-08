@@ -169,7 +169,7 @@ func TestPerformedStepOutcomeMatchesItsRunInstructionResult(t *testing.T) {
 
 	// The expected code comes from this realization's metadata. Changing that sole source changes
 	// the comparison without a Go-side rejection table.
-	for _, entry := range m.GetRealizations()[0].GetRejectionCodes() {
+	for _, entry := range realizationNamed(t, m, "standalone").GetRejectionCodes() {
 		if entry.GetRejection() == umpirespb.RejectionCode_REJECTION_NOT_FOUND {
 			entry.GrpcCode = "RESOURCE_EXHAUSTED"
 		}

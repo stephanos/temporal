@@ -98,16 +98,29 @@ func apiWalk(md protoreflect.MessageDescriptor, path string) (protoreflect.Field
 	return fd, nil
 }
 
-// apiActivityIR is a copy of the standalone activity's IR, whose realization polls the activity's status
-// for every terminal value and PAUSED, and whose Run Event guards test the instruction's outcome, a
-// field of the run's own record that no count includes.
+// apiActivityIR is a copy of the standalone activity's IR with its standalone realization alone,
+// which polls the activity's status for every terminal value and PAUSED, and whose Run Event guards
+// test the instruction's outcome, a field of the run's own record that no count includes.
 func apiActivityIR(t *testing.T) (*umpirespb.Model, *umpirespb.Realization) {
 	t.Helper()
 	m, err := ir.Load("../../../model/ir/activity-standalone.json")
 	require.NoError(t, err)
 	m = proto.Clone(m).(*umpirespb.Model)
-	require.Len(t, m.GetRealizations(), 1)
-	return m, m.GetRealizations()[0]
+	r := realizationNamed(t, m, "standalone")
+	m.Realizations = []*umpirespb.Realization{r}
+	return m, r
+}
+
+// realizationNamed is the realization a Model declares under a name: a Model declares several.
+func realizationNamed(t testing.TB, m *umpirespb.Model, name string) *umpirespb.Realization {
+	t.Helper()
+	for _, r := range m.GetRealizations() {
+		if r.GetName() == name {
+			return r
+		}
+	}
+	require.FailNow(t, "no realization "+name)
+	return nil
 }
 
 func apiTallyOf(t *testing.T, ir *umpirespb.Model, lowering Lowering) Tally {

@@ -11,6 +11,18 @@ import (
 
 const activitySystemIR = "../../../model/ir/activity-standalone-record.json"
 
+// realizationNamed is the realization a Model declares under a name: a Model declares several.
+func realizationNamed(t testing.TB, m *umpirespb.Model, name string) *umpirespb.Realization {
+	t.Helper()
+	for _, r := range m.GetRealizations() {
+		if r.GetName() == name {
+			return r
+		}
+	}
+	require.FailNow(t, "no realization "+name)
+	return nil
+}
+
 // recounted is m with each Query that asserts a total asserting m's count (WithTotals).
 func recounted(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
 	t.Helper()

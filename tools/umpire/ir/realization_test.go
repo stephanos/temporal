@@ -668,7 +668,7 @@ func TestARealizationWithABrokenEnvelopeIsStillReadWhole(t *testing.T) {
 func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 	const started = "temporal.features.activity.standalone.system.evidence.statusStarted"
 	source := func(t *testing.T, m *umpirespb.Model) *umpirespb.RunEventSource {
-		for _, e := range m.GetRealizations()[0].GetEvidence() {
+		for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
 			if e.GetId() == started {
 				e.GetRunEvent().Attempt = &umpirespb.AttemptOf{Script: "attempts", Number: 1}
 				return e.GetRunEvent()
@@ -691,7 +691,7 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 		"an attempt counted from below one": {func(_ *umpirespb.Model, s *umpirespb.RunEventSource) { s.GetAttempt().Number = 0 },
 			"evidence " + started + " is the record of attempt 0 of script attempts; the attempts of an activity are counted from one"},
 		"an attempt of a script that starts with no delivery": {func(m *umpirespb.Model, _ *umpirespb.RunEventSource) {
-			for _, s := range m.GetRealizations()[0].GetScripts() {
+			for _, s := range realizationNamed(t, m, "standalone").GetScripts() {
 				if s.GetActivity() != nil {
 					s.GetActivity().Starts = nil
 				}
