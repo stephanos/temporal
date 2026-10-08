@@ -429,7 +429,9 @@ its assumptions is read.
 A Property belongs to a machine or a composition. A same-step Property holds of the step record of
 each step it is about: every step, the steps of one class (`when_class`), or the steps of every class
 of one action (`when_action`). A transition Property (`transition`) holds of the state before a step
-and the step record.
+and the step record, under the same optional class or action selector. Verification applies that
+selector before reading the predicate or marking the Property exercised. An unrelated step remains
+part of the explored path but neither reads nor exercises the Property.
 
 A Property of a composition is about composed classes. Its `when_class` is the class keyed by the
 action's name followed by the inputs, which a sync named as the action it takes spells; its
@@ -449,9 +451,26 @@ an outcome and facts by name. Two Properties, Scenarios or Queries under one key
 Definition ID.
 
 A Query with `through` is answered only where that refinement holds: over a refinement that is
-rejected its result is the rejection. Only a `verify` reads through a refinement, and a transition
-Property is about every step, so a `find` with `through` and a transition Property with a `when` are
-unsupported.
+rejected its result is the rejection. Only a `verify` reads through a refinement; a `find` with
+`through` is unsupported. A `find` of a transition Property and transition lowering to a Case remain
+refused.
+
+The typed Retries capability binds one failure class and its constant retryable classification,
+named state reads for eligibility, count and policy maximum, and optional pending pause and cancel
+reads. Eligibility reads the state before failure. Fatal failure lands in Failed. Retryable pending
+cancellation lands in Canceled even at exhaustion; otherwise exhaustion lands in Failed, an eligible
+pending pause in Suspended, and an ordinary eligible retry in Waiting. Absent pending-control reads
+bring no control-branch Property and require no control role. Waiting and Failed are required;
+Held and Pollable are not. A policy maximum of `Some(n)` bounds the resulting count by `n`; `None`
+is explicit unlimited policy and makes no finite-maximum claim about the count's representation.
+The maximum's optional numeric value uses the existing finite `UpTo[N]` catalog. `N` bounds that
+catalog, independently of the supplied policy maximum and the attempt count's domain.
+
+Each Retries declaration brings its own Properties and free verify Queries under
+`<machine>.<val>.<property>`, retaining their companion origin. Fields bind first to that declaration.
+A bound override for a companion Property reaches every instance; a claim or waiver that names an
+ambiguous repeated companion Property is refused. Existing capability names and identities stay
+unchanged.
 
 A Property's and a Scenario's Definition ID is formed from the family and the name alone, so two
 machines of one family that each declare a claim of one name share it. A result names a claim by its
@@ -823,8 +842,9 @@ Machines, Channels and Holes, `tools/umpire/ir.Validate` applies the [Admission]
 calling `realization` for realization admission. `tools/umpire/check.Check` binds
 monitors, assumptions, compositions, Claims and progress claims to the private table engine and
 gives each declaration one of the [Results](#results). What `Check` does not answer it reports as
-`unsupported`: a Query over a composition a member of which names monitors, a `find` with `through`,
-and a transition Property with a `when`.
+`unsupported`: a Query over a composition a member of which names monitors and a `find` with
+`through`. A `find` of a transition Property remains a declaration error. Transition verify supports
+class and action selectors and preserves the before-state when it reads a selected step.
 
 `tools/umpire/lower` lowers a find Query through its [realization](#realizations) into a Testpilot Case
 with its private producer. The Query it gives the producer is the one `Check` answers,

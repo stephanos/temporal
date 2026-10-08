@@ -137,6 +137,8 @@ class Fixtures extends munit.FunSuite:
     "capabilitySections" -> (Seq("Task", "Chore", "TaskPair", "MirrorPair")
       .map(o => s"fixture.capabilitysections.$o$$.capabilities") :+
       "fixture.capabilitysections.Task$.queries"),
+    "retryCapabilities" -> Seq("WaitingFailures", "ControlledFailures")
+      .map(o => s"fixture.retrycapabilities.$o$$.capabilities"),
     // fn-135.2: `is { }` vals and their def twins (lifts/Blocks.scala).
     "blocks" -> Seq("Blocked", "Defined").flatMap(o =>
       Seq(s"fixture.blocks.$o$$.capabilities", s"fixture.blocks.$o$$.queries")
@@ -2263,6 +2265,111 @@ class Fixtures extends munit.FunSuite:
     for p <- model.path("properties").elements().asScala do
       assertEquals(p.path("origin").path("position").path("file").asText(), at)
       assertEquals(p.path("position").path("file").asText(), at)
+
+  test("Retries instances bind their own fields and generate bounded free transition verifies"):
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("retryCapabilities"))
+    val properties = model.path("properties").elements().asScala.toSeq
+    val names = properties.map(_.path("name").asText()).toSet
+    val ordinary = Set("attemptCountIsWithinPolicy", "failureEndsFailed", "failureReturnsToWaiting")
+    val controlled = ordinary ++ Set("failurePauses", "failureCancels")
+    val expected =
+      (for instance <- Set("eligible", "network"); property <- ordinary
+      yield s"waitingFailures.$instance.$property") ++
+        (for instance <- Set("eligible", "fatal"); property <- controlled
+        yield s"controlledFailures.$instance.$property") ++
+        Set("waitingFailures.terminalStatesAreFinal", "waitingFailures.closedIsRejectedUniformly")
+    assertEquals(names, expected)
+    for
+      p <- properties if !p.path("name").asText().startsWith("waitingFailures.terminal") &&
+        !p.path("name").asText().endsWith("closedIsRejectedUniformly")
+    do
+      val property = p.path("name").asText().split('.').last
+      assertEquals(
+        p.path("origin").path("name").asText(),
+        s"temporal.capabilities.Retries.$property"
+      )
+      if property.startsWith("failure") then
+        assert(p.path("transition").asBoolean())
+        assert(p.has("whenClass"))
+    val scenarios = model.path("scenarios").elements().asScala.toSeq
+    assertEquals(scenarios.map(_.path("name").asText()).toSet, expected)
+    for s <- scenarios do
+      assert(s.path("free").asBoolean())
+      assert(!s.has("actions"))
+    val queries = model.path("queries").elements().asScala.toSeq
+    assertEquals(queries.map(_.path("name").asText()).toSet, expected)
+    for q <- queries do
+      assertEquals(q.path("form").asText(), "FORM_VERIFY")
+      assert(!q.has("expectedRun"))
+      val steps = if q.path("name").asText().endsWith("failureReturnsToWaiting") then 2 else 3
+      assertEquals(q.path("limits").path("steps").asInt(), steps)
+      val slots = if q.path("name").asText().startsWith("waitingFailures.") then 54L else 240L
+      assertEquals(q.path("total").asText().toLong, slots * steps)
+    val functions = model
+      .path("functions")
+      .elements()
+      .asScala
+      .toSeq
+      .map(f => f.path("name").asText() -> f)
+      .toMap
+    for (instance, count, maximum) <- Seq(
+        ("eligible", "attempts", "maxOne"),
+        ("network", "otherAttempts", "unlimited")
+      )
+    do
+      val property = properties
+        .find(
+          _.path("name").asText() ==
+            s"waitingFailures.$instance.attemptCountIsWithinPolicy"
+        )
+        .get
+      val read =
+        functions(property.path("holds").asText()).findValuesAsText("function").asScala.toSet
+      assert(read.exists(_.endsWith(s"WaitingSteps$$.$count")), read.toString)
+      assert(read.exists(_.endsWith(s"WaitingSteps$$.$maximum")), read.toString)
+    val selected = properties.filter(p =>
+      p.path("name").asText().startsWith("waitingFailures.") &&
+        p.path("name").asText().endsWith("failureEndsFailed")
+    )
+    assertEquals(selected.map(_.path("whenClass").path("action").asText()).toSet.size, 2)
+
+  test(
+    "Retries declarations refuse missing roles and invalid or ambiguous bindings at their lines"
+  ):
+    val cases = Seq(
+      ("NoPhase", "capabilities", "noPhase", "no phase"),
+      ("NoWaiting", "capabilities", "noWaiting", "Waiting"),
+      ("NoFailed", "capabilities", "noFailed", "Failed"),
+      ("NoSuspended", "capabilities", "noSuspended", "Suspended"),
+      ("NoCanceled", "capabilities", "noCanceled", "Canceled"),
+      ("UnboundFailure", "capabilities", "unboundFailure", "failure"),
+      ("UnnamedCount", "capabilities", "unnamedCount", "attemptCount"),
+      ("UnnamedPause", "capabilities", "unnamedPause", "pendingPause"),
+      ("MalformedPause", "capabilities", "malformedPause", "pendingPause"),
+      ("ComputedClassification", "capabilities", "computedClassification", "retryable"),
+      ("AmbiguousWaiver", "capabilities", "ambiguousWaiver", "ambiguous"),
+      ("AmbiguousClaim", "queries", "ambiguousClaim", "ambiguous"),
+      ("AmbiguousForeign", "capabilities", "ambiguousForeign", "shared")
+    )
+    for (root, section, machine, field) <- cases do
+      val out = lifted(s"retry-refused-$root")
+      val ran = lift(
+        liftsJars,
+        modelClasspath.toString,
+        out.toString,
+        s"fixture.retrycapabilityrejects.$root$$.$section"
+      )
+      assertNotEquals(ran.exit, 0, ran.diagnostics)
+      assert(!Files.exists(out))
+      val errors = refused(ran)
+      assertEquals(errors.size, 1, ran.diagnostics)
+      val error = errors.head
+      assert(
+        error.matches("lift: model/irgen/testdata/lifts/RetryCapabilityRejects.scala:[0-9]+: .*"),
+        error
+      )
+      assert(error.contains(machine), error)
+      assert(error.contains(field), error)
 
   test("every rejected declaration is refused at its line, and no IR is written"):
     expect("rejects.txt", rejections())

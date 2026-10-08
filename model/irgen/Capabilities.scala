@@ -36,8 +36,45 @@ private[irgen] trait Capabilities:
       fieldTypes: Map[String, TypeRepr],
       types: Map[String, TypeRepr],
       at: Term,
-      companion: Symbol
-  )
+      companion: Symbol,
+      declaration: String
+  ):
+    def instanced: Boolean = fieldTypes.values.exists(optionalFunctionType)
+
+  private def optionalFunctionType(tpe: TypeRepr): Boolean =
+    isNamed(tpe, "scala.Option") && tpe.dealias.typeArgs.headOption.exists(_.dealias.isFunctionType)
+
+  private def optionalFunction(machine: String, d: Declared, field: String): Option[Term] =
+    def read(t: Term): Option[Term] = plain(t) match
+      case r: Ref if r.symbol == noneModule => None
+      case Apply(TypeApply(Select(some, "apply"), _), List(value)) if some.symbol == someModule =>
+        Some(plain(value))
+      case other if other.symbol.name.contains("$default$") =>
+        defs.get(other.symbol) match
+          case Some(DefDef(_, _, _, Some(body))) => read(body)
+          case _ => fail(other, s"$field of ${d.kind} on $machine has no lifted default")
+      case other =>
+        fail(
+          other,
+          s"$field of ${d.kind} on $machine binds `Some(<named def>)` or `None`, not ${other.show}"
+        )
+    read(d.fields(field))
+
+  private def constructorRoles(d: Declared): Set[String] =
+    d.companion.companionClass.primaryConstructor.paramSymss.flatten.flatMap { p =>
+      p.tree match
+        case v: ValDef if isNamed(v.tpt.tpe, "scala.reflect.TypeTest") =>
+          v.tpt.tpe.dealias.typeArgs.lastOption.map(_.dealias.typeSymbol.fullName)
+        case _ => None
+    }.toSet
+
+  private def constantBoolean(t: Term, seen: Set[Symbol] = Set.empty): Boolean = plain(t) match
+    case Literal(BooleanConstant(_))                                    => true
+    case r: Ref if !seen(r.symbol) && !r.symbol.flags.is(Flags.Mutable) =>
+      defs.get(r.symbol) match
+        case Some(ValDef(_, _, Some(value))) => constantBoolean(value, seen + r.symbol)
+        case _                               => false
+    case _ => false
 
   // A capability Property waiver: `except(property, because)` or `overriding(property -> def, …)`.
   final private case class Waived(kind: String, property: Term, by: Option[Term], because: Term)
@@ -86,8 +123,10 @@ private[irgen] trait Capabilities:
   // A capability Property: a def of a capability kind's companion that takes the model, then fields
   // of the capabilities that bring it, and gives a Property. `kind` is its companion's name.
   final private case class Brought(property: DefDef, kind: String, bringing: Seq[Declared]):
-    def name: String = property.name
-    def written: String = s"$kind.$name"
+    def name: String =
+      if bringing.head.instanced then s"${bringing.head.declaration}.${property.name}"
+      else property.name
+    def written: String = s"$kind.${property.name}"
 
   // What a section's body and the classes of the lifted sources it extends declare: each
   // capability's val, the waivers they state, and the parameters of those classes bound to the
@@ -190,7 +229,7 @@ private[irgen] trait Capabilities:
             s"section declares each capability as a val of its machine's, `val ${v.name}: " +
             "Capability = ...`"
         )
-      v -> declaredOf(v.rhs.getOrElse(fail(v, s"${v.name} declares no capability")))
+      v -> declaredOf(v.rhs.getOrElse(fail(v, s"${v.name} declares no capability")), v.name)
     }
     for (_, twice) <- declared.groupBy(_._2.key) if twice.size > 1 do
       fail(
@@ -213,7 +252,8 @@ private[irgen] trait Capabilities:
         .flatMap(p => fieldParameters(p.property).drop(1).map(_.name))
         .filter(d.fields.contains)
         .toSet
-      checked(machine, d, used, env, projection)
+      val roles = brought.filter(_.bringing.head == d).flatMap(p => readRoles(p.property)).toSet
+      checked(machine, d, used, env, projection, roles)
 
     val excepted = mutable.Set.empty[String]
     val overridden = mutable.Map.empty[String, (Symbol, Term)]
@@ -332,6 +372,12 @@ private[irgen] trait Capabilities:
     val brought = for
       d <- ds
       p <- propertiesOf(d)
+      if fieldParameters(p)
+        .drop(1)
+        .forall(f =>
+          !d.fieldTypes.get(f.name).exists(optionalFunctionType) ||
+            f.symbol.flags.is(Flags.HasDefault) || optionalFunction(machine, d, f.name).nonEmpty
+        )
       fields = fieldParameters(p).drop(1).map(_.name)
       roles = readRoles(p)
       if {
@@ -343,7 +389,11 @@ private[irgen] trait Capabilities:
               s"fields of the capabilities that bring it, its own among them; ${d.kind} binds " +
               d.fields.keys.toSeq.sorted.mkString(", ")
           )
-        val holders = fields.map(f => f -> ds.filter(_.fields.contains(f)))
+        val holders = fields.map(f =>
+          f ->
+            (if d.instanced && d.fields.contains(f) then Seq(d)
+             else ds.filter(_.fields.contains(f)))
+        )
         for (f, hs) <- holders if hs.size > 1 do
           fail(
             hs(1).at,
@@ -358,13 +408,17 @@ private[irgen] trait Capabilities:
               ds.map(d => s"${d.kind} (${d.fields.keys.toSeq.sorted.mkString(", ")})")
                 .mkString(", ")
           )
-        holders.forall(_._2.size == 1) && roles.forall(r =>
-          ds.exists(d => ownedRoles(d.companion, d.at)(r))
-        )
+        holders.forall(_._2.size == 1) && ((d.instanced && fields.exists(
+          d.fields.contains
+        )) || roles.forall(r => ds.exists(d => ownedRoles(d.companion, d.at)(r))))
       }
     yield
-      val others = (fields.flatMap(f => ds.filter(_.fields.contains(f))) ++
-        ds.filter(d => (ownedRoles(d.companion, d.at) & roles).nonEmpty)).distinct.filterNot(_ == d)
+      val roleOwners = if d.instanced && fields.exists(d.fields.contains) then Seq.empty
+      else ds.filter(d => (ownedRoles(d.companion, d.at) & roles).nonEmpty)
+      val others = (fields
+        .filterNot(f => d.instanced && d.fields.contains(f))
+        .flatMap(f => ds.filter(_.fields.contains(f))) ++
+        roleOwners).distinct.filterNot(_ == d)
       Brought(p, d.kind, d +: others)
     for (name, twice) <- brought.groupBy(_.name) if twice.size > 1 do
       fail(
@@ -388,7 +442,14 @@ private[irgen] trait Capabilities:
         s"${w.kind} names a capability Property, `<Capability>.<property>`, not ${w.property.show}"
       )
     )
-    brought.find(_.property.symbol == sym).getOrElse {
+    val matching = brought.filter(_.property.symbol == sym)
+    if matching.size > 1 then
+      fail(
+        w.property,
+        s"${w.kind} of $machine is ambiguous: ${matching.head.written} is brought by " +
+          matching.map(_.bringing.head.declaration).mkString(", ")
+      )
+    matching.headOption.getOrElse {
       val kind = sym.maybeOwner.name.stripSuffix("$")
       fail(
         w.property,
@@ -421,20 +482,19 @@ private[irgen] trait Capabilities:
         def bounds(t: Term) = fold(plain(t), Map.empty) match
           case Decl.Bounds(l) => l
           case other          => fail(t, s"expected Limits, got $other")
-        val overriding = overrides.map { o =>
+        val overriding = overrides.flatMap { o =>
           val (property, l) = arrowPair(o, "bound overrides `<Capability>.<property> -> limits`")
           val sym = etaDef(property).getOrElse(
             fail(property, s"bound overrides a capability Property, not ${property.show}")
           )
           val written = s"${sym.maybeOwner.name.stripSuffix("$")}.${sym.name}"
-          val p = brought
-            .find(_.property.symbol == sym)
-            .getOrElse(
-              fail(property, s"$machine is brought no $written, so it has no Query to bound")
-            )
-          if excepted(p.name) then
+          val matching = brought.filter(_.property.symbol == sym)
+          if matching.isEmpty then
+            fail(property, s"$machine is brought no $written, so it has no Query to bound")
+          if matching.exists(p => excepted(p.name)) then
             fail(property, s"$machine waives $written with except, so it has no Query to bound")
-          p.name -> bounds(l)
+          val limits = bounds(l)
+          matching.map(p => p.name -> limits)
         }
         for (name, twice) <- overriding.groupBy(_._1) if twice.size > 1 do
           fail(statement, s"bound overrides $name twice: a capability Property is bounded once")
@@ -486,7 +546,19 @@ private[irgen] trait Capabilities:
         s"claim names a capability Property, `<Capability>.<property>`, not ${property.show}"
       )
     )
-    val name = s"$machine.${sym.name}"
+    val matching = properties.values
+      .filter(p =>
+        p.machine == machine &&
+          p.origin.exists(_.name == qualifiedName(sym, property))
+      )
+      .toSeq
+    if matching.size > 1 then
+      fail(
+        property,
+        s"claim of $machine is ambiguous: ${sym.name} is generated as " +
+          matching.map(_.name).sorted.mkString(", ")
+      )
+    val name = matching.headOption.map(_.name).getOrElse(s"$machine.${sym.name}")
     if !properties.contains((machine, name)) then
       fail(
         property,
@@ -525,7 +597,7 @@ private[irgen] trait Capabilities:
     case _ => None
 
   // A capability, from its constructor's call: its kind, its fields' arguments and its type arguments.
-  private def declaredOf(t: Term): Declared =
+  private def declaredOf(t: Term, declaration: String): Declared =
     val term = arguments(plain(t))
     val cls = term.tpe.widen.dealias.typeSymbol
     if !capabilityKind(cls.companionModule) then
@@ -539,14 +611,17 @@ private[irgen] trait Capabilities:
       case _ => fail(term, s"a capability is built by its constructor, not ${term.show}")
     val names = cls.caseFields.map(_.name)
     val typeParams = cls.primaryConstructor.paramSymss.headOption.toList.flatten.filter(_.isType)
+    val fields = fieldTypes(cls).toMap
+    val instanced = fields.values.exists(optionalFunctionType)
     Declared(
       cls.name,
-      cls.companionModule.fullName,
+      cls.companionModule.fullName + (if instanced then s".$declaration" else ""),
       names.zip(args).toMap,
-      fieldTypes(cls).toMap,
+      fields,
       typeParams.map(_.name).zip(term.tpe.widen.dealias.typeArgs).toMap,
       t,
-      cls.companionModule
+      cls.companionModule,
+      declaration
     )
 
   // Refuses a field read by a brought Property when its function is not a def of the lifted
@@ -557,9 +632,34 @@ private[irgen] trait Capabilities:
       d: Declared,
       used: Set[String],
       env: Map[Symbol, Decl],
-      projection: Option[Term]
+      projection: Option[Term],
+      read: Set[String]
   ): Unit =
-    val roles = ownedRoles(d.companion, d.at)
+    def checkFields(): Unit =
+      for (field, a) <- d.fields if used(field) do
+        val function = d.fieldTypes
+          .get(field)
+          .filter(optionalFunctionType)
+          .fold(Option.when(d.fieldTypes.get(field).exists(_.dealias.isFunctionType))(a))(_ =>
+            optionalFunction(machine, d, field)
+          )
+        for value <- function if forwardedDef(value).isEmpty do
+          val owner = s"$field of ${d.kind}" + (if d.instanced then s" on $machine" else "")
+          fail(
+            value,
+            s"$owner names a def of the lifted sources, which the lifter binds, not " +
+              s"${value.show}: declare it as `def $field(...)` and pass that"
+          )
+        val tpe = d.fieldTypes.get(field)
+        if d.instanced && tpe.exists(isNamed(_, "scala.Boolean")) && !constantBoolean(a) then
+          fail(
+            a,
+            s"$field of ${d.kind} on $machine is a constant Boolean classification, not ${a.show}"
+          )
+        if tpe.exists(actionType) then boundAction(machine, a, s"$field of ${d.kind}", env)
+        if tpe.exists(isNamed(_, "java.lang.String")) then textOf(fold(a, env), a): Unit
+    if d.instanced then checkFields()
+    val roles = if d.instanced then constructorRoles(d) ++ read else ownedRoles(d.companion, d.at)
     if roles.nonEmpty then
       val phaseProjection = projection.getOrElse(
         fail(
@@ -570,16 +670,7 @@ private[irgen] trait Capabilities:
       val phase = lambda(phaseProjection).get._2.tpe
       for role <- roles.toSeq.sorted do
         roleSet(phase, Symbol.requiredClass(role).typeRef, phaseProjection, Some(machine)): Unit
-    for (field, a) <- d.fields if used(field) do
-      if d.fieldTypes.get(field).exists(_.dealias.isFunctionType) && forwardedDef(a).isEmpty then
-        fail(
-          a,
-          s"$field of ${d.kind} names a def of the lifted sources, which the lifter binds, not " +
-            s"${a.show}: declare it as `def $field(...)` and pass that"
-        )
-      val tpe = d.fieldTypes.get(field)
-      if tpe.exists(actionType) then boundAction(machine, a, s"$field of ${d.kind}", env)
-      if tpe.exists(isNamed(_, "java.lang.String")) then textOf(fold(a, env), a): Unit
+    if !d.instanced then checkFields()
     if used.exists(field => d.fieldTypes.get(field).exists(actionType)) then
       for (field, a) <- d.fields if d.fieldTypes.get(field).exists(pathType) do
         for step <- reached(a) do boundAction(machine, step, s"$field of ${d.kind}", env)
@@ -700,10 +791,37 @@ private[irgen] trait Capabilities:
         s"$propertyName takes no model: a capability Property takes the model, then capability fields"
       )
     )
-    val bound = params.tail.map { p =>
-      val holders = bringing.filter(_.fields.contains(p.name))
+    val absent = mutable.Map.empty[Symbol, Term]
+    val bound = params.tail.flatMap { p =>
+      val own = bringing.head
+      val holders = if own.instanced && own.fields.contains(p.name) then Seq(own)
+      else bringing.filter(_.fields.contains(p.name))
       holders match
-        case Seq(d) => (p, d.fields(p.name))
+        case Seq(d) if d.fieldTypes.get(p.name).exists(optionalFunctionType) =>
+          optionalFunction(machine, d, p.name) match
+            case Some(value) => Some(p -> value)
+            case None        =>
+              val original = fieldParameters(replaced).find(_.name == p.name).get
+              val index = fieldParameters(replaced).indexOf(original) + 1
+              val getter = replaced.symbol.maybeOwner
+                .methodMember(s"${replaced.name}$$default$$$index")
+                .flatMap(defs.get)
+                .collectFirst { case d: DefDef => d }
+                .getOrElse(fail(at, s"${p.name} of $propertyName on $machine has no named default"))
+              val helper = getter.rhs
+                .flatMap(forwardedDef)
+                .flatMap(defs.get)
+                .collect { case d: DefDef => d }
+                .getOrElse(fail(at, s"${p.name} of $propertyName on $machine names no default def"))
+              helper.rhs match
+                case Some(value @ Literal(BooleanConstant(false))) => absent(p.symbol) = value
+                case _                                             =>
+                  fail(
+                    at,
+                    s"${p.name} of $propertyName on $machine defaults to a named false predicate"
+                  )
+              None
+        case Seq(d) => Some(p -> d.fields(p.name))
         case Seq()  =>
           fail(
             at,
@@ -725,7 +843,18 @@ private[irgen] trait Capabilities:
       bringing.flatMap(_.types.get(tp.name)).headOption.map(tp.symbol -> _)
     }.toMap
     val bindings = (modelParam -> model) :: bound.map((p, a) => p -> a)
-    generating(name)(bodyOf(statement, bindings, types, env, None, phasings)) match
+    val normalized = new TreeMap:
+      override def transformTerm(term: Term)(owner: Symbol): Term = term match
+        case Apply(Select(value: Ref, "apply"), _) if absent.contains(value.symbol) =>
+          absent(value.symbol)
+        case other => super.transformTerm(other)(owner)
+    val expanded = DefDef.copy(statement)(
+      statement.name,
+      statement.paramss,
+      statement.returnTpt,
+      statement.rhs.map(body => normalized.transformTerm(body)(statement.symbol))
+    )
+    generating(name)(bodyOf(expanded, bindings, types, env, None, phasings)) match
       case Decl.Claim(ref) if ref.machine == machine && ref.name == name => ()
       case other                                                         =>
         fail(
@@ -734,7 +863,7 @@ private[irgen] trait Capabilities:
         )
     val property = properties((machine, name))
     val start = declaredStart(machine, name, at)
-    val scenario = property.when.whenClass match
+    val scenario = (if property.transition then None else property.when.whenClass) match
       case None         => ir.Scenario(machine, name, Some(pos(at)), Some(start), free = true)
       case Some(class_) =>
         if machineNamed(machine).isEmpty then
