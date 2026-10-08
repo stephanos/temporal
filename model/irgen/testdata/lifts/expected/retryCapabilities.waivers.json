@@ -1,4 +1,0 @@
-{
-  "machines": [ "controlledFailures", "waitingFailures" ],
-  "waivers": [ ]
-}
